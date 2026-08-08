@@ -1,0 +1,32 @@
+# Project
+.env*
+!.env.example
+node_modules/
+dist/
+build/
+coverage/
+logs/
+*.log
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+
+# IDEs and AI
+.idea/
+.vscode/
+.remember/
+
+# Dependency directories
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test and temp files
+*.test.ts.snap
+*.swp
+*.swo
+*.tmp
+*.cache
