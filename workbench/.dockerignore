@@ -1,0 +1,35 @@
+# Read out of band by the builder
+Dockerfile
+.dockerignore
+
+# Docs
+**/*.md
+**/docs
+
+# Locally compiled helper
+run-as-environment
+
+# Python
+**/__pycache__
+**/*.py[cod]
+**/.venv
+**/*.egg-info
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+
+# Node
+**/node_modules
+**/dist
+**/build
+
+# Secrets
+**/.env*
+
+# OS
+**/.DS_Store
+**/._*
+
+# IDEs and AI
+.idea/
+.remember/
