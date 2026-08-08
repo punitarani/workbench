@@ -6,11 +6,15 @@
 #define SAFE_PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 /*
- * Runs a command as the environment user. Installed environment:environment
- * mode 4755, as a binary because the setuid bit is ignored on scripts.
+ * Runs a command as the environment user. Installed as environment:environment
+ * mode 4755. It has to be a binary because the kernel ignores the setuid bit on
+ * scripts.
  *
  * setuid exec preserves the caller's real UID, so the command can still tell
  * agent from verifier through getuid() while reading files as environment.
+ *
+ * PATH, HOME, USER, and LOGNAME are overridden; the rest of the caller's
+ * environment is inherited.
  *
  * Usage: run-as-environment <command> [args...]
  */
