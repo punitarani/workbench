@@ -29,3 +29,10 @@ Eval pricing confirmed (OpenRouter, USD/Mtok prompt/completion):
 deepseek/deepseek-v4-flash-0731 $0.09/$0.18; z-ai/glm-5.2 $0.07/$0.22;
 openai/gpt-5.6-luna $0.10/$0.60. Phase 3 matrix (3 models x 3 attempts
 x 5 tasks ~ 45 episodes) projected $2-5 against $24.71 remaining.
+
+| 10 | 08-09 02:4x-03:3x | Eval matrix round 1: 5 tasks x 3 models x 3 attempts + smoke | 11.8M/0.4M | $1.13 | $1.42 |
+
+Round-1 matrix (best-of-3): standard-drift .60/.60/.525, fee-dispute
+.30/.30/.85, vanished-clause .75/.75/.75, client-departure .45/.45/.45,
+operative-deadline 1.0/1.0/1.0 (DeepSeek/GLM/Luna). One task holds;
+four in hardening. Remaining: ~$23.58.
