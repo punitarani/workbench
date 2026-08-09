@@ -53,6 +53,10 @@ class Activity(BaseModel):
     quantity_seconds: int
     note: str
     time: int
+    # Clio prices a time entry at the timekeeper's rate; non-billable entries
+    # are recorded and then written off, so they carry a rate but no total.
+    rate_cents: int | None
+    billable: bool
 
 
 class Organization(BaseModel):

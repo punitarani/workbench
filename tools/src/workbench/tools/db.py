@@ -5,8 +5,8 @@ derive from the model, so the schema cannot drift from the types, and every
 row entering or leaving a database is validated. Reads that aggregate or
 join declare their result shape with ``Query``: SQL in, validated models out.
 
-Column mapping: ``str``/``int``/``float``/``bytes`` become TEXT/INTEGER/
-REAL/BLOB NOT NULL, ``X | None`` drops NOT NULL, and ``Literal[...]`` of
+Column mapping: ``str``/``int``/``float``/``bytes``/``bool`` become TEXT/INTEGER/
+REAL/BLOB/INTEGER NOT NULL, ``X | None`` drops NOT NULL, and ``Literal[...]`` of
 strings becomes TEXT with a CHECK constraint. ``Annotated`` metadata may
 carry ``Id`` (this column exports ids of a kind) or ``Ref`` (this column
 references ids of a kind) for the cross-database coherence walk.
@@ -42,7 +42,15 @@ class Ref:
     kind: str
 
 
-_AFFINITY = {str: "TEXT", int: "INTEGER", float: "REAL", bytes: "BLOB"}
+# bool needs its own entry even though it subclasses int: the lookup is by
+# exact type, and SQLite stores booleans as 0/1 INTEGERs.
+_AFFINITY = {
+    str: "TEXT",
+    int: "INTEGER",
+    float: "REAL",
+    bytes: "BLOB",
+    bool: "INTEGER",
+}
 
 
 def _column_ddl(table: str, name: str, annotation: object) -> str:

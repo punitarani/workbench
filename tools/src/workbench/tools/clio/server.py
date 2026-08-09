@@ -114,6 +114,11 @@ class ActivityRecord(BaseModel):
     note: str
     matter: MatterStub
     user: PartyStub
+    # Clio v4 prices an entry with `price` (the hourly rate) and `total`;
+    # a non-billable entry is recorded, flagged, and written off.
+    price: float | None
+    total: float | None
+    non_billable: bool
 
 
 class NoteRecord(BaseModel):
@@ -385,6 +390,23 @@ def register(server: MCPServer, db_path: Path) -> None:
                     quantity=activity.quantity_seconds,
                     quantity_in_hours=round(activity.quantity_seconds / 3600, 2),
                     note=activity.note,
+                    price=(
+                        None
+                        if activity.rate_cents is None
+                        else round(activity.rate_cents / 100, 2)
+                    ),
+                    total=(
+                        None
+                        if activity.rate_cents is None or not activity.billable
+                        else round(
+                            activity.rate_cents
+                            / 100
+                            * activity.quantity_seconds
+                            / 3600,
+                            2,
+                        )
+                    ),
+                    non_billable=not activity.billable,
                     matter=MatterStub(
                         id=matter.matter_number,
                         display_number=matter.display_number,

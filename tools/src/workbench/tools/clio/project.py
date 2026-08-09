@@ -126,6 +126,8 @@ def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
                     quantity_seconds=payload.minutes * 60,
                     note=payload.note,
                     time=int(event.time),
+                    rate_cents=payload.rate_cents,
+                    billable=payload.billable,
                 )
             )
     org_names = {org_id: org.name for org_id, org in organizations.items()}

@@ -152,3 +152,30 @@ def test_readonly_connection_refuses_writes(tmp_path: Path) -> None:
         pass
     with pytest.raises(sqlite3.OperationalError):
         connect_readonly(db).execute("INSERT INTO songs (song_id) VALUES ('x')")
+
+
+def test_bool_columns_round_trip(tmp_path: Path) -> None:
+    """bool subclasses int, so the affinity map needs its own entry; SQLite
+    stores it as 0/1 and pydantic restores the type on the way out."""
+
+    class Flagged(BaseModel):
+        flag_id: str
+        billable: bool
+        waived: bool | None
+
+    table = Table("flags", Flagged, primary_key=("flag_id",))
+    assert "billable INTEGER NOT NULL" in table.ddl()
+    assert "waived INTEGER," in table.ddl()
+
+    db = tmp_path / "flags.db"
+    with create_db(db, (table,)) as connection:
+        table.insert(
+            connection,
+            [
+                Flagged(flag_id="a", billable=True, waived=None),
+                Flagged(flag_id="b", billable=False, waived=True),
+            ],
+        )
+    rows = table.select(connect_readonly(db), order_by="flag_id")
+    assert [r.billable for r in rows] == [True, False]
+    assert [r.waived for r in rows] == [None, True]
