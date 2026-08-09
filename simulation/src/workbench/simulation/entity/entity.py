@@ -18,7 +18,6 @@ from workbench.simulation.entity.component import (
     Phase,
     check_successor,
 )
-from workbench.simulation.entity.context import ContextBlock
 from workbench.simulation.errors import SnapshotError
 
 
@@ -97,9 +96,6 @@ class ComposedEntity:
         self._enter("UPDATE")
         await asyncio.gather(*(component.update() for component in self._components))
         self._phase = "READY"
-
-    def pre_act_blocks(self) -> tuple[ContextBlock, ...]:
-        return ()
 
     def snapshot(self) -> EntitySnapshot:
         return EntitySnapshot(
