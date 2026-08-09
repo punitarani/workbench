@@ -95,6 +95,7 @@ RUN useradd -m -u 10000 -d /home/environment -s /bin/bash environment && \
 RUN install -d -m 755 /logs && \
     install -d -o agent -g agent -m 775 /home/agent/workspace /logs/agent && \
     install -d -o environment -g environment -m 700 /home/environment/state && \
+    install -d -o environment -g environment -m 750 /usr/local/libexec/workbench && \
     install -d -o agent -g agent -m 777 /installed-agent /oracle && \
     install -d -o verifier -g agent -m 775 /logs/verifier && \
     ln -sfn /home/agent/workspace /app
