@@ -77,3 +77,36 @@ def test_coherence_catches_dangling_reference(tmp_path: Path) -> None:
     findings = check_coherence(out)
     assert findings, "a dangling person reference must be reported"
     assert any("per-ghost" in f.detail for f in findings)
+
+
+async def test_servers_render_dates_from_the_workspace_epoch(tmp_path: Path) -> None:
+    """A workspace built on a non-default epoch (the hartwell Monday) must
+    serve calendar dates derived from its own record, not any constant."""
+    import json
+
+    from workbench.tools import build_server
+
+    events = coherent_events()
+    started = events[0]
+    events[0] = started.model_copy(
+        update={
+            "payload": started.payload.model_copy(
+                update={"epoch": "2026-03-02T00:00:00-08:00"}
+            )
+        }
+    )
+    out = tmp_path / "state"
+    project_all(events, out)
+
+    gmail = build_server("gmail", out / "gmail.db")
+    result = await gmail.call_tool("get_message", {"messageId": "msg-000001"})
+    [content] = [c for c in result.content if hasattr(c, "text")]
+    message = json.loads(content.text)
+    assert message["date"].startswith("2026-03-02T"), message["date"]
+    assert message["date"].endswith("-08:00"), message["date"]
+
+    clio = build_server("clio", out / "clio.db")
+    result = await clio.call_tool("list_matters", {})
+    [content] = [c for c in result.content if hasattr(c, "text")]
+    [matter] = json.loads(content.text)["data"]
+    assert matter["open_date"] == "2026-03-02", matter
