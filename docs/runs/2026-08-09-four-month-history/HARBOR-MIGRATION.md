@@ -157,16 +157,69 @@ grades efficiency with linear decay. This lets us reward *method*, not just
 answer — and would have caught the billing-hygiene episode where a model never
 opened a single DM yet still submitted an answer.
 
+**Reward file contract** (verified): Harbor reads
+`/logs/verifier/reward.json` as an **arbitrary flat dict of named numeric
+metrics** — no mandated `score` key. So Reward Kit's per-dimension output
+(`{"retrieval": 0.92, "accuracy": 1.0, "reasoning": 0.7, "process": 0.5}`)
+lands natively, and Harbor reports each dimension separately. Exit code is not
+inspected; an empty or malformed reward file is a hard error and is *not*
+retried.
+
 **Reward Kit concurrency**: `--mcprog 8 --mcllm 8 --mca 2` (programmatic, LLM,
 agent-judge). `tests/test.sh` becomes:
 ```sh
 exec uvx --from harbor-rewardkit[all]==0.1 rewardkit /tests --workspace /app
 ```
 
-## 4. Harness migration to Pi
+## 4. Harness migration — Pi does NOT wire MCP servers
 
-`pi` is a built-in Harbor agent (`-a pi`), so migration is a flag, not code.
-What we lose and must consciously replace:
+**Blocking finding, verified in Harbor's source.** `pi` is a built-in agent
+(`AgentName.PI`, `harbor/agents/installed/pi.py` — it wraps Mario Zechner's
+`@earendil-works/pi-coding-agent`), but its `run()` **never references
+`self.mcp_servers`**. Claude Code writes task-declared servers into a
+user-scoped `.claude.json`; Aider writes `~/.aider.mcp.json`; **Pi does
+neither**. An MCP-only environment handed to `-a pi` gives the agent *no
+tools at all*.
+
+Options, in order of cost:
+1. **`-a claude-code`** — verified to wire `[[environment.mcp_servers]]`
+   (stdio → `{"type":"stdio","command","args"}`; http/sse → `{"type":"http"}`),
+   deliberately user-scoped to avoid the trust dialog. Use this to get the
+   migration working.
+2. **Subclass Pi** — `BaseInstalledAgent`, add MCP registration in
+   `install()`/`setup()` using Pi's own config mechanism, register via
+   `-a workbench.adapters.pi_mcp:PiWithMCP`. This is the path if Pi
+   specifically is required.
+3. Upstream a patch to Harbor's `Pi` class.
+
+Recommendation: **prove the migration on `claude-code`, then add the Pi
+subclass** — otherwise a Pi-shaped bug is indistinguishable from a task bug.
+
+## 4b. The sidecar architecture — better isolation than our bundle split
+
+Harbor gives us something stronger than file permissions, verified in source:
+
+- `tests/` is **uploaded only at verification time** — the agent never sees the
+  grader during its run. `solution/` is uploaded **only for the oracle agent**.
+  Both of our hand-rolled protections are Harbor-native.
+- `[verifier] environment_mode = "separate"` runs grading in a *different
+  container* built from `tests/` — the documented pattern for "proprietary
+  grading code the agent must not see."
+- **Sidecar services**: an MCP server can run as its own compose service with a
+  healthcheck, reached over the Docker network
+  (`url = "http://tools:8000/mcp"`, transport `streamable-http`). The agent
+  container then has **no filesystem path to the SQLite databases at all** —
+  not merely unreadable, absent. `[[verifier.collect]]` snapshots sidecar state
+  before teardown, and Harbor stops the agent container *before* sidecar
+  collection, so it is explicitly un-tamperable.
+
+This supersedes the bundle/state split: instead of trusting directory layout,
+the offstage boundary becomes a network boundary. Cost: our stdio servers need
+a streamable-http mode (mcp 2.0 supports it) and a compose file, and compose is
+**local-Docker only** — cloud backends take single-Dockerfile tasks, so keep
+stdio-behind-`run-as-environment` as the portable fallback.
+
+## 4c. What we lose and must consciously replace
 
 | our harness | Harbor/Pi |
 |---|---|
@@ -186,7 +239,8 @@ the authoritative path. Delete nothing until parity is demonstrated on one task.
 docker build -f workbench/environment/Dockerfile -t workbench:dev workbench/environment
 
 harbor run -p datasets/hartwell -i '*' \
-  -a pi -m openai/gpt-5.6-luna -m z-ai/glm-5.2 -m deepseek/deepseek-v4-flash-0731 \
+  -a claude-code \
+  -m openai/gpt-5.6-luna -m z-ai/glm-5.2 -m deepseek/deepseek-v4-flash-0731 \
   -k 3 -n 24 --n-concurrent-agents 8 \
   --env-file .env \
   --ve OPENAI_BASE_URL=https://openrouter.ai/api/v1 \
@@ -195,7 +249,9 @@ harbor view          # trajectories, verifier logs, rewards
 harbor analyze       # trajectory analysis
 ```
 
-`-n` is the only concurrency lever that matters (default 4). With the image
+`-a pi` only after the MCP subclass exists (§4). `-n` is the concurrency
+lever (default 4); `-k` gives attempts, and a job is the cartesian product
+tasks x agents x attempts. With the image
 prebuilt and no per-trial build, 16–32 is reasonable on this host; cap agents
 separately if the provider rate-limits. One job covers 8 tasks × 3 models × 3
 attempts = 72 trials.
