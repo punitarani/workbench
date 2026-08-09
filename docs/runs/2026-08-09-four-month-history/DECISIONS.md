@@ -74,3 +74,18 @@ entry says what was ambiguous and which reading was taken.
    else (snippets, labels, display numbers, ts ids, document numbers,
    workspace trees) derives at projection. Golden logs regenerate
    deliberately if serialization shifts.
+8. **Pilot verdict (284 events, coherence-clean, byte-reproducible)**:
+   structure good; two realism gaps for the full build — chat routed
+   only to #general, and all documents in one workspace. Both are
+   generator routing fixes, not persona problems. **GEPA skipped for
+   Phase 2**: the pilot exercises no persona programs, and recorded-day
+   persona quality was already proven by the 12/12 acceptance suite on
+   the re-recorded legal day; the GEPA verdict in entry 3 stands.
+9. **Tier A realized as directed days, not engine GABM days**: storyline
+   beats are deterministic scripts; an LM authors bodies/redline diffs
+   (cached to a content store keyed by prompt hash, so the full history
+   reproduces from seed + committed-out cache... cache is data, stays
+   gitignored; reproduction needs the key or the cache). Rationale: the
+   engine's 8-attempt fragility history at 6 personas, a 12-person org
+   multiplies that risk; tasks depend on record content, not emergent
+   behavior; engine days remain the path for interactive variants.
