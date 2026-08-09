@@ -1,6 +1,6 @@
 """Assemble and run a compiled workplace end to end."""
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 
 from workbench.core.seed import Seed
@@ -20,6 +20,7 @@ from workbench.simulation.gm.grounded import GroundedGm
 from workbench.simulation.lm.dspy_lm import WorkbenchLM
 from workbench.simulation.lm.protocol import LanguageModel
 from workbench.simulation.persona.actor import ProfessionalActorAct
+from workbench.simulation.persona.programs import ProfessionalActor
 from workbench.simulation.persona.working_memory import WorkingMemoryComponent
 from workbench.simulation.time_model import EventDrivenTimeModel
 from workbench.simulation.workplace.compile import CompiledWorkplace, compile_workplace
@@ -42,6 +43,7 @@ async def run_workplace(
     model: str,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
+    actor_factory: Callable[[], ProfessionalActor] | None = None,
 ) -> RunResult:
     compiled = compile_workplace(spec, seed)
     return await run_compiled(
@@ -52,6 +54,7 @@ async def run_workplace(
         model=model,
         stop=stop,
         external_seats=external_seats,
+        actor_factory=actor_factory,
     )
 
 
@@ -64,6 +67,7 @@ async def run_compiled(
     model: str,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
+    actor_factory: Callable[[], ProfessionalActor] | None = None,
 ) -> RunResult:
     out_dir.mkdir(parents=True, exist_ok=True)
     log_path = out_dir / "world.jsonl"
@@ -112,6 +116,7 @@ async def run_compiled(
                     params=params,
                     working_memory=memory,
                     lm=lm,
+                    actor=actor_factory() if actor_factory is not None else None,
                     workplace_norms=workplace_norms,
                 ),
             )
