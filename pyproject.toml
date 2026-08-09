@@ -15,7 +15,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["workbench/tests", "simulation/tests", "workplaces/tests"]
+testpaths = ["workbench/tests", "simulation/tests", "workplaces/tests", "datasets"]
 asyncio_mode = "auto"
 addopts = "-q -m 'not real_lm'"
 markers = [

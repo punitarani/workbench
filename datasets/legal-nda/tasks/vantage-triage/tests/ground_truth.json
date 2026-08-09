@@ -1,0 +1,41 @@
+{
+  "_evidence": {
+    "vendor_standard": "Daniel's redline (dms doc-000003 rev 3) and his email to Jess (seq 80): mutual NDA, two-year term cap, non-solicit removed. Not in the playbook, which covers customer paper only.",
+    "playbook": "Seed playbook sections 1 and 6: reasonableness qualifier on the definition; never waive proof of damages."
+  },
+  "clauses": {
+    "definition": {
+      "tier": "playbook",
+      "weight": 0.15,
+      "decisions": ["negotiate", "reject"],
+      "basis_markers": ["reasonab", "marked"]
+    },
+    "term": {
+      "tier": "vendor_standard",
+      "weight": 0.2,
+      "decisions": ["negotiate"],
+      "basis_markers": ["two-year", "two year", "two (2) year"]
+    },
+    "mutuality": {
+      "tier": "vendor_standard",
+      "weight": 0.2,
+      "decisions": ["negotiate", "reject"],
+      "basis_markers": ["mutual"]
+    },
+    "non_solicit": {
+      "tier": "vendor_standard",
+      "weight": 0.2,
+      "decisions": ["reject"],
+      "basis_markers": ["remov", "reject", "strik", "doesn't belong", "does not belong"]
+    },
+    "injunctive_relief": {
+      "tier": "playbook",
+      "weight": 0.15,
+      "decisions": ["negotiate", "reject"],
+      "basis_markers": ["damages", "bond"]
+    }
+  },
+  "format_weight": 0.1,
+  "decision_share": 0.4,
+  "basis_share": 0.6
+}

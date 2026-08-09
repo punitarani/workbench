@@ -39,3 +39,4 @@ pnpm-debug.log*
 
 # Recorded simulation data (cassettes, world logs) stays local for now
 workplaces/**/cassettes/
+datasets/**/workspace/
