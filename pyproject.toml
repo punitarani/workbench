@@ -1,0 +1,47 @@
+[tool.uv.workspace]
+members = ["workbench", "simulation", "workplaces"]
+
+[tool.uv]
+# litellm (via dspy) >=1.95 ships a Rust module with no macOS cp314 wheel and a
+# broken sdist build; 1.94.2 is the last release with wheels for every platform
+# we run on (macOS arm64 dev, manylinux containers).
+constraint-dependencies = ["litellm<1.95"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=1.0",
+    "ruff>=0.12",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["workbench/tests", "simulation/tests", "workplaces/tests"]
+asyncio_mode = "auto"
+addopts = "-q -m 'not real_lm'"
+markers = [
+    "real_lm: hits a real LM provider; needs OPENROUTER_API_KEY and WORKBENCH_REAL_LM=1",
+]
+
+[tool.ruff]
+target-version = "py314"
+src = ["workbench/src", "simulation/src", "workplaces/src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "TID"]
+
+# Determinism is a correctness concern (AGENTS.md): all randomness and time must
+# flow through seeded, explicit constructs. Tests may use these freely.
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"random.random".msg = "Seed via workbench.core.seed.derive_seed and use random.Random(seed)."
+"random.randint".msg = "Seed via workbench.core.seed.derive_seed and use random.Random(seed)."
+"random.choice".msg = "Seed via workbench.core.seed.derive_seed and use random.Random(seed)."
+"random.shuffle".msg = "Seed via workbench.core.seed.derive_seed and use random.Random(seed)."
+"random.seed".msg = "Never mutate global RNG state; construct random.Random(seed) locally."
+"uuid.uuid4".msg = "Ids are minted deterministically; use workbench.core.ids.IdMinter."
+"time.time".msg = "Simulated time only; use the engine TimeModel."
+"time.sleep".msg = "No wall-clock waits in library code; use the engine TimeModel."
+"datetime.datetime.now".msg = "Simulated time only; render via the scenario epoch."
+"datetime.datetime.utcnow".msg = "Simulated time only; render via the scenario epoch."
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["TID251"]
