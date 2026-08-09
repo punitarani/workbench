@@ -1,0 +1,33 @@
+{
+  "_evidence": {
+    "playbook": "iManage doc-000009 /firm/playbooks/vendor-nda-playbook.md, head v3: three (3) year term standard, reject residual-knowledge clauses.",
+    "term": "LexiPoint NDA doc-000011 v2 (2026-05-13, Noah Feldstein) flips three (3) years to five (5) years; covering email msg-000413 accepts the vendor's term.",
+    "residuals": "Ironclad NDA doc-000012 v2 (2026-06-10, Noah Feldstein) adds the Residual Knowledge clause; covering email msg-000575. Diane's msg-000660 (2026-06-24) flags both drifts."
+  },
+  "playbook_path": "/firm/playbooks/vendor-nda-playbook.md",
+  "clauses": {
+    "term": {
+      "standard_markers": ["three"],
+      "practice_markers": ["five"],
+      "document_path": "/firm/vendor-ndas/mutual-nda-lexipoint.md",
+      "version": 2,
+      "date": "2026-05-13"
+    },
+    "residuals": {
+      "standard_markers": ["reject"],
+      "practice_markers": ["accept", "add", "includ"],
+      "document_path": "/firm/vendor-ndas/mutual-nda-ironclad.md",
+      "version": 2,
+      "date": "2026-06-10"
+    }
+  },
+  "weights": {
+    "playbook_path": 0.05,
+    "standard": 0.075,
+    "practice": 0.075,
+    "document": 0.1,
+    "version": 0.1,
+    "date": 0.075,
+    "format": 0.1
+  }
+}

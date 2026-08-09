@@ -1,0 +1,18 @@
+# Harbor task definition. The workspace is built locally from the
+# four-month history:
+#   uv run python datasets/hartwell/build_tasks.py
+
+[task]
+name = "standard-drift"
+dataset = "hartwell"
+summary = "Show where vendor-NDA redline practice diverged from the written playbook"
+
+[environment]
+docker_image = "workbench:dev"
+# The built workspace/ directory seeds /home/agent/workspace (exposed as /app).
+
+[verifier]
+# In-container: tests/test.sh runs the deterministic grader and writes
+# partial-credit reward to /logs/verifier/reward.json. The Reward Kit
+# wrapper replaces the direct python3 call once runs happen through Harbor.
+weights = { playbook_path = 0.05, standard = 0.075, practice = 0.075, document = 0.1, version = 0.1, date = 0.075, format = 0.1 }

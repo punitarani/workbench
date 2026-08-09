@@ -1,0 +1,19 @@
+{
+  "_evidence": {
+    "activities": "Clio tkt-000001 (00001-MeridianBioLabs): 7 diligence/data-room entries dated after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16) totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). The 45-minute Apr 3 call-prep entry is outside the disputed window.",
+    "challenge": "Gmail msg-000386 (2026-05-08, Priya Raman) disputes the April invoice, citing the $12,000 cap from the Apr 3 budget call. Eleanor's long Clio note (2026-05-15) records the dispute and resolution but never states the minute totals."
+  },
+  "total_minutes": 890,
+  "entry_count": 7,
+  "timekeeper_markers": [["marcus", "liang"], ["peter", "novak"]],
+  "challenged_by_markers": ["priya", "raman"],
+  "challenge_date": "2026-05-08",
+  "weights": {
+    "total_minutes": 0.35,
+    "entry_count": 0.2,
+    "timekeepers": 0.1,
+    "challenged_by": 0.1,
+    "challenge_date": 0.15,
+    "format": 0.1
+  }
+}

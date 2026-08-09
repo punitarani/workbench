@@ -1,0 +1,21 @@
+{
+  "_evidence": {
+    "versions": "iManage doc-000010 /lumen-licensing/license-and-support-agreement.md: section 9.2 Indemnification by Licensor present in v1 (2026-03-31) and v2 (2026-04-21), absent from v3 (2026-05-21, Marcus Liang, comment about conformed cross-references and formatting cleanup).",
+    "cover": "Fathom's counsel objected to the uncapped indemnity on 2026-05-19 (msg pushback); Marcus told June on 2026-06-09 that only formatting changed since April. No email announces the removal — only the v2/v3 diff shows it."
+  },
+  "document_path": "/lumen-licensing/license-and-support-agreement.md",
+  "clause_markers": ["indemn"],
+  "dropped_in_version": 3,
+  "author_markers": ["marcus"],
+  "date": "2026-05-21",
+  "comment_markers": ["conform", "cross-reference", "formatting"],
+  "weights": {
+    "document_path": 0.1,
+    "dropped_clause": 0.15,
+    "dropped_in_version": 0.25,
+    "author": 0.1,
+    "date": 0.15,
+    "change_comment": 0.15,
+    "format": 0.1
+  }
+}

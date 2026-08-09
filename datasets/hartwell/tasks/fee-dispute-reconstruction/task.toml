@@ -1,0 +1,18 @@
+# Harbor task definition. The workspace is built locally from the
+# four-month history:
+#   uv run python datasets/hartwell/build_tasks.py
+
+[task]
+name = "fee-dispute-reconstruction"
+dataset = "hartwell"
+summary = "Reconstruct the billing facts behind the Meridian April invoice dispute"
+
+[environment]
+docker_image = "workbench:dev"
+# The built workspace/ directory seeds /home/agent/workspace (exposed as /app).
+
+[verifier]
+# In-container: tests/test.sh runs the deterministic grader and writes
+# partial-credit reward to /logs/verifier/reward.json. The Reward Kit
+# wrapper replaces the direct python3 call once runs happen through Harbor.
+weights = { total_minutes = 0.35, entry_count = 0.2, timekeepers = 0.1, challenged_by = 0.1, challenge_date = 0.15, format = 0.1 }

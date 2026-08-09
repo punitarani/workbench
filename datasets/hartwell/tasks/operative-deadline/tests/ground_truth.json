@@ -1,0 +1,17 @@
+{
+  "_evidence": {
+    "emails": "Clerk notices in Gmail set the hearing three times: msg-000085 (2026-03-16) -> April 28, msg-000274 (2026-04-17) -> May 20, msg-000414 (2026-05-13) -> June 18, all at 10:00 a.m. Every email states a date that was later superseded.",
+    "slack": "chm-000958 (ts 8767500.000955, 2026-06-11, Grace Adeyemi in #matters): the June 18 reset notice carried the wrong date; the hearing is actually Thursday June 25, 9:00 a.m., Dept. 511. The operative date exists nowhere else in the record."
+  },
+  "operative_date": "2026-06-25",
+  "operative_time_prefixes": ["9:00", "09:00"],
+  "correction_ts_prefix": "8767500",
+  "superseded_dates": ["2026-04-28", "2026-05-20", "2026-06-18"],
+  "weights": {
+    "operative_date": 0.3,
+    "operative_time": 0.1,
+    "correction_ts": 0.15,
+    "superseded_dates": 0.35,
+    "format": 0.1
+  }
+}
