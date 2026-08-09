@@ -68,3 +68,5 @@ each DM at limit 5, too shallow to reach the correction, wrote nothing),
 0.3666 (Luna, reported the stale June 18 after never enumerating DMs —
 the same strategy-variance failure its round-3 attempt 3 showed).
 Remaining: ~$20.67.
+
+| 17 | 08-09 | Round-5 content: 5 NDA bodies (deepseek-v4-flash-0731, ~0.7K/3.4K est from cached word counts; the build's usage line was consumed by a pipe) | ~0.7K/3.4K | $0.01 | ~$20.66 |

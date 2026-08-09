@@ -3,8 +3,10 @@
 # record that states it (the billing-channel Slack message), sums the
 # disputed diligence time from Clio activities strictly after that date,
 # reproduces Clio's positional activity ids for the per-entry listing,
-# and takes the challenger from the Gmail record. Fails rather than
-# answer from assumptions — the solution must retrieve.
+# takes the challenger from the Gmail record, and runs the support audit
+# as a single anti-join: window entries whose date has no same-day email
+# or chat message naming the engagement. Fails rather than answer from
+# assumptions — the solution must retrieve.
 exec python3 - << 'EOF'
 import json
 import re
@@ -141,6 +143,55 @@ if not note or "cap" not in note[0][0].lower():
 if cutoff.isoformat() in note[0][0] or "April 3" in note[0][0]:
     sys.exit("the note states the cutoff date; the record shape changed")
 
+# Support audit: a window entry is supported when a same-day email or
+# chat message names the engagement — the client (meridian), the deal
+# (diagnostics), or the matter number (00001). One pass per surface.
+MARKERS = ("meridian", "diagnostics", "00001")
+window_end = date(2026, 4, 30)
+window = [
+    (activity_id, time)
+    for activity_id, t, _, _, _, time in activities
+    if t == ticket and cutoff < day_of(time) <= window_end
+]
+if len(window) < 30:
+    sys.exit(f"expected a busy disputed window, found {len(window)} entries")
+
+def referenced(text):
+    lowered = text.lower()
+    return any(marker in lowered for marker in MARKERS)
+
+coverage = {}
+for subject, body, time in rows(
+    "gmail.db", "SELECT subject, body, time FROM messages"
+):
+    text = f"{subject} {body}"
+    if referenced(text):
+        kind = "email-name" if "meridian" in text.lower() else "email-oblique"
+        coverage.setdefault(day_of(time), set()).add(kind)
+dm_ids = {
+    conversation_id
+    for (conversation_id,) in rows(
+        "slack.db", "SELECT conversation_id FROM conversations WHERE kind = 'dm'"
+    )
+}
+for conversation_id, body, time in rows(
+    "slack.db", "SELECT conversation_id, body, time FROM messages"
+):
+    if referenced(body):
+        kind = "chat-dm" if conversation_id in dm_ids else "chat-public"
+        coverage.setdefault(day_of(time), set()).add(kind)
+
+unsupported = sorted(
+    activity_id for activity_id, time in window if day_of(time) not in coverage
+)
+if not 4 <= len(unsupported) <= 6:
+    sys.exit(f"expected 4-6 unsupported window entries, found {len(unsupported)}")
+window_days = {day_of(time) for _, time in window}
+if not any(coverage.get(day) == {"chat-dm"} for day in window_days):
+    sys.exit("expected a window day supported only through a DM")
+if not any(coverage.get(day) == {"email-oblique"} for day in window_days):
+    sys.exit("expected a window day supported only by a client-nameless email")
+
 dispute = {
     "cutoff_date": cutoff.isoformat(),
     "total_minutes": total_minutes,
@@ -157,6 +208,7 @@ dispute = {
     "timekeepers": [names[person] for person in timekeeper_ids],
     "challenged_by": challenger,
     "challenge_date": day_of(challenge_time).isoformat(),
+    "unsupported_entry_ids": unsupported,
 }
 with open("dispute.json", "w") as handle:
     json.dump(dispute, handle, indent=2)

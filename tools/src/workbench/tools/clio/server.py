@@ -346,10 +346,14 @@ def register(server: MCPServer, db_path: Path) -> None:
 
     @server.tool()
     def list_activities(
-        matter_id: int | None = None, user_id: int | None = None
+        matter_id: int | None = None,
+        user_id: int | None = None,
+        limit: int = 50,
+        offset: int = 0,
     ) -> dict:
         """List time entries, optionally scoped to one matter or one user;
-        quantities are in seconds."""
+        quantities are in seconds. Pages of at most 50 records; walk long
+        histories with offset."""
         with connect_readonly(db_path) as connection:
             directory = _Directory(connection)
             matters = {m.ticket_id: m for m in MATTERS.select(connection)}
@@ -380,7 +384,16 @@ def register(server: MCPServer, db_path: Path) -> None:
             if user_id not in directory.user_ids.values():
                 raise UnknownRefError(f"no user {user_id}")
             records = [r for r in records if r.user.id == user_id]
-        return _page(records)
+        limit = max(1, min(limit, 50))
+        offset = max(offset, 0)
+        page = records[offset : offset + limit]
+        paging: dict[str, int] = {"total_entries": len(records)}
+        if offset + limit < len(records):
+            paging["next_offset"] = offset + limit
+        return {
+            "data": [r.model_dump() for r in page],
+            "meta": {"paging": paging},
+        }
 
     @server.tool()
     def list_notes(matter_id: int | None = None) -> dict:

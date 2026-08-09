@@ -15,4 +15,4 @@ docker_image = "workbench:dev"
 # In-container: tests/test.sh runs the deterministic grader and writes
 # partial-credit reward to /logs/verifier/reward.json. The Reward Kit
 # wrapper replaces the direct python3 call once runs happen through Harbor.
-weights = { document_path = 0.1, dropped_clause = 0.15, dropped_in_version = 0.25, author = 0.1, date = 0.15, change_comment = 0.15, format = 0.1 }
+weights = { document_path = 0.08, dropped_clause = 0.12, dropped_in_version = 0.18, author = 0.07, date = 0.1, change_comment = 0.1, clean_documents = 0.25, format = 0.1 }

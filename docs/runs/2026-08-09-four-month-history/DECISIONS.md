@@ -206,3 +206,70 @@ entry says what was ambiguous and which reading was taken.
    procedural ids shifted: graded supersession ids refreshed
    (msg-000263, msg-000408), `_evidence` blocks updated; storyline ts
    seconds are calendar-fixed by construction and did not move.
+15. **Round-5 hardening: exhaustive-reconciliation components.** Each
+   hardened task gains a deliverable that solve.sh computes in one SQL
+   pass but that no sampling strategy can guess — exact-id set grading
+   (hits minus extras, or all-or-nothing) makes partial surveys score
+   zero. (a) *fee-dispute* gains `unsupported_entry_ids` (0.30): the
+   Clio activity ids of every Meridian entry in the disputed window
+   (after Apr 3 through Apr 30; 34 of 117 matter entries) whose date has
+   no same-day email or Slack message naming the engagement under a
+   marker rule stated verbatim in the instruction ('Meridian', 'the
+   diagnostics acquisition', or '00001'; vague data-room/tranche talk
+   explicitly does not count, and the Solstice matter runs a data room
+   the same month to make that exclusion earn its keep). Ground truth:
+   exactly 5 orphans (Apr 17: 581, 588; Apr 22: 629, 631, 634 — 629 is
+   the round-4 scope-expansion decoy). Traps on both sides: Apr 7 is
+   supported ONLY inside the Marcus<->Peter DM (search excludes DMs) and
+   Apr 21 ONLY by an internal email that never says 'Meridian', so a
+   client-name grep over public surfaces lists supported entries and
+   zeroes the component. The measured minimal honest tool sequence is
+   **32 calls** (3 activity pages at the new Clio-default 50/page cap, 3
+   Gmail + 5 Slack windowed marker searches at the new 20-match search
+   page cap, 12 DM window reads of which three April lanes exceed 100
+   messages and cost two reads each, plus discovery, cutoff, challenger,
+   write, finish) — above the 30-turn budget for any one-call-per-turn
+   strategy; batching models can still land it. Weights recut so the
+   round-4 join subset (total_minutes, entry_count, entries,
+   minutes_by_timekeeper) caps at 0.45. (b) *standard-drift* becomes a
+   per-NDA certification: the corpus grew to NINE vendor NDAs (five new
+   conforming histories — Trueline, Cobalt, Harborlight, Brightwater,
+   Summit — authored as fabric with NO covering mail, so the email trail
+   enumerates only four of nine) and `ndas` maps every exact iManage
+   path to conforms/deviates, graded all-or-nothing at 0.55: one wrong,
+   missing, or invented NDA caps the score at 0.45. The round-4 clause
+   blocks survive unchanged (LexiPoint v2 term flip, Ironclad v2
+   residuals add, same markers) at recut weights. Judgment call:
+   Ironclad was born nonconforming on term (v1 inherited five years), so
+   the survey grades status only and the clause blocks keep the round-4
+   'first departure on each clause' attribution (LexiPoint v2). (c)
+   *vanished-clause* gains `clean_documents` (0.25): the exact 16-number
+   set of multi-version iManage documents that lost nothing
+   ({1,2,3,4,7,9,10,11,13,14,15,16,17,18,19,21}; the corpus grew to 17
+   multi-version documents via the new NDAs), graded as set equality —
+   attestation by enumeration, so finding the Lumen drop without
+   surveying the corpus cannot produce the list. (d) Fabric and tool
+   changes behind the floors: two standing DM pairs appended to genesis
+   (Grace<->Peter 0.6, Marcus<->Sofia 0.5 — appended last so the
+   original ten pairs' seeded draws and message content never move; the
+   S5 burial stayed exactly 407/position-345), deterministic April DM
+   lanes (data-room sprint in Marcus<->Peter with the two dated
+   client-naming exceptions, prebill lane in Anita<->Carl, records lane
+   in Grace<->Peter; all other lane lines matter-blind by construction),
+   slack_search_public capped at 20 matches/page and Clio
+   list_activities paginated at its product-default 50/page — the same
+   serve-the-product-default pattern round 4 used for
+   slack_read_channel. (e) client-departure and operative-deadline keep
+   their round-4 designs; the DM fabric they share grew (12 threads,
+   2,157 messages), which raises operative-deadline's enumeration cost
+   by ~2 reads, and the minted-id refresh after the rebuild moved the
+   graded clerk-notice prefixes to msg-000266/msg-000400 (calendar-fixed
+   ts prefixes did not move). Graders only got stricter: every round-4
+   check survives at equal or lower weight; the new components only add.
+   Rebuild is byte-deterministic (2,238,034 identical bytes), audits all
+   green (orphan count, DM-only and oblique-only support days, 9-NDA
+   corpus, 17-document clean list, >100-message April lanes), solve.sh
+   1.0 on all five tasks, naives 0.19-0.30 against gates > 0.4 below
+   solve, pytest and ruff clean. Content spend: 5 LM calls (the five new
+   NDA bodies); every other record change is code constants served from
+   the warmed cache.

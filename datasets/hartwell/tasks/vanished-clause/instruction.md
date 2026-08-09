@@ -27,7 +27,8 @@ Write **`clause.json`** to the workspace root:
   "dropped_in_version": <version number where it is first absent>,
   "author": "<who saved that version>",
   "date": "<YYYY-MM-DD of that version>",
-  "change_comment": "<that version's change summary, verbatim>"
+  "change_comment": "<that version's change summary, verbatim>",
+  "clean_documents": [<iManage document numbers of every clean multi-version document>]
 }
 ```
 
@@ -37,3 +38,12 @@ the email record actively claims nothing substantive changed. The
 repository carries many documents with multi-version histories; only
 version-by-version comparison separates the one that lost a protection
 from the many that merely grew.
+
+The carrier also wants the negative certified, not asserted:
+`clean_documents` must enumerate the iManage document number of every
+OTHER document in the repository with two or more versions — the ones
+whose histories lost nothing. The certification is graded as an exact
+set: every clean multi-version document listed, the one that lost its
+protection excluded, single-version documents excluded, nothing
+invented. An incomplete enumeration is an incomplete answer to
+coverage counsel's question.

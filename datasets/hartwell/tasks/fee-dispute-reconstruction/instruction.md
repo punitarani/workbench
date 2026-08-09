@@ -31,7 +31,8 @@ Write **`dispute.json`** to the workspace root:
   "minutes_by_timekeeper": {"<timekeeper name>": <their disputed minutes>},
   "timekeepers": ["<everyone who logged that work>"],
   "challenged_by": "<who challenged the invoice>",
-  "challenge_date": "<YYYY-MM-DD the client disputed the invoice>"
+  "challenge_date": "<YYYY-MM-DD the client disputed the invoice>",
+  "unsupported_entry_ids": [<Clio activity ids, see the support audit>]
 }
 ```
 
@@ -49,3 +50,22 @@ entry, over the whole billing month, or over every matter is wrong.
 `entries` must list the exact disputed Clio time entries — id, date, and
 minutes each — and count minutes from the record, not from anyone's
 summary; no email states the figures.
+
+The resolution also ordered a **support audit** over the disputed
+window. For every time entry on the Meridian matter dated after the
+budget-call cutoff through the end of April, the file must show
+same-day client-visible activity: at least one email (subject or body
+text) or Slack message (any channel or any DM), sent on the entry's
+date, that names the engagement — the client (Meridian), the deal (the
+diagnostics acquisition), or the matter number (00001). Vague
+references do not count: a data room, a tranche, a privilege screen, or
+a diligence call could belong to any matter (the Solstice closing
+staged a seller data room the same month), so a message supports an
+entry only when it names the engagement in one of those three forms.
+`unsupported_entry_ids` must list the Clio activity id of every window
+entry — diligence-worded or not — whose date has no such message
+anywhere in the record. Expect to check every surface before calling a
+day silent: on some days the only qualifying message sits in a DM that
+channel search never returns, and on others it never uses the client's
+name. Listing an entry whose day has support counts against you exactly
+like missing a true orphan.

@@ -40,8 +40,8 @@ for path, version, author, content, comment, time in rows(
     history.setdefault(path, []).append((version, author, content, comment, time))
 
 multi = {path: vs for path, vs in history.items() if len(vs) >= 2}
-if len(multi) < 10:
-    sys.exit(f"expected >= 10 multi-version documents, found {len(multi)}")
+if len(multi) < 15:
+    sys.exit(f"expected >= 15 multi-version documents, found {len(multi)}")
 deep = [path for path, vs in multi.items() if len(vs) >= 3]
 if len(deep) < 5:
     sys.exit(f"expected >= 5 documents with 3+ versions, found {len(deep)}")
@@ -115,6 +115,13 @@ author = dict(
          author_id)
 )[author_id]
 
+# Attestation by enumeration: every other multi-version document is
+# certified clean by the same survey that found the drop.
+numbers = dict(rows("imanage.db", "SELECT path, document_number FROM documents"))
+clean_documents = sorted(numbers[other] for other in multi if other != path)
+if len(clean_documents) != len(multi) - 1:
+    sys.exit("the clean certification must cover every other multi-version doc")
+
 head = block.split(". ", 1)[0]
 clause = {
     "document_path": path,
@@ -123,6 +130,7 @@ clause = {
     "author": author,
     "date": (EPOCH + timedelta(days=time // 86400)).isoformat(),
     "change_comment": comment,
+    "clean_documents": clean_documents,
 }
 with open("clause.json", "w") as handle:
     json.dump(clause, handle, indent=2)

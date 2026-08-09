@@ -244,6 +244,17 @@ async def test_activities_quantities_in_seconds(server) -> None:
     assert len(by_user) == 1
 
 
+async def test_activities_page_with_offset_and_capped_limit(server) -> None:
+    envelope = await call(server, "list_activities")
+    assert envelope["meta"]["paging"] == {"total_entries": 1}
+    empty = await call(server, "list_activities", {"offset": 1})
+    assert empty["data"] == []
+    capped = await call(server, "list_activities", {"limit": 5000})
+    assert len(capped["data"]) == 1
+    first = await call(server, "list_activities", {"limit": -3})
+    assert len(first["data"]) == 1
+
+
 async def test_notes_from_ticket_comments(server) -> None:
     [note] = (await call(server, "list_notes"))["data"]
     assert note["type"] == "Matter"
@@ -335,7 +346,7 @@ async def test_data_envelope_everywhere(server) -> None:
         envelope = await call(server, name, arguments)
         assert "data" in envelope, name
         if isinstance(envelope["data"], list):
-            assert envelope["meta"] == {"paging": {}}, name
+            assert set(envelope["meta"]) == {"paging"}, name
 
 
 async def test_no_write_verbs_and_no_offstage_leakage(server) -> None:

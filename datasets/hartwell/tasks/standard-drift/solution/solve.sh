@@ -1,9 +1,10 @@
 #!/bin/sh
 # Reference solution: diffs the playbook's standards against the revision
-# history of EVERY vendor NDA on file and answers only from the record.
-# The residuals flip is invisible to keyword search (no email or chat
-# message names the clause for that vendor), so the walk over version
-# content is the only path. Fails rather than answer from assumptions.
+# history of EVERY vendor NDA on file and certifies each one. The
+# residuals flip is invisible to keyword search (no email or chat
+# message names the clause), and five of the nine NDAs never appear in
+# the mail at all, so the walk over version content is the only path.
+# Fails rather than answer from assumptions.
 exec python3 - << 'EOF'
 import json
 import sqlite3
@@ -42,8 +43,8 @@ if "Reject any residual-knowledge clause" not in playbook_head:
 nda_paths = sorted(
     {path for path, *_ in versions("%/firm/vendor-ndas/%")}
 )
-if len(nda_paths) < 4:
-    sys.exit(f"expected several vendor NDAs on file, found {len(nda_paths)}")
+if len(nda_paths) != 9:
+    sys.exit(f"expected nine vendor NDAs on file, found {len(nda_paths)}")
 
 def first_with(path, needle):
     """First version of ``path`` whose content contains ``needle``."""
@@ -54,8 +55,14 @@ def first_with(path, needle):
 
 term_hits = []
 residual_hits = []
+survey = {}
 for path in nda_paths:
     history = versions(path)
+    conforming = all(
+        "three (3) years" in content and "Residual Knowledge" not in content
+        for _, _, _, content, _ in history
+    )
+    survey[path] = "conforms" if conforming else "deviates"
     five_version, five_time = first_with(path, "five (5) years")
     if five_version is not None:
         earlier = [c for _, v, _, c, _ in history if v < five_version]
@@ -69,14 +76,11 @@ for path in nda_paths:
             sys.exit(f"{path}: residuals divergence is not a clean boundary")
         residual_hits.append((path, residual_version, residual_time))
 
-conforming = [
-    path
-    for path in nda_paths
-    if path not in {hit[0] for hit in term_hits}
-    and path not in {hit[0] for hit in residual_hits}
-]
-if len(conforming) < 2:
-    sys.exit("expected conforming distractor NDAs alongside the divergent ones")
+conforming_paths = [path for path in nda_paths if survey[path] == "conforms"]
+if len(conforming_paths) != 7:
+    sys.exit(
+        f"expected exactly seven conforming NDAs, found {len(conforming_paths)}"
+    )
 
 # Term drift: the NDA that started on three years and flipped to five.
 flipped = [
@@ -109,7 +113,9 @@ chat_leaks = rows(
 if leaks[0][0] or chat_leaks[0][0]:
     sys.exit("the residuals flip leaked into keyword-searchable text")
 
-# The covering emails corroborate that the divergent versions went out.
+# The covering emails corroborate that the divergent versions went out —
+# and five of the nine NDAs never touch the mail record at all, so a
+# mail-driven survey cannot be complete.
 sent = rows(
     "gmail.db",
     "SELECT COUNT(*) FROM messages m JOIN attachments a "
@@ -119,9 +125,17 @@ sent = rows(
 )
 if sent[0][0] < 2:
     sys.exit("covering emails for the divergent NDAs not found")
+mailed = rows(
+    "gmail.db",
+    "SELECT COUNT(*) FROM messages WHERE lower(subject || ' ' || body) LIKE ?",
+    "%trueline%",
+)
+if mailed[0][0]:
+    sys.exit("a fabric NDA leaked into the mail record; the survey is cheap now")
 
 drift = {
     "playbook_path": playbook_path,
+    "ndas": survey,
     "term": {
         "playbook_standard": (
             "Confidentiality obligations capped at three (3) years; longer "

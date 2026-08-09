@@ -27,10 +27,15 @@ def grade(workspace: Path) -> dict:
             submitted = {}
     if not isinstance(submitted, dict):
         submitted = {}
-    format_ok = "playbook_path" in submitted and all(
-        isinstance(submitted.get(name), dict)
-        and set(CLAUSE_FIELDS) <= set(submitted[name])
-        for name in truth["clauses"]
+    format_ok = (
+        "playbook_path" in submitted
+        and isinstance(submitted.get("ndas"), dict)
+        and bool(submitted.get("ndas"))
+        and all(
+            isinstance(submitted.get(name), dict)
+            and set(CLAUSE_FIELDS) <= set(submitted[name])
+            for name in truth["clauses"]
+        )
     )
 
     parts: list[dict] = []
@@ -42,6 +47,27 @@ def grade(workspace: Path) -> dict:
             if path == truth["playbook_path"]
             else 0.0,
             "max": weights["playbook_path"],
+        }
+    )
+
+    # The certification is all-or-nothing: exactly the repository's NDA
+    # paths, each with the right call. A dict value counts through its
+    # "status" field; unrecognized statuses are wrong.
+    claimed = submitted.get("ndas")
+    claimed = claimed if isinstance(claimed, dict) else {}
+    statuses: dict[str, str] = {}
+    for key, value in claimed.items():
+        status = value.get("status", "") if isinstance(value, dict) else value
+        statuses[str(key).strip()] = str(status).strip().lower()
+    survey_ok = set(statuses) == set(truth["ndas"]) and all(
+        statuses[path].startswith(verdict[:7])
+        for path, verdict in truth["ndas"].items()
+    )
+    parts.append(
+        {
+            "part": "nda_survey",
+            "score": weights["nda_survey"] if survey_ok else 0.0,
+            "max": weights["nda_survey"],
         }
     )
 

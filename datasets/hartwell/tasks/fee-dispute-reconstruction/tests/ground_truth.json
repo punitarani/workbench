@@ -1,25 +1,73 @@
 {
   "_evidence": {
-    "activities": "Clio tkt-000001 (00001-MeridianBioLabs): 7 diligence/data-room entries dated strictly after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16) totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). Clio activity ids are the server's positional ids (1-based, time-ordered across all matters): 431, 433, 466, 496, 497, 523, 563.",
-    "decoys": "Near misses on every side of the join: 5 diligence/data-room entries on or before the cutoff (Mar 31, Apr 1, Apr 2, and two on Apr 3 itself — the call-prep entry and a data-room coordination entry), post-cutoff diligence-worded entries on OTHER matters (Lumen licensing Apr 8, Solstice asset purchase Apr 14), and a post-cutoff Meridian entry describing the scope expansion without the diligence wording (Apr 22). A whole-April keyword sum, an on-or-after sum, and a cross-matter keyword sum are all wrong.",
-    "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio, and since round 4 the instruction no longer states it either: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-001705 (ts 6185100.001690, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
-    "challenge": "Gmail msg-000379 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her."
+    "activities": "Clio tkt-000001 (00001-MeridianBioLabs): 7 diligence/data-room entries dated strictly after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16) totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). Clio activity ids are the server's positional ids (1-based, time-ordered across all matters): 439, 442, 469, 504, 506, 534, 568.",
+    "decoys": "Near misses on every side of the join: 5 diligence/data-room entries on or before the cutoff (Mar 31, Apr 1, Apr 2, and two on Apr 3 itself \u2014 the call-prep entry and a data-room coordination entry), post-cutoff diligence-worded entries on OTHER matters (Lumen licensing Apr 8, Solstice asset purchase Apr 14), and post-cutoff Meridian entries describing the scope expansion without the diligence wording (Apr 22). A whole-April keyword sum, an on-or-after sum, and a cross-matter keyword sum are all wrong.",
+    "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio, and since round 4 the instruction no longer states it either: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-002108 (ts 6185100.002093, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
+    "challenge": "Gmail msg-000379 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her.",
+    "support_audit": "Round 5: 34 Meridian entries fall in the disputed window (Apr 4-30) among 117 matter entries. A window day is supported when a same-day email or Slack message names the engagement ('meridian', 'diagnostics', or '00001' \u2014 the matter label 'Meridian diagnostics acquisition' matches both name forms). Exactly 5 entries have silent days: Apr 17 (ids 581, 588) and Apr 22 (ids 629, 631, 634 \u2014 629 is the round-4 scope-expansion decoy). Traps on both sides: Apr 7 is supported ONLY by a DM in the Marcus<->Peter data-room sprint thread (search excludes DMs; the sprint's other 120+ April messages are matter-blind and support nothing), and Apr 9/Apr 21 are supported by internal emails that say 'diagnostics acquisition' but never 'Meridian' (Apr 21 is the only support that day), so a client-name grep over public surfaces lists supported entries as orphans."
   },
   "cutoff_date": "2026-04-03",
   "total_minutes": 890,
   "entry_count": 7,
   "entries": [
-    { "id": 431, "date": "2026-04-06", "minutes": 130 },
-    { "id": 433, "date": "2026-04-06", "minutes": 95 },
-    { "id": 466, "date": "2026-04-08", "minutes": 145 },
-    { "id": 496, "date": "2026-04-10", "minutes": 160 },
-    { "id": 497, "date": "2026-04-10", "minutes": 120 },
-    { "id": 523, "date": "2026-04-14", "minutes": 150 },
-    { "id": 563, "date": "2026-04-16", "minutes": 90 }
+    {
+      "id": 439,
+      "date": "2026-04-06",
+      "minutes": 130
+    },
+    {
+      "id": 442,
+      "date": "2026-04-06",
+      "minutes": 95
+    },
+    {
+      "id": 469,
+      "date": "2026-04-08",
+      "minutes": 145
+    },
+    {
+      "id": 504,
+      "date": "2026-04-10",
+      "minutes": 160
+    },
+    {
+      "id": 506,
+      "date": "2026-04-10",
+      "minutes": 120
+    },
+    {
+      "id": 534,
+      "date": "2026-04-14",
+      "minutes": 150
+    },
+    {
+      "id": 568,
+      "date": "2026-04-16",
+      "minutes": 90
+    }
+  ],
+  "unsupported_entry_ids": [
+    581,
+    588,
+    629,
+    631,
+    634
   ],
   "minutes_by_timekeeper_markers": [
-    [["marcus", "liang"], 675],
-    [["peter", "novak"], 215]
+    [
+      [
+        "marcus",
+        "liang"
+      ],
+      675
+    ],
+    [
+      [
+        "peter",
+        "novak"
+      ],
+      215
+    ]
   ],
   "timekeeper_markers": [
     [
@@ -38,13 +86,14 @@
   "challenge_date": "2026-05-08",
   "weights": {
     "cutoff_date": 0.05,
-    "total_minutes": 0.15,
-    "entry_count": 0.1,
-    "entries": 0.25,
-    "minutes_by_timekeeper": 0.15,
-    "timekeepers": 0.05,
-    "challenged_by": 0.05,
-    "challenge_date": 0.1,
+    "total_minutes": 0.1,
+    "entry_count": 0.05,
+    "entries": 0.2,
+    "minutes_by_timekeeper": 0.1,
+    "timekeepers": 0.02,
+    "challenged_by": 0.03,
+    "challenge_date": 0.05,
+    "unsupported_entry_ids": 0.3,
     "format": 0.1
   }
 }

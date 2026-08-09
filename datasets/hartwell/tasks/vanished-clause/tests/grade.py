@@ -18,7 +18,20 @@ FIELDS = (
     "author",
     "date",
     "change_comment",
+    "clean_documents",
 )
+
+
+def _number_set(values: object) -> set[int] | None:
+    if not isinstance(values, list):
+        return None
+    numbers: set[int] = set()
+    for value in values:
+        try:
+            numbers.add(int(value))
+        except TypeError, ValueError:
+            return None
+    return numbers
 
 
 def grade(workspace: Path) -> dict:
@@ -56,6 +69,10 @@ def grade(workspace: Path) -> dict:
     date_score = 1.0 if str(submitted.get("date", "")).strip() == truth["date"] else 0.0
     comment = str(submitted.get("change_comment", "")).lower()
     comment_score = 1.0 if any(m in comment for m in truth["comment_markers"]) else 0.0
+    # Attestation by enumeration: the clean list is exact-set, so a
+    # sampled survey (or a padded one) certifies nothing.
+    claimed_clean = _number_set(submitted.get("clean_documents"))
+    clean_score = 1.0 if claimed_clean == set(truth["clean_documents"]) else 0.0
 
     parts = [
         {"part": "document_path", "score": weights["document_path"] * path_score},
@@ -67,6 +84,7 @@ def grade(workspace: Path) -> dict:
         {"part": "author", "score": weights["author"] * author_score},
         {"part": "date", "score": weights["date"] * date_score},
         {"part": "change_comment", "score": weights["change_comment"] * comment_score},
+        {"part": "clean_documents", "score": weights["clean_documents"] * clean_score},
         {"part": "format", "score": weights["format"] if format_ok else 0.0},
     ]
     for part in parts:

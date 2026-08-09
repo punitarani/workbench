@@ -20,7 +20,20 @@ FIELDS = (
     "timekeepers",
     "challenged_by",
     "challenge_date",
+    "unsupported_entry_ids",
 )
+
+
+def _id_set(values: object) -> set[int]:
+    if not isinstance(values, list):
+        return set()
+    ids: set[int] = set()
+    for value in values:
+        try:
+            ids.add(int(value))
+        except TypeError, ValueError:
+            continue
+    return ids
 
 
 def _entry_key(entry: object) -> tuple | None:
@@ -102,6 +115,12 @@ def grade(workspace: Path) -> dict:
         else 0.0
     )
 
+    truth_orphans = set(truth["unsupported_entry_ids"])
+    claimed_orphans = _id_set(submitted.get("unsupported_entry_ids"))
+    orphan_hits = len(truth_orphans & claimed_orphans)
+    orphan_extras = len(claimed_orphans - truth_orphans)
+    orphan_score = max(0, orphan_hits - orphan_extras) / len(truth_orphans)
+
     parts = [
         {"part": "cutoff_date", "score": weights["cutoff_date"] * cutoff_score},
         {"part": "total_minutes", "score": weights["total_minutes"] * minutes_score},
@@ -114,6 +133,10 @@ def grade(workspace: Path) -> dict:
         {"part": "timekeepers", "score": weights["timekeepers"] * keeper_score},
         {"part": "challenged_by", "score": weights["challenged_by"] * challenged_score},
         {"part": "challenge_date", "score": weights["challenge_date"] * date_score},
+        {
+            "part": "unsupported_entry_ids",
+            "score": weights["unsupported_entry_ids"] * orphan_score,
+        },
         {"part": "format", "score": weights["format"] if format_ok else 0.0},
     ]
     for part in parts:

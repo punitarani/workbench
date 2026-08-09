@@ -3,13 +3,20 @@
 # June 24 email flags the five-year terms, so the term practice is right,
 # but keyword search finds nothing on the second clause (the only residuals
 # mentions in the mail are the LexiPoint REFUSAL), so the baseline reports
-# practice as conforming and cites no redline. Proves the version-content
-# walk discriminates.
+# practice as conforming and cites no redline — and its certification
+# covers only the four NDAs the mail ever names, so the survey forfeits.
+# Proves the version-content walk over the whole corpus discriminates.
 exec python3 - << 'EOF'
 import json
 
 drift = {
     "playbook_path": "/firm/playbooks/vendor-nda-playbook.md",
+    "ndas": {
+        "/firm/vendor-ndas/mutual-nda-baymark.md": "conforms",
+        "/firm/vendor-ndas/mutual-nda-archway.md": "conforms",
+        "/firm/vendor-ndas/mutual-nda-lexipoint.md": "deviates",
+        "/firm/vendor-ndas/mutual-nda-ironclad.md": "deviates",
+    },
     "term": {
         "playbook_standard": (
             "Confidentiality obligations run three (3) years from "

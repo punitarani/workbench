@@ -132,6 +132,23 @@ LEXIPOINT_NDA_TITLE = "Mutual NDA — LexiPoint Research (Draft)"
 IRONCLAD_NDA_TITLE = "Mutual NDA — Ironclad Discovery Services (Draft)"
 BAYMARK_NDA_TITLE = "Mutual NDA — BayMark IT Solutions (Draft)"
 ARCHWAY_NDA_TITLE = "Mutual NDA — Archway Court Reporting (Draft)"
+TRUELINE_NDA_TITLE = "Mutual NDA — Trueline Process Servers (Draft)"
+COBALT_NDA_TITLE = "Mutual NDA — Cobalt Language Services (Draft)"
+HARBORLIGHT_NDA_TITLE = "Mutual NDA — Harborlight Records Storage (Draft)"
+BRIGHTWATER_NDA_TITLE = "Mutual NDA — Brightwater Trial Graphics (Draft)"
+SUMMIT_NDA_TITLE = "Mutual NDA — Summit Staffing Partners (Draft)"
+
+# Every vendor NDA on file, conforming histories included: the S1 drift
+# task grades a per-NDA survey over this whole corpus.
+CONFORMING_NDA_TITLES = (
+    BAYMARK_NDA_TITLE,
+    ARCHWAY_NDA_TITLE,
+    TRUELINE_NDA_TITLE,
+    COBALT_NDA_TITLE,
+    HARBORLIGHT_NDA_TITLE,
+    BRIGHTWATER_NDA_TITLE,
+    SUMMIT_NDA_TITLE,
+)
 LUMEN_AGREEMENT_TITLE = (
     "Software License and Support Agreement — Lumen Software (Draft)"
 )
@@ -179,6 +196,151 @@ S2_CUTOFF_CHAT = (
     "budget call: diligence and data-room entries dated after April 3 are "
     "the disputed bucket; the tranche-1 work before the call stays as "
     "originally scoped. Export is in the billing folder."
+)
+
+# S2 support audit: an April entry on the Meridian matter is "supported"
+# when a same-day email or chat message names the engagement — the client
+# (Meridian), the deal (the diagnostics acquisition), or the matter
+# number (00001). These markers are the whole rule; the audit, the
+# grader, and the reference solution all apply exactly this list.
+S2_SUPPORT_MARKERS = ("meridian", "diagnostics", "00001")
+
+# The deal team's April data-room sprint runs through the Marcus<->Peter
+# DM. The rotation lines are deliberately matter-blind — the Solstice
+# closing staged a seller data room the same month, so a tranche or a
+# privilege screen could be either file — which means they never support
+# an entry under the marker rule. The dated exceptions below name the
+# client and are, by construction, the only support their days have.
+S2_SPRINT_DAYS = (
+    "2026-04-06",
+    "2026-04-07",
+    "2026-04-08",
+    "2026-04-09",
+    "2026-04-10",
+    "2026-04-13",
+    "2026-04-14",
+    "2026-04-15",
+    "2026-04-16",
+    "2026-04-17",
+)
+S2_SPRINT_CLOCKS = (
+    (8, 40),
+    (9, 35),
+    (11, 20),
+    (13, 5),
+    (14, 15),
+    (15, 40),
+    (16, 55),
+    (18, 5),
+)
+S2_SPRINT_LINES = (
+    "staging the next folder batch now — index refresh once it lands.",
+    "qc pass on this morning's uploads is done; two files flagged for "
+    "privilege review.",
+    "can you re-run the checksum on yesterday's batch? counts look off by three.",
+    "privilege screen through the new folder is clean. moving on.",
+    "the seller's team re-uploaded the corrupted set — pulling it into "
+    "the review queue.",
+    "index rebuilt. the numbering gap was a duplicate folder, not a missing one.",
+    "tagging pass done through this afternoon's tranche; nothing unusual to flag.",
+    "hold uploads for an hour — running the dedupe script.",
+    "dedupe finished, forty-one exact duplicates dropped from the review set.",
+    "who has the access log? need to reconcile reviewer names before close of day.",
+    "review queue is empty as of now. next batch lands tomorrow morning.",
+    "flagging one folder for your eyes before it goes in the index — odd date stamps.",
+    "checked the odd date stamps: scanner artifacts, not edits. cleared it.",
+    "closing the log for today; summary sheet is in the shared drive.",
+)
+
+# S2 support-audit coverage exceptions. The DM texts name the client on
+# days whose only reference lives in the DM (search excludes DMs); the
+# oblique emails name only the deal — never the client — on days whose
+# only reference is that email, so a client-name grep calls those days
+# unsupported and lists entries that have support.
+S2_DM_COVERAGE_TEXTS = {
+    "2026-04-07": (
+        "meridian folder counts jumped again overnight — hold the index "
+        "until i re-run it against the seller's manifest."
+    ),
+    "2026-04-15": (
+        "meridian qc log is clean through this week's uploads; posting "
+        "the refreshed index tonight."
+    ),
+}
+S2_OBLIQUE_EMAILS = (
+    (
+        "2026-04-09",
+        (16, 35),
+        _PN,
+        _ML,
+        "Data room index — diagnostics acquisition",
+        "Marcus,\n\nRebuilt the tranche index for the diagnostics "
+        "acquisition after today's uploads and reconciled it against the "
+        "seller's manifest. Three folders are flagged for privilege "
+        "review before they go to the client team; the rest are staged "
+        "for tomorrow's pass.\n\nPeter",
+    ),
+    (
+        "2026-04-21",
+        (10, 10),
+        _CJ,
+        _AB,
+        "Prebill watch — diagnostics acquisition",
+        "Anita,\n\nFlagging early: this month's time on the diagnostics "
+        "acquisition is pacing well ahead of the estimate we gave the "
+        "client, mostly review hours out of the expanded document set. "
+        "Nothing to action yet — I want it on your radar before the "
+        "prebill run.\n\nCarl",
+    ),
+)
+
+# April is the firm's crunch month, and two more DM lanes carry it: the
+# billing pair works the prebill cycle and the paralegals work the
+# records desk, every workday. Like the data-room sprint, the lines are
+# matter-blind — they support nothing under the S2 marker rule — and
+# they push each thread's April window past a single 100-message read.
+APRIL_WORKDAYS = (
+    "2026-04-01",
+    "2026-04-02",
+    "2026-04-03",
+    *S2_SPRINT_DAYS,
+    "2026-04-20",
+    "2026-04-21",
+    "2026-04-22",
+    "2026-04-23",
+    "2026-04-24",
+    "2026-04-27",
+    "2026-04-28",
+    "2026-04-29",
+    "2026-04-30",
+)
+APRIL_BILLING_DM_CLOCKS = ((9, 10), (12, 40), (14, 35), (16, 20))
+APRIL_BILLING_DM_LINES = (
+    "prebill run kicks off thursday — send me any write-down flags before then.",
+    "two receivables crossed sixty days this morning. drafting the reminder letters.",
+    "trust ledger reconciled through last month; one shortfall flagged separately.",
+    "can you pull the expense backups for the march couriers? scanning gaps again.",
+    "rate table check is done — three timekeepers still on the old schedule.",
+    "the portal upload failed overnight; re-sending this morning's statements.",
+    "edits are back on about half the prebills. chasing the rest after lunch.",
+    "reminder to the team going out: narratives due before the run, not after.",
+    "wrote off the copy charges on the closed file per the partner note.",
+    "collections call went fine — payment promised by the end of the month.",
+)
+APRIL_RECORDS_DM_CLOCKS = ((8, 55), (10, 40), (11, 45), (14, 50), (17, 25))
+APRIL_RECORDS_DM_LINES = (
+    "filing run at noon — anything for the court drop besides the two on my list?",
+    "boxes 14 and 19 came back from offsite; logging them into the index now.",
+    "service list update done; the new addresses are in the master sheet.",
+    "the transcript from tuesday's depo is in — routing it for exhibit stamping.",
+    "can you cover the records desk for an hour this afternoon?",
+    "courtesy copies are assembled; binding them after lunch.",
+    "the scanner queue is backed up — flagging the oversized exhibits "
+    "for outside copying.",
+    "chron file is current through yesterday. starting today's intake.",
+    "retention review: three closed files are past the hold window; "
+    "circulating the list.",
+    "signature packet came back unsigned on one tab — sending it around again.",
 )
 
 # S1: the only discussion of the Ironclad concession, in a #matters thread
@@ -354,6 +516,117 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 facts=(
                     "purpose is provision of court reporting, "
                     "transcription, and deposition services; do NOT "
+                    "include any section on term or duration, residual "
+                    "knowledge, injunctive or equitable relief, or "
+                    "governing law — those are appended separately."
+                ),
+                length="280-380 words",
+            ),
+            max_tokens=700,
+        ),
+        ContentRequest(
+            name="s1.nda.trueline.body",
+            prompt=_section_prompt(
+                what=(
+                    "the core sections of a mutual nondisclosure agreement "
+                    "between Hartwell & Marsh LLP (a California law firm) "
+                    "and Trueline Process Servers (a process service and "
+                    "court filing vendor): numbered sections for "
+                    "Definitions, Permitted Use, Exclusions, Return of "
+                    "Materials, and No License"
+                ),
+                facts=(
+                    "purpose is provision of process service, court "
+                    "filing, and skip tracing services; do NOT include "
+                    "any section on term or duration, residual knowledge, "
+                    "injunctive or equitable relief, or governing law — "
+                    "those are appended separately."
+                ),
+                length="280-380 words",
+            ),
+            max_tokens=700,
+        ),
+        ContentRequest(
+            name="s1.nda.cobalt.body",
+            prompt=_section_prompt(
+                what=(
+                    "the core sections of a mutual nondisclosure agreement "
+                    "between Hartwell & Marsh LLP (a California law firm) "
+                    "and Cobalt Language Services (a translation and "
+                    "interpreting vendor): numbered sections for "
+                    "Definitions, Permitted Use, Exclusions, Return of "
+                    "Materials, and No License"
+                ),
+                facts=(
+                    "purpose is provision of certified translation and "
+                    "deposition interpreting services; do NOT include any "
+                    "section on term or duration, residual knowledge, "
+                    "injunctive or equitable relief, or governing law — "
+                    "those are appended separately."
+                ),
+                length="280-380 words",
+            ),
+            max_tokens=700,
+        ),
+        ContentRequest(
+            name="s1.nda.harborlight.body",
+            prompt=_section_prompt(
+                what=(
+                    "the core sections of a mutual nondisclosure agreement "
+                    "between Hartwell & Marsh LLP (a California law firm) "
+                    "and Harborlight Records Storage (an offsite records "
+                    "storage and destruction vendor): numbered sections "
+                    "for Definitions, Permitted Use, Exclusions, Return "
+                    "of Materials, and No License"
+                ),
+                facts=(
+                    "purpose is provision of offsite records storage, "
+                    "retrieval, and certified destruction services; do "
+                    "NOT include any section on term or duration, "
+                    "residual knowledge, injunctive or equitable relief, "
+                    "or governing law — those are appended separately."
+                ),
+                length="280-380 words",
+            ),
+            max_tokens=700,
+        ),
+        ContentRequest(
+            name="s1.nda.brightwater.body",
+            prompt=_section_prompt(
+                what=(
+                    "the core sections of a mutual nondisclosure agreement "
+                    "between Hartwell & Marsh LLP (a California law firm) "
+                    "and Brightwater Trial Graphics (a litigation graphics "
+                    "and trial technology vendor): numbered sections for "
+                    "Definitions, Permitted Use, Exclusions, Return of "
+                    "Materials, and No License"
+                ),
+                facts=(
+                    "purpose is provision of demonstrative exhibits, "
+                    "trial presentation technology, and courtroom "
+                    "support; do NOT include any section on term or "
+                    "duration, residual knowledge, injunctive or "
+                    "equitable relief, or governing law — those are "
+                    "appended separately."
+                ),
+                length="280-380 words",
+            ),
+            max_tokens=700,
+        ),
+        ContentRequest(
+            name="s1.nda.summit.body",
+            prompt=_section_prompt(
+                what=(
+                    "the core sections of a mutual nondisclosure agreement "
+                    "between Hartwell & Marsh LLP (a California law firm) "
+                    "and Summit Staffing Partners (a contract attorney and "
+                    "paralegal staffing vendor): numbered sections for "
+                    "Definitions, Permitted Use, Exclusions, Return of "
+                    "Materials, and No License"
+                ),
+                facts=(
+                    "purpose is provision of contract attorneys and "
+                    "paralegals for document review engagements; do NOT "
                     "include any section on term or duration, residual "
                     "knowledge, injunctive or equitable relief, or "
                     "governing law — those are appended separately."
@@ -1497,13 +1770,20 @@ class StorylineDirector:
 
         self._matters_channel = channel("#matters")
         self._billing_channel = channel("#billing")
-        self._grace_samuel_dm = next(
-            event.payload.conversation_id
-            for event in genesis.events
-            if event.payload.kind == "chat.conversation.created"
-            and event.payload.conversation_type == "dm"
-            and set(event.payload.members) == {_GA, _SM}
-        )
+
+        def dm_between(first: str, second: str) -> str:
+            return next(
+                event.payload.conversation_id
+                for event in genesis.events
+                if event.payload.kind == "chat.conversation.created"
+                and event.payload.conversation_type == "dm"
+                and set(event.payload.members) == {first, second}
+            )
+
+        self._grace_samuel_dm = dm_between(_GA, _SM)
+        self._marcus_peter_dm = dm_between(_ML, _PN)
+        self._anita_carl_dm = dm_between(_AB, _CJ)
+        self._grace_peter_dm = dm_between(_GA, _PN)
         self._refs: dict[str, str] = {}
         self._beats: dict[str, list[tuple[int, _Beat]]] = {}
         self._register_s1()
@@ -1512,6 +1792,7 @@ class StorylineDirector:
         self._register_s4()
         self._register_s5()
         self._register_fabric(genesis)
+        self._register_april_dm_lanes()
         workdays = {WINDOW.iso_date(index) for index in WINDOW.workdays()}
         strays = sorted(set(self._beats) - workdays)
         if strays:
@@ -1978,6 +2259,128 @@ class StorylineDirector:
 
         self._on("2026-04-14", _at(14, 50), archway_v2)
 
+        # Five more conforming vendor NDAs: the drift survey grades the
+        # whole corpus, so the clean histories must outnumber the
+        # divergent ones and cost real version walks.
+        conforming_plans: tuple[
+            tuple[str, str, str, tuple[str, int, str], tuple[str, int, str, str]], ...
+        ] = (
+            (
+                "s1.trueline",
+                TRUELINE_NDA_TITLE,
+                "/firm/vendor-ndas/mutual-nda-trueline.md",
+                ("2026-03-11", _at(10, 25), _NF),
+                (
+                    "2026-03-24",
+                    _at(15, 10),
+                    _PN,
+                    "Conformed notice addresses and exhibit references.",
+                ),
+            ),
+            (
+                "s1.cobalt",
+                COBALT_NDA_TITLE,
+                "/firm/vendor-ndas/mutual-nda-cobalt.md",
+                ("2026-04-02", _at(9, 45), _NF),
+                (
+                    "2026-04-21",
+                    _at(14, 20),
+                    _NF,
+                    "Typo fixes and defined-terms cleanup from proofread.",
+                ),
+            ),
+            (
+                "s1.harborlight",
+                HARBORLIGHT_NDA_TITLE,
+                "/firm/vendor-ndas/mutual-nda-harborlight.md",
+                ("2026-04-23", _at(11, 40), _NF),
+                (
+                    "2026-05-06",
+                    _at(16, 15),
+                    _PN,
+                    "Updated the signature blocks for the renewal entities.",
+                ),
+            ),
+            (
+                "s1.brightwater",
+                BRIGHTWATER_NDA_TITLE,
+                "/firm/vendor-ndas/mutual-nda-brightwater.md",
+                ("2026-05-18", _at(10, 5), _NF),
+                (
+                    "2026-06-02",
+                    _at(15, 35),
+                    _NF,
+                    "Citation and cross-reference fixes from proofread.",
+                ),
+            ),
+            (
+                "s1.summit",
+                SUMMIT_NDA_TITLE,
+                "/firm/vendor-ndas/mutual-nda-summit.md",
+                ("2026-06-09", _at(9, 30), _NF),
+                (
+                    "2026-06-22",
+                    _at(14, 45),
+                    _PN,
+                    "Conformed notice addresses and signature blocks.",
+                ),
+            ),
+        )
+        for ref, title, path, created, revised in conforming_plans:
+            body_key = f"s1.nda.{ref.removeprefix('s1.')}.body"
+            content = _nda(
+                texts,
+                title=title,
+                body_key=body_key,
+                term=NDA_TERM_THREE,
+                residuals=False,
+            )
+            v1_day, v1_clock, v1_author = created
+            v2_day, v2_clock, v2_author, v2_summary = revised
+
+            def create_beat(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                ref: str = ref,
+                clock: int = v1_clock,
+                author: str = v1_author,
+                title: str = title,
+                path: str = path,
+                content: str = content,
+            ) -> None:
+                self._doc(
+                    minter,
+                    drafts,
+                    at=clock,
+                    ref=ref,
+                    author=author,
+                    title=title,
+                    path=path,
+                    content=content,
+                )
+
+            def revise_beat(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                ref: str = ref,
+                clock: int = v2_clock,
+                author: str = v2_author,
+                content: str = content,
+                summary: str = v2_summary,
+            ) -> None:
+                self._revise(
+                    drafts,
+                    at=clock,
+                    ref=ref,
+                    revision=2,
+                    author=author,
+                    content=content,
+                    summary=summary,
+                )
+
+            self._on(v1_day, v1_clock, create_beat)
+            self._on(v2_day, v2_clock, revise_beat)
+
         def lexipoint_v1(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._doc(
                 minter,
@@ -2376,6 +2779,48 @@ class StorylineDirector:
                 )
 
             self._on(day, clock, entry)
+        # Unsupported window work: post-cutoff Meridian entries on days
+        # where no message names the engagement. Their notes stay clear
+        # of the diligence wording so the disputed set never moves; they
+        # exist to be found by the support audit, not the fee join.
+        unsupported: tuple[tuple[str, int, str, int, str], ...] = (
+            (
+                "2026-04-17",
+                _at(17, 20),
+                _PN,
+                55,
+                "Update the closing checklist and signature tracker "
+                "(Meridian diagnostics acquisition).",
+            ),
+            (
+                "2026-04-22",
+                _at(18, 15),
+                _ML,
+                40,
+                "Call with client team on regulatory consent timing "
+                "(Meridian diagnostics acquisition).",
+            ),
+        )
+        for day, clock, person, minutes, note in unsupported:
+
+            def unsupported_entry(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                clock: int = clock,
+                person: str = person,
+                minutes: int = minutes,
+                note: str = note,
+            ) -> None:
+                self._time(
+                    drafts,
+                    at=clock,
+                    person=person,
+                    ticket=S2_TICKET,
+                    minutes=minutes,
+                    note=note,
+                )
+
+            self._on(day, clock, unsupported_entry)
         for day, clock, person, ticket, minutes, note in decoys:
 
             def decoy_entry(
@@ -2397,6 +2842,63 @@ class StorylineDirector:
                 )
 
             self._on(day, clock, decoy_entry)
+
+        # The April data-room sprint: a heavy, matter-blind DM lane
+        # between the deal associate and the deal paralegal. Two dated
+        # texts name the client (the only support their days have); every
+        # other line stays ambiguous between the Meridian and Solstice
+        # data rooms, so it supports nothing under the marker rule.
+        for day_index, sprint_day in enumerate(S2_SPRINT_DAYS):
+            for slot, (hour, minute) in enumerate(S2_SPRINT_CLOCKS):
+                body = S2_SPRINT_LINES[
+                    (day_index * len(S2_SPRINT_CLOCKS) + slot) % len(S2_SPRINT_LINES)
+                ]
+                if slot == 2 and sprint_day in S2_DM_COVERAGE_TEXTS:
+                    body = S2_DM_COVERAGE_TEXTS[sprint_day]
+                sender = _PN if slot % 2 == 0 else _ML
+
+                def sprint_beat(
+                    minter: IdMinter,
+                    drafts: list[TimedDraft],
+                    clock: int = _at(hour, minute),
+                    sender: str = sender,
+                    body: str = body,
+                ) -> None:
+                    self._chat(
+                        minter,
+                        drafts,
+                        at=clock,
+                        sender=sender,
+                        body=body,
+                        conversation=self._marcus_peter_dm,
+                    )
+
+                self._on(sprint_day, _at(hour, minute), sprint_beat)
+
+        for day, clock, sender, recipient, subject, body in S2_OBLIQUE_EMAILS:
+
+            def oblique_beat(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                clock: int = _at(*clock),
+                sender: str = sender,
+                recipient: str = recipient,
+                subject: str = subject,
+                body: str = body,
+            ) -> None:
+                self._email(
+                    minter,
+                    drafts,
+                    at=clock,
+                    sender=sender,
+                    to=(recipient,),
+                    subject=subject,
+                    text=body,
+                    thread=f"s2.oblique.{subject}",
+                    reply=False,
+                )
+
+            self._on(day, _at(*clock), oblique_beat)
 
         def invoice(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._email(
@@ -3530,3 +4032,45 @@ class StorylineDirector:
                     content=extended(base, sections),
                     summary=summary,
                 )
+
+    def _register_april_dm_lanes(self) -> None:
+        lanes: tuple[tuple[str, str, str, tuple, tuple[str, ...]], ...] = (
+            (
+                self._anita_carl_dm,
+                _AB,
+                _CJ,
+                APRIL_BILLING_DM_CLOCKS,
+                APRIL_BILLING_DM_LINES,
+            ),
+            (
+                self._grace_peter_dm,
+                _GA,
+                _PN,
+                APRIL_RECORDS_DM_CLOCKS,
+                APRIL_RECORDS_DM_LINES,
+            ),
+        )
+        for conversation, first, second, clocks, lines in lanes:
+            for day_index, day in enumerate(APRIL_WORKDAYS):
+                for slot, (hour, minute) in enumerate(clocks):
+                    body = lines[(day_index * len(clocks) + slot) % len(lines)]
+                    sender = first if slot % 2 == 0 else second
+
+                    def lane_beat(
+                        minter: IdMinter,
+                        drafts: list[TimedDraft],
+                        clock: int = _at(hour, minute),
+                        sender: str = sender,
+                        body: str = body,
+                        conversation: str = conversation,
+                    ) -> None:
+                        self._chat(
+                            minter,
+                            drafts,
+                            at=clock,
+                            sender=sender,
+                            body=body,
+                            conversation=conversation,
+                        )
+
+                    self._on(day, _at(hour, minute), lane_beat)

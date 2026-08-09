@@ -82,7 +82,8 @@ _CHANNELS: tuple[tuple[str, tuple[str, ...], str, str], ...] = (
 # Grace<->Samuel runs hot: the litigation docket flows through that
 # thread, and S5 buries its correction mid-stream in a season of routine
 # traffic; the other pairs run heavy enough that skimming every DM
-# history end to end costs real turns.
+# history end to end costs real turns. New pairs append at the end so the
+# earlier pairs' seeded draws — and their message content — never move.
 _DMS: tuple[tuple[str, str, float], ...] = (
     ("per-grace-adeyemi", "per-samuel-marsh", 2.1),
     ("per-eleanor-hartwell", "per-samuel-marsh", 0.7),
@@ -94,6 +95,8 @@ _DMS: tuple[tuple[str, str, float], ...] = (
     ("per-eleanor-hartwell", "per-anita-bailey", 0.6),
     ("per-samuel-marsh", "per-sofia-ramirez", 0.7),
     ("per-noah-feldstein", "per-peter-novak", 0.5),
+    ("per-grace-adeyemi", "per-peter-novak", 0.6),
+    ("per-marcus-liang", "per-sofia-ramirez", 0.5),
 )
 
 _DOCUMENTS: tuple[tuple[str, str, str, str], ...] = (

@@ -46,10 +46,9 @@ from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
 from workbench.tools import check_coherence
 from workbench.workplaces.hartwell import WINDOW, build_genesis, procedural_cast
 from workbench.workplaces.hartwell.storylines import (
-    ARCHWAY_NDA_TITLE,
     ARROYO_HEARING_TITLE,
-    BAYMARK_NDA_TITLE,
     CASCADIA_LETTER_TITLE,
+    CONFORMING_NDA_TITLES,
     INDEMNITY_PARAGRAPH,
     IRONCLAD_NDA_TITLE,
     LEXIPOINT_NDA_TITLE,
@@ -58,6 +57,7 @@ from workbench.workplaces.hartwell.storylines import (
     PLAYBOOK_TITLE,
     S1_IRONCLAD_THREAD_REPLY,
     S2_CUTOFF_CHAT,
+    S2_SUPPORT_MARKERS,
     S2_TICKET,
     S4_CLOSED_DATE,
     S4_TICKET,
@@ -233,10 +233,17 @@ def audit(log_path: Path, state_dir: Path) -> int:
             and "Reject any residual-knowledge clause" in playbook[3]
         ),
     )
-    for title in (BAYMARK_NDA_TITLE, ARCHWAY_NDA_TITLE):
+    nda_titles = {title for title in docs if title.startswith("Mutual NDA")}
+    check(
+        f"the vendor NDA corpus holds exactly 9 drafts ({len(nda_titles)})",
+        len(nda_titles) == 9
+        and nda_titles
+        == {LEXIPOINT_NDA_TITLE, IRONCLAD_NDA_TITLE, *CONFORMING_NDA_TITLES},
+    )
+    for title in CONFORMING_NDA_TITLES:
         conforming = dict(docs[title])
         check(
-            f"distractor NDA conforms in every version: {title.split(' — ')[1]}",
+            f"conforming NDA holds in every version: {title.split(' — ')[1]}",
             len(conforming) >= 2
             and all(
                 "three (3) years" in content and "Residual Knowledge" not in content
@@ -390,6 +397,91 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and not any(date_pattern.search(body) for body in email_bodies),
     )
 
+    # Support audit: every Meridian entry in the disputed window either
+    # has a same-day message naming the engagement or is an orphan; the
+    # orphan set is a graded deliverable, so its shape is gated here.
+    dm_conversations = {
+        event.payload.conversation_id
+        for event in events
+        if event.payload.kind == "chat.conversation.created"
+        and event.payload.conversation_type == "dm"
+    }
+
+    def referenced(text: str) -> bool:
+        lowered = text.lower()
+        return any(marker in lowered for marker in S2_SUPPORT_MARKERS)
+
+    coverage: dict[str, set[str]] = {}
+    for event in events:
+        payload = event.payload
+        if isinstance(payload, EmailMessagePayload):
+            text = f"{payload.subject} {payload.body}"
+            if referenced(text):
+                kind = "email-name" if "meridian" in text.lower() else "email-oblique"
+                coverage.setdefault(_event_date(event), set()).add(kind)
+        elif isinstance(payload, ChatMessagePayload) and referenced(payload.body):
+            kind = (
+                "chat-dm"
+                if payload.conversation_id in dm_conversations
+                else "chat-public"
+            )
+            coverage.setdefault(_event_date(event), set()).add(kind)
+
+    matter_entries = [
+        event
+        for event in events
+        if isinstance(event.payload, TimeLoggedPayload)
+        and event.payload.ticket_id == S2_TICKET
+    ]
+    window_entries = [
+        event
+        for event in matter_entries
+        if "2026-04-03" < _event_date(event) <= "2026-04-30"
+    ]
+    orphans = [event for event in window_entries if _event_date(event) not in coverage]
+    orphan_days = sorted({_event_date(event) for event in orphans})
+    check(
+        f"the matter carries {len(matter_entries)} entries, "
+        f"{len(window_entries)} in the disputed window (>= 60 / >= 30)",
+        len(matter_entries) >= 60 and len(window_entries) >= 30,
+    )
+    check(
+        f"exactly 4-6 window entries have no same-day support: "
+        f"{len(orphans)} on {orphan_days}",
+        4 <= len(orphans) <= 6,
+    )
+    window_days = sorted({_event_date(event) for event in window_entries})
+    dm_only = [day for day in window_days if coverage.get(day) == {"chat-dm"}]
+    oblique_only = [
+        day for day in window_days if coverage.get(day) == {"email-oblique"}
+    ]
+    check(
+        f"some window days are supported only through a DM ({dm_only}) "
+        f"and some only through a client-nameless email ({oblique_only})",
+        len(dm_only) >= 1 and len(oblique_only) >= 1,
+    )
+    marcus_peter = next(
+        event.payload.conversation_id
+        for event in events
+        if event.payload.kind == "chat.conversation.created"
+        and event.payload.conversation_type == "dm"
+        and set(event.payload.members) == {"per-marcus-liang", "per-peter-novak"}
+    )
+    april_by_dm = Counter(
+        event.payload.conversation_id
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.conversation_id in dm_conversations
+        and "2026-04-01" <= _event_date(event) <= "2026-04-30"
+    )
+    heavy = [conversation for conversation, count in april_by_dm.items() if count > 100]
+    check(
+        f"the deal-team DM carries {april_by_dm[marcus_peter]} April "
+        f"messages and {len(heavy)} DM threads exceed 100 for the month "
+        "(each costs more than one windowed read)",
+        april_by_dm[marcus_peter] > 100 and len(heavy) >= 3,
+    )
+
     print("S3 dropped indemnity:")
     lumen = dict(docs[LUMEN_AGREEMENT_TITLE])
     check(
@@ -422,6 +514,14 @@ def audit(log_path: Path, state_dir: Path) -> int:
         "the decoy Lumen SOW has a clean four-version history",
         len(sow) == 4
         and all("Indemnification" not in content for content in sow.values()),
+    )
+    multi = {title: v for title, v in docs.items() if len(v) >= 2}
+    deep = [title for title, v in multi.items() if len(v) >= 3]
+    check(
+        f"the multi-version corpus holds {len(multi)} documents "
+        f"({len(deep)} with 3+ versions); the clean-list deliverable is "
+        f"{len(multi) - 1} numbers",
+        len(multi) == 17 and len(deep) >= 5,
     )
     quotes = [
         event

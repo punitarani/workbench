@@ -304,7 +304,10 @@ def register(server: MCPServer, db_path: Path) -> None:
     def slack_search_public(
         query: str, limit: int = 20, cursor: str | None = None
     ) -> dict:
-        """Search channel messages; supports "phrases", in:, from:, before:, after:."""
+        """Search channel messages; supports "phrases", in:, from:, before:,
+        after:. At most 20 matches per call (page with cursor; the response's
+        total reports the full match count)."""
+        limit = max(1, min(limit, 20))
         needles, filters = _parse_query(query)
         lowered = [needle.lower() for needle in needles]
         with connect_readonly(db_path) as connection:

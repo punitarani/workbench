@@ -24,10 +24,9 @@ from workbench.core.worldlog import read_events, validate_events
 from workbench.simulation.errors import ConfigError
 from workbench.workplaces.hartwell import WINDOW, build_genesis
 from workbench.workplaces.hartwell.storylines import (
-    ARCHWAY_NDA_TITLE,
     ARROYO_HEARING_TITLE,
-    BAYMARK_NDA_TITLE,
     CASCADIA_LETTER_TITLE,
+    CONFORMING_NDA_TITLES,
     INDEMNITY_PARAGRAPH,
     IRONCLAD_NDA_TITLE,
     LEXIPOINT_NDA_TITLE,
@@ -36,6 +35,7 @@ from workbench.workplaces.hartwell.storylines import (
     NDA_RESIDUALS_CLAUSE,
     PLAYBOOK_TITLE,
     S2_CUTOFF_CHAT,
+    S2_SUPPORT_MARKERS,
     S2_TICKET,
     S4_CLOSED_DATE,
     S4_TICKET,
@@ -150,9 +150,12 @@ def test_s1_playbook_and_practice_diverge(full_log: list) -> None:
     assert NDA_RESIDUALS_CLAUSE not in ironclad[1]
     assert NDA_RESIDUALS_CLAUSE in ironclad[2]
 
-    for title in (BAYMARK_NDA_TITLE, ARCHWAY_NDA_TITLE):
+    nda_titles = {title for title in docs if title.startswith("Mutual NDA")}
+    assert len(nda_titles) == 9, "the survey corpus holds nine vendor NDAs"
+    for title in CONFORMING_NDA_TITLES:
+        assert len(docs[title]) >= 2, f"{title} carries a revision history"
         for content in docs[title].values():
-            assert "three (3) years" in content, "distractor NDAs conform"
+            assert "three (3) years" in content, "conforming NDAs hold"
             assert NDA_RESIDUALS_CLAUSE not in content
 
     chat_bodies = [
@@ -224,6 +227,66 @@ def test_s2_fee_dispute_joins_activities_to_email_dates(full_log: list) -> None:
     assert len(notes) == 1 and _event_date(notes[0]) == "2026-05-15"
 
 
+def test_s2_support_audit_shapes_the_orphan_set(full_log: list) -> None:
+    dm_ids = {
+        event.payload.conversation_id
+        for event in full_log
+        if event.payload.kind == "chat.conversation.created"
+        and event.payload.conversation_type == "dm"
+    }
+
+    def referenced(text: str) -> bool:
+        lowered = text.lower()
+        return any(marker in lowered for marker in S2_SUPPORT_MARKERS)
+
+    coverage: dict[str, set[str]] = {}
+    for event in full_log:
+        payload = event.payload
+        if isinstance(payload, EmailMessagePayload):
+            text = f"{payload.subject} {payload.body}"
+            if referenced(text):
+                kind = "email-name" if "meridian" in text.lower() else "email-oblique"
+                coverage.setdefault(_event_date(event), set()).add(kind)
+        elif isinstance(payload, ChatMessagePayload) and referenced(payload.body):
+            kind = "chat-dm" if payload.conversation_id in dm_ids else "chat-public"
+            coverage.setdefault(_event_date(event), set()).add(kind)
+
+    window = [
+        event
+        for event in full_log
+        if isinstance(event.payload, TimeLoggedPayload)
+        and event.payload.ticket_id == S2_TICKET
+        and "2026-04-03" < _event_date(event) <= "2026-04-30"
+    ]
+    assert len(window) >= 30, "the disputed window carries real volume"
+    orphans = [event for event in window if _event_date(event) not in coverage]
+    assert 4 <= len(orphans) <= 6, sorted(_event_date(e) for e in orphans)
+
+    window_days = {_event_date(event) for event in window}
+    assert any(coverage.get(day) == {"chat-dm"} for day in window_days), (
+        "at least one window day is supported only through a DM"
+    )
+    assert any(coverage.get(day) == {"email-oblique"} for day in window_days), (
+        "at least one window day is supported only by a client-nameless email"
+    )
+
+    marcus_peter = next(
+        event.payload.conversation_id
+        for event in full_log
+        if event.payload.kind == "chat.conversation.created"
+        and event.payload.conversation_type == "dm"
+        and set(event.payload.members) == {"per-marcus-liang", "per-peter-novak"}
+    )
+    april_dm = [
+        event
+        for event in full_log
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.conversation_id == marcus_peter
+        and "2026-04-01" <= _event_date(event) <= "2026-04-30"
+    ]
+    assert len(april_dm) > 100, "the sprint pushes the DM window past one read"
+
+
 def test_s3_indemnity_drops_silently_in_v4(full_log: list) -> None:
     lumen = _versions_by_title(full_log)[LUMEN_AGREEMENT_TITLE]
     assert set(lumen) == {1, 2, 3, 4, 5, 6, 7}
@@ -276,7 +339,7 @@ FABRIC_TITLES = (
 def test_fabric_grows_the_version_corpus_without_dropping(full_log: list) -> None:
     docs = _versions_by_title(full_log)
     multi = {title: v for title, v in docs.items() if len(v) >= 2}
-    assert len(multi) >= 10, "exhaustive diffing must cost real work"
+    assert len(multi) >= 15, "exhaustive diffing must cost real work"
     assert sum(1 for v in multi.values() if len(v) >= 3) >= 5
 
     for title in FABRIC_TITLES:

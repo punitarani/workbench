@@ -16,6 +16,10 @@ def rows(db, sql, *params):
     with sqlite3.connect(f"file:state/{db}?mode=ro", uri=True) as connection:
         return connection.execute(sql, params).fetchall()
 
+# A mail-anchored survey certifies only what the thread discusses: the
+# blamed document's own workspace sibling. The corpus-wide clean list
+# never gets enumerated.
+
 # The longest block-quoted passage in the mail record is the clause the
 # client cared about; its thread names the document via its attachments.
 quoted = [
@@ -46,6 +50,16 @@ head = rows(
 )[0]
 path, version, author, comment, time = head
 
+workspace = path.strip("/").split("/")[0]
+clean_documents = sorted(
+    number
+    for (number, other_path) in rows(
+        "imanage.db",
+        "SELECT document_number, path FROM documents WHERE head_version >= 2",
+    )
+    if other_path != path and other_path.strip("/").split("/")[0] == workspace
+)
+
 clause = {
     "document_path": path,
     "dropped_clause": quote.removeprefix("> ")[:160],
@@ -53,6 +67,7 @@ clause = {
     "author": author,
     "date": (EPOCH + timedelta(days=time // 86400)).isoformat(),
     "change_comment": comment,
+    "clean_documents": clean_documents,
 }
 with open("clause.json", "w") as handle:
     json.dump(clause, handle, indent=2)

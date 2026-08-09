@@ -391,6 +391,17 @@ async def test_search_public_terms_phrases_and_channel_scope(
     assert elsewhere["messages"]["total"] == 0
 
 
+async def test_search_public_caps_the_page_size(server: MCPServer) -> None:
+    """A huge limit must not dump every match in one call."""
+    dump = await call(server, "slack_search_public", {"query": "Acme", "limit": 5000})
+    assert len(dump["messages"]["matches"]) <= 20
+    assert dump["messages"]["total"] == 2
+    paged = await call(
+        server, "slack_search_public", {"query": "Acme", "limit": 1, "cursor": "1"}
+    )
+    assert [m["ts"] for m in paged["messages"]["matches"]] == ["900.000002"]
+
+
 async def test_search_public_from_and_date_filters(server: MCPServer) -> None:
     by_uid = await call(
         server, "slack_search_public", {"query": f"from:{U_DANIEL} Acme"}

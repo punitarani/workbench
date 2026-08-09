@@ -154,7 +154,7 @@ def test_final_minter_covers_every_minted_prefix() -> None:
     genesis = build_genesis(Seed(root=42))
     counters = genesis.minter.counters
     assert counters["org"] == len(ORGS)
-    assert counters["cnv"] == 4 + 10
+    assert counters["cnv"] == 4 + 12
     assert counters["doc"] == 8
     assert counters["tkt"] == 10
 
@@ -167,7 +167,7 @@ def test_procedural_cast_resolves_against_genesis() -> None:
     assert {member.person_id for member in cast.timekeepers} == set(TIMEKEEPER_IDS)
     assert cast.standup_channel.startswith("cnv-")
     assert len(cast.matters) == 10
-    assert len(cast.dms) == 10
+    assert len(cast.dms) == 12
     grace_samuel = next(
         dm
         for dm in cast.dms
