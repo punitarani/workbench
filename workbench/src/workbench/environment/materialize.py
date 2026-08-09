@@ -6,6 +6,7 @@ container wraps them with run-as-environment.
 """
 
 import json
+import sqlite3
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -22,6 +23,29 @@ class MaterializedEnvironment(BaseModel):
     event_count: int = Field(ge=0)
     databases: tuple[str, ...]
     seat: str | None = None
+    document_files: int = Field(ge=0, default=0)
+
+
+def _write_document_files(out_dir: Path, imanage_db: Path) -> int:
+    """Every document's head version becomes a real file the agent can open,
+    laid out as ``files/{workspace}/{basename}`` from the iManage profile."""
+
+    connection = sqlite3.connect(imanage_db)
+    try:
+        rows = connection.execute(
+            "SELECT documents.workspace, documents.path, versions.content "
+            "FROM documents JOIN versions "
+            "ON versions.document_id = documents.document_id "
+            "AND versions.version = documents.head_version "
+            "ORDER BY documents.document_number"
+        ).fetchall()
+    finally:
+        connection.close()
+    for workspace, path, content in rows:
+        target = out_dir / "files" / workspace / path.rsplit("/", 1)[-1]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+    return len(rows)
 
 
 def materialize(
@@ -38,7 +62,8 @@ def materialize(
         )
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    project_all(events, out_dir / "state")
+    databases = project_all(events, out_dir / "state")
+    document_files = _write_document_files(out_dir, databases["imanage"])
 
     (out_dir / ".mcp.json").write_text(
         json.dumps({"mcpServers": server_specs(seat=seat)}, indent=2) + "\n",
@@ -59,4 +84,5 @@ def materialize(
         event_count=len(events),
         databases=tuple(names),
         seat=seat,
+        document_files=document_files,
     )

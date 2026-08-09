@@ -23,6 +23,7 @@ from workbench.simulation.chronicle.calendar import SECONDS_PER_DAY, CalendarWin
 from workbench.simulation.chronicle.minter import minter_from_events
 from workbench.simulation.chronicle.procedural import (
     CastMember,
+    ChatChannel,
     OpenMatter,
     ProceduralCast,
     procedural_day,
@@ -95,11 +96,15 @@ def small_cast() -> ProceduralCast:
     ann = CastMember(person_id="per-ann-liu", name="Ann Liu")
     bob = CastMember(person_id="per-bob-tran", name="Bob Tran")
     eve = CastMember(person_id="per-eve-moss", name="Eve Moss")
+    channel = ChatChannel(conversation_id="cnv-000001", members=(ann, bob))
     return ProceduralCast(
         internal=(ann, bob),
         timekeepers=(ann,),
         externals=(eve,),
         standup_channel="cnv-000001",
+        matters_channel=channel,
+        billing_channel=channel,
+        it_channel=channel,
         matters=(
             OpenMatter(
                 ticket_id="tkt-000001", label="Test matter", assignee="per-ann-liu"

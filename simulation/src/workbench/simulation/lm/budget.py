@@ -16,6 +16,10 @@ class BudgetedLM:
         self._calls = 0
         self.usage = TokenUsage(prompt_tokens=0, completion_tokens=0)
 
+    @property
+    def calls(self) -> int:
+        return self._calls
+
     async def complete(self, request: LMRequest) -> LMResponse:
         if self._calls >= self._max_calls:
             raise LMBudgetExceededError(f"budget of {self._max_calls} calls exhausted")

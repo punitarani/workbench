@@ -46,6 +46,19 @@ def test_materialize_produces_workspace(tmp_path: Path) -> None:
     assert result.event_count == len(coherent_events())
 
 
+def test_materialize_writes_document_head_files(tmp_path: Path) -> None:
+    log_path = write_log(tmp_path)
+    out = tmp_path / "workspace"
+    result = materialize(log_path, out)
+
+    # The fixture's one document lives at /legal/playbooks/nda-playbook.md
+    # and was revised to "v2"; the head version becomes a real file.
+    target = out / "files" / "legal" / "nda-playbook.md"
+    assert target.read_text(encoding="utf-8") == "v2"
+    assert result.document_files == 1
+    assert [p.name for p in (out / "files").iterdir()] == ["legal"]
+
+
 def test_materialize_refuses_invalid_log(tmp_path: Path) -> None:
     log_path = write_log(tmp_path)
     lines = log_path.read_text().splitlines()

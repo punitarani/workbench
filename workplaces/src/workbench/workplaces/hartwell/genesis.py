@@ -22,6 +22,7 @@ from workbench.core.seed import Seed
 from workbench.simulation.chronicle.calendar import CalendarWindow
 from workbench.simulation.chronicle.procedural import (
     CastMember,
+    ChatChannel,
     OpenMatter,
     ProceduralCast,
 )
@@ -359,12 +360,22 @@ def procedural_cast(genesis: HartwellGenesis) -> ProceduralCast:
     def member(person: PersonRecordPayload) -> CastMember:
         return CastMember(person_id=person.person_id, name=person.name)
 
-    standup_channel = next(
-        event.payload.conversation_id
+    channels = {
+        event.payload.name: event.payload
         for event in genesis.events
         if isinstance(event.payload, ChatConversationCreatedPayload)
-        and event.payload.name == "#general"
-    )
+    }
+
+    def channel(name: str) -> ChatChannel:
+        payload = channels[name]
+        return ChatChannel(
+            conversation_id=payload.conversation_id,
+            members=tuple(
+                CastMember(person_id=person_id, name=names[person_id])
+                for person_id in payload.members
+            ),
+        )
+
     matters = tuple(
         OpenMatter(
             ticket_id=event.payload.ticket_id,
@@ -382,6 +393,9 @@ def procedural_cast(genesis: HartwellGenesis) -> ProceduralCast:
             for person_id in TIMEKEEPER_IDS
         ),
         externals=tuple(member(person) for person in EXTERNALS),
-        standup_channel=standup_channel,
+        standup_channel=channel("#general").conversation_id,
+        matters_channel=channel("#matters"),
+        billing_channel=channel("#billing"),
+        it_channel=channel("#it-help"),
         matters=matters,
     )

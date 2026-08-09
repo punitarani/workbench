@@ -89,3 +89,15 @@ entry says what was ambiguous and which reading was taken.
    engine's 8-attempt fragility history at 6 personas, a 12-person org
    multiplies that risk; tasks depend on record content, not emergent
    behavior; engine days remain the path for interactive variants.
+10. **Load-bearing storyline facts are code constants, not LM output.**
+   Documents assemble LM prose around verbatim clause constants (the
+   playbook's three-year standard, the NDA term/residuals clauses, the
+   Lumen indemnity paragraph), so evidence properties — v3 drops exactly
+   the indemnity paragraph, the NDA practice diverges from the playbook —
+   hold by construction rather than by hoping a small model reproduces a
+   paragraph verbatim. The LM authors what realism needs (recitals,
+   emails, long notes); code owns what the tasks will grade.
+11. **S4 closure feeds back into procedural traffic**: from the day after
+   the Cascadia matter closes, the procedural cast drops that matter, so
+   no background time entries or comments land on a closed file. The
+   swap keys off `S4_CLOSED_DATE` in the build script.

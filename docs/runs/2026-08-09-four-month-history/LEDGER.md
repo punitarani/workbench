@@ -15,5 +15,12 @@ from measured token usage, rounded up.
 | 6 | 08-09 00:5x | acceptance re-record (original text + rendering fix) | ~350K/est | $0.05 | $0.28 |
 
 | 7 | 08-09 01:1x | Phase 1 tool rebuild (no OpenRouter spend) | 0 | $0.00 | $0.28 |
+| 8 | 08-09 | Phase 2 storyline content, 47 pieces (deepseek-v4-flash-0731) | ~6.6K/9.3K | $0.003 | $0.283 |
+| 9 | 08-09 | token remeasure pass, 47 calls into a scratch cache (credits delta $0.002445) | 6,635/9,286 | $0.003 | $0.286 |
 
-Remaining before Phase 2 generation: ~$24.70.
+Phase 2 generation totals: 94 LM calls against the 2,500-call cap; the
+87-workday build itself (tiers A and B) spent zero LM calls — all spend is
+tier C content authoring. Entry 8's exact usage line was lost to a
+truncated pipe; entry 9 re-authored the identical workload (same prompts,
+model, seeds, params) to measure it, and its measured tokens stand in for
+both rows. Remaining: ~$24.71.

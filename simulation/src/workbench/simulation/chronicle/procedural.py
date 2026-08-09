@@ -47,6 +47,11 @@ class OpenMatter(_Model):
     assignee: str
 
 
+class ChatChannel(_Model):
+    conversation_id: str
+    members: tuple[CastMember, ...] = Field(min_length=1)
+
+
 class ProceduralCast(_Model):
     """Who generates and receives background traffic, and against what."""
 
@@ -54,6 +59,9 @@ class ProceduralCast(_Model):
     timekeepers: tuple[CastMember, ...] = Field(min_length=1)
     externals: tuple[CastMember, ...] = Field(min_length=1)
     standup_channel: str
+    matters_channel: ChatChannel
+    billing_channel: ChatChannel
+    it_channel: ChatChannel
     matters: tuple[OpenMatter, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -87,6 +95,46 @@ _STANDUP_FOCUS = (
 )
 
 _REACTION_EMOJI = ("thumbsup", "coffee", "tada", "eyes", "raised_hands")
+
+_MATTER_LINES = (
+    "Where are we on {matter}? Client asked for a status this morning.",
+    "Filed the latest on {matter}; the working file is up to date.",
+    "{matter}: still waiting on the other side. Will chase Thursday.",
+    "New documents landed on {matter} — review pass set for this week.",
+    "Anyone have cycles for a quick cite-check on {matter}?",
+    "Calendar note: next internal deadline on {matter} is end of week.",
+)
+
+_MATTER_REPLIES = (
+    "On it — update by end of day.",
+    "Adding it to tomorrow's list.",
+    "Thanks for the heads-up.",
+    "Can take that after lunch.",
+)
+
+_BILLING_LINES = (
+    "Prebills circulate Thursday. Edits back to me by Friday noon, please.",
+    "Trust balances reconciled through last month; shortfalls flagged separately.",
+    "Reminder: narratives need enough detail to survive client review.",
+    "Invoices on {matter} went out this morning.",
+    "Two receivables are past sixty days — escalating next week.",
+    "Rate table updates posted; check your matters before month-end.",
+)
+
+_IT_LINES = (
+    "The scanner on three is offline again. Ticket logged with the vendor.",
+    "Anyone else getting certificate warnings on the research portal?",
+    "Password resets roll out Friday — watch for the prompt at login.",
+    "Docking stations for the new monitors arrive Wednesday.",
+    "If the wifi drops in the small conference room, use the wall jack.",
+    "Backup window moves to 9 pm tonight; save early.",
+)
+
+_IT_REPLIES = (
+    "Looking at it now — will follow up here.",
+    "Known issue; fix is on the way.",
+    "A restart cured it for me.",
+)
 
 _INTERNAL_EMAIL = (
     (
@@ -254,6 +302,109 @@ def _reactions(
                     emoji=rng.choice(_REACTION_EMOJI),
                 ),
             )
+        )
+
+
+def _channel_message(
+    rng: random.Random,
+    channel: ChatChannel,
+    minter: IdMinter,
+    drafts: list[TimedDraft],
+    *,
+    at: int,
+    body: str,
+    reply_to: str | None = None,
+    exclude: str | None = None,
+) -> tuple[str, str]:
+    pool = [member for member in channel.members if member.person_id != exclude]
+    sender = rng.choice(pool if pool else list(channel.members))
+    message_id = minter.mint("chm")
+    drafts.append(
+        TimedDraft(
+            at=SimDuration(at),
+            source=sender.entity,
+            payload=ChatMessagePayload(
+                kind="chat.message",
+                chat_message_id=message_id,
+                conversation_id=channel.conversation_id,
+                reply_to=reply_to,
+                sender=sender.person_id,
+                body=body,
+            ),
+        )
+    )
+    return message_id, sender.person_id
+
+
+def _matter_chatter(
+    rng: random.Random,
+    cast: ProceduralCast,
+    minter: IdMinter,
+    drafts: list[TimedDraft],
+) -> None:
+    for _ in range(rng.randrange(0, 3)):
+        matter = rng.choice(cast.matters)
+        at = rng.randrange(9 * 3600 + 1800, 17 * 3600)
+        body = rng.choice(_MATTER_LINES).format(matter=matter.label)
+        message_id, sender = _channel_message(
+            rng, cast.matters_channel, minter, drafts, at=at, body=body
+        )
+        if rng.random() < 0.4:
+            _channel_message(
+                rng,
+                cast.matters_channel,
+                minter,
+                drafts,
+                at=at + rng.randrange(180, 2400),
+                body=rng.choice(_MATTER_REPLIES),
+                reply_to=message_id,
+                exclude=sender,
+            )
+
+
+def _billing_chatter(
+    rng: random.Random,
+    cast: ProceduralCast,
+    minter: IdMinter,
+    drafts: list[TimedDraft],
+) -> None:
+    if rng.random() >= 0.55:
+        return
+    for _ in range(rng.randrange(1, 3)):
+        matter = rng.choice(cast.matters)
+        body = rng.choice(_BILLING_LINES).format(matter=matter.label)
+        _channel_message(
+            rng,
+            cast.billing_channel,
+            minter,
+            drafts,
+            at=rng.randrange(10 * 3600, 16 * 3600),
+            body=body,
+        )
+
+
+def _it_chatter(
+    rng: random.Random,
+    cast: ProceduralCast,
+    minter: IdMinter,
+    drafts: list[TimedDraft],
+) -> None:
+    if rng.random() >= 0.35:
+        return
+    at = rng.randrange(9 * 3600, 16 * 3600)
+    message_id, asker = _channel_message(
+        rng, cast.it_channel, minter, drafts, at=at, body=rng.choice(_IT_LINES)
+    )
+    if rng.random() < 0.5:
+        _channel_message(
+            rng,
+            cast.it_channel,
+            minter,
+            drafts,
+            at=at + rng.randrange(300, 3600),
+            body=rng.choice(_IT_REPLIES),
+            reply_to=message_id,
+            exclude=asker,
         )
 
 
@@ -457,6 +608,9 @@ def procedural_day(
     drafts: list[TimedDraft] = []
     posted = _standups(rng, cast, minter, drafts)
     _reactions(rng, cast, posted, drafts)
+    _matter_chatter(rng, cast, minter, drafts)
+    _billing_chatter(rng, cast, minter, drafts)
+    _it_chatter(rng, cast, minter, drafts)
     _internal_emails(rng, cast, minter, drafts)
     _external_emails(rng, cast, minter, drafts)
     _time_entries(rng, cast, drafts)
