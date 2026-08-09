@@ -14,6 +14,19 @@ GROUND_TRUTH = Path(__file__).parent / "ground_truth.json"
 CLAUSE_FIELDS = ("playbook_standard", "practice", "document_path", "version", "date")
 
 
+def _version_id_set(values: object) -> set[str] | None:
+    """Normalized iManage version ids ("LEGAL!10.3"); None when malformed."""
+    if not isinstance(values, list):
+        return None
+    normalized: set[str] = set()
+    for value in values:
+        text = str(value).strip().upper()
+        if not text.startswith("LEGAL!"):
+            text = f"LEGAL!{text}"
+        normalized.add(text)
+    return normalized
+
+
 def grade(workspace: Path) -> dict:
     truth = json.loads(GROUND_TRUTH.read_text())
     weights = truth["weights"]
@@ -31,6 +44,7 @@ def grade(workspace: Path) -> dict:
         "playbook_path" in submitted
         and isinstance(submitted.get("ndas"), dict)
         and bool(submitted.get("ndas"))
+        and isinstance(submitted.get("silent_versions"), list)
         and all(
             isinstance(submitted.get(name), dict)
             and set(CLAUSE_FIELDS) <= set(submitted[name])
@@ -68,6 +82,19 @@ def grade(workspace: Path) -> dict:
             "part": "nda_survey",
             "score": weights["nda_survey"] if survey_ok else 0.0,
             "max": weights["nda_survey"],
+        }
+    )
+
+    # Round 6: the silent-versions reconciliation — exact version ids of
+    # every substantive change with no covering email that day, graded
+    # all-or-nothing like the survey.
+    claimed_silent = _version_id_set(submitted.get("silent_versions"))
+    silent_ok = claimed_silent == {v.upper() for v in truth["silent_versions"]}
+    parts.append(
+        {
+            "part": "silent_versions",
+            "score": weights["silent_versions"] if silent_ok else 0.0,
+            "max": weights["silent_versions"],
         }
     )
 

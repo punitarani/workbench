@@ -46,9 +46,12 @@ from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
 from workbench.tools import check_coherence
 from workbench.workplaces.hartwell import WINDOW, build_genesis, procedural_cast
 from workbench.workplaces.hartwell.storylines import (
+    ARCHWAY_NDA_TITLE,
     ARROYO_HEARING_TITLE,
+    BAYMARK_NDA_TITLE,
     CASCADIA_LETTER_TITLE,
     CONFORMING_NDA_TITLES,
+    DOC_MENTION_MARKERS,
     INDEMNITY_PARAGRAPH,
     IRONCLAD_NDA_TITLE,
     LEXIPOINT_NDA_TITLE,
@@ -446,9 +449,9 @@ def audit(log_path: Path, state_dir: Path) -> int:
         len(matter_entries) >= 60 and len(window_entries) >= 30,
     )
     check(
-        f"exactly 4-6 window entries have no same-day support: "
+        f"exactly 6 window entries have no same-day support: "
         f"{len(orphans)} on {orphan_days}",
-        4 <= len(orphans) <= 6,
+        len(orphans) == 6 and orphan_days == ["2026-04-17", "2026-04-22", "2026-04-28"],
     )
     window_days = sorted({_event_date(event) for event in window_entries})
     dm_only = [day for day in window_days if coverage.get(day) == {"chat-dm"}]
@@ -673,6 +676,229 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and int(recaps[0].time) > int(corrections[0].time)
         and "clerk" in recaps[0].payload.body
         and "we'll confirm" in recaps[0].payload.body,
+    )
+
+    print("Round-6 reconciliation sets:")
+    histories: dict[str, list[tuple[int, str, str]]] = {}
+    doc_titles: dict[str, str] = {}
+    for event in events:
+        payload = event.payload
+        if isinstance(payload, DocumentCreatedPayload):
+            doc_titles[payload.document_id] = payload.title
+            histories.setdefault(payload.title, []).append(
+                (1, payload.content, _event_date(event))
+            )
+        elif isinstance(payload, DocumentRevisedPayload):
+            histories[doc_titles[payload.document_id]].append(
+                (payload.revision, payload.content, _event_date(event))
+            )
+
+    def email_texts() -> list[tuple[str, str, int]]:
+        found = []
+        for event in events:
+            payload = event.payload
+            if isinstance(payload, EmailMessagePayload):
+                attachment_names = " ".join(
+                    attachment.filename for attachment in payload.attachments
+                )
+                text = f"{payload.subject} {payload.body} {attachment_names}"
+                found.append((text.lower(), _event_date(event), int(event.time)))
+        return found
+
+    emails = email_texts()
+    public_chat_texts = [
+        (event.payload.body.lower(), _event_date(event), int(event.time))
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.conversation_id not in dm_conversations
+    ]
+
+    # (a) S1 silent substantive NDA versions: v2+ whose operative text
+    # changed (notices-only edits excluded) with no same-day email naming
+    # the vendor or carrying the file.
+    def strip_notices(content: str) -> str:
+        sections = content.split("\n## ")
+        kept = [sections[0]] + [
+            section for section in sections[1:] if not section.startswith("Notices")
+        ]
+        return "\n## ".join(kept)
+
+    nda_titles_all = (LEXIPOINT_NDA_TITLE, IRONCLAD_NDA_TITLE, *CONFORMING_NDA_TITLES)
+    silent_substantive: list[tuple[str, int]] = []
+    covered_substantive: list[tuple[str, int]] = []
+    nonsubstantive_diffs: list[tuple[str, int]] = []
+    for title in nda_titles_all:
+        vendor = title.split(" — ")[1].split()[0].lower()
+        ordered = sorted(histories[title])
+        for (_, previous, _), (version, current, day) in zip(
+            ordered, ordered[1:], strict=False
+        ):
+            if previous == current:
+                continue
+            if strip_notices(previous) == strip_notices(current):
+                nonsubstantive_diffs.append((title, version))
+                continue
+            covered = any(
+                vendor in text for text, text_day, _ in emails if text_day == day
+            )
+            bucket = covered_substantive if covered else silent_substantive
+            bucket.append((title, version))
+
+    def short(pairs: list[tuple[str, int]]) -> list[tuple[str, int]]:
+        return sorted((title.split(" — ")[1].split()[0], v) for title, v in pairs)
+
+    check(
+        f"silent substantive NDA versions are exactly "
+        f"{short(silent_substantive)} (Trueline/Cobalt/Archway/Summit v3)",
+        short(silent_substantive)
+        == [("Archway", 3), ("Cobalt", 3), ("Summit", 3), ("Trueline", 3)],
+    )
+    check(
+        f"covered substantive NDA versions are exactly "
+        f"{short(covered_substantive)} (LexiPoint/Ironclad v2, "
+        "BayMark/Harborlight v3)",
+        short(covered_substantive)
+        == [("BayMark", 3), ("Harborlight", 3), ("Ironclad", 2), ("LexiPoint", 2)],
+    )
+    check(
+        f"a real-but-nonsubstantive diff exists as near-miss noise "
+        f"({short(nonsubstantive_diffs)})",
+        short(nonsubstantive_diffs) == [("Brightwater", 3)],
+    )
+
+    # (b) unreviewed revisions: v2+ of any multi-version document whose
+    # save day carries no email or public-channel message with one of the
+    # document's mention markers.
+    unreviewed: list[tuple[str, int]] = []
+    for title, markers in DOC_MENTION_MARKERS.items():
+        ordered = sorted(histories[title])
+        if len(ordered) < 2:
+            continue
+        for version, _, day in ordered[1:]:
+            mentioned = any(
+                any(marker in text for marker in markers)
+                for text, text_day, _ in emails
+                if text_day == day
+            ) or any(
+                any(marker in text for marker in markers)
+                for text, text_day, _ in public_chat_texts
+                if text_day == day
+            )
+            if not mentioned:
+                unreviewed.append((title, version))
+    check(
+        f"unreviewed revisions are exactly {sorted(unreviewed)} "
+        "(BayMark v2, Archway v2, hold v2, Lumen agreement v4, SOW v3)",
+        sorted(unreviewed)
+        == [
+            ("Litigation Hold Notice (Template)", 2),
+            (ARCHWAY_NDA_TITLE, 2),
+            (BAYMARK_NDA_TITLE, 2),
+            (LUMEN_AGREEMENT_TITLE, 4),
+            (LUMEN_SOW_TITLE, 3),
+        ],
+    )
+    multi_titles = {title for title, v in histories.items() if len(v) >= 2}
+    check(
+        f"every multi-version document carries a mention rule "
+        f"({len(multi_titles)} docs)",
+        multi_titles == set(DOC_MENTION_MARKERS),
+    )
+
+    # (c) unanswered client emails on the Cascadia engagement: thread
+    # anti-join — no later in-thread reply from a firm-side sender.
+    internal_people = {
+        event.payload.person_id
+        for event in events
+        if event.payload.kind == "person.record"
+        and event.payload.affiliation == "internal"
+    }
+    mail_events = [
+        event for event in events if isinstance(event.payload, EmailMessagePayload)
+    ]
+    client_mail = [
+        event
+        for event in mail_events
+        if event.payload.sender == "per-tom-hollis"
+        and "Cascadia" in event.payload.subject
+    ]
+    unanswered_days = sorted(
+        _event_date(event)
+        for event in client_mail
+        if not any(
+            other.payload.thread_id == event.payload.thread_id
+            and int(other.time) > int(event.time)
+            and other.payload.sender in internal_people
+            for other in mail_events
+        )
+    )
+    check(
+        f"exactly 4 client emails were never answered in-thread "
+        f"({unanswered_days}); the rest drew firm replies "
+        f"({len(client_mail)} client emails total)",
+        unanswered_days == ["2026-04-24", "2026-05-06", "2026-05-20", "2026-06-08"]
+        and len(client_mail) >= 9,
+    )
+
+    # (d) stale calendar references: communications citing a superseded
+    # hearing date after its supersession record, negations excluded.
+    supersession_times = {
+        "2026-04-28": None,
+        "2026-05-20": None,
+        "2026-06-18": None,
+    }
+    for event in mail_events:
+        if (
+            "hearing setting" in event.payload.subject
+            and _event_date(event) == "2026-04-17"
+        ):
+            supersession_times["2026-04-28"] = int(event.time)
+        if (
+            "hearing setting" in event.payload.subject
+            and _event_date(event) == "2026-05-13"
+        ):
+            supersession_times["2026-05-20"] = int(event.time)
+    if corrections:
+        supersession_times["2026-06-18"] = int(corrections[0].time)
+    arroyo_tokens = ("arroyo", "dept. 511", "fruitvale")
+    date_forms = {
+        "2026-04-28": ("april 28", "the 28th"),
+        "2026-05-20": ("may 20", "the 20th"),
+        "2026-06-18": ("june 18", "the 18th"),
+    }
+    stale: list[tuple[str, str]] = []
+    for event in events:
+        payload = event.payload
+        if isinstance(payload, EmailMessagePayload):
+            text = f"{payload.subject} {payload.body}".lower()
+            kind = "email"
+        elif isinstance(payload, ChatMessagePayload):
+            text = payload.body.lower()
+            kind = "chat"
+        else:
+            continue
+        for superseded, forms in date_forms.items():
+            cutover = supersession_times[superseded]
+            if cutover is None or int(event.time) <= cutover:
+                continue
+            if not any(token in text for token in arroyo_tokens):
+                continue
+            hit_forms = [form for form in forms if form in text]
+            if not hit_forms:
+                continue
+            if any(f"not {form}" in text for form in hit_forms):
+                continue
+            stale.append((kind, _event_date(event)))
+    check(
+        f"stale citations of superseded hearing dates are exactly {sorted(stale)}",
+        sorted(stale)
+        == [
+            ("chat", "2026-05-15"),
+            ("chat", "2026-06-15"),
+            ("email", "2026-04-21"),
+            ("email", "2026-06-12"),
+            ("email", "2026-06-16"),
+        ],
     )
 
     return failures

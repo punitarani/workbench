@@ -19,7 +19,21 @@ FIELDS = (
     "date",
     "change_comment",
     "clean_documents",
+    "unreviewed_revisions",
 )
+
+
+def _version_id_set(values: object) -> set[str] | None:
+    """Normalized iManage version ids ("LEGAL!12.4"); None when malformed."""
+    if not isinstance(values, list):
+        return None
+    normalized: set[str] = set()
+    for value in values:
+        text = str(value).strip().upper()
+        if not text.startswith("LEGAL!"):
+            text = f"LEGAL!{text}"
+        normalized.add(text)
+    return normalized
 
 
 def _number_set(values: object) -> set[int] | None:
@@ -73,6 +87,13 @@ def grade(workspace: Path) -> dict:
     # sampled survey (or a padded one) certifies nothing.
     claimed_clean = _number_set(submitted.get("clean_documents"))
     clean_score = 1.0 if claimed_clean == set(truth["clean_documents"]) else 0.0
+    # Round 6: the unreviewed-revisions anti-join, graded as a whole.
+    claimed_unreviewed = _version_id_set(submitted.get("unreviewed_revisions"))
+    unreviewed_score = (
+        1.0
+        if claimed_unreviewed == {v.upper() for v in truth["unreviewed_revisions"]}
+        else 0.0
+    )
 
     parts = [
         {"part": "document_path", "score": weights["document_path"] * path_score},
@@ -85,6 +106,10 @@ def grade(workspace: Path) -> dict:
         {"part": "date", "score": weights["date"] * date_score},
         {"part": "change_comment", "score": weights["change_comment"] * comment_score},
         {"part": "clean_documents", "score": weights["clean_documents"] * clean_score},
+        {
+            "part": "unreviewed_revisions",
+            "score": weights["unreviewed_revisions"] * unreviewed_score,
+        },
         {"part": "format", "score": weights["format"] if format_ok else 0.0},
     ]
     for part in parts:

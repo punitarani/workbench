@@ -122,6 +122,68 @@ clean_documents = sorted(numbers[other] for other in multi if other != path)
 if len(clean_documents) != len(multi) - 1:
     sys.exit("the clean certification must cover every other multi-version doc")
 
+# Unreviewed revisions: for every multi-version document, each v2+ save
+# whose day carries no email or public-channel message naming the
+# document (the way the firm names it; matter or client names do not
+# count).
+MENTION_MARKERS = {
+    "engagement-letter.md": ("engagement letter",),
+    "matter-intake-checklist.md": ("intake checklist", "matter-intake-checklist"),
+    "billing-guidelines.md": (
+        "billing guidelines", "time entry guidelines", "billing-guidelines",
+    ),
+    "litigation-hold-notice.md": ("litigation hold", "litigation-hold"),
+    "discovery-responses.md": (
+        "discovery response playbook", "discovery playbook", "discovery-responses",
+    ),
+    "vendor-nda-playbook.md": ("nda playbook", "vendor-nda-playbook"),
+    "license-and-support-agreement.md": (
+        "license and support agreement", "license-and-support-agreement",
+    ),
+    "support-services-sow.md": ("statement of work", "support-services-sow"),
+}
+
+def day_of(time):
+    return (EPOCH + timedelta(days=time // 86400)).isoformat()
+
+def markers_for(doc_path):
+    basename = doc_path.rsplit("/", 1)[-1]
+    if basename.startswith("mutual-nda-"):
+        return (basename.removeprefix("mutual-nda-").removesuffix(".md"),)
+    return MENTION_MARKERS[basename]
+
+day_texts = {}
+for subject, mail_body, filenames, sent in rows(
+    "gmail.db",
+    "SELECT m.subject, m.body, "
+    "COALESCE((SELECT group_concat(a.filename, ' ') FROM attachments a "
+    "WHERE a.message_id = m.message_id), ''), m.time FROM messages m",
+):
+    day_texts.setdefault(day_of(sent), []).append(
+        f"{subject} {mail_body} {filenames}".lower()
+    )
+for chat_body, sent in rows(
+    "slack.db",
+    "SELECT m.body, m.time FROM messages m JOIN conversations c "
+    "ON c.conversation_id = m.conversation_id WHERE c.kind != 'dm'",
+):
+    day_texts.setdefault(day_of(sent), []).append(chat_body.lower())
+
+unreviewed = []
+for doc_path, doc_versions in multi.items():
+    doc_markers = markers_for(doc_path)
+    for version, _, _, _, saved in doc_versions[1:]:
+        mentioned = any(
+            any(marker in text for marker in doc_markers)
+            for text in day_texts.get(day_of(saved), ())
+        )
+        if not mentioned:
+            unreviewed.append(f"LEGAL!{numbers[doc_path]}.{version}")
+if len(unreviewed) != 5:
+    sys.exit(f"expected exactly five unreviewed revisions, found {unreviewed}")
+if f"LEGAL!{numbers[path]}.{first_absent + 1}" not in unreviewed:
+    sys.exit("the dropping version itself must be unreviewed — the drop was silent")
+
 head = block.split(". ", 1)[0]
 clause = {
     "document_path": path,
@@ -131,6 +193,7 @@ clause = {
     "date": (EPOCH + timedelta(days=time // 86400)).isoformat(),
     "change_comment": comment,
     "clean_documents": clean_documents,
+    "unreviewed_revisions": sorted(unreviewed),
 }
 with open("clause.json", "w") as handle:
     json.dump(clause, handle, indent=2)

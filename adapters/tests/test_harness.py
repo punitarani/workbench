@@ -143,6 +143,81 @@ async def test_episode_hits_max_turns(workspace: Path) -> None:
     assert result.tool_calls == 0
 
 
+async def test_call_budget_stops_the_episode(workspace: Path) -> None:
+    """Calls past the cap are answered with an error, never executed, and
+    the episode ends with stop_reason call_budget."""
+
+    over_budget = {
+        "role": "assistant",
+        "content": None,
+        "tool_calls": [
+            {
+                "id": f"call-{index}",
+                "type": "function",
+                "function": {
+                    "name": "gmail__get_thread",
+                    "arguments": json.dumps({"threadId": "thr-000001"}),
+                },
+            }
+            for index in range(1, 4)
+        ],
+    }
+    result = await run_episode(
+        workspace,
+        "Read everything.",
+        ScriptedChatClient([over_budget]),
+        max_tool_calls=2,
+    )
+    assert result.stop_reason == "call_budget"
+    assert result.tool_calls == 2
+    by_call = {
+        m["tool_call_id"]: m["content"]
+        for m in result.transcript
+        if m.get("role") == "tool"
+    }
+    assert "msg-000001" in by_call["call-1"]
+    assert "msg-000001" in by_call["call-2"]
+    assert by_call["call-3"].startswith("ERROR: tool-call budget exhausted")
+
+
+async def test_call_budget_exact_spend_ends_without_finish(workspace: Path) -> None:
+    """A model that consumes the whole budget without calling finish stops
+    at the boundary instead of burning turns on nudges."""
+
+    script = [
+        tool_call("gmail__get_thread", {"threadId": "thr-000001"}, "call-1"),
+        tool_call("gmail__get_thread", {"threadId": "thr-000001"}, "call-2"),
+        tool_call("finish", {"summary": "never reached"}, "call-3"),
+    ]
+    result = await run_episode(
+        workspace, "Read everything.", ScriptedChatClient(script), max_tool_calls=2
+    )
+    assert result.stop_reason == "call_budget"
+    assert result.turns == 2
+    assert result.tool_calls == 2
+
+
+async def test_call_budget_admits_a_finishing_episode(workspace: Path) -> None:
+    client = ScriptedChatClient(episode_script())
+    result = await run_episode(
+        workspace, "Reconstruct the triage memo.", client, max_tool_calls=3
+    )
+    assert result.stop_reason == "finish"
+    assert result.tool_calls == 3
+    assert (workspace / "deliverable.md").read_text() == DELIVERABLE
+
+
+def test_read_call_budget_from_task_toml(tmp_path: Path) -> None:
+    from workbench.adapters.harness.cli import read_call_budget
+
+    assert read_call_budget(tmp_path) is None
+    manifest = tmp_path / "task.toml"
+    manifest.write_text('[task]\nname = "t"\n')
+    assert read_call_budget(tmp_path) is None
+    manifest.write_text('[task]\nname = "t"\n\n[harness]\nmax_tool_calls = 96\n')
+    assert read_call_budget(tmp_path) == 96
+
+
 async def test_write_file_serializes_structured_content(workspace: Path) -> None:
     """A model passing JSON for ``content`` must land as JSON, not repr()."""
 

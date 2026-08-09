@@ -133,9 +133,58 @@ mailed = rows(
 if mailed[0][0]:
     sys.exit("a fabric NDA leaked into the mail record; the survey is cheap now")
 
+# Silent substantive versions: diff every consecutive NDA version pair
+# (notices-only edits are not substantive), then anti-join against the
+# same-day mail record naming the vendor or carrying the file.
+numbers = dict(rows("imanage.db", "SELECT path, document_number FROM documents"))
+mail_texts = [
+    (iso(time), (subject + " " + body + " " + filenames).lower())
+    for subject, body, time, filenames in rows(
+        "gmail.db",
+        "SELECT m.subject, m.body, m.time, "
+        "COALESCE((SELECT group_concat(a.filename, ' ') FROM attachments a "
+        "WHERE a.message_id = m.message_id), '') FROM messages m",
+    )
+]
+
+def strip_notices(content):
+    sections = content.split("\n## ")
+    kept = [sections[0]] + [s for s in sections[1:] if not s.startswith("Notices")]
+    return "\n## ".join(kept)
+
+silent_versions = []
+covered = 0
+nonsubstantive = 0
+for path in nda_paths:
+    vendor = path.rsplit("/", 1)[-1].removeprefix("mutual-nda-").removesuffix(".md")
+    history = versions(path)
+    for (_, _, _, previous, _), (_, version, _, current, time) in zip(
+        history, history[1:]
+    ):
+        if previous == current:
+            continue
+        if strip_notices(previous) == strip_notices(current):
+            nonsubstantive += 1
+            continue
+        day = iso(time)
+        if any(day == mail_day and vendor in text for mail_day, text in mail_texts):
+            covered += 1
+            continue
+        silent_versions.append(f"LEGAL!{numbers[path]}.{version}")
+if len(silent_versions) != 4:
+    sys.exit(f"expected exactly four silent substantive versions: {silent_versions}")
+if covered != 4:
+    sys.exit(f"expected four covered substantive versions as noise, found {covered}")
+if nonsubstantive != 1:
+    sys.exit(
+        "expected one real-but-nonsubstantive diff as near-miss noise, "
+        f"found {nonsubstantive}"
+    )
+
 drift = {
     "playbook_path": playbook_path,
     "ndas": survey,
+    "silent_versions": sorted(silent_versions),
     "term": {
         "playbook_standard": (
             "Confidentiality obligations capped at three (3) years; longer "

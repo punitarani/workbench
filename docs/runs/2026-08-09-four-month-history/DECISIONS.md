@@ -280,3 +280,107 @@ entry says what was ambiguous and which reading was taken.
     was ruled out; the a-priori call-budget policy is documented in
     REPORT.md as the v2 design. Difficulty claims from rounds with live
     environment defects were treated as invalid throughout.
+17. **Round-6 call-budget policy (declared before any measurement).**
+    Written before any floor was scripted or measured, before any round-6
+    record change, and before any round-6 probe, so the policy cannot be
+    tuned against observed model behavior. Policy: an episode's tool-call
+    cap is **3x the reference tool-path floor** for its task. The floor is
+    the call count of the honest MINIMAL tool sequence — the discovery
+    path an informed professional who knows the tools (but not the
+    answers) would take through the MCP surface — implemented as a
+    scripted client driving the real servers and counted mechanically,
+    one tool call per step, no parallelism credit. Each task's floor is
+    measured once, after that task's round-6 record changes are final,
+    and `[harness] max_tool_calls = 3*floor` lands in task.toml before
+    that task is probed. Anchoring rationale: the cap is a property of
+    the TASK (its record and its tool surface), not of any model — it is
+    uniform across models, derived from a reproducible script committed
+    with the task, and never adjusted after observing a model's call
+    count. 3x is declared here as the standing multiplier: it forgives
+    honest wrong turns, re-reads, and schema discovery at every step of
+    the reference path, but it prices exhaustive corpus walks (hundreds
+    of parallel calls per episode in rounds 1-5) out of the budget. The
+    harness enforces the cap as a total-tool-calls ceiling with stop
+    reason `call_budget`; tasks without the key keep unlimited calls
+    (turn budget only), so prior tasks' semantics are unchanged unless
+    their task.toml opts in. This is the a-priori policy REPORT.md
+    priced as the v2 design; entry 16's goodharting bar is met because
+    the multiplier, the floor definition, and the enforcement mechanism
+    are all fixed here, in advance, task-anchored, and model-blind.
+18. **Round-6 changes: reconciliation components in the four open tasks,
+    measured floors, enforced budgets.** Fee-dispute's round-5 shape (an
+    exhaustive-reconciliation component, exact-id all-or-nothing, the
+    non-reconciliation subset capped under 0.45) held 2 of 3 models
+    under 0.5, so round 6 replicates it everywhere and enforces entry
+    17's budgets.
+    (a) *Harness*: agent_loop enforces a total tool-call ceiling
+    (executed calls; write_file and finish included; calls past the cap
+    answered with an error, stop reason `call_budget`); cli.py reads
+    `[harness] max_tool_calls` from task.toml (absent key = unlimited,
+    prior tasks unchanged); five new harness tests.
+    (b) *Floors* (datasets/hartwell/measure_floors.py, a scripted client
+    driving the real MCP servers one call per step, each sequence
+    asserting it reproduces the task's ground truth): client-departure
+    11, fee-dispute 33, operative-deadline 40, standard-drift 48,
+    vanished-clause 110; caps at 3x: 33/99/120/144/330.
+    (c) *fee-dispute*: the orphan set grew to 6 (a round-6 Apr 28
+    consent-tracker entry, id 697, on a day carrying same-day-oblique
+    near misses: a deal-flavored consent email and a Lumen chat, none
+    naming the engagement); the component is now all-or-nothing at 0.56
+    (partial lists score 0), non-reconciliation subset 0.44.
+    (d) *standard-drift* gains `silent_versions` (0.28, all-or-nothing):
+    the June vendor re-papering lands substantive riders (return-of-
+    materials / non-solicitation code constants — playbook-neutral, so
+    the survey's calls never move) as v3s across the corpus; exactly
+    four have no same-day vendor-naming email (Trueline LEGAL!10.3,
+    Cobalt 13.3, Archway 15.3, Summit 21.3) against covered
+    (LexiPoint/Ironclad v2, BayMark/Harborlight v3), a notices-only
+    Brightwater v3 (real diff, not substantive), Summit's day-after
+    email trap, and a wrong-vendor email on Archway's day. Survey recut
+    to 0.35; non-reconciliation subset 0.37.
+    (e) *vanished-clause* gains `unreviewed_revisions` (0.30,
+    all-or-nothing): a 28-message document-mention fabric (public-
+    channel notes naming documents on their save days, all code
+    constants) covers most of the corpus's ~40 revisions; exactly five
+    days stay silent — litigation-hold v2 (LEGAL!4.2), BayMark NDA v2
+    (11.2), the dropping Lumen v4 (12.4 — the drop was never
+    communicated, which is the story), Lumen SOW v3 (14.3), Archway NDA
+    v2 (15.2) — with day-after mention traps (hold 05-07, SOW 05-27)
+    and a matter-not-document trap ('Lumen file' chat on the drop day).
+    The rule (DOC_MENTION_MARKERS: how the firm names each file; email
+    text/attachment filenames plus public channels) is stated in the
+    instruction and applied identically by audit, grader truth, and
+    solve.sh. clean_documents recut to 0.27; non-recon subset 0.43.
+    (f) *client-departure* gains `unanswered_client_emails` (0.56,
+    all-or-nothing): the client correspondence fabric grew to 11 Tom
+    Hollis emails; the thread anti-join (answered = firm-side message
+    later in the SAME Gmail thread) leaves exactly four unanswered
+    (msg-000310, msg-000371, msg-000448, msg-000557) against traps: a
+    next-day in-thread reply (answered), one reply after a double-send
+    (both answered), and the status memorandum sent the evening of the
+    third nudge in a NEW thread (answers nothing under the rule).
+    Non-reconciliation subset 0.44.
+    (g) *operative-deadline* gains `stale_calendar_refs` (0.56,
+    all-or-nothing over mixed ids, Gmail exact / Slack ts seconds-
+    prefix): exactly five communications cite a superseded hearing date
+    after its supersession — Sofia's Apr 21 outline (April 28), her May
+    15 courtesy-copies chat (May 20; Grace's reply corrects her and is
+    NOT stale), Victor Crane's Jun 12 logistics email (June 18; nobody
+    replies, because an email correction would leak the operative date
+    out of the DM), Sofia's Jun 15 binder chat (the 18th), and the Jun
+    16 recap. The correction chain is causally airtight: Sofia keeps
+    working from the last correction she personally received.
+    Non-reconciliation subset 0.44.
+    (h) *Deviations from the brief*: the brief said "anti-join over 12
+    docs" for vanished-clause — the built corpus holds 17 multi-version
+    documents and the anti-join runs over all of them; the brief's
+    "partial orphan lists score <= 0.3" is met by making the component
+    all-or-nothing (partials score 0). Rebuild is byte-deterministic
+    (2,291,284 identical bytes), zero LM content calls (every addition
+    is a code constant), audits extended and green (exact 6-orphan set,
+    silent-versions set, unreviewed set, unanswered set, stale set),
+    solve.sh 1.0 on all five tasks inside the harness's grading
+    contract, naive baselines 0.10-0.20 with every gap > 0.4, minted-id
+    refreshes applied (clerk notices now msg-000272/msg-000413,
+    challenger msg-000389, arc ts prefixes unchanged), full pytest and
+    ruff green.

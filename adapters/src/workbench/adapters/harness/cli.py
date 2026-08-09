@@ -13,6 +13,7 @@ import asyncio
 import os
 import shutil
 import tempfile
+import tomllib
 from pathlib import Path
 
 from workbench.adapters.harness.agent_loop import run_episode
@@ -25,9 +26,26 @@ def _prices(text: str) -> tuple[float, float]:
     return prompt_price, completion_price
 
 
+def read_call_budget(task_dir: Path) -> int | None:
+    """The task's tool-call cap from ``[harness] max_tool_calls`` in
+    task.toml; tasks without the key keep unlimited calls."""
+    manifest = task_dir / "task.toml"
+    if not manifest.is_file():
+        return None
+    value = (
+        tomllib.loads(manifest.read_text(encoding="utf-8"))
+        .get("harness", {})
+        .get("max_tool_calls")
+    )
+    return None if value is None else int(value)
+
+
 async def _run(args: argparse.Namespace, api_key: str) -> None:
     task_dir: Path = args.task
     instruction = (task_dir / "instruction.md").read_text(encoding="utf-8")
+    max_tool_calls = read_call_budget(task_dir)
+    if max_tool_calls is not None:
+        print(f"call budget: {max_tool_calls} tool calls")
     client = OpenRouterChatClient(api_key, args.model, temperature=args.temperature)
     scores: list[float] = []
     try:
@@ -43,6 +61,7 @@ async def _run(args: argparse.Namespace, api_key: str) -> None:
                     client,
                     max_turns=args.max_turns,
                     max_tokens_per_call=args.max_tokens,
+                    max_tool_calls=max_tool_calls,
                 )
                 reward = grade_episode(task_dir, run_dir)
                 scores.append(float(reward["score"]))

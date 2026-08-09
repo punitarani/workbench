@@ -11,6 +11,9 @@ import json
 
 drift = {
     "playbook_path": "/firm/playbooks/vendor-nda-playbook.md",
+    # The mail trail announces every rider it knows about, so the naive
+    # read is that nothing moved silently.
+    "silent_versions": [],
     "ndas": {
         "/firm/vendor-ndas/mutual-nda-baymark.md": "conforms",
         "/firm/vendor-ndas/mutual-nda-archway.md": "conforms",

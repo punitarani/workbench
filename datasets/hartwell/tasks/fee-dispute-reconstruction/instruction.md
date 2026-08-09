@@ -66,6 +66,8 @@ entry only when it names the engagement in one of those three forms.
 entry — diligence-worded or not — whose date has no such message
 anywhere in the record. Expect to check every surface before calling a
 day silent: on some days the only qualifying message sits in a DM that
-channel search never returns, and on others it never uses the client's
-name. Listing an entry whose day has support counts against you exactly
-like missing a true orphan.
+channel search never returns, on others it never uses the client's
+name, and on others the day is full of deal-flavored traffic that never
+names the engagement at all. The audit is certified as a whole: it
+earns credit only as the exact set — one listed entry whose day has
+support, or one missed true orphan, forfeits the component.

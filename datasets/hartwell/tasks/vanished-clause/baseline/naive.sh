@@ -68,6 +68,9 @@ clause = {
     "date": (EPOCH + timedelta(days=time // 86400)).isoformat(),
     "change_comment": comment,
     "clean_documents": clean_documents,
+    # The mail trail discusses drafts constantly, so the naive read is
+    # that every save was communicated somewhere.
+    "unreviewed_revisions": [],
 }
 with open("clause.json", "w") as handle:
     json.dump(clause, handle, indent=2)

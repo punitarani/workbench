@@ -82,7 +82,7 @@ class EpisodeResult(BaseModel):
 
     turns: int = Field(ge=0)
     tool_calls: int = Field(ge=0)
-    stop_reason: Literal["finish", "max_turns"]
+    stop_reason: Literal["finish", "max_turns", "call_budget"]
     transcript: list[dict[str, Any]]
 
 
@@ -106,7 +106,11 @@ async def run_episode(
     *,
     max_turns: int = 30,
     max_tokens_per_call: int = 2000,
+    max_tool_calls: int | None = None,
 ) -> EpisodeResult:
+    """``max_tool_calls`` caps executed tool calls across the whole episode
+    (the task-anchored call budget); calls past the cap are answered with an
+    error and the episode stops with ``stop_reason="call_budget"``."""
     async with open_workspace(workspace_dir) as workspace:
         tools = workspace.tool_specs() + BUILTIN_TOOL_SPECS
         messages: list[dict[str, Any]] = [
@@ -115,7 +119,7 @@ async def run_episode(
         ]
         turns = 0
         tool_call_count = 0
-        stop_reason: Literal["finish", "max_turns"] = "max_turns"
+        stop_reason: Literal["finish", "max_turns", "call_budget"] = "max_turns"
         while turns < max_turns:
             turns += 1
             message = await chat_client.complete(
@@ -127,18 +131,34 @@ async def run_episode(
                 messages.append({"role": "user", "content": NUDGE})
                 continue
             finished = False
+            exhausted = False
             for call in calls:
-                tool_call_count += 1
+                if max_tool_calls is not None and tool_call_count >= max_tool_calls:
+                    exhausted = True
+                    content = (
+                        f"ERROR: tool-call budget exhausted "
+                        f"({max_tool_calls} calls); the episode is over."
+                    )
+                else:
+                    tool_call_count += 1
+                    content = await _execute(workspace, workspace_dir, call)
+                    finished = finished or call["function"]["name"] == "finish"
                 messages.append(
                     {
                         "role": "tool",
                         "tool_call_id": call.get("id", ""),
-                        "content": await _execute(workspace, workspace_dir, call),
+                        "content": content,
                     }
                 )
-                finished = finished or call["function"]["name"] == "finish"
             if finished:
                 stop_reason = "finish"
+                break
+            if exhausted or (
+                max_tool_calls is not None and tool_call_count >= max_tool_calls
+            ):
+                # Nothing can execute past the cap, so a full budget with no
+                # finish ends the episode rather than burning model turns.
+                stop_reason = "call_budget"
                 break
         return EpisodeResult(
             turns=turns,

@@ -69,6 +69,39 @@ termination = rows(
 if not termination:
     sys.exit("the client's termination email is not in the record")
 
+# Unanswered client emails: thread anti-join over the client-side
+# Cascadia correspondence — answered means a firm-side message later in
+# the SAME thread.
+internal = {
+    person
+    for (person,) in rows(
+        "gmail.db", "SELECT person_id FROM people WHERE affiliation = 'internal'"
+    )
+}
+mail = rows(
+    "gmail.db",
+    "SELECT message_id, thread_id, sender, subject, time FROM messages ORDER BY time",
+)
+client_mail = [
+    (message_id, thread_id, time)
+    for message_id, thread_id, sender, subject, time in mail
+    if sender not in internal and "Cascadia" in subject
+]
+if len(client_mail) < 9:
+    sys.exit(
+        f"expected a real client correspondence fabric, found {len(client_mail)}"
+    )
+unanswered = sorted(
+    message_id
+    for message_id, thread_id, time in client_mail
+    if not any(
+        other_thread == thread_id and other_time > time and other_sender in internal
+        for _, other_thread, other_sender, _, other_time in mail
+    )
+)
+if len(unanswered) != 4:
+    sys.exit(f"expected exactly four unanswered client emails, found {unanswered}")
+
 letter = rows(
     "imanage.db",
     "SELECT workspace, path FROM documents WHERE path LIKE '%disengagement%'",
@@ -90,6 +123,7 @@ postmortem = {
     "matter_closed_date": iso(closed[0][0]),
     "termination_email_date": iso(termination[0][0]),
     "disengagement_letter_path": path,
+    "unanswered_client_emails": unanswered,
 }
 with open("postmortem.json", "w") as handle:
     json.dump(postmortem, handle, indent=2)

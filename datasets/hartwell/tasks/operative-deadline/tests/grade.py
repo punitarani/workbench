@@ -17,7 +17,31 @@ FIELDS = (
     "correction_ts",
     "superseded_dates",
     "supersessions",
+    "stale_calendar_refs",
 )
+
+
+def _stale_set_matches(values: object, matchers: list[dict]) -> bool:
+    """All-or-nothing: every submitted id matches exactly one truth entry
+    (Gmail id exact, Slack ts by its calendar-fixed seconds prefix) and
+    every truth entry is matched."""
+    if not isinstance(values, list) or len(values) != len(matchers):
+        return False
+    unmatched = list(matchers)
+    for value in values:
+        text = str(value).strip().lower()
+        found = None
+        for matcher in unmatched:
+            if "id" in matcher and text == matcher["id"].lower():
+                found = matcher
+                break
+            if "ts_prefix" in matcher and text.startswith(matcher["ts_prefix"]):
+                found = matcher
+                break
+        if found is None:
+            return False
+        unmatched.remove(found)
+    return not unmatched
 
 
 def grade(workspace: Path) -> dict:
@@ -82,6 +106,14 @@ def grade(workspace: Path) -> dict:
     )
     supersessions_score = hits / len(truth["supersessions"])
 
+    stale_score = (
+        1.0
+        if _stale_set_matches(
+            submitted.get("stale_calendar_refs"), truth["stale_calendar_refs"]
+        )
+        else 0.0
+    )
+
     parts = [
         {"part": "operative_date", "score": weights["operative_date"] * date_score},
         {"part": "operative_time", "score": weights["operative_time"] * time_score},
@@ -93,6 +125,10 @@ def grade(workspace: Path) -> dict:
         {
             "part": "supersessions",
             "score": weights["supersessions"] * supersessions_score,
+        },
+        {
+            "part": "stale_calendar_refs",
+            "score": weights["stale_calendar_refs"] * stale_score,
         },
         {"part": "format", "score": weights["format"] if format_ok else 0.0},
     ]

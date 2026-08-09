@@ -104,6 +104,7 @@ for body, ts, time, kind in candidates:
         moved_to,
         f"{int(clock.group(1)):02d}:{clock.group(2) or '00'}",
         ts,
+        time,
     )
 if operative is None:
     sys.exit(
@@ -119,12 +120,57 @@ supersessions = [
 ]
 supersessions.append({"invalidated": noticed[-1].isoformat(), "by": operative[2]})
 
+# Stale references: every communication citing a superseded date as the
+# hearing's setting strictly after that date's supersession record. A
+# message negating the date ("not the 18th") is a correction; a message
+# with no case context (another matter's date) is not a citation.
+MONTH_NAMES = {index: name for name, index in MONTHS.items()}
+TOKENS = ("arroyo", "dept. 511", "fruitvale")
+cutovers = {
+    noticed[0]: notices[1][2],
+    noticed[1]: notices[2][2],
+    noticed[2]: operative[3],
+}
+
+def forms_of(day):
+    suffix = {1: "st", 2: "nd", 3: "rd"}.get(
+        day.day if day.day < 20 else day.day % 10, "th"
+    )
+    return (f"{MONTH_NAMES[day.month]} {day.day}".lower(), f"the {day.day}{suffix}")
+
+surfaces = [
+    (message_id, (subject + " " + body).lower(), time)
+    for message_id, subject, body, time in rows(
+        "gmail.db", "SELECT message_id, subject, body, time FROM messages"
+    )
+] + [
+    (ts, body.lower(), time)
+    for ts, body, time in rows("slack.db", "SELECT ts, body, time FROM messages")
+]
+stale = []
+for identity, text, time in surfaces:
+    if not any(token in text for token in TOKENS):
+        continue
+    for superseded, cutover in cutovers.items():
+        hit_forms = [form for form in forms_of(superseded) if form in text]
+        if not hit_forms or time <= cutover:
+            continue
+        if any(f"not {form}" in text for form in hit_forms):
+            continue
+        stale.append((time, identity, superseded))
+stale.sort()
+if len(stale) != 5:
+    sys.exit(f"expected exactly five stale citations, found {stale}")
+if {superseded for _, _, superseded in stale} != set(noticed):
+    sys.exit("every superseded date must have at least one stale citation")
+
 deadline = {
     "operative_date": operative[0].isoformat(),
     "operative_time": operative[1],
     "correction_ts": operative[2],
     "superseded_dates": [d.isoformat() for d in noticed],
     "supersessions": supersessions,
+    "stale_calendar_refs": [identity for _, identity, _ in stale],
 }
 with open("deadline.json", "w") as handle:
     json.dump(deadline, handle, indent=2)

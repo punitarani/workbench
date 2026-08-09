@@ -115,11 +115,11 @@ def grade(workspace: Path) -> dict:
         else 0.0
     )
 
+    # Round 6: the support audit is graded as a whole — the exact orphan
+    # set earns the component, any miss or extra forfeits it.
     truth_orphans = set(truth["unsupported_entry_ids"])
     claimed_orphans = _id_set(submitted.get("unsupported_entry_ids"))
-    orphan_hits = len(truth_orphans & claimed_orphans)
-    orphan_extras = len(claimed_orphans - truth_orphans)
-    orphan_score = max(0, orphan_hits - orphan_extras) / len(truth_orphans)
+    orphan_score = 1.0 if claimed_orphans == truth_orphans else 0.0
 
     parts = [
         {"part": "cutoff_date", "score": weights["cutoff_date"] * cutoff_score},

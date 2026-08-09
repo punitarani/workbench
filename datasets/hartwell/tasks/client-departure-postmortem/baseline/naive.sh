@@ -16,6 +16,9 @@ postmortem = {
     "matter_closed_date": "2026-06-05",
     "termination_email_date": "2026-05-27",
     "disengagement_letter_path": "/cascadia/letters/disengagement.md",
+    # The famous thread is the only one the email-first read inspects, so
+    # the baseline lists its unanswered tail and misses the rest.
+    "unanswered_client_emails": ["msg-000310", "msg-000371", "msg-000448"],
 }
 with open("postmortem.json", "w") as handle:
     json.dump(postmortem, handle, indent=2)

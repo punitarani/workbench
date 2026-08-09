@@ -74,3 +74,27 @@ Remaining: ~$20.67.
 | 18 | 08-09 07:2x-08:3x | Eval matrix round 4 (final, 5x3x3) | ~29M/0.4M | $2.87 | ~$7.0 |
 
 Final. See REPORT.md for the matrix, verdict, and remaining-budget plan.
+
+| 19 | 08-09 | Round-6 record build (reconciliation fabric, all code constants; content cache served every piece) | 0 | $0.00 | ~$7.0 |
+| 20 | 08-09 | Round-6 probes under the entry-17 call budgets: fee-dispute x Luna x2 (1.02M/9.4K, $0.108) + standard-drift (234K/4.3K, $0.026) + vanished-clause (448K/5.3K, $0.048) + client-departure (120K/2.2K, $0.013) + operative-deadline (156K/2.6K, $0.017), all openai/gpt-5.6-luna | 1.98M/23.8K | $0.21 | ~$7.2 |
+
+Round-6 budget usage: 6 of 20 permitted probe episodes, 0 of 20 permitted
+content calls. Floors measured by datasets/hartwell/measure_floors.py
+(scripted client on the real MCP servers, each sequence asserting it
+reproduces ground truth): client-departure 11, fee-dispute 33,
+operative-deadline 40, standard-drift 48, vanished-clause 110; caps at 3x
+= 33/99/120/144/330 in task.toml [harness] max_tool_calls. Probe scores
+(best-of-N, stop reasons): fee-dispute 0.93 (0.44 finish / 0.93 finish —
+attempt 2 ran the full support audit, 12 DM window reads plus per-day
+windowed marker searches, in 49 of 99 calls); standard-drift 1.00 (finish,
+55 calls — Luna executed the reference version-walk almost exactly);
+vanished-clause 0.70 (finish, 82 calls — exact clean list and drop, but
+four extra ids in unreviewed_revisions zeroed the 0.30 component);
+client-departure 0.00 (call_budget at 33 — burned the cap on broad
+searches and reaction reads, never wrote the deliverable; first live
+enforcement of the entry-17 budget); operative-deadline 0.17 (finish, 32
+calls — reported the stale June 18 again, never opened a DM, partial
+stale list zeroed at all-or-nothing). Under the declared a-priori policy
+2 of 5 probed cells fall below 0.5; the strongest model clears the other
+three by executing reference-quality paths within task-anchored budgets.
+Remaining: ~$17.8.

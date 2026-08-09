@@ -28,7 +28,8 @@ Write **`clause.json`** to the workspace root:
   "author": "<who saved that version>",
   "date": "<YYYY-MM-DD of that version>",
   "change_comment": "<that version's change summary, verbatim>",
-  "clean_documents": [<iManage document numbers of every clean multi-version document>]
+  "clean_documents": [<iManage document numbers of every clean multi-version document>],
+  "unreviewed_revisions": ["<iManage version id, e.g. LEGAL!7.2>", "..."]
 }
 ```
 
@@ -47,3 +48,17 @@ set: every clean multi-version document listed, the one that lost its
 protection excluded, single-version documents excluded, nothing
 invented. An incomplete enumeration is an incomplete answer to
 coverage counsel's question.
+
+Coverage counsel's follow-up is about process: which document versions
+were saved with **no same-day communication mentioning the document**?
+`unreviewed_revisions` must list, for every multi-version document in
+the repository, the iManage version id (`LEGAL!<number>.<version>`) of
+each revision (version 2 and later) whose save day carries no email
+(subject, body, or attachment filename) and no public-channel Slack
+message that names that document. A message names a document the way
+the firm does — the vendor's name for a vendor NDA, the agreement or
+statement-of-work name for the client drafts, the template's name for
+the firm forms; naming only the matter, the client, or the workspace
+does not count, and neither does a mention the day before or the day
+after. This list is also graded as an exact set — the record mentions
+most saves somewhere, and the handful it never mentions is the answer.

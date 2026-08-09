@@ -57,6 +57,9 @@ deadline = {
         {"invalidated": noticed[index], "by": notices[index + 1][0]}
         for index in range(len(noticed) - 1)
     ],
+    # The recap agrees with the last notice, so the naive read finds
+    # nothing stale to flag.
+    "stale_calendar_refs": [],
 }
 with open("deadline.json", "w") as handle:
     json.dump(deadline, handle, indent=2)

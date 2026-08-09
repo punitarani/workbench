@@ -15,4 +15,10 @@ docker_image = "workbench:dev"
 # In-container: tests/test.sh runs the deterministic grader and writes
 # partial-credit reward to /logs/verifier/reward.json. The Reward Kit
 # wrapper replaces the direct python3 call once runs happen through Harbor.
-weights = { playbook_path = 0.04, nda_survey = 0.55, standard = 0.02, practice = 0.04, document = 0.04, version = 0.04, date = 0.03, format = 0.07 }
+weights = { playbook_path = 0.03, nda_survey = 0.35, silent_versions = 0.28, standard = 0.01, practice = 0.03, document = 0.03, version = 0.03, date = 0.02, format = 0.1 }
+
+[harness]
+# Task-anchored call budget (DECISIONS.md entry 17): 3x the reference
+# tool-path floor of 48 calls measured by datasets/hartwell/measure_floors.py
+# (write_file and finish count against the same budget).
+max_tool_calls = 144

@@ -21,7 +21,14 @@ FIELDS = (
     "matter_closed_date",
     "termination_email_date",
     "disengagement_letter_path",
+    "unanswered_client_emails",
 )
+
+
+def _message_id_set(values: object) -> set[str] | None:
+    if not isinstance(values, list):
+        return None
+    return {str(value).strip().lower() for value in values}
 
 
 def grade(workspace: Path) -> dict:
@@ -72,6 +79,16 @@ def grade(workspace: Path) -> dict:
     letter = str(submitted.get("disengagement_letter_path", "")).strip().lstrip("/")
     letter_score = 1.0 if letter.endswith(truth["letter_path_suffix"]) else 0.0
 
+    # Round 6: the unanswered-client-emails thread anti-join, graded as a
+    # whole — the exact Gmail message-id set or nothing.
+    claimed_unanswered = _message_id_set(submitted.get("unanswered_client_emails"))
+    unanswered_score = (
+        1.0
+        if claimed_unanswered
+        == {value.lower() for value in truth["unanswered_client_emails"]}
+        else 0.0
+    )
+
     parts = [
         {
             "part": "first_negative_signal_date",
@@ -114,6 +131,10 @@ def grade(workspace: Path) -> dict:
         {
             "part": "disengagement_letter_path",
             "score": weights["disengagement_letter_path"] * letter_score,
+        },
+        {
+            "part": "unanswered_client_emails",
+            "score": weights["unanswered_client_emails"] * unanswered_score,
         },
         {"part": "format", "score": weights["format"] if format_ok else 0.0},
     ]

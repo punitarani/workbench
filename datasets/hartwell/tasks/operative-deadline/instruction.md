@@ -27,7 +27,8 @@ Write **`deadline.json`** to the workspace root:
       "invalidated": "<YYYY-MM-DD superseded hearing date>",
       "by": "<Gmail message id or Slack ts of the record that invalidated it>"
     }
-  ]
+  ],
+  "stale_calendar_refs": ["<Gmail message id or Slack ts>", "..."]
 }
 ```
 
@@ -40,3 +41,16 @@ and do not assume the most recent internal mail is current: verify
 against everything the firm recorded afterward, and cite (via
 `correction_ts`) the record that makes your operative date the operative
 one.
+
+Samuel also wants the contamination mapped, so nobody preps from a
+message that was already wrong when it was sent: `stale_calendar_refs`
+must list **every communication — email (by Gmail message id) or Slack
+message (by ts) — that still cites a superseded date as this hearing's
+setting after the record that superseded it**. A message that reports
+the move, or that names the old date only to deny it, is a correction,
+not a stale reference; a message citing a date while that date was still
+operative is simply current. Other matters moved that season too — a
+different case's hearing date is not this hearing's. Cross-reference
+every mention of every noticed date against the correction timeline
+before you call it clean. This list is certified as a whole: only the
+exact set earns it.

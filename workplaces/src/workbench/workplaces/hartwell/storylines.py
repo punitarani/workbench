@@ -111,6 +111,27 @@ NDA_INJUNCTIVE_CLAUSE = (
     "may cause irreparable harm, and either party may seek injunctive "
     "relief without posting bond, in addition to any other remedy."
 )
+# Round-6 substantive riders: operative clauses added to NDA histories in
+# June. They are playbook-neutral (the survey's conforms/deviates calls do
+# not move), and which additions have same-day covering mail is the S1
+# silent-versions reconciliation.
+NDA_RETURN_CLAUSE = (
+    "Return of Materials. Upon the disclosing party's written request, the "
+    "receiving party shall promptly return or destroy all Confidential "
+    "Information, including copies, extracts, and summaries, and certify "
+    "the destruction in writing within fourteen (14) days of the request."
+)
+NDA_NONSOLICIT_CLAUSE = (
+    "Non-Solicitation. For one (1) year following the last disclosure, "
+    "neither party will solicit for employment personnel of the other "
+    "party who were directly involved in the engagement, except through "
+    "general postings not directed at such personnel."
+)
+NDA_NOTICES_SECTION = (
+    "Notices under this Agreement shall be delivered to the parties at the "
+    "addresses stated in the signature blocks, with a courtesy copy by "
+    "electronic mail to the negotiating contacts."
+)
 INDEMNITY_PARAGRAPH = (
     "9.2 Indemnification by Licensor. Licensor shall defend, indemnify, "
     "and hold harmless Licensee and its officers, directors, and employees "
@@ -188,6 +209,354 @@ S5_RECAP_BODY = (
     "before she went out — we'll confirm everything stands when she is "
     "back on, and I'll recirculate if anything moves.\n\n"
     "Peter"
+)
+
+# S5 round-6: constructed stale citations — communications that keep
+# citing a superseded hearing date after its supersession record. Load-
+# bearing trap text stays in code; the graded set is exactly these plus
+# the stale recap. Messages that announce a move or negate a date are
+# corrections, not citations, and stay out of the set by construction.
+S5_STALE_OUTLINE_SUBJECT = "Arroyo — argument outline for the motion hearing"
+S5_STALE_OUTLINE_BODY = (
+    "Samuel,\n\n"
+    "Argument outline for the April 28 hearing is attached for your markup "
+    "— lien priority first, then the bond question. I will have the "
+    "authorities binder ready well ahead of the courtesy-copy deadline.\n\n"
+    "Sofia"
+)
+S5_OUTLINE_REPLY_BODY = (
+    "Sofia — that setting moved; the clerk reset the Arroyo hearing for "
+    "May 20. Grace has the notice. Recalendar before you spend more time "
+    "on the binder.\n\nSamuel"
+)
+S5_STALE_COPIES_CHAT = (
+    "Arroyo courtesy copies — Dept. 511 wants them several court days "
+    "ahead of the May 20 motion hearing. Who is handling the drop?"
+)
+S5_COPIES_REPLY_CHAT = (
+    "that one moved — stipulated order reset it to June 18. i'll "
+    "recirculate the clerk notice."
+)
+S5_STALE_VICTOR_SUBJECT = "Arroyo — logistics for the June 18 hearing"
+S5_STALE_VICTOR_BODY = (
+    "Counsel,\n\n"
+    "For the June 18 hearing in Dept. 511: we will have two attorneys "
+    "appearing and expect argument to run under the hour. Please confirm "
+    "your courtesy copies went to chambers.\n\n"
+    "Victor Crane\nCrane & Whitaker"
+)
+S5_STALE_BINDER_CHAT = (
+    "Arroyo binder is assembled for Thursday's motion hearing on the 18th "
+    "— courtesy copies boxed and ready."
+)
+
+# S4 round-6: the client-side correspondence fabric. Most of Tom's emails
+# get in-thread firm replies; the graded anti-join is the ones that never
+# did. Bodies are code constants so the reply topology is load-bearing.
+S4_DOCS_SUBJECT = "Cascadia — supplier contract file"
+S4_DOCS_ASK = (
+    "Sofia,\n\nCan you send me copies of the two supplier contracts your "
+    "team pulled for the dispute file? Our ops manager wants them for the "
+    "insurance folder.\n\nTom"
+)
+S4_DOCS_REPLY = (
+    "Tom,\n\nBoth supplier contracts are in the client portal folder now — "
+    "I flagged the signature pages for your ops manager.\n\nSofia"
+)
+S4_DOCS_FOLLOWUP = (
+    "Sofia,\n\nOne more: is the 2024 amendment part of the dispute record, "
+    "or do we need to produce it separately?\n\nTom"
+)
+S4_DOCS_FOLLOWUP_REPLY = (
+    "Tom,\n\nIt is already in the record — produced with the first set. "
+    "Nothing more needed from your side.\n\nSofia"
+)
+S4_INVOICE_SUBJECT = "Cascadia — March invoice question"
+S4_INVOICE_ASK = (
+    "Anita,\n\nThe March invoice shows two lines for the same court filing "
+    "fee — is that a duplicate?\n\nTom"
+)
+S4_INVOICE_REPLY = (
+    "Tom,\n\nGood catch — one line is the filing fee and the other the "
+    "courier charge for the same filing; the descriptions read alike. No "
+    "duplicate.\n\nAnita"
+)
+S4_MEMO_SUBJECT = "Cascadia supplier dispute — status memorandum"
+S4_MEMO_BODY = (
+    "Tom,\n\nSending the status memorandum you asked for: current posture, "
+    "the discovery schedule as ordered, and our settlement read. Samuel "
+    "will follow up on next steps this week.\n\nSofia"
+)
+S4_NOTES_SUBJECT = "Cascadia — supplier meeting notes"
+S4_NOTES_FIRST = (
+    "Samuel,\n\nNotes from Friday's supplier meeting are below — the "
+    "delivery dispute came up again in front of their counsel.\n\nTom"
+)
+S4_NOTES_SECOND = (
+    "Samuel,\n\nForgot to add: their counsel floated a standstill "
+    "proposal. Worth discussing before Thursday.\n\nTom"
+)
+S4_NOTES_REPLY = (
+    "Tom,\n\nThanks — reviewed both. Let's take the standstill question on "
+    "Thursday's call; Sofia will circulate a dial-in.\n\nSamuel"
+)
+S4_TRANSFER_SUBJECT = "Cascadia — file transfer logistics"
+S4_TRANSFER_ASK = (
+    "Grace,\n\nOmar's office says two of the boxes listed on the transfer "
+    "memo have not arrived. Who should his paralegal call?\n\nTom"
+)
+
+# Round-6 document-mention fabric: short public-channel notes that name a
+# document on the day a version of it was saved. They exist so the
+# vanished-clause unreviewed-revisions anti-join has a dense covered side;
+# the handful of revision days deliberately left without a mention are the
+# graded set. Lines avoid every audited leak token (no term lengths, no
+# residuals, no support markers, no client-arc names, no hearing dates).
+MENTION_FABRIC: tuple[tuple[str, int, int, str, str, str], ...] = (
+    # day, hour, minute, sender, channel ("matters"/"billing"), body
+    (
+        "2026-03-12",
+        15,
+        10,
+        _DO,
+        "matters",
+        "Vendor NDA playbook rev 2 is filed — standard positions tightened "
+        "per partner review.",
+    ),
+    (
+        "2026-03-19",
+        16,
+        5,
+        _DO,
+        "matters",
+        "Refreshed engagement letter template is in the repository — new "
+        "rate schedule language included.",
+    ),
+    (
+        "2026-03-24",
+        15,
+        35,
+        _GA,
+        "matters",
+        "Trueline process servers NDA — conformed copy is filed; signature "
+        "packet goes out with the next records run.",
+    ),
+    (
+        "2026-03-25",
+        15,
+        0,
+        _PN,
+        "matters",
+        "Vendor NDA playbook rev 3 is up — intake and signature-routing notes added.",
+    ),
+    (
+        "2026-04-08",
+        12,
+        15,
+        _GA,
+        "matters",
+        "Matter intake checklist updated — conflicts screening steps "
+        "expanded per the quarterly review.",
+    ),
+    (
+        "2026-04-21",
+        15,
+        5,
+        _NF,
+        "matters",
+        "Cobalt language services NDA refiled after proofread — defined "
+        "terms cleaned up.",
+    ),
+    (
+        "2026-04-22",
+        11,
+        0,
+        _SR,
+        "matters",
+        "Discovery response playbook now carries the ESI protocol checklist "
+        "— comments welcome.",
+    ),
+    (
+        "2026-04-24",
+        11,
+        30,
+        _PN,
+        "matters",
+        "Support services statement of work rev 2 is filed — formatting cleanup only.",
+    ),
+    (
+        "2026-04-28",
+        16,
+        30,
+        _ML,
+        "matters",
+        "License and support agreement rev 3 posted after internal review.",
+    ),
+    (
+        "2026-04-29",
+        10,
+        30,
+        _CJ,
+        "billing",
+        "Billing guidelines refresh is in — narrative standards clarified "
+        "ahead of the May prebills.",
+    ),
+    (
+        "2026-05-06",
+        16,
+        40,
+        _PN,
+        "matters",
+        "Harborlight records storage NDA is conformed and filed — renewal "
+        "entities updated in the signature blocks.",
+    ),
+    (
+        "2026-05-07",
+        15,
+        35,
+        _SR,
+        "matters",
+        "Litigation hold notice template — preservation scope list now "
+        "covers messaging applications; take a look before the next hold "
+        "goes out.",
+    ),
+    (
+        "2026-05-21",
+        14,
+        20,
+        _PN,
+        "matters",
+        "Lumen file: closing sequence looks good for early June — signature "
+        "packet prep starts next week.",
+    ),
+    (
+        "2026-05-22",
+        15,
+        15,
+        _NF,
+        "matters",
+        "Engagement letter template now carries the client portal and "
+        "electronic signature consent language.",
+    ),
+    (
+        "2026-05-27",
+        14,
+        50,
+        _ML,
+        "matters",
+        "Statement of work exhibits — the staffing table needs one more "
+        "pass before the packet.",
+    ),
+    (
+        "2026-05-28",
+        16,
+        45,
+        _PN,
+        "matters",
+        "License and support agreement rev 5 — formatting and numbering "
+        "cleanup, filed.",
+    ),
+    (
+        "2026-06-02",
+        16,
+        10,
+        _NF,
+        "matters",
+        "Brightwater trial graphics NDA refiled after proofread — citations fixed.",
+    ),
+    (
+        "2026-06-03",
+        12,
+        0,
+        _ML,
+        "matters",
+        "License and support agreement rev 6 filed — defined terms tidied "
+        "ahead of the signature packet.",
+    ),
+    (
+        "2026-06-08",
+        16,
+        15,
+        _PN,
+        "matters",
+        "Final proofs are in: license and support agreement rev 7 and the "
+        "support services statement of work rev 4, both staged for the "
+        "signature packet.",
+    ),
+    (
+        "2026-06-15",
+        12,
+        5,
+        _NF,
+        "matters",
+        "Trueline process servers NDA — returns rider folded in and refiled.",
+    ),
+    (
+        "2026-06-16",
+        15,
+        10,
+        _NF,
+        "matters",
+        "Cobalt language services NDA — returns rider folded in and refiled.",
+    ),
+    (
+        "2026-06-17",
+        15,
+        50,
+        _GA,
+        "matters",
+        "Matter intake checklist updated — signature routing aligned with "
+        "the current records workflow.",
+    ),
+    (
+        "2026-06-18",
+        11,
+        0,
+        _NF,
+        "matters",
+        "Archway court reporting NDA — staffing rider folded in and refiled.",
+    ),
+    (
+        "2026-06-19",
+        12,
+        20,
+        _SM,
+        "matters",
+        "Discovery response playbook — meet and confer timing guidance recorded.",
+    ),
+    (
+        "2026-06-22",
+        15,
+        15,
+        _PN,
+        "matters",
+        "Summit staffing partners NDA — conformed copy filed; signature "
+        "blocks updated.",
+    ),
+    (
+        "2026-06-23",
+        16,
+        35,
+        _CJ,
+        "billing",
+        "Billing guidelines — prebill calendar updated for the third quarter.",
+    ),
+    (
+        "2026-06-24",
+        15,
+        30,
+        _PN,
+        "matters",
+        "Brightwater trial graphics NDA — notice addresses recorded and refiled.",
+    ),
+    (
+        "2026-06-25",
+        10,
+        50,
+        _NF,
+        "matters",
+        "Summit staffing partners NDA — staffing rider folded in and refiled.",
+    ),
 )
 
 # S2: the only place in the record that states the dispute's cutoff date.
@@ -341,6 +710,41 @@ APRIL_RECORDS_DM_LINES = (
     "retention review: three closed files are past the hold window; "
     "circulating the list.",
     "signature packet came back unsigned on one tab — sending it around again.",
+)
+
+# Round 6: the document-mention rule for the unreviewed-revisions
+# reconciliation. A message mentions a document when its text (email
+# subject, body, or attachment filename; public-channel chat body)
+# carries one of the document's markers — the way the firm actually
+# names that file. Naming the matter, the client, or the workspace
+# alone never counts. The audit, the grader's ground truth, and the
+# reference solution all apply exactly this table.
+DOC_MENTION_MARKERS: dict[str, tuple[str, ...]] = {
+    PLAYBOOK_TITLE: ("nda playbook", "vendor-nda-playbook"),
+    "Engagement Letter (Standard Form)": ("engagement letter",),
+    "Matter Intake Checklist": ("intake checklist", "matter-intake-checklist"),
+    "Billing & Time Entry Guidelines": (
+        "billing guidelines",
+        "time entry guidelines",
+        "billing-guidelines",
+    ),
+    "Litigation Hold Notice (Template)": ("litigation hold", "litigation-hold"),
+    "Discovery Response Playbook": (
+        "discovery response playbook",
+        "discovery playbook",
+        "discovery-responses",
+    ),
+    LUMEN_AGREEMENT_TITLE: (
+        "license and support agreement",
+        "license-and-support-agreement",
+    ),
+    LUMEN_SOW_TITLE: ("statement of work", "support-services-sow"),
+}
+DOC_MENTION_MARKERS.update(
+    {
+        title: (title.split(" — ")[1].split()[0].lower(),)
+        for title in (LEXIPOINT_NDA_TITLE, IRONCLAD_NDA_TITLE, *CONFORMING_NDA_TITLES)
+    }
 )
 
 # S1: the only discussion of the Ironclad concession, in a #matters thread
@@ -1660,7 +2064,11 @@ def _nda(
     body_key: str,
     term: str,
     residuals: bool,
+    extras: tuple[tuple[str, str], ...] = (),
 ) -> str:
+    """``extras`` appends late-history sections (heading, text) after the
+    equitable-relief article, so extended versions strictly contain their
+    predecessors' paragraphs."""
     parts = [
         f"# {title.removesuffix(' (Draft)')}",
         "",
@@ -1677,6 +2085,10 @@ def _nda(
         "## Equitable Relief",
         "",
         NDA_INJUNCTIVE_CLAUSE,
+    ]
+    for heading, text in extras:
+        parts += ["", f"## {heading}", "", text]
+    parts += [
         "",
         "## Governing Law",
         "",
@@ -1793,6 +2205,7 @@ class StorylineDirector:
         self._register_s5()
         self._register_fabric(genesis)
         self._register_april_dm_lanes()
+        self._register_mention_fabric()
         workdays = {WINDOW.iso_date(index) for index in WINDOW.workdays()}
         strays = sorted(set(self._beats) - workdays)
         if strays:
@@ -2381,6 +2794,182 @@ class StorylineDirector:
             self._on(v1_day, v1_clock, create_beat)
             self._on(v2_day, v2_clock, revise_beat)
 
+        # June vendor re-papering: substantive riders land as v3s across
+        # the corpus. Whether the day carries a covering email naming the
+        # vendor is the silent-versions reconciliation: LexiPoint v2,
+        # Ironclad v2, BayMark v3, and Harborlight v3 are covered;
+        # Trueline, Cobalt, Archway, and Summit gain their riders with no
+        # email that day (Summit's email lands the day after — the
+        # off-by-one trap). Brightwater's v3 is a notices-only edit: a
+        # real diff, but not a substantive one.
+        extension_plans: tuple[
+            tuple[str, str, str, str, int, str, tuple[tuple[str, str], ...], str],
+            ...,
+        ] = (
+            (
+                "s1.trueline",
+                TRUELINE_NDA_TITLE,
+                "2026-06-15",
+                _NF,
+                _at(11, 30),
+                "Added the returns rider from the June vendor re-papering.",
+                (("Return of Materials", NDA_RETURN_CLAUSE),),
+                "trueline",
+            ),
+            (
+                "s1.cobalt",
+                COBALT_NDA_TITLE,
+                "2026-06-16",
+                _NF,
+                _at(14, 45),
+                "Added the returns rider from the June vendor re-papering.",
+                (("Return of Materials", NDA_RETURN_CLAUSE),),
+                "cobalt",
+            ),
+            (
+                "s1.archway",
+                ARCHWAY_NDA_TITLE,
+                "2026-06-18",
+                _NF,
+                _at(10, 20),
+                "Folded in the staffing rider agreed at the vendor call.",
+                (("Non-Solicitation", NDA_NONSOLICIT_CLAUSE),),
+                "archway",
+            ),
+            (
+                "s1.baymark",
+                BAYMARK_NDA_TITLE,
+                "2026-06-18",
+                _PN,
+                _at(15, 40),
+                "Added the returns rider from the June vendor re-papering.",
+                (("Return of Materials", NDA_RETURN_CLAUSE),),
+                "baymark",
+            ),
+            (
+                "s1.harborlight",
+                HARBORLIGHT_NDA_TITLE,
+                "2026-06-23",
+                _PN,
+                _at(11, 15),
+                "Added the returns rider from the June vendor re-papering.",
+                (("Return of Materials", NDA_RETURN_CLAUSE),),
+                "harborlight",
+            ),
+            (
+                "s1.summit",
+                SUMMIT_NDA_TITLE,
+                "2026-06-25",
+                _NF,
+                _at(10, 35),
+                "Folded in the staffing rider agreed at the vendor call.",
+                (("Non-Solicitation", NDA_NONSOLICIT_CLAUSE),),
+                "summit",
+            ),
+            (
+                "s1.brightwater",
+                BRIGHTWATER_NDA_TITLE,
+                "2026-06-24",
+                _PN,
+                _at(9, 50),
+                "Recorded the notice addresses for the renewal entities.",
+                (("Notices", NDA_NOTICES_SECTION),),
+                "brightwater",
+            ),
+        )
+        for ref, title, day, author, clock, summary, extras, name in extension_plans:
+            v3_content = _nda(
+                texts,
+                title=title,
+                body_key=f"s1.nda.{name}.body",
+                term=NDA_TERM_THREE,
+                residuals=False,
+                extras=extras,
+            )
+
+            def extend_beat(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                ref: str = ref,
+                clock: int = clock,
+                author: str = author,
+                content: str = v3_content,
+                summary: str = summary,
+            ) -> None:
+                self._revise(
+                    drafts,
+                    at=clock,
+                    ref=ref,
+                    revision=3,
+                    author=author,
+                    content=content,
+                    summary=summary,
+                )
+
+            self._on(day, clock, extend_beat)
+
+        def baymark_v3_cover(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(16, 10),
+                sender=_PN,
+                to=(_AB,),
+                cc=(_NF,),
+                subject="BayMark NDA — returns rider added",
+                text=(
+                    "Anita,\n\nAdded the returns rider to the BayMark IT "
+                    "Solutions NDA and refiled the draft. No other changes "
+                    "to the form.\n\nPeter"
+                ),
+                thread="s1.baymark-rider",
+                reply=False,
+            )
+
+        self._on("2026-06-18", _at(16, 10), baymark_v3_cover)
+
+        def harborlight_v3_cover(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(11, 45),
+                sender=_PN,
+                to=(_AB,),
+                cc=(_NF,),
+                subject="Harborlight NDA — returns rider added",
+                text=(
+                    "Anita,\n\nAdded the returns rider to the Harborlight "
+                    "Records Storage NDA and refiled the draft. Signature "
+                    "routing can pick it up with the next packet.\n\nPeter"
+                ),
+                thread="s1.harborlight-rider",
+                reply=False,
+            )
+
+        self._on("2026-06-23", _at(11, 45), harborlight_v3_cover)
+
+        def summit_rider_trap(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # The day-after email: it names Summit, but the rider landed
+            # yesterday, so Summit's v3 day itself stays email-silent.
+            self._email(
+                minter,
+                drafts,
+                at=_at(9, 25),
+                sender=_NF,
+                to=(_AB,),
+                cc=(_PN,),
+                subject="Summit NDA — rider status",
+                text=(
+                    "Anita,\n\nFolded the staffing rider into the Summit "
+                    "Staffing Partners draft yesterday; the refiled copy is "
+                    "ready for signature routing.\n\nNoah"
+                ),
+                thread="s1.summit-rider",
+                reply=False,
+            )
+
+        self._on("2026-06-26", _at(9, 25), summit_rider_trap)
+
         def lexipoint_v1(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._doc(
                 minter,
@@ -2800,6 +3389,14 @@ class StorylineDirector:
                 "Call with client team on regulatory consent timing "
                 "(Meridian diagnostics acquisition).",
             ),
+            (
+                "2026-04-28",
+                _at(17, 50),
+                _PN,
+                50,
+                "Assemble the regulatory consent tracker for signing "
+                "(Meridian diagnostics acquisition).",
+            ),
         )
         for day, clock, person, minutes, note in unsupported:
 
@@ -2899,6 +3496,29 @@ class StorylineDirector:
                 )
 
             self._on(day, _at(*clock), oblique_beat)
+
+        def consent_tracker_oblique(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # Same-day-oblique near miss on the new orphan day: deal-
+            # flavored mail that never names the engagement under the
+            # marker rule, so the day stays silent for the support audit.
+            self._email(
+                minter,
+                drafts,
+                at=_at(16, 40),
+                sender=_PN,
+                to=(_ML,),
+                subject="Consent tracker — signing prep",
+                text=(
+                    "Marcus,\n\nConsent tracker is assembled through "
+                    "today's mail. Two counterparties have not returned "
+                    "countersigned consents; chasing both tomorrow "
+                    "morning.\n\nPeter"
+                ),
+                thread="s2.consents",
+                reply=False,
+            )
+
+        self._on("2026-04-28", _at(16, 40), consent_tracker_oblique)
 
         def invoice(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._email(
@@ -3321,6 +3941,162 @@ class StorylineDirector:
     def _register_s4(self) -> None:
         texts = self._texts
 
+        # Client-side correspondence fabric: most of Tom's emails draw an
+        # in-thread firm reply (some late, one only after a double-send);
+        # the ignored ones are the unanswered-client-emails anti-join.
+        def docs_ask(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(9, 55),
+                sender=_TOM,
+                to=(_SR,),
+                subject=S4_DOCS_SUBJECT,
+                text=S4_DOCS_ASK,
+                thread="s4.docs",
+                reply=False,
+            )
+
+        def docs_reply(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(15, 45),
+                sender=_SR,
+                to=(_TOM,),
+                subject=f"Re: {S4_DOCS_SUBJECT}",
+                text=S4_DOCS_REPLY,
+                thread="s4.docs",
+                reply=True,
+            )
+
+        self._on("2026-03-10", _at(9, 55), docs_ask)
+        self._on("2026-03-10", _at(15, 45), docs_reply)
+
+        def docs_followup(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(10, 35),
+                sender=_TOM,
+                to=(_SR,),
+                subject=f"Re: {S4_DOCS_SUBJECT}",
+                text=S4_DOCS_FOLLOWUP,
+                thread="s4.docs",
+                reply=True,
+            )
+
+        self._on("2026-03-31", _at(10, 35), docs_followup)
+
+        def docs_followup_reply(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # Answered the next day — in-thread, so still answered under
+            # the thread rule; a same-day misreading lists it anyway.
+            self._email(
+                minter,
+                drafts,
+                at=_at(9, 40),
+                sender=_SR,
+                to=(_TOM,),
+                subject=f"Re: {S4_DOCS_SUBJECT}",
+                text=S4_DOCS_FOLLOWUP_REPLY,
+                thread="s4.docs",
+                reply=True,
+            )
+
+        self._on("2026-04-01", _at(9, 40), docs_followup_reply)
+
+        def invoice_ask(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(10, 5),
+                sender=_TOM,
+                to=(_AB,),
+                subject=S4_INVOICE_SUBJECT,
+                text=S4_INVOICE_ASK,
+                thread="s4.invoice",
+                reply=False,
+            )
+
+        def invoice_reply(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(14, 10),
+                sender=_AB,
+                to=(_TOM,),
+                subject=f"Re: {S4_INVOICE_SUBJECT}",
+                text=S4_INVOICE_REPLY,
+                thread="s4.invoice",
+                reply=True,
+            )
+
+        self._on("2026-04-08", _at(10, 5), invoice_ask)
+        self._on("2026-04-08", _at(14, 10), invoice_reply)
+
+        def notes_first(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(11, 5),
+                sender=_TOM,
+                to=(_SM,),
+                subject=S4_NOTES_SUBJECT,
+                text=S4_NOTES_FIRST,
+                thread="s4.notes",
+                reply=False,
+            )
+
+        def notes_second(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(11, 20),
+                sender=_TOM,
+                to=(_SM,),
+                subject=f"Re: {S4_NOTES_SUBJECT}",
+                text=S4_NOTES_SECOND,
+                thread="s4.notes",
+                reply=True,
+            )
+
+        def notes_reply(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # One firm reply after a client double-send answers both under
+            # the thread rule; listing the first is the trap.
+            self._email(
+                minter,
+                drafts,
+                at=_at(15, 30),
+                sender=_SM,
+                to=(_TOM,),
+                cc=(_SR,),
+                subject=f"Re: {S4_NOTES_SUBJECT}",
+                text=S4_NOTES_REPLY,
+                thread="s4.notes",
+                reply=True,
+            )
+
+        self._on("2026-05-11", _at(11, 5), notes_first)
+        self._on("2026-05-11", _at(11, 20), notes_second)
+        self._on("2026-05-11", _at(15, 30), notes_reply)
+
+        def transfer_ask(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # Post-termination logistics question nobody ever answers —
+            # the fourth member of the anti-join.
+            self._email(
+                minter,
+                drafts,
+                at=_at(10, 15),
+                sender=_TOM,
+                to=(_GA,),
+                subject=S4_TRANSFER_SUBJECT,
+                text=S4_TRANSFER_ASK,
+                thread="s4.transfer",
+                reply=False,
+            )
+
+        self._on("2026-06-08", _at(10, 15), transfer_ask)
+
         def happy_chat(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._chat(
                 minter,
@@ -3434,6 +4210,24 @@ class StorylineDirector:
             )
 
         self._on("2026-05-06", _at(15, 45), concern3)
+
+        def memo_email(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # The status memo goes out the evening of concern3 — but in a
+            # NEW thread, so under the thread rule it answers nothing.
+            self._email(
+                minter,
+                drafts,
+                at=_at(19, 5),
+                sender=_SR,
+                to=(_TOM,),
+                cc=(_SM,),
+                subject=S4_MEMO_SUBJECT,
+                text=S4_MEMO_BODY,
+                thread="s4.memo",
+                reply=False,
+            )
+
+        self._on("2026-05-06", _at(19, 5), memo_email)
 
         def memo_chat(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._chat(
@@ -3654,6 +4448,64 @@ class StorylineDirector:
 
         self._on("2026-04-20", _at(9, 20), cal2)
 
+        def stale_outline(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # Sofia was not on the clerk's reset notice: four days after
+            # the reset she still briefs against the April 28 setting.
+            self._email(
+                minter,
+                drafts,
+                at=_at(14, 5),
+                sender=_SR,
+                to=(_SM,),
+                cc=(_GA,),
+                subject=S5_STALE_OUTLINE_SUBJECT,
+                text=S5_STALE_OUTLINE_BODY,
+                thread="s5.outline",
+                reply=False,
+            )
+
+        def outline_reply(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # The correction cites the then-operative May 20 — a date
+            # mention that is NOT stale, because it reports the move.
+            self._email(
+                minter,
+                drafts,
+                at=_at(16, 20),
+                sender=_SM,
+                to=(_SR,),
+                cc=(_GA,),
+                subject=f"Re: {S5_STALE_OUTLINE_SUBJECT}",
+                text=S5_OUTLINE_REPLY_BODY,
+                thread="s5.outline",
+                reply=True,
+            )
+
+        self._on("2026-04-21", _at(14, 5), stale_outline)
+        self._on("2026-04-21", _at(16, 20), outline_reply)
+
+        def stale_copies_chat(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # Sofia works from Samuel's April correction ("May 20") and
+            # never saw the stipulated reset — stale again, and corrected
+            # again in the reply.
+            self._chat(
+                minter,
+                drafts,
+                at=_at(10, 25),
+                sender=_SR,
+                body=S5_STALE_COPIES_CHAT,
+                ref="s5.copies",
+            )
+            self._chat(
+                minter,
+                drafts,
+                at=_at(10, 50),
+                sender=_GA,
+                body=S5_COPIES_REPLY_CHAT,
+                reply_ref="s5.copies",
+            )
+
+        self._on("2026-05-15", _at(10, 25), stale_copies_chat)
+
         def stip(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._email(
                 minter,
@@ -3806,6 +4658,37 @@ class StorylineDirector:
             )
 
         self._on("2026-06-12", _at(11, 10), brightline_deadline)
+
+        def stale_victor_email(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # Opposing counsel never got the clerk's call: the day after
+            # the DM correction he confirms logistics for June 18. Nobody
+            # replies — a correction by email would leak the operative
+            # date out of the DM.
+            self._email(
+                minter,
+                drafts,
+                at=_at(11, 30),
+                sender=_VICTOR,
+                to=(_SM,),
+                cc=(_SR,),
+                subject=S5_STALE_VICTOR_SUBJECT,
+                text=S5_STALE_VICTOR_BODY,
+                thread="s5.logistics",
+                reply=False,
+            )
+
+        self._on("2026-06-12", _at(11, 30), stale_victor_email)
+
+        def stale_binder_chat(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(9, 45),
+                sender=_SR,
+                body=S5_STALE_BINDER_CHAT,
+            )
+
+        self._on("2026-06-15", _at(9, 45), stale_binder_chat)
 
         def stale_recap(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             # Post-correction trap: a formal-looking recap compiled from
@@ -4032,6 +4915,33 @@ class StorylineDirector:
                     content=extended(base, sections),
                     summary=summary,
                 )
+
+    def _register_mention_fabric(self) -> None:
+        # Same-day document mentions for most version saves; the revision
+        # days deliberately left out are the unreviewed-revisions set.
+        for day, hour, minute, sender, channel, body in MENTION_FABRIC:
+            conversation = (
+                self._billing_channel if channel == "billing" else self._matters_channel
+            )
+
+            def mention_beat(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                clock: int = _at(hour, minute),
+                sender: str = sender,
+                body: str = body,
+                conversation: str = conversation,
+            ) -> None:
+                self._chat(
+                    minter,
+                    drafts,
+                    at=clock,
+                    sender=sender,
+                    body=body,
+                    conversation=conversation,
+                )
+
+            self._on(day, _at(hour, minute), mention_beat)
 
     def _register_april_dm_lanes(self) -> None:
         lanes: tuple[tuple[str, str, str, tuple, tuple[str, ...]], ...] = (

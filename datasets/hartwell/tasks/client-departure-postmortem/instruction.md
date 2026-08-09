@@ -26,7 +26,8 @@ Write **`postmortem.json`** to the workspace root:
   "reaction_trajectory": [<reaction counts, in chronological order, on the five milestone updates below>],
   "matter_closed_date": "<YYYY-MM-DD the matter was closed in the practice-management system>",
   "termination_email_date": "<YYYY-MM-DD the client sent the termination email>",
-  "disengagement_letter_path": "<repository path of the disengagement letter>"
+  "disengagement_letter_path": "<repository path of the disengagement letter>",
+  "unanswered_client_emails": ["<Gmail message id>", "..."]
 }
 ```
 
@@ -40,3 +41,15 @@ it: the first warning lived in Slack before any partner email, `ts`
 values are Slack's own message identities, the closure date is a status
 change in Clio (not the termination's effective date), and the letter is
 filed in the document repository.
+
+The sharpest lesson is responsiveness, so pin it to the record too:
+`unanswered_client_emails` must list the Gmail message id of **every
+email from the client's side on the Cascadia engagement that the firm
+never answered**. Answered means answered where the client sent it: a
+message from someone at the firm appearing later in the *same Gmail
+thread*. A reply days later still answers; a reply in a different
+thread — however substantive — does not; a second email from the client
+answers nothing. The client wrote more often than anyone remembers and
+most of it did get answered, so check the full correspondence, not the
+famous thread. This list is certified as a whole: only the exact set
+earns it.
