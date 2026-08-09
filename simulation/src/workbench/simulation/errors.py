@@ -33,3 +33,7 @@ class PhaseError(SimulationError):
 
 class SnapshotError(SimulationError):
     """A snapshot could not be taken or restored exactly. Nothing is dropped."""
+
+
+class TimeError(SimulationError):
+    """Simulated time attempted to move backward."""
