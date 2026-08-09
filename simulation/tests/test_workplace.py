@@ -25,9 +25,7 @@ VOCAB = TicketVocabulary(
 
 
 def ann_params():
-    return DANIEL.model_copy(
-        update={"person_id": "per-ann-liu", "name": "Ann Liu"}
-    )
+    return DANIEL.model_copy(update={"person_id": "per-ann-liu", "name": "Ann Liu"})
 
 
 def make_spec(**overrides) -> WorkplaceSpec:
@@ -59,9 +57,7 @@ def make_spec(**overrides) -> WorkplaceSpec:
                 persona=None,
             ),
         ),
-        channels=(
-            ChannelSpec(name="#general", members=("per-ann-liu",)),
-        ),
+        channels=(ChannelSpec(name="#general", members=("per-ann-liu",)),),
         seed_documents=(),
         day_script=(
             ExogenousEmail(
@@ -101,9 +97,7 @@ def test_genesis_validates_and_day_script_is_scheduled() -> None:
 
 
 def test_unknown_channel_member_is_rejected_at_compile() -> None:
-    spec = make_spec(
-        channels=(ChannelSpec(name="#ghost", members=("per-nobody",)),)
-    )
+    spec = make_spec(channels=(ChannelSpec(name="#ghost", members=("per-nobody",)),))
     with pytest.raises(ConfigError) as excinfo:
         compile_workplace(spec, Seed(root=42))
     assert "per-nobody" in str(excinfo.value)

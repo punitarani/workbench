@@ -45,9 +45,7 @@ class ProfessionalActorAct:
         self, blocks: tuple[ContextBlock, ...], spec: ActionSpec
     ) -> EntityAction:
         identity = render_identity(self._params)
-        situation = "\n".join(
-            block.content for block in blocks if not block.debug_only
-        )
+        situation = "\n".join(block.content for block in blocks if not block.debug_only)
         pending = list(self._memory.pending_items())
         facts = "\n".join(self._memory.facts()) or "None yet."
         knowledge = render_knowledge(self._params) or "None."
@@ -80,9 +78,7 @@ class ProfessionalActorAct:
                     thread_ref = (
                         self._memory.resolve_thread_ref(thread_ref) or thread_ref
                     )
-                thread_text = (
-                    render_thread(events, thread_ref) if thread_ref else ""
-                )
+                thread_text = render_thread(events, thread_ref) if thread_ref else ""
                 reply_to = None
                 if choice.action == "reply_email" and thread_ref:
                     messages = email_thread(events, thread_ref)

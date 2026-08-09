@@ -38,9 +38,7 @@ class TimerBook:
     def get_state(self) -> TimerBookState:
         return TimerBookState(
             timers=tuple(
-                sorted(
-                    self._timers, key=lambda t: (t.fires_at, t.entity, t.timer_id)
-                )
+                sorted(self._timers, key=lambda t: (t.fires_at, t.entity, t.timer_id))
             )
         )
 

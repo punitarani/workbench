@@ -341,9 +341,7 @@ async def test_actor_observes_own_ticket_and_document_events() -> None:
         ticket_type="nda-review",
         fields=(),
     )
-    event = Event(
-        seq=900, time=60_000, tag=payload.kind, source="tom", payload=payload
-    )
+    event = Event(seq=900, time=60_000, tag=payload.kind, source="tom", payload=payload)
     observers = await gm.route(event)
     assert "tom" in observers, (
         "the actor must see their own record-type events or they redo them"

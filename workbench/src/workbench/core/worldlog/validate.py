@@ -226,9 +226,7 @@ def _validate_payload(state: _State, event: Event, flag) -> None:
         case CalendarEventScheduledPayload():
             if payload.calendar_event_id in state.calendar_events:
                 flag(seq, "duplicate_id", f"calendar event {payload.calendar_event_id}")
-            for person in _check_people(
-                state, [payload.organizer, *payload.attendees]
-            ):
+            for person in _check_people(state, [payload.organizer, *payload.attendees]):
                 flag(seq, "unknown_person", person)
             state.calendar_events.add(payload.calendar_event_id)
 

@@ -93,8 +93,7 @@ async def test_volume_and_coverage(tmp_path: Path) -> None:
         authored = sum(
             1
             for e in real
-            if getattr(e.payload, "sender", getattr(e.payload, "actor", None))
-            == person
+            if getattr(e.payload, "sender", getattr(e.payload, "actor", None)) == person
         )
         assert authored >= 3, f"{person} authored only {authored} events"
 
@@ -102,9 +101,7 @@ async def test_volume_and_coverage(tmp_path: Path) -> None:
 async def test_storyline_milestones_in_causal_order(tmp_path: Path) -> None:
     events = read_events(await replay(tmp_path, "story"))
     nda_email = next(
-        e
-        for e in events
-        if e.tag == "email.message" and "Vantage" in e.payload.subject
+        e for e in events if e.tag == "email.message" and "Vantage" in e.payload.subject
     )
     ticket = next(
         e for e in events if e.tag == "ticket.created" and e.seq > nda_email.seq

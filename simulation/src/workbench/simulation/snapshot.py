@@ -46,9 +46,7 @@ def save_snapshot(snapshot: SimulationSnapshot, path: Path) -> None:
 
 def load_snapshot(path: Path) -> SimulationSnapshot:
     try:
-        return SimulationSnapshot.model_validate_json(
-            path.read_text(encoding="utf-8")
-        )
+        return SimulationSnapshot.model_validate_json(path.read_text(encoding="utf-8"))
     except ValidationError as error:
         raise SnapshotError(f"snapshot {path} failed validation: {error}") from error
 

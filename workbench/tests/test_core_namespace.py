@@ -13,9 +13,7 @@ def test_core_imports() -> None:
 
 def test_namespace_root_has_no_init() -> None:
     offenders = [
-        path
-        for path in REPO.glob("*/src/workbench/__init__.py")
-        if path.is_file()
+        path for path in REPO.glob("*/src/workbench/__init__.py") if path.is_file()
     ]
     assert offenders == [], (
         f"src/workbench must stay a PEP 420 namespace; delete {offenders}"

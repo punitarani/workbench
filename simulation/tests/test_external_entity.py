@@ -80,7 +80,7 @@ async def test_scripted_transport_exhaustion_raises() -> None:
         await entity.act(spec)
 
 
-ECHO_SERVER = '''
+ECHO_SERVER = """
 import sys, json
 for line in sys.stdin:
     request = json.loads(line)
@@ -88,7 +88,7 @@ for line in sys.stdin:
     response = {"action": {"kind": "free", "text": text}}
     sys.stdout.write(json.dumps(response) + "\\n")
     sys.stdout.flush()
-'''
+"""
 
 
 async def test_stdio_transport_round_trip(tmp_path: Path) -> None:

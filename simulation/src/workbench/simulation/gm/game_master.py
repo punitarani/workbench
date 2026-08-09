@@ -20,6 +20,7 @@ from workbench.core.events import Event
 
 class GameMaster(Protocol):
     state_model: ClassVar[type[BaseModel]]
+
     async def route(self, event: Event) -> tuple[str, ...]:
         """Who observes this event, in delivery order. Pure by convention."""
         ...

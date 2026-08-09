@@ -92,9 +92,7 @@ class ToyGameMaster:
         self._routed_messages = 0
 
     def get_state(self) -> ToyGmState:
-        return ToyGmState(
-            minter=self._minter, routed_messages=self._routed_messages
-        )
+        return ToyGmState(minter=self._minter, routed_messages=self._routed_messages)
 
     def set_state(self, state: ToyGmState) -> None:
         self._minter = state.minter

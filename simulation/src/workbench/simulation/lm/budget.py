@@ -18,9 +18,7 @@ class BudgetedLM:
 
     async def complete(self, request: LMRequest) -> LMResponse:
         if self._calls >= self._max_calls:
-            raise LMBudgetExceededError(
-                f"budget of {self._max_calls} calls exhausted"
-            )
+            raise LMBudgetExceededError(f"budget of {self._max_calls} calls exhausted")
         self._calls += 1
         response = await self._inner.complete(request)
         self.usage = self.usage + response.usage

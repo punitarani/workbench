@@ -178,9 +178,7 @@ class InterruptEngine:
         )
 
         decision = await self._gm.next_acting(event)
-        acting = tuple(
-            name for name in decision.entities if name in self._entities
-        )
+        acting = tuple(name for name in decision.entities if name in self._entities)
         specs: list[ActionSpec] = []
         for name in acting:
             specs.append(await self._gm.action_spec_for(name, event))
@@ -223,10 +221,7 @@ class InterruptEngine:
                 return self._result(steps, "max_steps")
             if len(self._queue) == 0:
                 return self._result(steps, "quiescent")
-            if (
-                stop.end_time is not None
-                and self._queue.peek().time > stop.end_time
-            ):
+            if stop.end_time is not None and self._queue.peek().time > stop.end_time:
                 return self._result(steps, "end_time")
             result = await self.step()
             steps += 1
@@ -238,6 +233,4 @@ class InterruptEngine:
         steps: int,
         reason: Literal["terminated", "quiescent", "max_steps", "end_time"],
     ) -> RunResult:
-        return RunResult(
-            steps=steps, reason=reason, final_time=int(self._time.now())
-        )
+        return RunResult(steps=steps, reason=reason, final_time=int(self._time.now()))

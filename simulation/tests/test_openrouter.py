@@ -118,9 +118,7 @@ async def test_null_content_raises_response_error() -> None:
         return httpx.Response(
             200,
             json={
-                "choices": [
-                    {"message": {"content": None}, "finish_reason": "length"}
-                ],
+                "choices": [{"message": {"content": None}, "finish_reason": "length"}],
                 "usage": {"prompt_tokens": 1, "completion_tokens": 1},
             },
         )

@@ -27,9 +27,7 @@ def test_cast_and_channels() -> None:
 
 
 def test_daniel_holds_the_unwritten_standard() -> None:
-    daniel = next(
-        p for p in WORKPLACE.people if p.person_id == "per-daniel-reyes"
-    )
+    daniel = next(p for p in WORKPLACE.people if p.person_id == "per-daniel-reyes")
     topics = {item.topic: item for item in daniel.persona.knowledge}
     standard = topics["vendor NDA standard"]
     assert standard.share_policy == "if_asked"
@@ -41,9 +39,7 @@ def test_unwritten_standard_litmus_precondition() -> None:
     """The standard must appear in NO seed document and NO day-script body."""
     haystacks = [d.content for d in WORKPLACE.seed_documents]
     haystacks += [a.body for a in WORKPLACE.day_script]
-    haystacks += [
-        a.attachment.content for a in WORKPLACE.day_script if a.attachment
-    ]
+    haystacks += [a.attachment.content for a in WORKPLACE.day_script if a.attachment]
     for phrase in (*UNWRITTEN_STANDARD_PHRASES, *STANDARD_ARTIFACT_MARKERS):
         for haystack in haystacks:
             assert phrase.casefold() not in haystack.casefold(), (
@@ -52,13 +48,10 @@ def test_unwritten_standard_litmus_precondition() -> None:
 
 
 def test_playbook_has_the_deliberate_gap() -> None:
-    playbook = next(
-        d for d in WORKPLACE.seed_documents if "playbook" in d.path
-    )
+    playbook = next(d for d in WORKPLACE.seed_documents if "playbook" in d.path)
     assert "customer" in playbook.content.casefold()
     assert "vendor" not in playbook.content.casefold(), (
-        "the playbook must not cover vendor NDAs; that knowledge lives "
-        "only with Daniel"
+        "the playbook must not cover vendor NDAs; that knowledge lives only with Daniel"
     )
 
 

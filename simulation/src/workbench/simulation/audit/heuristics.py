@@ -80,9 +80,10 @@ def unwritten_standard_litmus(
                 continue
         if statement_seq is None:
             payload = event.payload
-            if isinstance(
-                payload, DocumentCreatedPayload | DocumentRevisedPayload
-            ) and needle in payload.content.casefold():
+            if (
+                isinstance(payload, DocumentCreatedPayload | DocumentRevisedPayload)
+                and needle in payload.content.casefold()
+            ):
                 # Appeared in an artifact before anyone said it: leaked.
                 return LitmusResult(
                     phrase=phrase,
@@ -93,9 +94,10 @@ def unwritten_standard_litmus(
                 )
             continue
         payload = event.payload
-        in_artifact = isinstance(
-            payload, DocumentCreatedPayload | DocumentRevisedPayload
-        ) and needle in payload.content.casefold()
+        in_artifact = (
+            isinstance(payload, DocumentCreatedPayload | DocumentRevisedPayload)
+            and needle in payload.content.casefold()
+        )
         body = _body_of(event)
         in_later_message = (
             body is not None
@@ -124,9 +126,7 @@ _STOP_WORDS = frozenset(
 def _meaningful_tokens(text: str) -> set[str]:
     return {
         token
-        for token in "".join(
-            c.lower() if c.isalnum() else " " for c in text
-        ).split()
+        for token in "".join(c.lower() if c.isalnum() else " " for c in text).split()
         if len(token) > 2 and token not in _STOP_WORDS
     }
 
@@ -141,12 +141,8 @@ def replies_address_their_threads(events: Sequence[Event]) -> tuple[AuditFinding
         if payload.in_reply_to is not None:
             parent = by_message_id.get(payload.in_reply_to)
             if parent is not None:
-                parent_tokens = _meaningful_tokens(
-                    parent.subject + " " + parent.body
-                )
-                reply_tokens = _meaningful_tokens(
-                    payload.subject + " " + payload.body
-                )
+                parent_tokens = _meaningful_tokens(parent.subject + " " + parent.body)
+                reply_tokens = _meaningful_tokens(payload.subject + " " + payload.body)
                 if not parent_tokens & reply_tokens:
                     findings.append(
                         AuditFinding(

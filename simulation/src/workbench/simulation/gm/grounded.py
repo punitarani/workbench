@@ -135,9 +135,7 @@ class GroundedGm:
             # see their own side of a thread. Observation is not a turn —
             # next_acting never grants one to the sender.
             case EmailMessagePayload():
-                return self._entities_for(
-                    (payload.sender, *payload.to, *payload.cc)
-                )
+                return self._entities_for((payload.sender, *payload.to, *payload.cc))
             case ChatMessagePayload():
                 members = self._world.conversations.get(payload.conversation_id, ())
                 return self._entities_for((payload.sender, *members))
@@ -240,9 +238,7 @@ class GroundedGm:
 
     def _extract_intent(self, action: EntityAction) -> ActionIntent:
         if not isinstance(action, IntentAction):
-            raise IntentRejection(
-                f"expected a typed intent, got {action.kind} action"
-            )
+            raise IntentRejection(f"expected a typed intent, got {action.kind} action")
         if isinstance(action.intent, FreeformIntent):
             raise IntentRejection(
                 f"freeform intents are not grounded yet: {action.intent.text[:80]}"
@@ -336,19 +332,13 @@ class GroundedGm:
     ) -> tuple[EventDraft, ...]:
         conversation_id = self._world.resolve_conversation(intent.conversation_ref)
         if conversation_id is None:
-            raise IntentRejection(
-                f"unknown conversation {intent.conversation_ref!r}"
-            )
+            raise IntentRejection(f"unknown conversation {intent.conversation_ref!r}")
         members = self._world.conversations[conversation_id]
         if sender not in members:
-            raise IntentRejection(
-                f"{sender} is not a member of {conversation_id}"
-            )
+            raise IntentRejection(f"{sender} is not a member of {conversation_id}")
         if intent.reply_to_ref is not None:
             if intent.reply_to_ref not in self._world.chat_messages:
-                raise IntentRejection(
-                    f"unknown chat message {intent.reply_to_ref!r}"
-                )
+                raise IntentRejection(f"unknown chat message {intent.reply_to_ref!r}")
         payload = ChatMessagePayload(
             kind="chat.message",
             chat_message_id=self._minter.mint("chm"),

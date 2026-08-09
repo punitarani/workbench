@@ -79,6 +79,4 @@ def render_conversation(events: Iterable[Event], conversation_id: str) -> str:
     events = list(events)
     names = person_names(events)
     messages = conversation(events, conversation_id)
-    return "\n".join(
-        f"{names.get(m.sender, m.sender)}: {m.body}" for m in messages
-    )
+    return "\n".join(f"{names.get(m.sender, m.sender)}: {m.body}" for m in messages)
