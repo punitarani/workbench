@@ -28,7 +28,6 @@ shared meta table at call time) plus the message's simulated time in
 seconds.
 """
 
-import os
 import re
 import sqlite3
 from dataclasses import dataclass
@@ -43,6 +42,7 @@ from workbench.tools.framework import (
     Person,
     UnknownRefError,
     read_epoch,
+    seat,
 )
 from workbench.tools.gmail.tables import (
     ATTACHMENTS,
@@ -137,23 +137,19 @@ def _load(
     return mailbox, people, epoch
 
 
-def _seat() -> str | None:
-    return os.environ.get("WORKBENCH_SEAT")
-
-
-def _visible(mail: _Mail, seat: str | None) -> bool:
-    if seat is None:
+def _visible(mail: _Mail, person: str | None) -> bool:
+    if person is None:
         return True
-    return seat == mail.message.sender or seat in mail.to or seat in mail.cc
+    return person == mail.message.sender or person in mail.to or person in mail.cc
 
 
-def _labels(mail: _Mail, seat: str | None) -> list[str]:
-    if seat is None:
+def _labels(mail: _Mail, person: str | None) -> list[str]:
+    if person is None:
         return []
     labels = []
-    if seat in mail.to or seat in mail.cc:
+    if person in mail.to or person in mail.cc:
         labels.append("INBOX")
-    if seat == mail.message.sender:
+    if person == mail.message.sender:
         labels.append("SENT")
     return labels
 
@@ -175,7 +171,7 @@ def _matches(
     term: _Term,
     mail: _Mail,
     people: dict[str, Person],
-    seat: str | None,
+    person: str | None,
     epoch: datetime,
 ) -> bool:
     message = mail.message
@@ -201,7 +197,7 @@ def _matches(
     elif term.op == "subject":
         hit = needle in message.subject.lower()
     elif term.op == "label":
-        hit = term.value.upper() in _labels(mail, seat)
+        hit = term.value.upper() in _labels(mail, person)
     elif term.op == "has":
         hit = bool(mail.attachments)
     else:
@@ -215,7 +211,7 @@ def _matches(
 
 
 def _message_json(
-    mail: _Mail, people: dict[str, Person], seat: str | None, epoch: datetime
+    mail: _Mail, people: dict[str, Person], person: str | None, epoch: datetime
 ) -> dict:
     message = mail.message
     return {
@@ -232,7 +228,7 @@ def _message_json(
             {"id": a.document_id, "mimeType": a.media_type, "filename": a.filename}
             for a in mail.attachments
         ],
-        "labelIds": _labels(mail, seat),
+        "labelIds": _labels(mail, person),
     }
 
 
@@ -242,20 +238,20 @@ def register(server: MCPServer, db_path: Path) -> None:
         query: str = "", pageSize: int = 20, pageToken: str | None = None
     ) -> dict:
         """Search mail with Gmail query syntax; returns a page of threads."""
-        seat = _seat()
+        person = seat()
         terms = _parse_query(query)
         with connect_readonly(db_path) as connection:
             mailbox, people, epoch = _load(connection)
         threads: dict[str, list[_Mail]] = {}
         for mail in mailbox:
-            if _visible(mail, seat):
+            if _visible(mail, person):
                 threads.setdefault(mail.message.thread_id, []).append(mail)
         matched = sorted(
             (
                 (thread_id, mails)
                 for thread_id, mails in threads.items()
                 if any(
-                    all(_matches(term, mail, people, seat, epoch) for term in terms)
+                    all(_matches(term, mail, people, person, epoch) for term in terms)
                     for mail in mails
                 )
             ),
@@ -268,7 +264,9 @@ def register(server: MCPServer, db_path: Path) -> None:
             "threads": [
                 {
                     "id": thread_id,
-                    "messages": [_message_json(m, people, seat, epoch) for m in mails],
+                    "messages": [
+                        _message_json(m, people, person, epoch) for m in mails
+                    ],
                 }
                 for thread_id, mails in matched[offset : offset + size]
             ],
@@ -279,30 +277,30 @@ def register(server: MCPServer, db_path: Path) -> None:
     @server.tool()
     def get_thread(threadId: str) -> dict:
         """Read one mail thread; messages arrive oldest first."""
-        seat = _seat()
+        person = seat()
         with connect_readonly(db_path) as connection:
             mailbox, people, epoch = _load(connection)
         mails = [
             mail
             for mail in mailbox
-            if mail.message.thread_id == threadId and _visible(mail, seat)
+            if mail.message.thread_id == threadId and _visible(mail, person)
         ]
         if not mails:
             raise UnknownRefError(f"no thread {threadId}")
         return {
             "id": threadId,
-            "messages": [_message_json(m, people, seat, epoch) for m in mails],
+            "messages": [_message_json(m, people, person, epoch) for m in mails],
         }
 
     @server.tool()
     def get_message(messageId: str) -> dict:
         """Read one mail message by id."""
-        seat = _seat()
+        person = seat()
         with connect_readonly(db_path) as connection:
             mailbox, people, epoch = _load(connection)
         for mail in mailbox:
-            if mail.message.message_id == messageId and _visible(mail, seat):
-                return _message_json(mail, people, seat, epoch)
+            if mail.message.message_id == messageId and _visible(mail, person):
+                return _message_json(mail, people, person, epoch)
         raise UnknownRefError(f"no message {messageId}")
 
     @server.tool()

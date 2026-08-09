@@ -16,6 +16,12 @@ Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Package-specific:
   refuses `sim.*` tags outright. Every agent-facing tool keeps a test
   asserting it leaks no offstage markers.
 * **Unknown ids raise `UnknownRefError`** carrying the id — never a guess.
+* **Never invent an identity or a currency.** A tool that needs the seat
+  reads it through `framework.seat()` (or `require_seat`, which raises
+  `SeatUnsetError` naming the fix) rather than defaulting to some person.
+  A result that reflects superseded state says so in the payload — see
+  iManage `search`'s `matched_versions`/`in_head` — instead of presenting
+  it as current.
 
 ## The plugin contract
 
@@ -34,9 +40,10 @@ A tool system is a subpackage with four files, assembled into a
 
 Adding a system means adding that subpackage and one line to
 `registry.REGISTRY`. Nothing else changes: projection, coherence,
-`mcp.json`, and `serve` pick it up from the registry. Declare
-`person.record` in `handled_tags` — every database carries the shared
-people table and `directory` tool.
+`mcp.json`, and `serve` pick it up from the registry — tests that name the
+databases should derive them from `REGISTRY` rather than freeze a list.
+Declare `person.record` in `handled_tags` — every database carries the
+shared people table and `directory` tool.
 
 ## Data layer
 

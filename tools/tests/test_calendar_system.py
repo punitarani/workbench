@@ -133,8 +133,8 @@ async def call(server, name: str, arguments: dict | None = None) -> dict:
 def test_projection_folds_updates_and_responses(db_path: Path) -> None:
     with sqlite3.connect(db_path) as connection:
         events = connection.execute(
-            "SELECT calendar_event_id, organizer, summary, start, end, status "
-            "FROM calendar_events ORDER BY calendar_event_id"
+            "SELECT calendar_event_id, organizer, summary, start_time, end_time, "
+            "status FROM calendar_events ORDER BY calendar_event_id"
         ).fetchall()
         attendees = connection.execute(
             "SELECT calendar_event_id, person_id, response_status FROM attendees "
@@ -149,7 +149,14 @@ def test_projection_folds_updates_and_responses(db_path: Path) -> None:
             39600,
             "vacated - continued per clerk notice",
         ),
-        (CLIENT_CALL, "per-meredith-chao", "Acme client call", 122400, 126000, "confirmed"),
+        (
+            CLIENT_CALL,
+            "per-meredith-chao",
+            "Acme client call",
+            122400,
+            126000,
+            "confirmed",
+        ),
     ]
     assert attendees == [
         (KICKOFF, "per-daniel-reyes", "needsAction"),
@@ -191,7 +198,11 @@ async def test_list_events_google_shape(server) -> None:
     assert kickoff["end"] == {"dateTime": "2026-03-12T11:00:00-07:00"}
     assert kickoff["organizer"] == {"email": DANIEL, "displayName": "Daniel Reyes"}
     assert kickoff["attendees"] == [
-        {"email": DANIEL, "displayName": "Daniel Reyes", "responseStatus": "needsAction"},
+        {
+            "email": DANIEL,
+            "displayName": "Daniel Reyes",
+            "responseStatus": "needsAction",
+        },
         {
             "email": MEREDITH,
             "displayName": "Meredith Chao",
@@ -206,9 +217,13 @@ async def test_list_events_google_shape(server) -> None:
 
 
 async def test_list_events_time_window_and_full_text(server) -> None:
-    later = await call(server, "list_events", {"startTime": "2026-03-13T00:00:00-07:00"})
+    later = await call(
+        server, "list_events", {"startTime": "2026-03-13T00:00:00-07:00"}
+    )
     assert [e["id"] for e in later["events"]] == [CLIENT_CALL]
-    earlier = await call(server, "list_events", {"endTime": "2026-03-13T00:00:00-07:00"})
+    earlier = await call(
+        server, "list_events", {"endTime": "2026-03-13T00:00:00-07:00"}
+    )
     assert [e["id"] for e in earlier["events"]] == [KICKOFF]
 
     by_summary = await call(server, "list_events", {"fullText": "acme"})

@@ -363,7 +363,9 @@ async def test_matters_expose_the_substantive_description(server) -> None:
     detail = (await call(server, "get_matter", {"id": 2}))["data"]
     assert detail["description"] == "Negotiate the master carrier agreement."
 
-    by_detail = (await call(server, "list_matters", {"query": "master carrier"}))["data"]
+    by_detail = (await call(server, "list_matters", {"query": "master carrier"}))[
+        "data"
+    ]
     assert [m["number"] for m in by_detail] == [2]
     by_title = (await call(server, "list_matters", {"query": "Review NDA"}))["data"]
     assert [m["number"] for m in by_title] == [1]
@@ -381,7 +383,8 @@ CLIO_TOOL_ARGUMENTS = {
 }
 
 
-async def test_data_envelope_everywhere(server) -> None:
+async def test_data_envelope_everywhere(server, monkeypatch) -> None:
+    monkeypatch.setenv("WORKBENCH_SEAT", "per-meredith-chao")
     for name, arguments in CLIO_TOOL_ARGUMENTS.items():
         envelope = await call(server, name, arguments)
         assert "data" in envelope, name
@@ -389,7 +392,8 @@ async def test_data_envelope_everywhere(server) -> None:
             assert set(envelope["meta"]) == {"paging"}, name
 
 
-async def test_no_write_verbs_and_no_offstage_leakage(server) -> None:
+async def test_no_write_verbs_and_no_offstage_leakage(server, monkeypatch) -> None:
+    monkeypatch.setenv("WORKBENCH_SEAT", "per-meredith-chao")
     tools = await server.list_tools()
     assert {t.name for t in tools} >= set(CLIO_TOOL_ARGUMENTS)
     for tool in tools:

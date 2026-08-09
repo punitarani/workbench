@@ -410,7 +410,11 @@ async def test_search_public_returns_its_pagination_cursor(server: MCPServer) ->
     rest = await call(
         server,
         "slack_search_public",
-        {"query": "Acme", "limit": 1, "cursor": first["response_metadata"]["next_cursor"]},
+        {
+            "query": "Acme",
+            "limit": 1,
+            "cursor": first["response_metadata"]["next_cursor"],
+        },
     )
     assert [m["ts"] for m in rest["messages"]["matches"]] == ["900.000002"]
     assert rest["response_metadata"] == {"next_cursor": ""}
@@ -480,10 +484,8 @@ async def test_seat_scopes_conversations_to_membership(
     monkeypatch.setenv("WORKBENCH_SEAT", "per-meredith-chao")
     hers = await call(server, "slack_search_public_and_private", {"query": "Acme"})
     assert hers["messages"]["total"] == 2, "meredith never sees the jess/tom dm"
-    assert (await call(server, "slack_search_channels", {"query": ""}))["channels"] and [
-        c["id"]
-        for c in (await call(server, "slack_search_channels", {"query": ""}))["channels"]
-    ] == [C_LEGAL, C_DEALS]
+    her_channels = await call(server, "slack_search_channels", {"query": ""})
+    assert [c["id"] for c in her_channels["channels"]] == [C_LEGAL, C_DEALS]
     with pytest.raises(Exception, match=C_DM):
         await server.call_tool("slack_list_channel_members", {"channel_id": C_DM})
 

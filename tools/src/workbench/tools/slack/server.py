@@ -409,9 +409,7 @@ def register(server: MCPServer, db_path: Path) -> None:
         and dms alike — with the same query grammar as slack_search_public:
         "phrases", in:, from:, before:, after:. At most 20 matches per call
         (page with the response's next_cursor)."""
-        return _search_messages(
-            db_path, query, limit, cursor, kinds=("channel", "dm")
-        )
+        return _search_messages(db_path, query, limit, cursor, kinds=("channel", "dm"))
 
     @server.tool()
     def slack_search_users(query: str, limit: int = 100) -> dict:

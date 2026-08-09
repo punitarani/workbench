@@ -12,7 +12,15 @@ from mcp.server import MCPServer
 
 from workbench.core.errors import WorkbenchError
 from workbench.core.events import Event
-from workbench.tools import clio, coherence, framework, gmail, imanage, slack
+from workbench.tools import (
+    calendar,
+    clio,
+    coherence,
+    framework,
+    gmail,
+    imanage,
+    slack,
+)
 from workbench.tools.framework import ToolSystem
 
 REGISTRY: tuple[ToolSystem, ...] = (
@@ -20,6 +28,7 @@ REGISTRY: tuple[ToolSystem, ...] = (
     slack.SYSTEM,
     imanage.SYSTEM,
     clio.SYSTEM,
+    calendar.SYSTEM,
 )
 
 

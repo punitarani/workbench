@@ -8,7 +8,6 @@ numbered in creation order, contacts are organizations (by org id) then
 external people (by person id), users are internal people (by person id).
 """
 
-import os
 import sqlite3
 from datetime import timedelta
 from pathlib import Path
@@ -26,9 +25,17 @@ from workbench.tools.clio.tables import (
     clio_status,
 )
 from workbench.tools.db import Query, connect_readonly
-from workbench.tools.framework import PEOPLE_TABLE, Person, UnknownRefError, read_epoch
+from workbench.tools.framework import (
+    PEOPLE_TABLE,
+    Person,
+    UnknownRefError,
+    read_epoch,
+    require_seat,
+)
 
-ATTORNEY_TITLE_WORDS = ("counsel", "attorney", "partner")
+# Clio's licence split: everyone who practises law holds an Attorney seat.
+# "associate" is as much a practising title as "partner" or "counsel".
+ATTORNEY_TITLE_WORDS = ("counsel", "attorney", "partner", "associate")
 
 
 def _iso_date(directory: _Directory, time: int) -> str:
@@ -58,6 +65,13 @@ class MatterRecord(BaseModel):
     etag: str
     number: int
     display_number: str
+    # Clio v4 gives a matter one free-text field for what it is about —
+    # `description` — and identifies it by `display_number`. The workplace
+    # record carries both a one-line title and a substantive description, so
+    # `description` takes the substantive text (Clio's own meaning for the
+    # field) and the one-liner stays reachable as `title`, which Clio has no
+    # field of its own for.
+    title: str
     description: str
     status: str
     open_date: str
@@ -183,7 +197,8 @@ def _matter_record(
         etag=f'"m{matter.matter_number}"',
         number=matter.matter_number,
         display_number=matter.display_number,
-        description=matter.description,
+        title=matter.description,
+        description=matter.detail,
         status=matter.status,
         open_date=_iso_date(directory, matter.open_time),
         close_date=None if close_time is None else _iso_date(directory, close_time),
@@ -234,8 +249,8 @@ def register(server: MCPServer, db_path: Path) -> None:
         limit: int = 200,
     ) -> dict:
         """List matters; filter by status (open/closed/pending), a wildcard
-        query over display number, description, and client name, or a client
-        contact id."""
+        query over display number, title, description, and client name, or a
+        client contact id."""
         with connect_readonly(db_path) as connection:
             directory = _Directory(connection)
             closes = _close_times(connection)
@@ -251,6 +266,7 @@ def register(server: MCPServer, db_path: Path) -> None:
                 r
                 for r in records
                 if needle in r.display_number.lower()
+                or needle in r.title.lower()
                 or needle in r.description.lower()
                 or (r.client is not None and needle in r.client.name.lower())
             ]
@@ -435,14 +451,12 @@ def register(server: MCPServer, db_path: Path) -> None:
 
     @server.tool()
     def who_am_i() -> dict:
-        """Identify the Clio user for the active seat."""
+        """Identify the Clio user for the active seat. Errors when this
+        server runs without one: an unseated server has no identity, and a
+        guessed one silently misattributes every "my matters" answer."""
+        seat = require_seat("who_am_i")
         with connect_readonly(db_path) as connection:
             directory = _Directory(connection)
-        seat = os.environ.get("WORKBENCH_SEAT")
-        if seat is None:
-            record = _user_record(directory, directory.users[0]).model_dump()
-            record["seat_unset"] = True
-            return {"data": record}
         person = directory.people.get(seat)
         if person is None or person.person_id not in directory.user_ids:
             raise UnknownRefError(f"no user for seat {seat}")

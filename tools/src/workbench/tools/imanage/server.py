@@ -20,6 +20,7 @@ answers with the seat rather than the whole staff list.
 
 import re
 import sqlite3
+from collections.abc import Sequence
 from datetime import UTC, timedelta
 from pathlib import Path
 
@@ -51,16 +52,22 @@ _WORKSPACES = Query(
     "GROUP BY workspace ORDER BY first_number",
 )
 
-class _VersionHit(BaseModel):
+
+class _DocumentRef(BaseModel):
     document_id: str
+
+
+class _VersionHit(_DocumentRef):
     version: int
 
 
+# Metadata and version text are searched separately: a name or path
+# describes the document as it stands, a version body describes only that
+# version, and a hit has to say which of the two it was.
 _SEARCH_METADATA = Query(
-    DOCUMENTS.model,
-    "SELECT * FROM documents "
-    "WHERE instr(lower(name), ?) > 0 OR instr(lower(path), ?) > 0 "
-    "ORDER BY document_number",
+    _DocumentRef,
+    "SELECT document_id FROM documents "
+    "WHERE instr(lower(name), ?) > 0 OR instr(lower(path), ?) > 0",
 )
 
 _SEARCH_VERSIONS = Query(
@@ -134,7 +141,13 @@ def _person_name(connection: sqlite3.Connection, person_id: str) -> str:
     return people[0].name if people else person_id
 
 
-def _document_hit(document: BaseModel) -> dict:
+def _document_hit(
+    document: BaseModel, matched_versions: Sequence[int] = (), *, in_head: bool = True
+) -> dict:
+    """One search result. ``id`` and ``version`` name the head, the document
+    as it stands today; ``matched_versions`` names where the query actually
+    hit, so a match on superseded text cannot pass for a current one."""
+
     dumped = document.model_dump()
     return {
         "id": f"{LIBRARY}!{dumped['document_number']}.{dumped['head_version']}",
@@ -144,7 +157,31 @@ def _document_hit(document: BaseModel) -> dict:
         "wstype": "document",
         "workspace_name": dumped["workspace"],
         "path": dumped["path"],
+        "matched_versions": list(matched_versions),
+        "in_head": in_head,
     }
+
+
+def _document_hits(connection: sqlite3.Connection, needle: str) -> list[dict]:
+    versions: dict[str, list[int]] = {}
+    for hit in _SEARCH_VERSIONS.run(connection, needle, needle):
+        versions.setdefault(hit.document_id, []).append(hit.version)
+    metadata = {
+        row.document_id for row in _SEARCH_METADATA.run(connection, needle, needle)
+    }
+    documents = DOCUMENTS.select(connection, order_by="document_number")
+    hits = []
+    for document in documents:
+        dumped = document.model_dump()
+        document_id = dumped["document_id"]
+        matched = versions.get(document_id, [])
+        if not matched and document_id not in metadata:
+            continue
+        # A name or path match describes the document as it stands, so it is
+        # current by construction even when no version body matched.
+        in_head = document_id in metadata or dumped["head_version"] in matched
+        hits.append(_document_hit(document, matched, in_head=in_head))
+    return hits
 
 
 def _profile(connection: sqlite3.Connection, document: BaseModel, row: Version) -> dict:
@@ -187,7 +224,9 @@ def register(server: MCPServer, db_path: Path) -> None:
     def search(query: str) -> dict:
         """Search workspaces and documents by name, path, comment, or
         content; a purely numeric query (or "#N") looks up a document
-        number."""
+        number. Content search spans every version, so each document hit
+        carries matched_versions and in_head: a hit whose in_head is false
+        matched text the head version no longer contains."""
         with connect_readonly(db_path) as connection:
             number = _number_query(query)
             if number is not None:
@@ -201,12 +240,7 @@ def register(server: MCPServer, db_path: Path) -> None:
                 for workspace in _workspaces(connection)
                 if needle in workspace["name"].lower()
             ]
-            results += [
-                _document_hit(document)
-                for document in _SEARCH_DOCS.run(
-                    connection, needle, needle, needle, needle
-                )
-            ]
+            results += _document_hits(connection, needle)
             return {"results": results}
 
     @server.tool()
@@ -288,10 +322,15 @@ def register(server: MCPServer, db_path: Path) -> None:
 
     @server.tool()
     def get_user_information(query: str = "") -> dict:
-        """Look up users by name or email; an empty query lists everyone."""
+        """Look up users by name or email. An empty query answers with the
+        signed-in user, or with everyone when this server has no seat."""
         with connect_readonly(db_path) as connection:
             people = PEOPLE_TABLE.select(connection, order_by="person_id")
         needle = query.lower()
+        if not needle and (person_id := seat()) is not None:
+            people = [person for person in people if person.person_id == person_id]
+            if not people:
+                raise UnknownRefError(f"no user for seat {person_id}")
         return {
             "data": [
                 {

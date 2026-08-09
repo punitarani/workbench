@@ -11,7 +11,9 @@ from worldlog_fixtures import coherent_events
 from workbench.core.errors import WorldLogIntegrityError
 from workbench.core.worldlog import WorldLogWriter
 from workbench.environment import materialize
-from workbench.tools import check_coherence
+from workbench.tools import REGISTRY, check_coherence
+
+SYSTEMS = {system.name for system in REGISTRY}
 
 
 def write_log(tmp_path: Path) -> Path:
@@ -27,22 +29,20 @@ def test_materialize_produces_bundle(tmp_path: Path) -> None:
     out = tmp_path / "bundle"
     result = materialize(log_path, out)
 
-    assert sorted(p.name for p in (out / "state").iterdir()) == [
-        "clio.db",
-        "gmail.db",
-        "imanage.db",
-        "slack.db",
-    ]
+    # The registry is the single source of truth for what a bundle carries.
+    assert sorted(p.name for p in (out / "state").iterdir()) == sorted(
+        f"{name}.db" for name in SYSTEMS
+    )
     assert check_coherence(out / "state") == ()
 
     config = json.loads((out / "mcp.json").read_text())
     servers = config["mcpServers"]
-    assert set(servers) == {"gmail", "slack", "imanage", "clio"}
+    assert set(servers) == SYSTEMS
     for name, spec in servers.items():
         assert spec["args"][3:5] == ["--db", f"state/{name}.db"]
 
     environment = tomllib.loads((out / "environment.toml").read_text())
-    assert set(environment["tools"]["compose"]) == {"gmail", "slack", "imanage", "clio"}
+    assert set(environment["tools"]["compose"]) == SYSTEMS
     assert environment["agent"]["workspace"] == "workspace"
     assert result.event_count == len(coherent_events())
     assert result.bundle == out
