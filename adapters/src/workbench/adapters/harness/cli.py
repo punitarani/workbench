@@ -46,6 +46,13 @@ async def _run(args: argparse.Namespace, api_key: str) -> None:
                 )
                 reward = grade_episode(task_dir, run_dir)
                 scores.append(float(reward["score"]))
+                if args.keep_transcripts is not None:
+                    args.keep_transcripts.mkdir(parents=True, exist_ok=True)
+                    safe_model = args.model.replace("/", "_")
+                    (
+                        args.keep_transcripts
+                        / f"{task_dir.name}-{safe_model}-a{attempt}.json"
+                    ).write_text(episode.model_dump_json(indent=2), encoding="utf-8")
                 print(
                     f"attempt {attempt}: score={reward['score']:.4f} "
                     f"stop={episode.stop_reason} turns={episode.turns} "
@@ -73,6 +80,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--model", required=True, help="OpenRouter model id")
     parser.add_argument("--attempts", type=int, default=3)
     parser.add_argument("--max-turns", type=int, default=30)
+    parser.add_argument(
+        "--keep-transcripts",
+        type=Path,
+        default=None,
+        help="persist each attempt's transcript JSON into this directory",
+    )
     parser.add_argument("--max-tokens", type=int, default=2000)
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument(
