@@ -1,20 +1,17 @@
-# Working in workbench (core, tools, environment)
+# Working in workbench (core, environment)
 
 Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Package-specific:
 
-* **Tools and environment never import simulation or workplaces.** They see
-  the world only through core events; the world log is their sole input.
-* **Tool servers are read-only in this phase** and open databases in SQLite
-  read-only URI mode. Write tools arrive with the task phase, designed
-  against the externalized seat. Only tags in a projector's `handled_tags`
-  reach its database, and no projector handles `sim.*`.
+* **Environment never imports simulation or workplaces.** It sees the world
+  only through core events; the world log is its sole input. The tool
+  surface it assembles lives in the [`tools/`](../tools/) member.
 * **Materialization gates on validation**: an incoherent log never becomes
   an environment.
 
 Core-specific:
 
-* **Everything here is a contract.** Simulation, workplaces, and (later)
-  tool servers all deserialize what core serializes. A change to any model's
+* **Everything here is a contract.** Simulation, workplaces, and the tool
+  servers all deserialize what core serializes. A change to any model's
   fields or serialization invalidates recorded world logs and cassettes —
   the golden-log test will fail; regenerate deliberately and say so in the
   commit message.

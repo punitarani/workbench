@@ -32,14 +32,15 @@ flowchart LR
 
 **Offstage — `simulation/`, `workplaces/`.** `simulation/` is the domain-neutral engine — a clean-room, typed, async, deterministic rebuild of the Concordia generative agent-based modeling pattern: composed entities, a grounded game master that turns intents into typed world events, an interrupt-driven engine over simulated time, and a record/replay LM layer. Persona reasoning runs as DSPy programs (GEPA-optimizable). `workplaces/` holds concrete definitions — a legal department today; an accounting firm next — expressed with the engine's primitives. See [`docs/simulation-engine.md`](docs/simulation-engine.md).
 
-**Onstage — `workbench/`.** The environment the agent inhabits: the container image, the in-container runtime, and the tool surface. Simulation output reaches the agent in exactly two forms — workspace data materialized before the run, and multi-agent modules served at runtime as tools. Neither exposes personas, hidden state, or ground truth.
+**Onstage — `workbench/`, `tools/`.** The environment the agent inhabits: core contracts and the container image in `workbench/`, the agent-facing tool systems (projections and MCP servers) in `tools/`. Simulation output reaches the agent in exactly two forms — workspace data materialized before the run, and multi-agent modules served at runtime as tools. Neither exposes personas, hidden state, or ground truth.
 
 **Harness — `datasets/`, `adapters/`.** [Harbor](https://www.harborframework.com/docs) is the native harness, agent runner, and verifier. Tasks live in `datasets/<dataset>/tasks/<task>/` in Harbor's task format and score with [Reward Kit](https://www.harborframework.com/docs/rewardkit). `adapters/` bridges the same environment to other frameworks such as Prime and Tinker.
 
 ## Repository layout
 
 ```
-workbench/      the environment: container image, in-container runtime, agent-facing tools
+workbench/      the environment: core contracts, container image, workspace assembly
+tools/          agent-facing tool systems: projections and MCP servers
 simulation/     domain-neutral simulation engine
 workplaces/     concrete workplace definitions
 adapters/       bridges to non-Harbor frameworks
@@ -51,7 +52,8 @@ The Python packages form one [uv](https://docs.astral.sh/uv/) workspace sharing 
 
 | Directory | Distribution | Imports as |
 |---|---|---|
-| `workbench/` | `workbench` | `workbench.core`, `workbench.tools`, `workbench.environment` |
+| `workbench/` | `workbench` | `workbench.core`, `workbench.environment` |
+| `tools/` | `workbench-tools` | `workbench.tools` |
 | `simulation/` | `workbench-simulation` | `workbench.simulation` |
 | `workplaces/` | `workbench-workplaces` | `workbench.workplaces.<name>` |
 | `adapters/` | — | deferred until a concrete non-MCP consumer exists |
