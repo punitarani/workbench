@@ -51,5 +51,10 @@ class ScriptExhaustedError(TransportError):
     """A scripted transport ran out of recorded responses. Never silent."""
 
 
+class SeatProtocolError(TransportError):
+    """An interactive seat was driven out of order (act before turn, double
+    submit, or a submit after the day ended)."""
+
+
 class ConfigError(SimulationError):
     """A workplace or scenario configuration is invalid. Names the offender."""

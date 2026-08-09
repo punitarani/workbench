@@ -1,5 +1,6 @@
 """Assemble and run a compiled workplace end to end."""
 
+from collections.abc import Mapping
 from pathlib import Path
 
 from workbench.core.seed import Seed
@@ -11,7 +12,10 @@ from workbench.simulation.engine.engine import (
     StopCondition,
 )
 from workbench.simulation.engine.queue import EventQueue
-from workbench.simulation.entity.entity import ComposedEntity
+from workbench.simulation.entity.entity import ComposedEntity, Entity
+from workbench.simulation.errors import ConfigError
+from workbench.simulation.external.entity import ExternalEntity
+from workbench.simulation.external.transport import ActTransport
 from workbench.simulation.gm.grounded import GroundedGm
 from workbench.simulation.lm.dspy_lm import WorkbenchLM
 from workbench.simulation.lm.protocol import LanguageModel
@@ -37,10 +41,17 @@ async def run_workplace(
     inner_lm: LanguageModel,
     model: str,
     stop: StopCondition | None = None,
+    external_seats: Mapping[str, ActTransport] | None = None,
 ) -> RunResult:
     compiled = compile_workplace(spec, seed)
     return await run_compiled(
-        compiled, seed=seed, out_dir=out_dir, inner_lm=inner_lm, model=model, stop=stop
+        compiled,
+        seed=seed,
+        out_dir=out_dir,
+        inner_lm=inner_lm,
+        model=model,
+        stop=stop,
+        external_seats=external_seats,
     )
 
 
@@ -52,6 +63,7 @@ async def run_compiled(
     inner_lm: LanguageModel,
     model: str,
     stop: StopCondition | None = None,
+    external_seats: Mapping[str, ActTransport] | None = None,
 ) -> RunResult:
     out_dir.mkdir(parents=True, exist_ok=True)
     log_path = out_dir / "world.jsonl"
@@ -68,9 +80,23 @@ async def run_compiled(
         f"Priorities: {', '.join(vocab.priorities)}. "
         f"Types: {', '.join(vocab.ticket_types)}."
     )
-    entities: list[ComposedEntity] = []
+    seats = dict(external_seats or {})
+    persona_names = {entity_name for entity_name, _ in compiled.personas}
+    unknown_seats = sorted(set(seats) - persona_names)
+    if unknown_seats:
+        raise ConfigError(
+            f"external seats name no persona in this workplace: {unknown_seats}"
+        )
+
+    entities: list[Entity] = []
     memories: dict[str, WorkingMemoryComponent] = {}
+    externals: dict[str, ExternalEntity] = {}
     for entity_name, params in compiled.personas:
+        if entity_name in seats:
+            external = ExternalEntity(name=entity_name, transport=seats[entity_name])
+            entities.append(external)
+            externals[entity_name] = external
+            continue
         memory = WorkingMemoryComponent(person_id=params.person_id)
         lm = WorkbenchLM(
             inner_lm,
@@ -99,16 +125,20 @@ async def run_compiled(
         for event in compiled.genesis:
             writer.append(event)
             observers = await gm.route(event)
-            if event.tag in _PUBLIC_TAGS or event.tag == "document.created":
-                deliver_to = list(memories)
+            relevant = event.tag in _PUBLIC_TAGS or event.tag == "document.created"
+            if relevant:
+                deliver_to = [*memories, *externals]
             else:
-                deliver_to = [name for name in observers if name in memories]
+                deliver_to = [
+                    name for name in observers if name in memories or name in externals
+                ]
             for name in deliver_to:
-                person = person_for_entity.get(name)
-                relevant = event.tag in _PUBLIC_TAGS or event.tag == "document.created"
-                if not relevant and person is None:
+                if not relevant and person_for_entity.get(name) is None:
                     continue
-                await memories[name].pre_observe(event)
+                if name in externals:
+                    await externals[name].observe(event)
+                else:
+                    await memories[name].pre_observe(event)
 
         queue = EventQueue()
         for item in compiled.scheduled:
