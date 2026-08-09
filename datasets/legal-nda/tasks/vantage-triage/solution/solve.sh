@@ -13,12 +13,12 @@ def rows(db, sql, *params):
 
 # Retrieve Daniel's redline of the inbound Vantage draft and his report.
 revisions = rows(
-    "dms.db",
-    "SELECT content, change_summary FROM revisions WHERE author=? ORDER BY revision",
+    "imanage.db",
+    "SELECT content, comment FROM versions WHERE author=? ORDER BY version",
     "per-daniel-reyes",
 )
 statements = rows(
-    "mail.db",
+    "gmail.db",
     "SELECT body FROM messages WHERE sender=? AND (body LIKE '%term cap%' "
     "OR body LIKE '%mutual%')",
     "per-daniel-reyes",
@@ -31,10 +31,10 @@ for needle in ("mutual", "two year"):
         sys.exit(f"vendor standard not found in the record: {needle!r}")
 
 playbook = rows(
-    "dms.db",
-    "SELECT content FROM revisions WHERE document_id="
+    "imanage.db",
+    "SELECT content FROM versions WHERE document_id="
     "(SELECT document_id FROM documents WHERE path LIKE '%playbook%') "
-    "ORDER BY revision DESC LIMIT 1",
+    "ORDER BY version DESC LIMIT 1",
 )[0][0].lower()
 assert "reasonable person" in playbook and "damages" in playbook
 

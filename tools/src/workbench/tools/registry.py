@@ -12,14 +12,14 @@ from mcp.server import MCPServer
 
 from workbench.core.errors import WorkbenchError
 from workbench.core.events import Event
-from workbench.tools import chat, coherence, dms, framework, mail, matters
+from workbench.tools import clio, coherence, framework, gmail, imanage, slack
 from workbench.tools.framework import ToolSystem
 
 REGISTRY: tuple[ToolSystem, ...] = (
-    mail.SYSTEM,
-    chat.SYSTEM,
-    dms.SYSTEM,
-    matters.SYSTEM,
+    gmail.SYSTEM,
+    slack.SYSTEM,
+    imanage.SYSTEM,
+    clio.SYSTEM,
 )
 
 
@@ -49,8 +49,9 @@ def check_coherence(state_dir: Path) -> tuple[coherence.CoherenceFinding, ...]:
     return coherence.check_coherence(state_dir, REGISTRY)
 
 
-def server_specs() -> dict[str, dict[str, object]]:
+def server_specs(seat: str | None = None) -> dict[str, dict[str, object]]:
     """Launch specs for a workspace ``.mcp.json``; db paths are relative."""
+    seat_args = ["--user", seat] if seat else []
     return {
         system.name: {
             "command": "python3",
@@ -60,6 +61,7 @@ def server_specs() -> dict[str, dict[str, object]]:
                 system.name,
                 "--db",
                 f"state/{system.name}.db",
+                *seat_args,
             ],
         }
         for system in sorted(REGISTRY, key=lambda system: system.name)

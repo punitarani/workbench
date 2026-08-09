@@ -21,9 +21,12 @@ class MaterializedEnvironment(BaseModel):
     workspace: Path
     event_count: int = Field(ge=0)
     databases: tuple[str, ...]
+    seat: str | None = None
 
 
-def materialize(world_log: Path, out_dir: Path) -> MaterializedEnvironment:
+def materialize(
+    world_log: Path, out_dir: Path, *, seat: str | None = None
+) -> MaterializedEnvironment:
     events = read_events(world_log)
     report = validate_events(events)
     if not report.ok:
@@ -38,13 +41,16 @@ def materialize(world_log: Path, out_dir: Path) -> MaterializedEnvironment:
     project_all(events, out_dir / "state")
 
     (out_dir / ".mcp.json").write_text(
-        json.dumps({"mcpServers": server_specs()}, indent=2) + "\n", encoding="utf-8"
+        json.dumps({"mcpServers": server_specs(seat=seat)}, indent=2) + "\n",
+        encoding="utf-8",
     )
 
     names = sorted(system.name for system in REGISTRY)
     compose = ", ".join(f'"{name}"' for name in names)
+    seat_line = f'seat = "{seat}"\n' if seat else ""
     (out_dir / "environment.toml").write_text(
-        f'[tools]\ncompose = [{compose}]\n\n[personas]\nbackend = "replay"\n',
+        f"[tools]\ncompose = [{compose}]\n{seat_line}"
+        '\n[personas]\nbackend = "replay"\n',
         encoding="utf-8",
     )
 
@@ -52,4 +58,5 @@ def materialize(world_log: Path, out_dir: Path) -> MaterializedEnvironment:
         workspace=out_dir,
         event_count=len(events),
         databases=tuple(names),
+        seat=seat,
     )

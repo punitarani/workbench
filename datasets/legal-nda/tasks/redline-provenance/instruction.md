@@ -6,8 +6,8 @@ Services NDA: where the redline edits actually live in the document
 repository, who made them, and whether the inbound draft itself was ever
 modified.
 
-The firm's systems are available as MCP servers (see `.mcp.json`): mail,
-chat, the document repository, and the matter tracker. Do not guess from
+The firm's systems are available as MCP servers (see `.mcp.json`): Gmail,
+Slack, the iManage document repository, and Clio matters. Do not guess from
 file names — the note must reflect what the repository's revision history
 actually records.
 

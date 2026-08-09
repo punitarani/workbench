@@ -5,8 +5,8 @@ of Thursday. Daniel handled the inbound Vantage NDA today, but the matter
 file is missing its structured triage memo — and you are on matter-hygiene
 duty this week.
 
-Using the firm's systems in this workspace (mail, chat, the document
-repository, and the matter tracker — wired via `.mcp.json`, with the
+Using the firm's systems in this workspace (Gmail, Slack, the iManage document
+repository, and Clio matters — wired via `.mcp.json`, with the
 underlying SQLite databases under `state/`), reconstruct the
 clause-by-clause triage of the **inbound Vantage draft** and write it to
 **`triage.json`** in the workspace root:

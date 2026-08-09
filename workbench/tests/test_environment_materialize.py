@@ -28,21 +28,21 @@ def test_materialize_produces_workspace(tmp_path: Path) -> None:
     result = materialize(log_path, out)
 
     assert sorted(p.name for p in (out / "state").iterdir()) == [
-        "chat.db",
-        "dms.db",
-        "mail.db",
-        "matters.db",
+        "clio.db",
+        "gmail.db",
+        "imanage.db",
+        "slack.db",
     ]
     assert check_coherence(out / "state") == ()
 
     config = json.loads((out / ".mcp.json").read_text())
     servers = config["mcpServers"]
-    assert set(servers) == {"mail", "chat", "dms", "matters"}
+    assert set(servers) == {"gmail", "slack", "imanage", "clio"}
     for name, spec in servers.items():
-        assert spec["args"][-2:] == ["--db", f"state/{name}.db"]
+        assert spec["args"][3:5] == ["--db", f"state/{name}.db"]
 
     environment = tomllib.loads((out / "environment.toml").read_text())
-    assert set(environment["tools"]["compose"]) == {"mail", "chat", "dms", "matters"}
+    assert set(environment["tools"]["compose"]) == {"gmail", "slack", "imanage", "clio"}
     assert result.event_count == len(coherent_events())
 
 
@@ -68,7 +68,7 @@ async def test_stdio_server_end_to_end(tmp_path: Path) -> None:
 
     parameters = StdioServerParameters(
         command=sys.executable,
-        args=["-m", "workbench.tools.serve", "mail", "--db", "state/mail.db"],
+        args=["-m", "workbench.tools.serve", "gmail", "--db", "state/gmail.db"],
         cwd=str(out),
     )
     async with stdio_client(parameters) as (read, write):
@@ -76,7 +76,12 @@ async def test_stdio_server_end_to_end(tmp_path: Path) -> None:
             await session.initialize()
             tools = await session.list_tools()
             names = {t.name for t in tools.tools}
-            assert {"list_threads", "read_thread", "search_mail", "directory"} <= names
-            result = await session.call_tool("read_thread", {"thread_id": "thr-000001"})
+            assert {
+                "search_threads",
+                "get_thread",
+                "get_message",
+                "list_labels",
+            } <= names
+            result = await session.call_tool("get_thread", {"threadId": "thr-000001"})
             text = "".join(c.text for c in result.content if hasattr(c, "text"))
             assert "msg-000001" in text and "NDA review" in text

@@ -53,6 +53,10 @@ class ToolSystem:
     tables: tuple[Table, ...]
     project: Projector
     register: Registrar
+    # Product-realistic systems expose people through their own surfaces
+    # (Slack user tools, Clio users, iManage user info) instead of the
+    # generic directory tool.
+    directory_tool: bool = True
 
     def __post_init__(self) -> None:
         offstage = [tag for tag in self.handled_tags if tag.startswith("sim.")]
@@ -106,7 +110,8 @@ def build_server(system: ToolSystem, db_path: Path) -> MCPServer:
         instructions=f"The organization's {system.name} system.",
     )
     system.register(server, db_path)
-    _add_directory(server, db_path)
+    if system.directory_tool:
+        _add_directory(server, db_path)
     return server
 
 

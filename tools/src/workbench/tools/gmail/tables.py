@@ -1,4 +1,4 @@
-"""Row models and tables for the mail database."""
+"""Row models and tables for the gmail database."""
 
 from typing import Annotated, Literal
 
@@ -15,6 +15,7 @@ class Message(BaseModel):
     subject: str
     body: str
     time: int
+    snippet: str
 
 
 class Recipient(BaseModel):

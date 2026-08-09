@@ -12,11 +12,11 @@ def rows(db, sql, *params):
 
 # Today's redline edits: post-genesis revisions whose summaries name Vantage.
 redlines = rows(
-    "dms.db",
-    "SELECT r.document_id, d.path, r.revision, r.author FROM revisions r "
-    "JOIN documents d ON d.document_id = r.document_id "
-    "WHERE r.revision > 1 AND lower(r.change_summary) LIKE '%vantage%' "
-    "ORDER BY r.revision",
+    "imanage.db",
+    "SELECT v.document_id, d.path, v.version, v.author FROM versions v "
+    "JOIN documents d ON d.document_id = v.document_id "
+    "WHERE v.version > 1 AND lower(v.comment) LIKE '%vantage%' "
+    "ORDER BY v.version",
 )
 if not redlines:
     sys.exit("no Vantage redline revisions found in the record")
@@ -26,8 +26,8 @@ if len(paths) != 1 or len(authors) != 1:
     sys.exit(f"ambiguous redline record: paths={paths} authors={authors}")
 
 inbound = rows(
-    "dms.db",
-    "SELECT head_revision FROM documents WHERE path LIKE '%inbound-nda-vantage%'",
+    "imanage.db",
+    "SELECT head_version FROM documents WHERE path LIKE '%inbound-nda-vantage%'",
 )
 if not inbound:
     sys.exit("inbound Vantage draft not found in the repository")

@@ -1,11 +1,11 @@
-"""Project email events into the mail database."""
+"""Project email events into the gmail database."""
 
 import sqlite3
 from collections.abc import Sequence
 
 from workbench.core.events import Event
 from workbench.core.events.email import EmailMessagePayload
-from workbench.tools.mail.tables import (
+from workbench.tools.gmail.tables import (
     ATTACHMENTS,
     MESSAGES,
     RECIPIENTS,
@@ -13,6 +13,10 @@ from workbench.tools.mail.tables import (
     Message,
     Recipient,
 )
+
+
+def _snippet(body: str) -> str:
+    return " ".join(body.split())[:100]
 
 
 def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
@@ -32,6 +36,7 @@ def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
                 subject=payload.subject,
                 body=payload.body,
                 time=int(event.time),
+                snippet=_snippet(payload.body),
             )
         )
         for kind, people in (("to", payload.to), ("cc", payload.cc)):
