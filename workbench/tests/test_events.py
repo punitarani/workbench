@@ -77,3 +77,13 @@ def test_draft_carries_no_seq_or_time_authority() -> None:
     )
     assert draft.delay == 60
     assert not hasattr(draft, "seq")
+
+
+def test_time_entries_carry_money() -> None:
+    entry = sample_payloads()["work.time.logged"]
+    assert entry.rate_cents == 44_500 and entry.billable
+    assert entry.amount_cents == 66_750, "90 minutes at $445/hr"
+    written_off = entry.model_copy(update={"billable": False})
+    assert written_off.amount_cents is None, "a write-off charges nothing"
+    tracked = entry.model_copy(update={"rate_cents": None})
+    assert tracked.amount_cents is None, "unrated time has no amount"
