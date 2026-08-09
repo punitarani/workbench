@@ -16,7 +16,7 @@ What lives where:
 | `engine/` | InterruptEngine, event queue, attention masks, timers |
 | `gm/` | Grounded game master: world state, validation, timeflow |
 | `persona/` | Professional personas: params, working memory, DSPy programs |
-| `external/` | Externalized seats: transports for agents outside the process |
+| `external/` | Externalized seats: transports, the interactive SeatSession, and the agent-facing MCP seat server |
 | `workplace/` | Spec + deterministic compiler from org definition to a runnable day |
 | `audit/` | Mechanical realism checks over finished world logs |
 
