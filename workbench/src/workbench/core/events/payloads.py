@@ -1,0 +1,83 @@
+"""The closed payload union and tag registry.
+
+Every payload kind is declared here and nowhere else. Workplaces never add
+payload kinds; new kinds are additive within a schema version.
+"""
+
+from typing import Annotated
+
+from pydantic import Field
+
+from workbench.core.events.calendar import (
+    CalendarEventScheduledPayload,
+    CalendarEventUpdatedPayload,
+    CalendarResponsePayload,
+)
+from workbench.core.events.chat import (
+    ChatConversationCreatedPayload,
+    ChatMessagePayload,
+)
+from workbench.core.events.control import (
+    SimCheckpointPayload,
+    SimDayEndedPayload,
+    SimDayStartedPayload,
+    SimGmNotePayload,
+    SimRunStartedPayload,
+)
+from workbench.core.events.documents import (
+    DocumentCreatedPayload,
+    DocumentRevisedPayload,
+)
+from workbench.core.events.email import EmailMessagePayload
+from workbench.core.events.meetings import MeetingTranscriptPayload
+from workbench.core.events.people import PersonRecordPayload
+from workbench.core.events.tickets import (
+    TicketCommentedPayload,
+    TicketCreatedPayload,
+    TicketUpdatedPayload,
+)
+
+SCHEMA_VERSION = 1
+
+EventPayload = Annotated[
+    PersonRecordPayload
+    | EmailMessagePayload
+    | ChatConversationCreatedPayload
+    | ChatMessagePayload
+    | DocumentCreatedPayload
+    | DocumentRevisedPayload
+    | TicketCreatedPayload
+    | TicketUpdatedPayload
+    | TicketCommentedPayload
+    | CalendarEventScheduledPayload
+    | CalendarEventUpdatedPayload
+    | CalendarResponsePayload
+    | MeetingTranscriptPayload
+    | SimRunStartedPayload
+    | SimDayStartedPayload
+    | SimDayEndedPayload
+    | SimGmNotePayload
+    | SimCheckpointPayload,
+    Field(discriminator="kind"),
+]
+
+TAG_REGISTRY = {
+    "person.record": PersonRecordPayload,
+    "email.message": EmailMessagePayload,
+    "chat.conversation.created": ChatConversationCreatedPayload,
+    "chat.message": ChatMessagePayload,
+    "document.created": DocumentCreatedPayload,
+    "document.revised": DocumentRevisedPayload,
+    "ticket.created": TicketCreatedPayload,
+    "ticket.updated": TicketUpdatedPayload,
+    "ticket.commented": TicketCommentedPayload,
+    "calendar.event.scheduled": CalendarEventScheduledPayload,
+    "calendar.event.updated": CalendarEventUpdatedPayload,
+    "calendar.response": CalendarResponsePayload,
+    "meeting.transcript": MeetingTranscriptPayload,
+    "sim.run.started": SimRunStartedPayload,
+    "sim.day.started": SimDayStartedPayload,
+    "sim.day.ended": SimDayEndedPayload,
+    "sim.gm.note": SimGmNotePayload,
+    "sim.checkpoint": SimCheckpointPayload,
+}
