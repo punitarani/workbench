@@ -63,7 +63,7 @@ The Python packages form one [uv](https://docs.astral.sh/uv/) workspace sharing 
 ```bash
 uv sync                                   # install the Python workspace
 uv run pytest                             # run the test suite
-docker build -f workbench/Dockerfile -t workbench:dev workbench
+docker build -f workbench/environment/Dockerfile -t workbench:dev workbench/environment
 ```
 
 Run a task against the image with Harbor:

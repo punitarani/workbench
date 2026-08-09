@@ -77,10 +77,10 @@ bunx oxlint                   # TypeScript / JavaScript lint
 
 `ruff` lints Python and `oxlint` lints TypeScript and JavaScript; oxlint has no Python support. Both must pass before work is considered done.
 
-Build the environment image with the `workbench/` directory as the build context, since the Dockerfile copies files relative to it:
+Build the environment image with `workbench/environment/` as the build context, since the Dockerfile copies files relative to it:
 
 ```bash
-docker build -f workbench/Dockerfile -t workbench:dev workbench
+docker build -f workbench/environment/Dockerfile -t workbench:dev workbench/environment
 ```
 
 ## Tasks and datasets
