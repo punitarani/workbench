@@ -130,13 +130,17 @@ class GroundedGm:
                 if payload.entity in self._person_for_entity:
                     return (payload.entity,)
                 return ()
+            # Senders observe their own messages too: sent mail is how a
+            # persona knows a pending item is answered and how later drafts
+            # see their own side of a thread. Observation is not a turn —
+            # next_acting never grants one to the sender.
             case EmailMessagePayload():
-                recipients = self._entities_for((*payload.to, *payload.cc))
-                return tuple(r for r in recipients if r != event.source)
+                return self._entities_for(
+                    (payload.sender, *payload.to, *payload.cc)
+                )
             case ChatMessagePayload():
                 members = self._world.conversations.get(payload.conversation_id, ())
-                observers = self._entities_for(members)
-                return tuple(o for o in observers if o != event.source)
+                return self._entities_for((payload.sender, *members))
             # Record-type events deliver to their actor too: an actor who
             # never sees their own ticket or revision will redo it forever.
             case TicketCreatedPayload():

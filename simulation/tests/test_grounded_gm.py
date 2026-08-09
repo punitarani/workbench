@@ -211,13 +211,13 @@ async def test_routing_and_next_acting() -> None:
     gm = make_gm()
     events = coherent_events()
     email = events[7]  # msg-000001: jess -> tom, cc meredith
-    assert await gm.route(email) == ("tom", "meredith")
+    assert await gm.route(email) == ("jess", "tom", "meredith")
     acting = await gm.next_acting(email)
     assert acting.entities == ("tom",)
 
     chat = events[10]  # daniel in #legal
     routed = await gm.route(chat)
-    assert set(routed) == {"meredith", "tom"}
+    assert set(routed) == {"daniel", "meredith", "tom"}
 
     run_started = events[0]
     assert await gm.route(run_started) == ()
@@ -348,3 +348,30 @@ async def test_actor_observes_own_ticket_and_document_events() -> None:
     assert "tom" in observers, (
         "the actor must see their own record-type events or they redo them"
     )
+
+
+async def test_senders_observe_their_own_messages() -> None:
+    from workbench.core.events import Event
+    from workbench.core.events.email import EmailMessagePayload
+
+    gm = make_gm()
+    payload = EmailMessagePayload(
+        kind="email.message",
+        message_id="msg-901000",
+        thread_id="thr-901000",
+        in_reply_to=None,
+        sender="per-daniel-reyes",
+        to=("per-jess-alvarez",),
+        cc=(),
+        subject="Redlines",
+        body="Attached.",
+        attachments=(),
+    )
+    event = Event(
+        seq=910, time=61_000, tag=payload.kind, source="daniel", payload=payload
+    )
+    observers = await gm.route(event)
+    assert "daniel" in observers, "senders keep their own sent mail in memory"
+    assert "jess" in observers
+    decision = await gm.next_acting(event)
+    assert "daniel" not in decision.entities, "seeing your mail is not a turn"

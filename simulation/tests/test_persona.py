@@ -136,3 +136,29 @@ async def test_facts_record_ticket_and_document_actions() -> None:
     facts = memory.get_state().facts
     assert any("Review Vantage NDA" in f for f in facts)
     assert any("Applied the term cap" in f for f in facts)
+
+
+async def test_observed_own_reply_clears_pending() -> None:
+    from workbench.core.events import Event
+    from workbench.core.events.email import EmailMessagePayload
+
+    memory = await make_memory()
+    assert any(i.ref == "msg-000001" for i in memory.pending_items())
+    own_reply = EmailMessagePayload(
+        kind="email.message",
+        message_id="msg-000900",
+        thread_id="thr-000001",
+        in_reply_to="msg-000001",
+        sender="per-daniel-reyes",
+        to=("per-jess-alvarez",),
+        cc=(),
+        subject="Re: Vendor NDA - need your eyes",
+        body="On it.",
+        attachments=(),
+    )
+    await memory.pre_observe(
+        Event(seq=91, time=41_000, tag=own_reply.kind, source="x", payload=own_reply)
+    )
+    assert not any(i.ref == "msg-000001" for i in memory.pending_items()), (
+        "an observed own reply must clear the pending item"
+    )
