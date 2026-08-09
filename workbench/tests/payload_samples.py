@@ -15,6 +15,7 @@ from workbench.core.events.control import (
     SimDayStartedPayload,
     SimGmNotePayload,
     SimRunStartedPayload,
+    SimWakePayload,
 )
 from workbench.core.events.documents import (
     DocumentCreatedPayload,
@@ -170,5 +171,6 @@ def sample_payloads() -> dict[str, EventPayload]:
             kind="sim.gm.note", note="Rejected intent.", rejected_intent="x"
         ),
         SimCheckpointPayload(kind="sim.checkpoint", step=12),
+        SimWakePayload(kind="sim.wake", entity="daniel-reyes"),
     ]
     return {payload.kind: payload for payload in samples}

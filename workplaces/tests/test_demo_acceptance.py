@@ -37,7 +37,7 @@ CASSETTE = (
 )
 
 pytestmark = pytest.mark.skipif(
-    not CASSETTE.exists(),
+    not CASSETTE.exists() or not any(CASSETTE.glob("*.json")),
     reason="demo cassette not recorded yet; see module docstring",
 )
 

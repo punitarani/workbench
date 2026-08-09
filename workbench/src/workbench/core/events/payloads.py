@@ -23,6 +23,7 @@ from workbench.core.events.control import (
     SimDayStartedPayload,
     SimGmNotePayload,
     SimRunStartedPayload,
+    SimWakePayload,
 )
 from workbench.core.events.documents import (
     DocumentCreatedPayload,
@@ -57,7 +58,8 @@ EventPayload = Annotated[
     | SimDayStartedPayload
     | SimDayEndedPayload
     | SimGmNotePayload
-    | SimCheckpointPayload,
+    | SimCheckpointPayload
+    | SimWakePayload,
     Field(discriminator="kind"),
 ]
 
@@ -80,4 +82,5 @@ TAG_REGISTRY = {
     "sim.day.ended": SimDayEndedPayload,
     "sim.gm.note": SimGmNotePayload,
     "sim.checkpoint": SimCheckpointPayload,
+    "sim.wake": SimWakePayload,
 }

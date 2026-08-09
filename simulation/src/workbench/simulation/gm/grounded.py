@@ -20,7 +20,7 @@ from workbench.core.actions import (
 from workbench.core.events import Event, EventDraft
 from workbench.core.events.calendar import CalendarResponsePayload
 from workbench.core.events.chat import ChatMessagePayload
-from workbench.core.events.control import SimGmNotePayload
+from workbench.core.events.control import SimGmNotePayload, SimWakePayload
 from workbench.core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
@@ -151,6 +151,10 @@ class GroundedGm:
     async def next_acting(self, event: Event) -> NextActingDecision:
         payload = event.payload
         match payload:
+            case SimWakePayload():
+                if payload.entity in self._person_for_entity:
+                    return NextActingDecision(entities=(payload.entity,))
+                return NextActingDecision(entities=())
             case EmailMessagePayload():
                 for person_id in payload.to:
                     entity = self._entity_for_person.get(person_id)

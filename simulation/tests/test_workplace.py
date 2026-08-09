@@ -95,8 +95,9 @@ def test_genesis_validates_and_day_script_is_scheduled() -> None:
     assert compiled.genesis[0].payload.kind == "sim.run.started"
     report = validate_events(compiled.genesis)
     assert report.ok, report.findings
-    assert len(compiled.scheduled) == 1
-    assert compiled.scheduled[0].time == 9 * 3600 + 40 * 60
+    day_script = [s for s in compiled.scheduled if s.draft.tag != "sim.wake"]
+    assert len(day_script) == 1
+    assert day_script[0].time == 9 * 3600 + 40 * 60
 
 
 def test_unknown_channel_member_is_rejected_at_compile() -> None:
@@ -139,6 +140,13 @@ DRAFT_REPLY = (
     "[[ ## completed ## ]]"
 )
 
+DECIDE_IDLE_FALLBACK = (
+    "[[ ## choice ## ]]\n"
+    '{"action": "idle", "target_ref": null, '
+    '"intent": "Nothing pending", "reason": "Quiet"}\n\n'
+    "[[ ## completed ## ]]"
+)
+
 
 class SequenceLM:
     def __init__(self, texts: list[str]) -> None:
@@ -159,7 +167,17 @@ async def test_end_to_end_mini_run(tmp_path: Path) -> None:
         make_spec(),
         seed=Seed(root=42),
         out_dir=out_dir,
-        inner_lm=SequenceLM([DECIDE_REPLY, DRAFT_REPLY]),
+        # ann wakes at 09:03 and 09:33 (two idle decides) before the 09:40
+        # email grants her the reply turn; later wakes hit the idle fallback.
+        inner_lm=SequenceLM(
+            [
+                DECIDE_IDLE_FALLBACK,
+                DECIDE_IDLE_FALLBACK,
+                DECIDE_REPLY,
+                DRAFT_REPLY,
+                DECIDE_IDLE_FALLBACK,
+            ]
+        ),
         model="test/model",
     )
     assert result.reason == "quiescent"
@@ -177,3 +195,15 @@ async def test_end_to_end_mini_run(tmp_path: Path) -> None:
     manifest = read_manifest(out_dir / "manifest.json")
     assert manifest.event_count == len(events)
     assert manifest.matches_log(out_dir / "world.jsonl")
+
+
+def test_wakes_are_scheduled_for_each_persona() -> None:
+    compiled = compile_workplace(make_spec(), Seed(root=42))
+    wakes = [s for s in compiled.scheduled if s.draft.tag == "sim.wake"]
+    assert wakes, "personas need periodic check-in turns"
+    entities = {w.draft.payload.entity for w in wakes}
+    assert entities == {"ann-liu"}, "only simulated personas wake"
+    times = [w.time for w in wakes if w.draft.payload.entity == "ann-liu"]
+    assert times == sorted(times)
+    assert times[0] >= 9 * 3600
+    assert times[-1] < compiled.end_time

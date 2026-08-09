@@ -251,3 +251,15 @@ async def test_email_address_resolves_to_person() -> None:
     payload = decision.drafts[0].payload
     assert payload.kind == "email.message"
     assert payload.to == ("per-jess-alvarez",)
+
+
+async def test_wake_gives_its_entity_a_turn() -> None:
+    from workbench.core.events import Event
+    from workbench.core.events.control import SimWakePayload
+
+    gm = make_gm()
+    payload = SimWakePayload(kind="sim.wake", entity="daniel")
+    wake = Event(seq=99, time=50_000, tag=payload.kind, source="gm", payload=payload)
+    assert await gm.route(wake) == ()
+    decision = await gm.next_acting(wake)
+    assert decision.entities == ("daniel",)

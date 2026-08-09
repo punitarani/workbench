@@ -37,3 +37,10 @@ class SimGmNotePayload(Payload):
 class SimCheckpointPayload(Payload):
     kind: Literal["sim.checkpoint"]
     step: int = Field(ge=0)
+
+
+class SimWakePayload(Payload):
+    """A scheduled check-in turn for one simulated persona. Offstage."""
+
+    kind: Literal["sim.wake"]
+    entity: str

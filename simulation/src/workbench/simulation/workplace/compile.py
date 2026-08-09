@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict
 from workbench.core.events import Event, EventDraft
 from workbench.core.events.calendar import CalendarEventScheduledPayload
 from workbench.core.events.chat import ChatConversationCreatedPayload
-from workbench.core.events.control import SimRunStartedPayload
+from workbench.core.events.control import SimRunStartedPayload, SimWakePayload
 from workbench.core.events.documents import DocumentCreatedPayload
 from workbench.core.events.email import Attachment, EmailMessagePayload
 from workbench.core.events.people import PersonRecordPayload
@@ -218,6 +218,24 @@ def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
         for person in spec.people
         if person.persona is not None
     )
+
+    # Periodic check-in turns: without these, personas act only when
+    # addressed and the day dies with its reply chains.
+    end_time = _clock_to_seconds(spec.end_of_day)
+    day_start = 9 * 3600
+    for index, (entity_name, persona) in enumerate(personas):
+        wake_time = day_start + (index + 1) * 180
+        while wake_time < end_time:
+            payload = SimWakePayload(kind="sim.wake", entity=entity_name)
+            scheduled.append(
+                ScheduledEvent(
+                    time=wake_time,
+                    order=order,
+                    draft=EventDraft(tag=payload.kind, source="gm", payload=payload),
+                )
+            )
+            order += 1
+            wake_time += persona.check_interval_minutes * 60
     entity_for_person = tuple(
         (person.person_id, _entity_name(person.person_id))
         for person in spec.people
@@ -232,5 +250,5 @@ def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
         personas=personas,
         entity_for_person=entity_for_person,
         ticket_vocabulary=spec.ticket_vocabulary,
-        end_time=_clock_to_seconds(spec.end_of_day),
+        end_time=end_time,
     )
