@@ -1,10 +1,11 @@
 [project]
 name = "workbench"
 version = "0.1.0"
-description = "Workbench core contracts: ids, seeds, hashing, events, actions, world log"
+description = "Workbench core contracts, agent-facing tools, and environment assembly"
 requires-python = ">=3.14"
 dependencies = [
     "pydantic>=2.10",
+    "mcp>=2.0",
 ]
 
 [build-system]
@@ -12,4 +13,4 @@ requires = ["uv_build>=0.11,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "workbench.core"
+module-name = ["workbench.core", "workbench.tools", "workbench.environment"]
