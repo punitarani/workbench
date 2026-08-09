@@ -46,3 +46,11 @@ eval episodes. Entry 11 is the prior session's round-2 diagnosis matrix,
 reconstructed from surviving eval2-*.log files; its DeepSeek and GLM runs
 past standard-drift were not captured, so the row is an estimate rounded
 up. Remaining: ~$23.09.
+
+| 14 | 08-09 05:0x-05:4x | Eval matrix round 3 (post-epoch-fix, 5x3x3) | 17.6M/0.38M | $1.62 | ~$3.5 |
+
+Round-3 matrix: standard-drift .75x3, fee-dispute 1.0x3, vanished-clause
+.90x3, client-departure .85x3, operative-deadline 1.0/0.0/1.0. The epoch
+fix un-suppressed date components; identical cross-model scores indicate
+grader-structure ceilings, under component diagnosis in round 4.
+Remaining: ~$21.5.
