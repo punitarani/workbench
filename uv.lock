@@ -5,6 +5,7 @@ requires-python = ">=3.14"
 [manifest]
 members = [
     "workbench",
+    "workbench-adapters",
     "workbench-simulation",
     "workbench-tools",
     "workbench-workplaces",
@@ -1432,6 +1433,25 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "pydantic", specifier = ">=2.10" },
+    { name = "workbench-tools", editable = "tools" },
+]
+
+[[package]]
+name = "workbench-adapters"
+version = "0.1.0"
+source = { editable = "adapters" }
+dependencies = [
+    { name = "httpx" },
+    { name = "mcp" },
+    { name = "pydantic" },
+    { name = "workbench-tools" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28" },
+    { name = "mcp", specifier = ">=2.0" },
     { name = "pydantic", specifier = ">=2.10" },
     { name = "workbench-tools", editable = "tools" },
 ]

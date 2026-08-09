@@ -1,8 +1,30 @@
 # adapters
 
-Bridges from the Workbench environment to non-Harbor frameworks (Prime,
-Tinker, …). Deliberately deferred: no package exists until there is a
-concrete second consumer, because a compatibility layer designed against
-imagined requirements is worse than none. The engine's `ActTransport`
-protocol (`simulation/src/workbench/simulation/external/`) is the seam an
-adapter will plug into.
+Bridges from the Workbench environment to outside consumers — model-eval
+harnesses today, non-Harbor frameworks (Prime, Tinker, …) when a concrete
+second consumer exists. This is the `workbench-adapters` distribution,
+importable as `workbench.adapters`.
+
+The first member is the model-eval harness
+(`workbench.adapters.harness`): open a materialized workspace's MCP
+servers over stdio (`mcp_workspace`), run a tool-calling chat model in an
+episode loop with `write_file`/`finish` builtins (`agent_loop`), grade
+the resulting workspace with the task's own grader (`grade`), and report
+per-attempt scores, best-of-N, and token usage (`cli`). The only real
+model client is `openrouter_client`; everything else is
+provider-agnostic behind the `ChatClient` protocol.
+
+Run one model against one Harbor task (the only place a key is needed):
+
+```bash
+OPENROUTER_API_KEY=... uv run python -m workbench.adapters.harness.cli \
+    --task datasets/legal-nda/tasks/vantage-triage \
+    --model deepseek/deepseek-v4-flash-0731 --attempts 3
+```
+
+Tests script the chat client; nothing in this package's test suite calls
+a paid model.
+
+RL-framework adapters remain deferred: the engine's `ActTransport`
+protocol (`simulation/src/workbench/simulation/external/`) is the seam
+one will plug into when a named target framework arrives.

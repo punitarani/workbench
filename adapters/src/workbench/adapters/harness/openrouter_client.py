@@ -1,0 +1,78 @@
+"""OpenRouter chat-completions client implementing the ChatClient protocol.
+
+Fail-loud: any non-200 response or body without ``choices[0].message``
+raises. Usage accumulates on the client across calls so a whole eval run
+reports one prompt/completion total; ``usage_cost`` prices it.
+"""
+
+from typing import Any
+
+import httpx
+
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+
+class OpenRouterError(RuntimeError):
+    """OpenRouter returned a non-200 status or a malformed body."""
+
+
+class OpenRouterChatClient:
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        temperature: float = 0.2,
+        *,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self.model = model
+        self.temperature = temperature
+        self.prompt_tokens = 0
+        self.completion_tokens = 0
+        self._client = httpx.AsyncClient(
+            timeout=httpx.Timeout(180.0),
+            headers={"Authorization": f"Bearer {api_key}"},
+            transport=transport,
+        )
+
+    async def complete(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]],
+        *,
+        max_tokens: int = 2000,
+    ) -> dict[str, Any]:
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "tools": tools,
+            "temperature": self.temperature,
+            "max_tokens": max_tokens,
+        }
+        response = await self._client.post(OPENROUTER_URL, json=payload)
+        if response.status_code != 200:
+            raise OpenRouterError(
+                f"OpenRouter returned {response.status_code}: {response.text[:500]}"
+            )
+        try:
+            body = response.json()
+            message = body["choices"][0]["message"]
+        except (ValueError, KeyError, IndexError, TypeError) as error:
+            raise OpenRouterError(
+                f"malformed OpenRouter response: {error}: {response.text[:500]}"
+            ) from error
+        usage = body.get("usage") or {}
+        self.prompt_tokens += int(usage.get("prompt_tokens", 0))
+        self.completion_tokens += int(usage.get("completion_tokens", 0))
+        return message
+
+    def usage_cost(self, prices_per_mtok: tuple[float, float]) -> float:
+        """Accumulated cost in USD given (prompt, completion) prices per Mtok."""
+        prompt_price, completion_price = prices_per_mtok
+        return (
+            self.prompt_tokens * prompt_price
+            + self.completion_tokens * completion_price
+        ) / 1_000_000
+
+    async def aclose(self) -> None:
+        await self._client.aclose()
