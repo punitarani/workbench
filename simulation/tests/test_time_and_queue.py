@@ -2,53 +2,54 @@ import random
 
 import pytest
 
-from workbench.core.events import Event
+from workbench.core.events import EventDraft
 from workbench.core.events.chat import ChatMessagePayload
 from workbench.core.simtime import SimTime
-from workbench.simulation.engine.queue import EventQueue
+from workbench.simulation.engine.queue import EventQueue, ScheduledEvent
 from workbench.simulation.errors import TimeError
 from workbench.simulation.time_model import EventDrivenTimeModel
 
 
-def chat_event(seq: int, time: int) -> Event:
+def scheduled(order: int, time: int) -> ScheduledEvent:
     payload = ChatMessagePayload(
         kind="chat.message",
-        chat_message_id=f"chm-{seq:06d}",
+        chat_message_id=f"chm-{order:06d}",
         conversation_id="cnv-000001",
         reply_to=None,
         sender="per-x",
         body="hi",
     )
-    return Event(seq=seq, time=time, tag=payload.kind, source="gm", payload=payload)
+    draft = EventDraft(tag=payload.kind, source="gm", payload=payload)
+    return ScheduledEvent(time=time, order=order, draft=draft)
 
 
-def test_queue_pops_in_time_then_seq_order() -> None:
-    events = [chat_event(seq=i, time=(i * 37) % 5 * 100) for i in range(50)]
-    shuffled = events[:]
+def test_queue_pops_in_time_then_order() -> None:
+    items = [scheduled(order=i, time=(i * 37) % 5 * 100) for i in range(50)]
+    shuffled = items[:]
     random.Random(7).shuffle(shuffled)
     queue = EventQueue()
-    for event in shuffled:
-        queue.push(event)
-    popped = [queue.pop() for _ in range(len(events))]
-    assert popped == sorted(events, key=lambda e: e.sort_key())
+    for item in shuffled:
+        queue.push(item)
+    popped = [queue.pop() for _ in range(len(items))]
+    assert popped == sorted(items, key=lambda s: (s.time, s.order))
 
 
 def test_queue_peek_and_len() -> None:
     queue = EventQueue()
     assert len(queue) == 0
-    queue.push(chat_event(seq=1, time=200))
-    queue.push(chat_event(seq=0, time=100))
+    queue.push(scheduled(order=1, time=200))
+    queue.push(scheduled(order=0, time=100))
     assert len(queue) == 2
-    assert queue.peek().seq == 0
+    assert queue.peek().order == 0
     assert len(queue) == 2
 
 
 def test_queue_snapshot_is_sorted() -> None:
     queue = EventQueue()
-    queue.push(chat_event(seq=2, time=300))
-    queue.push(chat_event(seq=0, time=100))
-    queue.push(chat_event(seq=1, time=100))
-    assert [e.seq for e in queue.snapshot()] == [0, 1, 2]
+    queue.push(scheduled(order=2, time=300))
+    queue.push(scheduled(order=0, time=100))
+    queue.push(scheduled(order=1, time=100))
+    assert [s.order for s in queue.snapshot()] == [0, 1, 2]
 
 
 def test_pop_empty_raises() -> None:

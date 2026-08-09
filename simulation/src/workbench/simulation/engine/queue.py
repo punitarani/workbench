@@ -1,23 +1,38 @@
-"""Event queue totally ordered by (time, seq)."""
+"""Queue of scheduled drafts, totally ordered by (time, order).
+
+Only the engine mints seq — at pop time, when a draft becomes a world event.
+That keeps the world log gapless in seq and non-decreasing in time even when
+resolutions schedule far-future events.
+"""
 
 import heapq
 
-from workbench.core.events import Event
+from pydantic import BaseModel, ConfigDict, Field
+
+from workbench.core.events import EventDraft
+
+
+class ScheduledEvent(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    time: int = Field(ge=0)
+    order: int = Field(ge=0)
+    draft: EventDraft
 
 
 class EventQueue:
     def __init__(self) -> None:
-        self._heap: list[tuple[tuple[int, int], Event]] = []
+        self._heap: list[tuple[tuple[int, int], ScheduledEvent]] = []
 
-    def push(self, event: Event) -> None:
-        heapq.heappush(self._heap, (event.sort_key(), event))
+    def push(self, item: ScheduledEvent) -> None:
+        heapq.heappush(self._heap, ((item.time, item.order), item))
 
-    def pop(self) -> Event:
+    def pop(self) -> ScheduledEvent:
         if not self._heap:
             raise IndexError("pop from empty EventQueue")
         return heapq.heappop(self._heap)[1]
 
-    def peek(self) -> Event:
+    def peek(self) -> ScheduledEvent:
         if not self._heap:
             raise IndexError("peek at empty EventQueue")
         return self._heap[0][1]
@@ -25,5 +40,5 @@ class EventQueue:
     def __len__(self) -> int:
         return len(self._heap)
 
-    def snapshot(self) -> tuple[Event, ...]:
-        return tuple(event for _, event in sorted(self._heap, key=lambda p: p[0]))
+    def snapshot(self) -> tuple[ScheduledEvent, ...]:
+        return tuple(item for _, item in sorted(self._heap, key=lambda p: p[0]))

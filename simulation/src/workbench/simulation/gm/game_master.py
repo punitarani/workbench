@@ -1,0 +1,32 @@
+"""The game-master contract the engine drives.
+
+Control flow is typed decisions, not free text. Implementations decide how
+much of each decision is code and how much is a language model.
+"""
+
+from typing import Protocol
+
+from workbench.core.actions import (
+    ActionSpec,
+    EntityAction,
+    NextActingDecision,
+    ResolutionDecision,
+    TerminateDecision,
+)
+from workbench.core.events import Event
+
+
+class GameMaster(Protocol):
+    async def route(self, event: Event) -> tuple[str, ...]:
+        """Who observes this event, in delivery order. Pure by convention."""
+        ...
+
+    async def next_acting(self, event: Event) -> NextActingDecision: ...
+
+    async def action_spec_for(self, entity: str, event: Event) -> ActionSpec: ...
+
+    async def resolve(
+        self, entity: str, action: EntityAction, spec: ActionSpec, event: Event
+    ) -> ResolutionDecision: ...
+
+    async def should_terminate(self) -> TerminateDecision: ...

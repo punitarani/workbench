@@ -63,6 +63,14 @@ class AttentionBook:
             update={"heads_down_until": None, "allow": ()}
         )
 
+    def flushable(self, entity: str, *, now: SimTime) -> bool:
+        entry = self._entry(entity)
+        return (
+            entry.heads_down_until is not None
+            and int(now) >= entry.heads_down_until
+            and bool(entry.deferred)
+        )
+
     def defer(self, entity: str, event: Event) -> None:
         entry = self._entry(entity)
         self._entries[entity] = entry.model_copy(

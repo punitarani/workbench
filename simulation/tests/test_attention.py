@@ -104,3 +104,12 @@ def test_timer_state_round_trip() -> None:
     fresh = TimerBook()
     fresh.set_state(book.get_state())
     assert [t.timer_id for t in fresh.due(SimTime(100))] == ["x"]
+
+
+def test_flushable_only_when_expired_with_deferred() -> None:
+    book = AttentionBook(entities=("daniel",))
+    assert not book.flushable("daniel", now=SimTime(0))
+    book.set_heads_down("daniel", until=SimTime(500), allow=())
+    book.defer("daniel", email(1))
+    assert not book.flushable("daniel", now=SimTime(100))
+    assert book.flushable("daniel", now=SimTime(500))
