@@ -30,7 +30,7 @@ flowchart LR
   M --> H
 ```
 
-**Offstage — `simulation/`, `workplaces/`.** `simulation/` is the domain-neutral engine: people, roles, relationships, calendars, events, and the DSPy/GEPA-optimized programs that keep a persona consistent across turns. `workplaces/` holds concrete definitions — an accounting firm, a legal department, a consulting engagement — expressed with the engine's primitives.
+**Offstage — `simulation/`, `workplaces/`.** `simulation/` is the domain-neutral engine — a clean-room, typed, async, deterministic rebuild of the Concordia generative agent-based modeling pattern: composed entities, a grounded game master that turns intents into typed world events, an interrupt-driven engine over simulated time, and a record/replay LM layer. Persona reasoning runs as DSPy programs (GEPA-optimizable). `workplaces/` holds concrete definitions — a legal department today; an accounting firm next — expressed with the engine's primitives. See [`docs/simulation-engine.md`](docs/simulation-engine.md).
 
 **Onstage — `workbench/`.** The environment the agent inhabits: the container image, the in-container runtime, and the tool surface. Simulation output reaches the agent in exactly two forms — workspace data materialized before the run, and multi-agent modules served at runtime as tools. Neither exposes personas, hidden state, or ground truth.
 
@@ -51,10 +51,10 @@ The Python packages form one [uv](https://docs.astral.sh/uv/) workspace sharing 
 
 | Directory | Distribution | Imports as |
 |---|---|---|
-| `workbench/` | `workbench` | `workbench.core`, `workbench.environment`, `workbench.tools` |
+| `workbench/` | `workbench` | `workbench.core` (`workbench.environment`, `workbench.tools` arrive with the tool phase) |
 | `simulation/` | `workbench-simulation` | `workbench.simulation` |
 | `workplaces/` | `workbench-workplaces` | `workbench.workplaces.<name>` |
-| `adapters/` | `workbench-adapters` | `workbench.adapters.<framework>` |
+| `adapters/` | — | deferred until a concrete non-MCP consumer exists |
 
 `src/workbench/` is a [PEP 420](https://peps.python.org/pep-0420/) namespace package, so no package in the workspace defines `src/workbench/__init__.py`.
 

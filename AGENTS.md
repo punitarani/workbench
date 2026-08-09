@@ -18,6 +18,7 @@ workbench.environment / workbench.tools        workbench.adapters
 ```
 
 * Dependencies point inward toward `workbench.core`. Never import outward or sideways.
+* `workbench.core` owns the event vocabulary: the typed primitives of professional work (messages, tickets, documents, calendar, intents). Tools own their presentation schemas; simulation owns behavior; workplaces compose both. New payload kinds are declared in core's closed union, never elsewhere.
 * `workbench.environment` and `workbench.tools` must not import `workbench.simulation` or `workbench.workplaces`.
 * `workbench.adapters` depends on `workbench.core` and task formats — never on a workplace.
 * `datasets/` is data plus shell scripts. It imports nothing from the workspace at task runtime.

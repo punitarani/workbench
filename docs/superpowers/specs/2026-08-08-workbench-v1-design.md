@@ -30,9 +30,9 @@ runtime: agent occupies one seat  ──►  MCP tools  ──►  Reward Kit sc
 
 One simulation, two modes. During generation the agent's seat is played by a demonstrator model (which also yields the reference solution). During evaluation the same seat is externalized to the real agent under test. Everything else — personas, systems, history — is identical between modes.
 
-## 2. Foundation: Concordia v2
+## 2. Foundation: the Concordia pattern, rebuilt clean-room
 
-`simulation/` builds on [gdm-concordia](https://github.com/google-deepmind/concordia) (Apache-2.0, PyPI `gdm-concordia >= 2.4`), DeepMind's library for generative agent-based modeling. What we take from it:
+*Revised 2026-08-08: a source audit of gdm-concordia 2.4.0 (no determinism story — dead `seed` plumbing, unseeded per-prompt RNG, PYTHONHASHSEED-dependent dedup; sync-only threading; checkpoints that cannot resume; `Mapping[str, str]` params violated by every prefab) led to rebuilding the pattern rather than depending on the library. `simulation/` has no Concordia dependency. Its proven ideas are preserved:*
 
 * **Entity–component architecture.** Actors are entities assembled from components; game masters are themselves entities. Prefabs + `InstanceConfig` compose a simulation declaratively.
 * **Engine loop.** `next_acting → act → resolve`: the engine solicits actions, the game master resolves them into events. Sequential and simultaneous engines exist.
