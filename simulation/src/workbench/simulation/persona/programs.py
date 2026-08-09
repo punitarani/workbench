@@ -9,7 +9,12 @@ from typing import Literal
 import dspy
 from pydantic import BaseModel, ConfigDict
 
-from workbench.core.intents import ChatDraft, DocumentEdit, EmailDraft
+from workbench.core.intents import (
+    ChatDraft,
+    DocumentEdit,
+    EmailDraft,
+    TicketCreateSpec,
+)
 from workbench.simulation.persona.working_memory import PendingItem
 
 
@@ -20,6 +25,7 @@ class ActionChoice(BaseModel):
         "reply_email",
         "send_email",
         "post_chat",
+        "create_ticket",
         "comment_ticket",
         "revise_document",
         "idle",
@@ -75,6 +81,20 @@ class DraftChatMessage(dspy.Signature):
     draft: ChatDraft = dspy.OutputField()
 
 
+class DraftTicket(dspy.Signature):
+    """Open a work-tracking ticket for this request. Use only status,
+    priority, and type values from the workplace norms given; name real
+    people from the situation as requester and assignee."""
+
+    identity: str = dspy.InputField()
+    situation: str = dspy.InputField(desc="what happened and who is involved")
+    intent: str = dspy.InputField()
+    workplace_norms: str = dspy.InputField(
+        desc="valid ticket statuses, priorities, and types"
+    )
+    ticket: TicketCreateSpec = dspy.OutputField()
+
+
 class DraftDocumentEdit(dspy.Signature):
     """Revise the document to accomplish the intent. Return the complete new
     text, preserving everything not implicated by the intent. Ground every
@@ -95,4 +115,5 @@ class ProfessionalActor(dspy.Module):
         self.decide = dspy.Predict(DecideNextAction)
         self.draft_email = dspy.Predict(DraftEmail)
         self.draft_chat = dspy.Predict(DraftChatMessage)
+        self.draft_ticket = dspy.Predict(DraftTicket)
         self.draft_document = dspy.Predict(DraftDocumentEdit)

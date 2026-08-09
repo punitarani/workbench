@@ -32,11 +32,13 @@ class ProfessionalActorAct:
         working_memory: WorkingMemoryComponent,
         lm: WorkbenchLM,
         actor: ProfessionalActor | None = None,
+        workplace_norms: str = "",
     ) -> None:
         self._params = params
         self._memory = working_memory
         self._lm = lm
         self._actor = actor if actor is not None else ProfessionalActor()
+        self._workplace_norms = workplace_norms
 
     async def get_action_attempt(
         self, blocks: tuple[ContextBlock, ...], spec: ActionSpec
@@ -73,6 +75,10 @@ class ProfessionalActorAct:
                 return IdleIntent(until_minutes=self._params.check_interval_minutes)
             case "reply_email" | "send_email":
                 thread_ref = choice.target_ref
+                if thread_ref is not None:
+                    thread_ref = (
+                        self._memory.resolve_thread_ref(thread_ref) or thread_ref
+                    )
                 thread_text = (
                     render_thread(events, thread_ref) if thread_ref else ""
                 )
@@ -112,6 +118,18 @@ class ProfessionalActorAct:
                     ticket_ref=choice.target_ref,
                     comment=choice.intent,
                 )
+            case "create_ticket":
+                prediction = await self._actor.draft_ticket.acall(
+                    identity=identity,
+                    situation=f"{facts}\n\nPending:\n"
+                    + "\n".join(
+                        f"- {item.channel} {item.ref}: {item.summary}"
+                        for item in self._memory.pending_items()
+                    ),
+                    intent=choice.intent,
+                    workplace_norms=self._workplace_norms,
+                )
+                return TicketIntent(ticket_ref=None, create=prediction.ticket)
             case "revise_document":
                 return await self._route_document(
                     choice, identity=identity, facts=facts, knowledge=knowledge

@@ -231,3 +231,23 @@ def test_intent_durations_are_pure() -> None:
     )
     assert intent_duration(intent) == intent_duration(intent)
     assert intent_duration(intent) > 0
+
+
+async def test_email_address_resolves_to_person() -> None:
+    gm = make_gm()
+    intent = EmailIntent(
+        thread_ref=None,
+        reply_to_ref=None,
+        draft=EmailDraft(
+            to=("jess@example.com",),
+            subject="hi",
+            body="x",
+            summary="s",
+        ),
+    )
+    decision = await gm.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    payload = decision.drafts[0].payload
+    assert payload.kind == "email.message"
+    assert payload.to == ("per-jess-alvarez",)

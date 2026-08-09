@@ -72,3 +72,27 @@ async def test_state_round_trips() -> None:
     fresh = WorkingMemoryComponent(person_id="per-daniel-reyes")
     fresh.set_state(state)
     assert fresh.pending_items() == memory.pending_items()
+
+
+async def test_situation_block_lists_documents_and_pending() -> None:
+    from workbench.core.events import Event
+    from workbench.core.events.documents import DocumentCreatedPayload
+
+    memory = await make_memory()
+    doc = DocumentCreatedPayload(
+        kind="document.created",
+        document_id="doc-000009",
+        author="per-daniel-reyes",
+        title="NDA Playbook",
+        path="/legal/playbooks/nda-playbook.md",
+        location="repository",
+        content_format="markdown",
+        content="x",
+    )
+    await memory.pre_observe(
+        Event(seq=90, time=40000, tag=doc.kind, source="gm", payload=doc)
+    )
+    block = await memory.pre_act(spec())
+    assert block is not None
+    assert "/legal/playbooks/nda-playbook.md" in block.content
+    assert "pending" in block.content.casefold()

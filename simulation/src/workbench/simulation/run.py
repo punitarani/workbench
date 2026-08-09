@@ -61,6 +61,12 @@ async def run_compiled(
         ticket_vocabulary=compiled.ticket_vocabulary,
     )
 
+    vocab = compiled.ticket_vocabulary
+    workplace_norms = (
+        f"Ticket statuses: {', '.join(vocab.statuses)}. "
+        f"Priorities: {', '.join(vocab.priorities)}. "
+        f"Types: {', '.join(vocab.ticket_types)}."
+    )
     entities: list[ComposedEntity] = []
     memories: dict[str, WorkingMemoryComponent] = {}
     for entity_name, params in compiled.personas:
@@ -76,7 +82,10 @@ async def run_compiled(
                 name=entity_name,
                 components=(memory,),
                 act_component=ProfessionalActorAct(
-                    params=params, working_memory=memory, lm=lm
+                    params=params,
+                    working_memory=memory,
+                    lm=lm,
+                    workplace_norms=workplace_norms,
                 ),
             )
         )

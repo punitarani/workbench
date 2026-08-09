@@ -20,6 +20,7 @@ class WorldState:
     def __init__(self) -> None:
         self.people: dict[str, PersonRecordPayload] = {}
         self.name_to_person: dict[str, str] = {}
+        self.email_to_person: dict[str, str] = {}
         self.threads: dict[str, str] = {}  # message_id -> thread_id
         self.thread_ids: set[str] = set()
         self.conversations: dict[str, tuple[str, ...]] = {}
@@ -35,6 +36,9 @@ class WorldState:
             case PersonRecordPayload():
                 self.people[payload.person_id] = payload
                 self.name_to_person[payload.name.casefold()] = payload.person_id
+                self.email_to_person[payload.email_address.casefold()] = (
+                    payload.person_id
+                )
             case EmailMessagePayload():
                 self.threads[payload.message_id] = payload.thread_id
                 self.thread_ids.add(payload.thread_id)
@@ -78,6 +82,8 @@ class WorldState:
         folded = ref.casefold()
         if folded in self.name_to_person:
             return self.name_to_person[folded]
+        if folded in self.email_to_person:
+            return self.email_to_person[folded]
         first_name_hits = [
             person_id
             for name, person_id in self.name_to_person.items()

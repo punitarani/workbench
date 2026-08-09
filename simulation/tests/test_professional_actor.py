@@ -108,3 +108,50 @@ async def test_idle_route_needs_no_drafter() -> None:
     action = await actor.get_action_attempt((), spec())
     assert isinstance(action.intent, IdleIntent)
     assert inner.calls == 1
+
+
+DECIDE_REPLY_BY_MSG_ID = (
+    "[[ ## choice ## ]]\n"
+    '{"action": "reply_email", "target_ref": "msg-000001", '
+    '"intent": "Acknowledge", "reason": "Direct request"}\n\n'
+    "[[ ## completed ## ]]"
+)
+
+
+async def test_message_id_target_ref_resolves_to_thread() -> None:
+    actor, _ = await make_actor([DECIDE_REPLY_BY_MSG_ID, DRAFT_EMAIL])
+    action = await actor.get_action_attempt((), spec())
+    assert isinstance(action.intent, EmailIntent)
+    assert action.intent.thread_ref == "thr-000001", (
+        "a message-id ref must resolve to its thread"
+    )
+    assert action.intent.reply_to_ref == "msg-000001"
+
+
+DECIDE_CREATE_TICKET = (
+    "[[ ## choice ## ]]\n"
+    '{"action": "create_ticket", "target_ref": null, '
+    '"intent": "Open an NDA review matter", "reason": "New inbound NDA"}\n\n'
+    "[[ ## completed ## ]]"
+)
+
+DRAFT_TICKET = (
+    "[[ ## ticket ## ]]\n"
+    '{"title": "Review Vantage NDA", "description": "Inbound NDA from vendor.", '
+    '"requester_ref": "Jess Alvarez", "assignee_ref": "Daniel Reyes", '
+    '"status": "open", "priority": "normal", "ticket_type": "nda-review"}\n\n'
+    "[[ ## completed ## ]]"
+)
+
+
+async def test_create_ticket_route() -> None:
+    from workbench.core.intents import TicketIntent
+
+    actor, inner = await make_actor([DECIDE_CREATE_TICKET, DRAFT_TICKET])
+    action = await actor.get_action_attempt((), spec())
+    assert isinstance(action.intent, TicketIntent)
+    assert action.intent.ticket_ref is None
+    assert action.intent.create is not None
+    assert action.intent.create.ticket_type == "nda-review"
+    assert action.intent.create.requester_ref == "Jess Alvarez"
+    assert inner.calls == 2

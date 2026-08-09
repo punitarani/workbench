@@ -17,8 +17,17 @@ class _Intent(BaseModel):
 
 
 class EmailDraft(_Intent):
-    to: tuple[str, ...] = Field(min_length=1)
-    cc: tuple[str, ...] = ()
+    to: tuple[str, ...] = Field(
+        min_length=1,
+        description=(
+            "Recipients by full name exactly as they appear in the thread or "
+            "directory (e.g. 'Tom Okafor'). Never invent addresses."
+        ),
+    )
+    cc: tuple[str, ...] = Field(
+        default=(),
+        description="Cc recipients by full name from the thread or directory.",
+    )
     subject: str
     body: str
     summary: str
@@ -47,11 +56,15 @@ class ChatIntent(_Intent):
 class TicketCreateSpec(_Intent):
     title: str
     description: str
-    requester_ref: str
-    assignee_ref: str | None
-    status: str
-    priority: str
-    ticket_type: str
+    requester_ref: str = Field(
+        description="Who asked for this, by full name (e.g. 'Jess Alvarez')."
+    )
+    assignee_ref: str | None = Field(
+        description="Who should own it, by full name; null if unassigned."
+    )
+    status: str = Field(description="One of the workplace's ticket statuses.")
+    priority: str = Field(description="One of the workplace's priorities.")
+    ticket_type: str = Field(description="One of the workplace's ticket types.")
 
 
 class TicketIntent(_Intent):

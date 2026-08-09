@@ -8,15 +8,18 @@ itself said, and drafts must not contradict it.
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from workbench.core.actions import EntityAction, IntentAction
+from workbench.core.actions import ActionSpec, EntityAction, IntentAction
 from workbench.core.events import Event
 from workbench.core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
 )
+from workbench.core.events.documents import DocumentCreatedPayload
 from workbench.core.events.email import EmailMessagePayload
+from workbench.core.events.tickets import TicketCreatedPayload
 from workbench.core.intents import ChatIntent, EmailIntent
 from workbench.simulation.entity.component import BaseComponent
+from workbench.simulation.entity.context import ContextBlock
 
 
 class PendingItem(BaseModel):
@@ -47,6 +50,27 @@ class WorkingMemoryComponent(BaseComponent):
         )
         return None
 
+    async def pre_act(self, spec: ActionSpec) -> ContextBlock | None:
+        now = self.last_time()
+        clock = f"{now // 3600:02d}:{(now % 3600) // 60:02d}"
+        documents = [
+            e.payload.path
+            for e in self._state.events
+            if isinstance(e.payload, DocumentCreatedPayload)
+        ]
+        tickets = [
+            f"{e.payload.ticket_id}: {e.payload.title}"
+            for e in self._state.events
+            if isinstance(e.payload, TicketCreatedPayload)
+        ]
+        lines = [f"Current time: about {clock}."]
+        if documents:
+            lines.append("Documents you know of: " + "; ".join(documents))
+        if tickets:
+            lines.append("Tickets you know of: " + "; ".join(tickets))
+        lines.append(f"You have {len(self.pending_items())} pending item(s).")
+        return ContextBlock(label="Situation", content="\n".join(lines))
+
     async def post_act(self, action: EntityAction) -> None:
         if not isinstance(action, IntentAction):
             return
@@ -66,6 +90,17 @@ class WorkingMemoryComponent(BaseComponent):
         if not self._state.events:
             return 0
         return int(self._state.events[-1].time)
+
+    def resolve_thread_ref(self, ref: str) -> str | None:
+        """Accept a thread id or a message id; return the thread id."""
+        for event in self._state.events:
+            payload = event.payload
+            if isinstance(payload, EmailMessagePayload):
+                if payload.thread_id == ref:
+                    return ref
+                if payload.message_id == ref:
+                    return payload.thread_id
+        return None
 
     def pending_items(self) -> tuple[PendingItem, ...]:
         now = self.last_time()

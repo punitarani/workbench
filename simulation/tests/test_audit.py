@@ -128,4 +128,10 @@ def test_register_check_flags_verbose_chat() -> None:
 def test_registry_enumerates_named_predictors() -> None:
     actor = programs()["professional_actor"]
     names = {name for name, _ in actor.named_predictors()}
-    assert names == {"decide", "draft_email", "draft_chat", "draft_document"}
+    assert names == {
+        "decide",
+        "draft_email",
+        "draft_chat",
+        "draft_ticket",
+        "draft_document",
+    }
