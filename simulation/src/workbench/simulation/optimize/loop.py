@@ -98,10 +98,13 @@ Across evaluation days it scored {mean:.2f} out of 1.00. Specific misses:
 
 Rewrite the instruction to fix these specific misses while keeping its
 existing strengths (no invented work, no acknowledgment-only messages, no
-redone work). Keep it under 220 words, imperative voice, plain prose.
-Variant {variant}: emphasize a different aspect of the fixes than other
-variants would. Reply with the revised instruction text only — no preamble,
-no quotes, no markup."""
+redone work). The instruction is used across many different workdays:
+state norms generically and never mention specific documents, people,
+channels, amounts, or wording from the evaluation days — an instruction
+that names them is invalid. Keep it under 220 words, imperative voice,
+plain prose. Variant {variant}: emphasize a different aspect of the fixes
+than other variants would. Reply with the revised instruction text only —
+no preamble, no quotes, no markup."""
 
 
 async def propose(
@@ -111,7 +114,11 @@ async def propose(
     model: str,
     children: int,
     seed_base: int,
+    banned_terms: tuple[str, ...] = (),
 ) -> list[InstructionSet]:
+    """Proposals naming scenario specifics are rejected mechanically: an
+    instruction that quotes the evaluation day is reward hacking, however
+    well it scores."""
     findings = "\n".join(f"- {finding}" for finding in parent.findings()) or "- none"
     current = parent.instructions.decide or ""
 
@@ -132,6 +139,8 @@ async def propose(
         text = response.text.strip()
         if len(text) < 80:
             return None
+        if any(term in text.lower() for term in banned_terms):
+            return None
         return parent.instructions.model_copy(update={"decide": text})
 
     proposals = await asyncio.gather(*(one(i) for i in range(1, children + 1)))
@@ -149,6 +158,7 @@ async def optimize(
     reflect_lm: LanguageModel,
     model: str,
     out_root: Path,
+    banned_terms: tuple[str, ...] = (),
 ) -> OptimizationResult:
     history: list[CandidateResult] = []
     try:
@@ -169,6 +179,7 @@ async def optimize(
                 model=model,
                 children=children,
                 seed_base=generation * 1000,
+                banned_terms=banned_terms,
             )
             results = await asyncio.gather(
                 *(

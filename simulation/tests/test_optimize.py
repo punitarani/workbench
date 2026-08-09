@@ -120,3 +120,21 @@ async def _idle_result():
             model="test/model",
             out_root=Path(tmp),
         )
+
+
+async def test_propose_rejects_scenario_specific_text() -> None:
+    base = await _idle_result()
+    leaky = ScriptLM(
+        "Post the forty-five day correction to the draft before any status. "
+        "Verify the change exists in the repository; never claim completion "
+        "without checking. Idle when nothing needs you."
+    )
+    rejected = await propose(
+        base,
+        reflect_lm=leaky,
+        model="m",
+        children=2,
+        seed_base=0,
+        banned_terms=("forty-five",),
+    )
+    assert rejected == [], "instructions quoting the evaluation day are invalid"

@@ -22,7 +22,10 @@ from workbench.simulation.optimize.instructions import (
     current_instructions,
 )
 from workbench.simulation.optimize.loop import optimize
-from workbench.simulation.optimize.scenario import optimization_spec
+from workbench.simulation.optimize.scenario import (
+    BANNED_INSTRUCTION_TERMS,
+    optimization_spec,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -64,6 +67,7 @@ def main(argv: list[str] | None = None) -> int:
             reflect_lm=budgeted,
             model=args.model,
             out_root=args.out,
+            banned_terms=BANNED_INSTRUCTION_TERMS,
         )
     )
 
