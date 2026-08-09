@@ -1,11 +1,14 @@
 [project]
 name = "workbench"
 version = "0.1.0"
-description = "Workbench core contracts, agent-facing tools, and environment assembly"
+description = "Workbench core contracts and environment assembly"
 requires-python = ">=3.14"
+# workbench-tools is needed by workbench.environment only; workbench.core must
+# stay dependency-light. The resulting metadata cycle (tools needs core) is
+# deliberate and resolved by uv — see tools/pyproject.toml.
 dependencies = [
     "pydantic>=2.10",
-    "mcp>=2.0",
+    "workbench-tools",
 ]
 
 [build-system]
@@ -13,4 +16,7 @@ requires = ["uv_build>=0.11,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = ["workbench.core", "workbench.tools", "workbench.environment"]
+module-name = ["workbench.core", "workbench.environment"]
+
+[tool.uv.sources]
+workbench-tools = { workspace = true }

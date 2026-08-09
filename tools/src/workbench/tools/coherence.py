@@ -35,7 +35,7 @@ def check_coherence(state_dir: Path) -> tuple[CoherenceFinding, ...]:
     }
     try:
         people: set[str] = set()
-        for name, connection in connections.items():
+        for connection in connections.values():
             people |= {r[0] for r in connection.execute("SELECT person_id FROM people")}
 
         documents = {

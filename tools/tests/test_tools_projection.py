@@ -3,7 +3,7 @@
 import sqlite3
 from pathlib import Path
 
-from worldlog_fixtures import coherent_events
+from projection_fixtures import coherent_events
 
 from workbench.tools import PROJECTORS, project_all
 from workbench.tools.coherence import check_coherence

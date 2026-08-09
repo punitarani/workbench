@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-from worldlog_fixtures import coherent_events
+from projection_fixtures import coherent_events
 
 from workbench.tools import project_all
 from workbench.tools.server import build_server

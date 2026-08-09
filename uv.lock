@@ -6,6 +6,7 @@ requires-python = ">=3.14"
 members = [
     "workbench",
     "workbench-simulation",
+    "workbench-tools",
     "workbench-workplaces",
 ]
 constraints = [{ name = "litellm", specifier = "<1.95" }]
@@ -1425,14 +1426,14 @@ name = "workbench"
 version = "0.1.0"
 source = { editable = "workbench" }
 dependencies = [
-    { name = "mcp" },
     { name = "pydantic" },
+    { name = "workbench-tools" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "mcp", specifier = ">=2.0" },
     { name = "pydantic", specifier = ">=2.10" },
+    { name = "workbench-tools", editable = "tools" },
 ]
 
 [[package]]
@@ -1450,6 +1451,23 @@ dependencies = [
 requires-dist = [
     { name = "dspy", specifier = ">=3.3,<3.4" },
     { name = "httpx", specifier = ">=0.27" },
+    { name = "pydantic", specifier = ">=2.10" },
+    { name = "workbench", editable = "workbench" },
+]
+
+[[package]]
+name = "workbench-tools"
+version = "0.1.0"
+source = { editable = "tools" }
+dependencies = [
+    { name = "mcp" },
+    { name = "pydantic" },
+    { name = "workbench" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mcp", specifier = ">=2.0" },
     { name = "pydantic", specifier = ">=2.10" },
     { name = "workbench", editable = "workbench" },
 ]
