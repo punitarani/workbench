@@ -21,12 +21,22 @@ Write **`deadline.json`** to the workspace root:
   "operative_date": "<YYYY-MM-DD of the hearing as it currently stands>",
   "operative_time": "<HH:MM local time of the hearing>",
   "correction_ts": "<Slack ts of the message that establishes the operative date>",
-  "superseded_dates": ["<YYYY-MM-DD>", "..."]
+  "superseded_dates": ["<YYYY-MM-DD>", "..."],
+  "supersessions": [
+    {
+      "invalidated": "<YYYY-MM-DD superseded hearing date>",
+      "by": "<Gmail message id or Slack ts of the record that invalidated it>"
+    }
+  ]
 }
 ```
 
 `superseded_dates` lists every previously noticed hearing date in the
-order they were set. Do not stop at the court's written notices: verify
+order they were set. `supersessions` names, for **each** superseded date,
+the specific record that invalidated it — the Gmail message id of the
+notice that moved the hearing off that date, or the Slack ts if the move
+was never noticed in writing. Do not stop at the court's written notices,
+and do not assume the most recent internal mail is current: verify
 against everything the firm recorded afterward, and cite (via
 `correction_ts`) the record that makes your operative date the operative
 one.

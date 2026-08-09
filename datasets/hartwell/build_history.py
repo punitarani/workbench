@@ -16,6 +16,7 @@ bytes are identical; in full mode it requires a warmed content cache.
 import argparse
 import asyncio
 import os
+import re
 import sys
 from collections import Counter
 from collections.abc import Mapping
@@ -45,16 +46,23 @@ from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
 from workbench.tools import check_coherence
 from workbench.workplaces.hartwell import WINDOW, build_genesis, procedural_cast
 from workbench.workplaces.hartwell.storylines import (
+    ARCHWAY_NDA_TITLE,
     ARROYO_HEARING_TITLE,
+    BAYMARK_NDA_TITLE,
     CASCADIA_LETTER_TITLE,
     INDEMNITY_PARAGRAPH,
     IRONCLAD_NDA_TITLE,
     LEXIPOINT_NDA_TITLE,
     LUMEN_AGREEMENT_TITLE,
+    LUMEN_SOW_TITLE,
     PLAYBOOK_TITLE,
+    S1_IRONCLAD_THREAD_REPLY,
+    S2_CUTOFF_CHAT,
     S2_TICKET,
     S4_CLOSED_DATE,
     S4_TICKET,
+    S5_DM_CORRECTION,
+    S5_RECAP_SUBJECT,
     StorylineDirector,
     author_content,
     missing_content,
@@ -225,6 +233,38 @@ def audit(log_path: Path, state_dir: Path) -> int:
             and "Reject any residual-knowledge clause" in playbook[3]
         ),
     )
+    for title in (BAYMARK_NDA_TITLE, ARCHWAY_NDA_TITLE):
+        conforming = dict(docs[title])
+        check(
+            f"distractor NDA conforms in every version: {title.split(' — ')[1]}",
+            len(conforming) >= 2
+            and all(
+                "three (3) years" in content and "Residual Knowledge" not in content
+                for content in conforming.values()
+            ),
+        )
+    ironclad_emails = [
+        event.payload.body
+        for event in events
+        if isinstance(event.payload, EmailMessagePayload)
+        and "Ironclad NDA" in event.payload.subject
+    ]
+    chat_bodies = [
+        event.payload.body
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload)
+    ]
+    check(
+        "Ironclad flip is invisible to keyword search: no email or chat "
+        "says 'residual'",
+        len(ironclad_emails) >= 2
+        and all("residual" not in body.lower() for body in ironclad_emails)
+        and all("residual" not in body.lower() for body in chat_bodies),
+    )
+    check(
+        "the concession is discussed only in the oblique #matters reply",
+        sum(1 for body in chat_bodies if body == S1_IRONCLAD_THREAD_REPLY) == 1,
+    )
 
     print("S2 Meridian fee dispute:")
     spike = [
@@ -258,17 +298,96 @@ def audit(log_path: Path, state_dir: Path) -> int:
         f"{total_minutes} min joins to the May 8 dispute email",
         len(spike) >= 5 and total_minutes > 600 and len(dispute) == 1,
     )
+    decoys = [
+        event
+        for event in events
+        if isinstance(event.payload, TimeLoggedPayload)
+        and event.payload.ticket_id == S2_TICKET
+        and (
+            "diligence" in event.payload.note.lower()
+            or "data room" in event.payload.note.lower()
+        )
+        and _event_date(event) <= "2026-04-03"
+    ]
+    check(
+        f"{len(decoys)} near-miss diligence entries before the cutoff",
+        len(decoys) >= 3,
+    )
     check("long Clio resolution note on the matter", len(notes) >= 1)
+    date_pattern = re.compile(r"April\s+0?3\b|2026-04-03|\b4/3\b")
+    note_bodies = [event.payload.body for event in notes]
+    check(
+        "the note keeps the narrative but no dates, figures, or client names",
+        all(
+            not date_pattern.search(body)
+            and "$" not in body
+            and not re.search(r"2026-\d\d-\d\d", body)
+            and "Priya" not in body
+            and "Raman" not in body
+            for body in note_bodies
+        ),
+    )
+    email_bodies = [
+        event.payload.body
+        for event in events
+        if isinstance(event.payload, EmailMessagePayload)
+        and "Meridian" in event.payload.subject
+    ]
+    cutoff_chats = [
+        event
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.body == S2_CUTOFF_CHAT
+    ]
+    check(
+        "the Apr 3 cutoff is stated only in the billing-channel message",
+        len(cutoff_chats) == 1
+        and not any(date_pattern.search(body) for body in email_bodies),
+    )
 
     print("S3 dropped indemnity:")
     lumen = dict(docs[LUMEN_AGREEMENT_TITLE])
     check(
-        "indemnity present in v1 and v2, silently absent in v3",
+        "seven versions; indemnity present in v1-v3, silently absent from v4 on",
         (
-            INDEMNITY_PARAGRAPH in lumen[1]
-            and INDEMNITY_PARAGRAPH in lumen[2]
-            and INDEMNITY_PARAGRAPH not in lumen[3]
+            len(lumen) == 7
+            and all(INDEMNITY_PARAGRAPH in lumen[v] for v in (1, 2, 3))
+            and all(INDEMNITY_PARAGRAPH not in lumen[v] for v in (4, 5, 6, 7))
         ),
+    )
+    revisions = {
+        event.payload.revision: event.payload.change_summary
+        for event in events
+        if isinstance(event.payload, DocumentRevisedPayload)
+        and event.payload.content.startswith("# Software License and Support")
+    }
+    check(
+        "every change summary is innocuous; only v4's says 'conformed'",
+        set(revisions) == {2, 3, 4, 5, 6, 7}
+        and all("indemn" not in summary.lower() for summary in revisions.values())
+        and "conform" in revisions[4].lower()
+        and not any(
+            "conform" in summary.lower()
+            for revision, summary in revisions.items()
+            if revision != 4
+        ),
+    )
+    sow = dict(docs[LUMEN_SOW_TITLE])
+    check(
+        "the decoy Lumen SOW has a clean four-version history",
+        len(sow) == 4
+        and all("Indemnification" not in content for content in sow.values()),
+    )
+    quotes = [
+        event
+        for event in events
+        if isinstance(event.payload, EmailMessagePayload)
+        and INDEMNITY_PARAGRAPH in event.payload.body
+    ]
+    check(
+        "the old indemnity text is quoted in email after the drop "
+        + (f"({_event_date(quotes[0])})" if quotes else "(<missing>)"),
+        len(quotes) == 1 and _event_date(quotes[0]) == "2026-06-09",
     )
 
     print("S4 Cascadia souring:")
@@ -319,24 +438,63 @@ def audit(log_path: Path, state_dir: Path) -> int:
         if isinstance(event.payload, CalendarEventScheduledPayload)
         and ARROYO_HEARING_TITLE in event.payload.title
     ]
+    calendar_says = [
+        WINDOW.iso_date(int(event.payload.start) // 86_400) for event in hearings
+    ]
+    dm_ids = {
+        event.payload.conversation_id
+        for event in events
+        if event.payload.kind == "chat.conversation.created"
+        and event.payload.conversation_type == "dm"
+    }
     corrections = [
         event
         for event in events
         if isinstance(event.payload, ChatMessagePayload)
-        and "June 25" in event.payload.body
-    ]
-    calendar_says = [
-        WINDOW.iso_date(int(event.payload.start) // 86_400) for event in hearings
+        and event.payload.body == S5_DM_CORRECTION
     ]
     check(
-        f"three calendar settings {calendar_says}; operative date only in "
-        "the final Slack correction at ts="
+        f"three calendar settings {calendar_says}; the correction lives "
+        "only in a DM at ts="
         + (str(int(corrections[0].time)) if corrections else "<missing>"),
         len(hearings) == 3
         and calendar_says == ["2026-04-28", "2026-05-20", "2026-06-18"]
-        and len(corrections) >= 1
+        and len(corrections) == 1
         and _event_date(corrections[0]) == "2026-06-11"
-        and not any("2026-06-25" in day for day in calendar_says),
+        and corrections[0].payload.conversation_id in dm_ids,
+    )
+    public_chats = [
+        event.payload.body
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.conversation_id not in dm_ids
+    ]
+    all_email_bodies = [
+        event.payload.body
+        for event in events
+        if isinstance(event.payload, EmailMessagePayload)
+    ]
+    check(
+        "no public channel, email, or calendar entry carries the operative date",
+        not any(
+            "June 25" in text or "the 25th" in text
+            for text in (*public_chats, *all_email_bodies)
+        )
+        and "2026-06-25" not in calendar_says,
+    )
+    recaps = [
+        event
+        for event in events
+        if isinstance(event.payload, EmailMessagePayload)
+        and event.payload.subject == S5_RECAP_SUBJECT
+    ]
+    check(
+        "a post-correction recap email restates the superseded June 18 date",
+        bool(corrections)
+        and len(recaps) == 1
+        and _event_date(recaps[0]) == "2026-06-16"
+        and "June 18" in recaps[0].payload.body
+        and int(recaps[0].time) > int(corrections[0].time),
     )
 
     return failures

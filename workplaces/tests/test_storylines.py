@@ -15,6 +15,7 @@ from workbench.core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
+from workbench.core.events.email import EmailMessagePayload
 from workbench.core.events.tickets import TicketCommentedPayload, TicketUpdatedPayload
 from workbench.core.events.work import TimeLoggedPayload
 from workbench.core.seed import Seed
@@ -22,17 +23,23 @@ from workbench.core.worldlog import read_events, validate_events
 from workbench.simulation.errors import ConfigError
 from workbench.workplaces.hartwell import WINDOW, build_genesis
 from workbench.workplaces.hartwell.storylines import (
+    ARCHWAY_NDA_TITLE,
     ARROYO_HEARING_TITLE,
+    BAYMARK_NDA_TITLE,
     CASCADIA_LETTER_TITLE,
     INDEMNITY_PARAGRAPH,
     IRONCLAD_NDA_TITLE,
     LEXIPOINT_NDA_TITLE,
     LUMEN_AGREEMENT_TITLE,
+    LUMEN_SOW_TITLE,
     NDA_RESIDUALS_CLAUSE,
     PLAYBOOK_TITLE,
+    S2_CUTOFF_CHAT,
     S2_TICKET,
     S4_CLOSED_DATE,
     S4_TICKET,
+    S5_DM_CORRECTION,
+    S5_RECAP_SUBJECT,
     StorylineDirector,
     author_content_offline,
     content_requests,
@@ -142,6 +149,21 @@ def test_s1_playbook_and_practice_diverge(full_log: list) -> None:
     assert NDA_RESIDUALS_CLAUSE not in ironclad[1]
     assert NDA_RESIDUALS_CLAUSE in ironclad[2]
 
+    for title in (BAYMARK_NDA_TITLE, ARCHWAY_NDA_TITLE):
+        for content in docs[title].values():
+            assert "three (3) years" in content, "distractor NDAs conform"
+            assert NDA_RESIDUALS_CLAUSE not in content
+
+    chat_bodies = [
+        event.payload.body
+        for event in full_log
+        if isinstance(event.payload, ChatMessagePayload)
+    ]
+    assert any("carve-out LexiPoint" in body for body in chat_bodies), (
+        "the Ironclad concession is discussed only obliquely in chat"
+    )
+    assert not any("residual" in body.lower() for body in chat_bodies)
+
 
 def test_s2_fee_dispute_joins_activities_to_email_dates(full_log: list) -> None:
     spike = [
@@ -158,6 +180,27 @@ def test_s2_fee_dispute_joins_activities_to_email_dates(full_log: list) -> None:
     assert len(spike) >= 5
     assert sum(event.payload.minutes for event in spike) > 600
 
+    decoys = [
+        event
+        for event in full_log
+        if isinstance(event.payload, TimeLoggedPayload)
+        and event.payload.ticket_id == S2_TICKET
+        and (
+            "diligence" in event.payload.note.lower()
+            or "data room" in event.payload.note.lower()
+        )
+        and _event_date(event) <= "2026-04-03"
+    ]
+    assert len(decoys) >= 3, "near-miss entries before the cutoff"
+
+    cutoff_chats = [
+        event
+        for event in full_log
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.body == S2_CUTOFF_CHAT
+    ]
+    assert len(cutoff_chats) == 1 and _event_date(cutoff_chats[0]) == "2026-05-12"
+
     notes = [
         event
         for event in full_log
@@ -168,21 +211,43 @@ def test_s2_fee_dispute_joins_activities_to_email_dates(full_log: list) -> None:
     assert len(notes) == 1 and _event_date(notes[0]) == "2026-05-15"
 
 
-def test_s3_indemnity_drops_silently_in_v3(full_log: list) -> None:
+def test_s3_indemnity_drops_silently_in_v4(full_log: list) -> None:
     lumen = _versions_by_title(full_log)[LUMEN_AGREEMENT_TITLE]
-    assert INDEMNITY_PARAGRAPH in lumen[1]
-    assert INDEMNITY_PARAGRAPH in lumen[2]
-    assert INDEMNITY_PARAGRAPH not in lumen[3]
-    revision3 = next(
-        event.payload
+    assert set(lumen) == {1, 2, 3, 4, 5, 6, 7}
+    for version in (1, 2, 3):
+        assert INDEMNITY_PARAGRAPH in lumen[version]
+    for version in (4, 5, 6, 7):
+        assert INDEMNITY_PARAGRAPH not in lumen[version]
+
+    summaries = {
+        event.payload.revision: event.payload.change_summary
         for event in full_log
         if isinstance(event.payload, DocumentRevisedPayload)
-        and event.payload.revision == 3
-        and INDEMNITY_PARAGRAPH not in event.payload.content
-        and "9.1" in event.payload.content
+        and event.payload.content.startswith("# Software License and Support")
+    }
+    assert set(summaries) == {2, 3, 4, 5, 6, 7}
+    assert all("indemn" not in summary.lower() for summary in summaries.values()), (
+        "the drop hides behind innocuous summaries"
     )
-    assert "indemn" not in revision3.change_summary.lower(), (
-        "the drop hides behind an innocuous summary"
+    assert "conform" in summaries[4].lower()
+    assert not any(
+        "conform" in summary.lower()
+        for revision, summary in summaries.items()
+        if revision != 4
+    ), "the graded comment marker is unique to the dropping version"
+
+    sow = _versions_by_title(full_log)[LUMEN_SOW_TITLE]
+    assert set(sow) == {1, 2, 3, 4}
+    assert all("Indemnification" not in content for content in sow.values())
+
+    quotes = [
+        event
+        for event in full_log
+        if isinstance(event.payload, EmailMessagePayload)
+        and INDEMNITY_PARAGRAPH in event.payload.body
+    ]
+    assert len(quotes) == 1 and _event_date(quotes[0]) == "2026-06-09", (
+        "the old clause text is quoted in email after the drop"
     )
 
 
@@ -226,7 +291,7 @@ def test_s4_souring_ends_in_closure_and_letter(full_log: list) -> None:
     assert late_time == [], "no procedural time lands on the closed matter"
 
 
-def test_s5_operative_date_lives_only_in_the_last_correction(full_log: list) -> None:
+def test_s5_operative_date_lives_only_in_the_dm_correction(full_log: list) -> None:
     hearings = [
         event.payload
         for event in full_log
@@ -237,13 +302,51 @@ def test_s5_operative_date_lives_only_in_the_last_correction(full_log: list) -> 
         WINDOW.iso_date(int(payload.start) // 86_400) for payload in hearings
     ]
     assert scheduled_days == ["2026-04-28", "2026-05-20", "2026-06-18"]
+    assert "2026-06-25" not in scheduled_days
+
+    dm_ids = {
+        event.payload.conversation_id
+        for event in full_log
+        if event.payload.kind == "chat.conversation.created"
+        and event.payload.conversation_type == "dm"
+    }
+    assert dm_ids, "the correction DM conversation exists"
 
     corrections = [
         event
         for event in full_log
         if isinstance(event.payload, ChatMessagePayload)
-        and "June 25" in event.payload.body
+        and event.payload.body == S5_DM_CORRECTION
     ]
-    assert len(corrections) >= 1
+    assert len(corrections) == 1
     assert _event_date(corrections[0]) == "2026-06-11"
-    assert "2026-06-25" not in scheduled_days
+    assert corrections[0].payload.conversation_id in dm_ids
+    for token in ("Arroyo", "Fruitvale", "hearing", "June"):
+        assert token not in S5_DM_CORRECTION, "the DM text stays unsearchable"
+
+    public_texts = [
+        event.payload.body
+        for event in full_log
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.conversation_id not in dm_ids
+    ] + [
+        event.payload.body
+        for event in full_log
+        if isinstance(event.payload, EmailMessagePayload)
+    ]
+    assert not any("June 25" in text or "the 25th" in text for text in public_texts), (
+        "the operative date leaks nowhere public"
+    )
+
+    recaps = [
+        event
+        for event in full_log
+        if isinstance(event.payload, EmailMessagePayload)
+        and event.payload.subject == S5_RECAP_SUBJECT
+    ]
+    assert len(recaps) == 1
+    assert _event_date(recaps[0]) == "2026-06-16"
+    assert "June 18" in recaps[0].payload.body
+    assert int(recaps[0].time) > int(corrections[0].time), (
+        "the stale recap postdates the DM correction"
+    )

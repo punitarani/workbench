@@ -1,8 +1,9 @@
 #!/bin/sh
-# Naive baseline: pulls "April diligence time" from Clio alone, including
-# the April 3 budget-call entry the dispute excluded, and answers the
-# challenge from the matter note (which names the company, not the
-# person). Proves the cutoff and the Gmail join discriminate.
+# Naive baseline: no record states the cutoff in the mail or the matter
+# note, so the baseline assumes the billing month is the dispute window,
+# sums every April diligence entry (sweeping in the pre-cutoff tranche-1
+# work), and answers the challenger from the matter note's company name.
+# Proves the Slack-only cutoff and the Gmail join discriminate.
 exec python3 - << 'EOF'
 import json
 import sqlite3
@@ -24,6 +25,7 @@ april = rows(
 )
 names = dict(rows("clio.db", "SELECT person_id, name FROM people"))
 dispute = {
+    "cutoff_date": "2026-04-01",
     "total_minutes": sum(seconds for _, seconds in april) // 60,
     "entry_count": len(april),
     "timekeepers": sorted({names[person] for person, _ in april}),

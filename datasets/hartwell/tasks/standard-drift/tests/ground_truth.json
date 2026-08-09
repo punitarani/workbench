@@ -1,8 +1,9 @@
 {
   "_evidence": {
     "playbook": "iManage doc-000009 /firm/playbooks/vendor-nda-playbook.md, head v3: three (3) year term standard, reject residual-knowledge clauses.",
-    "term": "LexiPoint NDA doc-000011 v2 (2026-05-13, Noah Feldstein) flips three (3) years to five (5) years; covering email msg-000413 accepts the vendor's term.",
-    "residuals": "Ironclad NDA doc-000012 v2 (2026-06-10, Noah Feldstein) adds the Residual Knowledge clause; covering email msg-000575. Diane's msg-000660 (2026-06-24) flags both drifts."
+    "term": "LexiPoint NDA doc-000014 v2 (2026-05-13, Noah Feldstein) flips three (3) years to five (5) years; covering email msg-000414 accepts the vendor's term. This drift stays keyword-findable (the LexiPoint thread discusses the term and even the residuals REFUSAL).",
+    "residuals": "Ironclad NDA doc-000015 v2 (2026-06-10, Noah Feldstein) adds the Residual Knowledge clause. Invisible to keyword search: no email or Slack message anywhere says 'residual' about Ironclad — the covering emails (subject 'Ironclad NDA — one remaining comment') describe only a 'rider' and a conformed article, and the sole discussion is the oblique #matters thread reply chm-000951 ('folding in the carve-out LexiPoint asked for back in May'). Diane's msg-000663 (2026-06-24) flags the term drift and says only that 'at least one other position moved'. Only the Ironclad v1/v2 content diff names the clause.",
+    "decoys": "Conforming distractors with clean histories: BayMark NDA doc-000010 (v1-v2) and Archway NDA doc-000013 (v1-v2), both three-year term, no residuals clause."
   },
   "playbook_path": "/firm/playbooks/vendor-nda-playbook.md",
   "clauses": {

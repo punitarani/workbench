@@ -17,6 +17,7 @@ Write **`dispute.json`** to the workspace root:
 
 ```json
 {
+  "cutoff_date": "<YYYY-MM-DD budget-call cutoff the parties agreed>",
   "total_minutes": <total minutes of the disputed diligence work>,
   "entry_count": <number of time entries that make it up>,
   "timekeepers": ["<everyone who logged that work>"],
@@ -26,7 +27,11 @@ Write **`dispute.json`** to the workspace root:
 ```
 
 The disputed work is every time entry on the Meridian diagnostics
-acquisition matter dated **after 2026-04-03** whose narrative describes
-the data-room diligence (the entries whose notes mention diligence or the
-data room). Count minutes from the record, not from anyone's summary —
-the emails describe the overage but never state the figures.
+acquisition matter dated **after the budget-call cutoff** whose narrative
+describes the data-room diligence (the entries whose notes mention
+diligence or the data room). Establish the cutoff date from the firm's
+record — the emails and the matter note describe the split but never
+state the date — and beware that diligence work on this matter began
+before the cutoff: a sum over every diligence entry, or over the whole
+billing month, is wrong. Count minutes from the record, not from anyone's
+summary; no email states the figures.

@@ -12,6 +12,7 @@ from pathlib import Path
 GROUND_TRUTH = Path(__file__).parent / "ground_truth.json"
 
 FIELDS = (
+    "cutoff_date",
     "total_minutes",
     "entry_count",
     "timekeepers",
@@ -38,6 +39,11 @@ def grade(workspace: Path) -> dict:
     if not isinstance(submitted, dict):
         submitted = {}
 
+    cutoff_score = (
+        1.0
+        if str(submitted.get("cutoff_date", "")).strip() == truth["cutoff_date"]
+        else 0.0
+    )
     minutes_score = (
         1.0 if submitted.get("total_minutes") == truth["total_minutes"] else 0.0
     )
@@ -63,6 +69,7 @@ def grade(workspace: Path) -> dict:
     )
 
     parts = [
+        {"part": "cutoff_date", "score": weights["cutoff_date"] * cutoff_score},
         {"part": "total_minutes", "score": weights["total_minutes"] * minutes_score},
         {"part": "entry_count", "score": weights["entry_count"] * count_score},
         {"part": "timekeepers", "score": weights["timekeepers"] * keeper_score},

@@ -11,7 +11,13 @@ from pathlib import Path
 
 GROUND_TRUTH = Path(__file__).parent / "ground_truth.json"
 
-FIELDS = ("operative_date", "operative_time", "correction_ts", "superseded_dates")
+FIELDS = (
+    "operative_date",
+    "operative_time",
+    "correction_ts",
+    "superseded_dates",
+    "supersessions",
+)
 
 
 def grade(workspace: Path) -> dict:
@@ -61,6 +67,21 @@ def grade(workspace: Path) -> dict:
     )
     superseded_score = matched / len(expected)
 
+    claimed = submitted.get("supersessions")
+    claimed = claimed if isinstance(claimed, list) else []
+    by_date: dict = {}
+    for entry in claimed:
+        if isinstance(entry, dict):
+            by_date.setdefault(str(entry.get("invalidated", "")).strip(), entry)
+    hits = sum(
+        1
+        for want in truth["supersessions"]
+        if str(by_date.get(want["invalidated"], {}).get("by", ""))
+        .strip()
+        .startswith(want["by_prefix"])
+    )
+    supersessions_score = hits / len(truth["supersessions"])
+
     parts = [
         {"part": "operative_date", "score": weights["operative_date"] * date_score},
         {"part": "operative_time", "score": weights["operative_time"] * time_score},
@@ -68,6 +89,10 @@ def grade(workspace: Path) -> dict:
         {
             "part": "superseded_dates",
             "score": weights["superseded_dates"] * superseded_score,
+        },
+        {
+            "part": "supersessions",
+            "score": weights["supersessions"] * supersessions_score,
         },
         {"part": "format", "score": weights["format"] if format_ok else 0.0},
     ]

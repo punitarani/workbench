@@ -1,7 +1,9 @@
 #!/bin/sh
-# Reference solution: diffs the playbook's standards against the vendor-NDA
-# revision history and answers only from the record. Fails rather than
-# answer from assumptions — the solution must retrieve.
+# Reference solution: diffs the playbook's standards against the revision
+# history of EVERY vendor NDA on file and answers only from the record.
+# The residuals flip is invisible to keyword search (no email or chat
+# message names the clause for that vendor), so the walk over version
+# content is the only path. Fails rather than answer from assumptions.
 exec python3 - << 'EOF'
 import json
 import sqlite3
@@ -22,7 +24,7 @@ def versions(path_like):
         "imanage.db",
         "SELECT d.path, v.version, v.author, v.content, v.time FROM versions v "
         "JOIN documents d ON d.document_id = v.document_id "
-        "WHERE d.path LIKE ? ORDER BY v.version",
+        "WHERE d.path LIKE ? ORDER BY d.path, v.version",
         path_like,
     )
     if not found:
@@ -36,33 +38,76 @@ if "three (3) years" not in playbook_head:
 if "Reject any residual-knowledge clause" not in playbook_head:
     sys.exit("playbook residuals standard not found in the record")
 
-def first_divergence(path_like, present, absent_before=None):
-    """First version whose content contains ``present``; earlier versions must not."""
-    history = versions(path_like)
-    for path, version, author, content, time in history:
-        if present in content:
-            return path, version, author, time
-    sys.exit(f"no version of {path_like!r} contains {present!r}")
-
-lex_path, lex_version, _, lex_time = first_divergence(
-    "%mutual-nda-lexipoint%", "five (5) years"
+# Walk every vendor NDA on file, not just the ones the mail discusses.
+nda_paths = sorted(
+    {path for path, *_ in versions("%/firm/vendor-ndas/%")}
 )
-lex_history = versions("%mutual-nda-lexipoint%")
-if any("five (5) years" in content for _, v, _, content, _ in lex_history if v < lex_version):
-    sys.exit("LexiPoint divergence is not a clean version boundary")
-if not any("three (3) years" in content for _, v, _, content, _ in lex_history if v < lex_version):
-    sys.exit("LexiPoint NDA never carried the playbook's three-year term")
+if len(nda_paths) < 4:
+    sys.exit(f"expected several vendor NDAs on file, found {len(nda_paths)}")
 
-iron_path, iron_version, _, iron_time = first_divergence(
-    "%mutual-nda-ironclad%", "Residual Knowledge"
+def first_with(path, needle):
+    """First version of ``path`` whose content contains ``needle``."""
+    for doc_path, version, author, content, time in versions(path):
+        if needle in content:
+            return version, time
+    return None, None
+
+term_hits = []
+residual_hits = []
+for path in nda_paths:
+    history = versions(path)
+    five_version, five_time = first_with(path, "five (5) years")
+    if five_version is not None:
+        earlier = [c for _, v, _, c, _ in history if v < five_version]
+        term_hits.append((path, five_version, five_time, earlier))
+    residual_version, residual_time = first_with(path, "Residual Knowledge")
+    if residual_version is not None:
+        if any(
+            "Residual Knowledge" in c for _, v, _, c, _ in history
+            if v < residual_version
+        ):
+            sys.exit(f"{path}: residuals divergence is not a clean boundary")
+        residual_hits.append((path, residual_version, residual_time))
+
+conforming = [
+    path
+    for path in nda_paths
+    if path not in {hit[0] for hit in term_hits}
+    and path not in {hit[0] for hit in residual_hits}
+]
+if len(conforming) < 2:
+    sys.exit("expected conforming distractor NDAs alongside the divergent ones")
+
+# Term drift: the NDA that started on three years and flipped to five.
+flipped = [
+    (path, version, time)
+    for path, version, time, earlier in term_hits
+    if earlier and all("three (3) years" in content for content in earlier)
+]
+if len(flipped) != 1:
+    sys.exit(f"expected exactly one three-to-five term flip, found {len(flipped)}")
+lex_path, lex_version, lex_time = flipped[0]
+
+if len(residual_hits) != 1:
+    sys.exit(
+        f"expected exactly one NDA to gain a residuals clause, "
+        f"found {len(residual_hits)}"
+    )
+iron_path, iron_version, iron_time = residual_hits[0]
+
+# The residuals concession must be keyword-invisible outside the version
+# content: no mail or chat names the clause for that vendor.
+leaks = rows(
+    "gmail.db",
+    "SELECT COUNT(*) FROM messages WHERE subject LIKE '%Ironclad%' "
+    "AND lower(body) LIKE '%residual%'",
 )
-iron_history = versions("%mutual-nda-ironclad%")
-if any(
-    "Residual Knowledge" in content
-    for _, v, _, content, _ in iron_history
-    if v < iron_version
-):
-    sys.exit("Ironclad divergence is not a clean version boundary")
+chat_leaks = rows(
+    "slack.db",
+    "SELECT COUNT(*) FROM messages WHERE lower(body) LIKE '%residual%'",
+)
+if leaks[0][0] or chat_leaks[0][0]:
+    sys.exit("the residuals flip leaked into keyword-searchable text")
 
 # The covering emails corroborate that the divergent versions went out.
 sent = rows(

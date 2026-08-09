@@ -1,17 +1,64 @@
 #!/bin/sh
-# Naive baseline: trusts the court's written notices and reports the last
-# email's date as operative. Every email states a superseded date — the
-# operative one exists only in the Slack correction.
+# Naive baseline: trusts the written record in Gmail — the clerk's notices
+# plus the June 16 internal docket recap that formally restates the last
+# noticed date. Every email states a superseded date; the operative one
+# exists only in a DM that public-channel search cannot reach.
 exec python3 - << 'EOF'
 import json
+import re
+import sqlite3
+
+MONTHS = {
+    name: index + 1
+    for index, name in enumerate(
+        (
+            "january", "february", "march", "april", "may", "june",
+            "july", "august", "september", "october", "november", "december",
+        )
+    )
+}
+
+def rows(db, sql, *params):
+    with sqlite3.connect(f"file:state/{db}?mode=ro", uri=True) as connection:
+        return connection.execute(sql, params).fetchall()
+
+def dates_in(text):
+    found = []
+    for month, day in re.findall(
+        r"\b(January|February|March|April|May|June|July|August|September|"
+        r"October|November|December)\s+(\d{1,2})\b",
+        text,
+    ):
+        found.append(f"2026-{MONTHS[month.lower()]:02d}-{int(day):02d}")
+    return found
+
+notices = rows(
+    "gmail.db",
+    "SELECT m.message_id, m.body FROM messages m JOIN people p "
+    "ON p.person_id = m.sender WHERE m.subject LIKE '%Arroyo%' "
+    "AND lower(p.title) LIKE '%clerk%' ORDER BY m.time",
+)
+noticed = [max(dates_in(body)) for _, body in notices]
+recap = rows(
+    "gmail.db",
+    "SELECT body FROM messages WHERE subject LIKE 'Docket recap%' "
+    "ORDER BY time DESC",
+)
+# The latest formal mail agrees with the last notice, so treat it as
+# confirmation and report the last noticed setting as operative.
+assert recap and noticed[-1] in dates_in(recap[0][0])
 
 deadline = {
-    "operative_date": "2026-06-18",
+    "operative_date": noticed[-1],
     "operative_time": "10:00",
     "correction_ts": None,
-    "superseded_dates": ["2026-04-28", "2026-05-20"],
+    "superseded_dates": noticed[:-1],
+    "supersessions": [
+        {"invalidated": noticed[index], "by": notices[index + 1][0]}
+        for index in range(len(noticed) - 1)
+    ],
 }
 with open("deadline.json", "w") as handle:
     json.dump(deadline, handle, indent=2)
-print("deadline.json written (last-notice assumption)")
+print("deadline.json written (last-written-notice assumption)")
 EOF

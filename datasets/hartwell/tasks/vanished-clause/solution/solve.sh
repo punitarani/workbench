@@ -1,8 +1,9 @@
 #!/bin/sh
-# Reference solution: walks the agreement's version history and finds the
-# first version where the licensor indemnity is absent after having been
-# present. Fails rather than answer from assumptions — the answer exists
-# only in the version diff.
+# Reference solution: walks the agreement's full version history and finds
+# the first version where the licensor indemnity is absent after having
+# been present. The change comments are uniformly innocuous and a decoy
+# Lumen document sits beside the agreement, so only the content diff
+# answers. Fails rather than answer from assumptions.
 exec python3 - << 'EOF'
 import json
 import sqlite3
@@ -22,8 +23,21 @@ history = rows(
     "FROM versions v JOIN documents d ON d.document_id = v.document_id "
     "WHERE d.path LIKE '%license-and-support-agreement%' ORDER BY v.version",
 )
-if len(history) < 2:
-    sys.exit("the agreement has no version history to diff")
+if len(history) < 7:
+    sys.exit(f"expected a long version history, found {len(history)} versions")
+
+# The decoy: a similarly named Lumen document that never carried the
+# clause. Confirm it is not the one being diffed.
+decoy = rows(
+    "imanage.db",
+    "SELECT v.content FROM versions v JOIN documents d "
+    "ON d.document_id = v.document_id WHERE d.path LIKE '%lumen%' "
+    "AND d.path NOT LIKE '%license-and-support-agreement%'",
+)
+if not decoy:
+    sys.exit("the similarly named Lumen document is missing from the record")
+if any(CLAUSE in content for (content,) in decoy):
+    sys.exit("the decoy document unexpectedly carries the clause")
 
 dropped = None
 for previous, current in zip(history, history[1:]):
@@ -35,6 +49,18 @@ if dropped is None:
 path, version, author_id, content, comment, time = dropped
 if any(CLAUSE in later[3] for later in history if later[1] > version):
     sys.exit("the clause reappears later; the drop is not silent")
+if "indemn" in comment.lower():
+    sys.exit("the drop is announced in its comment; nothing silent to find")
+
+# The email record still quotes the old clause AFTER the drop — the wrong
+# anchor must exist, and must not fool the version diff.
+quotes = rows(
+    "gmail.db",
+    "SELECT time FROM messages WHERE body LIKE ? ORDER BY time",
+    f"%{CLAUSE}%",
+)
+if not quotes or all(quote_time <= time for (quote_time,) in quotes):
+    sys.exit("expected the old clause text quoted in email after the drop")
 
 author = dict(
     rows("imanage.db", "SELECT person_id, name FROM people WHERE person_id = ?",

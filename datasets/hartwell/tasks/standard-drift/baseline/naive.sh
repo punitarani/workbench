@@ -1,6 +1,10 @@
 #!/bin/sh
-# Naive baseline: answers from the playbook alone and assumes practice
-# conforms to it. Proves the redline-history citations discriminate.
+# Naive baseline: answers from the playbook plus the email trail. Diane's
+# June 24 email flags the five-year terms, so the term practice is right,
+# but keyword search finds nothing on the second clause (the only residuals
+# mentions in the mail are the LexiPoint REFUSAL), so the baseline reports
+# practice as conforming and cites no redline. Proves the version-content
+# walk discriminates.
 exec python3 - << 'EOF'
 import json
 
@@ -12,7 +16,8 @@ drift = {
             "disclosure; longer terms need Managing Partner sign-off."
         ),
         "practice": (
-            "Redlines go out on the playbook's three-year term as a hard rule."
+            "Per Diane's June 24 email, the LexiPoint and Ironclad NDAs "
+            "both went out with five-year confidentiality terms."
         ),
         "document_path": "/firm/playbooks/vendor-nda-playbook.md",
         "version": 3,
@@ -21,7 +26,8 @@ drift = {
     "residuals": {
         "playbook_standard": "Reject any residual-knowledge clause outright.",
         "practice": (
-            "Residual-knowledge clauses are rejected outright per the playbook."
+            "No deviation found: the only residuals request in the record "
+            "(LexiPoint, May 7) was refused, so practice conforms."
         ),
         "document_path": "/firm/playbooks/vendor-nda-playbook.md",
         "version": 3,
@@ -30,5 +36,5 @@ drift = {
 }
 with open("drift.json", "w") as handle:
     json.dump(drift, handle, indent=2)
-print("drift.json written (playbook-only)")
+print("drift.json written (playbook-and-mail assumption)")
 EOF

@@ -23,7 +23,11 @@ from workbench.core.events.calendar import (
     CalendarEventScheduledPayload,
     CalendarEventUpdatedPayload,
 )
-from workbench.core.events.chat import ChatMessagePayload, ChatReactionAddedPayload
+from workbench.core.events.chat import (
+    ChatConversationCreatedPayload,
+    ChatMessagePayload,
+    ChatReactionAddedPayload,
+)
 from workbench.core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
@@ -127,11 +131,66 @@ LICENSEE_INDEMNITY_PARAGRAPH = (
 PLAYBOOK_TITLE = "Vendor NDA Playbook"
 LEXIPOINT_NDA_TITLE = "Mutual NDA — LexiPoint Research (Draft)"
 IRONCLAD_NDA_TITLE = "Mutual NDA — Ironclad Discovery Services (Draft)"
+BAYMARK_NDA_TITLE = "Mutual NDA — BayMark IT Solutions (Draft)"
+ARCHWAY_NDA_TITLE = "Mutual NDA — Archway Court Reporting (Draft)"
 LUMEN_AGREEMENT_TITLE = (
     "Software License and Support Agreement — Lumen Software (Draft)"
 )
+LUMEN_SOW_TITLE = "Support Services Statement of Work — Lumen Software (Draft)"
 CASCADIA_LETTER_TITLE = "Disengagement Letter — Cascadia Outfitters"
 ARROYO_HEARING_TITLE = "Arroyo v. Fruitvale Partners — motion hearing"
+
+# S5: the operative-date correction lives only in a Grace<->Samuel DM; the
+# text deliberately carries no case name, no party, and no docket noun —
+# just the Clio display-number prefix of the Arroyo matter.
+S5_DM_CORRECTION = (
+    "clerk just called about 00008 — moved again, the 25th at 9, not the "
+    "18th. i'm out after tomorrow — will fix the calendar entry when i'm "
+    "back."
+)
+S5_DM_ACK = "noted — thanks grace. flag it to sofia when you're back on."
+
+# S5: a formal-looking internal recap sent AFTER the correction that
+# restates the superseded June 18 setting (compiled from the stale master
+# calendar while Grace is out). Load-bearing trap text stays in code.
+S5_RECAP_SUBJECT = "Docket recap — weeks of June 15 and June 22"
+S5_RECAP_BODY = (
+    "Team,\n\n"
+    "Docket recap for the next two weeks, pulled from the master calendar "
+    "this morning while Grace is out. Flag anything that looks off:\n\n"
+    "- Tue June 16, 2:00 p.m. — Brightline Logistics: position statement "
+    "working session (internal).\n"
+    "- Thu June 18, 10:00 a.m. — Arroyo Construction v. Fruitvale "
+    "Partners: motion hearing, Dept. 511 (second reset per the stipulated "
+    "order). Courtesy copies went out last week.\n"
+    "- Mon June 22, 9:30 a.m. — Goldleaf Hospitality: case management "
+    "hearing, Dept. 17.\n"
+    "- Tue June 30 — Pelican Bay Marina: lease renewal option notice "
+    "deadline (certified mail).\n\n"
+    "Full details are on the master calendar. I'll recirculate if "
+    "anything moves.\n\n"
+    "Peter"
+)
+
+# S2: the only place in the record that states the dispute's cutoff date.
+S2_CUTOFF_CHAT = (
+    "Meridian April split is done. Cutoff per Eleanor is the April 3 "
+    "budget call: diligence and data-room entries dated after April 3 are "
+    "the disputed bucket; the tranche-1 work before the call stays as "
+    "originally scoped. Export is in the billing folder."
+)
+
+# S1: the only discussion of the Ironclad concession, in a #matters thread
+# reply that never uses the clause's name.
+S1_IRONCLAD_THREAD_PARENT = (
+    "Ironclad discovery NDA: markup back from their PM this morning. Term "
+    "is fine; one clause left to land before it goes back."
+)
+S1_IRONCLAD_THREAD_REPLY = (
+    "Closing out the Ironclad NDA today — folding in the carve-out "
+    "LexiPoint asked for back in May. Only way to keep the discovery "
+    "engagement moving; flagging here for the file."
+)
 
 _CONTENT_MODEL_PATH = ("hartwell.content",)
 
@@ -260,6 +319,66 @@ def content_requests() -> tuple[ContentRequest, ...]:
             max_tokens=700,
         ),
         ContentRequest(
+            name="s1.nda.baymark.body",
+            prompt=_section_prompt(
+                what=(
+                    "the core sections of a mutual nondisclosure agreement "
+                    "between Hartwell & Marsh LLP (a California law firm) "
+                    "and BayMark IT Solutions (a managed IT services "
+                    "vendor): numbered sections for Definitions, Permitted "
+                    "Use, Exclusions, Return of Materials, and No License"
+                ),
+                facts=(
+                    "purpose is evaluation and provision of managed IT and "
+                    "helpdesk services for the firm; do NOT include any "
+                    "section on term or duration, residual knowledge, "
+                    "injunctive or equitable relief, or governing law — "
+                    "those are appended separately."
+                ),
+                length="280-380 words",
+            ),
+            max_tokens=700,
+        ),
+        ContentRequest(
+            name="s1.nda.archway.body",
+            prompt=_section_prompt(
+                what=(
+                    "the core sections of a mutual nondisclosure agreement "
+                    "between Hartwell & Marsh LLP (a California law firm) "
+                    "and Archway Court Reporting (a deposition and "
+                    "court-reporting vendor): numbered sections for "
+                    "Definitions, Permitted Use, Exclusions, Return of "
+                    "Materials, and No License"
+                ),
+                facts=(
+                    "purpose is provision of court reporting, "
+                    "transcription, and deposition services; do NOT "
+                    "include any section on term or duration, residual "
+                    "knowledge, injunctive or equitable relief, or "
+                    "governing law — those are appended separately."
+                ),
+                length="280-380 words",
+            ),
+            max_tokens=700,
+        ),
+        ContentRequest(
+            name="s1.email.vendor-intake",
+            prompt=_email_prompt(
+                writer="Anita Bailey, operations manager at Hartwell & Marsh",
+                recipient=("Noah Feldstein, associate (cc Diane Okonkwo, of counsel)"),
+                day="2026-03-18",
+                facts=(
+                    "two vendor NDAs came in through intake this week — "
+                    "the BayMark IT Solutions renewal and a new engagement "
+                    "with Archway Court Reporting; both are going out on "
+                    "the firm's standard form with the standard positions "
+                    "unchanged; the drafts are filed in the vendor-ndas "
+                    "workspace for Noah's review."
+                ),
+                tone="organized, brisk",
+            ),
+        ),
+        ContentRequest(
             name="s1.email.playbook-draft",
             prompt=_email_prompt(
                 writer="Noah Feldstein, associate at Hartwell & Marsh",
@@ -365,10 +484,14 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 day="2026-06-03",
                 facts=(
                     "Ironclad reviewed the draft NDA for the discovery "
-                    "services engagement; the five-year term works, but "
-                    "Ironclad requires a residual-knowledge clause because "
-                    "its project staff rotate across client engagements; "
-                    "asks the firm to add its standard residuals language."
+                    "services engagement; the five-year term works; one "
+                    "comment remains: because Ironclad's project staff "
+                    "rotate across client engagements, Ironclad asks the "
+                    "firm to fold in the rider from Stan's attached markup "
+                    "protecting what its people generally learn on an "
+                    "engagement. Describe the request only in those "
+                    "general words — never use the word residual or "
+                    "residuals, and never use the phrase unaided memory."
                 ),
                 tone="direct vendor voice",
             ),
@@ -383,10 +506,12 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 ),
                 day="2026-06-10",
                 facts=(
-                    "revised NDA attached with a residual-knowledge clause "
-                    "added; the firm has been flexible on this language "
-                    "recently and wants the discovery engagement moving; "
-                    "asks for signature this week."
+                    "revised NDA attached with the confidentiality article "
+                    "conformed to Ironclad's markup from last week; the "
+                    "firm wants the discovery engagement moving; asks for "
+                    "signature this week. Do not name or describe the "
+                    "clause that changed, and never use the word residual "
+                    "or residuals."
                 ),
                 tone="accommodating, practical",
             ),
@@ -399,11 +524,16 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 day="2026-06-24",
                 facts=(
                     "she noticed the last two vendor NDAs (LexiPoint and "
-                    "Ironclad) went out with five-year terms and, in "
-                    "Ironclad's case, a residuals clause, while the March "
-                    "playbook still says three years and no residuals; "
-                    "asks Noah to put a playbook review on the calendar "
-                    "for next quarter rather than keep deviating silently."
+                    "Ironclad) both went out with five-year confidentiality "
+                    "terms while the March playbook still makes three "
+                    "years the hard rule; she also wants the final "
+                    "Ironclad draft checked clause by clause against the "
+                    "playbook's standard positions, because she believes "
+                    "at least one other position moved without sign-off; "
+                    "asks Noah to put a playbook review on next quarter's "
+                    "calendar rather than keep deviating silently. Do not "
+                    "name which other clause moved, and never use the "
+                    "word residual or residuals."
                 ),
                 tone="measured, mildly concerned",
             ),
@@ -438,12 +568,15 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 ),
                 day="2026-05-08",
                 facts=(
-                    "Meridian disputes the April invoice; on the April 3 "
-                    "budget call, Marcus agreed that expanded data-room "
-                    "diligence beyond the original scope would be capped "
-                    "at $12,000; the invoice shows diligence hours far "
-                    "beyond that; asks for a corrected invoice and a "
-                    "written scope confirmation before paying anything."
+                    "Meridian disputes the April invoice; when the "
+                    "expanded data-room diligence was scoped on the budget "
+                    "call, Marcus agreed that diligence beyond the "
+                    "original scope would be capped at $12,000; the "
+                    "invoice shows diligence hours far beyond that; asks "
+                    "for a corrected invoice and a written scope "
+                    "confirmation before paying anything. Refer to the "
+                    "call only as the budget call — never state the date "
+                    "it happened."
                 ),
                 tone="firm, professional, clearly unhappy",
             ),
@@ -457,10 +590,12 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 facts=(
                     "she needs every April time entry on the Meridian "
                     "acquisition matter pulled today, split into entries "
-                    "dated on or before April 3 and entries after April 3, "
-                    "with the diligence entries flagged; the client claims "
-                    "a $12,000 cap was agreed on the April 3 call and she "
-                    "wants the numbers before responding."
+                    "dated on or before the budget-call date and entries "
+                    "after it, with the diligence entries flagged; the "
+                    "client claims a diligence cap was agreed on that call "
+                    "and she wants the numbers before responding; Carl has "
+                    "the call date in the billing file. Never state the "
+                    "call's date or any dollar figure."
                 ),
                 tone="crisp, directive",
             ),
@@ -473,11 +608,13 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 day="2026-05-12",
                 facts=(
                     "summary of April time on the Meridian matter: the "
-                    "diligence entries dated after April 3 are the bulk of "
-                    "the overage; he lists that the expanded data-room "
-                    "review ran April 6 through April 16 across Marcus "
-                    "Liang and Peter Novak; exact figures are in the "
-                    "activity export he attached to the billing folder."
+                    "diligence entries dated after the budget call are the "
+                    "bulk of the overage, spread across Marcus Liang and "
+                    "Peter Novak; the exact entry dates and figures are in "
+                    "the activity export he attached to the billing "
+                    "folder, and he posted the agreed cutoff to the "
+                    "billing channel for the record. Never state any "
+                    "calendar date or numeric figure in the email itself."
                 ),
                 tone="factual, careful",
             ),
@@ -492,12 +629,14 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 ),
                 day="2026-05-14",
                 facts=(
-                    "the firm will honor the April 3 understanding: "
-                    "expanded diligence time entered after April 3 will be "
-                    "capped at $12,000 and the overage credited on the May "
-                    "invoice; a written scope confirmation for the "
-                    "remaining phases will follow within the week; she "
-                    "values the relationship."
+                    "the firm will honor the understanding from the budget "
+                    "call: expanded diligence time entered after the "
+                    "agreed cutoff will be capped at $12,000 and the "
+                    "overage credited on the May invoice; a written scope "
+                    "confirmation for the remaining phases will follow "
+                    "within the week; she values the relationship. Refer "
+                    "to the call only as the budget call — never state "
+                    "its date."
                 ),
                 tone="gracious, decisive",
             ),
@@ -506,19 +645,24 @@ def content_requests() -> tuple[ContentRequest, ...]:
             name="s2.note.resolution",
             prompt=(
                 "Write a matter note (plain text, 150-220 words) recorded "
-                "by managing partner Eleanor Hartwell on 2026-05-15 in the "
-                "firm's practice management system on the Meridian "
-                "diagnostics acquisition matter. Record: Meridian disputed "
-                "the April invoice on 2026-05-08; the client's position was "
-                "that a $12,000 cap on expanded data-room diligence was "
-                "agreed with Marcus Liang on the April 3 budget call; "
-                "billing pulled all April activities and the diligence "
-                "entries dated after April 3 substantially exceeded the "
-                "cap; resolution agreed 2026-05-14 — cap honored, overage "
-                "credited on the May invoice, written scope confirmation "
-                "to be countersigned; going forward any scope expansion on "
-                "this matter needs written confirmation before work starts. "
-                "No headers, no signature block."
+                "by managing partner Eleanor Hartwell in the firm's "
+                "practice management system on the Meridian diagnostics "
+                "acquisition matter, after a fee dispute was resolved. "
+                "Record, as narrative: the client disputed the April "
+                "invoice shortly after it issued; the client's position "
+                "was that a cap on expanded data-room diligence had been "
+                "agreed with Marcus Liang on the budget call that scoped "
+                "that work; billing split the April activities around the "
+                "call date and the diligence entries after it "
+                "substantially exceeded the cap; the firm honored the "
+                "cap, credited the overage on the May invoice, and is "
+                "countersigning a written scope confirmation; going "
+                "forward any scope expansion on this matter needs written "
+                "confirmation before work starts. STRICT: no day-level "
+                "calendar dates (month names alone are fine), no dollar "
+                "amounts, no hour or minute figures, and no client "
+                "contact names anywhere in the note. No headers, no "
+                "signature block."
             ),
             max_tokens=450,
         ),
@@ -626,6 +770,50 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 length="180-260 words",
             ),
             max_tokens=520,
+        ),
+        ContentRequest(
+            name="s3.sow.body",
+            prompt=_section_prompt(
+                what=(
+                    "the body (numbered sections for Scope of Services, "
+                    "Deliverables, Personnel, Fees and Invoicing, and Term "
+                    "of this SOW) of a support-services statement of work "
+                    "under the software license and support agreement "
+                    "between Lumen Software (Licensee) and Fathom Systems "
+                    "Inc. (Licensor)"
+                ),
+                facts=(
+                    "the SOW covers implementation assistance and premium "
+                    "support for the Fathom workflow platform: onboarding "
+                    "workshops, configuration review, a named support "
+                    "engineer, quarterly service reviews; fees are billed "
+                    "monthly at the rates in Exhibit B; the SOW runs "
+                    "twelve months from its effective date. Do NOT "
+                    "include any indemnification, liability, or "
+                    "confidentiality language — those live in the master "
+                    "agreement."
+                ),
+                length="250-350 words",
+            ),
+            max_tokens=650,
+        ),
+        ContentRequest(
+            name="s3.email.quote-indemnity",
+            prompt=_email_prompt(
+                writer="June Akana, general counsel of Lumen Software",
+                recipient="Marcus Liang at Hartwell & Marsh",
+                day="2026-06-09",
+                facts=(
+                    "for her board minutes she is pasting, directly below "
+                    "her sign-off, the indemnification language from the "
+                    "April draft she approved, and asks Marcus to confirm "
+                    "the signing draft still carries it word for word; "
+                    "end the email by introducing the quoted language "
+                    "with a colon (the quotation itself is appended "
+                    "separately — do not write the clause text)."
+                ),
+                tone="precise, trusting",
+            ),
         ),
         ContentRequest(
             name="s3.email.v1-send",
@@ -1121,7 +1309,7 @@ def _nda(
 
 
 def _lumen_agreement(
-    texts: Mapping[str, str], *, fees_key: str, indemnity: bool
+    texts: Mapping[str, str], *, fees_key: str, indemnity: bool, circulated: str
 ) -> str:
     parts = [
         "# Software License and Support Agreement",
@@ -1142,7 +1330,25 @@ def _lumen_agreement(
     if indemnity:
         parts += ["", INDEMNITY_PARAGRAPH]
     parts += ["", texts["s3.agreement.general"]]
+    parts += [
+        "",
+        f"*Working draft circulated {circulated} for internal review; "
+        "not for execution.*",
+    ]
     return "\n".join(parts) + "\n"
+
+
+def _lumen_sow(texts: Mapping[str, str], *, circulated: str) -> str:
+    return (
+        "# Support Services Statement of Work\n\n"
+        "**Licensor:** Fathom Systems Inc.  \n"
+        "**Licensee:** Lumen Software\n\n"
+        "Entered into under the Software License and Support Agreement "
+        "between the parties.\n\n"
+        f"{texts['s3.sow.body']}\n\n"
+        f"*Working draft circulated {circulated} for internal review; "
+        "not for execution.*\n"
+    )
 
 
 def _cascadia_letter(texts: Mapping[str, str]) -> str:
@@ -1176,12 +1382,17 @@ class StorylineDirector:
         if missing:
             raise ConfigError(f"storyline texts missing: {missing}")
         self._texts = dict(texts)
-        self._matters_channel = next(
-            event.payload.conversation_id
-            for event in genesis.events
-            if event.payload.kind == "chat.conversation.created"
-            and event.payload.name == "#matters"
-        )
+
+        def channel(name: str) -> str:
+            return next(
+                event.payload.conversation_id
+                for event in genesis.events
+                if event.payload.kind == "chat.conversation.created"
+                and event.payload.name == name
+            )
+
+        self._matters_channel = channel("#matters")
+        self._billing_channel = channel("#billing")
         self._refs: dict[str, str] = {}
         self._beats: dict[str, list[tuple[int, _Beat]]] = {}
         self._register_s1()
@@ -1273,6 +1484,7 @@ class StorylineDirector:
         body: str,
         ref: str | None = None,
         reply_ref: str | None = None,
+        conversation: str | None = None,
     ) -> None:
         message_id = minter.mint("chm")
         if ref is not None:
@@ -1284,12 +1496,41 @@ class StorylineDirector:
                 payload=ChatMessagePayload(
                     kind="chat.message",
                     chat_message_id=message_id,
-                    conversation_id=self._matters_channel,
+                    conversation_id=(
+                        conversation
+                        if conversation is not None
+                        else self._matters_channel
+                    ),
                     reply_to=(
                         self._refs[f"ch:{reply_ref}"] if reply_ref is not None else None
                     ),
                     sender=sender,
                     body=body,
+                ),
+            )
+        )
+
+    def _dm_conversation(
+        self,
+        minter: IdMinter,
+        drafts: list[TimedDraft],
+        *,
+        at: int,
+        ref: str,
+        members: tuple[str, str],
+    ) -> None:
+        conversation_id = minter.mint("cnv")
+        self._refs[f"cv:{ref}"] = conversation_id
+        drafts.append(
+            TimedDraft(
+                at=SimDuration(at),
+                source=_entity(members[0]),
+                payload=ChatConversationCreatedPayload(
+                    kind="chat.conversation.created",
+                    conversation_id=conversation_id,
+                    conversation_type="dm",
+                    name=None,
+                    members=members,
                 ),
             )
         )
@@ -1555,6 +1796,101 @@ class StorylineDirector:
 
         self._on("2026-03-25", _at(14, 30), playbook_v3)
 
+        # Distractor vendor NDAs with clean, conforming histories: both
+        # stay on the playbook's three-year term with no residuals clause.
+        def baymark_v1(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._doc(
+                minter,
+                drafts,
+                at=_at(9, 40),
+                ref="s1.baymark",
+                author=_NF,
+                title=BAYMARK_NDA_TITLE,
+                path="/firm/vendor-ndas/mutual-nda-baymark.md",
+                content=_nda(
+                    texts,
+                    title=BAYMARK_NDA_TITLE,
+                    body_key="s1.nda.baymark.body",
+                    term=NDA_TERM_THREE,
+                    residuals=False,
+                ),
+            )
+
+        def vendor_intake(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(10, 5),
+                sender=_AB,
+                to=(_NF,),
+                cc=(_DO,),
+                subject="Vendor NDA intake — BayMark renewal and Archway",
+                text=texts["s1.email.vendor-intake"],
+                thread="s1.intake",
+                reply=False,
+            )
+
+        self._on("2026-03-18", _at(9, 40), baymark_v1)
+        self._on("2026-03-18", _at(10, 5), vendor_intake)
+
+        def baymark_v2(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._revise(
+                drafts,
+                at=_at(15, 25),
+                ref="s1.baymark",
+                revision=2,
+                author=_PN,
+                content=_nda(
+                    texts,
+                    title=BAYMARK_NDA_TITLE,
+                    body_key="s1.nda.baymark.body",
+                    term=NDA_TERM_THREE,
+                    residuals=False,
+                ),
+                summary="Conformed notice addresses and signature blocks.",
+            )
+
+        self._on("2026-03-26", _at(15, 25), baymark_v2)
+
+        def archway_v1(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._doc(
+                minter,
+                drafts,
+                at=_at(11, 15),
+                ref="s1.archway",
+                author=_NF,
+                title=ARCHWAY_NDA_TITLE,
+                path="/firm/vendor-ndas/mutual-nda-archway.md",
+                content=_nda(
+                    texts,
+                    title=ARCHWAY_NDA_TITLE,
+                    body_key="s1.nda.archway.body",
+                    term=NDA_TERM_THREE,
+                    residuals=False,
+                ),
+            )
+
+        self._on("2026-04-09", _at(11, 15), archway_v1)
+
+        def archway_v2(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._revise(
+                drafts,
+                at=_at(14, 50),
+                ref="s1.archway",
+                revision=2,
+                author=_NF,
+                content=_nda(
+                    texts,
+                    title=ARCHWAY_NDA_TITLE,
+                    body_key="s1.nda.archway.body",
+                    term=NDA_TERM_THREE,
+                    residuals=False,
+                ),
+                summary="Typo and citation fixes from proofread.",
+            )
+
+        self._on("2026-04-14", _at(14, 50), archway_v2)
+
         def lexipoint_v1(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._doc(
                 minter,
@@ -1686,13 +2022,36 @@ class StorylineDirector:
                 sender=_STAN,
                 to=(_NF,),
                 cc=(_GA,),
-                subject="NDA — residuals language",
+                subject="Ironclad NDA — one remaining comment",
                 text=texts["s1.email.ironclad-ask"],
                 thread="s1.ironclad",
                 reply=False,
             )
 
+        def ironclad_thread(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(16, 5),
+                sender=_NF,
+                body=S1_IRONCLAD_THREAD_PARENT,
+                ref="s1.ironclad-thread",
+            )
+
         self._on("2026-06-03", _at(10, 45), ironclad_ask)
+        self._on("2026-06-03", _at(16, 5), ironclad_thread)
+
+        def ironclad_thread_reply(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(9, 40),
+                sender=_NF,
+                body=S1_IRONCLAD_THREAD_REPLY,
+                reply_ref="s1.ironclad-thread",
+            )
+
+        self._on("2026-06-10", _at(9, 40), ironclad_thread_reply)
 
         def ironclad_v2(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._revise(
@@ -1719,7 +2078,7 @@ class StorylineDirector:
                 sender=_NF,
                 to=(_STAN,),
                 cc=(_DO,),
-                subject="Re: NDA — residuals language",
+                subject="Re: Ironclad NDA — one remaining comment",
                 text=texts["s1.email.ironclad-accept"],
                 thread="s1.ironclad",
                 reply=True,
@@ -1782,7 +2141,32 @@ class StorylineDirector:
 
         self._on("2026-04-03", _at(15, 30), call_time)
 
+        # Near-miss distractors: tranche-1 diligence before the budget-call
+        # cutoff. A whole-April (or all-diligence) keyword sum is wrong.
         spike: tuple[tuple[str, int, str, int, str], ...] = (
+            (
+                "2026-03-31",
+                _at(17, 30),
+                _PN,
+                85,
+                "Data room setup and document index, tranche 1 — original "
+                "scope (Meridian diagnostics acquisition).",
+            ),
+            (
+                "2026-04-01",
+                _at(17, 50),
+                _ML,
+                110,
+                "Initial data room diligence review, tranche 1 — corporate "
+                "records (Meridian diagnostics acquisition).",
+            ),
+            (
+                "2026-04-02",
+                _at(18, 0),
+                _PN,
+                70,
+                "Data room QC pass, tranche 1 (Meridian diagnostics acquisition).",
+            ),
             (
                 "2026-04-06",
                 _at(17, 40),
@@ -1923,8 +2307,19 @@ class StorylineDirector:
                 reply=True,
             )
 
+        def cutoff_posted(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(14, 5),
+                sender=_CJ,
+                body=S2_CUTOFF_CHAT,
+                conversation=self._billing_channel,
+            )
+
         self._on("2026-05-12", _at(8, 55), pull_time)
         self._on("2026-05-12", _at(13, 20), time_summary)
+        self._on("2026-05-12", _at(14, 5), cutoff_posted)
 
         def resolution(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._email(
@@ -1985,7 +2380,10 @@ class StorylineDirector:
                 title=LUMEN_AGREEMENT_TITLE,
                 path="/lumen-licensing/license-and-support-agreement.md",
                 content=_lumen_agreement(
-                    texts, fees_key="s3.agreement.fees.v1", indemnity=True
+                    texts,
+                    fees_key="s3.agreement.fees.v1",
+                    indemnity=True,
+                    circulated="March 31, 2026",
                 ),
             )
 
@@ -2031,9 +2429,12 @@ class StorylineDirector:
                 revision=2,
                 author=_ML,
                 content=_lumen_agreement(
-                    texts, fees_key="s3.agreement.fees.v2", indemnity=True
+                    texts,
+                    fees_key="s3.agreement.fees.v2",
+                    indemnity=True,
+                    circulated="April 21, 2026",
                 ),
-                summary="Incorporated licensee comments on fees and support terms.",
+                summary="Incorporated licensee review comments; recirculated.",
             )
 
         def v2_sent(minter: IdMinter, drafts: list[TimedDraft]) -> None:
@@ -2054,6 +2455,53 @@ class StorylineDirector:
         self._on("2026-04-21", _at(10, 30), v2)
         self._on("2026-04-21", _at(10, 55), v2_sent)
 
+        def v3(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._revise(
+                drafts,
+                at=_at(15, 40),
+                ref="s3.agreement",
+                revision=3,
+                author=_ML,
+                content=_lumen_agreement(
+                    texts,
+                    fees_key="s3.agreement.fees.v2",
+                    indemnity=True,
+                    circulated="April 28, 2026",
+                ),
+                summary="Drafting pass after internal review.",
+            )
+
+        self._on("2026-04-28", _at(15, 40), v3)
+
+        # Distractor: a similarly named Lumen document with a clean,
+        # uneventful four-version history and no indemnity language.
+        def sow_v1(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._doc(
+                minter,
+                drafts,
+                at=_at(14, 25),
+                ref="s3.sow",
+                author=_ML,
+                title=LUMEN_SOW_TITLE,
+                path="/lumen-licensing/support-services-sow.md",
+                content=_lumen_sow(texts, circulated="April 7, 2026"),
+            )
+
+        self._on("2026-04-07", _at(14, 25), sow_v1)
+
+        def sow_v2(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._revise(
+                drafts,
+                at=_at(10, 50),
+                ref="s3.sow",
+                revision=2,
+                author=_PN,
+                content=_lumen_sow(texts, circulated="April 24, 2026"),
+                summary="Formatting cleanup and exhibit relabeling.",
+            )
+
+        self._on("2026-04-24", _at(10, 50), sow_v2)
+
         def pushback(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._email(
                 minter,
@@ -2070,21 +2518,103 @@ class StorylineDirector:
 
         self._on("2026-05-19", _at(16, 20), pushback)
 
-        def v3(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+        def v4(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._revise(
                 drafts,
                 at=_at(9, 45),
                 ref="s3.agreement",
-                revision=3,
+                revision=4,
                 author=_ML,
                 content=_lumen_agreement(
-                    texts, fees_key="s3.agreement.fees.v2", indemnity=False
+                    texts,
+                    fees_key="s3.agreement.fees.v2",
+                    indemnity=False,
+                    circulated="May 21, 2026",
                 ),
-                summary="Conformed cross-references and cleaned up "
-                "formatting after the drafting call.",
+                summary="Conformed the draft following the call with "
+                "licensor's counsel.",
             )
 
-        self._on("2026-05-21", _at(9, 45), v3)
+        self._on("2026-05-21", _at(9, 45), v4)
+
+        def v5(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._revise(
+                drafts,
+                at=_at(16, 20),
+                ref="s3.agreement",
+                revision=5,
+                author=_PN,
+                content=_lumen_agreement(
+                    texts,
+                    fees_key="s3.agreement.fees.v2",
+                    indemnity=False,
+                    circulated="May 28, 2026",
+                ),
+                summary="Formatting and numbering cleanup.",
+            )
+
+        self._on("2026-05-28", _at(16, 20), v5)
+
+        def sow_v3(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._revise(
+                drafts,
+                at=_at(15, 30),
+                ref="s3.sow",
+                revision=3,
+                author=_ML,
+                content=_lumen_sow(texts, circulated="May 26, 2026"),
+                summary="Updated the staffing exhibit after internal review.",
+            )
+
+        self._on("2026-05-26", _at(15, 30), sow_v3)
+
+        def v6(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._revise(
+                drafts,
+                at=_at(11, 35),
+                ref="s3.agreement",
+                revision=6,
+                author=_ML,
+                content=_lumen_agreement(
+                    texts,
+                    fees_key="s3.agreement.fees.v2",
+                    indemnity=False,
+                    circulated="June 3, 2026",
+                ),
+                summary="Defined-terms tidy ahead of the signature packet.",
+            )
+
+        self._on("2026-06-03", _at(11, 35), v6)
+
+        def v7(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._revise(
+                drafts,
+                at=_at(15, 15),
+                ref="s3.agreement",
+                revision=7,
+                author=_PN,
+                content=_lumen_agreement(
+                    texts,
+                    fees_key="s3.agreement.fees.v2",
+                    indemnity=False,
+                    circulated="June 8, 2026",
+                ),
+                summary="Final proof for the signature packet.",
+            )
+
+        def sow_v4(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._revise(
+                drafts,
+                at=_at(15, 45),
+                ref="s3.sow",
+                revision=4,
+                author=_PN,
+                content=_lumen_sow(texts, circulated="June 8, 2026"),
+                summary="Proof pass for the signature packet.",
+            )
+
+        self._on("2026-06-08", _at(15, 15), v7)
+        self._on("2026-06-08", _at(15, 45), sow_v4)
 
         def ready_to_sign(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._email(
@@ -2095,6 +2625,21 @@ class StorylineDirector:
                 to=(_ML,),
                 subject="Re: Lumen — license and support agreement, first draft",
                 text=texts["s3.email.ready-to-sign"],
+                thread="s3.draft",
+                reply=True,
+            )
+
+        def quote_indemnity(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # Tempting wrong anchor: after the drop, the client quotes the
+            # OLD (v2-era) licensor indemnity verbatim in the email record.
+            self._email(
+                minter,
+                drafts,
+                at=_at(11, 35),
+                sender=_JUNE,
+                to=(_ML,),
+                subject="Re: Lumen — license and support agreement, first draft",
+                text=texts["s3.email.quote-indemnity"] + "\n\n> " + INDEMNITY_PARAGRAPH,
                 thread="s3.draft",
                 reply=True,
             )
@@ -2113,6 +2658,7 @@ class StorylineDirector:
             )
 
         self._on("2026-06-09", _at(10, 40), ready_to_sign)
+        self._on("2026-06-09", _at(11, 35), quote_indemnity)
         self._on("2026-06-09", _at(13, 15), final_confirm)
 
     # S4 — Cascadia sours across six weeks, then terminates.
@@ -2522,27 +3068,111 @@ class StorylineDirector:
 
         self._on("2026-05-13", _at(14, 15), reset2)
 
-        def correction(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+        # The week of the correction: unrelated deadline chatter in
+        # #matters so date-and-deadline keyword searches surface noise.
+        def goldleaf_moved(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(9, 50),
+                sender=_SR,
+                body="Goldleaf: the court moved our case management "
+                "hearing — now Monday June 22, 9:30 a.m., Dept. 17. "
+                "Briefing dates track the new date.",
+                ref="s5.goldleaf",
+            )
+            self._chat(
+                minter,
+                drafts,
+                at=_at(10, 5),
+                sender=_SM,
+                body="Calendared, thanks.",
+                reply_ref="s5.goldleaf",
+            )
+
+        self._on("2026-06-08", _at(9, 50), goldleaf_moved)
+
+        def pelican_deadline(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(14, 35),
+                sender=_DO,
+                body="Pelican Bay: the renewal option notice deadline is "
+                "June 30 — Noah, the draft notice is with you; it needs "
+                "to go out certified mail.",
+                ref="s5.pelican",
+            )
+            self._chat(
+                minter,
+                drafts,
+                at=_at(15, 0),
+                sender=_NF,
+                body="On it — notice out by Friday.",
+                reply_ref="s5.pelican",
+            )
+
+        self._on("2026-06-10", _at(14, 35), pelican_deadline)
+
+        def correction_dm(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # The operative date exists only here: a Grace<->Samuel DM that
+            # public-channel search cannot reach, with no case name and no
+            # docket vocabulary — just the Clio display-number prefix.
+            self._dm_conversation(
+                minter,
+                drafts,
+                at=_at(11, 20),
+                ref="s5.dm",
+                members=(_GA, _SM),
+            )
             self._chat(
                 minter,
                 drafts,
                 at=_at(11, 25),
                 sender=_GA,
-                body="Clerk's office called on Arroyo v. Fruitvale: the "
-                "June 18 reset notice went out with the wrong date. The "
-                "motion hearing is actually Thursday June 25, 9:00 a.m., "
-                "Dept. 511. I'll fix the calendar entry tomorrow — "
-                "flagging here first so nobody plans around the 18th.",
+                body=S5_DM_CORRECTION,
                 ref="s5.correction",
+                conversation=self._refs["cv:s5.dm"],
             )
             self._chat(
                 minter,
                 drafts,
                 at=_at(11, 40),
                 sender=_SM,
-                body="Thanks Grace — noted. Sofia, adjust the prep "
-                "schedule for the 25th.",
+                body=S5_DM_ACK,
                 reply_ref="s5.correction",
+                conversation=self._refs["cv:s5.dm"],
             )
 
-        self._on("2026-06-11", _at(11, 25), correction)
+        self._on("2026-06-11", _at(11, 20), correction_dm)
+
+        def brightline_deadline(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(11, 10),
+                sender=_SM,
+                body="Brightline: position statement is due to the agency "
+                "July 2. Sofia, let's lock the outline Thursday.",
+            )
+
+        self._on("2026-06-12", _at(11, 10), brightline_deadline)
+
+        def stale_recap(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # Post-correction trap: a formal-looking recap compiled from
+            # the stale master calendar restates the superseded June 18
+            # setting five days after the DM correction.
+            self._email(
+                minter,
+                drafts,
+                at=_at(9, 35),
+                sender=_PN,
+                to=(_SM, _SR),
+                cc=(_GA,),
+                subject=S5_RECAP_SUBJECT,
+                text=S5_RECAP_BODY,
+                thread="s5.recap",
+                reply=False,
+            )
+
+        self._on("2026-06-16", _at(9, 35), stale_recap)
