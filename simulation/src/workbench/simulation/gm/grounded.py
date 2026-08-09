@@ -137,19 +137,17 @@ class GroundedGm:
                 members = self._world.conversations.get(payload.conversation_id, ())
                 observers = self._entities_for(members)
                 return tuple(o for o in observers if o != event.source)
+            # Record-type events deliver to their actor too: an actor who
+            # never sees their own ticket or revision will redo it forever.
             case TicketCreatedPayload():
-                watchers = self._entities_for(
-                    (payload.requester, payload.assignee, payload.actor)
+                return self._entities_for(
+                    (payload.actor, payload.requester, payload.assignee)
                 )
-                return tuple(w for w in watchers if w != event.source)
             case TicketUpdatedPayload() | TicketCommentedPayload():
                 values = self._world.tickets.get(payload.ticket_id, {})
-                watchers = self._entities_for(
-                    (values.get("assignee"), payload.actor)
-                )
-                return tuple(w for w in watchers if w != event.source)
+                return self._entities_for((payload.actor, values.get("assignee")))
             case DocumentCreatedPayload() | DocumentRevisedPayload():
-                return ()
+                return self._entities_for((payload.author,))
             case _:
                 return ()
 
@@ -483,10 +481,14 @@ class GroundedGm:
             document_id = self._world.resolve_document(intent.document_ref)
             if document_id is None:
                 raise IntentRejection(f"unknown document {intent.document_ref!r}")
+            # Bump the head at resolve time: a second edit resolved before the
+            # first occurs must still get a distinct revision number.
+            revision = self._world.documents[document_id] + 1
+            self._world.documents[document_id] = revision
             payload = DocumentRevisedPayload(
                 kind="document.revised",
                 document_id=document_id,
-                revision=self._world.documents[document_id] + 1,
+                revision=revision,
                 author=sender,
                 content=intent.edit.new_content,
                 change_summary=intent.edit.change_summary,

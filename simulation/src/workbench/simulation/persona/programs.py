@@ -50,7 +50,9 @@ class DecideNextAction(dspy.Signature):
     is its own action, done in the repository, not described in an email.
     Follow through on commitments listed in your recent activity — if you
     said you would open a matter or deliver a redline and have not, that is
-    your next action."""
+    your next action. Never redo work: if the situation already lists a
+    ticket for a request, or your recent activity shows a revision
+    delivered, do not create or revise it again — move on or idle."""
 
     identity: str = dspy.InputField()
     situation: str = dspy.InputField(desc="current time, schedule, workload")

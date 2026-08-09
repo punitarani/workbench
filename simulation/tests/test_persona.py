@@ -96,3 +96,43 @@ async def test_situation_block_lists_documents_and_pending() -> None:
     assert block is not None
     assert "/legal/playbooks/nda-playbook.md" in block.content
     assert "pending" in block.content.casefold()
+
+
+async def test_facts_record_ticket_and_document_actions() -> None:
+    from workbench.core.intents import (
+        DocumentEdit,
+        DocumentEditIntent,
+        TicketCreateSpec,
+        TicketIntent,
+    )
+
+    memory = await make_memory()
+    await memory.post_act(
+        IntentAction(
+            intent=TicketIntent(
+                ticket_ref=None,
+                create=TicketCreateSpec(
+                    title="Review Vantage NDA",
+                    description="d",
+                    requester_ref="Jess Alvarez",
+                    assignee_ref=None,
+                    status="open",
+                    priority="normal",
+                    ticket_type="nda-review",
+                ),
+            )
+        )
+    )
+    await memory.post_act(
+        IntentAction(
+            intent=DocumentEditIntent(
+                document_ref="doc-000001",
+                edit=DocumentEdit(
+                    new_content="x", change_summary="Applied the term cap."
+                ),
+            )
+        )
+    )
+    facts = memory.get_state().facts
+    assert any("Review Vantage NDA" in f for f in facts)
+    assert any("Applied the term cap" in f for f in facts)

@@ -303,3 +303,48 @@ async def test_deep_reply_chains_stop_granting_turns() -> None:
     assert decision.entities == (), (
         "the fourth reply ends automatic turn-granting; wakes can revive it"
     )
+
+
+async def test_consecutive_document_edits_get_distinct_revisions() -> None:
+    gm = make_gm()
+    intent = DocumentEditIntent(
+        document_ref="doc-000001",
+        edit=DocumentEdit(new_content="v3", change_summary="First pass."),
+    )
+    first = await gm.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    second = await gm.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    assert first.drafts[0].payload.revision == 3
+    assert second.drafts[0].payload.revision == 4, (
+        "resolve-time heads must account for scheduled-but-unapplied revisions"
+    )
+
+
+async def test_actor_observes_own_ticket_and_document_events() -> None:
+    from workbench.core.events import Event
+    from workbench.core.events.tickets import TicketCreatedPayload
+
+    gm = make_gm()
+    payload = TicketCreatedPayload(
+        kind="ticket.created",
+        ticket_id="tkt-000900",
+        actor="per-tom-okafor",
+        title="Review NDA",
+        description="d",
+        requester="per-jess-alvarez",
+        assignee="per-daniel-reyes",
+        status="open",
+        priority="normal",
+        ticket_type="nda-review",
+        fields=(),
+    )
+    event = Event(
+        seq=900, time=60_000, tag=payload.kind, source="tom", payload=payload
+    )
+    observers = await gm.route(event)
+    assert "tom" in observers, (
+        "the actor must see their own record-type events or they redo them"
+    )

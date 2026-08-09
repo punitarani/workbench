@@ -92,6 +92,14 @@ WORKPLACE = WorkplaceSpec(
             attendees=_LEGAL_TEAM,
             description="Daily sync: intake, blockers, escalations.",
         ),
+        SeedCalendarEvent(
+            organizer="per-meredith-chao",
+            title="GC / Commercial 1:1",
+            start_clock="14:00",
+            end_clock="14:30",
+            attendees=("per-meredith-chao", "per-daniel-reyes"),
+            description="Weekly: open matters, escalations, vendor posture.",
+        ),
     ),
     day_script=(
         ExogenousEmail(
@@ -112,6 +120,19 @@ WORKPLACE = WorkplaceSpec(
                 title="Vantage NDA (inbound draft)",
                 path="/attachments/inbound-nda-vantage.md",
                 content=_doc("inbound_nda_vantage.md"),
+            ),
+        ),
+        ExogenousEmail(
+            at="10:30",
+            sender="per-meredith-chao",
+            to=("per-priya-nair",),
+            cc=(),
+            subject="Vantage — didn't we look at them before?",
+            body=(
+                "Priya,\n\nSales is bringing Vantage Data Services back in. "
+                "The name rings a bell — can you dig up whatever history we "
+                "have with them and flag anything Daniel should know for the "
+                "NDA review?\n\nM."
             ),
         ),
         ExogenousEmail(

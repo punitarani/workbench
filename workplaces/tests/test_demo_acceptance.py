@@ -106,7 +106,7 @@ async def test_storyline_milestones_in_causal_order(tmp_path: Path) -> None:
     statement = next(
         e
         for e in events
-        if e.tag == "chat.message"
+        if e.tag in ("chat.message", "email.message")
         and e.payload.sender == "per-daniel-reyes"
         and any(
             p.casefold() in e.payload.body.casefold()

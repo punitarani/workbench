@@ -17,7 +17,12 @@ from workbench.core.events.chat import (
 from workbench.core.events.documents import DocumentCreatedPayload
 from workbench.core.events.email import EmailMessagePayload
 from workbench.core.events.tickets import TicketCreatedPayload
-from workbench.core.intents import ChatIntent, EmailIntent
+from workbench.core.intents import (
+    ChatIntent,
+    DocumentEditIntent,
+    EmailIntent,
+    TicketIntent,
+)
 from workbench.simulation.entity.component import BaseComponent
 from workbench.simulation.entity.context import ContextBlock
 
@@ -75,9 +80,24 @@ class WorkingMemoryComponent(BaseComponent):
         if not isinstance(action, IntentAction):
             return
         intent = action.intent
+        fact: str | None = None
         if isinstance(intent, EmailIntent | ChatIntent):
+            fact = intent.draft.summary
+        elif isinstance(intent, TicketIntent):
+            if intent.create is not None:
+                fact = f"Opened ticket: {intent.create.title}"
+            elif intent.comment:
+                fact = f"Commented on {intent.ticket_ref}: {intent.comment[:80]}"
+            elif intent.changes:
+                fact = f"Updated {intent.ticket_ref}"
+        elif isinstance(intent, DocumentEditIntent):
+            if intent.edit is not None:
+                fact = f"Revised {intent.document_ref}: {intent.edit.change_summary}"
+            elif intent.create is not None:
+                fact = f"Created document: {intent.create.title}"
+        if fact is not None:
             self._state = self._state.model_copy(
-                update={"facts": (*self._state.facts, intent.draft.summary)}
+                update={"facts": (*self._state.facts, fact)}
             )
 
     def events(self) -> tuple[Event, ...]:
