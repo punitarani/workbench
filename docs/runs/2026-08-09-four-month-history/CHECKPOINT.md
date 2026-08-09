@@ -2,6 +2,18 @@
 
 Written so this run survives context loss. Update at every phase boundary.
 
+## Current phase: re-derivation after the world regeneration
+
+The record was regenerated for realism (444d128). Storyline beats and all
+56 storyline audits survive; derived values did not. Two agents are
+re-deriving ground truths — one on four id/count-drift tasks, one on four
+whose answer sets went degenerate (72 items, 2 items) and need a rule
+tightening that is harder, never easier.
+
+**Until that lands the suite is NOT green**: fee-dispute skips behind a
+coherence guard and the other hartwell tasks fail. The matrix recorded
+below was measured against the PREVIOUS world and must be re-run.
+
 ## Where the goal stands
 
 | Requirement | State |
