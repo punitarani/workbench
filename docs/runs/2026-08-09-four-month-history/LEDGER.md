@@ -24,3 +24,8 @@ tier C content authoring. Entry 8's exact usage line was lost to a
 truncated pipe; entry 9 re-authored the identical workload (same prompts,
 model, seeds, params) to measure it, and its measured tokens stand in for
 both rows. Remaining: ~$24.71.
+
+Eval pricing confirmed (OpenRouter, USD/Mtok prompt/completion):
+deepseek/deepseek-v4-flash-0731 $0.09/$0.18; z-ai/glm-5.2 $0.07/$0.22;
+openai/gpt-5.6-luna $0.10/$0.60. Phase 3 matrix (3 models x 3 attempts
+x 5 tasks ~ 45 episodes) projected $2-5 against $24.71 remaining.
