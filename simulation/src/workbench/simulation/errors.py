@@ -41,3 +41,11 @@ class TimeError(SimulationError):
 
 class ConfigMismatchError(SimulationError):
     """A snapshot was taken under a different configuration than the resume."""
+
+
+class TransportError(SimulationError):
+    """An externalized entity's transport failed."""
+
+
+class ScriptExhaustedError(TransportError):
+    """A scripted transport ran out of recorded responses. Never silent."""
