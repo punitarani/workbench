@@ -8,14 +8,10 @@ audit must say, for each one, whether its history conforms to the
 written playbook or departs from it, and for the departures, exactly
 which document, which version, and which clause.
 
-Use the firm's systems in this workspace (Gmail, Slack, the iManage
-document repository, and Clio matters — wired via `.mcp.json`, with the
-underlying SQLite databases under `state/` and repository files under
-`files/`). Timestamps in the databases count seconds from the firm's
-epoch, Monday 2026-03-02 (day 0): a timestamp's date is 2026-03-02 plus
-`time // 86400` days.
+Work from the firm's systems: Gmail, Slack, Clio, and iManage, where the
+playbook and the NDAs are filed with their full version histories.
 
-Write **`drift.json`** to the workspace root:
+Save **`drift.json`** in your workspace:
 
 ```json
 {
@@ -44,11 +40,11 @@ Write **`drift.json`** to the workspace root:
 `ndas` is the certification: one entry for **every** vendor NDA in the
 repository, keyed by its exact iManage path, valued `"conforms"` when
 every version of that NDA holds the playbook's standard positions and
-`"deviates"` when any version departs from them. The certification is
-graded as a whole — a missing NDA, an invented one, or a single wrong
-call forfeits it — so do not sample, and do not trust the email trail
-to tell you which files moved: the record discusses some departures and
-never mentions others.
+`"deviates"` when any version departs from them. You are signing this
+certification as a whole — a missing NDA, an invented one, or a single
+wrong call makes the whole thing unusable at the review — so do not
+sample, and do not trust the email trail to tell you which files moved:
+the mail discusses some departures and never mentions others.
 
 For the two clause blocks, be precise: cite the specific NDA document
 and the specific version whose content first departed from the
@@ -68,7 +64,7 @@ email is any email sent the same calendar day that names that vendor or
 carries that NDA file as an attachment; email is the firm's transmittal
 record, so a Slack note does not cover a version, and neither does an
 email sent the day after. List each such version by its iManage version
-id (`LEGAL!<number>.<version>`). This too is certified as a whole — the
-exact set earns it; a missed version or a padded one forfeits it. The
+id (`LEGAL!<number>.<version>`). This finding is exact as well — a
+missed version or a padded one and the process point falls apart. The
 mail discusses some of these files and never mentions others, so only
 the version walk plus a per-day mail check answers it.

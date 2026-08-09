@@ -1,17 +1,17 @@
 # Redline provenance
 
-You are Priya Shah, junior counsel. Before signing off for the day, the
+You are Priya Shah, junior counsel. Before you sign off for the day, the
 records team needs a provenance note for today's work on the Vantage Data
 Services NDA: where the redline edits actually live in the document
 repository, who made them, and whether the inbound draft itself was ever
 modified.
 
-The firm's systems are available as MCP servers (see `.mcp.json`): Gmail,
-Slack, the iManage document repository, and Clio matters. Do not guess from
-file names — the note must reflect what the repository's revision history
-actually records.
+You have the usual systems in front of you — Gmail, Slack, the iManage
+document repository, and Clio. Do not guess from file names: the note has
+to match what iManage's revision history actually shows, and records will
+check it against the repository.
 
-Write `provenance.json` in the workspace root:
+Save `provenance.json` in your workspace:
 
 ```json
 {
@@ -22,5 +22,5 @@ Write `provenance.json` in the workspace root:
 }
 ```
 
-Accuracy against the record is what counts; partial credit is given per
-field.
+Answer all four fields, and answer each from the repository rather than
+from what today's mail says happened.

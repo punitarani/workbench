@@ -1,8 +1,13 @@
-"""Materialize a world log into an agent-inhabitable workspace.
+"""Materialize a world log into an environment bundle.
 
 Validation is a gate, not a warning: an incoherent log never becomes an
-environment. Server commands in .mcp.json are workspace-relative; the
-container wraps them with run-as-environment.
+environment. The bundle splits what the agent inhabits from what serves
+it: only ``workspace/`` becomes ``/home/agent/workspace``, while
+``state/`` (the projected tool databases), ``mcp.json``, and
+``environment.toml`` stay offstage under the bundle root, readable by the
+environment user alone. The emulated products are therefore the only
+route into the record. Server commands in ``mcp.json`` are bundle-relative
+and the container wraps them with run-as-environment.
 """
 
 import json
@@ -15,20 +20,24 @@ from workbench.core.errors import WorldLogIntegrityError
 from workbench.core.worldlog import read_events, validate_events
 from workbench.tools import REGISTRY, project_all, server_specs
 
+AGENT_WORKSPACE = "workspace"
+
 
 class MaterializedEnvironment(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    workspace: Path
+    bundle: Path
+    agent_workspace: Path
     event_count: int = Field(ge=0)
     databases: tuple[str, ...]
     seat: str | None = None
     document_files: int = Field(ge=0, default=0)
 
 
-def _write_document_files(out_dir: Path, imanage_db: Path) -> int:
-    """Every document's head version becomes a real file the agent can open,
-    laid out as ``files/{workspace}/{basename}`` from the iManage profile."""
+def _write_document_files(agent_workspace: Path, imanage_db: Path) -> int:
+    """Every document's head version becomes a real file in the agent's own
+    folders, laid out as ``{workspace}/{basename}`` from the iManage
+    profile — the way a professional's documents sit on disk."""
 
     connection = sqlite3.connect(imanage_db)
     try:
@@ -42,7 +51,7 @@ def _write_document_files(out_dir: Path, imanage_db: Path) -> int:
     finally:
         connection.close()
     for workspace, path, content in rows:
-        target = out_dir / "files" / workspace / path.rsplit("/", 1)[-1]
+        target = agent_workspace / workspace / path.rsplit("/", 1)[-1]
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
     return len(rows)
@@ -51,6 +60,9 @@ def _write_document_files(out_dir: Path, imanage_db: Path) -> int:
 def materialize(
     world_log: Path, out_dir: Path, *, seat: str | None = None
 ) -> MaterializedEnvironment:
+    """Write the environment bundle rooted at ``out_dir``. The bundle root
+    is never the agent's working directory; ``out_dir/workspace`` is."""
+
     events = read_events(world_log)
     report = validate_events(events)
     if not report.ok:
@@ -62,10 +74,12 @@ def materialize(
         )
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    agent_workspace = out_dir / AGENT_WORKSPACE
+    agent_workspace.mkdir(parents=True, exist_ok=True)
     databases = project_all(events, out_dir / "state")
-    document_files = _write_document_files(out_dir, databases["imanage"])
+    document_files = _write_document_files(agent_workspace, databases["imanage"])
 
-    (out_dir / ".mcp.json").write_text(
+    (out_dir / "mcp.json").write_text(
         json.dumps({"mcpServers": server_specs(seat=seat)}, indent=2) + "\n",
         encoding="utf-8",
     )
@@ -75,12 +89,14 @@ def materialize(
     seat_line = f'seat = "{seat}"\n' if seat else ""
     (out_dir / "environment.toml").write_text(
         f"[tools]\ncompose = [{compose}]\n{seat_line}"
+        f'\n[agent]\nworkspace = "{AGENT_WORKSPACE}"\n'
         '\n[personas]\nbackend = "replay"\n',
         encoding="utf-8",
     )
 
     return MaterializedEnvironment(
-        workspace=out_dir,
+        bundle=out_dir,
+        agent_workspace=agent_workspace,
         event_count=len(events),
         databases=tuple(names),
         seat=seat,

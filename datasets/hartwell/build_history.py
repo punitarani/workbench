@@ -5,9 +5,9 @@ with the five storyline arcs directed onto their dates in full mode.
         [--seed 42] [--days 5|all] [--check]
 
 Pilot mode (``--days N``) is fully offline: procedural traffic only,
-projected into ``pilot-workspace/``. Full mode (``--days all``) authors
+projected into ``pilot-bundle/``. Full mode (``--days all``) authors
 storyline prose through the content cache (LM on cache miss, hard-capped),
-builds all 87 workdays, validates, materializes into ``workspace/`` (seat
+builds all 87 workdays, validates, materializes into ``bundle/`` (seat
 unset), prints per-month tag counts, and audits the storyline evidence.
 ``--check`` builds twice into temporary directories and fails unless the
 bytes are identical; in full mode it requires a warmed content cache.
@@ -971,15 +971,15 @@ def main(argv: list[str] | None = None) -> int:
         return run_check(seed, day_count=day_count, texts=texts)
 
     log_path = build_world(args.out, seed, day_count=day_count, texts=texts)
-    workspace_name = "workspace" if full else "pilot-workspace"
-    workspace = materialize(log_path, args.out / workspace_name)
+    bundle_name = "bundle" if full else "pilot-bundle"
+    bundle = materialize(log_path, args.out / bundle_name)
     print_summary(log_path, by_month=full)
     print(
-        f"{workspace.event_count} events -> {workspace.workspace} "
-        f"({workspace.document_files} document files)"
+        f"{bundle.event_count} events -> {bundle.bundle} "
+        f"({bundle.document_files} document files)"
     )
     if full:
-        return audit(log_path, workspace.workspace / "state")
+        return audit(log_path, bundle.bundle / "state")
     return 0
 
 

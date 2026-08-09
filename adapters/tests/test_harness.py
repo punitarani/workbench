@@ -1,6 +1,6 @@
-"""Harness contract tests. Fully offline: the workspace is materialized
-from fixture events, the LM is a scripted client, and the OpenRouter
-client runs against an httpx mock transport."""
+"""Harness contract tests. Fully offline: the environment bundle is
+materialized from fixture events, the LM is a scripted client, and the
+OpenRouter client runs against an httpx mock transport."""
 
 import json
 import textwrap
@@ -29,12 +29,14 @@ DELIVERABLE = "clause triage: two-year cap accepted per Daniel's redline\n"
 
 
 @pytest.fixture
-def workspace(tmp_path: Path) -> Path:
+def bundle(tmp_path: Path) -> Path:
+    """The environment bundle: state/ and the server wiring offstage, the
+    agent's own workspace/ beside them."""
     log_path = tmp_path / "world.jsonl"
     with WorldLogWriter(log_path) as writer:
         for event in coherent_events():
             writer.append(event)
-    out = tmp_path / "workspace"
+    out = tmp_path / "bundle"
     materialize(log_path, out)
     return out
 
@@ -83,8 +85,8 @@ def episode_script() -> list[dict[str, Any]]:
     ]
 
 
-async def test_workspace_specs_and_call_roundtrip(workspace: Path) -> None:
-    async with open_workspace(workspace) as ws:
+async def test_workspace_specs_and_call_roundtrip(bundle: Path) -> None:
+    async with open_workspace(bundle) as ws:
         names = {spec["function"]["name"] for spec in ws.tool_specs()}
         assert {
             "gmail__search_threads",
@@ -108,14 +110,16 @@ async def test_workspace_specs_and_call_roundtrip(workspace: Path) -> None:
         assert unknown.startswith("ERROR:")
 
 
-async def test_episode_stops_on_finish(workspace: Path) -> None:
+async def test_episode_stops_on_finish(bundle: Path) -> None:
     client = ScriptedChatClient(episode_script())
-    result = await run_episode(workspace, "Reconstruct the triage memo.", client)
+    result = await run_episode(
+        bundle / "workspace", "Reconstruct the triage memo.", client
+    )
 
     assert result.stop_reason == "finish"
     assert result.turns == 3
     assert result.tool_calls == 3
-    assert (workspace / "deliverable.md").read_text() == DELIVERABLE
+    assert (bundle / "workspace" / "deliverable.md").read_text() == DELIVERABLE
 
     shown = {spec["function"]["name"] for spec in client.seen_tools}
     assert {"write_file", "finish", "gmail__get_thread", "clio__list_matters"} <= shown
@@ -135,15 +139,15 @@ async def test_episode_stops_on_finish(workspace: Path) -> None:
     assert by_call["call-3"] == "episode finished"
 
 
-async def test_episode_hits_max_turns(workspace: Path) -> None:
+async def test_episode_hits_max_turns(bundle: Path) -> None:
     client = ScriptedChatClient([])
-    result = await run_episode(workspace, "Do nothing.", client, max_turns=2)
+    result = await run_episode(bundle / "workspace", "Do nothing.", client, max_turns=2)
     assert result.stop_reason == "max_turns"
     assert result.turns == 2
     assert result.tool_calls == 0
 
 
-async def test_call_budget_stops_the_episode(workspace: Path) -> None:
+async def test_call_budget_stops_the_episode(bundle: Path) -> None:
     """Calls past the cap are answered with an error, never executed, and
     the episode ends with stop_reason call_budget."""
 
@@ -163,7 +167,7 @@ async def test_call_budget_stops_the_episode(workspace: Path) -> None:
         ],
     }
     result = await run_episode(
-        workspace,
+        bundle / "workspace",
         "Read everything.",
         ScriptedChatClient([over_budget]),
         max_tool_calls=2,
@@ -180,7 +184,7 @@ async def test_call_budget_stops_the_episode(workspace: Path) -> None:
     assert by_call["call-3"].startswith("ERROR: tool-call budget exhausted")
 
 
-async def test_call_budget_exact_spend_ends_without_finish(workspace: Path) -> None:
+async def test_call_budget_exact_spend_ends_without_finish(bundle: Path) -> None:
     """A model that consumes the whole budget without calling finish stops
     at the boundary instead of burning turns on nudges."""
 
@@ -190,21 +194,24 @@ async def test_call_budget_exact_spend_ends_without_finish(workspace: Path) -> N
         tool_call("finish", {"summary": "never reached"}, "call-3"),
     ]
     result = await run_episode(
-        workspace, "Read everything.", ScriptedChatClient(script), max_tool_calls=2
+        bundle / "workspace",
+        "Read everything.",
+        ScriptedChatClient(script),
+        max_tool_calls=2,
     )
     assert result.stop_reason == "call_budget"
     assert result.turns == 2
     assert result.tool_calls == 2
 
 
-async def test_call_budget_admits_a_finishing_episode(workspace: Path) -> None:
+async def test_call_budget_admits_a_finishing_episode(bundle: Path) -> None:
     client = ScriptedChatClient(episode_script())
     result = await run_episode(
-        workspace, "Reconstruct the triage memo.", client, max_tool_calls=3
+        bundle / "workspace", "Reconstruct the triage memo.", client, max_tool_calls=3
     )
     assert result.stop_reason == "finish"
     assert result.tool_calls == 3
-    assert (workspace / "deliverable.md").read_text() == DELIVERABLE
+    assert (bundle / "workspace" / "deliverable.md").read_text() == DELIVERABLE
 
 
 def test_read_call_budget_from_task_toml(tmp_path: Path) -> None:
@@ -218,7 +225,7 @@ def test_read_call_budget_from_task_toml(tmp_path: Path) -> None:
     assert read_call_budget(tmp_path) == 96
 
 
-async def test_write_file_serializes_structured_content(workspace: Path) -> None:
+async def test_write_file_serializes_structured_content(bundle: Path) -> None:
     """A model passing JSON for ``content`` must land as JSON, not repr()."""
 
     payload = {"cutoff_date": "2026-04-03", "entries": [1, 2]}
@@ -227,10 +234,10 @@ async def test_write_file_serializes_structured_content(workspace: Path) -> None
         tool_call("finish", {"summary": "done"}, "call-2"),
     ]
     result = await run_episode(
-        workspace, "Write the deliverable.", ScriptedChatClient(script)
+        bundle / "workspace", "Write the deliverable.", ScriptedChatClient(script)
     )
     assert result.stop_reason == "finish"
-    assert json.loads((workspace / "out.json").read_text()) == payload
+    assert json.loads((bundle / "workspace" / "out.json").read_text()) == payload
 
 
 def test_write_file_confined_to_workspace(tmp_path: Path) -> None:
@@ -252,6 +259,10 @@ def fake_task(tmp_path: Path) -> Path:
             import json, os
             from pathlib import Path
 
+            # The verifier runs in the agent's workspace and reaches the
+            # tool databases through WORKBENCH_STATE, never through cwd.
+            offstage = Path(os.environ["WORKBENCH_STATE"])
+            assert offstage.is_dir() and not Path("state").exists()
             score = 1.0 if Path("deliverable.md").exists() else 0.0
             log_dir = Path(os.environ["VERIFIER_LOG_DIR"])
             log_dir.mkdir(parents=True, exist_ok=True)
@@ -263,24 +274,29 @@ def fake_task(tmp_path: Path) -> Path:
     return task_dir
 
 
+def fake_bundle(tmp_path: Path) -> Path:
+    bundle = tmp_path / "bundle"
+    (bundle / "workspace").mkdir(parents=True)
+    (bundle / "state").mkdir()
+    return bundle
+
+
 def test_grade_episode_runs_task_grader(tmp_path: Path) -> None:
     task_dir = fake_task(tmp_path)
-    workspace = tmp_path / "ws"
-    workspace.mkdir()
-    assert grade_episode(task_dir, workspace) == {"score": 0.0}
-    (workspace / "deliverable.md").write_text(DELIVERABLE)
-    assert grade_episode(task_dir, workspace) == {"score": 1.0}
+    bundle = fake_bundle(tmp_path)
+    assert grade_episode(task_dir, bundle) == {"score": 0.0}
+    (bundle / "workspace" / "deliverable.md").write_text(DELIVERABLE)
+    assert grade_episode(task_dir, bundle) == {"score": 1.0}
 
 
 def test_grade_episode_fails_loud(tmp_path: Path) -> None:
+    bundle = fake_bundle(tmp_path)
     with pytest.raises(GraderError):
-        grade_episode(tmp_path / "no-task", tmp_path)
+        grade_episode(tmp_path / "no-task", bundle)
     task_dir = fake_task(tmp_path)
     (task_dir / "tests" / "grade.py").write_text("raise SystemExit(3)\n")
-    workspace = tmp_path / "ws"
-    workspace.mkdir()
     with pytest.raises(GraderError):
-        grade_episode(task_dir, workspace)
+        grade_episode(task_dir, bundle)
 
 
 def openrouter_response(content: str, prompt: int, completion: int) -> dict[str, Any]:

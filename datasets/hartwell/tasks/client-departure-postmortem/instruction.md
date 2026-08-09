@@ -3,18 +3,14 @@
 You are **Eleanor Hartwell**, managing partner of Hartwell & Marsh LLP.
 Cascadia Outfitters terminated the firm in mid-2026 and you promised the
 partners a lessons-learned discussion. You want the souring pinned to
-the record, not to anyone's memory: when the team first knew, how
-internal engagement decayed message by message, and how the ending was
-papered.
+what the firm actually wrote down, not to anyone's memory: when the team
+first knew, how internal engagement decayed message by message, and how
+the ending was papered.
 
-Use the firm's systems in this workspace (Gmail, Slack, the iManage
-document repository, and Clio matters — wired via `.mcp.json`, with the
-underlying SQLite databases under `state/` and repository files under
-`files/`). Timestamps in the databases count seconds from the firm's
-epoch, Monday 2026-03-02 (day 0): a timestamp's date is 2026-03-02 plus
-`time // 86400` days.
+Everything is in the firm's systems — Gmail, Slack, iManage, and Clio.
+Work from them, not from recollection.
 
-Write **`postmortem.json`** to the workspace root:
+Save **`postmortem.json`** in your workspace:
 
 ```json
 {
@@ -36,13 +32,13 @@ internal Slack arc: the March report that the client was happy with the
 plan, the first negative signal, the message where the partner takes
 over client contact himself, the report that the status memo went out,
 and the report that the client declined the scheduled call and asked for
-email only. Every value must come from the tool that actually records
-it: the first warning lived in Slack before any partner email, `ts`
+email only. Every value has to come from the system that actually holds
+it: the first warning landed in Slack before any partner email, `ts`
 values are Slack's own message identities, the closure date is a status
 change in Clio (not the termination's effective date), and the letter is
-filed in the document repository.
+filed in iManage.
 
-The sharpest lesson is responsiveness, so pin it to the record too:
+The sharpest lesson is responsiveness, so pin that down too:
 `unanswered_client_emails` must list the Gmail message id of **every
 email from the client's side on the Cascadia engagement that the firm
 never answered**. Answered means answered where the client sent it: a
@@ -50,6 +46,7 @@ message from someone at the firm appearing later in the *same Gmail
 thread*. A reply days later still answers; a reply in a different
 thread — however substantive — does not; a second email from the client
 answers nothing. The client wrote more often than anyone remembers and
-most of it did get answered, so check the full correspondence, not the
-famous thread. This list is certified as a whole: only the exact set
-earns it.
+most of it did get answered, so read the whole correspondence, not the
+famous thread. You are certifying this list to the partners as complete: one
+email listed that was in fact answered, or one true miss left off, and
+the certification is worth nothing.

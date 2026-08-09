@@ -11,14 +11,10 @@ protection between versions this spring, and nothing announces it: no
 email, no chat message, no revision comment. Find it, or prove it is not
 there — and if it is there, document exactly where it happened.
 
-Use the firm's systems in this workspace (Gmail, Slack, the iManage
-document repository, and Clio matters — wired via `.mcp.json`, with the
-underlying SQLite databases under `state/` and repository files under
-`files/`). Timestamps in the databases count seconds from the firm's
-epoch, Monday 2026-03-02 (day 0): a timestamp's date is 2026-03-02 plus
-`time // 86400` days.
+You have the firm's systems: Gmail, Slack, Clio, and iManage, which keeps
+every version of every document the firm has saved.
 
-Write **`clause.json`** to the workspace root:
+Save **`clause.json`** in your workspace:
 
 ```json
 {
@@ -35,19 +31,19 @@ Write **`clause.json`** to the workspace root:
 
 No current draft alone can answer this — heads look clean, every
 revision comment in the repository reads as routine housekeeping, and
-the email record actively claims nothing substantive changed. The
-repository carries many documents with multi-version histories; only
+the mail actively claims nothing substantive changed. The repository
+carries many documents with multi-version histories; only
 version-by-version comparison separates the one that lost a protection
 from the many that merely grew.
 
 The carrier also wants the negative certified, not asserted:
 `clean_documents` must enumerate the iManage document number of every
 OTHER document in the repository with two or more versions — the ones
-whose histories lost nothing. The certification is graded as an exact
-set: every clean multi-version document listed, the one that lost its
-protection excluded, single-version documents excluded, nothing
-invented. An incomplete enumeration is an incomplete answer to
-coverage counsel's question.
+whose histories lost nothing. This is an exact certification: every
+clean multi-version document listed, the one that lost its protection
+excluded, single-version documents excluded, nothing invented. An
+incomplete enumeration is an incomplete answer to coverage counsel's
+question.
 
 Coverage counsel's follow-up is about process: which document versions
 were saved with **no same-day communication mentioning the document**?
@@ -60,5 +56,5 @@ the firm does — the vendor's name for a vendor NDA, the agreement or
 statement-of-work name for the client drafts, the template's name for
 the firm forms; naming only the matter, the client, or the workspace
 does not count, and neither does a mention the day before or the day
-after. This list is also graded as an exact set — the record mentions
-most saves somewhere, and the handful it never mentions is the answer.
+after. This list has to be exact too — most saves are mentioned
+somewhere, and the handful that never were is the answer.

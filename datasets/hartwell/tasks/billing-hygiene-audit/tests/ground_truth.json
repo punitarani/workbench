@@ -1,0 +1,36 @@
+{
+  "_evidence": {
+    "join": "Presence anti-join over all 1,427 Clio activities (positional ids, time-ordered across matters): an entry is unsupported when its timekeeper sent no Gmail message and no Slack message (channel or DM) dated the entry's date. Exactly 7 entries across 4 silent person-days: Marcus Liang 2026-03-13 (id 164), Diane Okonkwo 2026-06-05 (1150, 1161) and 2026-06-15 (1244, 1249, 1250), Marcus Liang 2026-06-29 (1409). Total 438 minutes.",
+    "decoys": "Single-surface near misses on every side: 77 entries whose timekeeper's only same-day footprint is a DM (public-channel search returns nothing), 13 entries supported only by one email, 59 supported only by a public channel message. A Gmail+public-channels survey reports 84 exceptions (7 true + 77 false); a Slack-only survey misreports the 13 email-only days. Every surface must be swept per person per day.",
+    "notes": "The identical rule over the 178 Clio notes (positional ids) flags exactly 3: note 16 (Marcus Liang, 2026-03-13, Lumen matter), note 146 (Diane Okonkwo, 2026-06-05, Veridian), note 177 (Marcus Liang, 2026-06-29, Solstice). They fall on the same silent person-days as the activities — corroboration, not a separate discovery.",
+    "grading": "unsupported_entry_ids is all-or-nothing at 0.56 (exact set or zero); the non-core subset caps at 0.44. unsupported_entries grades hits-minus-extras on (id, date, minutes); unsupported_timekeepers and phantom_note_ids penalize extras so enumeration cannot earn them."
+  },
+  "entries_reviewed": 1427,
+  "timekeepers_reviewed": 8,
+  "unsupported_entry_ids": [164, 1150, 1161, 1244, 1249, 1250, 1409],
+  "unsupported_entries": [
+    {"id": 164, "date": "2026-03-13", "minutes": 60},
+    {"id": 1150, "date": "2026-06-05", "minutes": 42},
+    {"id": 1161, "date": "2026-06-05", "minutes": 18},
+    {"id": 1244, "date": "2026-06-15", "minutes": 60},
+    {"id": 1249, "date": "2026-06-15", "minutes": 18},
+    {"id": 1250, "date": "2026-06-15", "minutes": 120},
+    {"id": 1409, "date": "2026-06-29", "minutes": 120}
+  ],
+  "unsupported_minutes_total": 438,
+  "timekeeper_markers": [
+    ["marcus", "liang"],
+    ["diane", "okonkwo"]
+  ],
+  "phantom_note_ids": [16, 146, 177],
+  "weights": {
+    "entries_reviewed": 0.02,
+    "timekeepers_reviewed": 0.02,
+    "unsupported_entry_ids": 0.56,
+    "unsupported_entries": 0.12,
+    "unsupported_minutes_total": 0.05,
+    "unsupported_timekeepers": 0.04,
+    "phantom_note_ids": 0.1,
+    "format": 0.09
+  }
+}

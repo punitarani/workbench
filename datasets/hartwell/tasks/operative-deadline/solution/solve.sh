@@ -8,6 +8,7 @@
 # the record, the last notice must not be reported as operative.
 exec python3 - << 'EOF'
 import json
+import os
 import re
 import sqlite3
 import sys
@@ -24,8 +25,11 @@ MONTHS = {
     )
 }
 
+STATE = os.environ.get("WORKBENCH_STATE", "../state")
+
+
 def rows(db, sql, *params):
-    with sqlite3.connect(f"file:state/{db}?mode=ro", uri=True) as connection:
+    with sqlite3.connect(f"file:{STATE}/{db}?mode=ro", uri=True) as connection:
         return connection.execute(sql, params).fetchall()
 
 def day_of(time):

@@ -1,4 +1,4 @@
-"""Environment assembly: world log in, agent-inhabitable workspace out."""
+"""Environment assembly: world log in, environment bundle out."""
 
 import json
 import sys
@@ -22,9 +22,9 @@ def write_log(tmp_path: Path) -> Path:
     return log_path
 
 
-def test_materialize_produces_workspace(tmp_path: Path) -> None:
+def test_materialize_produces_bundle(tmp_path: Path) -> None:
     log_path = write_log(tmp_path)
-    out = tmp_path / "workspace"
+    out = tmp_path / "bundle"
     result = materialize(log_path, out)
 
     assert sorted(p.name for p in (out / "state").iterdir()) == [
@@ -35,7 +35,7 @@ def test_materialize_produces_workspace(tmp_path: Path) -> None:
     ]
     assert check_coherence(out / "state") == ()
 
-    config = json.loads((out / ".mcp.json").read_text())
+    config = json.loads((out / "mcp.json").read_text())
     servers = config["mcpServers"]
     assert set(servers) == {"gmail", "slack", "imanage", "clio"}
     for name, spec in servers.items():
@@ -43,20 +43,42 @@ def test_materialize_produces_workspace(tmp_path: Path) -> None:
 
     environment = tomllib.loads((out / "environment.toml").read_text())
     assert set(environment["tools"]["compose"]) == {"gmail", "slack", "imanage", "clio"}
+    assert environment["agent"]["workspace"] == "workspace"
     assert result.event_count == len(coherent_events())
+    assert result.bundle == out
+    assert result.agent_workspace == out / "workspace"
+
+
+def test_agent_workspace_holds_no_environment_internals(tmp_path: Path) -> None:
+    """The agent's cwd is the bundle's workspace/ — the tool databases and
+    the server wiring are siblings of it, never inside it."""
+
+    log_path = write_log(tmp_path)
+    out = tmp_path / "bundle"
+    result = materialize(log_path, out)
+    agent_workspace = result.agent_workspace
+
+    assert list(agent_workspace.rglob("*.db")) == []
+    assert list(agent_workspace.rglob("mcp.json")) == []
+    assert list(agent_workspace.rglob(".mcp.json")) == []
+    assert list(agent_workspace.rglob("environment.toml")) == []
+    assert not (agent_workspace / "state").exists()
+    assert (out / "state").is_dir()
+    assert (out / "state").parent == agent_workspace.parent
 
 
 def test_materialize_writes_document_head_files(tmp_path: Path) -> None:
     log_path = write_log(tmp_path)
-    out = tmp_path / "workspace"
+    out = tmp_path / "bundle"
     result = materialize(log_path, out)
 
     # The fixture's one document lives at /legal/playbooks/nda-playbook.md
-    # and was revised to "v2"; the head version becomes a real file.
-    target = out / "files" / "legal" / "nda-playbook.md"
+    # and was revised to "v2"; the head version becomes a real file in the
+    # agent's own folders.
+    target = out / "workspace" / "legal" / "nda-playbook.md"
     assert target.read_text(encoding="utf-8") == "v2"
     assert result.document_files == 1
-    assert [p.name for p in (out / "files").iterdir()] == ["legal"]
+    assert [p.name for p in result.agent_workspace.iterdir()] == ["legal"]
 
 
 def test_materialize_refuses_invalid_log(tmp_path: Path) -> None:
@@ -76,7 +98,7 @@ async def test_stdio_server_end_to_end(tmp_path: Path) -> None:
     from mcp.client.stdio import StdioServerParameters, stdio_client
 
     log_path = write_log(tmp_path)
-    out = tmp_path / "workspace"
+    out = tmp_path / "bundle"
     materialize(log_path, out)
 
     parameters = StdioServerParameters(

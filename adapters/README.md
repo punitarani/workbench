@@ -6,13 +6,14 @@ second consumer exists. This is the `workbench-adapters` distribution,
 importable as `workbench.adapters`.
 
 The first member is the model-eval harness
-(`workbench.adapters.harness`): open a materialized workspace's MCP
-servers over stdio (`mcp_workspace`), run a tool-calling chat model in an
-episode loop with `write_file`/`finish` builtins (`agent_loop`), grade
-the resulting workspace with the task's own grader (`grade`), and report
-per-attempt scores, best-of-N, and token usage (`cli`). The only real
-model client is `openrouter_client`; everything else is
-provider-agnostic behind the `ChatClient` protocol.
+(`workbench.adapters.harness`): open a materialized bundle's MCP servers
+over stdio from the bundle root (`mcp_workspace`), run a tool-calling
+chat model in an episode loop confined to `bundle/workspace` with
+`write_file`/`finish` builtins (`agent_loop`), grade the resulting
+workspace with the task's own grader (`grade`), and report per-attempt
+scores, best-of-N, and token usage (`cli`). The only real model client is
+`openrouter_client`; everything else is provider-agnostic behind the
+`ChatClient` protocol.
 
 Run one model against one Harbor task (the only place a key is needed):
 

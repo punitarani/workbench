@@ -78,8 +78,19 @@ RUN useradd -m -u 10000 -d /home/environment -s /bin/bash environment && \
 
 # Harbor's runtime paths. Reward Kit's default workspace is /app, which symlinks
 # to the agent's workspace.
+#
+# A materialized environment bundle unpacks across two of these: its
+# `workspace/` — the professional's own document folders — becomes
+# /home/agent/workspace, and its `state/` — the projected tool databases —
+# becomes /home/environment/state, mode 0700 so only the environment user can
+# open it. The MCP servers launch behind run-as-environment, so the emulated
+# products are the agent's only aperture onto the record; nothing under
+# /home/agent/workspace names a database, a server, or the bundle. The verifier
+# and the reference solution are offstage by design and receive the databases
+# through $WORKBENCH_STATE (the bundle-relative default is ../state).
 RUN install -d -m 755 /logs && \
     install -d -o agent -g agent -m 775 /home/agent/workspace /logs/agent && \
+    install -d -o environment -g environment -m 700 /home/environment/state && \
     install -d -o agent -g agent -m 777 /installed-agent /oracle && \
     install -d -o verifier -g agent -m 775 /logs/verifier && \
     ln -sfn /home/agent/workspace /app

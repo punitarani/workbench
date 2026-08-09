@@ -1,9 +1,13 @@
-"""The episode loop: one chat model against one workspace.
+"""The episode loop: one chat model against one environment bundle.
 
-The model sees the workspace's MCP tools plus two builtins — ``write_file``
-(the only way a deliverable reaches disk, confined to the workspace) and
-``finish`` (the only clean stop). Every tool call in an assistant message
-executes, in order, before the next model call.
+The model sees the bundle's MCP tools plus two builtins — ``write_file``
+(the only way a deliverable reaches disk, confined to the agent's own
+workspace) and ``finish`` (the only clean stop). Every tool call in an
+assistant message executes, in order, before the next model call.
+
+The episode is handed ``bundle/workspace``: the agent works there, and the
+bundle root beside it — holding ``state/`` and the server wiring — is
+never reachable from a tool call.
 """
 
 import json
@@ -86,11 +90,11 @@ class EpisodeResult(BaseModel):
     transcript: list[dict[str, Any]]
 
 
-def write_workspace_file(workspace_dir: Path, path: str, content: str) -> str:
+def write_workspace_file(agent_root: Path, path: str, content: str) -> str:
     relative = PurePosixPath(path)
     if relative.is_absolute() or ".." in relative.parts:
         raise WorkspaceEscapeError(f"path escapes the workspace: {path!r}")
-    root = workspace_dir.resolve()
+    root = agent_root.resolve()
     target = (root / relative).resolve()
     if not target.is_relative_to(root):
         raise WorkspaceEscapeError(f"path escapes the workspace: {path!r}")
@@ -100,7 +104,7 @@ def write_workspace_file(workspace_dir: Path, path: str, content: str) -> str:
 
 
 async def run_episode(
-    workspace_dir: Path,
+    agent_root: Path,
     instruction: str,
     chat_client: ChatClient,
     *,
@@ -108,10 +112,13 @@ async def run_episode(
     max_tokens_per_call: int = 2000,
     max_tool_calls: int | None = None,
 ) -> EpisodeResult:
-    """``max_tool_calls`` caps executed tool calls across the whole episode
+    """``agent_root`` is the agent's own workspace — ``bundle/workspace``,
+    whose parent is the bundle root the servers are launched from.
+
+    ``max_tool_calls`` caps executed tool calls across the whole episode
     (the task-anchored call budget); calls past the cap are answered with an
     error and the episode stops with ``stop_reason="call_budget"``."""
-    async with open_workspace(workspace_dir) as workspace:
+    async with open_workspace(agent_root.parent) as workspace:
         tools = workspace.tool_specs() + BUILTIN_TOOL_SPECS
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -141,7 +148,7 @@ async def run_episode(
                     )
                 else:
                     tool_call_count += 1
-                    content = await _execute(workspace, workspace_dir, call)
+                    content = await _execute(workspace, agent_root, call)
                     finished = finished or call["function"]["name"] == "finish"
                 messages.append(
                     {
@@ -169,7 +176,7 @@ async def run_episode(
 
 
 async def _execute(
-    workspace: McpWorkspace, workspace_dir: Path, call: dict[str, Any]
+    workspace: McpWorkspace, agent_root: Path, call: dict[str, Any]
 ) -> str:
     name = call["function"]["name"]
     raw = call["function"].get("arguments") or "{}"
@@ -187,7 +194,7 @@ async def _execute(
             content = json.dumps(content, indent=2)
         try:
             return write_workspace_file(
-                workspace_dir, str(arguments.get("path", "")), content
+                agent_root, str(arguments.get("path", "")), content
             )
         except WorkspaceEscapeError as error:
             return f"ERROR: {error}"

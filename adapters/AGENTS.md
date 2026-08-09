@@ -2,10 +2,14 @@
 
 Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Package-specific:
 
-* **The harness sees a workspace exactly as an agent does**: `.mcp.json`,
-  the stdio servers behind it, and the files on disk. Never import
-  `workbench.simulation` or `workbench.workplaces`, and never read a tool
-  database directly from harness code.
+* **The harness sees the environment exactly as an agent does**: the
+  bundle's stdio servers, and the documents in `bundle/workspace`. Never
+  import `workbench.simulation` or `workbench.workplaces`, and never read a
+  tool database directly from harness code.
+* **The episode runs in `bundle/workspace`, never in the bundle root.**
+  `run_episode` takes the agent workspace and `write_file` is confined to
+  it; only `open_workspace` (server launch) and `grade_episode` (the
+  verifier's `WORKBENCH_STATE`) touch the bundle root.
 * **No paid LM calls in tests.** The `ChatClient` protocol in
   `agent_loop` exists so tests script the model; only `cli.py` constructs
   the OpenRouter client, and `OPENROUTER_API_KEY` is required only there,

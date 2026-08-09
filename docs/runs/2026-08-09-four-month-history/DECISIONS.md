@@ -384,3 +384,63 @@ entry says what was ambiguous and which reading was taken.
     refreshes applied (clerk notices now msg-000272/msg-000413,
     challenger msg-000389, arc ts prefixes unchanged), full pytest and
     ruff green.
+20. **Environment bundle split, and instructions that read as work.** Two
+    architectural defects, fixed together because they are the same
+    defect seen from two sides: the agent could see the machinery.
+    (a) *The tool databases were in the agent's own directory.*
+    `materialize` wrote `.mcp.json`, `environment.toml`, `state/*.db`,
+    and `files/` into one directory that became `/home/agent/workspace`,
+    so an agent could read `state/gmail.db` with sqlite and skip the
+    emulated products entirely — every discovery cost the tasks are built
+    around (paging, DM enumeration, per-day mail checks) was optional.
+    `materialize(world_log, out_dir, *, seat=None)` now emits a bundle:
+    `environment.toml` + `mcp.json` + `state/` at the root, and
+    `workspace/` beside them holding only the document files (moved from
+    `files/{workspace}/{basename}` to `workspace/{workspace}/{basename}`,
+    the professional's own folders). `MaterializedEnvironment` carries
+    both `bundle` and `agent_workspace`. The harness follows the split:
+    `open_workspace(bundle_dir)` reads `bundle/mcp.json` and launches the
+    servers with cwd=bundle; `run_episode(agent_root, ...)` is handed
+    `bundle/workspace`, so `write_file` cannot reach the root above it;
+    `cli.py` copies the whole bundle per attempt. In-container the same
+    split is a permission: `state/` lands at `/home/environment/state`
+    mode 0700, the servers launch behind `run-as-environment`, and
+    `/home/agent/workspace` holds nothing but documents (Dockerfile
+    comments carry the wiring). The per-task built directory is
+    `bundle/` rather than `workspace/`, so the nesting reads
+    `bundle/workspace` instead of `workspace/workspace`.
+    (b) *Oracle access is deliberate.* `solution/solve.sh`, the
+    baselines, and the graders run with `bundle/workspace` as cwd and
+    open `${WORKBENCH_STATE:-../state}`; `grade_episode` exports the
+    absolute path. They are the verifier and the reference answer —
+    offstage by design, and reading the projections directly is what
+    makes ground truth reproducible and grading cheap. It is not a claim
+    about solvability: that MCP-solvability claim is proven separately by
+    `measure_floors.py`, which drives the real servers one call per step
+    and asserts each sequence reproduces the task's ground truth. The two
+    facts are independent and must stay that way — a task is only
+    shippable when the floor script can reach the answer through the
+    products.
+    (c) *Instructions leaked the scaffolding.* Every `instruction.md`
+    told the agent it was working "in this workspace", named `.mcp.json`,
+    "the underlying SQLite databases under `state/`", "repository files
+    under `files/`", and spelled out epoch arithmetic (`time // 86400`) —
+    that last one obsolete since entry 12 made the servers serve true
+    calendar dates. All seven were rewritten as a colleague's brief: same
+    persona, same business stakes, same mechanical rules, same
+    deliverable filename and JSON shape, with the firm's systems named
+    only as products the professional has. Certification language was
+    re-phrased as a professional standard ("you are certifying this list
+    to the partners") rather than a scoring rule ("only the exact set
+    earns it"): identical semantics, no evaluation framing. Graders,
+    ground truths, and weights are untouched, and the rebuild is
+    byte-identical, so every task's solve/naive/missing/determinism
+    result is unchanged.
+    (d) *Enforced, not asserted.* `datasets/test_instruction_immersion.py`
+    scans every `datasets/*/tasks/*/instruction.md` for the banned
+    vocabulary (mcp, sqlite, `state/`, `.db`, epoch, day 0, 86400,
+    grader, ground truth, reward, eval) and fails the build on a leak;
+    `test_agent_workspace_holds_no_environment_internals` asserts the
+    agent workspace contains no `*.db`, no `mcp.json`, no
+    `environment.toml`, and that `state/` is a sibling of `workspace/`.
+    A new task cannot regress either property silently.

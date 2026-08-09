@@ -191,7 +191,8 @@ def test_pilot_build_validates_projects_and_coheres(tmp_path: Path) -> None:
         WINDOW.iso_date(index) for index in WINDOW.workdays()[:5]
     ]
 
-    state = tmp_path / "pilot-workspace" / "state"
+    bundle = tmp_path / "pilot-bundle"
+    state = bundle / "state"
     assert {path.name for path in state.glob("*.db")} == {
         "gmail.db",
         "slack.db",
@@ -199,8 +200,11 @@ def test_pilot_build_validates_projects_and_coheres(tmp_path: Path) -> None:
         "clio.db",
     }
     assert check_coherence(state) == ()
-    environment = (tmp_path / "pilot-workspace" / "environment.toml").read_text()
-    assert "seat" not in environment, "the pilot workspace is seatless"
+    environment = (bundle / "environment.toml").read_text()
+    assert "seat" not in environment, "the pilot bundle is seatless"
+    assert list((bundle / "workspace").rglob("*.db")) == [], (
+        "the agent's workspace never holds the tool databases"
+    )
 
 
 def test_pilot_build_determinism_check(tmp_path: Path) -> None:

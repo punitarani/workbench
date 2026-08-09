@@ -1,4 +1,5 @@
-# Harbor task definition. The workspace is built locally from a recorded day:
+# Harbor task definition. The environment bundle is built locally from a
+# recorded day:
 #   uv run python datasets/legal-nda/build_task.py
 
 [task]
@@ -8,7 +9,8 @@ summary = "Produce the clause-by-clause triage memo for the Vantage vendor NDA"
 
 [environment]
 docker_image = "workbench:dev"
-# The built workspace/ directory seeds /home/agent/workspace (exposed as /app).
+# The built bundle splits across the image: bundle/workspace seeds
+# /home/agent/workspace (exposed as /app), bundle/state stays offstage.
 
 [verifier]
 # In-container: tests/test.sh runs the deterministic grader and writes

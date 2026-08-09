@@ -4,8 +4,9 @@
         --task datasets/legal-nda/tasks/vantage-triage \\
         --model deepseek/deepseek-v4-flash-0731 --attempts 3
 
-Each attempt copies the task's built workspace to a fresh run directory,
-runs one episode, and grades it with the task's own grader.
+Each attempt copies the task's built environment bundle to a fresh run
+directory, runs one episode inside the bundle's ``workspace/``, and grades
+it with the task's own grader.
 """
 
 import argparse
@@ -52,11 +53,11 @@ async def _run(args: argparse.Namespace, api_key: str) -> None:
         with tempfile.TemporaryDirectory(prefix="harness-") as runs_dir:
             for attempt in range(1, args.attempts + 1):
                 run_dir = Path(runs_dir) / f"attempt-{attempt:02d}"
-                shutil.copytree(task_dir / "workspace", run_dir)
+                shutil.copytree(task_dir / "bundle", run_dir)
                 prompt_before = client.prompt_tokens
                 completion_before = client.completion_tokens
                 episode = await run_episode(
-                    run_dir,
+                    run_dir / "workspace",
                     instruction,
                     client,
                     max_turns=args.max_turns,
@@ -117,8 +118,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.attempts < 1:
         parser.error("--attempts must be at least 1")
-    if not (args.task / "workspace").is_dir():
-        parser.error(f"no built workspace under {args.task}")
+    if not (args.task / "bundle").is_dir():
+        parser.error(f"no built environment bundle under {args.task}")
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         parser.error("OPENROUTER_API_KEY is not set")

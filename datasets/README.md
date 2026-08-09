@@ -10,6 +10,28 @@ deterministic, leak-free) before it lands here.
 Task format: `datasets/<dataset>/tasks/<task>/` per Harbor's layout
 (`task.toml`, `instruction.md`, `solution/solve.sh`, `tests/test.sh`).
 
+The builders materialize an environment bundle per task, and the bundle —
+not the task directory — is what a run copies:
+
+```
+<task>/bundle/            built, local-only; the harness copies it per attempt
+  environment.toml        runner config, including the agent workspace path
+  mcp.json                server launch specs
+  state/*.db              offstage: the products' own storage
+  workspace/              the agent's working directory
+    <matter folders of documents>
+```
+
+The agent works in `bundle/workspace` and reaches everything else through
+the emulated products; `solution/solve.sh` and `tests/grade.py` run there
+too and read the databases through `${WORKBENCH_STATE:-../state}`, which
+is the oracle's privilege, not the agent's.
+
+`instruction.md` is the professional's brief, written the way a colleague
+would write it. It names the firm's products (Gmail, Slack, iManage, Clio)
+and never the machinery behind them; `test_instruction_immersion.py`
+enforces that mechanically.
+
 ## legal-nda
 
 Both tasks mined from the same recorded legal day:
@@ -24,17 +46,17 @@ Both tasks mined from the same recorded legal day:
   answer (the edits sit on a precedent file, not the inbound draft), so
   an assumption-only agent provably scores less (0.30 vs 1.0).
 
-Workspaces are derived data and stay local; build them from a recorded
-day with `uv run python datasets/legal-nda/build_task.py`.
+Bundles are derived data and stay local; build them from a recorded day
+with `uv run python datasets/legal-nda/build_task.py`.
 
 ## hartwell
 
 Five tasks mined from the four-month Hartwell & Marsh history
 (`uv run python datasets/hartwell/build_history.py --days all`, then
 `uv run python datasets/hartwell/build_tasks.py` to materialize each
-task's workspace from `out/hartwell/world.jsonl`). Workspaces are
-seatless: Gmail projects the whole firm's mail org-wide, since the tasks
-are matter-hygiene work that reads across seats. Every task is answerable
+task's bundle from `out/hartwell/world.jsonl`). Bundles are seatless:
+Gmail projects the whole firm's mail org-wide, since the tasks are
+matter-hygiene work that reads across seats. Every task is answerable
 only by joining tools or version histories — never one document — and
 each ships a naive single-source baseline that provably scores lower:
 
@@ -53,7 +75,7 @@ each ships a naive single-source baseline that provably scores lower:
   from any single version; email-trail baseline 0.45 vs 1.0).
 * **`hartwell/tasks/client-departure-postmortem/`** — pin the Cascadia
   souring to dates: first internal warning (Slack), reaction decline,
-  closure (Clio), disengagement letter (iManage/files), termination
+  closure (Clio), disengagement letter (iManage), termination
   email (Gmail); email-thread baseline 0.25 vs 1.0.
 * **`hartwell/tasks/operative-deadline/`** — establish the operative
   Arroyo hearing date; every email states a superseded date and the real

@@ -39,7 +39,7 @@ flowchart LR
 ## Repository layout
 
 ```
-workbench/      the environment: core contracts, container image, workspace assembly
+workbench/      the environment: core contracts, container image, bundle assembly
 tools/          agent-facing tool systems: projections and MCP servers
 simulation/     domain-neutral simulation engine
 workplaces/     concrete workplace definitions

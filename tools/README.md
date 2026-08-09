@@ -8,7 +8,8 @@ Each system is a plugin — a subpackage implementing one typed contract
 (`ToolSystem`): the world-log tags it observes, its tables, a projector,
 and a server registrar. A single registry (`registry.py`, one line per
 system) drives everything downstream: projection, cross-database coherence
-checking, server assembly, workspace `.mcp.json` specs, and the stdio
+checking, server assembly, the environment bundle's `mcp.json` specs, and
+the stdio
 serve entry point.
 
 | System | Database | Mirrors | Read tools |
@@ -27,12 +28,14 @@ Schemas are typed end to end: `db.py` derives DDL, inserts, and reads from
 Pydantic row models, so the schema cannot drift from the types, and `Id`/
 `Ref` column markers make cross-database references machine-checkable.
 
-Serve one system over stdio (the container wraps this with
-`run-as-environment`):
+Serve one system over stdio, from the bundle root (the container wraps this
+with `run-as-environment`, so the database is readable only by the
+`environment` user and the tools are the sole aperture onto it):
 
 ```bash
-python -m workbench.tools.serve mail --db state/mail.db
+python -m workbench.tools.serve gmail --db state/gmail.db
 ```
 
-Projection and workspace assembly are usually reached through
+Projection and bundle assembly are usually reached through
 `workbench.environment.materialize`, which validates the world log first.
+It keeps `state/` out of the agent's own `workspace/` by construction.

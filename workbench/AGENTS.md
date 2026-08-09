@@ -7,6 +7,11 @@ Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Package-specific:
   surface it assembles lives in the [`tools/`](../tools/) member.
 * **Materialization gates on validation**: an incoherent log never becomes
   an environment.
+* **The bundle root is not the agent's workspace.** `materialize` writes
+  `state/`, `mcp.json`, and `environment.toml` beside `workspace/`, never
+  inside it: the agent inhabits `workspace/` alone, and everything that
+  serves it stays a directory above. Anything new that materialization
+  emits chooses a side of that line deliberately.
 
 Core-specific:
 

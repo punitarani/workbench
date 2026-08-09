@@ -6,6 +6,7 @@
 # must come from its own system's record.
 exec python3 - << 'EOF'
 import json
+import os
 import sqlite3
 import sys
 from datetime import date, timedelta
@@ -13,8 +14,11 @@ from pathlib import Path
 
 EPOCH = date(2026, 3, 2)
 
+STATE = os.environ.get("WORKBENCH_STATE", "../state")
+
+
 def rows(db, sql, *params):
-    with sqlite3.connect(f"file:state/{db}?mode=ro", uri=True) as connection:
+    with sqlite3.connect(f"file:{STATE}/{db}?mode=ro", uri=True) as connection:
         return connection.execute(sql, params).fetchall()
 
 def iso(time):
@@ -109,9 +113,9 @@ letter = rows(
 if len(letter) != 1:
     sys.exit(f"expected one disengagement letter, found {len(letter)}")
 workspace, path = letter[0]
-on_disk = Path("files") / workspace / path.rsplit("/", 1)[-1]
+on_disk = Path(workspace) / path.rsplit("/", 1)[-1]
 if not on_disk.exists():
-    sys.exit(f"disengagement letter missing from the file tree: {on_disk}")
+    sys.exit(f"disengagement letter missing from the matter folder: {on_disk}")
 
 postmortem = {
     "first_negative_signal_date": iso(negative[2]),

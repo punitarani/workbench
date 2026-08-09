@@ -5,8 +5,8 @@
 The floor is the call count of the honest MINIMAL tool sequence — the
 discovery path an informed professional who knows the tools (but not the
 answers) would take through the real MCP servers — scripted here against
-each task's built workspace and counted mechanically, one tool call per
-step, no parallelism credit. Every sequence must retrieve enough of the
+each task's built environment bundle and counted mechanically, one tool
+call per step, no parallelism credit. Every sequence must retrieve enough of the
 record to reproduce the task's graded ground truth, and each run asserts
 that it did. The printed cap is 3x the floor (DECISIONS.md entry 17);
 task.toml's ``[harness] max_tool_calls`` carries it. The floor includes
@@ -527,8 +527,7 @@ FLOORS = {
 
 
 async def measure(task: str) -> tuple[int, int]:
-    workspace_dir = TASKS / task / "workspace"
-    async with open_workspace(workspace_dir) as workspace:
+    async with open_workspace(TASKS / task / "bundle") as workspace:
         client = CountingClient(workspace)
         await FLOORS[task](client)
     floor = client.calls + WRITE_AND_FINISH

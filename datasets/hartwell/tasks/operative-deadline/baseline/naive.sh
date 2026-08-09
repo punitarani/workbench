@@ -5,6 +5,7 @@
 # exists only in a DM that public-channel search cannot reach.
 exec python3 - << 'EOF'
 import json
+import os
 import re
 import sqlite3
 
@@ -18,8 +19,11 @@ MONTHS = {
     )
 }
 
+STATE = os.environ.get("WORKBENCH_STATE", "../state")
+
+
 def rows(db, sql, *params):
-    with sqlite3.connect(f"file:state/{db}?mode=ro", uri=True) as connection:
+    with sqlite3.connect(f"file:{STATE}/{db}?mode=ro", uri=True) as connection:
         return connection.execute(sql, params).fetchall()
 
 def dates_in(text):

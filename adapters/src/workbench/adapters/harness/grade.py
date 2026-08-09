@@ -1,9 +1,10 @@
-"""Run a task's own grader against an episode workspace.
+"""Run a task's own grader against an episode bundle.
 
 The harness never reimplements reward logic: it executes the task's
-``tests/grade.py`` with the workspace as cwd (the in-container verifier
-contract) and reads back the reward JSON it writes to
-``$VERIFIER_LOG_DIR``.
+``tests/grade.py`` with the agent's workspace as cwd (the in-container
+verifier contract — the deliverable lands there) and reads back the reward
+JSON it writes to ``$VERIFIER_LOG_DIR``. The grader is the verifier, so it
+is handed ``WORKBENCH_STATE`` pointing at the bundle's offstage databases.
 """
 
 import json
@@ -18,18 +19,23 @@ class GraderError(RuntimeError):
     """The task grader failed, or produced no reward.json."""
 
 
-def grade_episode(task_dir: Path, workspace_dir: Path) -> dict:
+def grade_episode(task_dir: Path, bundle_dir: Path) -> dict:
     # Resolve before the cwd switch below: task_dir is often repo-relative.
     grader = (task_dir / "tests" / "grade.py").resolve()
     if not grader.is_file():
         raise GraderError(f"no grader at {grader}")
+    bundle = bundle_dir.resolve()
     with tempfile.TemporaryDirectory(prefix="verifier-") as log_dir:
         completed = subprocess.run(
             [sys.executable, str(grader)],
-            cwd=workspace_dir,
+            cwd=bundle / "workspace",
             capture_output=True,
             text=True,
-            env={**os.environ, "VERIFIER_LOG_DIR": log_dir},
+            env={
+                **os.environ,
+                "VERIFIER_LOG_DIR": log_dir,
+                "WORKBENCH_STATE": str(bundle / "state"),
+            },
         )
         if completed.returncode != 0:
             raise GraderError(

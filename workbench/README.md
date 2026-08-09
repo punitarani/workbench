@@ -8,9 +8,21 @@ The contract side of the system, in two modules of one distribution:
   log — an append-only JSONL stream with a validator that proves every
   reference resolves.
 * **`workbench.environment`** — `materialize(world_log, out_dir)`: validate
-  the log, project the databases via [`tools/`](../tools/), and write
-  `.mcp.json` plus `environment.toml` so an MCP client can inhabit the
-  workspace.
+  the log, project the databases via [`tools/`](../tools/), and write the
+  environment bundle an MCP client inhabits:
+
+  ```
+  <out_dir>/               bundle root — never the agent's working directory
+    environment.toml       runner config, including the agent workspace path
+    mcp.json               server launch specs, db paths bundle-relative
+    state/*.db             offstage: only the environment user reads these
+    workspace/             becomes /home/agent/workspace
+      <document files, laid out as a professional's folders>
+  ```
+
+  The split is the offstage boundary made structural: the agent's working
+  directory holds documents and nothing else, so the emulated products are
+  the only route to the record.
 
 The tool systems themselves (projections, MCP servers, coherence) live in
 the [`tools/`](../tools/) member.

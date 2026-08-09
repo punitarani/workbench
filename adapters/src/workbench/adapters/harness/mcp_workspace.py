@@ -1,11 +1,13 @@
-"""Live MCP sessions over a materialized workspace.
+"""Live MCP sessions over a materialized environment bundle.
 
-``open_workspace`` reads the workspace ``.mcp.json``, spawns every server
-as a stdio subprocess with the workspace as its working directory (db
-paths in the config are workspace-relative), and exposes the union of
-their tools under namespaced names (``{server}__{tool}``) in OpenAI
-function format. Tool failures come back as ``"ERROR: ..."`` strings, so
-the episode loop can hand them to the model instead of dying.
+``open_workspace`` reads the bundle's ``mcp.json``, spawns every server as
+a stdio subprocess with the bundle root as its working directory (db paths
+in the config are bundle-relative), and exposes the union of their tools
+under namespaced names (``{server}__{tool}``) in OpenAI function format.
+The servers run offstage: the agent's own directory is ``bundle/workspace``
+and never contains the databases. Tool failures come back as
+``"ERROR: ..."`` strings, so the episode loop can hand them to the model
+instead of dying.
 """
 
 import json
@@ -22,7 +24,7 @@ TOOL_SEPARATOR = "__"
 
 
 def _resolve_command(command: str) -> str:
-    # Workspace configs name the in-container interpreter; on the host the
+    # Bundle configs name the in-container interpreter; on the host the
     # serving interpreter is this venv's own.
     if command in ("python3", "python"):
         return sys.executable
@@ -30,7 +32,7 @@ def _resolve_command(command: str) -> str:
 
 
 class McpWorkspace:
-    """The open tool surface of one workspace; construct via open_workspace."""
+    """The open tool surface of one bundle; construct via open_workspace."""
 
     def __init__(self) -> None:
         self._sessions: dict[str, ClientSession] = {}
@@ -57,8 +59,8 @@ class McpWorkspace:
 
 
 @asynccontextmanager
-async def open_workspace(workspace_dir: Path) -> AsyncIterator[McpWorkspace]:
-    config = json.loads((workspace_dir / ".mcp.json").read_text(encoding="utf-8"))
+async def open_workspace(bundle_dir: Path) -> AsyncIterator[McpWorkspace]:
+    config = json.loads((bundle_dir / "mcp.json").read_text(encoding="utf-8"))
     workspace = McpWorkspace()
     async with AsyncExitStack() as stack:
         for server_name in sorted(config["mcpServers"]):
@@ -66,7 +68,7 @@ async def open_workspace(workspace_dir: Path) -> AsyncIterator[McpWorkspace]:
             parameters = StdioServerParameters(
                 command=_resolve_command(spec["command"]),
                 args=list(spec["args"]),
-                cwd=str(workspace_dir),
+                cwd=str(bundle_dir),
             )
             read, write = await stack.enter_async_context(stdio_client(parameters))
             session = await stack.enter_async_context(ClientSession(read, write))

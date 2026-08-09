@@ -7,14 +7,10 @@ but the file needs a precise numeric record of what was actually disputed
 that re-scoped the data-room diligence, and the resolution capped exactly
 that work.
 
-Use the firm's systems in this workspace (Gmail, Slack, the iManage
-document repository, and Clio matters — wired via `.mcp.json`, with the
-underlying SQLite databases under `state/` and repository files under
-`files/`). Timestamps in the databases count seconds from the firm's
-epoch, Monday 2026-03-02 (day 0): a timestamp's date is 2026-03-02 plus
-`time // 86400` days.
+You have the firm's systems: Gmail, Slack, iManage, and Clio, where the
+time entries live.
 
-Write **`dispute.json`** to the workspace root:
+Save **`dispute.json`** in your workspace:
 
 ```json
 {
@@ -39,17 +35,17 @@ Write **`dispute.json`** to the workspace root:
 The disputed work is every time entry on the Meridian diagnostics
 acquisition matter dated **strictly after the budget-call cutoff** whose
 narrative describes the data-room diligence (the entries whose notes
-mention diligence or the data room). Establish the cutoff date from the
-firm's record — the emails and the matter note describe the split but
-never state the date — and beware of near misses on every side of the
-join: diligence work on this matter began before the cutoff, an entry
-landed on the cutoff day itself, other matters carried diligence and
-data-room work that April, and post-cutoff Meridian entries describe the
-expanded scope without the diligence wording. A sum over every diligence
-entry, over the whole billing month, or over every matter is wrong.
-`entries` must list the exact disputed Clio time entries — id, date, and
-minutes each — and count minutes from the record, not from anyone's
-summary; no email states the figures.
+mention diligence or the data room). Establish the cutoff date yourself —
+the emails and the matter note describe the split but never state the
+date — and beware of near misses on every side of the join: diligence
+work on this matter began before the cutoff, an entry landed on the
+cutoff day itself, other matters carried diligence and data-room work
+that April, and post-cutoff Meridian entries describe the expanded scope
+without the diligence wording. A sum over every diligence entry, over the
+whole billing month, or over every matter is wrong. `entries` must list
+the exact disputed Clio time entries — id, date, and minutes each — and
+the minutes have to be counted off the entries themselves; no email
+states the figures.
 
 The resolution also ordered a **support audit** over the disputed
 window. For every time entry on the Meridian matter dated after the
@@ -63,11 +59,12 @@ a diligence call could belong to any matter (the Solstice closing
 staged a seller data room the same month), so a message supports an
 entry only when it names the engagement in one of those three forms.
 `unsupported_entry_ids` must list the Clio activity id of every window
-entry — diligence-worded or not — whose date has no such message
-anywhere in the record. Expect to check every surface before calling a
-day silent: on some days the only qualifying message sits in a DM that
+entry — diligence-worded or not — with no such message anywhere in the
+firm's systems on its date. Check every surface before calling a day
+silent: on some days the only qualifying message sits in a DM that
 channel search never returns, on others it never uses the client's
 name, and on others the day is full of deal-flavored traffic that never
-names the engagement at all. The audit is certified as a whole: it
-earns credit only as the exact set — one listed entry whose day has
-support, or one missed true orphan, forfeits the component.
+names the engagement at all. The audit goes back to the client as a
+single statement, so it has to be exactly right: one entry listed whose
+day does have support, or one true exception missed, and the audit is
+worthless.

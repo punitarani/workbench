@@ -7,14 +7,18 @@
 # Fails rather than answer from assumptions.
 exec python3 - << 'EOF'
 import json
+import os
 import sqlite3
 import sys
 from datetime import date, timedelta
 
 EPOCH = date(2026, 3, 2)
 
+STATE = os.environ.get("WORKBENCH_STATE", "../state")
+
+
 def rows(db, sql, *params):
-    with sqlite3.connect(f"file:state/{db}?mode=ro", uri=True) as connection:
+    with sqlite3.connect(f"file:{STATE}/{db}?mode=ro", uri=True) as connection:
         return connection.execute(sql, params).fetchall()
 
 def iso(time):

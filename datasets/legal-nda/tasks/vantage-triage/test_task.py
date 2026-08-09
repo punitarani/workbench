@@ -1,11 +1,12 @@
 """Task-level verification: solve.sh earns full reward, the playbook-only
 baseline earns strictly less, and the grader is deterministic.
 
-Needs the built workspace (data, local-only):
+Needs the built environment bundle (data, local-only):
     uv run python datasets/legal-nda/build_task.py
 """
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -13,21 +14,21 @@ from pathlib import Path
 import pytest
 
 TASK = Path(__file__).parent
-WORKSPACE = TASK / "workspace"
+BUNDLE = TASK / "bundle"
 
 pytestmark = pytest.mark.skipif(
-    not WORKSPACE.exists(),
-    reason="task workspace not built; run datasets/legal-nda/build_task.py",
+    not BUNDLE.exists(),
+    reason="task bundle not built; run datasets/legal-nda/build_task.py",
 )
 
 
 def run_grader(tmp_path: Path, produce: Path) -> dict:
-    workspace = tmp_path / "workspace"
-    workspace.mkdir(parents=True)
-    for db in (WORKSPACE / "state").iterdir():
-        target = workspace / "state"
-        target.mkdir(exist_ok=True)
-        (target / db.name).write_bytes(db.read_bytes())
+    """Reproduce the split the harness runs: the tool databases sit in
+    ``state/``, a sibling of the agent's workspace, and both the solution
+    and the grader work from ``workspace/``."""
+    bundle = tmp_path / "bundle"
+    shutil.copytree(BUNDLE, bundle)
+    workspace = bundle / "workspace"
     subprocess.run(
         ["bash", str(produce)], cwd=workspace, check=True, capture_output=True
     )
@@ -38,7 +39,11 @@ def run_grader(tmp_path: Path, produce: Path) -> dict:
         check=True,
         capture_output=True,
         text=True,
-        env={"VERIFIER_LOG_DIR": str(logs), "PATH": "/usr/bin:/bin"},
+        env={
+            "VERIFIER_LOG_DIR": str(logs),
+            "WORKBENCH_STATE": str(bundle / "state"),
+            "PATH": "/usr/bin:/bin",
+        },
     )
     reward = json.loads((logs / "reward.json").read_text())
     assert result.stdout.strip(), "grader prints its verdict"

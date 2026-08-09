@@ -1,5 +1,5 @@
-# Harbor task definition. The workspace is built locally from the
-# four-month history:
+# Harbor task definition. The environment bundle is built locally from
+# the four-month history:
 #   uv run python datasets/hartwell/build_tasks.py
 
 [task]
@@ -9,7 +9,8 @@ summary = "Survey the firm's drafts for the one that silently lost a substantive
 
 [environment]
 docker_image = "workbench:dev"
-# The built workspace/ directory seeds /home/agent/workspace (exposed as /app).
+# The built bundle splits across the image: bundle/workspace seeds
+# /home/agent/workspace (exposed as /app), bundle/state stays offstage.
 
 [verifier]
 # In-container: tests/test.sh runs the deterministic grader and writes

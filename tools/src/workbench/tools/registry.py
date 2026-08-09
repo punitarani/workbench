@@ -1,7 +1,7 @@
 """Every tool system, one line each.
 
 The registry drives projection, coherence checking, server assembly,
-workspace ``.mcp.json`` specs, and the serve entry point: adding a system
+bundle ``mcp.json`` specs, and the serve entry point: adding a system
 is one subpackage implementing the contract and one line here.
 """
 
@@ -50,7 +50,7 @@ def check_coherence(state_dir: Path) -> tuple[coherence.CoherenceFinding, ...]:
 
 
 def server_specs(seat: str | None = None) -> dict[str, dict[str, object]]:
-    """Launch specs for a workspace ``.mcp.json``; db paths are relative."""
+    """Launch specs for a bundle ``mcp.json``; db paths are bundle-relative."""
     seat_args = ["--user", seat] if seat else []
     return {
         system.name: {

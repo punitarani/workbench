@@ -34,7 +34,7 @@ A tool system is a subpackage with four files, assembled into a
 
 Adding a system means adding that subpackage and one line to
 `registry.REGISTRY`. Nothing else changes: projection, coherence,
-`.mcp.json`, and `serve` pick it up from the registry. Declare
+`mcp.json`, and `serve` pick it up from the registry. Declare
 `person.record` in `handled_tags` — every database carries the shared
 people table and `directory` tool.
 
