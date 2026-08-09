@@ -58,3 +58,7 @@ class SeatProtocolError(TransportError):
 
 class ConfigError(SimulationError):
     """A workplace or scenario configuration is invalid. Names the offender."""
+
+
+class ChronicleError(SimulationError):
+    """A chronicle was assembled out of order or outside its calendar window."""
