@@ -76,13 +76,29 @@ class ReplyAct:
         return FreeAction(text=f"{self._entity} heard: {last}")
 
 
+class ToyGmState(BaseModel):
+    minter: IdMinter
+    routed_messages: int = 0
+
+
 class ToyGameMaster:
     """Round-robin chat: whoever follows the sender replies."""
+
+    state_model = ToyGmState
 
     def __init__(self, *, max_messages: int) -> None:
         self._minter = IdMinter()
         self._max_messages = max_messages
         self._routed_messages = 0
+
+    def get_state(self) -> ToyGmState:
+        return ToyGmState(
+            minter=self._minter, routed_messages=self._routed_messages
+        )
+
+    def set_state(self, state: ToyGmState) -> None:
+        self._minter = state.minter
+        self._routed_messages = state.routed_messages
 
     async def route(self, event: Event) -> tuple[str, ...]:
         if not isinstance(event.payload, ChatMessagePayload):
@@ -191,6 +207,28 @@ def make_entities() -> tuple[ComposedEntity, ...]:
         )
         for name in ENTITIES
     )
+
+
+def resume_toy_engine(
+    log_path: Path, snapshot, *, max_messages: int = 4
+) -> tuple[InterruptEngine, WorldLogWriter]:
+    writer = WorldLogWriter.append_to(
+        log_path,
+        next_seq=snapshot.engine.next_seq,
+        last_time=snapshot.engine.time.now,
+    )
+    engine = InterruptEngine(
+        entities=make_entities(),
+        game_master=ToyGameMaster(max_messages=max_messages),
+        time_model=EventDrivenTimeModel(now=SimTime(0)),
+        queue=EventQueue(),
+        attention=AttentionBook(entities=ENTITIES),
+        world_log=writer,
+        next_seq=0,
+        next_order=0,
+    )
+    engine.restore_state(snapshot.engine)
+    return engine, writer
 
 
 def build_engine(

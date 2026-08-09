@@ -25,6 +25,15 @@ class WorldLogWriter:
         self._handle = self._path.open("xb")
         return self
 
+    @classmethod
+    def append_to(cls, path: Path, *, next_seq: int, last_time: int) -> WorldLogWriter:
+        """Open an existing log for resume, continuing its seq/time invariants."""
+        writer = cls(path)
+        writer._handle = path.open("ab")
+        writer._next_seq = next_seq
+        writer._last_time = last_time
+        return writer
+
     def __exit__(
         self,
         exc_type: type[BaseException] | None,

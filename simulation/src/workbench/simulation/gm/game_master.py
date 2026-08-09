@@ -4,7 +4,9 @@ Control flow is typed decisions, not free text. Implementations decide how
 much of each decision is code and how much is a language model.
 """
 
-from typing import Protocol
+from typing import ClassVar, Protocol
+
+from pydantic import BaseModel
 
 from workbench.core.actions import (
     ActionSpec,
@@ -17,6 +19,7 @@ from workbench.core.events import Event
 
 
 class GameMaster(Protocol):
+    state_model: ClassVar[type[BaseModel]]
     async def route(self, event: Event) -> tuple[str, ...]:
         """Who observes this event, in delivery order. Pure by convention."""
         ...
@@ -30,3 +33,7 @@ class GameMaster(Protocol):
     ) -> ResolutionDecision: ...
 
     async def should_terminate(self) -> TerminateDecision: ...
+
+    def get_state(self) -> BaseModel: ...
+
+    def set_state(self, state: BaseModel) -> None: ...

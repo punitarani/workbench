@@ -11,7 +11,10 @@ mutated only between gathers, never inside entity tasks.
 """
 
 import asyncio
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:
+    from workbench.simulation.snapshot import EngineState
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -91,6 +94,54 @@ class InterruptEngine:
 
     def queue_length(self) -> int:
         return len(self._queue)
+
+    def capture_state(self) -> EngineState:
+        # Imported here: snapshot.py imports engine types at module level.
+        from workbench.simulation.snapshot import EngineState
+
+        return EngineState(
+            step=self._step,
+            next_seq=self._next_seq,
+            next_order=self._next_order,
+            time=self._time.get_state(),
+            queue=self._queue.snapshot(),
+            attention=self._attention.get_state(),
+            entities=tuple(
+                self._entities[name].snapshot() for name in sorted(self._entity_order)
+            ),
+            game_master=self._gm.get_state().model_dump(mode="json"),
+        )
+
+    def restore_state(self, state: EngineState) -> None:
+        from pydantic import ValidationError
+
+        from workbench.simulation.errors import SnapshotError
+
+        own_names = set(self._entity_order)
+        snap_names = {snap.entity for snap in state.entities}
+        if own_names != snap_names:
+            raise SnapshotError(
+                f"entity mismatch: engine has {sorted(own_names)}, "
+                f"snapshot has {sorted(snap_names)}"
+            )
+        self._step = state.step
+        self._next_seq = state.next_seq
+        self._next_order = state.next_order
+        self._time.set_state(state.time)
+        fresh_queue = EventQueue()
+        for item in state.queue:
+            fresh_queue.push(item)
+        self._queue = fresh_queue
+        self._attention.set_state(state.attention)
+        for snap in state.entities:
+            self._entities[snap.entity].restore(snap)
+        try:
+            gm_state = self._gm.state_model.model_validate(state.game_master)
+        except ValidationError as error:
+            raise SnapshotError(
+                f"game-master state failed validation: {error}"
+            ) from error
+        self._gm.set_state(gm_state)
 
     async def _flush_expired(self, now: SimTime) -> None:
         for name in self._entity_order:

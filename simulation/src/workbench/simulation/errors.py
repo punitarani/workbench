@@ -37,3 +37,7 @@ class SnapshotError(SimulationError):
 
 class TimeError(SimulationError):
     """Simulated time attempted to move backward."""
+
+
+class ConfigMismatchError(SimulationError):
+    """A snapshot was taken under a different configuration than the resume."""
