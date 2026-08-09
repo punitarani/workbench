@@ -56,8 +56,12 @@ COPY --from=node /usr/local /usr/local
 COPY --from=uv /uv /uvx /usr/local/bin/
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 
-RUN python3 -m pip install --upgrade --break-system-packages pip && \
-    corepack enable && \
+# The distro's pip is dpkg-owned, so pip cannot uninstall it to self-upgrade
+# (uninstall-no-record-file). Nothing here needs a newer pip: uv installs the
+# Python tooling, and python3-pip remains available for tasks that want it.
+# `corepack enable` with no argument tries to link every package manager it
+# knows, including a yarn shim the Node image does not ship; name pnpm only.
+RUN corepack enable pnpm && \
     corepack prepare "pnpm@${PNPM_VERSION}" --activate && \
     node --version && pnpm --version && bun --version && uv --version
 
