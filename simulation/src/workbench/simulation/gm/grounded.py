@@ -87,11 +87,13 @@ class GroundedGm:
         return self._world
 
     def rebuild(self, events) -> None:
-        events = list(events)
-        self._world.rebuild(events)
         for event in events:
-            for value in event.payload.model_dump(mode="json").values():
-                self._absorb_id(value)
+            self._world.apply(event)
+            self._absorb_event(event)
+
+    def _absorb_event(self, event: Event) -> None:
+        for value in event.payload.model_dump(mode="json").values():
+            self._absorb_id(value)
 
     def _absorb_id(self, value) -> None:
         """Advance minter counters past any pre-existing prefix-NNNNNN id."""
@@ -120,6 +122,7 @@ class GroundedGm:
 
     async def route(self, event: Event) -> tuple[str, ...]:
         self._world.apply(event)
+        self._absorb_event(event)
         payload = event.payload
         match payload:
             case EmailMessagePayload():

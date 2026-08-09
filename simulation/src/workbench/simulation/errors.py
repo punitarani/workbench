@@ -49,3 +49,7 @@ class TransportError(SimulationError):
 
 class ScriptExhaustedError(TransportError):
     """A scripted transport ran out of recorded responses. Never silent."""
+
+
+class ConfigError(SimulationError):
+    """A workplace or scenario configuration is invalid. Names the offender."""

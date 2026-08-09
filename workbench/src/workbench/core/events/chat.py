@@ -11,14 +11,17 @@ class ChatConversationCreatedPayload(Payload):
     conversation_id: ConversationId
     conversation_type: Literal["channel", "dm"]
     name: str | None
-    members: tuple[PersonId, ...] = Field(min_length=2)
+    members: tuple[PersonId, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
     def _channels_are_named(self) -> ChatConversationCreatedPayload:
         if self.conversation_type == "channel" and not self.name:
             raise ValueError("channels must be named")
-        if self.conversation_type == "dm" and self.name is not None:
-            raise ValueError("dms are unnamed")
+        if self.conversation_type == "dm":
+            if self.name is not None:
+                raise ValueError("dms are unnamed")
+            if len(self.members) != 2:
+                raise ValueError("dms have exactly two members")
         return self
 
 
