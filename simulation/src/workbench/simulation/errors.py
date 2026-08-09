@@ -25,3 +25,11 @@ class CassetteMissError(LMError):
 
 class LMBudgetExceededError(LMError):
     """The configured call or token budget was exhausted. Never silent."""
+
+
+class PhaseError(SimulationError):
+    """An entity attempted an illegal component-lifecycle transition."""
+
+
+class SnapshotError(SimulationError):
+    """A snapshot could not be taken or restored exactly. Nothing is dropped."""
