@@ -16,6 +16,25 @@ class OpenRouterError(RuntimeError):
     """OpenRouter returned a non-200 status or a malformed body."""
 
 
+# Routing pins for the eval matrix, in priority order, no fallbacks
+# outside the list. Verified against the live API: a vendor prefix is not
+# always a valid slug (deepseek's own is not served on this account), so
+# these are recorded per model rather than derived.
+MODEL_PROVIDERS: dict[str, tuple[str, ...]] = {
+    "openai/gpt-5.6-luna": ("openai",),
+    "z-ai/glm-5.2": (
+        "baidu/fp8",
+        "novita/fp8",
+        "streamlake/fp8",
+    ),
+    "deepseek/deepseek-v4-flash-0731": (
+        "baidu/fp8",
+        "gmicloud/fp8",
+        "baseten/fp8",
+    ),
+}
+
+
 class OpenRouterChatClient:
     def __init__(
         self,
@@ -23,10 +42,16 @@ class OpenRouterChatClient:
         model: str,
         temperature: float = 0.2,
         *,
+        providers: tuple[str, ...] = (),
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.model = model
         self.temperature = temperature
+        # Pinning routing to named providers keeps a matrix reproducible:
+        # OpenRouter otherwise load-balances across hosts that tokenize and
+        # sample differently. Slugs are per-model (a vendor prefix is not
+        # always a valid provider), so this is explicit, never derived.
+        self.providers = providers
         self.prompt_tokens = 0
         self.completion_tokens = 0
         self._client = httpx.AsyncClient(
@@ -49,6 +74,11 @@ class OpenRouterChatClient:
             "temperature": self.temperature,
             "max_tokens": max_tokens,
         }
+        if self.providers:
+            payload["provider"] = {
+                "order": list(self.providers),
+                "allow_fallbacks": False,
+            }
         response = await self._client.post(OPENROUTER_URL, json=payload)
         if response.status_code != 200:
             raise OpenRouterError(

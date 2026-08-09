@@ -354,3 +354,34 @@ async def test_openrouter_client_fails_loud() -> None:
     with pytest.raises(OpenRouterError, match="malformed"):
         await client.complete([], [])
     await client.aclose()
+
+
+async def test_provider_pinning_is_sent_when_requested() -> None:
+    """Routing pins keep a matrix reproducible; slugs are explicit because a
+    vendor prefix is not always a valid provider."""
+    seen: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"role": "assistant", "content": "ok"}}],
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+            },
+        )
+
+    client = OpenRouterChatClient(
+        "sk-test",
+        "openai/gpt-5.6-luna",
+        providers=("openai",),
+        transport=httpx.MockTransport(handler),
+    )
+    try:
+        await client.complete([{"role": "user", "content": "hi"}], [])
+    finally:
+        await client.aclose()
+    assert seen["body"]["provider"] == {
+        "order": ["openai"],
+        "allow_fallbacks": False,
+    }

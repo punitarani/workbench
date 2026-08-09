@@ -19,7 +19,10 @@ from pathlib import Path
 
 from workbench.adapters.harness.agent_loop import run_episode
 from workbench.adapters.harness.grade import grade_episode
-from workbench.adapters.harness.openrouter_client import OpenRouterChatClient
+from workbench.adapters.harness.openrouter_client import (
+    MODEL_PROVIDERS,
+    OpenRouterChatClient,
+)
 
 
 def _prices(text: str) -> tuple[float, float]:
@@ -47,7 +50,16 @@ async def _run(args: argparse.Namespace, api_key: str) -> None:
     max_tool_calls = read_call_budget(task_dir)
     if max_tool_calls is not None:
         print(f"call budget: {max_tool_calls} tool calls")
-    client = OpenRouterChatClient(api_key, args.model, temperature=args.temperature)
+    client = OpenRouterChatClient(
+        api_key,
+        args.model,
+        temperature=args.temperature,
+        providers=(
+            tuple(p for p in args.provider.split(",") if p)
+            if args.provider
+            else MODEL_PROVIDERS.get(args.model, ())
+        ),
+    )
     scores: list[float] = []
     try:
         with tempfile.TemporaryDirectory(prefix="harness-") as runs_dir:
@@ -105,6 +117,13 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=None,
         help="persist each attempt's transcript JSON into this directory",
+    )
+    parser.add_argument(
+        "--provider",
+        default=None,
+        help="comma-separated provider slugs, in priority order, to pin "
+        "routing to (no fallbacks); defaults to MODEL_PROVIDERS for known "
+        "models, unpinned otherwise",
     )
     parser.add_argument("--max-tokens", type=int, default=2000)
     parser.add_argument("--temperature", type=float, default=0.2)

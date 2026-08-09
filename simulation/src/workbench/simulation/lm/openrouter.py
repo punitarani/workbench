@@ -50,7 +50,7 @@ class OpenRouterLM:
         }
         if self._providers:
             body["provider"] = {
-                "only": list(self._providers),
+                "order": list(self._providers),
                 "allow_fallbacks": False,
             }
         if request.temperature is not None:

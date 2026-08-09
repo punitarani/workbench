@@ -54,7 +54,7 @@ async def test_request_shape_and_response_parsing() -> None:
     assert seen["body"]["max_tokens"] == 64
     assert "response_format" not in seen["body"]
     assert seen["body"]["provider"] == {
-        "only": ["openai"],
+        "order": ["openai"],
         "allow_fallbacks": False,
     }, "one provider, no silent fallbacks"
 
