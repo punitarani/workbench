@@ -16,6 +16,7 @@ from workbench.core.events.calendar import (
 from workbench.core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
+    ChatReactionAddedPayload,
 )
 from workbench.core.events.control import (
     SimCheckpointPayload,
@@ -31,25 +32,32 @@ from workbench.core.events.documents import (
 )
 from workbench.core.events.email import EmailMessagePayload
 from workbench.core.events.meetings import MeetingTranscriptPayload
-from workbench.core.events.people import PersonRecordPayload
+from workbench.core.events.people import (
+    OrganizationRecordPayload,
+    PersonRecordPayload,
+)
 from workbench.core.events.tickets import (
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
 )
+from workbench.core.events.work import TimeLoggedPayload
 
 SCHEMA_VERSION = 1
 
 EventPayload = Annotated[
     PersonRecordPayload
+    | OrganizationRecordPayload
     | EmailMessagePayload
     | ChatConversationCreatedPayload
     | ChatMessagePayload
+    | ChatReactionAddedPayload
     | DocumentCreatedPayload
     | DocumentRevisedPayload
     | TicketCreatedPayload
     | TicketUpdatedPayload
     | TicketCommentedPayload
+    | TimeLoggedPayload
     | CalendarEventScheduledPayload
     | CalendarEventUpdatedPayload
     | CalendarResponsePayload
@@ -65,14 +73,17 @@ EventPayload = Annotated[
 
 TAG_REGISTRY = {
     "person.record": PersonRecordPayload,
+    "org.record": OrganizationRecordPayload,
     "email.message": EmailMessagePayload,
     "chat.conversation.created": ChatConversationCreatedPayload,
     "chat.message": ChatMessagePayload,
+    "chat.reaction.added": ChatReactionAddedPayload,
     "document.created": DocumentCreatedPayload,
     "document.revised": DocumentRevisedPayload,
     "ticket.created": TicketCreatedPayload,
     "ticket.updated": TicketUpdatedPayload,
     "ticket.commented": TicketCommentedPayload,
+    "work.time.logged": TimeLoggedPayload,
     "calendar.event.scheduled": CalendarEventScheduledPayload,
     "calendar.event.updated": CalendarEventUpdatedPayload,
     "calendar.response": CalendarResponsePayload,

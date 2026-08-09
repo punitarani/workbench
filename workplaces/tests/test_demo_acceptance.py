@@ -45,14 +45,15 @@ pytestmark = pytest.mark.skipif(
     reason="demo cassette not recorded yet; see module docstring",
 )
 
-# Floors calibrated to the first healthy recorded day (seed 42, attempt 8:
-# 54 non-sim events, email-centric). Chat has no floor yet: personas do not
-# spontaneously chat — a named persona-tuning item for the optimization phase.
+# Floors recalibrated to the channels-visible recording (seed 42, 60 non-sim
+# events): chat now has a floor — personas coordinate in channels once they
+# can see them — and the redline may land as a single complete revision.
 MIN_EVENTS = 45
 CHANNEL_MINIMUMS = {
     "email.message": 15,
+    "chat.message": 3,
     "ticket.": 1,
-    "document.revised": 2,
+    "document.revised": 1,
     "calendar.": 2,
 }
 

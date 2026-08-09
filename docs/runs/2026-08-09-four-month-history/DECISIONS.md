@@ -27,3 +27,50 @@ entry says what was ambiguous and which reading was taken.
 4. **Deferred wake-time semantics**: recorded days keep intra-day
    scheduling; the chronicle will offset compiled times per day and
    thread minter state by scanning the log (no engine changes).
+5. **Budget cap counts OpenRouter model spend** (GEPA, generation, evals),
+   not the orchestrating assistant's own tokens.
+6. **Phase 1 product mapping** (research: four agent reports, 08-09):
+   - mail → **Gmail**: Google's official Gmail MCP (May 2026 preview).
+     Mirror `search_threads`/`get_thread`/`get_message`/`list_labels`
+     with the flattened Message shape (id, snippet, subject, sender,
+     toRecipients, ccRecipients, date ISO-8601, plaintextBody,
+     attachments[{id,mimeType,filename}], labelIds). pageToken paging,
+     documented `query` operator subset. `list_labels` returns user
+     labels only → empty list is spec-legal v1; system labels derived.
+   - chat → **Slack**: official hosted MCP tool names
+     (`slack_read_channel`, `slack_read_thread`, `slack_search_public`,
+     `slack_search_channels`, `slack_search_users`,
+     `slack_read_user_profile`, `slack_list_channel_members`,
+     `slack_get_reactions`) with Web-API-shaped JSON responses (the
+     official server returns markdown; JSON field names follow the
+     archived reference/Web API: ts "sec.micro" identity, thread_ts,
+     reactions [{name,users,count}], topic/purpose {value}).
+   - dms → **iManage**: OFFICIAL iManage MCP exists (GA 2026-05-14).
+     Mirror `search`, `search_workspaces`, `get_workspace_profile`,
+     `get_container_children`, `get_document_profile`,
+     `get_document_versions`, `download_document`, `get_libraries`,
+     `get_user_information`. Ids `{library}!{number}.{version}`;
+     workspaces are matters; custom1=client, custom2=matter;
+     class/subclass; versions carry full profiles.
+   - matters → **Clio** (no official MCP exists in the category —
+     decided on API documentation quality + market leadership). MCP-shaped
+     read tools over Clio v4 resources: matters (number +
+     display_number "00001-Client", Pending/Open/Closed with per-status
+     dates), matter contacts/relationships, activities (time entries,
+     quantity in seconds), notes, users, who_am_i, contacts; {data}
+     envelope, integer ids.
+   - **No generic `directory` tool** on these servers (realism): people
+     surfaces are Slack user tools, iManage get_user_information, Clio
+     users/contacts. The shared people table stays in every db as the
+     projection source.
+   - **Mailbox scoping**: Gmail serves one seat's mailbox
+     (`--user` on serve; `materialize(..., seat=...)`); INBOX/SENT/
+     UNREAD derived per seat. Org-global reading moves to the systems
+     that are genuinely org-global (iManage, Clio, Slack publics).
+7. **Core payload extensions (additive, optional)**: `chat.reaction.added`,
+   conversation `topic`/`purpose`, `work.time.logged` (Clio activity
+   substrate), `org.record` (client/vendor/court companies) +
+   `person.record.organization`, `ticket.created.client_ref`. Everything
+   else (snippets, labels, display numbers, ts ids, document numbers,
+   workspace trees) derives at projection. Golden logs regenerate
+   deliberately if serialization shifts.

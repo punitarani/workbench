@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import Field
 
 from workbench.core.events._base import Payload
-from workbench.core.ids import PersonId, TicketId
+from workbench.core.ids import OrgId, PersonId, TicketId
 
 
 class TicketField(Payload):
@@ -30,6 +30,7 @@ class TicketCreatedPayload(Payload):
     status: str
     priority: str
     ticket_type: str
+    client_ref: OrgId | None = None
     fields: tuple[TicketField, ...] = ()
 
 

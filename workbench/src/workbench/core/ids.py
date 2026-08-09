@@ -16,6 +16,7 @@ ConversationId = NewType("ConversationId", str)
 ChatMessageId = NewType("ChatMessageId", str)
 DocumentId = NewType("DocumentId", str)
 TicketId = NewType("TicketId", str)
+OrgId = NewType("OrgId", str)
 CalendarEventId = NewType("CalendarEventId", str)
 MeetingId = NewType("MeetingId", str)
 

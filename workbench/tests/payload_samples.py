@@ -8,6 +8,7 @@ from workbench.core.events.calendar import (
 from workbench.core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
+    ChatReactionAddedPayload,
 )
 from workbench.core.events.control import (
     SimCheckpointPayload,
@@ -24,13 +25,17 @@ from workbench.core.events.documents import (
 from workbench.core.events.email import Attachment, EmailMessagePayload
 from workbench.core.events.meetings import MeetingTranscriptPayload, TranscriptTurn
 from workbench.core.events.payloads import EventPayload
-from workbench.core.events.people import PersonRecordPayload
+from workbench.core.events.people import (
+    OrganizationRecordPayload,
+    PersonRecordPayload,
+)
 from workbench.core.events.tickets import (
     FieldChange,
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
 )
+from workbench.core.events.work import TimeLoggedPayload
 
 
 def sample_payloads() -> dict[str, EventPayload]:
@@ -45,6 +50,12 @@ def sample_payloads() -> dict[str, EventPayload]:
             manager=None,
             affiliation="internal",
             timezone="America/Los_Angeles",
+        ),
+        OrganizationRecordPayload(
+            kind="org.record",
+            org_id="org-000001",
+            name="Vantage Data Services",
+            category="client",
         ),
         EmailMessagePayload(
             kind="email.message",
@@ -78,6 +89,13 @@ def sample_payloads() -> dict[str, EventPayload]:
             reply_to=None,
             sender="per-tom-okafor",
             body="New NDA in the queue, assigning MTR-2.",
+        ),
+        ChatReactionAddedPayload(
+            kind="chat.reaction.added",
+            conversation_id="cnv-000001",
+            chat_message_id="chm-000001",
+            person_id="per-meredith-chao",
+            emoji="thumbsup",
         ),
         DocumentCreatedPayload(
             kind="document.created",
@@ -121,6 +139,13 @@ def sample_payloads() -> dict[str, EventPayload]:
             ticket_id="tkt-000001",
             actor="per-daniel-reyes",
             body="Redline in progress.",
+        ),
+        TimeLoggedPayload(
+            kind="work.time.logged",
+            person_id="per-daniel-reyes",
+            ticket_id="tkt-000001",
+            minutes=90,
+            note="NDA redline and standards review.",
         ),
         CalendarEventScheduledPayload(
             kind="calendar.event.scheduled",

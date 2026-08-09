@@ -1,7 +1,7 @@
 from typing import Literal
 
 from workbench.core.events._base import Payload
-from workbench.core.ids import PersonId
+from workbench.core.ids import OrgId, PersonId
 
 
 class PersonRecordPayload(Payload):
@@ -14,3 +14,11 @@ class PersonRecordPayload(Payload):
     manager: PersonId | None
     affiliation: Literal["internal", "external"]
     timezone: str
+    organization: OrgId | None = None
+
+
+class OrganizationRecordPayload(Payload):
+    kind: Literal["org.record"]
+    org_id: OrgId
+    name: str
+    category: Literal["client", "vendor", "court", "opposing", "other"]

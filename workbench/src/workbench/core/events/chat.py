@@ -12,6 +12,8 @@ class ChatConversationCreatedPayload(Payload):
     conversation_type: Literal["channel", "dm"]
     name: str | None
     members: tuple[PersonId, ...] = Field(min_length=1)
+    topic: str = ""
+    purpose: str = ""
 
     @model_validator(mode="after")
     def _channels_are_named(self) -> ChatConversationCreatedPayload:
@@ -32,3 +34,11 @@ class ChatMessagePayload(Payload):
     reply_to: ChatMessageId | None
     sender: PersonId
     body: str
+
+
+class ChatReactionAddedPayload(Payload):
+    kind: Literal["chat.reaction.added"]
+    conversation_id: ConversationId
+    chat_message_id: ChatMessageId
+    person_id: PersonId
+    emoji: str = Field(min_length=1, description="Emoji name without colons.")
