@@ -207,3 +207,49 @@ def test_wakes_are_scheduled_for_each_persona() -> None:
     assert times == sorted(times)
     assert times[0] >= 9 * 3600
     assert times[-1] < compiled.end_time
+
+
+async def test_gm_mints_never_collide_with_future_scripted_ids(
+    tmp_path: Path,
+) -> None:
+    """A persona reply minted before a later scripted email must not reuse
+    the compile-time id that email already owns."""
+    spec = make_spec(
+        day_script=(
+            ExogenousEmail(
+                at="09:40",
+                sender="per-ravi-dee",
+                to=("per-ann-liu",),
+                cc=(),
+                subject="Quick question",
+                body="Can you confirm receipt?",
+            ),
+            ExogenousEmail(
+                at="15:00",
+                sender="per-ravi-dee",
+                to=("per-ann-liu",),
+                cc=(),
+                subject="Afternoon follow-up",
+                body="One more thing entirely.",
+            ),
+        )
+    )
+    out_dir = tmp_path / "run"
+    await run_workplace(
+        spec,
+        seed=Seed(root=42),
+        out_dir=out_dir,
+        inner_lm=SequenceLM(
+            [
+                DECIDE_IDLE_FALLBACK,
+                DECIDE_IDLE_FALLBACK,
+                DECIDE_REPLY,
+                DRAFT_REPLY,
+                DECIDE_IDLE_FALLBACK,
+            ]
+        ),
+        model="test/model",
+    )
+    events = read_events(out_dir / "world.jsonl")
+    report = validate_events(events)
+    assert report.ok, report.findings

@@ -60,6 +60,9 @@ async def run_compiled(
         entity_for_person=dict(compiled.entity_for_person),
         ticket_vocabulary=compiled.ticket_vocabulary,
     )
+    gm.set_state(
+        GroundedGm.state_model(minter=compiled.minter.model_copy(deep=True))
+    )
 
     vocab = compiled.ticket_vocabulary
     workplace_norms = (

@@ -53,6 +53,9 @@ class CompiledWorkplace(BaseModel):
     entity_for_person: tuple[tuple[str, str], ...]
     ticket_vocabulary: TicketVocabulary
     end_time: int
+    # Final compile-time counters; the runtime GM starts from these so its
+    # minted ids can never collide with scheduled-but-not-yet-occurred ones.
+    minter: IdMinter
 
 
 def _entity_name(person_id: str) -> str:
@@ -251,4 +254,5 @@ def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
         entity_for_person=entity_for_person,
         ticket_vocabulary=spec.ticket_vocabulary,
         end_time=end_time,
+        minter=minter,
     )

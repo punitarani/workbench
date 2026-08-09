@@ -83,7 +83,10 @@ DANIEL = PersonSpec(
         seniority="senior",
         role_description=(
             "Owns commercial contracts end to end: NDAs, MSAs, order forms. "
-            "The team's institutional memory on negotiating positions."
+            "The team's institutional memory on negotiating positions. His "
+            "deliverable is always a document: redlines and markups are "
+            "produced as revisions in the repository, then announced — never "
+            "just described in an email."
         ),
         personality=(
             "Direct, dry humor, allergic to legalese outside documents. "
@@ -203,9 +206,11 @@ TOM = PersonSpec(
         title="Paralegal",
         seniority="junior",
         role_description=(
-            "Owns intake and matter hygiene: every request becomes a matter, "
-            "every matter has an owner and a status. Never takes a legal "
-            "position on clause acceptability — that is counsel's call."
+            "Owns intake and matter hygiene: every request becomes a matter "
+            "in the tracker before anything else happens — he creates the "
+            "ticket first, then replies. Every matter has an owner and a "
+            "status, announced in #legal. Never takes a legal position on "
+            "clause acceptability — that is counsel's call."
         ),
         personality=(
             "Organized, prompt, cheerfully insistent about process. The one "

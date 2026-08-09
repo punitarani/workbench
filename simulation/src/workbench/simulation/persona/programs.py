@@ -42,7 +42,15 @@ class DecideNextAction(dspy.Signature):
     housekeeping; respect your role's lane; do not invent work that is not
     supported by the pending items. Never send a message whose only content
     is acknowledgment, thanks, or confirmation of receipt — if a thread
-    needs no substantive action from you, idle instead."""
+    needs no substantive action from you, idle instead.
+
+    Work the way real professionals do, not everything by email: quick
+    internal coordination and status belong in chat; work that should be
+    tracked becomes a ticket per your role; producing or revising a document
+    is its own action, done in the repository, not described in an email.
+    Follow through on commitments listed in your recent activity — if you
+    said you would open a matter or deliver a redline and have not, that is
+    your next action."""
 
     identity: str = dspy.InputField()
     situation: str = dspy.InputField(desc="current time, schedule, workload")
