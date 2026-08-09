@@ -70,3 +70,7 @@ the same strategy-variance failure its round-3 attempt 3 showed).
 Remaining: ~$20.67.
 
 | 17 | 08-09 | Round-5 content: 5 NDA bodies (deepseek-v4-flash-0731, ~0.7K/3.4K est from cached word counts; the build's usage line was consumed by a pipe) | ~0.7K/3.4K | $0.01 | ~$20.66 |
+
+| 18 | 08-09 07:2x-08:3x | Eval matrix round 4 (final, 5x3x3) | ~29M/0.4M | $2.87 | ~$7.0 |
+
+Final. See REPORT.md for the matrix, verdict, and remaining-budget plan.

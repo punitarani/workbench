@@ -273,3 +273,10 @@ entry says what was ambiguous and which reading was taken.
    solve, pytest and ruff clean. Content spend: 5 LM calls (the five new
    NDA bodies); every other record change is code constants served from
    the warmed cache.
+16. **Closing verdict — bar not met, and why that is the honest result**:
+    the final defect-free matrix leaves 2/15 cells under 0.5. Continuing
+    to tune the harness (call caps chosen after observing model call
+    counts) would defeat models by goodharting our own benchmark, so it
+    was ruled out; the a-priori call-budget policy is documented in
+    REPORT.md as the v2 design. Difficulty claims from rounds with live
+    environment defects were treated as invalid throughout.
