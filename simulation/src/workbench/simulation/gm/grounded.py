@@ -161,6 +161,12 @@ class GroundedGm:
                     return NextActingDecision(entities=(payload.entity,))
                 return NextActingDecision(entities=())
             case EmailMessagePayload():
+                # Deep chains stop granting automatic reply turns; a wake
+                # turn can always revive a thread deliberately. Without this
+                # cap, courteous personas acknowledge each other forever.
+                depth = self._world.message_depth.get(payload.message_id, 0)
+                if depth >= 3:
+                    return NextActingDecision(entities=())
                 for person_id in payload.to:
                     entity = self._entity_for_person.get(person_id)
                     if entity is not None and entity != event.source:

@@ -23,6 +23,7 @@ class WorldState:
         self.email_to_person: dict[str, str] = {}
         self.threads: dict[str, str] = {}  # message_id -> thread_id
         self.thread_ids: set[str] = set()
+        self.message_depth: dict[str, int] = {}  # message_id -> reply depth
         self.conversations: dict[str, tuple[str, ...]] = {}
         self.conversation_names: dict[str, str] = {}  # "#legal" -> id
         self.chat_messages: set[str] = set()
@@ -42,6 +43,12 @@ class WorldState:
             case EmailMessagePayload():
                 self.threads[payload.message_id] = payload.thread_id
                 self.thread_ids.add(payload.thread_id)
+                parent_depth = (
+                    self.message_depth.get(payload.in_reply_to, 0)
+                    if payload.in_reply_to is not None
+                    else -1
+                )
+                self.message_depth[payload.message_id] = parent_depth + 1
             case ChatConversationCreatedPayload():
                 self.conversations[payload.conversation_id] = payload.members
                 if payload.name:

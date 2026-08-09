@@ -40,7 +40,9 @@ class DecideNextAction(dspy.Signature):
     single most appropriate next action given who you are, your schedule
     pressure, and what is pending. Prefer responding to direct requests over
     housekeeping; respect your role's lane; do not invent work that is not
-    supported by the pending items."""
+    supported by the pending items. Never send a message whose only content
+    is acknowledgment, thanks, or confirmation of receipt — if a thread
+    needs no substantive action from you, idle instead."""
 
     identity: str = dspy.InputField()
     situation: str = dspy.InputField(desc="current time, schedule, workload")

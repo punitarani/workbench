@@ -265,3 +265,41 @@ async def test_wake_gives_its_entity_a_turn() -> None:
     )
     decision = await gm.next_acting(wake)
     assert decision.entities == ("daniel",)
+
+
+async def test_deep_reply_chains_stop_granting_turns() -> None:
+    from workbench.core.events import Event
+    from workbench.core.events.email import EmailMessagePayload
+
+    gm = make_gm()
+    parent_id = None
+    decision = None
+    for depth in range(5):
+        payload = EmailMessagePayload(
+            kind="email.message",
+            message_id=f"msg-9000{depth:02d}",
+            thread_id="thr-900001",
+            in_reply_to=parent_id,
+            sender="per-jess-alvarez" if depth % 2 == 0 else "per-daniel-reyes",
+            to=("per-daniel-reyes",) if depth % 2 == 0 else ("per-jess-alvarez",),
+            cc=(),
+            subject="ping",
+            body="pong",
+            attachments=(),
+        )
+        event = Event(
+            seq=800 + depth,
+            time=50_000 + depth * 100,
+            tag=payload.kind,
+            source="x",
+            payload=payload,
+        )
+        await gm.route(event)
+        decision = await gm.next_acting(event)
+        if depth < 3:
+            assert decision.entities, f"depth {depth} should still grant a turn"
+        parent_id = payload.message_id
+    assert decision is not None
+    assert decision.entities == (), (
+        "the fourth reply ends automatic turn-granting; wakes can revive it"
+    )
