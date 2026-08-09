@@ -12,7 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from workbench.core.errors import WorldLogIntegrityError
 from workbench.core.worldlog import read_events, validate_events
-from workbench.tools import PROJECTORS, project_all
+from workbench.tools import REGISTRY, project_all, server_specs
 
 
 class MaterializedEnvironment(BaseModel):
@@ -37,18 +37,12 @@ def materialize(world_log: Path, out_dir: Path) -> MaterializedEnvironment:
     out_dir.mkdir(parents=True, exist_ok=True)
     project_all(events, out_dir / "state")
 
-    servers = {
-        name: {
-            "command": "python3",
-            "args": ["-m", "workbench.tools.serve", name, "--db", f"state/{name}.db"],
-        }
-        for name in sorted(PROJECTORS)
-    }
     (out_dir / ".mcp.json").write_text(
-        json.dumps({"mcpServers": servers}, indent=2) + "\n", encoding="utf-8"
+        json.dumps({"mcpServers": server_specs()}, indent=2) + "\n", encoding="utf-8"
     )
 
-    compose = ", ".join(f'"{name}"' for name in sorted(PROJECTORS))
+    names = sorted(system.name for system in REGISTRY)
+    compose = ", ".join(f'"{name}"' for name in names)
     (out_dir / "environment.toml").write_text(
         f'[tools]\ncompose = [{compose}]\n\n[personas]\nbackend = "replay"\n',
         encoding="utf-8",
@@ -57,5 +51,5 @@ def materialize(world_log: Path, out_dir: Path) -> MaterializedEnvironment:
     return MaterializedEnvironment(
         workspace=out_dir,
         event_count=len(events),
-        databases=tuple(sorted(PROJECTORS)),
+        databases=tuple(names),
     )

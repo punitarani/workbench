@@ -11,13 +11,12 @@ import asyncio
 import sys
 from pathlib import Path
 
-from workbench.tools import PROJECTORS
-from workbench.tools.server import build_server
+from workbench.tools.registry import REGISTRY, build_server
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("tool", choices=sorted(PROJECTORS))
+    parser.add_argument("tool", choices=sorted(system.name for system in REGISTRY))
     parser.add_argument("--db", type=Path, required=True)
     args = parser.parse_args(argv)
 

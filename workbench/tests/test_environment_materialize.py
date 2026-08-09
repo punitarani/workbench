@@ -11,7 +11,7 @@ from worldlog_fixtures import coherent_events
 from workbench.core.errors import WorldLogIntegrityError
 from workbench.core.worldlog import WorldLogWriter
 from workbench.environment import materialize
-from workbench.tools.coherence import check_coherence
+from workbench.tools import check_coherence
 
 
 def write_log(tmp_path: Path) -> Path:

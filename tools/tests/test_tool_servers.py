@@ -6,8 +6,7 @@ from pathlib import Path
 import pytest
 from projection_fixtures import coherent_events
 
-from workbench.tools import project_all
-from workbench.tools.server import build_server
+from workbench.tools import build_server, project_all
 
 OFFSTAGE_MARKERS = ("sim.", "share_policy", "config_hash", "seed_root")
 

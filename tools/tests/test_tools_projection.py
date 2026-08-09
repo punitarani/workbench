@@ -5,8 +5,7 @@ from pathlib import Path
 
 from projection_fixtures import coherent_events
 
-from workbench.tools import PROJECTORS, project_all
-from workbench.tools.coherence import check_coherence
+from workbench.tools import REGISTRY, check_coherence, project_all
 
 
 def project_fixture(tmp_path: Path) -> Path:
@@ -95,9 +94,7 @@ def test_matters_projection_folds_state(tmp_path: Path) -> None:
 
 def test_sim_events_never_project(tmp_path: Path) -> None:
     assert not any(
-        tag.startswith("sim.")
-        for tool in PROJECTORS.values()
-        for tag in tool.handled_tags
+        tag.startswith("sim.") for system in REGISTRY for tag in system.handled_tags
     )
     out = project_fixture(tmp_path)
     for db in out.iterdir():
