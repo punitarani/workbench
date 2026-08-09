@@ -98,3 +98,10 @@ stale list zeroed at all-or-nothing). Under the declared a-priori policy
 2 of 5 probed cells fall below 0.5; the strongest model clears the other
 three by executing reference-quality paths within task-anchored budgets.
 Remaining: ~$17.8.
+
+| 21 | 08-09 09:3x-11:3x | Eval matrix round 5 (call-budgeted, 5x3x3) | ~33M/0.5M | $3.94 | ~$11.4 |
+
+Round-5 matrix: fee-dispute .00/.00/.44 and client-departure .00/.00/.44
+DEFEAT ALL THREE; vanished-clause blocked by Luna (.70), operative-deadline
+by DeepSeek (1.0), standard-drift by DeepSeek+Luna (1.0). Three new
+reconciliation-shape tasks being mined to close the >=5 gap. ~$13.6 left.
