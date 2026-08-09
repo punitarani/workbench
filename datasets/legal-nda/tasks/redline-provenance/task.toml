@@ -1,0 +1,17 @@
+# Harbor task definition. The workspace is built locally from a recorded day:
+#   uv run python datasets/legal-nda/build_task.py
+
+[task]
+name = "redline-provenance"
+dataset = "legal-nda"
+summary = "Locate where today's Vantage redlines actually live in the repository"
+
+[environment]
+docker_image = "workbench:dev"
+# The built workspace/ directory seeds /home/agent/workspace (exposed as /app).
+
+[verifier]
+# In-container: tests/test.sh runs the deterministic grader and writes
+# partial-credit reward to /logs/verifier/reward.json. The Reward Kit
+# wrapper replaces the direct python3 call once runs happen through Harbor.
+weights = { document = 0.4, author = 0.2, revisions = 0.2, inbound_flag = 0.1, format = 0.1 }

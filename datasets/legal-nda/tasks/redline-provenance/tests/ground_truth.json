@@ -1,0 +1,13 @@
+{
+  "redline_document_path": "/legal/executed/precedent-nda-acme.md",
+  "author_markers": ["per-daniel-reyes", "daniel reyes"],
+  "revisions": [2, 3],
+  "inbound_draft_revised": false,
+  "weights": {
+    "document": 0.4,
+    "author": 0.2,
+    "revisions": 0.2,
+    "inbound_flag": 0.1,
+    "format": 0.1
+  }
+}

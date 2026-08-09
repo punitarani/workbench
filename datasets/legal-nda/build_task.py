@@ -1,9 +1,9 @@
-"""Build the vantage-triage task workspace from the recorded legal day.
+"""Build every legal-nda task workspace from the recorded legal day.
 
     uv run python datasets/legal-nda/build_task.py [world_log]
 
-The workspace is derived data and stays local; this builder is the
-committed, reproducible path from a recorded day to the task fixture.
+Workspaces are derived data and stay local; this builder is the
+committed, reproducible path from a recorded day to the task fixtures.
 """
 
 import sys
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from workbench.environment import materialize
 
-TASK = Path(__file__).parent / "tasks" / "vantage-triage"
+TASKS = Path(__file__).parent / "tasks"
 
 
 def main() -> int:
@@ -21,8 +21,9 @@ def main() -> int:
             f"{world_log} not found — replay the demo day first "
             "(see docs/simulation-engine.md)"
         )
-    result = materialize(world_log, TASK / "workspace")
-    print(f"workspace built: {result.event_count} events -> {result.workspace}")
+    for task in sorted(p for p in TASKS.iterdir() if (p / "task.toml").exists()):
+        result = materialize(world_log, task / "workspace")
+        print(f"{task.name}: {result.event_count} events -> {result.workspace}")
     return 0
 
 

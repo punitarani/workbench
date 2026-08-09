@@ -10,10 +10,17 @@ deterministic, leak-free) before it lands here.
 Task format: `datasets/<dataset>/tasks/<task>/` per Harbor's layout
 (`task.toml`, `instruction.md`, `solution/solve.sh`, `tests/test.sh`).
 
-First task: **`legal-nda/tasks/vantage-triage/`** — reconstruct the
-clause-by-clause triage memo for the Vantage vendor NDA from the day's
-record. The vendor-standard clauses (mutual, two-year cap, no non-solicit)
-exist only in Daniel's redline and email, never in the playbook, so a
-playbook-only agent provably scores less (0.48 vs 1.0). Workspaces are
-derived data and stay local; build one from a recorded day with
-`uv run python datasets/legal-nda/build_task.py`.
+Current tasks, both mined from the same recorded legal day:
+
+* **`legal-nda/tasks/vantage-triage/`** — reconstruct the clause-by-clause
+  triage memo for the Vantage vendor NDA. The vendor-standard clauses
+  (mutual, two-year cap, no non-solicit) exist only in Daniel's redline
+  and email, never in the playbook, so a playbook-only agent provably
+  scores less (0.48 vs 1.0).
+* **`legal-nda/tasks/redline-provenance/`** — locate where today's
+  redline edits actually live. The record contradicts the surface-obvious
+  answer (the edits sit on a precedent file, not the inbound draft), so
+  an assumption-only agent provably scores less (0.30 vs 1.0).
+
+Workspaces are derived data and stay local; build them from a recorded
+day with `uv run python datasets/legal-nda/build_task.py`.
