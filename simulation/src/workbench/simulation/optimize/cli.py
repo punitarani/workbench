@@ -10,13 +10,17 @@ in out/gepa/ as JSON alongside every rollout's world log.
 
 import argparse
 import asyncio
+import json
 import os
 import sys
 from pathlib import Path
 
 from workbench.simulation.lm.budget import BudgetedLM
 from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
-from workbench.simulation.optimize.instructions import current_instructions
+from workbench.simulation.optimize.instructions import (
+    InstructionSet,
+    current_instructions,
+)
 from workbench.simulation.optimize.loop import optimize
 from workbench.simulation.optimize.scenario import optimization_spec
 
@@ -29,11 +33,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-calls", type=int, default=1200)
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--out", type=Path, default=Path("out/gepa"))
+    parser.add_argument(
+        "--from-results",
+        type=Path,
+        default=None,
+        help="resume from a prior run's results.json, starting at its best",
+    )
     args = parser.parse_args(argv)
 
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise SystemExit("OPENROUTER_API_KEY is required (uv run --env-file .env)")
+
+    base = current_instructions()
+    if args.from_results is not None:
+        prior = json.loads(args.from_results.read_text())
+        base = InstructionSet.model_validate(prior["best"]["instructions"])
 
     seeds = tuple(int(part) for part in args.seeds.split(","))
     budgeted = BudgetedLM(OpenRouterLM(api_key=api_key), max_calls=args.max_calls)
@@ -41,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
     result = asyncio.run(
         optimize(
             spec=optimization_spec(),
-            base=current_instructions(),
+            base=base,
             seeds=seeds,
             generations=args.generations,
             children=args.children,

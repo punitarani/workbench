@@ -68,11 +68,19 @@ class WorkingMemoryComponent(BaseComponent):
             for e in self._state.events
             if isinstance(e.payload, TicketCreatedPayload)
         ]
+        channels = [
+            e.payload.name or e.payload.conversation_id
+            for e in self._state.events
+            if isinstance(e.payload, ChatConversationCreatedPayload)
+            and self._person_id in e.payload.members
+        ]
         lines = [f"Current time: about {clock}."]
         if documents:
             lines.append("Documents you know of: " + "; ".join(documents))
         if tickets:
             lines.append("Tickets you know of: " + "; ".join(tickets))
+        if channels:
+            lines.append("Chat channels you can post in: " + "; ".join(channels))
         lines.append(f"You have {len(self.pending_items())} pending item(s).")
         return ContextBlock(label="Situation", content="\n".join(lines))
 

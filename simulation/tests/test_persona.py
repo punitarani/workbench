@@ -162,3 +162,26 @@ async def test_observed_own_reply_clears_pending() -> None:
     assert not any(i.ref == "msg-000001" for i in memory.pending_items()), (
         "an observed own reply must clear the pending item"
     )
+
+
+async def test_situation_block_lists_chat_channels_for_initiating() -> None:
+    """A silent channel must still be visible: the persona needs its name to
+    post an update without waiting to be spoken to (GM resolves names)."""
+    from workbench.core.events import Event
+    from workbench.core.events.chat import ChatConversationCreatedPayload
+
+    memory = await make_memory()
+    other = ChatConversationCreatedPayload(
+        kind="chat.conversation.created",
+        conversation_id="cnv-000009",
+        conversation_type="channel",
+        name="#partners-only",
+        members=("per-jess-alvarez",),
+    )
+    await memory.pre_observe(
+        Event(seq=91, time=40001, tag=other.kind, source="gm", payload=other)
+    )
+    block = await memory.pre_act(spec())
+    assert block is not None
+    assert "#legal" in block.content, "member channels render by name"
+    assert "#partners-only" not in block.content, "non-member channels do not"
