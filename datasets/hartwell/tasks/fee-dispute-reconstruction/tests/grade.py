@@ -15,10 +15,25 @@ FIELDS = (
     "cutoff_date",
     "total_minutes",
     "entry_count",
+    "entries",
+    "minutes_by_timekeeper",
     "timekeepers",
     "challenged_by",
     "challenge_date",
 )
+
+
+def _entry_key(entry: object) -> tuple | None:
+    if not isinstance(entry, dict):
+        return None
+    try:
+        return (
+            int(entry.get("id")),
+            str(entry.get("date", "")).strip(),
+            int(entry.get("minutes")),
+        )
+    except TypeError, ValueError:
+        return None
 
 
 def grade(workspace: Path) -> dict:
@@ -49,6 +64,25 @@ def grade(workspace: Path) -> dict:
     )
     count_score = 1.0 if submitted.get("entry_count") == truth["entry_count"] else 0.0
 
+    claimed = submitted.get("entries")
+    claimed = claimed if isinstance(claimed, list) else []
+    truth_keys = {(e["id"], e["date"], e["minutes"]) for e in truth["entries"]}
+    claimed_keys = {key for key in (_entry_key(entry) for entry in claimed) if key}
+    hits = len(truth_keys & claimed_keys)
+    extras = len(claimed_keys - truth_keys)
+    entries_score = max(0, hits - extras) / len(truth_keys)
+
+    by_keeper = submitted.get("minutes_by_timekeeper")
+    by_keeper = by_keeper if isinstance(by_keeper, dict) else {}
+    split_found = 0
+    for markers, minutes in truth["minutes_by_timekeeper_markers"]:
+        for name, value in by_keeper.items():
+            named = str(name).lower()
+            if all(marker in named for marker in markers) and value == minutes:
+                split_found += 1
+                break
+    split_score = split_found / len(truth["minutes_by_timekeeper_markers"])
+
     keepers = submitted.get("timekeepers")
     keepers = [str(k).lower() for k in keepers] if isinstance(keepers, list) else []
     found = sum(
@@ -72,6 +106,11 @@ def grade(workspace: Path) -> dict:
         {"part": "cutoff_date", "score": weights["cutoff_date"] * cutoff_score},
         {"part": "total_minutes", "score": weights["total_minutes"] * minutes_score},
         {"part": "entry_count", "score": weights["entry_count"] * count_score},
+        {"part": "entries", "score": weights["entries"] * entries_score},
+        {
+            "part": "minutes_by_timekeeper",
+            "score": weights["minutes_by_timekeeper"] * split_score,
+        },
         {"part": "timekeepers", "score": weights["timekeepers"] * keeper_score},
         {"part": "challenged_by", "score": weights["challenged_by"] * challenged_score},
         {"part": "challenge_date", "score": weights["challenge_date"] * date_score},
@@ -92,7 +131,7 @@ def main() -> int:
     (log_dir / "reward.json").write_text(json.dumps(reward, indent=2) + "\n")
     print(f"reward: {reward['score']}")
     for part in reward["parts"]:
-        print(f"  {part['part']:14} {part['score']:.3f} / {part['max']}")
+        print(f"  {part['part']:20} {part['score']:.3f} / {part['max']}")
     return 0
 
 

@@ -55,14 +55,15 @@ class ChatChannel(_Model):
 class DmThread(_Model):
     """A standing two-person DM that carries routine background traffic.
 
-    ``traffic`` is the chance of an exchange on any given workday, so a
-    pair at 0.8 talks most days and a pair at 0.3 a couple of times a
-    week.
+    ``traffic`` is the expected number of exchanges on a workday: a pair
+    at 0.3 talks a couple of times a week, a pair at 2.0 twice most days.
+    Rates above 1 exist so a hot thread (a partner and the docketing
+    paralegal) accretes hundreds of messages across a season.
     """
 
     conversation_id: str
     members: tuple[CastMember, CastMember]
-    traffic: float = Field(gt=0.0, le=1.0)
+    traffic: float = Field(gt=0.0, le=4.0)
 
     @model_validator(mode="after")
     def _two_distinct_people(self) -> DmThread:
@@ -493,23 +494,31 @@ def _dm_chatter(
     drafts: list[TimedDraft],
 ) -> None:
     for thread in cast.dms:
-        if rng.random() >= thread.traffic:
-            continue
-        first, second = thread.members
-        if rng.random() < 0.5:
-            first, second = second, first
-        at = rng.randrange(9 * 3600, 17 * 3600)
-        _dm_message(thread, first, minter, drafts, at=at, body=rng.choice(_DM_OPENERS))
-        if rng.random() < 0.85:
-            at += rng.randrange(60, 900)
+        whole, fraction = divmod(thread.traffic, 1.0)
+        exchanges = int(whole) + (1 if rng.random() < fraction else 0)
+        for _ in range(exchanges):
+            first, second = thread.members
+            if rng.random() < 0.5:
+                first, second = second, first
+            at = rng.randrange(9 * 3600, 17 * 3600)
             _dm_message(
-                thread, second, minter, drafts, at=at, body=rng.choice(_DM_REPLIES)
+                thread, first, minter, drafts, at=at, body=rng.choice(_DM_OPENERS)
             )
-            if rng.random() < 0.4:
-                at += rng.randrange(30, 600)
+            if rng.random() < 0.85:
+                at += rng.randrange(60, 900)
                 _dm_message(
-                    thread, first, minter, drafts, at=at, body=rng.choice(_DM_CLOSERS)
+                    thread, second, minter, drafts, at=at, body=rng.choice(_DM_REPLIES)
                 )
+                if rng.random() < 0.4:
+                    at += rng.randrange(30, 600)
+                    _dm_message(
+                        thread,
+                        first,
+                        minter,
+                        drafts,
+                        at=at,
+                        body=rng.choice(_DM_CLOSERS),
+                    )
 
 
 def _email(

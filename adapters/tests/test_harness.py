@@ -143,6 +143,21 @@ async def test_episode_hits_max_turns(workspace: Path) -> None:
     assert result.tool_calls == 0
 
 
+async def test_write_file_serializes_structured_content(workspace: Path) -> None:
+    """A model passing JSON for ``content`` must land as JSON, not repr()."""
+
+    payload = {"cutoff_date": "2026-04-03", "entries": [1, 2]}
+    script = [
+        tool_call("write_file", {"path": "out.json", "content": payload}, "call-1"),
+        tool_call("finish", {"summary": "done"}, "call-2"),
+    ]
+    result = await run_episode(
+        workspace, "Write the deliverable.", ScriptedChatClient(script)
+    )
+    assert result.stop_reason == "finish"
+    assert json.loads((workspace / "out.json").read_text()) == payload
+
+
 def test_write_file_confined_to_workspace(tmp_path: Path) -> None:
     root = tmp_path / "ws"
     root.mkdir()

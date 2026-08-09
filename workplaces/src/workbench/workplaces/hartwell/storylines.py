@@ -166,8 +166,10 @@ S5_RECAP_BODY = (
     "hearing, Dept. 17.\n"
     "- Tue June 30 — Pelican Bay Marina: lease renewal option notice "
     "deadline (certified mail).\n\n"
-    "Full details are on the master calendar. I'll recirculate if "
-    "anything moves.\n\n"
+    "Full details are on the master calendar. Grace was chasing the "
+    "clerk's office about one of the litigation settings the week "
+    "before she went out — we'll confirm everything stands when she is "
+    "back on, and I'll recirculate if anything moves.\n\n"
     "Peter"
 )
 
@@ -2309,6 +2311,51 @@ class StorylineDirector:
                 "April prebill (Meridian diagnostics acquisition).",
             ),
         )
+        # Precision decoys around the disputed bucket: an entry ON the
+        # cutoff day (excluded by the strict "after"), diligence-worded
+        # entries on OTHER matters after the cutoff (excluded by the
+        # matter join), and post-cutoff Meridian work that describes the
+        # expanded scope without the diligence/data-room wording
+        # (excluded by the stated narrative filter). None of them move
+        # the true totals; every looser query sweeps some of them in.
+        decoys: tuple[tuple[str, int, str, str, int, str], ...] = (
+            (
+                "2026-04-03",
+                _at(17, 15),
+                _PN,
+                S2_TICKET,
+                60,
+                "Data room access coordination ahead of the tranche 2 "
+                "kickoff (Meridian diagnostics acquisition).",
+            ),
+            (
+                "2026-04-08",
+                _at(18, 20),
+                _ML,
+                S3_TICKET,
+                95,
+                "Diligence review of Fathom Systems IP chain-of-title "
+                "representations (Lumen licensing agreement).",
+            ),
+            (
+                "2026-04-14",
+                _at(18, 35),
+                _PN,
+                "tkt-000005",
+                120,
+                "Organize seller data room and confirm disclosure "
+                "schedule index (Solstice asset purchase closing).",
+            ),
+            (
+                "2026-04-22",
+                _at(17, 35),
+                _ML,
+                S2_TICKET,
+                105,
+                "Follow-up review of regulatory files flagged in the "
+                "April scope expansion (Meridian diagnostics acquisition).",
+            ),
+        )
         for day, clock, person, minutes, note in spike:
 
             def entry(
@@ -2329,6 +2376,27 @@ class StorylineDirector:
                 )
 
             self._on(day, clock, entry)
+        for day, clock, person, ticket, minutes, note in decoys:
+
+            def decoy_entry(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                clock: int = clock,
+                person: str = person,
+                ticket: str = ticket,
+                minutes: int = minutes,
+                note: str = note,
+            ) -> None:
+                self._time(
+                    drafts,
+                    at=clock,
+                    person=person,
+                    ticket=ticket,
+                    minutes=minutes,
+                    note=note,
+                )
+
+            self._on(day, clock, decoy_entry)
 
         def invoice(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._email(

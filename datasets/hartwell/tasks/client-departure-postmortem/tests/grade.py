@@ -13,8 +13,11 @@ GROUND_TRUTH = Path(__file__).parent / "ground_truth.json"
 
 FIELDS = (
     "first_negative_signal_date",
+    "first_negative_signal_ts",
+    "happy_update_ts",
     "happy_update_reactions",
     "first_negative_signal_reactions",
+    "reaction_trajectory",
     "matter_closed_date",
     "termination_email_date",
     "disengagement_letter_path",
@@ -45,6 +48,27 @@ def grade(workspace: Path) -> dict:
     def count_match(field: str) -> float:
         return 1.0 if submitted.get(field) == truth[field] else 0.0
 
+    def ts_match(field: str, prefix_key: str) -> float:
+        # Slack ts is "seconds.counter"; the seconds part is the message's
+        # identity in the record, the counter is a projection artifact.
+        return (
+            1.0
+            if str(submitted.get(field, "")).strip().startswith(truth[prefix_key])
+            else 0.0
+        )
+
+    trajectory = submitted.get("reaction_trajectory")
+    trajectory = trajectory if isinstance(trajectory, list) else []
+    expected = truth["reaction_trajectory"]
+    matched = sum(
+        1
+        for position, want in enumerate(expected)
+        if position < len(trajectory) and trajectory[position] == want
+    )
+    trajectory_score = (
+        matched / len(expected) if len(trajectory) == len(expected) else 0.0
+    )
+
     letter = str(submitted.get("disengagement_letter_path", "")).strip().lstrip("/")
     letter_score = 1.0 if letter.endswith(truth["letter_path_suffix"]) else 0.0
 
@@ -55,6 +79,16 @@ def grade(workspace: Path) -> dict:
             * date_match("first_negative_signal_date"),
         },
         {
+            "part": "first_negative_signal_ts",
+            "score": weights["first_negative_signal_ts"]
+            * ts_match("first_negative_signal_ts", "first_negative_signal_ts_prefix"),
+        },
+        {
+            "part": "happy_update_ts",
+            "score": weights["happy_update_ts"]
+            * ts_match("happy_update_ts", "happy_update_ts_prefix"),
+        },
+        {
             "part": "happy_update_reactions",
             "score": weights["happy_update_reactions"]
             * count_match("happy_update_reactions"),
@@ -63,6 +97,10 @@ def grade(workspace: Path) -> dict:
             "part": "first_negative_signal_reactions",
             "score": weights["first_negative_signal_reactions"]
             * count_match("first_negative_signal_reactions"),
+        },
+        {
+            "part": "reaction_trajectory",
+            "score": weights["reaction_trajectory"] * trajectory_score,
         },
         {
             "part": "matter_closed_date",

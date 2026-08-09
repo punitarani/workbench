@@ -1,16 +1,16 @@
 {
   "_evidence": {
-    "emails": "Clerk notices in Gmail set the hearing three times: msg-000081 (2026-03-16) -> April 28, msg-000279 (2026-04-17) -> May 20, msg-000410 (2026-05-13) -> June 18, all at 10:00 a.m. Every email states a date that was later superseded, and msg-000590 (2026-06-16, Peter Novak's docket recap) formally restates the stale June 18 setting five days AFTER the correction.",
-    "slack": "chm-001575 (ts 8767500.001564, 2026-06-11, Grace Adeyemi) in the Grace<->Samuel DM cnv-000005: 'clerk just called about 00008 — moved again, the 25th at 9, not the 18th'. slack_search_public excludes DMs by construction; the message carries no case name and no docket vocabulary, only the Clio display-number prefix 00008. The operative date (2026-06-25, 9:00 a.m.) exists nowhere else in the record.",
-    "fabric": "The correction no longer sits in a 2-message DM: the workspace carries 10 standing DM conversations of routine template traffic, and cnv-000005 runs 157 messages with the correction mid-stream, so conversation enumeration alone does not surface it."
+    "emails": "Clerk notices in Gmail set the hearing three times: msg-000074 (2026-03-16) -> April 28, msg-000263 (2026-04-17) -> May 20, msg-000408 (2026-05-13) -> June 18, all at 10:00 a.m. Every email states a date that was later superseded, and msg-000597 (2026-06-16, Peter Novak's docket recap) formally restates the stale June 18 setting five days AFTER the correction — while carrying the fair pointer: Grace was chasing the clerk's office the week before she went out, 'we'll confirm ... when she is back on'.",
+    "slack": "chm-002418 (ts 8767500.002397, 2026-06-11, Grace Adeyemi) in the Grace<->Samuel DM cnv-000005: 'clerk just called about 00008 — moved again, the 25th at 9, not the 18th'. slack_search_public excludes DMs by construction; the message carries no case name and no docket vocabulary, only the Clio display-number prefix 00008. The operative date (2026-06-25, 9:00 a.m.) exists nowhere else in the record.",
+    "fabric": "Round 4 grew the DM fabric so discovery is costly-but-possible: cnv-000005 runs 407 messages with the correction at position 345 (200+ before it, 40+ after it), the other nine DM pairs carry 100-171 messages each (1680 DM messages total), and slack_read_channel caps at 100 messages per call — an end-to-end skim of every DM costs ~20+ calls, while windowing oldest/latest around the clerk-call week (inferable from the recap breadcrumb and Grace being out) finds it in a handful."
   },
   "operative_date": "2026-06-25",
   "operative_time_prefixes": ["9:00", "09:00"],
   "correction_ts_prefix": "8767500",
   "superseded_dates": ["2026-04-28", "2026-05-20", "2026-06-18"],
   "supersessions": [
-    { "invalidated": "2026-04-28", "by_prefix": "msg-000279" },
-    { "invalidated": "2026-05-20", "by_prefix": "msg-000410" },
+    { "invalidated": "2026-04-28", "by_prefix": "msg-000263" },
+    { "invalidated": "2026-05-20", "by_prefix": "msg-000408" },
     { "invalidated": "2026-06-18", "by_prefix": "8767500" }
   ],
   "weights": {

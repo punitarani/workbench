@@ -142,3 +142,67 @@ entry says what was ambiguous and which reading was taken.
    clause. Grader values unchanged on every task; fee-dispute and
    client-departure untouched except `_evidence` id refreshes after the
    rebuild shifted minted ids (no graded field there references ids).
+14. **Round-4 diagnosis and hardening.** Diagnosis (6 probe episodes with
+   kept transcripts + round-3 transcripts regraded per part offline):
+   (a) *DEFECT — iManage paths were unobservable.* No iManage tool
+   response ever carried the `path` column (search hits, profiles,
+   container children all omit it), yet standard-drift grades three path
+   fields (0.25 total), vanished-clause one (0.10), client-departure one
+   (0.15). Every model on every round-3 attempt substituted
+   `workspace/Title` approximations or the `LEGAL!n.v` display id — the
+   uniform 0.75/0.90/0.85 plateaus are exactly those weights, verified
+   by per-part regrades (GLM standard-drift probe missed precisely
+   playbook_path + both document paths, nothing else; DeepSeek
+   client-departure missed precisely the letter path). Fix like the
+   epoch bug: profiles, search hits, and container children now serve
+   `path`; system tests updated.
+   (b) *DEFECT — the eval harness corrupted structured deliverables.*
+   `write_file` coerced non-string `content` with `str()`, so a model
+   passing a JSON object wrote Python-repr pseudo-JSON that every
+   grader's `json.loads` rejects. GLM emits object content
+   intermittently (2 of 5 round-4 probes; its fee-dispute answer was
+   substantively perfect and scored 0.0000). Explains round-3's stray
+   GLM 0.0s. Fix in the adapter only: dict/list content is
+   `json.dumps`-ed; graders untouched; regression test added.
+   (c) *operative-deadline split.* DeepSeek/Luna find the DM by
+   enumeration — `slack_search_channels("")`, member-listing all 10
+   DMs, then reading the Grace/Samuel pair — not via any search leak.
+   GLM spends all 30 turns on `slack_search_public` (which excludes DMs
+   by construction) and never writes a deliverable: its three 0.0s are
+   honest turn exhaustion, not a defect. A round-4 DeepSeek probe also
+   exhausted turns after reading the right DM, so discovery cost was
+   already borderline at 157 messages.
+   (d) *FREEBIEs.* fee-dispute's cutoff_date was stated verbatim in the
+   instruction; challenged_by/challenge_date are one Gmail search.
+   client-departure's matter_closed/termination dates are one Clio/Gmail
+   call each (0.50 with format under the old weights).
+   Actions (graders never weakened): DM `traffic` semantics became
+   expected-exchanges-per-workday so rates exceed 1 — Grace<->Samuel at
+   2.1 yields a 407-message thread with the correction buried at
+   position 345 (200+ before, 40+ after), the other nine pairs carry
+   100-171 messages (1,680 DM messages total), and `slack_read_channel`
+   now caps at 100 messages per call (Slack-like page size), so an
+   end-to-end DM skim costs 20+ calls while oldest/latest windowing
+   around the clerk-call week stays cheap; the June-16 recap gained the
+   fair pointer ("Grace was chasing the clerk's office ... we'll
+   confirm ... when she is back on") and audits gate all of it (>=1200
+   DM messages, >=350-message thread, burial position, breadcrumb text,
+   plus the existing no-leak checks). fee-dispute: instruction no
+   longer states the cutoff date; deliverable extended with per-entry
+   Clio activity ids (the server's positional id space, reproduced by
+   the solver) and minutes_by_timekeeper; near-miss decoys added on
+   every side of the join (a cutoff-day data-room entry, post-cutoff
+   diligence-worded entries on the Lumen and Solstice matters, a
+   post-cutoff Meridian scope-expansion entry without the wording);
+   weights recut so the trivially-earned subset caps at 0.30.
+   client-departure: deliverable extended with the Slack ts identities
+   of the happy update and the first negative signal (graded on the
+   calendar-fixed seconds prefix) and the five-milestone reaction
+   trajectory [3,2,1,0,0]; freebie subset caps at 0.40. standard-drift
+   and vanished-clause change only through the path fix. Rebuild is
+   byte-deterministic, audits all green, solve.sh 1.0 on all five tasks,
+   naive baselines 0.21-0.375 (every gap > 0.4), pytest and ruff clean.
+   The DM rate change reshuffled the shared RNG draw order, so
+   procedural ids shifted: graded supersession ids refreshed
+   (msg-000263, msg-000408), `_evidence` blocks updated; storyline ts
+   seconds are calendar-fixed by construction and did not move.

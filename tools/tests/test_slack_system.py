@@ -15,7 +15,7 @@ from workbench.core.events.chat import (
     ChatMessagePayload,
     ChatReactionAddedPayload,
 )
-from workbench.tools.framework import project_system
+from workbench.tools.framework import build_server, project_system
 from workbench.tools.slack import SYSTEM
 
 OFFSTAGE_MARKERS = ("sim.", "share_policy", "config_hash", "seed_root")
@@ -319,6 +319,38 @@ async def test_read_channel_accepts_internal_id_window_limit(
         server, "slack_read_channel", {"channel_id": C_LEGAL, "oldest": "600"}
     )
     assert [m["ts"] for m in newer["messages"]] == ["900.000001"]
+
+
+async def test_read_channel_caps_the_page_size(tmp_path: Path) -> None:
+    """A huge limit must not dump an entire history in one call."""
+
+    events = slack_events()
+    top = max(event.seq for event in events)
+    for offset in range(120):
+        events.append(
+            Event(
+                seq=top + 1 + offset,
+                time=100_000 + offset,
+                tag="chat.message",
+                source="meredith",
+                payload=ChatMessagePayload(
+                    kind="chat.message",
+                    chat_message_id=f"chm-9{offset:05d}",
+                    conversation_id=DEALS,
+                    reply_to=None,
+                    sender="per-meredith-chao",
+                    body=f"filler update {offset}",
+                ),
+            )
+        )
+    db = tmp_path / "slack-cap.db"
+    project_system(SYSTEM, events, db)
+    big = build_server(SYSTEM, db)
+    dump = await call(big, "slack_read_channel", {"channel_id": DEALS, "limit": 5000})
+    assert len(dump["messages"]) == 100
+    assert dump["has_more"] is True
+    floor = await call(big, "slack_read_channel", {"channel_id": DEALS, "limit": -5})
+    assert len(floor["messages"]) == 1
 
 
 async def test_read_thread_parent_first(server: MCPServer) -> None:

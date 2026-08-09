@@ -258,7 +258,9 @@ def register(server: MCPServer, db_path: Path) -> None:
         oldest: str | None = None,
         latest: str | None = None,
     ) -> dict:
-        """Read a channel's message history, newest first."""
+        """Read a channel's message history, newest first; at most 100
+        messages per call (window long histories with oldest/latest)."""
+        limit = max(1, min(limit, 100))
         with connect_readonly(db_path) as connection:
             directory = _load(connection)
             conversation = directory.resolve_channel(channel_id)

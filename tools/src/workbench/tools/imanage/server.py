@@ -117,6 +117,7 @@ def _document_hit(document: BaseModel) -> dict:
         "name": dumped["name"],
         "wstype": "document",
         "workspace_name": dumped["workspace"],
+        "path": dumped["path"],
     }
 
 
@@ -145,6 +146,7 @@ def _profile(connection: sqlite3.Connection, document: BaseModel, row: Version) 
         "wstype": "document",
         "workspace_id": workspace["id"],
         "workspace_name": workspace["name"],
+        "path": dumped["path"],
         "content_type": "D",
     }
 
@@ -213,6 +215,7 @@ def register(server: MCPServer, db_path: Path) -> None:
                     "id": f"{LIBRARY}!{d['document_number']}.{d['head_version']}",
                     "name": d["name"],
                     "wstype": "document",
+                    "path": d["path"],
                 }
                 for d in (document.model_dump() for document in documents)
             ]

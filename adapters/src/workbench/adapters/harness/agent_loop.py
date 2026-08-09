@@ -160,11 +160,14 @@ async def _execute(
     if name == "finish":
         return "episode finished"
     if name == "write_file":
+        # Models occasionally pass structured JSON for ``content``; str()
+        # would write Python repr and silently corrupt the deliverable.
+        content = arguments.get("content", "")
+        if not isinstance(content, str):
+            content = json.dumps(content, indent=2)
         try:
             return write_workspace_file(
-                workspace_dir,
-                str(arguments.get("path", "")),
-                str(arguments.get("content", "")),
+                workspace_dir, str(arguments.get("path", "")), content
             )
         except WorkspaceEscapeError as error:
             return f"ERROR: {error}"

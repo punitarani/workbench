@@ -1,15 +1,18 @@
 #!/bin/sh
 # Naive baseline: answers everything from the email thread — the client's
 # first nudge as the first signal, the stated effective date as the
-# closure, guessed reaction counts, guessed letter location. Proves the
-# Slack/Clio/iManage joins discriminate.
+# closure, guessed reaction counts and ts values, guessed letter
+# location. Proves the Slack/Clio/iManage joins discriminate.
 exec python3 - << 'EOF'
 import json
 
 postmortem = {
     "first_negative_signal_date": "2026-04-15",
+    "first_negative_signal_ts": "3830000.000000",
+    "happy_update_ts": "1900000.000000",
     "happy_update_reactions": 0,
     "first_negative_signal_reactions": 0,
+    "reaction_trajectory": [0, 0, 0, 0, 0],
     "matter_closed_date": "2026-06-05",
     "termination_email_date": "2026-05-27",
     "disengagement_letter_path": "/cascadia/letters/disengagement.md",

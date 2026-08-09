@@ -307,9 +307,9 @@ def audit(log_path: Path, state_dir: Path) -> int:
     ]
     total_minutes = sum(minutes for _, minutes in spike)
     check(
-        f"diligence spike after Apr 3: {len(spike)} entries, "
-        f"{total_minutes} min joins to the May 8 dispute email",
-        len(spike) >= 5 and total_minutes > 600 and len(dispute) == 1,
+        f"diligence spike after Apr 3: exactly {len(spike)} entries / "
+        f"{total_minutes} min (ground truth) joins to the May 8 dispute email",
+        len(spike) == 7 and total_minutes == 890 and len(dispute) == 1,
     )
     decoys = [
         event
@@ -323,8 +323,40 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and _event_date(event) <= "2026-04-03"
     ]
     check(
-        f"{len(decoys)} near-miss diligence entries before the cutoff",
-        len(decoys) >= 3,
+        f"{len(decoys)} near-miss diligence entries on or before the cutoff, "
+        "including one dated the cutoff day itself",
+        len(decoys) >= 4
+        and any(_event_date(event) == "2026-04-03" for event in decoys),
+    )
+    cross_matter = [
+        event
+        for event in events
+        if isinstance(event.payload, TimeLoggedPayload)
+        and event.payload.ticket_id != S2_TICKET
+        and (
+            "diligence" in event.payload.note.lower()
+            or "data room" in event.payload.note.lower()
+        )
+        and _event_date(event) > "2026-04-03"
+    ]
+    check(
+        f"{len(cross_matter)} post-cutoff diligence-worded decoys on other matters",
+        len(cross_matter) >= 2,
+    )
+    unworded = [
+        event
+        for event in events
+        if isinstance(event.payload, TimeLoggedPayload)
+        and event.payload.ticket_id == S2_TICKET
+        and "scope expansion" in event.payload.note.lower()
+        and "diligence" not in event.payload.note.lower()
+        and "data room" not in event.payload.note.lower()
+        and _event_date(event) > "2026-04-03"
+    ]
+    check(
+        "a post-cutoff Meridian entry describes the expanded scope without "
+        "the diligence wording",
+        len(unworded) >= 1,
     )
     check("long Clio resolution note on the matter", len(notes) >= 1)
     date_pattern = re.compile(r"April\s+0?3\b|2026-04-03|\b4/3\b")
@@ -430,10 +462,9 @@ def audit(log_path: Path, state_dir: Path) -> int:
         )
     ]
     check(
-        f"reaction counts decline across the arc: {counts_in_order}",
-        len(cascadia_chats) >= 5
-        and counts_in_order[0] == max(counts_in_order)
-        and counts_in_order[-2:] == [0, 0],
+        f"reaction counts decline across the arc, exactly {counts_in_order} "
+        "(ground truth trajectory)",
+        counts_in_order == [3, 2, 1, 0, 0, 0],
     )
     check(
         "matter closed on "
@@ -476,15 +507,22 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and _event_date(corrections[0]) == "2026-06-11"
         and corrections[0].payload.conversation_id in dm_ids,
     )
-    check(
-        f"DM fabric: {len(dm_ids)} DM conversations (need >= 8)",
-        len(dm_ids) >= 8,
-    )
-    thread = [
+    dm_messages = [
         event
         for event in events
         if isinstance(event.payload, ChatMessagePayload)
-        and corrections
+        and event.payload.conversation_id in dm_ids
+    ]
+    check(
+        f"DM fabric: {len(dm_ids)} DM conversations carrying "
+        f"{len(dm_messages)} messages (need >= 8 threads, >= 1200 messages "
+        "so an end-to-end skim costs real turns)",
+        len(dm_ids) >= 8 and len(dm_messages) >= 1200,
+    )
+    thread = [
+        event
+        for event in dm_messages
+        if corrections
         and event.payload.conversation_id == corrections[0].payload.conversation_id
     ]
     position = next(
@@ -496,9 +534,9 @@ def audit(log_path: Path, state_dir: Path) -> int:
         -1,
     )
     check(
-        f"the correction sits mid-stream in a {len(thread)}-message DM "
-        f"(position {position})",
-        len(thread) >= 60 and 5 <= position <= len(thread) - 6,
+        f"the correction is buried mid-stream in a {len(thread)}-message DM "
+        f"(position {position}: >= 200 before it, >= 40 after it)",
+        len(thread) >= 350 and position >= 200 and len(thread) - 1 - position >= 40,
     )
     public_chats = [
         event.payload.body
@@ -526,12 +564,15 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and event.payload.subject == S5_RECAP_SUBJECT
     ]
     check(
-        "a post-correction recap email restates the superseded June 18 date",
+        "a post-correction recap email restates the superseded June 18 date "
+        "and carries the clerk-call breadcrumb (fair pointer to the DM window)",
         bool(corrections)
         and len(recaps) == 1
         and _event_date(recaps[0]) == "2026-06-16"
         and "June 18" in recaps[0].payload.body
-        and int(recaps[0].time) > int(corrections[0].time),
+        and int(recaps[0].time) > int(corrections[0].time)
+        and "clerk" in recaps[0].payload.body
+        and "we'll confirm" in recaps[0].payload.body,
     )
 
     return failures

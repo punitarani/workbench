@@ -78,21 +78,22 @@ _CHANNELS: tuple[tuple[str, tuple[str, ...], str, str], ...] = (
     ),
 )
 
-# Standing DM pairs and how often each pair trades routine messages
-# (probability of an exchange on a workday). Grace<->Samuel runs hot: the
-# litigation docket flows through that thread, and S5 buries its
-# correction mid-stream there.
+# Standing DM pairs and each pair's expected exchanges per workday.
+# Grace<->Samuel runs hot: the litigation docket flows through that
+# thread, and S5 buries its correction mid-stream in a season of routine
+# traffic; the other pairs run heavy enough that skimming every DM
+# history end to end costs real turns.
 _DMS: tuple[tuple[str, str, float], ...] = (
-    ("per-grace-adeyemi", "per-samuel-marsh", 0.8),
-    ("per-eleanor-hartwell", "per-samuel-marsh", 0.3),
-    ("per-marcus-liang", "per-peter-novak", 0.4),
-    ("per-sofia-ramirez", "per-grace-adeyemi", 0.35),
-    ("per-diane-okonkwo", "per-noah-feldstein", 0.35),
-    ("per-anita-bailey", "per-carl-jensen", 0.4),
-    ("per-tessa-nguyen", "per-omar-haddad", 0.3),
-    ("per-eleanor-hartwell", "per-anita-bailey", 0.3),
-    ("per-samuel-marsh", "per-sofia-ramirez", 0.3),
-    ("per-noah-feldstein", "per-peter-novak", 0.25),
+    ("per-grace-adeyemi", "per-samuel-marsh", 2.1),
+    ("per-eleanor-hartwell", "per-samuel-marsh", 0.7),
+    ("per-marcus-liang", "per-peter-novak", 0.9),
+    ("per-sofia-ramirez", "per-grace-adeyemi", 0.8),
+    ("per-diane-okonkwo", "per-noah-feldstein", 0.7),
+    ("per-anita-bailey", "per-carl-jensen", 0.9),
+    ("per-tessa-nguyen", "per-omar-haddad", 0.6),
+    ("per-eleanor-hartwell", "per-anita-bailey", 0.6),
+    ("per-samuel-marsh", "per-sofia-ramirez", 0.7),
+    ("per-noah-feldstein", "per-peter-novak", 0.5),
 )
 
 _DOCUMENTS: tuple[tuple[str, str, str, str], ...] = (

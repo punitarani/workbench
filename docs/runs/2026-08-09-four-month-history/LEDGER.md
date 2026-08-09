@@ -54,3 +54,17 @@ Round-3 matrix: standard-drift .75x3, fee-dispute 1.0x3, vanished-clause
 fix un-suppressed date components; identical cross-model scores indicate
 grader-structure ceilings, under component diagnosis in round 4.
 Remaining: ~$21.5.
+
+| 15 | 08-09 | Round-4 diagnosis probes: GLM x4 (operative-deadline 1.37M/12K, standard-drift 175K/16K, fee-dispute 87K/5K, vanished-clause 178K/4K) + DeepSeek x2 (client-departure 281K/13K, operative-deadline 2.79M/46K) | 4.89M/0.10M | $0.43 | ~$3.93 |
+| 16 | 08-09 | Round-4 verification probes: operative-deadline + fee-dispute x 3 models x 1 attempt (DS 1.84M/29K, GLM 1.93M/29K, Luna 756K/6K) | 4.52M/0.06M | $0.40 | ~$4.33 |
+
+Round-4 budget usage: 12 of 30 permitted eval-probe episodes, 0 of 30
+permitted content calls (every record change was a code constant; the
+content cache served all 57 pieces with zero LM calls). Verification
+after the DEFECT fixes and hardening: fee-dispute 1.0/1.0/1.0 with the
+extended per-entry deliverable; operative-deadline 1.0 (DeepSeek, 74
+calls through the 1,680-message DM fabric), 0.0 (GLM, max_turns — read
+each DM at limit 5, too shallow to reach the correction, wrote nothing),
+0.3666 (Luna, reported the stale June 18 after never enumerating DMs —
+the same strategy-variance failure its round-3 attempt 3 showed).
+Remaining: ~$20.67.
