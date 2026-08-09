@@ -101,5 +101,5 @@ The image is layered stable-to-volatile so sibling environments share the `base`
 
 * Run servers, long-lived processes, or `harbor run` unless asked.
 * Add a dependency, package, or abstraction layer for a single caller.
-* Put documentation anywhere but `docs/`, except this file and `README.md`.
+* Put documentation anywhere but `docs/`, except `README.md`/`AGENTS.md` files: every top-level package carries both, and a subfolder may carry an `AGENTS.md` when it has invariants worth stating where the code lives.
 * Widen an agent-facing surface, weaken a type, or loosen a permission to make a test pass.
