@@ -1,0 +1,26 @@
+# Harbor task definition. The environment bundle is built locally from
+# the four-month history:
+#   uv run python datasets/hartwell/build_tasks.py
+
+[task]
+name = "visitor-log-audit"
+dataset = "hartwell"
+summary = "Certify the visitor-log handovers that were never closed inside the firm's standard"
+
+[environment]
+docker_image = "workbench:dev"
+# The built bundle splits across the image: bundle/workspace seeds
+# /home/agent/workspace (exposed as /app), bundle/state stays offstage.
+
+[verifier]
+# In-container: tests/test.sh runs the deterministic grader and writes
+# partial-credit reward to /logs/verifier/reward.json. The Reward Kit
+# wrapper replaces the direct python3 call once runs happen through Harbor.
+weights = { requests_reviewed = 0.02, conversations_reviewed = 0.02, open_handover_ts = 0.56, open_handovers = 0.12, closed_same_day = 0.05, closed_next_day = 0.1, open_requesters = 0.04, format = 0.09 }
+
+[harness]
+# Task-anchored call budget (DECISIONS.md entry 17): 3x the reference
+# tool-path floor of 53 calls measured by
+# datasets/hartwell/measure_floors.py
+# (write_file and finish count against the same budget).
+max_tool_calls = 159

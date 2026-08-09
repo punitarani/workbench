@@ -1,0 +1,100 @@
+{
+  "_evidence": {
+    "join": "Directed anti-join over every one-to-one conversation (12 lanes, 2157 messages; chat search never returns them). 74 requests for the reception sign-in sheet carry the firm's standing phrasing; a request is closed when the person asked comes back to the asker \u2014 later in that same lane, or by email to them \u2014 by the end of the next working day (Mon-Fri). Exactly 6 never were: 1421855 (2026-03-18 Wed, Peter Novak -> Grace Adeyemi), 5761271 (2026-05-07 Thu, Marcus Liang -> Peter Novak), 6279449 (2026-05-13 Wed, Tessa Nguyen -> Omar Haddad), 8006603 (2026-06-02 Tue, Eleanor Hartwell -> Samuel Marsh), 8602820 (2026-06-09 Tue, Sofia Ramirez -> Samuel Marsh), 9909456 (2026-06-24 Wed, Noah Feldstein -> Peter Novak).",
+    "decoys": "62 requests drew an answer the same day. The near misses carry the difficulty: 6 came back after the day of the request but still inside the standard \u2014 1 of them by email rather than chat. Closing the audit at the end of the day the sheet was asked for lists 12; ignoring mail lists 7. Only the stated rule gives this set.",
+    "grading": "open_handover_ts is all-or-nothing at 0.56 (exact set of seconds prefixes or zero); the non-core subset caps at 0.44. closed_next_day and open_handovers grade hits-minus-extras; open_requesters penalizes extras so naming everyone earns 0."
+  },
+  "requests_reviewed": 74,
+  "conversations_reviewed": 12,
+  "open_handover_ts_prefixes": [
+    "1421855",
+    "5761271",
+    "6279449",
+    "8006603",
+    "8602820",
+    "9909456"
+  ],
+  "open_handovers": [
+    {
+      "ts_prefix": "1421855",
+      "date": "2026-03-18",
+      "asked_by": "Peter Novak",
+      "asked_of": "Grace Adeyemi"
+    },
+    {
+      "ts_prefix": "5761271",
+      "date": "2026-05-07",
+      "asked_by": "Marcus Liang",
+      "asked_of": "Peter Novak"
+    },
+    {
+      "ts_prefix": "6279449",
+      "date": "2026-05-13",
+      "asked_by": "Tessa Nguyen",
+      "asked_of": "Omar Haddad"
+    },
+    {
+      "ts_prefix": "8006603",
+      "date": "2026-06-02",
+      "asked_by": "Eleanor Hartwell",
+      "asked_of": "Samuel Marsh"
+    },
+    {
+      "ts_prefix": "8602820",
+      "date": "2026-06-09",
+      "asked_by": "Sofia Ramirez",
+      "asked_of": "Samuel Marsh"
+    },
+    {
+      "ts_prefix": "9909456",
+      "date": "2026-06-24",
+      "asked_by": "Noah Feldstein",
+      "asked_of": "Peter Novak"
+    }
+  ],
+  "closed_same_day": 62,
+  "closed_next_day_prefixes": [
+    "2629027",
+    "3155270",
+    "4379576",
+    "4450038",
+    "4877743",
+    "5580033"
+  ],
+  "requester_markers": [
+    [
+      "eleanor",
+      "hartwell"
+    ],
+    [
+      "marcus",
+      "liang"
+    ],
+    [
+      "noah",
+      "feldstein"
+    ],
+    [
+      "peter",
+      "novak"
+    ],
+    [
+      "sofia",
+      "ramirez"
+    ],
+    [
+      "tessa",
+      "nguyen"
+    ]
+  ],
+  "weights": {
+    "requests_reviewed": 0.02,
+    "conversations_reviewed": 0.02,
+    "open_handover_ts": 0.56,
+    "open_handovers": 0.12,
+    "closed_same_day": 0.05,
+    "closed_next_day": 0.1,
+    "open_requesters": 0.04,
+    "format": 0.09
+  }
+}

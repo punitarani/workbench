@@ -105,3 +105,42 @@ Round-5 matrix: fee-dispute .00/.00/.44 and client-departure .00/.00/.44
 DEFEAT ALL THREE; vanished-clause blocked by Luna (.70), operative-deadline
 by DeepSeek (1.0), standard-drift by DeepSeek+Luna (1.0). Three new
 reconciliation-shape tasks being mined to close the >=5 gap. ~$13.6 left.
+
+| 22 | 08-09 12:xx-14:xx | Round-7 mining: three tasks finished from the existing world log (zero content calls; every ground truth is a query over the built bundle) | 0 | $0.00 | ~$11.4 |
+| 23 | 08-09 | Round-7 probes, 6 episodes: Luna x response-latency x2 (1.69M/10.5K), Luna x second-read (825K/9.3K), Luna x billing-hygiene (3.43M/8.5K), Luna x visitor-log (809K/10.5K), DeepSeek x billing-hygiene (10.98M/42.9K) | 17.7M/81.6K | $9.62 | ~$1.8 |
+
+Round-7 budget usage: 6 of 12 permitted probe episodes, 0 of the
+permitted content calls. The $9.62 is the token x list-price **upper
+bound** (Luna $8.84, DeepSeek $0.78) and is the figure that must be
+reconciled against metered credits before it is believed — the failure
+log's item 8 records that this arithmetic has overstated spend before,
+and round 6's metered Luna probes came in near a tenth of their list
+estimate. Two runs dominate the count: DeepSeek's billing-hygiene episode
+resent a very large context for 30 turns (11.0M prompt tokens on its own),
+and Luna's billing-hygiene sweep 3.4M.
+
+Probe scores (best-of-1, stop reasons): billing-hygiene 0.13 Luna
+(finish, 104/255 calls) and 0.00 DeepSeek (max_turns, 84/255);
+second-read 0.11 Luna (finish, 61/159); visitor-log 0.11 Luna (finish,
+74/159). Retired before shipping: response-latency, 0.88 Luna both before
+and after hardening (finish, 31 then 32 of 36 calls) — its floor is 12
+because both sides of its join sit on searchable surfaces. Floors
+measured by measure_floors.py: billing-hygiene 85, second-read 53,
+visitor-log 53; caps 255/159/159.
+
+## Metered reconciliation (authoritative)
+
+Token x list-price arithmetic overstates this run badly — episodes resend a
+large stable prompt every turn and OpenRouter bills cached reads at a
+fraction of list. Measured against the credits endpoint:
+
+| point | metered credits used | session spend |
+|---|---|---|
+| session baseline | 32.2139 | 0 |
+| after round-5 matrix | 39.8779 | $7.66 |
+| after round-7 mining probes | 40.4330 | **$8.22** |
+
+Round 7's six probe episodes cost **$0.55**, not the $9.62 list-price upper
+bound recorded in entry 23. All list-price rows above are upper bounds;
+these three readings are the truth. **Remaining against the $25 cap:
+$16.78.**

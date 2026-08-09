@@ -444,3 +444,112 @@ entry says what was ambiguous and which reading was taken.
     agent workspace contains no `*.db`, no `mcp.json`, no
     `environment.toml`, and that `state/` is a sibling of `workspace/`.
     A new task cannot regress either property silently.
+21. **Round-7: three mined tasks finished, and one vein retired on
+    evidence.** The brief named three veins (billing hygiene, DM
+    disclosure, response latency) and allowed replacing any that came up
+    empty. Two were replaced; the reasons are the finding.
+    (a) *billing-hygiene-audit* (completed from the dead agent's
+    half-build) certifies `unsupported_entry_ids` (0.56, all-or-nothing):
+    the presence anti-join over all 1,427 Clio activities — an entry is
+    unsupported when its timekeeper sent no Gmail message and no Slack
+    message, channel **or DM**, on the entry's own date. Exactly 7 entries
+    across 4 silent person-days (164; 1150, 1161; 1244, 1249, 1250; 1409),
+    438 minutes, two timekeepers. The decoys are single-surface: 77
+    entry-days whose only footprint is a DM chat search never returns, 13
+    supported by one email, 59 by one public-channel line — a
+    Gmail-plus-channels survey reports 84 exceptions (7 true, 77 false).
+    `phantom_note_ids` (0.10) applies the identical rule to the 178 Clio
+    notes and lands on the same silent days. Non-core subset 0.44. The
+    half-built grader and ground truth were sound and are shipped as
+    found: the ground truth was re-derived from the built bundle and
+    reproduced exactly, and the grader's bare `except TypeError,
+    ValueError:` — which reads as a Python-2 relic — is valid on the
+    3.14 the Dockerfile pins (PEP 758), which is why ruff normalizes a
+    parenthesized rewrite straight back to it. What the dead agent
+    actually left missing was structural: task.toml, tests/test.sh, the
+    naive baseline, the task test, and a measured floor.
+    (b) *dm-disclosure was empty, by construction.* The vein asked for DM
+    messages disclosing matter facts to someone off the matter team. The
+    whole DM fabric is matter-blind on purpose (entry 15d: the lane lines
+    "are deliberately matter-blind"), so a query over all 2,157 DM
+    messages for any of the ten client markers returns **two** hits, both
+    inside the Meridian deal team — zero disclosures. Replaced with
+    *second-read-audit*: the firm's one standing quality control is asking
+    a colleague privately to read a draft before it goes out, and
+    `unanswered_request_ts` (0.56, all-or-nothing over Slack ts seconds
+    prefixes) is the exact set of those requests that drew nothing back.
+    78 requests across the 12 lanes; a request is answered when the person
+    asked comes back to the asker — later in that same lane, or by email
+    to them — by the end of the next working day. Exactly 4 got neither
+    (142725, 3424884, 6358735, 8613201). Four readings, four different
+    answers: same-day-only lists 10, ignoring mail lists 5, counting
+    calendar days instead of working days lists 6 (two Friday requests
+    answered on the Monday), and only the stated rule gives 4.
+    (c) *response-latency was built, probed, hardened, re-probed, and
+    retired.* The vein is real — a thread anti-join over the whole mailbox
+    leaves exactly 4 inbound messages that the firm answered later than
+    the end of the next working day (msg-000259/000380/000389/000534),
+    against 103 never-answered decoys and 2 replies landing exactly on the
+    standard. But both sides of the join sit on surfaces Gmail search
+    returns: the measured floor is 12 calls (directory + 9 thread pages +
+    write + finish), the smallest in the suite. Luna scored **0.88**,
+    reproducing the reference path exactly and missing only two counts.
+    Hardening (a brief that no longer pre-classifies the decoys, and the
+    core recut onto the dated exception report — the exact set of
+    (id, received, answered) triples, all-or-nothing, which strictly
+    implies the old id-only core) changed nothing: **0.88** again, with
+    the dated triples all correct. The honest conclusion is a property of
+    the record, not of the wording: **a vein whose anchor and coverage
+    both live on search-returnable surfaces is not defensible against the
+    strongest model at any instruction quality.** Retired rather than
+    shipped as a known-failing task.
+    (d) *visitor-log-audit* replaces it, on the vein that survives:
+    enumeration of the direct messages chat search cannot reach. The
+    reception sign-in sheet is a record class in the firm's own retention
+    policy, and `open_handover_ts` (0.56, all-or-nothing) is the exact set
+    of requests for its return that were never closed inside the same
+    next-working-day standard — 6 of 74 requests (1421855, 5761271,
+    6279449, 8006603, 8602820, 9909456), with 62 closed the same day, 6
+    closed the next working day (one of those by mail, not chat), a
+    same-day reading listing 12 and a chat-only reading listing 7.
+    (e) *Deviation, stated plainly*: the brief asked to keep system-pair
+    coverage distinct, and second-read and visitor-log share their pair
+    (Slack DMs x Gmail) and their mechanics. That is a consequence of (b)
+    and (c): after the disclosure vein came up empty and the mail-latency
+    vein proved model-solvable, the record offers exactly one structure
+    that defeats the strongest model — an anchor inside the DM fabric with
+    a precise cross-surface window rule — and the two tasks draw different
+    anchors (78 draft-review requests vs 74 sign-in-sheet requests),
+    different answer sets, different personas and different trap
+    structures from it. Mining a genuinely distinct third pair was
+    attempted and measured against the built bundle before giving up:
+    standup-vs-timesheet (788 of 895 unmatched), matter-day silence (189),
+    matter-note silence (40), telephone-conference contact (229 of 240),
+    iManage-version-vs-timesheet (4, all of them the two people who never
+    bill), superseded attachments (6 attachments in the whole record),
+    reply-all drops (2), cite-check pickups (17-message anchor on a
+    searchable channel), and fee-earner days worked but not billed (0).
+    None yields a 3-8 set with heavy near-miss noise on an
+    enumeration-expensive surface.
+    (f) *Floors and budgets* (entry 17 policy, measured after each task's
+    record was final and before any probe of that task): billing-hygiene
+    85, second-read 53, visitor-log 53 — caps 255/159/159 in task.toml.
+    Each floor is a scripted client on the real servers, one call per
+    step, asserting it reproduces the task's ground truth;
+    `measure_floors.py` gained `_all_activities`, `_conversation_listing`,
+    `_read_all` and a shared `_one_to_one_request_audit`. No record change
+    of any kind was made: every ground truth is a query over the existing
+    world log's built bundle, and zero content calls were spent.
+    (g) *Probes* (6 of the 12 permitted episodes, 0 of the permitted
+    content calls; 1 attempt each, so these are best-of-1 and the
+    best-of-3 matrix is still owed): billing-hygiene 0.13 Luna (finish,
+    104 of 255 calls — swept mail and the public channels, opened no DM,
+    and reported the 84-exception public-surfaces list the naive baseline
+    reports) and 0.00 DeepSeek (max_turns at 30 with 84 calls and 11.0M
+    prompt tokens — drowned in the corpus and never wrote the
+    deliverable); second-read 0.11 Luna (finish, 61 of 159 — enumerated
+    the lanes but closed the window at the end of the day of the request);
+    visitor-log 0.11 Luna (finish, 74 of 159 — same failure); and
+    response-latency 0.88 Luna twice, which is why it is not in the suite.
+    Every shipped cell is far under the 0.5 bar; the retired one never
+    got near it.

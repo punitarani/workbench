@@ -27,6 +27,11 @@ TASKS = Path(__file__).parent / "tasks"
 EPOCH = date(2026, 3, 2)
 WRITE_AND_FINISH = 2
 
+# The firm's standing phrasings for the one-to-one requests each audit
+# certifies, stated verbatim in the corresponding brief.
+SECOND_READ_REQUEST = "mind taking a quick look at my draft before it goes out?"
+SHEET_REQUEST = "do you still have the sign-in sheet from yesterday?"
+
 S2_MARKERS = ("meridian", "diagnostics", "00001")
 ARROYO_TOKENS = ("arroyo", "dept. 511", "fruitvale")
 
@@ -65,6 +70,22 @@ def _ts_day(ts: str) -> str:
 
 def _ts_prefix(ts: str) -> str:
     return ts.split(".")[0]
+
+
+def _next_working_day(day: date) -> date:
+    moment = day + timedelta(days=1)
+    while moment.weekday() >= 5:
+        moment += timedelta(days=1)
+    return moment
+
+
+def _working_days(start: date, end: date) -> int:
+    count, moment = 0, start
+    while moment < end:
+        moment += timedelta(days=1)
+        if moment.weekday() < 5:
+            count += 1
+    return count
 
 
 def _mail_seconds(iso_datetime: str) -> int:
@@ -517,7 +538,173 @@ async def operative_deadline(client: CountingClient) -> None:
         matchers.remove(matched)
 
 
+async def _all_activities(client: CountingClient) -> list[dict]:
+    """Every time entry in the record, walked at Clio's 50-per-page cap."""
+    activities: list[dict] = []
+    offset = 0
+    while True:
+        page = await client.call("clio__list_activities", limit=50, offset=offset)
+        activities += page["data"]
+        next_offset = page["meta"]["paging"].get("next_offset")
+        if next_offset is None:
+            return activities
+        offset = next_offset
+
+
+async def _conversation_listing(client: CountingClient) -> list[dict]:
+    listing = await client.call("slack__slack_search_channels", query="", limit=100)
+    return listing["channels"]
+
+
+async def _read_all(
+    client: CountingClient, conversations: list[dict]
+) -> dict[str, list[dict]]:
+    """Each conversation read end to end. Chat search never returns direct
+    messages, so the lanes have to be opened one by one and the long ones
+    paged."""
+    oldest, latest = _day_seconds("2026-03-02"), _day_seconds("2026-07-31")
+    return {
+        conversation["id"]: await _read_window(
+            client, conversation["id"], oldest, latest
+        )
+        for conversation in conversations
+    }
+
+
+async def billing_hygiene_audit(client: CountingClient) -> None:
+    truth = _truth("billing-hygiene-audit")
+    users = await client.call("clio__list_users")
+    names = {user["id"]: user["name"] for user in users["data"]}
+
+    activities = await _all_activities(client)
+    notes = await client.call("clio__list_notes")
+    assert len(activities) == truth["entries_reviewed"], len(activities)
+
+    # The footprint index: every surface a person can write on, per day.
+    footprint: set[tuple[str, str]] = set()
+    for message in await _gmail_all_pages(client, ""):
+        footprint.add((_sender_email(message), message["date"][:10]))
+    conversations = await _conversation_listing(client)
+    history = await _read_all(client, conversations)
+    chat_users = await client.call("slack__slack_search_users", query="", limit=100)
+    emails = {user["id"]: user["profile"]["email"] for user in chat_users["members"]}
+    for messages in history.values():
+        for message in messages:
+            footprint.add((emails[message["user"]], _ts_day(message["ts"])))
+    assert len(conversations) >= 16, conversations
+
+    by_name = {user["name"]: user["email"] for user in users["data"]}
+    unsupported = [
+        activity
+        for activity in activities
+        if (by_name[activity["user"]["name"]], activity["date"]) not in footprint
+    ]
+    assert sorted(a["id"] for a in unsupported) == truth["unsupported_entry_ids"]
+    assert (
+        sum(a["quantity"] for a in unsupported) // 60
+        == (truth["unsupported_minutes_total"])
+    )
+    phantom = [
+        note["id"]
+        for note in notes["data"]
+        if (by_name[note["author"]["name"]], note["date"]) not in footprint
+    ]
+    assert sorted(phantom) == truth["phantom_note_ids"], phantom
+    assert names, "the firm's directory is part of the path"
+
+
+async def _one_to_one_request_audit(client: CountingClient, request: str) -> list[dict]:
+    """The shared discovery path for the one-to-one request audits: every
+    lane opened and paged, its two members resolved, and the mailbox swept
+    because coming back can be mail rather than chat."""
+    chat_users = await client.call("slack__slack_search_users", query="", limit=100)
+    names = {user["id"]: user["real_name"] for user in chat_users["members"]}
+    emails = {user["id"]: user["profile"]["email"] for user in chat_users["members"]}
+
+    lanes = [c for c in await _conversation_listing(client) if c["is_im"]]
+    history = await _read_all(client, lanes)
+
+    membership: dict[str, set[str]] = {}
+    for lane in lanes:
+        members = await client.call(
+            "slack__slack_list_channel_members", channel_id=lane["id"]
+        )
+        membership[lane["id"]] = set(members["members"])
+
+    mailed: set[tuple[str, str, str]] = set()
+    for message in await _gmail_all_pages(client, ""):
+        for recipient in message["toRecipients"] + message["ccRecipients"]:
+            mailed.add(
+                (
+                    _sender_email(message),
+                    recipient.split("<")[-1].rstrip(">"),
+                    message["date"][:10],
+                )
+            )
+
+    requests: list[dict] = []
+    for lane in lanes:
+        messages = sorted(history[lane["id"]], key=lambda m: float(m["ts"]))
+        for position, message in enumerate(messages):
+            if message["text"].strip().lower() != request:
+                continue
+            (asked_of,) = membership[lane["id"]] - {message["user"]}
+            asked_on = date.fromisoformat(_ts_day(message["ts"]))
+            window = {asked_on.isoformat(), _next_working_day(asked_on).isoformat()}
+            reply_days = {
+                _ts_day(later["ts"])
+                for later in messages[position + 1 :]
+                if later["user"] == asked_of
+            }
+            by_mail = any(
+                (emails[asked_of], emails[message["user"]], day) in mailed
+                for day in window
+            )
+            requests.append(
+                {
+                    "ts": message["ts"],
+                    "date": asked_on.isoformat(),
+                    "asked_by": names[message["user"]],
+                    "lanes": len(lanes),
+                    "same_day": asked_on.isoformat() in reply_days,
+                    "in_window": bool(reply_days & window) or by_mail,
+                }
+            )
+    return requests
+
+
+async def second_read_audit(client: CountingClient) -> None:
+    truth = _truth("second-read-audit")
+    requests = await _one_to_one_request_audit(client, SECOND_READ_REQUEST)
+    assert len(requests) == truth["requests_reviewed"], len(requests)
+    assert requests[0]["lanes"] == truth["conversations_reviewed"]
+    unanswered = sorted(_ts_prefix(r["ts"]) for r in requests if not r["in_window"])
+    assert unanswered == truth["unanswered_request_ts_prefixes"], unanswered
+    later_pickups = sorted(
+        _ts_prefix(r["ts"]) for r in requests if r["in_window"] and not r["same_day"]
+    )
+    assert later_pickups == truth["came_back_later_prefixes"], later_pickups
+    assert sum(1 for r in requests if r["same_day"]) == truth["answered_same_day"]
+
+
+async def visitor_log_audit(client: CountingClient) -> None:
+    truth = _truth("visitor-log-audit")
+    requests = await _one_to_one_request_audit(client, SHEET_REQUEST)
+    assert len(requests) == truth["requests_reviewed"], len(requests)
+    assert requests[0]["lanes"] == truth["conversations_reviewed"]
+    still_open = sorted(_ts_prefix(r["ts"]) for r in requests if not r["in_window"])
+    assert still_open == truth["open_handover_ts_prefixes"], still_open
+    next_day = sorted(
+        _ts_prefix(r["ts"]) for r in requests if r["in_window"] and not r["same_day"]
+    )
+    assert next_day == truth["closed_next_day_prefixes"], next_day
+    assert sum(1 for r in requests if r["same_day"]) == truth["closed_same_day"]
+
+
 FLOORS = {
+    "billing-hygiene-audit": billing_hygiene_audit,
+    "visitor-log-audit": visitor_log_audit,
+    "second-read-audit": second_read_audit,
     "fee-dispute-reconstruction": fee_dispute_reconstruction,
     "standard-drift": standard_drift,
     "vanished-clause": vanished_clause,

@@ -1,0 +1,78 @@
+{
+  "_evidence": {
+    "join": "Directed anti-join over every one-to-one conversation (12 lanes, 2157 messages; chat search never returns them). 78 second-read requests carry the firm's standing phrasing; a request is answered when the person asked comes back to the asker \u2014 later in that same lane, or by email to them \u2014 by the end of the next working day (Mon-Fri). Exactly 4 got neither: 142725 (2026-03-03 Tue, Peter Novak -> Marcus Liang), 3424884 (2026-04-10 Fri, Anita Bailey -> Eleanor Hartwell), 6358735 (2026-05-14 Thu, Marcus Liang -> Sofia Ramirez), 8613201 (2026-06-09 Tue, Omar Haddad -> Tessa Nguyen).",
+    "decoys": "68 requests drew an answer the same day. The near misses are the whole difficulty: 6 came back after the day of the request but still inside the standard \u2014 1 of them by email rather than chat, and 2 asked on a Friday and answered on the Monday. A same-day reading lists 10; ignoring mail lists 5; counting calendar days instead of working days lists 6. Only the stated rule gives this set.",
+    "grading": "unanswered_request_ts is all-or-nothing at 0.56 (exact set of seconds prefixes or zero); the non-core subset caps at 0.44. came_back_later and unanswered_requests grade hits-minus-extras; unanswered_askers penalizes extras so naming everyone earns 0."
+  },
+  "requests_reviewed": 78,
+  "conversations_reviewed": 12,
+  "unanswered_request_ts_prefixes": [
+    "142725",
+    "3424884",
+    "6358735",
+    "8613201"
+  ],
+  "unanswered_requests": [
+    {
+      "ts_prefix": "142725",
+      "date": "2026-03-03",
+      "asked_by": "Peter Novak",
+      "asked_of": "Marcus Liang"
+    },
+    {
+      "ts_prefix": "3424884",
+      "date": "2026-04-10",
+      "asked_by": "Anita Bailey",
+      "asked_of": "Eleanor Hartwell"
+    },
+    {
+      "ts_prefix": "6358735",
+      "date": "2026-05-14",
+      "asked_by": "Marcus Liang",
+      "asked_of": "Sofia Ramirez"
+    },
+    {
+      "ts_prefix": "8613201",
+      "date": "2026-06-09",
+      "asked_by": "Omar Haddad",
+      "asked_of": "Tessa Nguyen"
+    }
+  ],
+  "answered_same_day": 68,
+  "came_back_later_prefixes": [
+    "1004156",
+    "142359",
+    "2824281",
+    "4897058",
+    "9297592",
+    "9822456"
+  ],
+  "asker_markers": [
+    [
+      "anita",
+      "bailey"
+    ],
+    [
+      "marcus",
+      "liang"
+    ],
+    [
+      "omar",
+      "haddad"
+    ],
+    [
+      "peter",
+      "novak"
+    ]
+  ],
+  "weights": {
+    "requests_reviewed": 0.02,
+    "conversations_reviewed": 0.02,
+    "unanswered_request_ts": 0.56,
+    "unanswered_requests": 0.12,
+    "answered_same_day": 0.05,
+    "came_back_later": 0.1,
+    "unanswered_askers": 0.04,
+    "format": 0.09
+  }
+}
