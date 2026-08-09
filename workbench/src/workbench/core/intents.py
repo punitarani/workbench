@@ -57,7 +57,10 @@ class TicketCreateSpec(_Intent):
     title: str
     description: str
     requester_ref: str = Field(
-        description="Who asked for this, by full name (e.g. 'Jess Alvarez')."
+        description=(
+            "The person who asked for this, by their full name as listed in "
+            "the situation. A person, never a company."
+        )
     )
     assignee_ref: str | None = Field(
         description="Who should own it, by full name; null if unassigned."

@@ -93,3 +93,39 @@ async def test_malformed_body_raises_response_error() -> None:
     lm = make_lm(handler)
     with pytest.raises(LMResponseError):
         await lm.complete(request())
+
+
+async def test_reasoning_is_disabled_for_simulation_calls() -> None:
+    seen: dict = {}
+
+    def handler(http_request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(http_request.content)
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": "ok"}}],
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+            },
+        )
+
+    lm = make_lm(handler)
+    await lm.complete(request())
+    assert seen["body"]["reasoning"] == {"enabled": False}
+
+
+async def test_null_content_raises_response_error() -> None:
+    def handler(http_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {"message": {"content": None}, "finish_reason": "length"}
+                ],
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+            },
+        )
+
+    lm = make_lm(handler)
+    with pytest.raises(LMResponseError) as excinfo:
+        await lm.complete(request())
+    assert "empty completion" in str(excinfo.value)

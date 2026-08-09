@@ -16,6 +16,7 @@ from workbench.simulation.lm.dspy_lm import WorkbenchLM
 from workbench.simulation.persona.params import ProfessionalWorkerParams
 from workbench.simulation.persona.programs import ActionChoice, ProfessionalActor
 from workbench.simulation.persona.rendering import (
+    person_names,
     render_conversation,
     render_identity,
     render_knowledge,
@@ -119,13 +120,15 @@ class ProfessionalActorAct:
                     comment=choice.intent,
                 )
             case "create_ticket":
+                names = person_names(events)
+                people_line = "People: " + "; ".join(sorted(names.values()))
+                pending_lines = "\n".join(
+                    f"- {item.channel} {item.ref}: {item.summary}"
+                    for item in self._memory.pending_items()
+                )
                 prediction = await self._actor.draft_ticket.acall(
                     identity=identity,
-                    situation=f"{facts}\n\nPending:\n"
-                    + "\n".join(
-                        f"- {item.channel} {item.ref}: {item.summary}"
-                        for item in self._memory.pending_items()
-                    ),
+                    situation=f"{people_line}\n\n{facts}\n\nPending:\n{pending_lines}",
                     intent=choice.intent,
                     workplace_norms=self._workplace_norms,
                 )

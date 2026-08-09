@@ -260,6 +260,8 @@ async def test_wake_gives_its_entity_a_turn() -> None:
     gm = make_gm()
     payload = SimWakePayload(kind="sim.wake", entity="daniel")
     wake = Event(seq=99, time=50_000, tag=payload.kind, source="gm", payload=payload)
-    assert await gm.route(wake) == ()
+    assert await gm.route(wake) == ("daniel",), (
+        "the persona observes its own wake so its clock advances"
+    )
     decision = await gm.next_acting(wake)
     assert decision.entities == ("daniel",)

@@ -155,3 +155,50 @@ async def test_create_ticket_route() -> None:
     assert action.intent.create.ticket_type == "nda-review"
     assert action.intent.create.requester_ref == "Jess Alvarez"
     assert inner.calls == 2
+
+
+async def test_ticket_situation_names_real_people() -> None:
+    from workbench.core.intents import TicketIntent
+
+    captured: list = []
+
+    class CapturingLM:
+        def __init__(self, texts):
+            self._texts = texts
+            self.calls = 0
+
+        async def complete(self, request):
+            from workbench.simulation.lm.protocol import LMResponse, TokenUsage
+
+            captured.append(request)
+            text = self._texts[self.calls]
+            self.calls += 1
+            return LMResponse(
+                text=text, usage=TokenUsage(prompt_tokens=1, completion_tokens=1)
+            )
+
+    from persona_fixtures import DANIEL, observed_events
+
+    from workbench.core.seed import Seed
+    from workbench.simulation.lm.dspy_lm import WorkbenchLM
+    from workbench.simulation.persona.actor import ProfessionalActorAct
+    from workbench.simulation.persona.working_memory import WorkingMemoryComponent
+
+    memory = WorkingMemoryComponent(person_id="per-daniel-reyes")
+    for event in observed_events():
+        await memory.pre_observe(event)
+    inner = CapturingLM([DECIDE_CREATE_TICKET, DRAFT_TICKET])
+    lm = WorkbenchLM(
+        inner,
+        model="deepseek/deepseek-v4-flash-0731",
+        seed=Seed(root=42),
+        path=("entity", "daniel"),
+        max_tokens=1024,
+    )
+    actor = ProfessionalActorAct(params=DANIEL, working_memory=memory, lm=lm)
+    action = await actor.get_action_attempt((), spec())
+    assert isinstance(action.intent, TicketIntent)
+    ticket_prompt = "\n".join(m.content for m in captured[1].messages)
+    assert "Jess Alvarez" in ticket_prompt, (
+        "the ticket drafter must see real people to name as requester"
+    )

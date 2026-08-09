@@ -125,6 +125,11 @@ class GroundedGm:
         self._absorb_event(event)
         payload = event.payload
         match payload:
+            case SimWakePayload():
+                # The persona observes its own wake so its clock advances.
+                if payload.entity in self._person_for_entity:
+                    return (payload.entity,)
+                return ()
             case EmailMessagePayload():
                 recipients = self._entities_for((*payload.to, *payload.cc))
                 return tuple(r for r in recipients if r != event.source)

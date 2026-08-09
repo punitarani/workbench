@@ -38,6 +38,9 @@ class OpenRouterLM:
             ],
             "max_tokens": request.max_tokens,
             "seed": request.seed,
+            # Reasoning modes can return completions whose content is empty
+            # (tokens spent thinking); simulation turns want plain answers.
+            "reasoning": {"enabled": False},
         }
         if request.temperature is not None:
             body["temperature"] = request.temperature
@@ -67,7 +70,14 @@ class OpenRouterLM:
 
         try:
             data = http_response.json()
-            text = data["choices"][0]["message"]["content"]
+            choice = data["choices"][0]
+            text = choice["message"]["content"]
+            if not text:
+                finish = choice.get("finish_reason", "unknown")
+                raise LMResponseError(
+                    f"empty completion (finish_reason={finish}); the model "
+                    "may have spent its budget on reasoning tokens"
+                )
             usage = data.get("usage", {})
             return LMResponse(
                 text=text,
