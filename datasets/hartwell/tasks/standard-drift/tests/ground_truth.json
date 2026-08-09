@@ -1,22 +1,32 @@
 {
   "_evidence": {
     "playbook": "iManage doc-000009 /firm/playbooks/vendor-nda-playbook.md, head v3: three (3) year term standard, reject residual-knowledge clauses.",
-    "term": "LexiPoint NDA doc-000014 v2 (2026-05-13, Noah Feldstein) flips three (3) years to five (5) years; covering email msg-000414 accepts the vendor's term. This drift stays keyword-findable (the LexiPoint thread discusses the term and even the residuals REFUSAL).",
-    "residuals": "Ironclad NDA doc-000015 v2 (2026-06-10, Noah Feldstein) adds the Residual Knowledge clause. Invisible to keyword search: no email or Slack message anywhere says 'residual' about Ironclad — the covering emails (subject 'Ironclad NDA — one remaining comment') describe only a 'rider' and a conformed article, and the sole discussion is the oblique #matters thread reply chm-000951 ('folding in the carve-out LexiPoint asked for back in May'). Diane's msg-000663 (2026-06-24) flags the term drift and says only that 'at least one other position moved'. Only the Ironclad v1/v2 content diff names the clause.",
+    "term": "LexiPoint NDA doc-000014 v2 (2026-05-13, Noah Feldstein) flips three (3) years to five (5) years; covering email msg-000409 accepts 'the longer term from the markup' without ever stating the number. Since round 3 the accepted length is invisible to keyword search: no NDA email or chat anywhere says 'five' — the number exists only in the v2 document content, so only the v1/v2 diff yields the practice.",
+    "residuals": "Ironclad NDA doc-000015 v2 (2026-06-10, Noah Feldstein) adds the Residual Knowledge clause. Invisible to keyword search: no email or Slack message anywhere says 'residual' about Ironclad — the covering emails (subject 'Ironclad NDA — one remaining comment') describe only a 'rider' and a conformed article, and the sole discussion is the oblique #matters thread reply chm-001553 ('folding in the carve-out LexiPoint asked for back in May'). Diane's msg-000632 (2026-06-24) flags that terms ran longer than the playbook standard (no numbers stated) and says only that 'at least one other position moved'. Only the Ironclad v1/v2 content diff names the clause.",
     "decoys": "Conforming distractors with clean histories: BayMark NDA doc-000010 (v1-v2) and Archway NDA doc-000013 (v1-v2), both three-year term, no residuals clause."
   },
   "playbook_path": "/firm/playbooks/vendor-nda-playbook.md",
   "clauses": {
     "term": {
-      "standard_markers": ["three"],
-      "practice_markers": ["five"],
+      "standard_markers": [
+        "three"
+      ],
+      "practice_markers": [
+        "five"
+      ],
       "document_path": "/firm/vendor-ndas/mutual-nda-lexipoint.md",
       "version": 2,
       "date": "2026-05-13"
     },
     "residuals": {
-      "standard_markers": ["reject"],
-      "practice_markers": ["accept", "add", "includ"],
+      "standard_markers": [
+        "reject"
+      ],
+      "practice_markers": [
+        "accept",
+        "add",
+        "includ"
+      ],
       "document_path": "/firm/vendor-ndas/mutual-nda-ironclad.md",
       "version": 2,
       "date": "2026-06-10"

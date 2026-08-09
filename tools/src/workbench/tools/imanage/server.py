@@ -9,17 +9,15 @@ column, numbered 1-based by first appearance (minimum document number).
 
 import re
 import sqlite3
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, timedelta
 from pathlib import Path
 
 from mcp.server import MCPServer
 from pydantic import BaseModel
 
 from workbench.tools.db import Query, connect_readonly
-from workbench.tools.framework import PEOPLE_TABLE, UnknownRefError
+from workbench.tools.framework import PEOPLE_TABLE, UnknownRefError, read_epoch
 from workbench.tools.imanage.tables import DOCUMENTS, LIBRARY, VERSIONS, Version
-
-EPOCH = datetime(2026, 3, 12, tzinfo=UTC)
 
 _DISPLAY_ID = re.compile(rf"{LIBRARY}!(\d+)(?:\.(\d+))?")
 
@@ -47,8 +45,9 @@ _SEARCH_DOCS = Query(
 )
 
 
-def _date(seconds: int) -> str:
-    return (EPOCH + timedelta(seconds=seconds)).strftime("%Y-%m-%dT%H:%M:%SZ")
+def _date(connection: sqlite3.Connection, seconds: int) -> str:
+    moment = read_epoch(connection) + timedelta(seconds=seconds)
+    return moment.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _workspaces(connection: sqlite3.Connection) -> list[dict]:
@@ -138,8 +137,8 @@ def _profile(connection: sqlite3.Connection, document: BaseModel, row: Version) 
         "author": row.author,
         "author_description": _person_name(connection, row.author),
         "operator": row.author,
-        "edit_date": _date(row.time),
-        "create_date": _date(created.time),
+        "edit_date": _date(connection, row.time),
+        "create_date": _date(connection, created.time),
         "size": len(row.content),
         "comment": row.comment,
         "is_checked_out": False,

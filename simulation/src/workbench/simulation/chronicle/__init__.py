@@ -9,6 +9,7 @@ from workbench.simulation.chronicle.minter import minter_from_events
 from workbench.simulation.chronicle.procedural import (
     CastMember,
     ChatChannel,
+    DmThread,
     OpenMatter,
     ProceduralCast,
     procedural_day,
@@ -21,6 +22,7 @@ __all__ = [
     "ChatChannel",
     "Chronicle",
     "ContentStore",
+    "DmThread",
     "OpenMatter",
     "ProceduralCast",
     "TimedDraft",

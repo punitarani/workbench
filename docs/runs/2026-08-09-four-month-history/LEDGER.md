@@ -36,3 +36,13 @@ Round-1 matrix (best-of-3): standard-drift .60/.60/.525, fee-dispute
 .30/.30/.85, vanished-clause .75/.75/.75, client-departure .45/.45/.45,
 operative-deadline 1.0/1.0/1.0 (DeepSeek/GLM/Luna). One task holds;
 four in hardening. Remaining: ~$23.58.
+
+| 11 | 08-09 04:0x-04:2x | Eval matrix round 2 (4 tasks x 3 models x 3; logs partially truncated — measured: Luna complete 2.19M/25K, DeepSeek + GLM standard-drift only 1.26M/63K) | >=3.4M/0.09M | $0.40 est | $1.82 |
+| 12 | 08-09 | Round 3: 10 content calls (5 fabric pieces + 5 oblique S1 email re-authors, deepseek-v4-flash-0731, 944p/776c measured for the re-author batch) | ~2K/2K | $0.01 | $1.83 |
+| 13 | 08-09 | Round 3 probes: Luna standard-drift x1 (152K/1.9K) + Luna operative-deadline x1 (611K/3.1K) | 763K/5K | $0.08 | $1.91 |
+
+Round-3 budget usage: 10 of 40 permitted content calls, 2 of 8 permitted
+eval episodes. Entry 11 is the prior session's round-2 diagnosis matrix,
+reconstructed from surviving eval2-*.log files; its DeepSeek and GLM runs
+past standard-drift were not captured, so the row is an estimate rounded
+up. Remaining: ~$23.09.

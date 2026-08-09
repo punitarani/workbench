@@ -261,6 +261,19 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and all("residual" not in body.lower() for body in ironclad_emails)
         and all("residual" not in body.lower() for body in chat_bodies),
     )
+    nda_email_bodies = [
+        event.payload.body
+        for event in events
+        if isinstance(event.payload, EmailMessagePayload)
+        and "NDA" in event.payload.subject
+    ]
+    five = re.compile(r"\bfive\b|\(5\)|5-year", re.IGNORECASE)
+    check(
+        "term drift is invisible to keyword search: no NDA email or any "
+        "chat names the accepted length",
+        not any(five.search(body) for body in nda_email_bodies)
+        and not any(five.search(body) for body in chat_bodies),
+    )
     check(
         "the concession is discussed only in the oblique #matters reply",
         sum(1 for body in chat_bodies if body == S1_IRONCLAD_THREAD_REPLY) == 1,
@@ -462,6 +475,30 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and len(corrections) == 1
         and _event_date(corrections[0]) == "2026-06-11"
         and corrections[0].payload.conversation_id in dm_ids,
+    )
+    check(
+        f"DM fabric: {len(dm_ids)} DM conversations (need >= 8)",
+        len(dm_ids) >= 8,
+    )
+    thread = [
+        event
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload)
+        and corrections
+        and event.payload.conversation_id == corrections[0].payload.conversation_id
+    ]
+    position = next(
+        (
+            index
+            for index, event in enumerate(thread)
+            if event.payload.body == S5_DM_CORRECTION
+        ),
+        -1,
+    )
+    check(
+        f"the correction sits mid-stream in a {len(thread)}-message DM "
+        f"(position {position})",
+        len(thread) >= 60 and 5 <= position <= len(thread) - 6,
     )
     public_chats = [
         event.payload.body

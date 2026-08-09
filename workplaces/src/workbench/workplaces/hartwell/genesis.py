@@ -23,6 +23,7 @@ from workbench.simulation.chronicle.calendar import CalendarWindow
 from workbench.simulation.chronicle.procedural import (
     CastMember,
     ChatChannel,
+    DmThread,
     OpenMatter,
     ProceduralCast,
 )
@@ -75,6 +76,23 @@ _CHANNELS: tuple[tuple[str, tuple[str, ...], str, str], ...] = (
         "IT and facilities requests",
         "Printers, passwords, and access badges. Tessa triages.",
     ),
+)
+
+# Standing DM pairs and how often each pair trades routine messages
+# (probability of an exchange on a workday). Grace<->Samuel runs hot: the
+# litigation docket flows through that thread, and S5 buries its
+# correction mid-stream there.
+_DMS: tuple[tuple[str, str, float], ...] = (
+    ("per-grace-adeyemi", "per-samuel-marsh", 0.8),
+    ("per-eleanor-hartwell", "per-samuel-marsh", 0.3),
+    ("per-marcus-liang", "per-peter-novak", 0.4),
+    ("per-sofia-ramirez", "per-grace-adeyemi", 0.35),
+    ("per-diane-okonkwo", "per-noah-feldstein", 0.35),
+    ("per-anita-bailey", "per-carl-jensen", 0.4),
+    ("per-tessa-nguyen", "per-omar-haddad", 0.3),
+    ("per-eleanor-hartwell", "per-anita-bailey", 0.3),
+    ("per-samuel-marsh", "per-sofia-ramirez", 0.3),
+    ("per-noah-feldstein", "per-peter-novak", 0.25),
 )
 
 _DOCUMENTS: tuple[tuple[str, str, str, str], ...] = (
@@ -285,6 +303,17 @@ def build_genesis(seed: Seed) -> HartwellGenesis:
             )
         )
 
+    for first, second, _ in _DMS:
+        body.append(
+            ChatConversationCreatedPayload(
+                kind="chat.conversation.created",
+                conversation_id=minter.mint("cnv"),
+                conversation_type="dm",
+                name=None,
+                members=(first, second),
+            )
+        )
+
     for author, title, path, filename in _DOCUMENTS:
         body.append(
             DocumentCreatedPayload(
@@ -360,10 +389,13 @@ def procedural_cast(genesis: HartwellGenesis) -> ProceduralCast:
     def member(person: PersonRecordPayload) -> CastMember:
         return CastMember(person_id=person.person_id, name=person.name)
 
-    channels = {
-        event.payload.name: event.payload
+    conversations = [
+        event.payload
         for event in genesis.events
         if isinstance(event.payload, ChatConversationCreatedPayload)
+    ]
+    channels = {
+        payload.name: payload for payload in conversations if payload.name is not None
     }
 
     def channel(name: str) -> ChatChannel:
@@ -375,6 +407,24 @@ def procedural_cast(genesis: HartwellGenesis) -> ProceduralCast:
                 for person_id in payload.members
             ),
         )
+
+    traffic = {frozenset((first, second)): rate for first, second, rate in _DMS}
+    dms = tuple(
+        DmThread(
+            conversation_id=payload.conversation_id,
+            members=(
+                CastMember(
+                    person_id=payload.members[0], name=names[payload.members[0]]
+                ),
+                CastMember(
+                    person_id=payload.members[1], name=names[payload.members[1]]
+                ),
+            ),
+            traffic=traffic[frozenset(payload.members)],
+        )
+        for payload in conversations
+        if payload.conversation_type == "dm"
+    )
 
     matters = tuple(
         OpenMatter(
@@ -398,4 +448,5 @@ def procedural_cast(genesis: HartwellGenesis) -> ProceduralCast:
         billing_channel=channel("#billing"),
         it_channel=channel("#it-help"),
         matters=matters,
+        dms=dms,
     )

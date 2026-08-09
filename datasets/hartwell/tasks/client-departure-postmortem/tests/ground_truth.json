@@ -1,9 +1,9 @@
 {
   "_evidence": {
-    "slack": "#matters arc: chm-000226 (2026-03-24, 'Cascadia is happy', 3 reactions) -> chm-000443 (2026-04-16, 'Cascadia is getting antsy', 2 reactions) -> 1 -> 0 -> 0. First negative internal signal is the Apr 16 message; Tom's first email nudge was Apr 15, so an email-only answer is off by a day and the wrong surface.",
+    "slack": "#matters arc: chm-000374 (2026-03-24, 'Cascadia is happy', 3 reactions) -> chm-000737 (2026-04-16, 'Cascadia is getting antsy', 2 reactions) -> 1 -> 0 -> 0. First negative internal signal is the Apr 16 message; Tom's first email nudge was Apr 15, so an email-only answer is off by a day and the wrong surface.",
     "clio": "tkt-000002 matter_history: status open -> closed by Samuel Marsh on 2026-06-04 (the termination's effective date, 2026-06-05, is the plausible wrong answer).",
-    "gmail": "msg-000484 (2026-05-27, Tom Hollis) terminates the engagement.",
-    "imanage": "doc-000013 /cascadia-supplier-dispute/disengagement-letter.md, also on disk under files/."
+    "gmail": "msg-000485 (2026-05-27, Tom Hollis) terminates the engagement.",
+    "imanage": "doc-000016 /cascadia-supplier-dispute/disengagement-letter.md, also on disk under files/."
   },
   "first_negative_signal_date": "2026-04-16",
   "happy_update_reactions": 3,

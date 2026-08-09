@@ -206,7 +206,7 @@ async def test_get_thread_shape(server) -> None:
     assert first["sender"] == "Jess Alvarez <jess@example.com>"
     assert first["toRecipients"] == ["Tom Okafor <tom@example.com>"]
     assert first["ccRecipients"] == ["Meredith Chao <meredith@example.com>"]
-    assert first["date"] == "2026-03-12T00:03:20+00:00"
+    assert first["date"] == "2026-03-12T00:03:20-07:00"
     assert first["plaintextBody"] == "Please review."
     assert first["labelIds"] == []
 
@@ -215,7 +215,7 @@ async def test_get_message_shape_and_attachments(server) -> None:
     [message] = await call(server, "get_message", {"messageId": "msg-000003"})
     assert list(message) == MESSAGE_KEYS
     assert message["snippet"] == " ".join(BUDGET_BODY.split())[:100]
-    assert message["date"] == "2026-03-13T01:00:00+00:00"
+    assert message["date"] == "2026-03-13T01:00:00-07:00"
     assert message["attachmentIds"] == ["doc-000001"]
     assert message["attachments"] == [
         {"id": "doc-000001", "mimeType": BUDGET_MIME, "filename": "budget.xlsx"}

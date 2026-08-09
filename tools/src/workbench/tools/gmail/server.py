@@ -23,8 +23,9 @@ INBOX when the seat received the message, SENT when the seat sent it, and
 never UNREAD (all mail is read). When unset the server reads org-wide and
 ``labelIds`` is always ``[]``.
 
-Dates render as ISO-8601 UTC strings: the fixed scenario epoch
-2026-03-12T00:00:00+00:00 plus the message's simulated time in seconds.
+Dates render as ISO-8601 strings: the world log's epoch (read from the
+shared meta table at call time) plus the message's simulated time in
+seconds.
 """
 
 import os
@@ -37,7 +38,12 @@ from pathlib import Path
 from mcp.server import MCPServer
 
 from workbench.tools.db import connect_readonly
-from workbench.tools.framework import PEOPLE_TABLE, Person, UnknownRefError
+from workbench.tools.framework import (
+    PEOPLE_TABLE,
+    Person,
+    UnknownRefError,
+    read_epoch,
+)
 from workbench.tools.gmail.tables import (
     ATTACHMENTS,
     MESSAGES,
@@ -45,8 +51,6 @@ from workbench.tools.gmail.tables import (
     Attachment,
     Message,
 )
-
-EPOCH = datetime.fromisoformat("2026-03-12T00:00:00+00:00")
 
 _MAX_PAGE_SIZE = 50
 _OPERATORS = frozenset({"from", "to", "cc", "subject", "label", "has"})
@@ -105,7 +109,8 @@ def _parse_query(query: str) -> list[_Term]:
 
 def _load(
     connection: sqlite3.Connection,
-) -> tuple[list[_Mail], dict[str, Person]]:
+) -> tuple[list[_Mail], dict[str, Person], datetime]:
+    epoch = read_epoch(connection)
     people = {p.person_id: p for p in PEOPLE_TABLE.select(connection)}
     recipients = RECIPIENTS.select(connection)
     attachments = ATTACHMENTS.select(connection)
@@ -129,7 +134,7 @@ def _load(
         )
         for message in messages
     ]
-    return mailbox, people
+    return mailbox, people, epoch
 
 
 def _seat() -> str | None:
@@ -167,7 +172,11 @@ def _person_matches(person_id: str, needle: str, people: dict[str, Person]) -> b
 
 
 def _matches(
-    term: _Term, mail: _Mail, people: dict[str, Person], seat: str | None
+    term: _Term,
+    mail: _Mail,
+    people: dict[str, Person],
+    seat: str | None,
+    epoch: datetime,
 ) -> bool:
     message = mail.message
     needle = term.value.lower()
@@ -196,14 +205,18 @@ def _matches(
     elif term.op == "has":
         hit = bool(mail.attachments)
     else:
-        boundary = _parse_date(term.value)
-        assert boundary is not None  # parsed terms carry valid dates
-        moment = EPOCH + timedelta(seconds=message.time)
+        parsed = _parse_date(term.value)
+        assert parsed is not None  # parsed terms carry valid dates
+        # Query dates mean calendar days in the record's own timezone.
+        boundary = parsed.replace(tzinfo=epoch.tzinfo)
+        moment = epoch + timedelta(seconds=message.time)
         hit = moment >= boundary if term.op == "after" else moment < boundary
     return hit != term.negated
 
 
-def _message_json(mail: _Mail, people: dict[str, Person], seat: str | None) -> dict:
+def _message_json(
+    mail: _Mail, people: dict[str, Person], seat: str | None, epoch: datetime
+) -> dict:
     message = mail.message
     return {
         "id": message.message_id,
@@ -212,7 +225,7 @@ def _message_json(mail: _Mail, people: dict[str, Person], seat: str | None) -> d
         "sender": _display(message.sender, people),
         "toRecipients": [_display(p, people) for p in mail.to],
         "ccRecipients": [_display(p, people) for p in mail.cc],
-        "date": (EPOCH + timedelta(seconds=message.time)).isoformat(),
+        "date": (epoch + timedelta(seconds=message.time)).isoformat(),
         "plaintextBody": message.body,
         "attachmentIds": [a.document_id for a in mail.attachments],
         "attachments": [
@@ -232,7 +245,7 @@ def register(server: MCPServer, db_path: Path) -> None:
         seat = _seat()
         terms = _parse_query(query)
         with connect_readonly(db_path) as connection:
-            mailbox, people = _load(connection)
+            mailbox, people, epoch = _load(connection)
         threads: dict[str, list[_Mail]] = {}
         for mail in mailbox:
             if _visible(mail, seat):
@@ -242,7 +255,7 @@ def register(server: MCPServer, db_path: Path) -> None:
                 (thread_id, mails)
                 for thread_id, mails in threads.items()
                 if any(
-                    all(_matches(term, mail, people, seat) for term in terms)
+                    all(_matches(term, mail, people, seat, epoch) for term in terms)
                     for mail in mails
                 )
             ),
@@ -255,7 +268,7 @@ def register(server: MCPServer, db_path: Path) -> None:
             "threads": [
                 {
                     "id": thread_id,
-                    "messages": [_message_json(m, people, seat) for m in mails],
+                    "messages": [_message_json(m, people, seat, epoch) for m in mails],
                 }
                 for thread_id, mails in matched[offset : offset + size]
             ],
@@ -268,7 +281,7 @@ def register(server: MCPServer, db_path: Path) -> None:
         """Read one mail thread; messages arrive oldest first."""
         seat = _seat()
         with connect_readonly(db_path) as connection:
-            mailbox, people = _load(connection)
+            mailbox, people, epoch = _load(connection)
         mails = [
             mail
             for mail in mailbox
@@ -278,7 +291,7 @@ def register(server: MCPServer, db_path: Path) -> None:
             raise UnknownRefError(f"no thread {threadId}")
         return {
             "id": threadId,
-            "messages": [_message_json(m, people, seat) for m in mails],
+            "messages": [_message_json(m, people, seat, epoch) for m in mails],
         }
 
     @server.tool()
@@ -286,10 +299,10 @@ def register(server: MCPServer, db_path: Path) -> None:
         """Read one mail message by id."""
         seat = _seat()
         with connect_readonly(db_path) as connection:
-            mailbox, people = _load(connection)
+            mailbox, people, epoch = _load(connection)
         for mail in mailbox:
             if mail.message.message_id == messageId and _visible(mail, seat):
-                return _message_json(mail, people, seat)
+                return _message_json(mail, people, seat, epoch)
         raise UnknownRefError(f"no message {messageId}")
 
     @server.tool()

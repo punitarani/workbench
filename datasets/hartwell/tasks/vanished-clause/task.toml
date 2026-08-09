@@ -5,7 +5,7 @@
 [task]
 name = "vanished-clause"
 dataset = "hartwell"
-summary = "Find which Lumen license draft silently dropped the licensor indemnity"
+summary = "Survey the firm's drafts for the one that silently lost a substantive protection"
 
 [environment]
 docker_image = "workbench:dev"

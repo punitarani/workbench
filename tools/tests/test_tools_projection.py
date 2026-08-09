@@ -41,6 +41,16 @@ def test_sim_events_never_project(tmp_path: Path) -> None:
                         assert "config_hash" not in str(value)
 
 
+def test_meta_carries_only_the_epoch(tmp_path: Path) -> None:
+    """The epoch string is onstage calendar reality; every other
+    run.started field stays offstage."""
+    out = project_fixture(tmp_path)
+    for name in DBS:
+        with sqlite3.connect(out / name) as connection:
+            rows = connection.execute("SELECT key, value FROM meta").fetchall()
+        assert rows == [("epoch", "2026-03-12T00:00:00-07:00")], name
+
+
 def test_projection_is_content_deterministic(tmp_path: Path) -> None:
     first = project_fixture(tmp_path / "a")
     second = project_fixture(tmp_path / "b")

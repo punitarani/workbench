@@ -10,7 +10,7 @@ external people (by person id), users are internal people (by person id).
 
 import os
 import sqlite3
-from datetime import date, timedelta
+from datetime import timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -26,15 +26,13 @@ from workbench.tools.clio.tables import (
     clio_status,
 )
 from workbench.tools.db import Query, connect_readonly
-from workbench.tools.framework import PEOPLE_TABLE, Person, UnknownRefError
-
-EPOCH = date(2026, 3, 12)
+from workbench.tools.framework import PEOPLE_TABLE, Person, UnknownRefError, read_epoch
 
 ATTORNEY_TITLE_WORDS = ("counsel", "attorney", "partner")
 
 
-def _iso_date(time: int) -> str:
-    return (EPOCH + timedelta(seconds=time)).isoformat()
+def _iso_date(directory: _Directory, time: int) -> str:
+    return (directory.epoch + timedelta(seconds=time)).date().isoformat()
 
 
 class PracticeArea(BaseModel):
@@ -154,6 +152,7 @@ class _Directory:
         self.user_ids = {p.person_id: n for n, p in enumerate(self.users, 1)}
         self.people = {p.person_id: p for p in people}
         self.org_names = {o.org_id: o.name for o in self.organizations}
+        self.epoch = read_epoch(connection)
 
     def party(self, person_id: str) -> PartyStub:
         number = self.user_ids.get(person_id) or self.contact_ids[person_id]
@@ -186,8 +185,8 @@ def _matter_record(
         display_number=matter.display_number,
         description=matter.description,
         status=matter.status,
-        open_date=_iso_date(matter.open_time),
-        close_date=None if close_time is None else _iso_date(close_time),
+        open_date=_iso_date(directory, matter.open_time),
+        close_date=None if close_time is None else _iso_date(directory, close_time),
         practice_area=PracticeArea(name=matter.practice_area),
         client=directory.client(matter.client_org),
         responsible_attorney=(
@@ -362,7 +361,7 @@ def register(server: MCPServer, db_path: Path) -> None:
                 ActivityRecord(
                     id=number,
                     etag=f'"a{number}"',
-                    date=_iso_date(activity.time),
+                    date=_iso_date(directory, activity.time),
                     quantity=activity.quantity_seconds,
                     quantity_in_hours=round(activity.quantity_seconds / 3600, 2),
                     note=activity.note,
@@ -398,7 +397,7 @@ def register(server: MCPServer, db_path: Path) -> None:
                     id=number,
                     subject=note.detail[:60],
                     detail=note.detail,
-                    date=_iso_date(note.time),
+                    date=_iso_date(directory, note.time),
                     matter=MatterStub(
                         id=matter.matter_number,
                         display_number=matter.display_number,

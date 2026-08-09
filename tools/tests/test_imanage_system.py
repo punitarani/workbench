@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from workbench.core.events import Event, EventPayload
+from workbench.core.events.control import SimRunStartedPayload
 from workbench.core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
@@ -78,6 +79,19 @@ def _document(document_id: str, author: str, title: str, path: str, content: str
 
 def _events() -> list[Event]:
     payloads: list[tuple[int, EventPayload]] = [
+        (
+            0,
+            SimRunStartedPayload(
+                kind="sim.run.started",
+                run_id="run-fixture",
+                seed_root=7,
+                workplace_id="legal-demo",
+                config_hash="0" * 64,
+                schema_version=1,
+                epoch="2026-03-12T00:00:00-07:00",
+                timezone="America/Los_Angeles",
+            ),
+        ),
         (0, _person("per-daniel-reyes", "Daniel Reyes")),
         (0, _person("per-meredith-chao", "Meredith Chao")),
         (0, _person("per-jordan-hale", "Jordan Hale", "external", "Outside Counsel")),
@@ -211,8 +225,8 @@ async def test_document_profile_exact_keys(server) -> None:
         "author": "per-meredith-chao",
         "author_description": "Meredith Chao",
         "operator": "per-meredith-chao",
-        "edit_date": "2026-03-12T00:11:40Z",
-        "create_date": "2026-03-12T00:01:40Z",
+        "edit_date": "2026-03-12T07:11:40Z",
+        "create_date": "2026-03-12T07:01:40Z",
         "size": len("Adds indemnification fallback."),
         "comment": "Tighten indemnity.",
         "is_checked_out": False,
@@ -242,7 +256,7 @@ async def test_document_versions_ascending(server) -> None:
     first, second = versions["data"]
     assert first["author_description"] == "Daniel Reyes"
     assert first["id"] == "LEGAL!1.1"
-    assert second["edit_date"] == "2026-03-12T00:11:40Z"
+    assert second["edit_date"] == "2026-03-12T07:11:40Z"
 
 
 async def test_download_by_explicit_version(server) -> None:

@@ -1,14 +1,26 @@
 {
   "_evidence": {
     "activities": "Clio tkt-000001 (00001-MeridianBioLabs): 7 diligence/data-room entries dated after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16) totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). Near-miss decoys: 4 tranche-1 diligence/data-room entries on or before the cutoff (Mar 31, Apr 1, Apr 2, plus the Apr 3 call-prep entry) totalling 310 minutes — a whole-April keyword sum gives 1115 min / 10 entries and an all-diligence sum gives 1200 min / 11 entries, both wrong.",
-    "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-000682 (ts 6185100.000681, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
-    "challenge": "Gmail msg-000387 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her."
+    "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-001123 (ts 6185100.001119, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
+    "challenge": "Gmail msg-000386 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her."
   },
   "cutoff_date": "2026-04-03",
   "total_minutes": 890,
   "entry_count": 7,
-  "timekeeper_markers": [["marcus", "liang"], ["peter", "novak"]],
-  "challenged_by_markers": ["priya", "raman"],
+  "timekeeper_markers": [
+    [
+      "marcus",
+      "liang"
+    ],
+    [
+      "peter",
+      "novak"
+    ]
+  ],
+  "challenged_by_markers": [
+    "priya",
+    "raman"
+  ],
   "challenge_date": "2026-05-08",
   "weights": {
     "cutoff_date": 0.1,

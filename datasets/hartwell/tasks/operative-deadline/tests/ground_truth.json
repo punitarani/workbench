@@ -1,15 +1,16 @@
 {
   "_evidence": {
-    "emails": "Clerk notices in Gmail set the hearing three times: msg-000085 (2026-03-16) -> April 28, msg-000275 (2026-04-17) -> May 20, msg-000415 (2026-05-13) -> June 18, all at 10:00 a.m. Every email states a date that was later superseded, and msg-000616 (2026-06-16, Peter Novak's docket recap) formally restates the stale June 18 setting five days AFTER the correction.",
-    "slack": "chm-000965 (ts 8767500.000962, 2026-06-11, Grace Adeyemi) in the Grace<->Samuel DM cnv-000005: 'clerk just called about 00008 — moved again, the 25th at 9, not the 18th'. slack_search_public excludes DMs by construction; the message carries no case name and no docket vocabulary, only the Clio display-number prefix 00008. The operative date (2026-06-25, 9:00 a.m.) exists nowhere else in the record."
+    "emails": "Clerk notices in Gmail set the hearing three times: msg-000081 (2026-03-16) -> April 28, msg-000279 (2026-04-17) -> May 20, msg-000410 (2026-05-13) -> June 18, all at 10:00 a.m. Every email states a date that was later superseded, and msg-000590 (2026-06-16, Peter Novak's docket recap) formally restates the stale June 18 setting five days AFTER the correction.",
+    "slack": "chm-001575 (ts 8767500.001564, 2026-06-11, Grace Adeyemi) in the Grace<->Samuel DM cnv-000005: 'clerk just called about 00008 — moved again, the 25th at 9, not the 18th'. slack_search_public excludes DMs by construction; the message carries no case name and no docket vocabulary, only the Clio display-number prefix 00008. The operative date (2026-06-25, 9:00 a.m.) exists nowhere else in the record.",
+    "fabric": "The correction no longer sits in a 2-message DM: the workspace carries 10 standing DM conversations of routine template traffic, and cnv-000005 runs 157 messages with the correction mid-stream, so conversation enumeration alone does not surface it."
   },
   "operative_date": "2026-06-25",
   "operative_time_prefixes": ["9:00", "09:00"],
   "correction_ts_prefix": "8767500",
   "superseded_dates": ["2026-04-28", "2026-05-20", "2026-06-18"],
   "supersessions": [
-    { "invalidated": "2026-04-28", "by_prefix": "msg-000275" },
-    { "invalidated": "2026-05-20", "by_prefix": "msg-000415" },
+    { "invalidated": "2026-04-28", "by_prefix": "msg-000279" },
+    { "invalidated": "2026-05-20", "by_prefix": "msg-000410" },
     { "invalidated": "2026-06-18", "by_prefix": "8767500" }
   ],
   "weights": {

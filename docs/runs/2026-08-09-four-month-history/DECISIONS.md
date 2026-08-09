@@ -101,3 +101,44 @@ entry says what was ambiguous and which reading was taken.
    the Cascadia matter closes, the procedural cast drops that matter, so
    no background time entries or comments land on a closed file. The
    swap keys off `S4_CLOSED_DATE` in the build script.
+12. **The epoch is projected data, not a server constant.** All four MCP
+   servers hardcoded the legal demo's epoch (2026-03-12), so every date
+   they served on hartwell workspaces (epoch 2026-03-02T00:00:00-08:00)
+   was +10 days off grader truth — the cause of the universal 0.75
+   vanished-clause plateau (Luna's round-2 diff was perfect except the
+   shifted date). Fix: `project_system` writes a shared `meta` table and
+   servers derive dates via `framework.read_epoch` at call time. Only
+   the epoch string leaves `sim.run.started`; run_id, seed_root,
+   config_hash, and schema_version stay offstage
+   (`test_meta_carries_only_the_epoch` locks the contract). Rendering
+   follows each product: iManage converts to true UTC `Z` timestamps,
+   Gmail serves the epoch's own offset, Clio and Slack use local
+   calendar dates; the four system tests' fixture assertions moved
+   accordingly.
+13. **Round-3 hardening.** (a) *operative-deadline*: genesis declares 10
+   standing DM pairs and procedural days weave template DM traffic
+   (Grace<->Samuel at 0.8 exchanges/workday); the S5 correction now
+   posts mid-stream into that 157-message thread (position ~130), and
+   the audit gates >=8 DMs plus a mid-stream correction. Conversation
+   enumeration no longer finds it: the post-fix Luna probe scored
+   0.3666, reporting the stale June 18 after exhausting public-channel
+   keyword search without opening a DM, while solve.sh still earns 1.0.
+   (b) *vanished-clause*: the instruction stopped naming the Lumen
+   agreement (Eleanor certifying "no protection was negotiated away this
+   quarter"); five genesis firm documents gained additive multi-version
+   histories (corpus: 12 multi-version documents, 7 with 3+ versions,
+   +5 content calls), and solve.sh became a corpus-wide
+   consecutive-version diff with gates (>=10 multi-version docs, >=5
+   deep, exactly one silent drop). (c) *standard-drift*: the brief said
+   to move "whichever component the probe earned last" behind the
+   oblique pattern; the post-epoch-fix probe (Luna 0.675) showed the
+   model earning every substantive component from the version diff
+   itself — its losses were path formatting and a phrasing marker, not
+   discoverability — so the hardening went to the one component still
+   earnable by pure keyword search: the accepted term length, which
+   four emails stated as "five-year". Those emails were re-authored
+   oblique (no term lengths anywhere in mail or chat, audited), so the
+   term practice now requires the v1/v2 diff exactly like the residuals
+   clause. Grader values unchanged on every task; fee-dispute and
+   client-departure untouched except `_evidence` id refreshes after the
+   rebuild shifted minted ids (no graded field there references ids).

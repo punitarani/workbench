@@ -1,15 +1,22 @@
 {
   "_evidence": {
-    "versions": "iManage doc-000011 /lumen-licensing/license-and-support-agreement.md now carries seven versions with uniformly innocuous change comments. Section 9.2 Indemnification by Licensor is present in v1 (2026-03-31), v2 (2026-04-21), and v3 (2026-04-28), and first absent from v4 (2026-05-21, Marcus Liang, 'Conformed the draft following the call with licensor's counsel.'); v5-v7 are cleanup passes by Peter Novak and Marcus. Only the v3/v4 content diff shows the drop; no comment mentions it.",
-    "decoys": "doc-000012 /lumen-licensing/support-services-sow.md is a similarly named Lumen document with a clean four-version history and no indemnity language. msg-000564 (2026-06-09, June Akana) quotes the OLD v2-era indemnity text verbatim in email AFTER the drop, and Marcus's same-day reply claims nothing substantive changed.",
+    "versions": "iManage doc-000011 /lumen-licensing/license-and-support-agreement.md carries seven versions with uniformly innocuous change comments. Section 9.2 Indemnification by Licensor is present in v1 (2026-03-31), v2 (2026-04-21), and v3 (2026-04-28), and first absent from v4 (2026-05-21, Marcus Liang, 'Conformed the draft following the call with licensor's counsel.'); v5-v7 are cleanup passes by Peter Novak and Marcus. Only the v3/v4 content diff shows the drop; no comment mentions it.",
+    "corpus": "The instruction no longer names the document: the repository holds 12 multi-version documents (7 of them with 3+ versions) — the firm's engagement letter, intake checklist, billing guidelines, litigation hold template, and discovery playbook all gained additive revision histories with innocuous comments and nothing dropped — so exhaustive version diffing without prioritization strains the turn budget.",
+    "decoys": "doc-000012 /lumen-licensing/support-services-sow.md is a similarly named Lumen document with a clean four-version history and no indemnity language. msg-000554 (2026-06-09, June Akana) quotes the OLD v2-era indemnity text verbatim in email AFTER the drop, and Marcus's same-day reply claims nothing substantive changed.",
     "cover": "Fathom's counsel objected to the uncapped indemnity on 2026-05-19; no email or comment announces the removal."
   },
   "document_path": "/lumen-licensing/license-and-support-agreement.md",
-  "clause_markers": ["indemn"],
+  "clause_markers": [
+    "indemn"
+  ],
   "dropped_in_version": 4,
-  "author_markers": ["marcus"],
+  "author_markers": [
+    "marcus"
+  ],
   "date": "2026-05-21",
-  "comment_markers": ["conform"],
+  "comment_markers": [
+    "conform"
+  ],
   "weights": {
     "document_path": 0.1,
     "dropped_clause": 0.15,

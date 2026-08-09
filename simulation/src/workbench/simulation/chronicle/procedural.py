@@ -52,6 +52,25 @@ class ChatChannel(_Model):
     members: tuple[CastMember, ...] = Field(min_length=1)
 
 
+class DmThread(_Model):
+    """A standing two-person DM that carries routine background traffic.
+
+    ``traffic`` is the chance of an exchange on any given workday, so a
+    pair at 0.8 talks most days and a pair at 0.3 a couple of times a
+    week.
+    """
+
+    conversation_id: str
+    members: tuple[CastMember, CastMember]
+    traffic: float = Field(gt=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def _two_distinct_people(self) -> DmThread:
+        if self.members[0].person_id == self.members[1].person_id:
+            raise ValueError(f"dm {self.conversation_id} pairs a person with itself")
+        return self
+
+
 class ProceduralCast(_Model):
     """Who generates and receives background traffic, and against what."""
 
@@ -63,6 +82,7 @@ class ProceduralCast(_Model):
     billing_channel: ChatChannel
     it_channel: ChatChannel
     matters: tuple[OpenMatter, ...] = Field(min_length=1)
+    dms: tuple[DmThread, ...] = ()
 
     @model_validator(mode="after")
     def _timekeepers_are_internal(self) -> ProceduralCast:
@@ -228,6 +248,39 @@ _MATTER_COMMENTS = (
     "Draft circulated internally for comment.",
     "No movement from the other side today; will nudge tomorrow.",
     "Updated the working file; nothing needed from the team yet.",
+)
+
+_DM_OPENERS = (
+    "got a minute before your next call?",
+    "lunch run to the corner place — want anything?",
+    "can you resend that last version when you get a chance?",
+    "conference room b is double booked again — can we grab yours?",
+    "heads up, running about ten minutes late this morning.",
+    "do you still have the sign-in sheet from yesterday?",
+    "quick one: is the template on the shared drive current?",
+    "coffee downstairs in fifteen?",
+    "can you cover my phone for an hour this afternoon?",
+    "did the courier package show up yet?",
+    "are you in tomorrow or working remote?",
+    "mind taking a quick look at my draft before it goes out?",
+)
+
+_DM_REPLIES = (
+    "sure thing.",
+    "yep — give me ten.",
+    "on it.",
+    "can do, after lunch ok?",
+    "thanks for the heads up.",
+    "sorry, slammed today. tomorrow?",
+    "just sent it over.",
+    "works for me.",
+)
+
+_DM_CLOSERS = (
+    "perfect, thanks.",
+    "great.",
+    "appreciate it.",
+    "ok, talk then.",
 )
 
 _MEETING_TITLES = (
@@ -406,6 +459,57 @@ def _it_chatter(
             reply_to=message_id,
             exclude=asker,
         )
+
+
+def _dm_message(
+    thread: DmThread,
+    sender: CastMember,
+    minter: IdMinter,
+    drafts: list[TimedDraft],
+    *,
+    at: int,
+    body: str,
+) -> None:
+    drafts.append(
+        TimedDraft(
+            at=SimDuration(at),
+            source=sender.entity,
+            payload=ChatMessagePayload(
+                kind="chat.message",
+                chat_message_id=minter.mint("chm"),
+                conversation_id=thread.conversation_id,
+                reply_to=None,
+                sender=sender.person_id,
+                body=body,
+            ),
+        )
+    )
+
+
+def _dm_chatter(
+    rng: random.Random,
+    cast: ProceduralCast,
+    minter: IdMinter,
+    drafts: list[TimedDraft],
+) -> None:
+    for thread in cast.dms:
+        if rng.random() >= thread.traffic:
+            continue
+        first, second = thread.members
+        if rng.random() < 0.5:
+            first, second = second, first
+        at = rng.randrange(9 * 3600, 17 * 3600)
+        _dm_message(thread, first, minter, drafts, at=at, body=rng.choice(_DM_OPENERS))
+        if rng.random() < 0.85:
+            at += rng.randrange(60, 900)
+            _dm_message(
+                thread, second, minter, drafts, at=at, body=rng.choice(_DM_REPLIES)
+            )
+            if rng.random() < 0.4:
+                at += rng.randrange(30, 600)
+                _dm_message(
+                    thread, first, minter, drafts, at=at, body=rng.choice(_DM_CLOSERS)
+                )
 
 
 def _email(
@@ -611,6 +715,7 @@ def procedural_day(
     _matter_chatter(rng, cast, minter, drafts)
     _billing_chatter(rng, cast, minter, drafts)
     _it_chatter(rng, cast, minter, drafts)
+    _dm_chatter(rng, cast, minter, drafts)
     _internal_emails(rng, cast, minter, drafts)
     _external_emails(rng, cast, minter, drafts)
     _time_entries(rng, cast, drafts)

@@ -82,11 +82,12 @@ def test_externals_reference_real_organizations() -> None:
 
 def test_channels_have_topic_and_purpose() -> None:
     genesis = build_genesis(Seed(root=42))
-    channels = [
+    conversations = [
         event.payload
         for event in genesis.events
         if isinstance(event.payload, ChatConversationCreatedPayload)
     ]
+    channels = [c for c in conversations if c.conversation_type == "channel"]
     assert {channel.name for channel in channels} == {
         "#general",
         "#matters",
@@ -100,6 +101,16 @@ def test_channels_have_topic_and_purpose() -> None:
         assert set(channel.members) <= employee_ids
     general = next(channel for channel in channels if channel.name == "#general")
     assert set(general.members) == employee_ids
+
+    dms = [c for c in conversations if c.conversation_type == "dm"]
+    assert len(dms) >= 8, "the DM fabric needs standing pairs"
+    pairs = {frozenset(dm.members) for dm in dms}
+    assert len(pairs) == len(dms), "each pair gets exactly one DM"
+    for dm in dms:
+        assert dm.name is None
+        assert len(dm.members) == 2
+        assert set(dm.members) <= employee_ids
+    assert frozenset(("per-grace-adeyemi", "per-samuel-marsh")) in pairs
 
 
 def test_matters_reference_real_orgs_and_people() -> None:
@@ -143,7 +154,7 @@ def test_final_minter_covers_every_minted_prefix() -> None:
     genesis = build_genesis(Seed(root=42))
     counters = genesis.minter.counters
     assert counters["org"] == len(ORGS)
-    assert counters["cnv"] == 4
+    assert counters["cnv"] == 4 + 10
     assert counters["doc"] == 8
     assert counters["tkt"] == 10
 
@@ -156,6 +167,16 @@ def test_procedural_cast_resolves_against_genesis() -> None:
     assert {member.person_id for member in cast.timekeepers} == set(TIMEKEEPER_IDS)
     assert cast.standup_channel.startswith("cnv-")
     assert len(cast.matters) == 10
+    assert len(cast.dms) == 10
+    grace_samuel = next(
+        dm
+        for dm in cast.dms
+        if {member.person_id for member in dm.members}
+        == {"per-grace-adeyemi", "per-samuel-marsh"}
+    )
+    assert grace_samuel.traffic == max(dm.traffic for dm in cast.dms), (
+        "the correction thread runs hottest"
+    )
 
 
 def test_pilot_build_validates_projects_and_coheres(tmp_path: Path) -> None:

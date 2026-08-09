@@ -4,13 +4,15 @@ A tool system is data: a name, the world-log tags it may observe, its
 tables, and two functions — project events into a connection, and register
 read tools on a server. The constructor enforces the offstage boundary
 structurally: a system that declares a ``sim.*`` tag cannot exist. The
-shared people table and the ``directory`` tool live here so every database
-answers "who works here" the same way.
+shared people table, the shared meta table (the log's onstage calendar
+epoch), and the ``directory`` tool live here so every database answers
+"who works here" and "when is now" the same way.
 """
 
 import sqlite3
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -19,6 +21,7 @@ from pydantic import BaseModel
 
 from workbench.core.errors import WorkbenchError
 from workbench.core.events import Event
+from workbench.core.events.control import SimRunStartedPayload
 from workbench.core.events.people import PersonRecordPayload
 from workbench.tools.db import Id, Table, connect_readonly, create_db
 
@@ -41,6 +44,30 @@ class Person(BaseModel):
 
 
 PEOPLE_TABLE = Table("people", Person, primary_key=("person_id",))
+
+
+class MetaEntry(BaseModel):
+    key: str
+    value: str
+
+
+META_TABLE = Table("meta", MetaEntry, primary_key=("key",))
+
+
+def read_epoch(connection: sqlite3.Connection) -> datetime:
+    """The calendar moment of simulated time zero, from the meta table.
+
+    Every served date derives from this: a record at time ``t`` happened
+    at ``epoch + timedelta(seconds=t)``.
+    """
+
+    entries = META_TABLE.select(connection, where={"key": "epoch"})
+    if not entries:
+        raise ToolContractError(
+            "database carries no epoch; it was not projected from a world log"
+        )
+    return datetime.fromisoformat(entries[0].value)
+
 
 type Projector = Callable[[Sequence[Event], sqlite3.Connection], None]
 type Registrar = Callable[[MCPServer, Path], None]
@@ -73,11 +100,12 @@ class ToolSystem:
         if not self.tables:
             raise ToolContractError(f"{self.name}: a tool system declares its tables")
         names = [table.name for table in self.tables]
-        if len(set(names)) != len(names) or PEOPLE_TABLE.name in names:
+        shared = {PEOPLE_TABLE.name, META_TABLE.name}
+        if len(set(names)) != len(names) or shared & set(names):
             raise ToolContractError(f"{self.name}: table names collide: {names}")
 
     def all_tables(self) -> tuple[Table, ...]:
-        return (PEOPLE_TABLE, *self.tables)
+        return (META_TABLE, PEOPLE_TABLE, *self.tables)
 
 
 def _people(events: Sequence[Event]) -> Iterator[Person]:
@@ -94,10 +122,20 @@ def _people(events: Sequence[Event]) -> Iterator[Person]:
             )
 
 
+def _meta(events: Sequence[Event]) -> Iterator[MetaEntry]:
+    # Only the epoch string leaves the run.started payload: it is onstage
+    # calendar reality. Everything else in it stays offstage.
+    for event in events:
+        if isinstance(event.payload, SimRunStartedPayload):
+            yield MetaEntry(key="epoch", value=event.payload.epoch)
+            return
+
+
 def project_system(system: ToolSystem, events: Sequence[Event], db_path: Path) -> None:
     connection = create_db(db_path, system.all_tables())
     try:
         with connection:
+            META_TABLE.insert(connection, _meta(events))
             PEOPLE_TABLE.insert(connection, _people(events))
             system.project(events, connection)
     finally:

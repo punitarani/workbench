@@ -11,13 +11,18 @@ import sqlite3
 from collections import Counter
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from mcp.server import MCPServer
 
 from workbench.tools.db import connect_readonly
-from workbench.tools.framework import PEOPLE_TABLE, Person, UnknownRefError
+from workbench.tools.framework import (
+    PEOPLE_TABLE,
+    Person,
+    UnknownRefError,
+    read_epoch,
+)
 from workbench.tools.slack.tables import (
     CONVERSATIONS,
     MEMBERS,
@@ -28,7 +33,6 @@ from workbench.tools.slack.tables import (
     Reaction,
 )
 
-EPOCH = datetime(2026, 3, 12, tzinfo=UTC)
 _FILTERS = ("in", "from", "before", "after")
 _PHRASE = re.compile(r'"([^"]*)"')
 
@@ -39,6 +43,7 @@ class _Directory:
     channel_ids: dict[str, str]
     people: dict[str, Person]
     user_ids: dict[str, str]
+    epoch: datetime
 
     def resolve_channel(self, channel_id: str) -> Conversation:
         internal = _invert(self.channel_ids).get(channel_id, channel_id)
@@ -74,6 +79,7 @@ def _load(connection: sqlite3.Connection) -> _Directory:
         channel_ids=_display_ids((c.conversation_id for c in conversations), "C"),
         people={p.person_id: p for p in people},
         user_ids=_display_ids((p.person_id for p in people), "U"),
+        epoch=read_epoch(connection),
     )
 
 
@@ -166,8 +172,8 @@ def _senders_matching(directory: _Directory, value: str) -> set[str]:
     return matched
 
 
-def _event_date(seconds: int) -> date:
-    return (EPOCH + timedelta(seconds=seconds)).date()
+def _event_date(epoch: datetime, seconds: int) -> date:
+    return (epoch + timedelta(seconds=seconds)).date()
 
 
 def _profile(person: Person) -> dict[str, str]:
@@ -329,7 +335,7 @@ def register(server: MCPServer, db_path: Path) -> None:
                 continue
             if senders is not None and message.sender not in senders:
                 continue
-            when = _event_date(message.time)
+            when = _event_date(directory.epoch, message.time)
             if "before" in filters and when >= date.fromisoformat(filters["before"]):
                 continue
             if "after" in filters and when <= date.fromisoformat(filters["after"]):

@@ -24,7 +24,6 @@ from workbench.core.events.calendar import (
     CalendarEventUpdatedPayload,
 )
 from workbench.core.events.chat import (
-    ChatConversationCreatedPayload,
     ChatMessagePayload,
     ChatReactionAddedPayload,
 )
@@ -436,10 +435,15 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 day="2026-05-07",
                 facts=(
                     "LexiPoint's contracting standard requires two changes "
-                    "to the NDA: a five-year confidentiality term instead "
-                    "of three, and a residual-knowledge clause permitting "
-                    "unaided-memory use; both are described as "
-                    "non-negotiable house positions."
+                    "to the NDA, both set out in the redlined draft "
+                    "attached to the email: a confidentiality term "
+                    "materially longer than the draft carries, and a "
+                    "residual-knowledge clause permitting unaided-memory "
+                    "use; both are described as non-negotiable house "
+                    "positions. STRICT: never state the length of any "
+                    "term in words or digits — no counts of years "
+                    "anywhere; call it only the survival period from "
+                    "their house form."
                 ),
                 tone="polite but firm vendor-contracting voice",
             ),
@@ -451,10 +455,13 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 recipient="Ruth Calloway at LexiPoint Research",
                 day="2026-05-13",
                 facts=(
-                    "revised draft attached: the firm accepted the "
-                    "five-year term to keep the renewal on schedule, but "
-                    "is not including a residual-knowledge clause; hopes "
-                    "this splits the difference."
+                    "revised draft attached: the firm accepted the longer "
+                    "confidentiality term from LexiPoint's markup to keep "
+                    "the renewal on schedule, but is not including a "
+                    "residual-knowledge clause; hopes this splits the "
+                    "difference. STRICT: never state the length of any "
+                    "term in words or digits — no counts of years "
+                    "anywhere."
                 ),
                 tone="accommodating, slightly hurried",
             ),
@@ -466,9 +473,12 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 recipient="Noah Feldstein at Hartwell & Marsh",
                 day="2026-05-15",
                 facts=(
-                    "LexiPoint accepts the revised draft with the five-year "
-                    "term and no residuals clause; signature to follow this "
-                    "week; thanks Noah for the quick turnaround."
+                    "LexiPoint accepts the revised draft as sent — the "
+                    "term as revised, without the memory carve-out they "
+                    "had asked for; signature to follow this week; thanks "
+                    "Noah for the quick turnaround. STRICT: never state "
+                    "the length of any term in words or digits, and never "
+                    "use the word residual or residuals."
                 ),
                 tone="warm, closing a deal",
             ),
@@ -484,14 +494,16 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 day="2026-06-03",
                 facts=(
                     "Ironclad reviewed the draft NDA for the discovery "
-                    "services engagement; the five-year term works; one "
+                    "services engagement; the term as drafted works; one "
                     "comment remains: because Ironclad's project staff "
                     "rotate across client engagements, Ironclad asks the "
                     "firm to fold in the rider from Stan's attached markup "
                     "protecting what its people generally learn on an "
                     "engagement. Describe the request only in those "
                     "general words — never use the word residual or "
-                    "residuals, and never use the phrase unaided memory."
+                    "residuals, never use the phrase unaided memory, and "
+                    "never state the length of any term in words or "
+                    "digits."
                 ),
                 tone="direct vendor voice",
             ),
@@ -524,16 +536,18 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 day="2026-06-24",
                 facts=(
                     "she noticed the last two vendor NDAs (LexiPoint and "
-                    "Ironclad) both went out with five-year confidentiality "
-                    "terms while the March playbook still makes three "
-                    "years the hard rule; she also wants the final "
-                    "Ironclad draft checked clause by clause against the "
-                    "playbook's standard positions, because she believes "
-                    "at least one other position moved without sign-off; "
-                    "asks Noah to put a playbook review on next quarter's "
-                    "calendar rather than keep deviating silently. Do not "
-                    "name which other clause moved, and never use the "
-                    "word residual or residuals."
+                    "Ironclad) both went out with confidentiality terms "
+                    "longer than the playbook's standard position, which "
+                    "the March playbook still makes the hard rule; she "
+                    "also wants the final Ironclad draft checked clause "
+                    "by clause against the playbook's standard positions, "
+                    "because she believes at least one other position "
+                    "moved without sign-off; asks Noah to put a playbook "
+                    "review on next quarter's calendar rather than keep "
+                    "deviating silently. STRICT: do not name which other "
+                    "clause moved, never use the word residual or "
+                    "residuals, and never state the length of any term "
+                    "in words or digits."
                 ),
                 tone="measured, mildly concerned",
             ),
@@ -1198,6 +1212,94 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 tone="neutral court-clerk register",
             ),
         ),
+        # Firm fabric — revision histories for the genesis firm documents,
+        # so the repository carries many multi-version drafts with clean,
+        # additive diffs. Every fabric revision only adds; nothing
+        # substantive ever disappears from these histories.
+        ContentRequest(
+            name="fabric.engagement.fees",
+            prompt=_section_prompt(
+                what=(
+                    "a 'Fees and billing practices' section for a "
+                    "California law firm's standard engagement letter "
+                    "template"
+                ),
+                facts=(
+                    "hourly rates are set out in a schedule reviewed "
+                    "annually; invoices issue monthly with detailed "
+                    "narratives; costs are passed through at actual; "
+                    "retainers are replenished on request; billing "
+                    "questions go to the billing coordinator."
+                ),
+                length="90-140 words",
+            ),
+        ),
+        ContentRequest(
+            name="fabric.intake.conflicts",
+            prompt=_section_prompt(
+                what=(
+                    "a 'Conflicts screening' section for a law firm "
+                    "matter-intake checklist"
+                ),
+                facts=(
+                    "run the conflicts database against all adverse "
+                    "parties and their affiliates before opening; "
+                    "circulate a firm-wide conflicts memo when a new "
+                    "adverse party appears; document any waiver in the "
+                    "matter file; repeat the check whenever parties are "
+                    "added."
+                ),
+                length="80-130 words",
+            ),
+        ),
+        ContentRequest(
+            name="fabric.billing.narratives",
+            prompt=_section_prompt(
+                what=(
+                    "a 'Narrative standards' section for a law firm "
+                    "billing and time-entry guideline"
+                ),
+                facts=(
+                    "narratives state the action taken, the subject, and "
+                    "the work product; block billing is discouraged; "
+                    "entries are recorded within 48 hours; only "
+                    "abbreviations from the approved list are used."
+                ),
+                length="80-130 words",
+            ),
+        ),
+        ContentRequest(
+            name="fabric.hold.scope",
+            prompt=_section_prompt(
+                what=(
+                    "a 'Preservation scope' paragraph for a litigation "
+                    "hold notice template"
+                ),
+                facts=(
+                    "scope covers email, chat and messaging applications, "
+                    "shared drives, laptops and phones, and third-party "
+                    "hosted data; automatic deletion must be suspended; "
+                    "questions go to the issuing attorney."
+                ),
+                length="70-110 words",
+            ),
+        ),
+        ContentRequest(
+            name="fabric.discovery.esi",
+            prompt=_section_prompt(
+                what=(
+                    "an 'ESI protocol checklist' section for a law firm "
+                    "discovery-response playbook"
+                ),
+                facts=(
+                    "agree custodians, date ranges, and search terms in "
+                    "writing; document collection methods; track "
+                    "production numbering and confidentiality "
+                    "designations; log meet-and-confer positions."
+                ),
+                length="80-130 words",
+            ),
+        ),
     )
 
 
@@ -1393,6 +1495,13 @@ class StorylineDirector:
 
         self._matters_channel = channel("#matters")
         self._billing_channel = channel("#billing")
+        self._grace_samuel_dm = next(
+            event.payload.conversation_id
+            for event in genesis.events
+            if event.payload.kind == "chat.conversation.created"
+            and event.payload.conversation_type == "dm"
+            and set(event.payload.members) == {_GA, _SM}
+        )
         self._refs: dict[str, str] = {}
         self._beats: dict[str, list[tuple[int, _Beat]]] = {}
         self._register_s1()
@@ -1400,6 +1509,7 @@ class StorylineDirector:
         self._register_s3()
         self._register_s4()
         self._register_s5()
+        self._register_fabric(genesis)
         workdays = {WINDOW.iso_date(index) for index in WINDOW.workdays()}
         strays = sorted(set(self._beats) - workdays)
         if strays:
@@ -1506,31 +1616,6 @@ class StorylineDirector:
                     ),
                     sender=sender,
                     body=body,
-                ),
-            )
-        )
-
-    def _dm_conversation(
-        self,
-        minter: IdMinter,
-        drafts: list[TimedDraft],
-        *,
-        at: int,
-        ref: str,
-        members: tuple[str, str],
-    ) -> None:
-        conversation_id = minter.mint("cnv")
-        self._refs[f"cv:{ref}"] = conversation_id
-        drafts.append(
-            TimedDraft(
-                at=SimDuration(at),
-                source=_entity(members[0]),
-                payload=ChatConversationCreatedPayload(
-                    kind="chat.conversation.created",
-                    conversation_id=conversation_id,
-                    conversation_type="dm",
-                    name=None,
-                    members=members,
                 ),
             )
         )
@@ -3115,16 +3200,10 @@ class StorylineDirector:
         self._on("2026-06-10", _at(14, 35), pelican_deadline)
 
         def correction_dm(minter: IdMinter, drafts: list[TimedDraft]) -> None:
-            # The operative date exists only here: a Grace<->Samuel DM that
-            # public-channel search cannot reach, with no case name and no
-            # docket vocabulary — just the Clio display-number prefix.
-            self._dm_conversation(
-                minter,
-                drafts,
-                at=_at(11, 20),
-                ref="s5.dm",
-                members=(_GA, _SM),
-            )
+            # The operative date exists only here, buried mid-stream in the
+            # long-running Grace<->Samuel DM that public-channel search
+            # cannot reach, with no case name and no docket vocabulary —
+            # just the Clio display-number prefix.
             self._chat(
                 minter,
                 drafts,
@@ -3132,7 +3211,7 @@ class StorylineDirector:
                 sender=_GA,
                 body=S5_DM_CORRECTION,
                 ref="s5.correction",
-                conversation=self._refs["cv:s5.dm"],
+                conversation=self._grace_samuel_dm,
             )
             self._chat(
                 minter,
@@ -3141,10 +3220,10 @@ class StorylineDirector:
                 sender=_SM,
                 body=S5_DM_ACK,
                 reply_ref="s5.correction",
-                conversation=self._refs["cv:s5.dm"],
+                conversation=self._grace_samuel_dm,
             )
 
-        self._on("2026-06-11", _at(11, 20), correction_dm)
+        self._on("2026-06-11", _at(11, 25), correction_dm)
 
         def brightline_deadline(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             self._chat(
@@ -3176,3 +3255,210 @@ class StorylineDirector:
             )
 
         self._on("2026-06-16", _at(9, 35), stale_recap)
+
+    # Firm fabric — additive revision histories for the genesis firm
+    # documents. They exist so version surveys cost real work: many
+    # multi-version drafts with innocuous comments where nothing
+    # substantive ever disappears.
+
+    def _register_fabric(self, genesis: HartwellGenesis) -> None:
+        texts = self._texts
+
+        def genesis_doc(title: str) -> tuple[str, str]:
+            payload = next(
+                event.payload
+                for event in genesis.events
+                if event.payload.kind == "document.created"
+                and event.payload.title == title
+            )
+            return payload.document_id, payload.content
+
+        def extended(base: str, sections: tuple[tuple[str, str], ...]) -> str:
+            parts = [base.rstrip()]
+            for heading, body in sections:
+                parts += ["", f"## {heading}", "", body.strip()]
+            return "\n".join(parts) + "\n"
+
+        def revise_on(
+            day: str,
+            clock: int,
+            *,
+            ref: str,
+            revision: int,
+            author: str,
+            content: str,
+            summary: str,
+        ) -> None:
+            def beat(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+                self._revise(
+                    drafts,
+                    at=clock,
+                    ref=ref,
+                    revision=revision,
+                    author=author,
+                    content=content,
+                    summary=summary,
+                )
+
+            self._on(day, clock, beat)
+
+        ecomm = (
+            "The firm and the client consent to electronic delivery of "
+            "correspondence, invoices, and drafts through the client "
+            "portal, and to signatures by a reliable electronic signature "
+            "service."
+        )
+        routing = (
+            "- Confirm the signed engagement letter is filed before the "
+            "first time entry.\n"
+            "- Route signature packets through the records clerk.\n"
+            "- Calendar the first status update within thirty days of "
+            "opening."
+        )
+        prebill = (
+            "Prebills circulate on the second Thursday of the month; "
+            "edits are due back by Friday noon; invoices go out the "
+            "following Tuesday."
+        )
+        meet_confer = (
+            "Schedule the meet and confer within ten days of receiving "
+            "requests; confirm agreements in a letter the same week."
+        )
+
+        # ref, title, [(day, clock, revision author, comment, sections)]
+        plans: tuple[
+            tuple[str, str, tuple[tuple[str, int, str, str, tuple], ...]], ...
+        ] = (
+            (
+                "fabric.engagement",
+                "Engagement Letter (Standard Form)",
+                (
+                    (
+                        "2026-03-19",
+                        _at(10, 30),
+                        _DO,
+                        "Refreshed the fee and billing practices section "
+                        "for the new rate schedule.",
+                        (
+                            (
+                                "Fees and billing practices",
+                                texts["fabric.engagement.fees"],
+                            ),
+                        ),
+                    ),
+                    (
+                        "2026-05-22",
+                        _at(14, 40),
+                        _NF,
+                        "Added the client portal and electronic signature "
+                        "consent language.",
+                        (
+                            (
+                                "Fees and billing practices",
+                                texts["fabric.engagement.fees"],
+                            ),
+                            ("Electronic communications", ecomm),
+                        ),
+                    ),
+                ),
+            ),
+            (
+                "fabric.intake",
+                "Matter Intake Checklist",
+                (
+                    (
+                        "2026-04-08",
+                        _at(11, 45),
+                        _GA,
+                        "Expanded the conflicts screening steps after the "
+                        "quarterly review.",
+                        (("Conflicts screening", texts["fabric.intake.conflicts"]),),
+                    ),
+                    (
+                        "2026-06-17",
+                        _at(15, 20),
+                        _GA,
+                        "Aligned signature routing with the current records workflow.",
+                        (
+                            ("Conflicts screening", texts["fabric.intake.conflicts"]),
+                            ("Engagement letter routing", routing),
+                        ),
+                    ),
+                ),
+            ),
+            (
+                "fabric.billing",
+                "Billing & Time Entry Guidelines",
+                (
+                    (
+                        "2026-04-29",
+                        _at(9, 55),
+                        _CJ,
+                        "Clarified the narrative standards ahead of the May prebills.",
+                        (("Narrative standards", texts["fabric.billing.narratives"]),),
+                    ),
+                    (
+                        "2026-06-23",
+                        _at(16, 10),
+                        _CJ,
+                        "Updated the prebill calendar for the third quarter.",
+                        (
+                            ("Narrative standards", texts["fabric.billing.narratives"]),
+                            ("Prebill calendar", prebill),
+                        ),
+                    ),
+                ),
+            ),
+            (
+                "fabric.hold",
+                "Litigation Hold Notice (Template)",
+                (
+                    (
+                        "2026-05-06",
+                        _at(13, 35),
+                        _SR,
+                        "Broadened the preservation scope list for "
+                        "messaging applications.",
+                        (("Preservation scope", texts["fabric.hold.scope"]),),
+                    ),
+                ),
+            ),
+            (
+                "fabric.discovery",
+                "Discovery Response Playbook",
+                (
+                    (
+                        "2026-04-22",
+                        _at(10, 15),
+                        _SR,
+                        "Added the ESI protocol checklist.",
+                        (("ESI protocol checklist", texts["fabric.discovery.esi"]),),
+                    ),
+                    (
+                        "2026-06-19",
+                        _at(11, 50),
+                        _SM,
+                        "Recorded the meet and confer timing guidance.",
+                        (
+                            ("ESI protocol checklist", texts["fabric.discovery.esi"]),
+                            ("Meet and confer", meet_confer),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        for ref, title, revisions in plans:
+            document_id, base = genesis_doc(title)
+            self._refs[f"d:{ref}"] = document_id
+            for number, (day, clock, author, summary, sections) in enumerate(
+                revisions, start=2
+            ):
+                revise_on(
+                    day,
+                    clock,
+                    ref=ref,
+                    revision=number,
+                    author=author,
+                    content=extended(base, sections),
+                    summary=summary,
+                )

@@ -3,6 +3,7 @@ validates, and each arc leaves the evidence its tasks will mine — all
 offline, with deterministic stand-in prose."""
 
 import importlib.util
+import re
 from collections import Counter
 from pathlib import Path
 from types import ModuleType
@@ -164,6 +165,18 @@ def test_s1_playbook_and_practice_diverge(full_log: list) -> None:
     )
     assert not any("residual" in body.lower() for body in chat_bodies)
 
+    five = re.compile(r"\bfive\b|\(5\)|5-year", re.IGNORECASE)
+    nda_email_bodies = [
+        event.payload.body
+        for event in full_log
+        if isinstance(event.payload, EmailMessagePayload)
+        and "NDA" in event.payload.subject
+    ]
+    assert not any(five.search(body) for body in nda_email_bodies), (
+        "the accepted term length lives only in the version diff"
+    )
+    assert not any(five.search(body) for body in chat_bodies)
+
 
 def test_s2_fee_dispute_joins_activities_to_email_dates(full_log: list) -> None:
     spike = [
@@ -251,6 +264,39 @@ def test_s3_indemnity_drops_silently_in_v4(full_log: list) -> None:
     )
 
 
+FABRIC_TITLES = (
+    "Engagement Letter (Standard Form)",
+    "Matter Intake Checklist",
+    "Billing & Time Entry Guidelines",
+    "Litigation Hold Notice (Template)",
+    "Discovery Response Playbook",
+)
+
+
+def test_fabric_grows_the_version_corpus_without_dropping(full_log: list) -> None:
+    docs = _versions_by_title(full_log)
+    multi = {title: v for title, v in docs.items() if len(v) >= 2}
+    assert len(multi) >= 10, "exhaustive diffing must cost real work"
+    assert sum(1 for v in multi.values() if len(v) >= 3) >= 5
+
+    for title in FABRIC_TITLES:
+        versions = docs[title]
+        assert len(versions) >= 2, title
+        ordered = [versions[number] for number in sorted(versions)]
+        for previous, current in zip(ordered, ordered[1:], strict=False):
+            for block in previous.split("\n\n"):
+                assert block.strip() in current, (
+                    f"{title}: fabric revisions only add; nothing disappears"
+                )
+
+    summaries = [
+        event.payload.change_summary
+        for event in full_log
+        if isinstance(event.payload, DocumentRevisedPayload)
+    ]
+    assert all("indemn" not in summary.lower() for summary in summaries)
+
+
 def test_s4_souring_ends_in_closure_and_letter(full_log: list) -> None:
     reactions = Counter(
         event.payload.chat_message_id
@@ -321,6 +367,23 @@ def test_s5_operative_date_lives_only_in_the_dm_correction(full_log: list) -> No
     assert len(corrections) == 1
     assert _event_date(corrections[0]) == "2026-06-11"
     assert corrections[0].payload.conversation_id in dm_ids
+
+    assert len(dm_ids) >= 8, "the DM fabric keeps enumeration from being free"
+    thread = [
+        event
+        for event in full_log
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.conversation_id == corrections[0].payload.conversation_id
+    ]
+    position = next(
+        index
+        for index, event in enumerate(thread)
+        if event.payload.body == S5_DM_CORRECTION
+    )
+    assert len(thread) >= 60, "the correction DM is a long-running thread"
+    assert position >= 5 and position <= len(thread) - 6, (
+        "the correction sits mid-stream, not at either end of the DM"
+    )
     for token in ("Arroyo", "Fruitvale", "hearing", "June"):
         assert token not in S5_DM_CORRECTION, "the DM text stays unsearchable"
 
