@@ -116,14 +116,21 @@ async def test_storyline_milestones_in_causal_order(tmp_path: Path) -> None:
     revision = next(
         e for e in events if e.tag == "document.revised" and e.seq > statement.seq
     )
-    reply = next(
+    # The playbook routes redlines through the business owner, not the
+    # counterparty — so the closing move is any legal email after the
+    # revision that talks about the NDA work, whoever it goes to.
+    handoff = next(
         e
         for e in events
         if e.tag == "email.message"
         and e.seq > revision.seq
-        and e.payload.thread_id == nda_email.payload.thread_id
+        and e.payload.sender in ("per-daniel-reyes", "per-tom-okafor")
+        and any(
+            term in (e.payload.subject + " " + e.payload.body).casefold()
+            for term in ("nda", "redline", "vantage")
+        )
     )
-    assert nda_email.seq < ticket.seq < statement.seq < revision.seq < reply.seq
+    assert nda_email.seq < ticket.seq < statement.seq < revision.seq < handoff.seq
 
 
 async def test_litmus_and_heuristics(tmp_path: Path) -> None:
