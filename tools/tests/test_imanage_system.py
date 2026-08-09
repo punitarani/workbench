@@ -192,6 +192,8 @@ async def test_search_by_content_and_number(server) -> None:
         "wstype": "document",
         "workspace_name": "legal",
         "path": "/legal/playbooks/nda-playbook.md",
+        "matched_versions": [2],
+        "in_head": True,
     }
 
     for query in ("#2", "2"):
@@ -204,6 +206,53 @@ async def test_search_by_content_and_number(server) -> None:
     assert [h["id"] for h in mixed["results"] if h["wstype"] == "document"] == [
         "LEGAL!2.1"
     ]
+
+
+async def test_search_reports_which_versions_matched(server) -> None:
+    """A hit on superseded text must say so: "Standard NDA fallback
+    positions." lives in version 1 only, and the head is version 2."""
+
+    [stale] = await call(server, "search", {"query": "fallback positions"})
+    [hit] = stale["results"]
+    assert hit["id"] == "LEGAL!1.2"
+    assert hit["version"] == 2
+    assert hit["matched_versions"] == [1]
+    assert hit["in_head"] is False
+
+    [current] = await call(server, "search", {"query": "fallback"})
+    [both] = current["results"]
+    assert both["matched_versions"] == [1, 2]
+    assert both["in_head"] is True
+
+    # A name or path match is document metadata, current by construction.
+    [by_name] = await call(server, "search", {"query": "Engagement Letter"})
+    [named] = [h for h in by_name["results"] if h["wstype"] == "document"]
+    assert named["matched_versions"] == []
+    assert named["in_head"] is True
+
+    [numeric] = await call(server, "search", {"query": "#1"})
+    assert numeric["results"][0]["matched_versions"] == []
+    assert numeric["results"][0]["in_head"] is True
+
+
+async def test_seat_resolves_the_empty_user_query(server, monkeypatch) -> None:
+    """iManage lists firm documents whatever the seat, but "who am I" —
+    get_user_information with no query — must be the seat, not everyone."""
+
+    monkeypatch.setenv("WORKBENCH_SEAT", "per-meredith-chao")
+    [me] = await call(server, "get_user_information")
+    assert [row["id"] for row in me["data"]] == ["per-meredith-chao"]
+    [searched] = await call(server, "get_user_information", {"query": "daniel"})
+    assert [row["id"] for row in searched["data"]] == ["per-daniel-reyes"]
+
+    [documents] = await call(server, "search", {"query": "fee"})
+    assert [h["id"] for h in documents["results"] if h["wstype"] == "document"] == [
+        "LEGAL!2.1"
+    ]
+
+    monkeypatch.delenv("WORKBENCH_SEAT")
+    [everyone] = await call(server, "get_user_information")
+    assert len(everyone["data"]) == 3
 
 
 async def test_search_workspaces(server) -> None:

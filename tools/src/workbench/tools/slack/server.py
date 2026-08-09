@@ -2,8 +2,21 @@
 
 Display ids are derived per call, never stored: channels are ``C{n:08d}``
 and users ``U{n:08d}`` where ``n`` is the 1-based position of the internal
-id in sorted order, so the mapping is deterministic for a given database.
+id in sorted order over the whole workspace, so the mapping is
+deterministic for a given database and independent of who is looking.
 Every tool accepts either the Slack-style id or the internal id.
+
+Search comes in Slack's own two flavors: ``slack_search_public`` sees
+channels only, and ``slack_search_public_and_private`` also sees the
+conversations the caller belongs to, dms included. Both share one query
+grammar.
+
+Workspace scoping: the optional ``WORKBENCH_SEAT`` environment variable
+names the person_id whose Slack this server presents; it is read at call
+time, never at import time. When set, only conversations that person is a
+member of exist for these tools — an unjoined channel and someone else's
+dm are both unknown ids. When unset the server reads workspace-wide. The
+user directory is workspace-wide either way, as it is in Slack.
 """
 
 import re
@@ -22,6 +35,7 @@ from workbench.tools.framework import (
     Person,
     UnknownRefError,
     read_epoch,
+    seat,
 )
 from workbench.tools.slack.tables import (
     CONVERSATIONS,
@@ -39,6 +53,8 @@ _PHRASE = re.compile(r'"([^"]*)"')
 
 @dataclass(frozen=True, slots=True)
 class _Directory:
+    # Only the conversations the seat may see; ``channel_ids`` still covers
+    # the whole workspace so a display id means the same thing for everyone.
     conversations: dict[str, Conversation]
     channel_ids: dict[str, str]
     people: dict[str, Person]
@@ -74,9 +90,16 @@ def _display_ids(internal_ids: Iterable[str], prefix: str) -> dict[str, str]:
 def _load(connection: sqlite3.Connection) -> _Directory:
     conversations = CONVERSATIONS.select(connection, order_by="conversation_id")
     people = PEOPLE_TABLE.select(connection, order_by="person_id")
+    channel_ids = _display_ids((c.conversation_id for c in conversations), "C")
+    if (person := seat()) is not None:
+        joined = {
+            member.conversation_id
+            for member in MEMBERS.select(connection, where={"person_id": person})
+        }
+        conversations = [c for c in conversations if c.conversation_id in joined]
     return _Directory(
         conversations={c.conversation_id: c for c in conversations},
-        channel_ids=_display_ids((c.conversation_id for c in conversations), "C"),
+        channel_ids=channel_ids,
         people={p.person_id: p for p in people},
         user_ids=_display_ids((p.person_id for p in people), "U"),
         epoch=read_epoch(connection),
@@ -205,6 +228,74 @@ def _find_by_ts(
     raise UnknownRefError(f"no message {message_ts} in {channel_id}")
 
 
+def _search_messages(
+    db_path: Path, query: str, limit: int, cursor: str | None, *, kinds: tuple[str, ...]
+) -> dict:
+    """The body both search tools share; ``kinds`` is what they may see."""
+
+    limit = max(1, min(limit, 20))
+    needles, filters = _parse_query(query)
+    lowered = [needle.lower() for needle in needles]
+    with connect_readonly(db_path) as connection:
+        directory = _load(connection)
+        searched = [
+            conversation
+            for conversation in directory.conversations.values()
+            if conversation.kind in kinds
+        ]
+        if "in" in filters:
+            wanted = filters["in"].lstrip("#").lower()
+            searched = [
+                c for c in searched if (_channel_name(c) or "").lower() == wanted
+            ]
+        messages: list[ChatMessage] = []
+        reactions: list[Reaction] = []
+        for conversation in searched:
+            conversation_messages, conversation_reactions = _conversation_messages(
+                connection, conversation
+            )
+            messages += conversation_messages
+            reactions += conversation_reactions
+    senders = (
+        _senders_matching(directory, filters["from"]) if "from" in filters else None
+    )
+    matches = []
+    for message in messages:
+        body = message.body.lower()
+        if any(needle not in body for needle in lowered):
+            continue
+        if senders is not None and message.sender not in senders:
+            continue
+        when = _event_date(directory.epoch, message.time)
+        if "before" in filters and when >= date.fromisoformat(filters["before"]):
+            continue
+        if "after" in filters and when <= date.fromisoformat(filters["after"]):
+            continue
+        matches.append(message)
+    matches.sort(key=lambda m: _ts_key(m.ts), reverse=True)
+    messages.sort(key=lambda m: _ts_key(m.ts))
+    objects = _message_objects(messages, reactions, directory)
+    by_conversation = {c.conversation_id: c for c in searched}
+    page, next_cursor = _page(matches, limit, cursor)
+    results = []
+    for message in page:
+        conversation = by_conversation[message.conversation_id]
+        results.append(
+            {
+                **objects[message.chat_message_id],
+                "channel": {
+                    "id": directory.channel_ids[conversation.conversation_id],
+                    "name": _channel_name(conversation),
+                },
+            }
+        )
+    return {
+        "ok": True,
+        "messages": {"matches": results, "total": len(matches)},
+        "response_metadata": {"next_cursor": next_cursor},
+    }
+
+
 def register(server: MCPServer, db_path: Path) -> None:
     @server.tool()
     def slack_search_channels(
@@ -304,66 +395,23 @@ def register(server: MCPServer, db_path: Path) -> None:
     def slack_search_public(
         query: str, limit: int = 20, cursor: str | None = None
     ) -> dict:
-        """Search channel messages; supports "phrases", in:, from:, before:,
-        after:. At most 20 matches per call (page with cursor; the response's
-        total reports the full match count)."""
-        limit = max(1, min(limit, 20))
-        needles, filters = _parse_query(query)
-        lowered = [needle.lower() for needle in needles]
-        with connect_readonly(db_path) as connection:
-            directory = _load(connection)
-            channels = [
-                conversation
-                for conversation in directory.conversations.values()
-                if conversation.kind == "channel"
-            ]
-            if "in" in filters:
-                wanted = filters["in"].lstrip("#").lower()
-                channels = [
-                    c for c in channels if (_channel_name(c) or "").lower() == wanted
-                ]
-            messages: list[ChatMessage] = []
-            reactions: list[Reaction] = []
-            for channel in channels:
-                channel_messages, channel_reactions = _conversation_messages(
-                    connection, channel
-                )
-                messages += channel_messages
-                reactions += channel_reactions
-        senders = (
-            _senders_matching(directory, filters["from"]) if "from" in filters else None
+        """Search public channel messages; supports "phrases", in:, from:,
+        before:, after:. At most 20 matches per call (page with the
+        response's next_cursor; total reports the full match count). Dms are
+        out of reach here — use slack_search_public_and_private for those."""
+        return _search_messages(db_path, query, limit, cursor, kinds=("channel",))
+
+    @server.tool()
+    def slack_search_public_and_private(
+        query: str, limit: int = 20, cursor: str | None = None
+    ) -> dict:
+        """Search every conversation this account can read — public channels
+        and dms alike — with the same query grammar as slack_search_public:
+        "phrases", in:, from:, before:, after:. At most 20 matches per call
+        (page with the response's next_cursor)."""
+        return _search_messages(
+            db_path, query, limit, cursor, kinds=("channel", "dm")
         )
-        matches = []
-        for message in messages:
-            body = message.body.lower()
-            if any(needle not in body for needle in lowered):
-                continue
-            if senders is not None and message.sender not in senders:
-                continue
-            when = _event_date(directory.epoch, message.time)
-            if "before" in filters and when >= date.fromisoformat(filters["before"]):
-                continue
-            if "after" in filters and when <= date.fromisoformat(filters["after"]):
-                continue
-            matches.append(message)
-        matches.sort(key=lambda m: _ts_key(m.ts), reverse=True)
-        messages.sort(key=lambda m: _ts_key(m.ts))
-        objects = _message_objects(messages, reactions, directory)
-        by_channel = {channel.conversation_id: channel for channel in channels}
-        page, _ = _page(matches, limit, cursor)
-        results = []
-        for message in page:
-            channel = by_channel[message.conversation_id]
-            results.append(
-                {
-                    **objects[message.chat_message_id],
-                    "channel": {
-                        "id": directory.channel_ids[channel.conversation_id],
-                        "name": _channel_name(channel),
-                    },
-                }
-            )
-        return {"ok": True, "messages": {"matches": results, "total": len(matches)}}
 
     @server.tool()
     def slack_search_users(query: str, limit: int = 100) -> dict:

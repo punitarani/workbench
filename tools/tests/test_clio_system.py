@@ -73,6 +73,21 @@ def clio_events() -> list[Event]:
             ),
         ),
         (
+            800,
+            "gm",
+            PersonRecordPayload(
+                kind="person.record",
+                person_id="per-zoe-tran",
+                name="Zoe Tran",
+                email_address="zoe@example.com",
+                title="Associate",
+                department="Legal",
+                manager=None,
+                affiliation="internal",
+                timezone="America/Los_Angeles",
+            ),
+        ),
+        (
             1000,
             "meredith",
             TicketCreatedPayload(
@@ -305,9 +320,11 @@ async def test_matter_contacts(server) -> None:
 
 async def test_users_subscription_type(server) -> None:
     users = (await call(server, "list_users"))["data"]
-    assert [u["id"] for u in users] == [1, 2, 3, 4, 5]
+    assert [u["id"] for u in users] == [1, 2, 3, 4, 5, 6]
     by_name = {u["name"]: u for u in users}
     assert by_name["Meredith Chao"]["subscription_type"] == "Attorney"
+    # Associates are attorneys; the title word list must not strand them.
+    assert by_name["Zoe Tran"]["subscription_type"] == "Attorney"
     assert by_name["Omar Diallo"]["subscription_type"] == "NonAttorney"
     assert by_name["Omar Diallo"]["first_name"] == "Omar"
     assert by_name["Omar Diallo"]["last_name"] == "Diallo"
@@ -322,11 +339,34 @@ async def test_who_am_i_reads_seat_env(server, monkeypatch) -> None:
     assert seated["name"] == "Meredith Chao"
     assert "seat_unset" not in seated
 
-    monkeypatch.delenv("WORKBENCH_SEAT")
-    unseated = (await call(server, "who_am_i"))["data"]
-    assert unseated["id"] == 1
-    assert unseated["name"] == "Daniel Reyes"
-    assert unseated["seat_unset"] is True
+
+async def test_who_am_i_without_a_seat_raises(server, monkeypatch) -> None:
+    """An unseated server has no identity to report; inventing one makes
+    every downstream "my matters" answer quietly wrong."""
+
+    monkeypatch.delenv("WORKBENCH_SEAT", raising=False)
+    with pytest.raises(Exception, match="WORKBENCH_SEAT"):
+        await server.call_tool("who_am_i", {})
+
+
+async def test_matters_expose_the_substantive_description(server) -> None:
+    """The ticket's description is the matter's description in Clio; the
+    one-line title is a separate, shorter field."""
+
+    matters = (await call(server, "list_matters"))["data"]
+    by_number = {m["number"]: m for m in matters}
+    assert by_number[2]["description"] == "Negotiate the master carrier agreement."
+    assert by_number[2]["title"] == "Blue Harbor carrier agreement"
+    assert by_number[1]["description"] == "Inbound NDA."
+    assert by_number[1]["title"] == "Review NDA"
+
+    detail = (await call(server, "get_matter", {"id": 2}))["data"]
+    assert detail["description"] == "Negotiate the master carrier agreement."
+
+    by_detail = (await call(server, "list_matters", {"query": "master carrier"}))["data"]
+    assert [m["number"] for m in by_detail] == [2]
+    by_title = (await call(server, "list_matters", {"query": "Review NDA"}))["data"]
+    assert [m["number"] for m in by_title] == [1]
 
 
 CLIO_TOOL_ARGUMENTS = {

@@ -5,6 +5,17 @@ JSON responses are shaped like Work API profiles. Documents are addressed
 by display id "LEGAL!{number}.{version}"; a missing version means head.
 Workspaces have no table of their own: they derive from the workspace
 column, numbered 1-based by first appearance (minimum document number).
+
+``search`` looks through every version, so a hit can be text that a later
+version deleted. Each document hit therefore reports ``matched_versions``
+(the versions whose stored text matched, empty when the match was on
+document metadata) and ``in_head`` (whether the match survives into the
+head version).
+
+Seat scoping: a document management system is firm-wide by design, so the
+document tools read the whole library whatever ``WORKBENCH_SEAT`` says.
+The seat only decides who "I" am: ``get_user_information`` with no query
+answers with the seat rather than the whole staff list.
 """
 
 import re
@@ -16,7 +27,12 @@ from mcp.server import MCPServer
 from pydantic import BaseModel
 
 from workbench.tools.db import Query, connect_readonly
-from workbench.tools.framework import PEOPLE_TABLE, UnknownRefError, read_epoch
+from workbench.tools.framework import (
+    PEOPLE_TABLE,
+    UnknownRefError,
+    read_epoch,
+    seat,
+)
 from workbench.tools.imanage.tables import DOCUMENTS, LIBRARY, VERSIONS, Version
 
 _DISPLAY_ID = re.compile(rf"{LIBRARY}!(\d+)(?:\.(\d+))?")
@@ -35,13 +51,23 @@ _WORKSPACES = Query(
     "GROUP BY workspace ORDER BY first_number",
 )
 
-_SEARCH_DOCS = Query(
+class _VersionHit(BaseModel):
+    document_id: str
+    version: int
+
+
+_SEARCH_METADATA = Query(
     DOCUMENTS.model,
-    "SELECT DISTINCT d.* FROM documents AS d "
-    "JOIN versions AS v ON v.document_id = d.document_id "
-    "WHERE instr(lower(d.name), ?) > 0 OR instr(lower(d.path), ?) > 0 "
-    "OR instr(lower(v.comment), ?) > 0 OR instr(lower(v.content), ?) > 0 "
-    "ORDER BY d.document_number",
+    "SELECT * FROM documents "
+    "WHERE instr(lower(name), ?) > 0 OR instr(lower(path), ?) > 0 "
+    "ORDER BY document_number",
+)
+
+_SEARCH_VERSIONS = Query(
+    _VersionHit,
+    "SELECT document_id, version FROM versions "
+    "WHERE instr(lower(comment), ?) > 0 OR instr(lower(content), ?) > 0 "
+    "ORDER BY document_id, version",
 )
 
 

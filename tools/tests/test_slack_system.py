@@ -373,7 +373,7 @@ async def test_search_public_terms_phrases_and_channel_scope(
     server: MCPServer,
 ) -> None:
     acme = await call(server, "slack_search_public", {"query": "Acme"})
-    assert set(acme) == {"ok", "messages"}
+    assert set(acme) == {"ok", "messages", "response_metadata"}
     assert set(acme["messages"]) == {"matches", "total"}
     assert acme["messages"]["total"] == 2, "the dm Acme message must not surface"
     matches = acme["messages"]["matches"]
@@ -400,6 +400,92 @@ async def test_search_public_caps_the_page_size(server: MCPServer) -> None:
         server, "slack_search_public", {"query": "Acme", "limit": 1, "cursor": "1"}
     )
     assert [m["ts"] for m in paged["messages"]["matches"]] == ["900.000002"]
+
+
+async def test_search_public_returns_its_pagination_cursor(server: MCPServer) -> None:
+    """The docstring promises paging; the cursor must reach the caller."""
+    first = await call(server, "slack_search_public", {"query": "Acme", "limit": 1})
+    assert first["response_metadata"] == {"next_cursor": "1"}
+    assert [m["ts"] for m in first["messages"]["matches"]] == ["90000.000004"]
+    rest = await call(
+        server,
+        "slack_search_public",
+        {"query": "Acme", "limit": 1, "cursor": first["response_metadata"]["next_cursor"]},
+    )
+    assert [m["ts"] for m in rest["messages"]["matches"]] == ["900.000002"]
+    assert rest["response_metadata"] == {"next_cursor": ""}
+
+
+async def test_search_public_and_private_covers_dms(server: MCPServer) -> None:
+    """Slack's second search tool reaches dms; the public one never does."""
+    public = await call(server, "slack_search_public", {"query": "Acme"})
+    assert public["messages"]["total"] == 2
+
+    both = await call(server, "slack_search_public_and_private", {"query": "Acme"})
+    assert set(both) == {"ok", "messages", "response_metadata"}
+    assert both["messages"]["total"] == 3
+    matches = both["messages"]["matches"]
+    assert [m["ts"] for m in matches] == ["90000.000004", "1000.000003", "900.000002"]
+    dm_hit = matches[1]
+    assert dm_hit["text"] == "Acme NDA status?"
+    assert dm_hit["channel"] == {"id": C_DM, "name": None}
+
+
+async def test_search_public_and_private_shares_the_query_grammar(
+    server: MCPServer,
+) -> None:
+    phrase = await call(
+        server, "slack_search_public_and_private", {"query": '"NDA status"'}
+    )
+    assert [m["ts"] for m in phrase["messages"]["matches"]] == ["1000.000003"]
+    by_sender = await call(
+        server, "slack_search_public_and_private", {"query": "from:Jess Acme"}
+    )
+    assert [m["user"] for m in by_sender["messages"]["matches"]] == [U_JESS]
+    early = await call(
+        server, "slack_search_public_and_private", {"query": "Acme before:2026-03-13"}
+    )
+    assert [m["ts"] for m in early["messages"]["matches"]] == [
+        "1000.000003",
+        "900.000002",
+    ]
+    paged = await call(
+        server, "slack_search_public_and_private", {"query": "Acme", "limit": 2}
+    )
+    assert paged["response_metadata"] == {"next_cursor": "2"}
+    assert paged["messages"]["total"] == 3
+
+
+async def test_seat_scopes_conversations_to_membership(
+    server: MCPServer, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With a seat, slack is that person's Slack: no channels they never
+    joined, and none of anyone else's dms."""
+    monkeypatch.setenv("WORKBENCH_SEAT", "per-tom-okafor")
+
+    channels = await call(server, "slack_search_channels", {"query": ""})
+    assert [c["id"] for c in channels["channels"]] == [C_LEGAL, C_DM]
+
+    # Display ids stay derived from the whole workspace, not from the slice.
+    assert (await call(server, "slack_read_channel", {"channel_id": C_LEGAL}))["ok"]
+    with pytest.raises(Exception, match=C_DEALS):
+        await server.call_tool("slack_read_channel", {"channel_id": C_DEALS})
+
+    both = await call(server, "slack_search_public_and_private", {"query": "Acme"})
+    assert both["messages"]["total"] == 1, "only tom's own dm is searchable"
+    assert both["messages"]["matches"][0]["ts"] == "1000.000003"
+    public = await call(server, "slack_search_public", {"query": "Acme"})
+    assert public["messages"]["total"] == 0, "tom is not in #deal-desk"
+
+    monkeypatch.setenv("WORKBENCH_SEAT", "per-meredith-chao")
+    hers = await call(server, "slack_search_public_and_private", {"query": "Acme"})
+    assert hers["messages"]["total"] == 2, "meredith never sees the jess/tom dm"
+    assert (await call(server, "slack_search_channels", {"query": ""}))["channels"] and [
+        c["id"]
+        for c in (await call(server, "slack_search_channels", {"query": ""}))["channels"]
+    ] == [C_LEGAL, C_DEALS]
+    with pytest.raises(Exception, match=C_DM):
+        await server.call_tool("slack_list_channel_members", {"channel_id": C_DM})
 
 
 async def test_search_public_from_and_date_filters(server: MCPServer) -> None:
@@ -507,6 +593,7 @@ async def test_surface_is_slack_named_and_read_only(server: MCPServer) -> None:
         "slack_read_user_profile",
         "slack_search_channels",
         "slack_search_public",
+        "slack_search_public_and_private",
         "slack_search_users",
     ]
     for tool in tools:
@@ -522,6 +609,7 @@ async def test_leakage_audit_no_offstage_markers(server: MCPServer) -> None:
         "slack_read_channel": {"channel_id": C_LEGAL},
         "slack_read_thread": {"channel_id": C_LEGAL, "message_ts": "500.000000"},
         "slack_search_public": {"query": "Acme"},
+        "slack_search_public_and_private": {"query": "Acme"},
         "slack_search_users": {"query": ""},
         "slack_read_user_profile": {"user_id": U_MEREDITH},
         "slack_list_channel_members": {"channel_id": C_LEGAL},

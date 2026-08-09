@@ -7,7 +7,7 @@ from projection_fixtures import coherent_events
 
 from workbench.tools import REGISTRY, check_coherence, project_all
 
-DBS = ["clio.db", "gmail.db", "imanage.db", "slack.db"]
+DBS = sorted(f"{system.name}.db" for system in REGISTRY)
 
 
 def project_fixture(tmp_path: Path) -> Path:
@@ -16,7 +16,8 @@ def project_fixture(tmp_path: Path) -> Path:
     return out
 
 
-def test_all_four_systems_project(tmp_path: Path) -> None:
+def test_every_registered_system_projects(tmp_path: Path) -> None:
+    assert DBS == ["calendar.db", "clio.db", "gmail.db", "imanage.db", "slack.db"]
     out = project_fixture(tmp_path)
     assert sorted(p.name for p in out.iterdir()) == DBS
 

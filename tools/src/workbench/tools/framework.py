@@ -9,6 +9,7 @@ epoch), and the ``directory`` tool live here so every database answers
 "who works here" and "when is now" the same way.
 """
 
+import os
 import sqlite3
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
@@ -32,6 +33,30 @@ class ToolContractError(WorkbenchError):
 
 class UnknownRefError(WorkbenchError):
     """A tool was asked about an id that does not exist."""
+
+
+class SeatUnsetError(WorkbenchError):
+    """A tool needs the active seat, but this server was started without one."""
+
+
+def seat() -> str | None:
+    """The person_id this server presents, or None for an org-wide server.
+
+    Read per call rather than at import time, so a test or a process that
+    changes seats mid-flight sees the change.
+    """
+
+    return os.environ.get("WORKBENCH_SEAT")
+
+
+def require_seat(tool: str) -> str:
+    person = seat()
+    if person is None:
+        raise SeatUnsetError(
+            f"{tool} needs an active seat: start the server with --user, or set "
+            "WORKBENCH_SEAT to the person_id whose account this server presents"
+        )
+    return person
 
 
 class Person(BaseModel):
