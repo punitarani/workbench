@@ -1,6 +1,17 @@
-# Working in workbench.core
+# Working in workbench (core, tools, environment)
 
-Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Core-specific:
+Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Package-specific:
+
+* **Tools and environment never import simulation or workplaces.** They see
+  the world only through core events; the world log is their sole input.
+* **Tool servers are read-only in this phase** and open databases in SQLite
+  read-only URI mode. Write tools arrive with the task phase, designed
+  against the externalized seat. Only tags in a projector's `handled_tags`
+  reach its database, and no projector handles `sim.*`.
+* **Materialization gates on validation**: an incoherent log never becomes
+  an environment.
+
+Core-specific:
 
 * **Everything here is a contract.** Simulation, workplaces, and (later)
   tool servers all deserialize what core serializes. A change to any model's

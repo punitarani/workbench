@@ -51,7 +51,7 @@ The Python packages form one [uv](https://docs.astral.sh/uv/) workspace sharing 
 
 | Directory | Distribution | Imports as |
 |---|---|---|
-| `workbench/` | `workbench` | `workbench.core` (`workbench.environment`, `workbench.tools` arrive with the tool phase) |
+| `workbench/` | `workbench` | `workbench.core`, `workbench.tools`, `workbench.environment` |
 | `simulation/` | `workbench-simulation` | `workbench.simulation` |
 | `workplaces/` | `workbench-workplaces` | `workbench.workplaces.<name>` |
 | `adapters/` | — | deferred until a concrete non-MCP consumer exists |
