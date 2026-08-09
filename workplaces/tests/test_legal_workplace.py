@@ -4,7 +4,11 @@ before any model is ever called."""
 from workbench.core.seed import Seed
 from workbench.core.worldlog import validate_events
 from workbench.simulation.workplace.compile import compile_workplace
-from workbench.workplaces.legal import UNWRITTEN_STANDARD_PHRASES, WORKPLACE
+from workbench.workplaces.legal import (
+    STANDARD_ARTIFACT_MARKERS,
+    UNWRITTEN_STANDARD_PHRASES,
+    WORKPLACE,
+)
 
 
 def test_workplace_compiles_and_genesis_validates() -> None:
@@ -40,7 +44,7 @@ def test_unwritten_standard_litmus_precondition() -> None:
     haystacks += [
         a.attachment.content for a in WORKPLACE.day_script if a.attachment
     ]
-    for phrase in UNWRITTEN_STANDARD_PHRASES:
+    for phrase in (*UNWRITTEN_STANDARD_PHRASES, *STANDARD_ARTIFACT_MARKERS):
         for haystack in haystacks:
             assert phrase.casefold() not in haystack.casefold(), (
                 f"standard phrase {phrase!r} leaked into seeded content"

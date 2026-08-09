@@ -135,3 +135,56 @@ def test_registry_enumerates_named_predictors() -> None:
         "draft_ticket",
         "draft_document",
     }
+
+
+def test_litmus_accepts_artifact_before_statement_when_holder_authored() -> None:
+    from workbench.simulation.audit.heuristics import knowledge_flow_litmus
+
+    events = [
+        _revision(0, "Capped the confidentiality term at two years."),
+        _chat(1, "per-daniel", "flagging: vendor NDAs get a two-year term cap"),
+    ]
+    # _revision author is per-b; holder-authored artifact required
+    result = knowledge_flow_litmus(
+        events,
+        statement_phrase="two-year term cap",
+        artifact_markers=("two year", "two-year"),
+        holder="per-daniel",
+    )
+    assert not result.passed, "artifact by a non-holder before the statement is a leak"
+
+    own_revision = _event(
+        0,
+        DocumentRevisedPayload(
+            kind="document.revised",
+            document_id="doc-000001",
+            revision=2,
+            author="per-daniel",
+            content="Capped the confidentiality term at two years.",
+            change_summary="s",
+        ),
+    )
+    events = [
+        own_revision,
+        _chat(1, "per-daniel", "flagging: vendor NDAs get a two-year term cap"),
+    ]
+    result = knowledge_flow_litmus(
+        events,
+        statement_phrase="two-year term cap",
+        artifact_markers=("two year", "two-year"),
+        holder="per-daniel",
+    )
+    assert result.passed, "holder-authored artifact then statement is legitimate flow"
+
+
+def test_litmus_still_requires_both_evidence_channels() -> None:
+    from workbench.simulation.audit.heuristics import knowledge_flow_litmus
+
+    only_statement = [_chat(0, "per-daniel", "two-year term cap please")]
+    result = knowledge_flow_litmus(
+        only_statement,
+        statement_phrase="two-year term cap",
+        artifact_markers=("two year",),
+        holder="per-daniel",
+    )
+    assert not result.passed

@@ -22,6 +22,8 @@ from workbench.simulation.workplace.spec import (
 from workbench.workplaces.legal.people import CAST
 
 UNWRITTEN_STANDARD_PHRASES = ("two-year term cap", "redlined on sight")
+# How the standard reads when applied inside a document rather than spoken.
+STANDARD_ARTIFACT_MARKERS = ("two-year", "two year")
 
 
 def _doc(name: str) -> str:

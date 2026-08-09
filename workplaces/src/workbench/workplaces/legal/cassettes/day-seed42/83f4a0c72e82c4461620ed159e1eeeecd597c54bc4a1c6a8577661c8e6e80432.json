@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): current time, schedule, workload\n3. `pending` (list[PendingItem]): \n4. `recent_activity` (str): what you did in the last hour\nYour output fields are:\n1. `choice` (ActionChoice):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## pending ## ]]\n{pending}\n\n[[ ## recent_activity ## ]]\n{recent_activity}\n\n[[ ## choice ## ]]\n{choice}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"action\": {\"type\": \"string\", \"enum\": [\"reply_email\", \"send_email\", \"post_chat\", \"create_ticket\", \"comment_ticket\", \"revise_document\", \"idle\"], \"title\": \"Action\"}, \"intent\": {\"type\": \"string\", \"title\": \"Intent\"}, \"reason\": {\"type\": \"string\", \"title\": \"Reason\"}, \"target_ref\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"title\": \"Target Ref\"}}, \"required\": [\"action\", \"target_ref\", \"intent\", \"reason\"], \"title\": \"ActionChoice\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        You are a professional deciding what to do next at work. Choose the\n        single most appropriate next action given who you are, your schedule\n        pressure, and what is pending. Prefer responding to direct requests over\n        housekeeping; respect your role's lane; do not invent work that is not\n        supported by the pending items. Never send a message whose only content\n        is acknowledgment, thanks, or confirmation of receipt — if a thread\n        needs no substantive action from you, idle instead.\n        \n        Work the way real professionals do, not everything by email: quick\n        internal coordination and status belong in chat; work that should be\n        tracked becomes a ticket per your role; producing or revising a document\n        is its own action, done in the repository, not described in an email.\n        Follow through on commitments listed in your recent activity — if you\n        said you would open a matter or deliver a redline and have not, that is\n        your next action. Never redo work: if the situation already lists a\n        ticket for a request, or your recent activity shows a revision\n        delivered, do not create or revise it again — move on or idle."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Priya Nair, Counsel, Privacy (mid).\nOwns privacy and data protection. Reviews anything touching personal data; backs up Daniel on commercial overflow.\nPersonality: Precise, thorough, slightly formal even in chat. Volunteers privacy angles others miss.\nEmail register: Structured; numbered points; signs 'Regards, Priya'.\nChat register: Complete sentences with punctuation, even in chat.\nWorking hours: 09:00-17:00\n\n[[ ## situation ## ]]\nCurrent time: about 17:09.\nDocuments you know of: /legal/playbooks/nda-playbook.md; /legal/templates/nda-template.md; /legal/executed/precedent-nda-acme.md; /legal/executed/precedent-nda-northwind.md\nYou have 2 pending item(s).\n\n[[ ## pending ## ]]\n[{\"ref\": \"msg-000019\", \"channel\": \"email\", \"summary\": \"Re: Vantage — assignment clause guidance\", \"age_minutes\": 348}, {\"ref\": \"msg-000029\", \"channel\": \"email\", \"summary\": \"Re: Vantage — assignment clause guidance\", \"age_minutes\": 213}]\n\n[[ ## recent_activity ## ]]\nConfirms Vantage was previously reviewed two years ago and the deal died over their refusal to sign our DPA; flags points for NDA review and offers to pull prior correspondence or support Daniel directly.\nSends Daniel the Vantage history (prior deal failed over DPA refusal) and flags three NDA review points, including the assignment clause Meredith raised; commits to sending prior correspondence and offers direct support.\nAcknowledges Daniel's NDA review plan for Vantage, confirms alignment on DPA, assignment, and privacy terms, and commits to sending prior correspondence separately; offers to join a call or review redlines if needed.\nSend Daniel the prior Vantage correspondence (pitch materials and DPA refusal exchange) as committed, relay Meredith's firm stance on the assignment clause requiring written consent, and request he loop Meredith into redlines if that clause is non-standard.\n\nRespond with the corresponding output fields, starting with the field `[[ ## choice ## ]]` (must be formatted as a valid Python ActionChoice), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 11715096720188557814,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## choice ## ]]\n{\"action\": \"idle\", \"target_ref\": null, \"intent\": \"No pending substantive action; all committed follow-ups are complete and it is past working hours.\", \"reason\": \"I have already sent the prior Vantage correspondence as committed, relayed Meredith's stance, and requested to be looped into redlines. The two pending emails are older threads on the same topic where no new substantive request requires action from me now. It is 17:09, past my working hours, and no ticket or document revision is warranted. Idling is appropriate to avoid redundant or acknowledgment-only messages.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1057,
+      "completion_tokens": 136
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

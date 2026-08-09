@@ -195,3 +195,65 @@ def register_matches_channel(events: Sequence[Event]) -> tuple[AuditFinding, ...
                 )
             )
     return tuple(findings)
+
+
+class KnowledgeFlowResult(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    statement_seq: int | None
+    artifact_seq: int | None
+    leaked_seq: int | None
+
+    @property
+    def passed(self) -> bool:
+        return (
+            self.statement_seq is not None
+            and self.artifact_seq is not None
+            and self.leaked_seq is None
+        )
+
+
+def knowledge_flow_litmus(
+    events: Sequence[Event],
+    *,
+    statement_phrase: str,
+    artifact_markers: tuple[str, ...],
+    holder: str,
+) -> KnowledgeFlowResult:
+    """Order-flexible proof that knowledge originated with the holder.
+
+    Passes when the holder states the phrase in a message AND a
+    holder-authored document carries a marker, in either order. Fails if
+    any non-holder expression of either appears before the holder's first.
+    """
+    needle = statement_phrase.casefold()
+    markers = tuple(m.casefold() for m in artifact_markers)
+    statement_seq: int | None = None
+    artifact_seq: int | None = None
+    leaked_seq: int | None = None
+
+    for event in events:
+        payload = event.payload
+        body = _body_of(event)
+        if body is not None and needle in body.casefold():
+            if _author_of(event) == holder:
+                if statement_seq is None:
+                    statement_seq = event.seq
+            elif statement_seq is None and artifact_seq is None:
+                leaked_seq = event.seq
+                break
+        if isinstance(payload, DocumentCreatedPayload | DocumentRevisedPayload):
+            text = payload.content.casefold()
+            if any(marker in text for marker in markers):
+                if payload.author == holder:
+                    if artifact_seq is None:
+                        artifact_seq = event.seq
+                elif statement_seq is None and artifact_seq is None:
+                    leaked_seq = event.seq
+                    break
+
+    return KnowledgeFlowResult(
+        statement_seq=statement_seq,
+        artifact_seq=artifact_seq,
+        leaked_seq=leaked_seq,
+    )
