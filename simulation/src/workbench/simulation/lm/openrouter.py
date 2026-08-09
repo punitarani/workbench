@@ -9,7 +9,11 @@ from workbench.simulation.errors import LMResponseError, LMTransportError
 from workbench.simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
 
 BASE_URL = "https://openrouter.ai/api/v1"
-DEFAULT_MODEL = "deepseek/deepseek-v4-flash-0731"
+DEFAULT_MODEL = "openai/gpt-5.6-luna"
+# One provider, no fallbacks: routing that silently moves between providers
+# changes tokenization and sampling, and a recorded day must replay from the
+# same source it was recorded against.
+DEFAULT_PROVIDERS = ("openai",)
 
 
 class OpenRouterLM:
@@ -21,6 +25,7 @@ class OpenRouterLM:
         max_concurrency: int = 8,
         timeout_seconds: float = 120.0,
         transport: httpx.AsyncBaseTransport | None = None,
+        providers: tuple[str, ...] = DEFAULT_PROVIDERS,
     ) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
@@ -29,6 +34,7 @@ class OpenRouterLM:
             transport=transport,
         )
         self._semaphore = asyncio.Semaphore(max_concurrency)
+        self._providers = providers
 
     async def complete(self, request: LMRequest) -> LMResponse:
         body: dict[str, Any] = {
@@ -42,6 +48,11 @@ class OpenRouterLM:
             # (tokens spent thinking); simulation turns want plain answers.
             "reasoning": {"enabled": False},
         }
+        if self._providers:
+            body["provider"] = {
+                "only": list(self._providers),
+                "allow_fallbacks": False,
+            }
         if request.temperature is not None:
             body["temperature"] = request.temperature
         if request.top_p is not None:

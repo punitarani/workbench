@@ -4,13 +4,13 @@ import httpx
 import pytest
 
 from workbench.simulation.errors import LMResponseError, LMTransportError
-from workbench.simulation.lm.openrouter import OpenRouterLM
+from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
 from workbench.simulation.lm.protocol import ChatMessage, LMRequest
 
 
 def request(**overrides) -> LMRequest:
     defaults = dict(
-        model="deepseek/deepseek-v4-flash-0731",
+        model=DEFAULT_MODEL,
         messages=(ChatMessage(role="user", content="hello"),),
         temperature=1.0,
         top_p=0.95,
@@ -47,12 +47,16 @@ async def test_request_shape_and_response_parsing() -> None:
     assert response.usage.completion_tokens == 2
     assert not response.cache_hit
     assert seen["auth"] == "Bearer sk-or-test"
-    assert seen["body"]["model"] == "deepseek/deepseek-v4-flash-0731"
+    assert seen["body"]["model"] == DEFAULT_MODEL
     assert seen["body"]["seed"] == 7
     assert seen["body"]["temperature"] == 1.0
     assert seen["body"]["top_p"] == 0.95
     assert seen["body"]["max_tokens"] == 64
     assert "response_format" not in seen["body"]
+    assert seen["body"]["provider"] == {
+        "only": ["openai"],
+        "allow_fallbacks": False,
+    }, "one provider, no silent fallbacks"
 
 
 async def test_response_schema_is_forwarded() -> None:

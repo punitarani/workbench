@@ -23,12 +23,17 @@ from workbench.simulation.audit.heuristics import (
     replies_address_their_threads,
 )
 from workbench.simulation.lm.cassette import CassetteStore, ReplayLM
+from workbench.simulation.lm.openrouter import DEFAULT_MODEL
 from workbench.simulation.run import run_workplace
 from workbench.workplaces.legal import (
     STANDARD_ARTIFACT_MARKERS,
     UNWRITTEN_STANDARD_PHRASES,
     WORKPLACE,
 )
+
+# Cassette keys include the model, so replay names the model the day was
+# recorded against — not the current default.
+RECORDED_MODEL = "deepseek/deepseek-v4-flash-0731"
 
 CASSETTE = (
     Path(__file__).parent.parent
@@ -65,7 +70,7 @@ async def replay(tmp_path: Path, name: str) -> Path:
         seed=Seed(root=42),
         out_dir=out_dir,
         inner_lm=ReplayLM(CassetteStore(CASSETTE)),
-        model="deepseek/deepseek-v4-flash-0731",
+        model=RECORDED_MODEL,
     )
     return out_dir / "world.jsonl"
 
@@ -183,7 +188,7 @@ async def test_real_model_smoke(tmp_path: Path) -> None:
         seed=Seed(root=7),
         out_dir=out_dir,
         inner_lm=inner,
-        model="deepseek/deepseek-v4-flash-0731",
+        model=DEFAULT_MODEL,
         stop=StopCondition(max_steps=8),
     )
     events = read_events(out_dir / "world.jsonl")
