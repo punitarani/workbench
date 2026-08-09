@@ -14,4 +14,6 @@ from measured token usage, rounded up.
 | 5 | 08-09 00:4x | de-overfit eval + holdout3 + run 4 | ~350K/est | $0.05 | $0.23 |
 | 6 | 08-09 00:5x | acceptance re-record (original text + rendering fix) | ~350K/est | $0.05 | $0.28 |
 
+| 7 | 08-09 01:1x | Phase 1 tool rebuild (no OpenRouter spend) | 0 | $0.00 | $0.28 |
+
 Remaining before Phase 2 generation: ~$24.70.

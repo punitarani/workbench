@@ -11,15 +11,17 @@ system) drives everything downstream: projection, cross-database coherence
 checking, server assembly, workspace `.mcp.json` specs, and the stdio
 serve entry point.
 
-| System | Database | Read tools |
-|---|---|---|
-| `mail` | `mail.db` | `list_threads`, `read_thread`, `search_mail` |
-| `chat` | `chat.db` | `list_conversations`, `read_conversation`, `search_chat` |
-| `dms` | `dms.db` | `list_documents`, `read_document`, `document_history` |
-| `matters` | `matters.db` | `list_tickets`, `read_ticket` |
+| System | Database | Mirrors | Read tools |
+|---|---|---|---|
+| `gmail` | `gmail.db` | Google's official Gmail MCP | `search_threads`, `get_thread`, `get_message`, `list_labels` |
+| `slack` | `slack.db` | Slack's official MCP | `slack_search_public`, `slack_read_channel`, `slack_read_thread`, `slack_search_channels`, `slack_search_users`, `slack_read_user_profile`, `slack_list_channel_members`, `slack_get_reactions` |
+| `imanage` | `imanage.db` | official iManage MCP | `search`, `search_workspaces`, `get_workspace_profile`, `get_container_children`, `get_document_profile`, `get_document_versions`, `download_document`, `get_libraries`, `get_user_information` |
+| `clio` | `clio.db` | Clio Manage API v4 (no official MCP exists) | `list_matters`, `get_matter`, `list_matter_contacts`, `list_contacts`, `list_activities`, `list_notes`, `list_users`, `who_am_i` |
 
-Every server also carries `directory` — the organization's people, projected
-into every database so each tool answers "who works here" the same way.
+People surface through each product's own user tools; the shared people
+table stays in every database as their projection source. Person-scoped
+systems (a Gmail mailbox, Clio's who_am_i) read the seat from
+`WORKBENCH_SEAT`, set by `serve --user`.
 
 Schemas are typed end to end: `db.py` derives DDL, inserts, and reads from
 Pydantic row models, so the schema cannot drift from the types, and `Id`/
