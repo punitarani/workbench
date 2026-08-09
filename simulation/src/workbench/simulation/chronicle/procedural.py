@@ -5,9 +5,18 @@ ids come from the caller's minter in generation order, so the same inputs
 always produce the same drafts byte for byte. Drafts reference only the
 cast, channel, and matters they are given, which keeps a chronicle built
 from them coherent by construction.
+
+Prose is not stored here. The caller supplies a :class:`ProceduralVoice`
+of slot-filled templates, so a workplace owns its own register and the
+generators own only the shape of a day: how many messages, from whom,
+against which matter, at what hour. Templates compose with the slot pools
+at generation time, which is what keeps a season of traffic from
+collapsing into a handful of repeated strings.
 """
 
 import random
+import string
+from collections.abc import Mapping, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -20,7 +29,8 @@ from workbench.core.ids import IdMinter
 from workbench.core.seed import Seed, derive_rng
 from workbench.core.simtime import SimDuration, SimTime
 from workbench.simulation.chronicle.builder import TimedDraft
-from workbench.simulation.chronicle.calendar import CalendarWindow
+from workbench.simulation.chronicle.calendar import SECONDS_PER_DAY, CalendarWindow
+from workbench.simulation.errors import ChronicleError
 
 
 class _Model(BaseModel):
@@ -41,10 +51,30 @@ class CastMember(_Model):
         return rest or self.person_id
 
 
+class Timekeeper(_Model):
+    """A fee earner, their billable-day target, and their hourly rate."""
+
+    member: CastMember
+    daily_hours: float = Field(gt=0.0, le=12.0)
+    rate_cents: int = Field(ge=0)
+
+
 class OpenMatter(_Model):
+    """A live matter and how much of the firm's effort it absorbs.
+
+    ``weight`` is relative complexity: a matter at 2.0 draws twice the
+    entries of one at 1.0 from the people staffed on it, which is what
+    makes per-matter totals track the work rather than the clock.
+    """
+
     ticket_id: str
     label: str
     assignee: str
+    weight: float = Field(default=1.0, gt=0.0)
+    staff: tuple[str, ...] = ()
+
+    def team(self) -> tuple[str, ...]:
+        return self.staff if self.staff else (self.assignee,)
 
 
 class ChatChannel(_Model):
@@ -72,11 +102,52 @@ class DmThread(_Model):
         return self
 
 
+class EmailForm(_Model):
+    subject: str
+    body: str
+
+
+class ProceduralVoice(_Model):
+    """Slot-filled phrasings the generators compose bodies from.
+
+    Every string is a template: ``{name}`` is replaced either from the
+    generator's context (``matter``, ``first``, ``me``, ``focus``) or by a
+    seeded draw from ``slots``. Slot values may themselves carry slots.
+    """
+
+    standup: tuple[str, ...] = Field(min_length=1)
+    standup_focus: tuple[str, ...] = Field(min_length=1)
+    reactions: tuple[str, ...] = Field(min_length=1)
+    matter_lines: tuple[str, ...] = Field(min_length=1)
+    matter_replies: tuple[str, ...] = Field(min_length=1)
+    billing_lines: tuple[str, ...] = Field(min_length=1)
+    billing_replies: tuple[str, ...] = Field(min_length=1)
+    it_lines: tuple[str, ...] = Field(min_length=1)
+    it_replies: tuple[str, ...] = Field(min_length=1)
+    dm_openers: tuple[str, ...] = Field(min_length=1)
+    dm_replies: tuple[str, ...] = Field(min_length=1)
+    dm_closers: tuple[str, ...] = Field(min_length=1)
+    # Verbatim house phrasings for the firm's standing one-to-one asks.
+    # These are never slot-filled: the point is that they read identically
+    # every time, the way a habitual request does.
+    standing_requests: tuple[str, ...] = ()
+    standing_request_rate: float = Field(default=0.0, ge=0.0, le=1.0)
+    internal_email: tuple[EmailForm, ...] = Field(min_length=1)
+    internal_replies: tuple[str, ...] = Field(min_length=1)
+    external_email: tuple[EmailForm, ...] = Field(min_length=1)
+    external_replies: tuple[str, ...] = Field(min_length=1)
+    time_notes: tuple[str, ...] = Field(min_length=1)
+    matter_notes: tuple[str, ...] = Field(min_length=1)
+    meeting_titles: tuple[str, ...] = Field(min_length=1)
+    meeting_descriptions: tuple[str, ...] = Field(min_length=1)
+    slots: Mapping[str, tuple[str, ...]] = Field(default_factory=dict)
+
+
 class ProceduralCast(_Model):
     """Who generates and receives background traffic, and against what."""
 
     internal: tuple[CastMember, ...] = Field(min_length=2)
-    timekeepers: tuple[CastMember, ...] = Field(min_length=1)
+    timekeepers: tuple[Timekeeper, ...] = Field(min_length=1)
     externals: tuple[CastMember, ...] = Field(min_length=1)
     standup_channel: str
     matters_channel: ChatChannel
@@ -89,232 +160,133 @@ class ProceduralCast(_Model):
     def _timekeepers_are_internal(self) -> ProceduralCast:
         internal_ids = {member.person_id for member in self.internal}
         strangers = [
-            member.person_id
-            for member in self.timekeepers
-            if member.person_id not in internal_ids
+            keeper.member.person_id
+            for keeper in self.timekeepers
+            if keeper.member.person_id not in internal_ids
         ]
         if strangers:
             raise ValueError(f"timekeepers are not internal cast: {strangers}")
         return self
 
 
-_STANDUP_LINES = (
-    "Morning all. Today: {focus}. No blockers.",
-    "Standup: {focus} today, then catching up on email.",
-    "In early — plan is {focus}. Ping me if anything urgent lands.",
-    "Today: {focus}. Out for a filing run late afternoon.",
-    "Picking up where I left off yesterday: {focus}.",
-)
+class DayProfile(_Model):
+    """How much of a normal working day a given date carries.
 
-_STANDUP_FOCUS = (
-    "drafting on {matter}",
-    "document review for {matter}",
-    "prep for the next deadline on {matter}",
-    "revisions to the {matter} papers",
-    "chasing signatures on {matter}",
-    "a status call about {matter}",
-)
+    ``intensity`` scales every generator's expected volume, so a Saturday
+    or an observed holiday produces the same kinds of traffic as a Tuesday
+    at a fraction of the rate rather than the silence of a synthetic
+    calendar.
+    """
 
-_REACTION_EMOJI = ("thumbsup", "coffee", "tada", "eyes", "raised_hands")
+    kind: str = Field(pattern=r"^(workday|weekend|holiday)$")
+    intensity: float = Field(gt=0.0, le=1.0)
 
-_MATTER_LINES = (
-    "Where are we on {matter}? Client asked for a status this morning.",
-    "Filed the latest on {matter}; the working file is up to date.",
-    "{matter}: still waiting on the other side. Will chase Thursday.",
-    "New documents landed on {matter} — review pass set for this week.",
-    "Anyone have cycles for a quick cite-check on {matter}?",
-    "Calendar note: next internal deadline on {matter} is end of week.",
-)
 
-_MATTER_REPLIES = (
-    "On it — update by end of day.",
-    "Adding it to tomorrow's list.",
-    "Thanks for the heads-up.",
-    "Can take that after lunch.",
-)
+WORKDAY = DayProfile(kind="workday", intensity=1.0)
 
-_BILLING_LINES = (
-    "Prebills circulate Thursday. Edits back to me by Friday noon, please.",
-    "Trust balances reconciled through last month; shortfalls flagged separately.",
-    "Reminder: narratives need enough detail to survive client review.",
-    "Invoices on {matter} went out this morning.",
-    "Two receivables are past sixty days — escalating next week.",
-    "Rate table updates posted; check your matters before month-end.",
-)
+_FORMATTER = string.Formatter()
 
-_IT_LINES = (
-    "The scanner on three is offline again. Ticket logged with the vendor.",
-    "Anyone else getting certificate warnings on the research portal?",
-    "Password resets roll out Friday — watch for the prompt at login.",
-    "Docking stations for the new monitors arrive Wednesday.",
-    "If the wifi drops in the small conference room, use the wall jack.",
-    "Backup window moves to 9 pm tonight; save early.",
-)
-
-_IT_REPLIES = (
-    "Looking at it now — will follow up here.",
-    "Known issue; fix is on the way.",
-    "A restart cured it for me.",
-)
-
-_INTERNAL_EMAIL = (
-    (
-        "Timesheet reminder",
-        "Hi {recipient},\n\nFriendly reminder to get last week's time in "
-        "before the prebill run on Friday.\n\nThanks,\n{sender}",
-    ),
-    (
-        "Conference room booking",
-        "Hi {recipient},\n\nI have the large conference room blocked from "
-        "2 to 4 tomorrow — let me know if that collides with anything on "
-        "your calendar.\n\n{sender}",
-    ),
-    (
-        "Third-floor copier",
-        "Hi {recipient},\n\nThe third-floor copier is jamming again. Use "
-        "the one by records until the service tech comes through.\n\n"
-        "{sender}",
-    ),
-    (
-        "Supply order going in Thursday",
-        "Hi {recipient},\n\nPutting the monthly supply order in Thursday "
-        "morning — send me anything you need before then.\n\n{sender}",
-    ),
-    (
-        "Parking validations",
-        "Hi {recipient},\n\nFresh parking validation books are at the front "
-        "desk. Please log client visits in the sheet as usual.\n\n{sender}",
-    ),
-    (
-        "Lunch for the team meeting",
-        "Hi {recipient},\n\nOrdering sandwiches for the team meeting — "
-        "reply with your pick by 10:30 or you get my choice.\n\n{sender}",
-    ),
-)
-
-_INTERNAL_REPLY = (
-    "Thanks {sender} — noted.",
-    "Got it, thanks for the heads-up.",
-    "Works for me, thanks.",
-    "Thanks! Will do.",
-)
-
-_EXTERNAL_EMAIL = (
-    (
-        "Scheduling a call",
-        "Hello {recipient},\n\nCould we find twenty minutes this week to "
-        "speak about the open items on our side? Wednesday or Thursday "
-        "afternoon works for us.\n\nRegards,\n{sender}",
-    ),
-    (
-        "Document status",
-        "Hello {recipient},\n\nChecking in on the outstanding documents we "
-        "discussed. Please let us know where things stand when you have a "
-        "moment.\n\nRegards,\n{sender}",
-    ),
-    (
-        "Courtesy copy of correspondence",
-        "Hello {recipient},\n\nFor your records, a courtesy note that our "
-        "office sent the correspondence discussed last week. Happy to "
-        "answer questions.\n\nRegards,\n{sender}",
-    ),
-    (
-        "Availability next week",
-        "Hello {recipient},\n\nOur side is available Monday and Tuesday "
-        "next week should you wish to confer. Please advise what suits.\n\n"
-        "Regards,\n{sender}",
-    ),
-)
-
-_EXTERNAL_REPLY = (
-    "Thank you — we will revert shortly.",
-    "Received, thank you. I will come back to you this week.",
-    "Thanks for the note; let me check internally and follow up.",
-)
-
-_TIME_NOTES = (
-    "Draft and revise correspondence re {matter}.",
-    "Review documents and update working file for {matter}.",
-    "Telephone conference regarding {matter}.",
-    "Legal research on open questions in {matter}.",
-    "Prepare and organize exhibits for {matter}.",
-    "Attention to case management and calendaring for {matter}.",
-)
-
-_TIME_MINUTES = (18, 30, 42, 60, 90, 120)
-
-_MATTER_COMMENTS = (
-    "Status: on track. Next touch scheduled for later this week.",
-    "Waiting on the client for documents; follow-up sent.",
-    "Draft circulated internally for comment.",
-    "No movement from the other side today; will nudge tomorrow.",
-    "Updated the working file; nothing needed from the team yet.",
-)
-
-_DM_OPENERS = (
-    "got a minute before your next call?",
-    "lunch run to the corner place — want anything?",
-    "can you resend that last version when you get a chance?",
-    "conference room b is double booked again — can we grab yours?",
-    "heads up, running about ten minutes late this morning.",
-    "do you still have the sign-in sheet from yesterday?",
-    "quick one: is the template on the shared drive current?",
-    "coffee downstairs in fifteen?",
-    "can you cover my phone for an hour this afternoon?",
-    "did the courier package show up yet?",
-    "are you in tomorrow or working remote?",
-    "mind taking a quick look at my draft before it goes out?",
-)
-
-_DM_REPLIES = (
-    "sure thing.",
-    "yep — give me ten.",
-    "on it.",
-    "can do, after lunch ok?",
-    "thanks for the heads up.",
-    "sorry, slammed today. tomorrow?",
-    "just sent it over.",
-    "works for me.",
-)
-
-_DM_CLOSERS = (
-    "perfect, thanks.",
-    "great.",
-    "appreciate it.",
-    "ok, talk then.",
-)
-
-_MEETING_TITLES = (
-    "Weekly matter review",
-    "Billing sync",
-    "Staffing check-in",
-    "Client call prep",
-    "Docket review",
-)
-
-_MEETING_DESCRIPTIONS = (
-    "Standing sync — agenda in the invite.",
-    "Quick huddle, thirty minutes tops.",
-    "Bring your open-items list.",
-    "Conference room A unless noted otherwise.",
-)
+# Clock spans. Office hours carry the bulk; a small share of every
+# workday lands before the office opens or well after it empties, and
+# non-working days spread across daylight instead.
+_OFFICE_OPEN = 8 * 3600 + 1800
+_OFFICE_CLOSE = 18 * 3600
+_EARLY = (6 * 3600 + 1800, _OFFICE_OPEN)
+_LATE = (_OFFICE_CLOSE + 1800, 22 * 3600 + 1800)
+_OFF_DAY = (8 * 3600, 20 * 3600)
+_EARLY_RATE = 0.025
+_LATE_RATE = 0.045
 
 _MORNING = 9 * 3600
+
+# Billing increments a firm actually records: tenths of an hour, weighted
+# toward the short-to-medium entries that make up most of a day. Laid out
+# as a table because the shape of the distribution is the point.
+# fmt: off
+_DURATION_WEIGHTS: tuple[tuple[int, int], ...] = (
+    (6, 5), (12, 9), (18, 13), (24, 14), (30, 15), (36, 13),
+    (42, 12), (48, 11), (54, 9), (60, 12), (72, 9), (84, 7),
+    (90, 8), (102, 5), (114, 4), (120, 6), (138, 3), (150, 3),
+    (168, 2), (180, 3), (210, 2), (240, 1),
+)
+# fmt: on
+_DURATIONS = tuple(minutes for minutes, _ in _DURATION_WEIGHTS)
+_WEIGHTS = tuple(weight for _, weight in _DURATION_WEIGHTS)
+_NON_BILLABLE_RATE = 0.11
+_MAX_ENTRIES_PER_DAY = 11
+
+
+def fill(
+    rng: random.Random, voice: ProceduralVoice, template: str, **context: str
+) -> str:
+    """Resolve ``{slot}`` placeholders from context, then from the pools."""
+
+    text = template
+    for _ in range(4):
+        fields = [name for _, name, _, _ in _FORMATTER.parse(text) if name]
+        if not fields:
+            return text
+        values: dict[str, str] = {}
+        for name in dict.fromkeys(fields):
+            if name in context:
+                values[name] = context[name]
+                continue
+            pool = voice.slots.get(name)
+            if pool is None:
+                raise ChronicleError(
+                    f"template {template!r} needs slot {name!r}, which the voice "
+                    "does not define"
+                )
+            values[name] = rng.choice(pool)
+        text = text.format(**values)
+    raise ChronicleError(f"template {template!r} did not resolve in four passes")
+
+
+def _pick(
+    rng: random.Random, voice: ProceduralVoice, pool: Sequence[str], **c: str
+) -> str:
+    return fill(rng, voice, rng.choice(pool), **c)
+
+
+def _count(rng: random.Random, mean: float) -> int:
+    whole = int(mean)
+    return whole + (1 if rng.random() < mean - whole else 0)
+
+
+def _clock(rng: random.Random, profile: DayProfile, low: int, high: int) -> int:
+    if profile.kind != "workday":
+        return rng.randrange(*_OFF_DAY)
+    roll = rng.random()
+    if roll < _EARLY_RATE:
+        return rng.randrange(*_EARLY)
+    if roll < _EARLY_RATE + _LATE_RATE:
+        return rng.randrange(*_LATE)
+    return rng.randrange(low, high)
+
+
+def _after(rng: random.Random, at: int, low: int, high: int) -> int:
+    return min(at + rng.randrange(low, high), SECONDS_PER_DAY - 1)
 
 
 def _standups(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
     minter: IdMinter,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> list[tuple[str, int]]:
     posted: list[tuple[str, int]] = []
     for member in cast.internal:
-        if rng.random() >= 0.85:
+        if rng.random() >= 0.85 * profile.intensity:
             continue
-        at = _MORNING + rng.randrange(0, 1200)
+        at = (
+            _MORNING + rng.randrange(0, 1800)
+            if profile.kind == "workday"
+            else rng.randrange(*_OFF_DAY)
+        )
         matter = rng.choice(cast.matters)
-        focus = rng.choice(_STANDUP_FOCUS).format(matter=matter.label)
+        focus = _pick(rng, voice, voice.standup_focus, matter=matter.label)
         message_id = minter.mint("chm")
         drafts.append(
             TimedDraft(
@@ -326,7 +298,7 @@ def _standups(
                     conversation_id=cast.standup_channel,
                     reply_to=None,
                     sender=member.person_id,
-                    body=rng.choice(_STANDUP_LINES).format(focus=focus),
+                    body=_pick(rng, voice, voice.standup, focus=focus),
                 ),
             )
         )
@@ -336,6 +308,7 @@ def _standups(
 
 def _reactions(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
     posted: list[tuple[str, int]],
     drafts: list[TimedDraft],
@@ -346,14 +319,14 @@ def _reactions(
         reactor = rng.choice(cast.internal)
         drafts.append(
             TimedDraft(
-                at=SimDuration(at + rng.randrange(120, 1800)),
+                at=SimDuration(_after(rng, at, 120, 1800)),
                 source=reactor.entity,
                 payload=ChatReactionAddedPayload(
                     kind="chat.reaction.added",
                     conversation_id=cast.standup_channel,
                     chat_message_id=message_id,
                     person_id=reactor.person_id,
-                    emoji=rng.choice(_REACTION_EMOJI),
+                    emoji=rng.choice(voice.reactions),
                 ),
             )
         )
@@ -392,14 +365,16 @@ def _channel_message(
 
 def _matter_chatter(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
     minter: IdMinter,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> None:
-    for _ in range(rng.randrange(0, 3)):
+    for _ in range(_count(rng, 1.1 * profile.intensity)):
         matter = rng.choice(cast.matters)
-        at = rng.randrange(9 * 3600 + 1800, 17 * 3600)
-        body = rng.choice(_MATTER_LINES).format(matter=matter.label)
+        at = _clock(rng, profile, _MORNING + 1800, 17 * 3600)
+        body = _pick(rng, voice, voice.matter_lines, matter=matter.label)
         message_id, sender = _channel_message(
             rng, cast.matters_channel, minter, drafts, at=at, body=body
         )
@@ -409,8 +384,8 @@ def _matter_chatter(
                 cast.matters_channel,
                 minter,
                 drafts,
-                at=at + rng.randrange(180, 2400),
-                body=rng.choice(_MATTER_REPLIES),
+                at=_after(rng, at, 180, 2400),
+                body=_pick(rng, voice, voice.matter_replies, matter=matter.label),
                 reply_to=message_id,
                 exclude=sender,
             )
@@ -418,48 +393,65 @@ def _matter_chatter(
 
 def _billing_chatter(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
     minter: IdMinter,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> None:
-    if rng.random() >= 0.55:
-        return
-    for _ in range(rng.randrange(1, 3)):
+    for _ in range(_count(rng, 0.9 * profile.intensity)):
         matter = rng.choice(cast.matters)
-        body = rng.choice(_BILLING_LINES).format(matter=matter.label)
-        _channel_message(
+        at = _clock(rng, profile, 10 * 3600, 16 * 3600)
+        message_id, asker = _channel_message(
             rng,
             cast.billing_channel,
             minter,
             drafts,
-            at=rng.randrange(10 * 3600, 16 * 3600),
-            body=body,
+            at=at,
+            body=_pick(rng, voice, voice.billing_lines, matter=matter.label),
         )
+        if rng.random() < 0.35:
+            _channel_message(
+                rng,
+                cast.billing_channel,
+                minter,
+                drafts,
+                at=_after(rng, at, 300, 3600),
+                body=_pick(rng, voice, voice.billing_replies, matter=matter.label),
+                reply_to=message_id,
+                exclude=asker,
+            )
 
 
 def _it_chatter(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
     minter: IdMinter,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> None:
-    if rng.random() >= 0.35:
-        return
-    at = rng.randrange(9 * 3600, 16 * 3600)
-    message_id, asker = _channel_message(
-        rng, cast.it_channel, minter, drafts, at=at, body=rng.choice(_IT_LINES)
-    )
-    if rng.random() < 0.5:
-        _channel_message(
+    for _ in range(_count(rng, 0.6 * profile.intensity)):
+        at = _clock(rng, profile, 9 * 3600, 16 * 3600)
+        message_id, asker = _channel_message(
             rng,
             cast.it_channel,
             minter,
             drafts,
-            at=at + rng.randrange(300, 3600),
-            body=rng.choice(_IT_REPLIES),
-            reply_to=message_id,
-            exclude=asker,
+            at=at,
+            body=_pick(rng, voice, voice.it_lines),
         )
+        if rng.random() < 0.5:
+            _channel_message(
+                rng,
+                cast.it_channel,
+                minter,
+                drafts,
+                at=_after(rng, at, 300, 3600),
+                body=_pick(rng, voice, voice.it_replies),
+                reply_to=message_id,
+                exclude=asker,
+            )
 
 
 def _dm_message(
@@ -489,35 +481,41 @@ def _dm_message(
 
 def _dm_chatter(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
     minter: IdMinter,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> None:
     for thread in cast.dms:
-        whole, fraction = divmod(thread.traffic, 1.0)
-        exchanges = int(whole) + (1 if rng.random() < fraction else 0)
-        for _ in range(exchanges):
+        for _ in range(_count(rng, thread.traffic * profile.intensity)):
             first, second = thread.members
             if rng.random() < 0.5:
                 first, second = second, first
-            at = rng.randrange(9 * 3600, 17 * 3600)
-            _dm_message(
-                thread, first, minter, drafts, at=at, body=rng.choice(_DM_OPENERS)
-            )
+            at = _clock(rng, profile, _MORNING, 17 * 3600)
+            if voice.standing_requests and rng.random() < voice.standing_request_rate:
+                opener = rng.choice(voice.standing_requests)
+            else:
+                opener = _pick(rng, voice, voice.dm_openers)
+            _dm_message(thread, first, minter, drafts, at=at, body=opener)
             if rng.random() < 0.85:
-                at += rng.randrange(60, 900)
+                at = _after(rng, at, 60, 900)
                 _dm_message(
-                    thread, second, minter, drafts, at=at, body=rng.choice(_DM_REPLIES)
+                    thread,
+                    second,
+                    minter,
+                    drafts,
+                    at=at,
+                    body=_pick(rng, voice, voice.dm_replies),
                 )
                 if rng.random() < 0.4:
-                    at += rng.randrange(30, 600)
                     _dm_message(
                         thread,
                         first,
                         minter,
                         drafts,
-                        at=at,
-                        body=rng.choice(_DM_CLOSERS),
+                        at=_after(rng, at, 30, 600),
+                        body=_pick(rng, voice, voice.dm_closers),
                     )
 
 
@@ -553,33 +551,40 @@ def _email(
 
 def _internal_emails(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
     minter: IdMinter,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> None:
-    for _ in range(rng.randrange(2, 5)):
+    for _ in range(_count(rng, 3.0 * profile.intensity)):
         sender, recipient = rng.sample(list(cast.internal), 2)
-        subject, template = rng.choice(_INTERNAL_EMAIL)
-        at = rng.randrange(10 * 3600, 17 * 3600)
+        form = rng.choice(voice.internal_email)
+        context = {"first": recipient.first_name, "me": sender.first_name}
+        at = _clock(rng, profile, 10 * 3600, 17 * 3600)
         draft, message_id, thread = _email(
             at=at,
             minter=minter,
             sender=sender,
             recipient=recipient,
-            subject=subject,
-            body=template.format(
-                recipient=recipient.first_name, sender=sender.first_name
-            ),
+            subject=fill(rng, voice, form.subject, **context),
+            body=fill(rng, voice, form.body, **context),
         )
         drafts.append(draft)
         if rng.random() < 0.5:
             reply, _, _ = _email(
-                at=at + rng.randrange(600, 5400),
+                at=_after(rng, at, 600, 5400),
                 minter=minter,
                 sender=recipient,
                 recipient=sender,
-                subject=f"Re: {subject}",
-                body=rng.choice(_INTERNAL_REPLY).format(sender=sender.first_name),
+                subject=f"Re: {draft.payload.subject}",
+                body=_pick(
+                    rng,
+                    voice,
+                    voice.internal_replies,
+                    first=sender.first_name,
+                    me=recipient.first_name,
+                ),
                 thread_id=thread,
                 in_reply_to=message_id,
             )
@@ -588,60 +593,142 @@ def _internal_emails(
 
 def _external_emails(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
     minter: IdMinter,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> None:
-    for _ in range(rng.randrange(1, 4)):
+    for _ in range(_count(rng, 2.0 * profile.intensity)):
         sender = rng.choice(cast.externals)
-        recipient = rng.choice(cast.timekeepers)
-        subject, template = rng.choice(_EXTERNAL_EMAIL)
-        at = rng.randrange(8 * 3600 + 1800, 16 * 3600)
+        recipient = rng.choice(cast.timekeepers).member
+        form = rng.choice(voice.external_email)
+        context = {"first": recipient.first_name, "me": sender.name}
+        at = _clock(rng, profile, 8 * 3600 + 1800, 16 * 3600)
         draft, message_id, thread = _email(
             at=at,
             minter=minter,
             sender=sender,
             recipient=recipient,
-            subject=subject,
-            body=template.format(recipient=recipient.first_name, sender=sender.name),
+            subject=fill(rng, voice, form.subject, **context),
+            body=fill(rng, voice, form.body, **context),
         )
         drafts.append(draft)
         if rng.random() < 0.4:
             reply, _, _ = _email(
-                at=at + rng.randrange(1800, 7200),
+                at=_after(rng, at, 1800, 7200),
                 minter=minter,
                 sender=recipient,
                 recipient=sender,
-                subject=f"Re: {subject}",
-                body=rng.choice(_EXTERNAL_REPLY),
+                subject=f"Re: {draft.payload.subject}",
+                body=_pick(
+                    rng,
+                    voice,
+                    voice.external_replies,
+                    first=sender.first_name,
+                    me=recipient.first_name,
+                ),
                 thread_id=thread,
                 in_reply_to=message_id,
             )
             drafts.append(reply)
 
 
+def _away_days(seed: Seed, window: CalendarWindow, person_id: str) -> frozenset[str]:
+    """The person's out-of-office blocks, stable for the whole window.
+
+    Absence is contiguous: a fee earner takes a week, not seven scattered
+    Tuesdays, and the resulting holes are what make a season of billing
+    look recorded rather than generated.
+    """
+
+    rng = derive_rng(seed, "chronicle.absence", person_id)
+    workdays = window.workdays()
+    away: set[str] = set()
+    for _ in range(rng.randrange(2, 4)):
+        start = rng.randrange(0, len(workdays))
+        length = rng.choice((1, 1, 2, 3, 5, 5))
+        for index in workdays[start : start + length]:
+            away.add(window.iso_date(index))
+    return frozenset(away)
+
+
+def _day_factor(rng: random.Random) -> float:
+    roll = rng.random()
+    if roll < 0.11:
+        return rng.uniform(0.3, 0.65)
+    if roll > 0.86:
+        return rng.uniform(1.2, 1.55)
+    return rng.uniform(0.82, 1.12)
+
+
+def _matter_for(
+    rng: random.Random, cast: ProceduralCast, keeper: Timekeeper
+) -> OpenMatter:
+    staffed = [
+        matter for matter in cast.matters if keeper.member.person_id in matter.team()
+    ]
+    pool = staffed if staffed else list(cast.matters)
+    return rng.choices(pool, weights=[matter.weight for matter in pool])[0]
+
+
 def _time_entries(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
+    seed: Seed,
+    window: CalendarWindow,
+    day: str,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> None:
     for keeper in cast.timekeepers:
-        own = tuple(
-            matter for matter in cast.matters if matter.assignee == keeper.person_id
-        )
-        pool = own if own else cast.matters
-        for _ in range(rng.randrange(1, 4)):
-            matter = rng.choice(pool)
+        person_id = keeper.member.person_id
+        if profile.kind == "workday":
+            if day in _away_days(seed, window, person_id):
+                continue
+            target = keeper.daily_hours * _day_factor(rng) * 60
+        else:
+            if rng.random() >= profile.intensity:
+                continue
+            target = keeper.daily_hours * rng.uniform(0.25, 0.7) * 60
+
+        logged = 0.0
+        entries = 0
+        while logged < target - 9 and entries < _MAX_ENTRIES_PER_DAY:
+            minutes = rng.choices(_DURATIONS, weights=_WEIGHTS)[0]
+            matter = _matter_for(rng, cast, keeper)
             drafts.append(
                 TimedDraft(
-                    at=SimDuration(rng.randrange(15 * 3600, 18 * 3600 + 1800)),
-                    source=keeper.entity,
+                    at=SimDuration(_clock(rng, profile, 9 * 3600, 19 * 3600)),
+                    source=keeper.member.entity,
                     payload=TimeLoggedPayload(
                         kind="work.time.logged",
-                        person_id=keeper.person_id,
+                        person_id=person_id,
                         ticket_id=matter.ticket_id,
-                        minutes=rng.choice(_TIME_MINUTES),
-                        note=rng.choice(_TIME_NOTES).format(matter=matter.label),
+                        minutes=minutes,
+                        note=_pick(rng, voice, voice.time_notes, matter=matter.label),
+                        rate_cents=keeper.rate_cents,
+                        billable=True,
+                    ),
+                )
+            )
+            logged += minutes
+            entries += 1
+        if entries and rng.random() < _NON_BILLABLE_RATE:
+            matter = _matter_for(rng, cast, keeper)
+            drafts.append(
+                TimedDraft(
+                    at=SimDuration(_clock(rng, profile, 9 * 3600, 19 * 3600)),
+                    source=keeper.member.entity,
+                    payload=TimeLoggedPayload(
+                        kind="work.time.logged",
+                        person_id=person_id,
+                        ticket_id=matter.ticket_id,
+                        minutes=rng.choices(_DURATIONS, weights=_WEIGHTS)[0],
+                        note=_pick(rng, voice, voice.time_notes, matter=matter.label),
+                        rate_cents=keeper.rate_cents,
+                        billable=False,
                     ),
                 )
             )
@@ -649,21 +736,23 @@ def _time_entries(
 
 def _matter_comments(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> None:
-    for _ in range(rng.randrange(1, 4)):
+    for _ in range(_count(rng, 2.2 * profile.intensity)):
         matter = rng.choice(cast.matters)
         entity = matter.assignee.partition("-")[2] or matter.assignee
         drafts.append(
             TimedDraft(
-                at=SimDuration(rng.randrange(11 * 3600, 17 * 3600)),
+                at=SimDuration(_clock(rng, profile, 10 * 3600, 18 * 3600)),
                 source=entity,
                 payload=TicketCommentedPayload(
                     kind="ticket.commented",
                     ticket_id=matter.ticket_id,
                     actor=matter.assignee,
-                    body=rng.choice(_MATTER_COMMENTS),
+                    body=_pick(rng, voice, voice.matter_notes, matter=matter.label),
                 ),
             )
         )
@@ -671,12 +760,14 @@ def _matter_comments(
 
 def _calendar_events(
     rng: random.Random,
+    voice: ProceduralVoice,
     cast: ProceduralCast,
     minter: IdMinter,
     day_offset: int,
+    profile: DayProfile,
     drafts: list[TimedDraft],
 ) -> None:
-    if rng.random() >= 0.5:
+    if rng.random() >= 0.5 * profile.intensity:
         return
     organizer = rng.choice(cast.internal)
     others = [
@@ -684,21 +775,22 @@ def _calendar_events(
     ]
     count = min(len(others), rng.randrange(1, 4))
     attendees = (organizer, *rng.sample(others, count))
+    matter = rng.choice(cast.matters)
     start_clock = rng.choice((10, 11, 13, 14, 15, 16)) * 3600 + rng.choice((0, 1800))
     duration = rng.choice((1800, 3600))
     drafts.append(
         TimedDraft(
-            at=SimDuration(rng.randrange(8 * 3600, 10 * 3600)),
+            at=SimDuration(_clock(rng, profile, 8 * 3600, 10 * 3600)),
             source=organizer.entity,
             payload=CalendarEventScheduledPayload(
                 kind="calendar.event.scheduled",
                 calendar_event_id=minter.mint("cal"),
                 organizer=organizer.person_id,
-                title=rng.choice(_MEETING_TITLES),
+                title=_pick(rng, voice, voice.meeting_titles, matter=matter.label),
                 start=SimTime(day_offset + start_clock),
                 end=SimTime(day_offset + start_clock + duration),
                 attendees=tuple(member.person_id for member in attendees),
-                description=rng.choice(_MEETING_DESCRIPTIONS),
+                description=_pick(rng, voice, voice.meeting_descriptions),
             ),
         )
     )
@@ -710,26 +802,28 @@ def procedural_day(
     window: CalendarWindow,
     day_index: int,
     cast: ProceduralCast,
+    voice: ProceduralVoice,
     minter: IdMinter,
+    profile: DayProfile = WORKDAY,
 ) -> tuple[TimedDraft, ...]:
-    """One workday of background traffic, sorted by intra-day clock."""
+    """One day of background traffic, sorted by intra-day clock."""
 
     day = window.iso_date(day_index)
     day_offset = int(window.day_offset(day_index))
     rng = derive_rng(seed, "chronicle.procedural", day)
 
     drafts: list[TimedDraft] = []
-    posted = _standups(rng, cast, minter, drafts)
-    _reactions(rng, cast, posted, drafts)
-    _matter_chatter(rng, cast, minter, drafts)
-    _billing_chatter(rng, cast, minter, drafts)
-    _it_chatter(rng, cast, minter, drafts)
-    _dm_chatter(rng, cast, minter, drafts)
-    _internal_emails(rng, cast, minter, drafts)
-    _external_emails(rng, cast, minter, drafts)
-    _time_entries(rng, cast, drafts)
-    _matter_comments(rng, cast, drafts)
-    _calendar_events(rng, cast, minter, day_offset, drafts)
+    posted = _standups(rng, voice, cast, minter, profile, drafts)
+    _reactions(rng, voice, cast, posted, drafts)
+    _matter_chatter(rng, voice, cast, minter, profile, drafts)
+    _billing_chatter(rng, voice, cast, minter, profile, drafts)
+    _it_chatter(rng, voice, cast, minter, profile, drafts)
+    _dm_chatter(rng, voice, cast, minter, profile, drafts)
+    _internal_emails(rng, voice, cast, minter, profile, drafts)
+    _external_emails(rng, voice, cast, minter, profile, drafts)
+    _time_entries(rng, voice, cast, seed, window, day, profile, drafts)
+    _matter_comments(rng, voice, cast, profile, drafts)
+    _calendar_events(rng, voice, cast, minter, day_offset, profile, drafts)
 
     # Stable sort: replies and reactions were generated after (and later
     # than) their targets, so ordering by clock keeps every reference

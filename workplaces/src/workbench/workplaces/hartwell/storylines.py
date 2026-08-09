@@ -45,7 +45,11 @@ from workbench.simulation.chronicle.builder import TimedDraft
 from workbench.simulation.chronicle.content import ContentStore
 from workbench.simulation.errors import ConfigError
 from workbench.simulation.lm.protocol import LanguageModel
-from workbench.workplaces.hartwell.genesis import WINDOW, HartwellGenesis
+from workbench.workplaces.hartwell.genesis import (
+    TIMEKEEPER_RATES,
+    WINDOW,
+    HartwellGenesis,
+)
 
 # Internal cast (person ids from people.py; stable slugs, not minted).
 _EH = "per-eleanor-hartwell"
@@ -757,6 +761,649 @@ S1_IRONCLAD_THREAD_REPLY = (
     "Closing out the Ironclad NDA today — folding in the carve-out "
     "LexiPoint asked for back in May. Only way to keep the discovery "
     "engagement moving; flagging here for the file."
+)
+
+
+class _Data(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+
+def _at(hour: int, minute: int = 0) -> int:
+    return hour * 3600 + minute * 60
+
+
+class MatterRevision(_Data):
+    """One saved version of a matter document, and the note announcing it.
+
+    ``heading``/``body`` are appended to everything the earlier versions
+    already carried, so a version strictly contains its predecessor and a
+    diff never shows a silent deletion — the one document in the record
+    that does lose a paragraph stays the S3 needle.
+    """
+
+    day: str
+    clock: int
+    author: str
+    summary: str
+    heading: str
+    body: str
+    mention: str
+
+
+class MatterDocument(_Data):
+    """A working document on a client matter, with a real save history."""
+
+    ref: str
+    ticket: str
+    title: str
+    path: str
+    author: str
+    # The phrase the firm uses when it names this file in a message. The
+    # unreviewed-revisions reconciliation matches on exactly this.
+    marker: str
+    what: str
+    facts: str
+    day: str
+    clock: int
+    revisions: tuple[MatterRevision, ...] = Field(min_length=1)
+
+    @property
+    def content_key(self) -> str:
+        return f"work.{self.ref}"
+
+
+def _rev(
+    day: str,
+    clock: int,
+    author: str,
+    summary: str,
+    heading: str,
+    body: str,
+    mention: str,
+) -> MatterRevision:
+    return MatterRevision(
+        day=day,
+        clock=clock,
+        author=author,
+        summary=summary,
+        heading=heading,
+        body=body,
+        mention=mention,
+    )
+
+
+# Every open matter carries working product, not just the two files the
+# storylines needed. Each document is created early, revised across the
+# window, and named in a same-day #matters note on every save, so the
+# unreviewed-revisions set stays exactly the five the vanished-clause
+# reconciliation grades. Titles carry the client; the mention notes never
+# do, which keeps them clear of the S2, S4, and S5 marker rules.
+MATTER_DOCUMENTS: tuple[MatterDocument, ...] = (
+    MatterDocument(
+        ref="meridian.checklist",
+        ticket=S2_TICKET,
+        title="Closing Checklist — Meridian Diagnostics Acquisition",
+        path="/meridian-acquisition/closing-checklist.md",
+        author=_PN,
+        marker="closing checklist",
+        what="a buy-side closing checklist for an asset acquisition",
+        facts=(
+            "conditions precedent, third-party consents, escrow and "
+            "holdback mechanics, employee transfer letters, bill of sale "
+            "and assignment documents, closing certificates, and the "
+            "post-closing filing list; each line carries an owner and a "
+            "status column"
+        ),
+        day="2026-03-10",
+        clock=_at(11, 20),
+        revisions=(
+            _rev(
+                "2026-04-15",
+                _at(15, 45),
+                _PN,
+                "Added the consents tracker and refreshed ownership column.",
+                "Third-party consents tracker",
+                "Consents are tracked by counterparty, contract, notice "
+                "date, and response. A consent is closed only when the "
+                "signed counterpart is filed with the working papers.",
+                "consents tracker added",
+            ),
+            _rev(
+                "2026-06-02",
+                _at(10, 15),
+                _ML,
+                "Recorded the signing-to-closing sequence agreed on the call.",
+                "Signing and closing sequence",
+                "The parties sign, then satisfy conditions, then close on "
+                "the first business day after the last condition clears. "
+                "Funds flow and deliverables are exchanged in the order "
+                "set out below.",
+                "signing sequence recorded",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="meridian.schedules",
+        ticket=S2_TICKET,
+        title="Disclosure Schedules — Meridian Diagnostics Acquisition",
+        path="/meridian-acquisition/disclosure-schedules.md",
+        author=_ML,
+        marker="disclosure schedules",
+        what="the disclosure schedules to a definitive asset purchase agreement",
+        facts=(
+            "schedules for material contracts, intellectual property, "
+            "litigation, employee benefit plans, permits, and real "
+            "property; each schedule cross-references the representation "
+            "it qualifies; blanks are marked as pending seller input"
+        ),
+        day="2026-03-24",
+        clock=_at(14, 10),
+        revisions=(
+            _rev(
+                "2026-05-05",
+                _at(16, 30),
+                _ML,
+                "Filled the permits and real property schedules.",
+                "Permits and real property",
+                "Operating permits are listed by issuing authority with "
+                "expiry and transferability noted. Leased premises are "
+                "listed with landlord consent requirements flagged.",
+                "permits and property schedules filled",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="cascadia.chronology",
+        ticket=S4_TICKET,
+        title="Case Chronology — Cascadia Supplier Dispute",
+        path="/cascadia-supplier-dispute/case-chronology.md",
+        author=_GA,
+        marker="case chronology",
+        what="a litigation case chronology for a commercial supply dispute",
+        facts=(
+            "dated entries covering the supply agreement, the delivery "
+            "shortfalls, the defect reports, the cure correspondence, and "
+            "the demand letter; each entry cites the source document by "
+            "bates or file reference"
+        ),
+        day="2026-03-17",
+        clock=_at(9, 50),
+        revisions=(
+            _rev(
+                "2026-04-30",
+                _at(14, 20),
+                _SR,
+                "Added the correspondence log through the current month.",
+                "Correspondence log",
+                "Letters and messages between the parties are logged by "
+                "date, sender, recipient, and subject, with the file "
+                "reference for each.",
+                "correspondence log added",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="veridian.memorandum",
+        ticket="tkt-000003",
+        title="Compliance Memorandum — Veridian Energy Cooperative",
+        path="/veridian-rate-filing/compliance-memorandum.md",
+        author=_DO,
+        marker="compliance memorandum",
+        what=(
+            "a regulatory compliance memorandum on a member cooperative's rate filing"
+        ),
+        facts=(
+            "the filing must show cost-of-service support, notice to "
+            "members, and board authorisation; the memorandum sets out the "
+            "governing rule, the record the cooperative holds, and the "
+            "gaps to close before filing"
+        ),
+        day="2026-03-11",
+        clock=_at(10, 40),
+        revisions=(
+            _rev(
+                "2026-04-21",
+                _at(11, 25),
+                _DO,
+                "Added the notice-to-members analysis.",
+                "Notice to members",
+                "Notice must reach every member of record before the "
+                "hearing, by mail or by the cooperative's published "
+                "electronic method, with proof retained for the file.",
+                "notice analysis added",
+            ),
+            _rev(
+                "2026-06-08",
+                _at(15, 5),
+                _PN,
+                "Recorded the filing timetable and responsible owners.",
+                "Filing timetable",
+                "Each deliverable carries an owner and an internal due "
+                "point, working back from the regulator's calendar rather "
+                "than from the board meeting.",
+                "filing timetable recorded",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="veridian.resolutions",
+        ticket="tkt-000003",
+        title="Board Resolution Review — Veridian Energy Cooperative",
+        path="/veridian-rate-filing/board-resolution-review.md",
+        author=_PN,
+        marker="board resolution review",
+        what="a review of a cooperative board's resolutions authorising a filing",
+        facts=(
+            "each resolution is checked for quorum, the recorded vote, the "
+            "scope of authority granted, and whether the secretary's "
+            "certificate matches the minutes"
+        ),
+        day="2026-04-02",
+        clock=_at(13, 15),
+        revisions=(
+            _rev(
+                "2026-05-19",
+                _at(10, 5),
+                _DO,
+                "Added the secretary's certificate comparison.",
+                "Secretary's certificate",
+                "The certificate must recite the same resolution text the "
+                "minutes record. Any variance is noted here and corrected "
+                "by a conforming certificate before filing.",
+                "certificate comparison added",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="brightline.position",
+        ticket="tkt-000004",
+        title="Position Statement — Brightline Logistics (Draft)",
+        path="/brightline-termination/position-statement.md",
+        author=_SR,
+        marker="position statement",
+        what=(
+            "an employer's position statement responding to a wrongful "
+            "termination charge before a state agency"
+        ),
+        facts=(
+            "the statement sets out the employer's structure, the "
+            "complainant's role, the documented performance history, the "
+            "decision process, and the legitimate non-discriminatory "
+            "reasons for the separation; it attaches the personnel record"
+        ),
+        day="2026-03-13",
+        clock=_at(15, 30),
+        revisions=(
+            _rev(
+                "2026-04-09",
+                _at(16, 10),
+                _SR,
+                "Added the comparator analysis.",
+                "Comparator analysis",
+                "Employees in comparable roles are compared on "
+                "performance record, supervisory chain, and the discipline "
+                "applied, to show the decision was consistent.",
+                "comparator analysis added",
+            ),
+            _rev(
+                "2026-05-26",
+                _at(11, 40),
+                _SM,
+                "Tightened the argument and attached the exhibit index.",
+                "Exhibit index",
+                "Exhibits are numbered in the order the statement cites "
+                "them, with a one-line description and the custodian for "
+                "each.",
+                "exhibit index attached",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="brightline.interviews",
+        ticket="tkt-000004",
+        title="Witness Interview Summaries — Brightline Logistics",
+        path="/brightline-termination/witness-interview-summaries.md",
+        author=_GA,
+        marker="witness interview summaries",
+        what="counsel's summaries of employee witness interviews in a defence matter",
+        facts=(
+            "each summary records who was present, the warning given about "
+            "privilege, what the witness said about the decision, and the "
+            "documents the witness identified"
+        ),
+        day="2026-03-31",
+        clock=_at(12, 20),
+        revisions=(
+            _rev(
+                "2026-05-13",
+                _at(9, 45),
+                _GA,
+                "Added the second round of interviews.",
+                "Second round",
+                "Follow-up interviews cover the points the first round "
+                "left open, in particular the timing of the performance "
+                "reviews and who saw them.",
+                "second interview round added",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="solstice.holdback",
+        ticket="tkt-000005",
+        title="Holdback Administration Memo — Solstice Vineyards",
+        path="/solstice-closing/holdback-administration-memo.md",
+        author=_ML,
+        marker="holdback administration",
+        what="a post-closing memorandum on administering an escrow holdback",
+        facts=(
+            "the holdback secures indemnity claims for a fixed period; "
+            "claims are made by written notice with supporting detail; "
+            "undisputed amounts release on schedule; disputes go to the "
+            "escrow agent's stated process"
+        ),
+        day="2026-03-20",
+        clock=_at(14, 50),
+        revisions=(
+            _rev(
+                "2026-05-12",
+                _at(15, 15),
+                _PN,
+                "Added the release calendar and claim log.",
+                "Release calendar and claim log",
+                "Scheduled releases are calendared with the notice each "
+                "one requires. Claims are logged with the date received "
+                "and the amount asserted.",
+                "release calendar added",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="northgate.comparison",
+        ticket="tkt-000006",
+        title="Vendor Contract Comparison — Northgate Medical Group",
+        path="/northgate-vendor-refresh/vendor-contract-comparison.md",
+        author=_NF,
+        marker="vendor contract comparison",
+        what="a comparison of a client's vendor contracts against its current template",
+        facts=(
+            "each contract is scored on term and renewal, liability caps, "
+            "data protection obligations, audit rights, and termination "
+            "for convenience; deviations are ranked by exposure"
+        ),
+        day="2026-03-26",
+        clock=_at(11, 5),
+        revisions=(
+            _rev(
+                "2026-05-07",
+                _at(14, 0),
+                _NF,
+                "Added the data protection column and re-ranked deviations.",
+                "Data protection obligations",
+                "Each agreement is checked for a written data processing "
+                "term, breach notification timing, subcontractor "
+                "controls, and return or deletion at the end of the term.",
+                "data protection column added",
+            ),
+            _rev(
+                "2026-06-24",
+                _at(10, 30),
+                _DO,
+                "Recorded the renegotiation priorities agreed with the client.",
+                "Renegotiation priorities",
+                "The client will reopen the highest-exposure agreements "
+                "first, taking liability caps and termination rights "
+                "together rather than clause by clause.",
+                "renegotiation priorities recorded",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="pelican.notice",
+        ticket="tkt-000007",
+        title="Renewal Option Notice — Pelican Bay Marina (Draft)",
+        path="/pelican-bay-renewal/renewal-option-notice.md",
+        author=_NF,
+        marker="renewal option notice",
+        what="a tenant's notice exercising a lease renewal option",
+        facts=(
+            "the notice identifies the lease, exercises the option for the "
+            "stated further term, confirms the rent-setting mechanism, and "
+            "is served by the method the lease requires"
+        ),
+        day="2026-04-06",
+        clock=_at(9, 35),
+        revisions=(
+            _rev(
+                "2026-06-11",
+                _at(13, 50),
+                _NF,
+                "Conformed the service provisions to the lease.",
+                "Service of the notice",
+                "Service follows the notice clause exactly: the addresses "
+                "of record, the permitted method, and a copy to the "
+                "landlord's counsel.",
+                "service provisions conformed",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="pelican.cam",
+        ticket="tkt-000007",
+        title="CAM Reconciliation Analysis — Pelican Bay Marina",
+        path="/pelican-bay-renewal/cam-reconciliation-analysis.md",
+        author=_DO,
+        marker="cam reconciliation",
+        what=(
+            "an analysis of a landlord's common area maintenance "
+            "reconciliation statement"
+        ),
+        facts=(
+            "the analysis tests each expense category against the lease "
+            "definition, checks the pro-rata share calculation, and "
+            "identifies capital items improperly passed through as "
+            "operating costs"
+        ),
+        day="2026-04-27",
+        clock=_at(15, 55),
+        revisions=(
+            _rev(
+                "2026-06-16",
+                _at(11, 15),
+                _NF,
+                "Added the audit-rights section and the objection timetable.",
+                "Audit rights and objection window",
+                "The lease allows the tenant to inspect supporting records "
+                "within a stated window of the statement. Objections must "
+                "be raised in writing inside that window or they lapse.",
+                "audit rights section added",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="arroyo.claim",
+        ticket=S5_TICKET,
+        title="Lien Claim Summary — Arroyo Construction",
+        path="/arroyo-lien-action/lien-claim-summary.md",
+        author=_GA,
+        marker="lien claim summary",
+        what="a summary of a mechanics lien claim on a mixed-use project",
+        facts=(
+            "the summary records the work performed, the amounts unpaid, "
+            "the preliminary notice, the recording of the lien, and the "
+            "statutory deadlines that follow from each step"
+        ),
+        day="2026-03-16",
+        clock=_at(13, 40),
+        revisions=(
+            _rev(
+                "2026-05-04",
+                _at(10, 50),
+                _SM,
+                "Added the payment application history.",
+                "Payment application history",
+                "Each application is listed with the amount claimed, the "
+                "amount certified, and the amount actually paid, so the "
+                "unpaid balance ties to the claim.",
+                "payment history added",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="arroyo.service",
+        ticket=S5_TICKET,
+        title="Stop Notice Service List — Arroyo Construction",
+        path="/arroyo-lien-action/stop-notice-service-list.md",
+        author=_GA,
+        marker="stop notice service list",
+        what="a service list for a stop notice on a construction project",
+        facts=(
+            "the list records the owner, the lender, the general "
+            "contractor, and the surety, with the address of record, the "
+            "method of service, and the date served for each"
+        ),
+        day="2026-04-13",
+        clock=_at(16, 25),
+        revisions=(
+            _rev(
+                "2026-06-05",
+                _at(14, 45),
+                _GA,
+                "Refreshed addresses of record after the title search came back.",
+                "Addresses of record",
+                "Addresses are taken from the recorded instruments rather "
+                "than from correspondence, and each is verified against "
+                "the title report before service.",
+                "addresses refreshed",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="goldleaf.assessment",
+        ticket="tkt-000010",
+        title="Early Case Assessment — Goldleaf Hospitality Group",
+        path="/goldleaf-franchise/early-case-assessment.md",
+        author=_SR,
+        marker="early case assessment",
+        what="an early case assessment for a franchise termination dispute",
+        facts=(
+            "the assessment states the claims and defences, the likely "
+            "range of exposure, the documents that will decide the case, "
+            "the witnesses, and a recommended path through the first "
+            "scheduling conference"
+        ),
+        day="2026-03-23",
+        clock=_at(10, 25),
+        revisions=(
+            _rev(
+                "2026-04-28",
+                _at(16, 40),
+                _SR,
+                "Updated exposure ranges after the document pull.",
+                "Revised exposure",
+                "The revised range reflects what the contemporaneous "
+                "records support rather than what the pleadings assert.",
+                "exposure ranges updated",
+            ),
+            _rev(
+                "2026-06-15",
+                _at(9, 20),
+                _SM,
+                "Added the resolution options and their timing.",
+                "Resolution options",
+                "Each option is set against the cost of reaching it and "
+                "the point in the schedule after which it stops being "
+                "available.",
+                "resolution options added",
+            ),
+        ),
+    ),
+    MatterDocument(
+        ref="goldleaf.conference",
+        ticket="tkt-000010",
+        title="Scheduling Conference Report — Goldleaf Hospitality Group",
+        path="/goldleaf-franchise/scheduling-conference-report.md",
+        author=_PN,
+        marker="scheduling conference report",
+        what=(
+            "a joint report prepared for a federal court's initial "
+            "scheduling conference"
+        ),
+        facts=(
+            "the report covers the parties' proposed discovery plan, "
+            "custodians and search terms, the treatment of electronically "
+            "stored information, a protective order, and the proposed "
+            "pretrial milestones"
+        ),
+        day="2026-04-20",
+        clock=_at(11, 55),
+        revisions=(
+            _rev(
+                "2026-05-28",
+                _at(15, 25),
+                _SR,
+                "Added the protective order stipulation.",
+                "Protective order",
+                "The stipulation defines the confidentiality tiers, who "
+                "may see each tier, and how a designation is challenged.",
+                "protective order stipulation added",
+            ),
+            _rev(
+                "2026-06-26",
+                _at(10, 40),
+                _PN,
+                "Recorded the agreed pretrial milestones.",
+                "Pretrial milestones",
+                "Milestones run from the close of fact discovery through "
+                "expert disclosure and dispositive motions, each stated "
+                "as an interval rather than a fixed setting.",
+                "pretrial milestones recorded",
+            ),
+        ),
+    ),
+)
+
+# Matter administration across the window: the reprioritisations,
+# reassignments, and holds a practice actually records. Every ``old``
+# matches the value the matter carries at that point, so the folded Clio
+# matter row and its history agree.
+MATTER_HISTORY: tuple[tuple[str, int, str, str, str, str, str], ...] = (
+    # day, clock, ticket, actor, field, old, new
+    ("2026-03-18", _at(9, 25), S2_TICKET, _EH, "priority", "high", "urgent"),
+    ("2026-03-23", _at(14, 5), "tkt-000006", _DO, "priority", "normal", "low"),
+    ("2026-03-31", _at(11, 10), "tkt-000010", _SM, "priority", "high", "urgent"),
+    ("2026-04-07", _at(15, 40), "tkt-000005", _ML, "status", "open", "on hold"),
+    ("2026-04-14", _at(10, 35), "tkt-000003", _DO, "priority", "normal", "high"),
+    ("2026-04-17", _at(16, 15), S5_TICKET, _SM, "priority", "normal", "high"),
+    ("2026-04-20", _at(13, 30), S4_TICKET, _SR, "priority", "normal", "high"),
+    ("2026-05-05", _at(9, 55), "tkt-000007", _NF, "priority", "normal", "high"),
+    (
+        "2026-05-11",
+        _at(16, 45),
+        "tkt-000004",
+        _SM,
+        "assignee",
+        "per-sofia-ramirez",
+        "per-samuel-marsh",
+    ),
+    ("2026-05-11", _at(17, 5), S2_TICKET, _EH, "priority", "urgent", "high"),
+    ("2026-05-19", _at(11, 20), "tkt-000005", _ML, "status", "on hold", "open"),
+    ("2026-05-21", _at(14, 25), S3_TICKET, _ML, "priority", "normal", "high"),
+    ("2026-06-09", _at(10, 5), "tkt-000006", _NF, "priority", "low", "normal"),
+    (
+        "2026-06-15",
+        _at(15, 50),
+        S3_TICKET,
+        _EH,
+        "assignee",
+        "per-marcus-liang",
+        "per-noah-feldstein",
+    ),
+    ("2026-06-22", _at(9, 40), "tkt-000010", _SM, "priority", "urgent", "high"),
+    ("2026-06-25", _at(13, 10), "tkt-000003", _DO, "priority", "high", "normal"),
+)
+
+DOC_MENTION_MARKERS.update(
+    {document.title: (document.marker,) for document in MATTER_DOCUMENTS}
 )
 
 _CONTENT_MODEL_PATH = ("hartwell.content",)
@@ -1979,6 +2626,18 @@ def content_requests() -> tuple[ContentRequest, ...]:
                 length="80-130 words",
             ),
         ),
+        *(
+            ContentRequest(
+                name=document.content_key,
+                prompt=_section_prompt(
+                    what=f"the opening body of {document.what}",
+                    facts=document.facts + ".",
+                    length="140-200 words, using level-two markdown headings",
+                ),
+                max_tokens=520,
+            )
+            for document in MATTER_DOCUMENTS
+        ),
     )
 
 
@@ -2020,10 +2679,6 @@ def missing_content(
 
 def _entity(person_id: str) -> str:
     return person_id.partition("-")[2]
-
-
-def _at(hour: int, minute: int = 0) -> int:
-    return hour * 3600 + minute * 60
 
 
 def _day_start(day: str) -> int:
@@ -2204,6 +2859,8 @@ class StorylineDirector:
         self._register_s4()
         self._register_s5()
         self._register_fabric(genesis)
+        self._register_matter_documents()
+        self._register_matter_history()
         self._register_april_dm_lanes()
         self._register_mention_fabric()
         workdays = {WINDOW.iso_date(index) for index in WINDOW.workdays()}
@@ -2416,6 +3073,8 @@ class StorylineDirector:
                     ticket_id=ticket,
                     minutes=minutes,
                     note=note,
+                    rate_cents=TIMEKEEPER_RATES[person],
+                    billable=True,
                 ),
             )
         )
@@ -4915,6 +5574,116 @@ class StorylineDirector:
                     content=extended(base, sections),
                     summary=summary,
                 )
+
+    def _register_matter_documents(self) -> None:
+        """Working product on every open matter, revised across the window.
+
+        Each save is announced the same day in #matters, so these
+        revisions never join the unreviewed set the vanished-clause
+        reconciliation grades — they are the dense covered side of it.
+        """
+
+        for document in MATTER_DOCUMENTS:
+            base = "\n".join(
+                (
+                    f"# {document.title.removesuffix(' (Draft)')}",
+                    "",
+                    self._texts[document.content_key],
+                )
+            )
+
+            def create(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                document: MatterDocument = document,
+                base: str = base,
+            ) -> None:
+                self._doc(
+                    minter,
+                    drafts,
+                    at=document.clock,
+                    ref=document.ref,
+                    author=document.author,
+                    title=document.title,
+                    path=document.path,
+                    content=base + "\n",
+                )
+
+            self._on(document.day, document.clock, create)
+
+            sections: list[str] = []
+            for number, revision in enumerate(document.revisions, start=2):
+                sections += ["", f"## {revision.heading}", "", revision.body]
+                content = base + "\n".join(sections) + "\n"
+
+                def save(
+                    minter: IdMinter,
+                    drafts: list[TimedDraft],
+                    document: MatterDocument = document,
+                    revision: MatterRevision = revision,
+                    number: int = number,
+                    content: str = content,
+                ) -> None:
+                    self._revise(
+                        drafts,
+                        at=revision.clock,
+                        ref=document.ref,
+                        revision=number,
+                        author=revision.author,
+                        content=content,
+                        summary=revision.summary,
+                    )
+
+                self._on(revision.day, revision.clock, save)
+
+                announcement = (
+                    f"{document.marker.capitalize()} rev {number} is filed "
+                    f"— {revision.mention}."
+                )
+
+                def announce(
+                    minter: IdMinter,
+                    drafts: list[TimedDraft],
+                    revision: MatterRevision = revision,
+                    announcement: str = announcement,
+                ) -> None:
+                    self._chat(
+                        minter,
+                        drafts,
+                        at=revision.clock + 1500,
+                        sender=revision.author,
+                        body=announcement,
+                    )
+
+                self._on(revision.day, revision.clock + 1500, announce)
+
+    def _register_matter_history(self) -> None:
+        for day, clock, ticket, actor, field, old, new in MATTER_HISTORY:
+
+            def change(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                clock: int = clock,
+                ticket: str = ticket,
+                actor: str = actor,
+                field: str = field,
+                old: str = old,
+                new: str = new,
+            ) -> None:
+                drafts.append(
+                    TimedDraft(
+                        at=SimDuration(clock),
+                        source=_entity(actor),
+                        payload=TicketUpdatedPayload(
+                            kind="ticket.updated",
+                            ticket_id=ticket,
+                            actor=actor,
+                            changes=(FieldChange(field=field, old=old, new=new),),
+                        ),
+                    )
+                )
+
+            self._on(day, clock, change)
 
     def _register_mention_fabric(self) -> None:
         # Same-day document mentions for most version saves; the revision

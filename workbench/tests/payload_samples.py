@@ -146,6 +146,8 @@ def sample_payloads() -> dict[str, EventPayload]:
             ticket_id="tkt-000001",
             minutes=90,
             note="NDA redline and standards review.",
+            rate_cents=44_500,
+            billable=True,
         ),
         CalendarEventScheduledPayload(
             kind="calendar.event.scheduled",

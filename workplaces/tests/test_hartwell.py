@@ -2,6 +2,7 @@
 and the pilot history build."""
 
 import importlib.util
+from collections import Counter
 from pathlib import Path
 from types import ModuleType
 
@@ -13,9 +14,11 @@ from workbench.core.worldlog import read_events, validate_events
 from workbench.tools import check_coherence
 from workbench.workplaces.hartwell import (
     EPOCH_ISO,
+    FEDERAL_HOLIDAYS_2026,
     WINDOW,
     WORKPLACE_ID,
     build_genesis,
+    day_profile,
     procedural_cast,
 )
 from workbench.workplaces.hartwell.people import (
@@ -164,7 +167,14 @@ def test_procedural_cast_resolves_against_genesis() -> None:
     cast = procedural_cast(genesis)
     assert len(cast.internal) == 12
     assert len(cast.externals) == 14
-    assert {member.person_id for member in cast.timekeepers} == set(TIMEKEEPER_IDS)
+    assert {keeper.member.person_id for keeper in cast.timekeepers} == set(
+        TIMEKEEPER_IDS
+    )
+    assert all(keeper.rate_cents > 0 for keeper in cast.timekeepers)
+    assert all(4.0 <= keeper.daily_hours <= 8.0 for keeper in cast.timekeepers)
+    weights = sorted(matter.weight for matter in cast.matters)
+    assert weights[-1] >= 4 * weights[0], "matter complexity must spread"
+    assert all(matter.assignee in matter.team() for matter in cast.matters)
     assert cast.standup_channel.startswith("cnv-")
     assert len(cast.matters) == 10
     assert len(cast.dms) == 12
@@ -177,6 +187,34 @@ def test_procedural_cast_resolves_against_genesis() -> None:
     assert grace_samuel.traffic == max(dm.traffic for dm in cast.dms), (
         "the correction thread runs hottest"
     )
+
+
+def test_day_profile_covers_the_whole_calendar() -> None:
+    seed = Seed(root=42)
+    profiles = [day_profile(seed, index) for index in range(WINDOW.day_count)]
+    kinds = Counter(profile.kind for profile in profiles)
+    # 87 weekdays, of which Memorial Day and Juneteenth are observed.
+    assert kinds == {"workday": 85, "weekend": 34, "holiday": 2}
+    assert all(profile.intensity > 0 for profile in profiles), (
+        "no day is completely silent"
+    )
+    weekends = [p.intensity for p in profiles if p.kind == "weekend"]
+    assert max(weekends) < 0.2 and len(set(weekends)) == len(weekends), (
+        "weekends are thin and none is a copy of another"
+    )
+    in_window = {
+        day
+        for day, _, _ in FEDERAL_HOLIDAYS_2026
+        if WINDOW.start_date <= day <= WINDOW.end_date
+    }
+    assert in_window == {"2026-05-25", "2026-06-19"}
+
+
+def test_day_profile_is_deterministic() -> None:
+    seed = Seed(root=42)
+    assert [day_profile(seed, index) for index in range(WINDOW.day_count)] == [
+        day_profile(seed, index) for index in range(WINDOW.day_count)
+    ]
 
 
 def test_pilot_build_validates_projects_and_coheres(tmp_path: Path) -> None:
@@ -198,6 +236,7 @@ def test_pilot_build_validates_projects_and_coheres(tmp_path: Path) -> None:
         "slack.db",
         "imanage.db",
         "clio.db",
+        "calendar.db",
     }
     assert check_coherence(state) == ()
     environment = (bundle / "environment.toml").read_text()

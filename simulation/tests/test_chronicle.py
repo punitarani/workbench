@@ -2,6 +2,7 @@
 builder, and procedural-generator determinism."""
 
 import itertools
+import random
 from pathlib import Path
 
 import pytest
@@ -21,11 +22,17 @@ from workbench.core.worldlog import read_events, validate_events
 from workbench.simulation.chronicle.builder import Chronicle, TimedDraft
 from workbench.simulation.chronicle.calendar import SECONDS_PER_DAY, CalendarWindow
 from workbench.simulation.chronicle.minter import minter_from_events
+from workbench.simulation.chronicle.procedural import WORKDAY as WORKDAY_PROFILE
 from workbench.simulation.chronicle.procedural import (
     CastMember,
     ChatChannel,
+    DayProfile,
+    EmailForm,
     OpenMatter,
     ProceduralCast,
+    ProceduralVoice,
+    Timekeeper,
+    fill,
     procedural_day,
 )
 from workbench.simulation.errors import ChronicleError
@@ -92,6 +99,50 @@ def small_genesis() -> list[Event]:
     ]
 
 
+def small_voice() -> ProceduralVoice:
+    """A minimal voice: one template per pool, slots where it matters."""
+
+    return ProceduralVoice(
+        standup=("Morning — {focus} today.",),
+        standup_focus=("{step} on {matter}",),
+        reactions=("thumbsup",),
+        matter_lines=("Where are we on {matter}? {step} is still open.",),
+        matter_replies=("On it, {when}.",),
+        billing_lines=("Prebills go out {when}.",),
+        billing_replies=("Noted.",),
+        it_lines=("{system} is down again.",),
+        it_replies=("Looking at it {when}.",),
+        dm_openers=("can you pick up {step} {when}?",),
+        dm_replies=("sure, {when}.",),
+        dm_closers=("thanks.",),
+        standing_requests=("same favour as always?",),
+        standing_request_rate=0.1,
+        internal_email=(
+            EmailForm(
+                subject="Office note",
+                body="Hi {first},\n\nSee you {when}.\n\n{me}",
+            ),
+        ),
+        internal_replies=("Thanks {first}.",),
+        external_email=(
+            EmailForm(
+                subject="Scheduling",
+                body="Dear {first},\n\nAre you free {when}?\n\n{me}",
+            ),
+        ),
+        external_replies=("Received, thank you.",),
+        time_notes=("{step} on {matter}.",),
+        matter_notes=("{step} is outstanding; picking it up {when}.",),
+        meeting_titles=("Matter review",),
+        meeting_descriptions=("Agenda in the invite.",),
+        slots={
+            "step": ("the cite check", "the second read"),
+            "when": ("after lunch", "tomorrow"),
+            "system": ("the portal", "the scanner"),
+        },
+    )
+
+
 def small_cast() -> ProceduralCast:
     ann = CastMember(person_id="per-ann-liu", name="Ann Liu")
     bob = CastMember(person_id="per-bob-tran", name="Bob Tran")
@@ -99,7 +150,7 @@ def small_cast() -> ProceduralCast:
     channel = ChatChannel(conversation_id="cnv-000001", members=(ann, bob))
     return ProceduralCast(
         internal=(ann, bob),
-        timekeepers=(ann,),
+        timekeepers=(Timekeeper(member=ann, daily_hours=6.0, rate_cents=40_000),),
         externals=(eve,),
         standup_channel="cnv-000001",
         matters_channel=channel,
@@ -299,6 +350,7 @@ class TestProceduralDays:
             window=PHASE2_WINDOW,
             day_index=0,
             cast=small_cast(),
+            voice=small_voice(),
             minter=minter_from_events(small_genesis()),
         )
         second = procedural_day(
@@ -306,6 +358,7 @@ class TestProceduralDays:
             window=PHASE2_WINDOW,
             day_index=0,
             cast=small_cast(),
+            voice=small_voice(),
             minter=minter_from_events(small_genesis()),
         )
         assert [draft.model_dump_json() for draft in first] == [
@@ -318,6 +371,7 @@ class TestProceduralDays:
             window=PHASE2_WINDOW,
             day_index=0,
             cast=small_cast(),
+            voice=small_voice(),
             minter=minter_from_events(small_genesis()),
         )
         other_seed = procedural_day(
@@ -325,6 +379,7 @@ class TestProceduralDays:
             window=PHASE2_WINDOW,
             day_index=0,
             cast=small_cast(),
+            voice=small_voice(),
             minter=minter_from_events(small_genesis()),
         )
         other_day = procedural_day(
@@ -332,11 +387,73 @@ class TestProceduralDays:
             window=PHASE2_WINDOW,
             day_index=1,
             cast=small_cast(),
+            voice=small_voice(),
             minter=minter_from_events(small_genesis()),
         )
         dumps = [draft.model_dump_json() for draft in base]
         assert dumps != [draft.model_dump_json() for draft in other_seed]
         assert dumps != [draft.model_dump_json() for draft in other_day]
+
+    def test_a_reduced_day_thins_traffic_without_silencing_it(self) -> None:
+        weekend = DayProfile(kind="weekend", intensity=0.1)
+        full = 0
+        thin = 0
+        for day_index in PHASE2_WINDOW.workdays()[:20]:
+            for profile, total in (
+                (WORKDAY_PROFILE, "full"),
+                (weekend, "thin"),
+            ):
+                drafts = procedural_day(
+                    seed=Seed(root=42),
+                    window=PHASE2_WINDOW,
+                    day_index=day_index,
+                    cast=small_cast(),
+                    voice=small_voice(),
+                    minter=minter_from_events(small_genesis()),
+                    profile=profile,
+                )
+                if total == "full":
+                    full += len(drafts)
+                else:
+                    thin += len(drafts)
+        assert thin > 0, "a reduced day still produces traffic"
+        assert thin < full / 5, f"{thin} is not visibly thinner than {full}"
+
+    def test_reduced_days_keep_clocks_inside_the_day(self) -> None:
+        drafts = procedural_day(
+            seed=Seed(root=42),
+            window=PHASE2_WINDOW,
+            day_index=5,
+            cast=small_cast(),
+            voice=small_voice(),
+            minter=minter_from_events(small_genesis()),
+            profile=DayProfile(kind="weekend", intensity=1.0),
+        )
+        assert all(0 <= int(draft.at) < SECONDS_PER_DAY for draft in drafts)
+
+    def test_slot_fill_composes_beyond_the_template_count(self) -> None:
+        cast = small_cast()
+        voice = small_voice()
+        minter = minter_from_events(small_genesis())
+        bodies = set()
+        for day_index in PHASE2_WINDOW.workdays()[:20]:
+            for draft in procedural_day(
+                seed=Seed(root=42),
+                window=PHASE2_WINDOW,
+                day_index=day_index,
+                cast=cast,
+                voice=voice,
+                minter=minter,
+            ):
+                if isinstance(draft.payload, ChatMessagePayload):
+                    bodies.add(draft.payload.body)
+        # Four chat templates, but the slots multiply them out.
+        assert len(bodies) > 8, sorted(bodies)
+
+    def test_an_undefined_slot_fails_loud(self) -> None:
+        voice = small_voice().model_copy(update={"dm_closers": ("thanks, {nobody}.",)})
+        with pytest.raises(ChronicleError, match="nobody"):
+            fill(random.Random(0), voice, voice.dm_closers[0])
 
     def test_refs_resolve_across_a_procedural_week(self, tmp_path: Path) -> None:
         log = tmp_path / "world.jsonl"
@@ -351,6 +468,7 @@ class TestProceduralDays:
                 window=PHASE2_WINDOW,
                 day_index=day_index,
                 cast=cast,
+                voice=small_voice(),
                 minter=minter,
             )
             chronicle.add_procedural_day(day_index, drafts)

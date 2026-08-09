@@ -6,6 +6,7 @@ from one IdMinter; the statically declared org ids are re-minted against it
 so the exported counter state is provably truthful.
 """
 
+from collections.abc import Mapping
 from importlib import resources
 
 from pydantic import BaseModel, ConfigDict
@@ -18,14 +19,16 @@ from workbench.core.events.people import PersonRecordPayload
 from workbench.core.events.tickets import TicketCreatedPayload
 from workbench.core.hashing import content_hash
 from workbench.core.ids import IdMinter
-from workbench.core.seed import Seed
+from workbench.core.seed import Seed, derive_rng
 from workbench.simulation.chronicle.calendar import CalendarWindow
 from workbench.simulation.chronicle.procedural import (
     CastMember,
     ChatChannel,
+    DayProfile,
     DmThread,
     OpenMatter,
     ProceduralCast,
+    Timekeeper,
 )
 from workbench.simulation.errors import ConfigError
 from workbench.workplaces.hartwell.people import (
@@ -43,6 +46,48 @@ SCHEMA_VERSION = 1
 WINDOW = CalendarWindow(
     start_date="2026-03-02", end_date="2026-06-30", timezone=TIMEZONE
 )
+
+# US federal holidays for 2026, in observed form, paired with how much of
+# a normal working day the firm still generates. A twelve-person practice
+# does not go dark: partners clear mail, a litigator works a brief. Only
+# Memorial Day and Juneteenth fall inside the March-June window; the rest
+# are carried so the table is a calendar rather than a special case.
+FEDERAL_HOLIDAYS_2026: tuple[tuple[str, str, float], ...] = (
+    ("2026-01-01", "New Year's Day", 0.08),
+    ("2026-01-19", "Birthday of Martin Luther King, Jr.", 0.30),
+    ("2026-02-16", "Washington's Birthday", 0.35),
+    ("2026-05-25", "Memorial Day", 0.10),
+    ("2026-06-19", "Juneteenth National Independence Day", 0.35),
+    ("2026-07-03", "Independence Day (observed)", 0.12),
+    ("2026-09-07", "Labor Day", 0.10),
+    ("2026-10-12", "Columbus Day", 0.45),
+    ("2026-11-11", "Veterans Day", 0.40),
+    ("2026-11-26", "Thanksgiving Day", 0.05),
+    ("2026-12-25", "Christmas Day", 0.05),
+)
+_HOLIDAY_INTENSITY = {day: intensity for day, _, intensity in FEDERAL_HOLIDAYS_2026}
+
+# Weekend baselines. Saturdays carry catch-up and crunch work; Sundays are
+# quieter. A per-day jitter keeps some weekends silent and others busy
+# instead of painting every Saturday the same shade.
+_SATURDAY = 0.075
+_SUNDAY = 0.045
+
+
+def day_profile(seed: Seed, day_index: int) -> DayProfile:
+    """How much traffic the firm generates on one calendar day."""
+
+    day = WINDOW.iso_date(day_index)
+    holiday = _HOLIDAY_INTENSITY.get(day)
+    if holiday is not None:
+        return DayProfile(kind="holiday", intensity=holiday)
+    weekday = WINDOW.date_of(day_index).weekday()
+    if weekday < 5:
+        return DayProfile(kind="workday", intensity=1.0)
+    base = _SATURDAY if weekday == 5 else _SUNDAY
+    jitter = derive_rng(seed, "hartwell.weekend", day).uniform(0.35, 2.0)
+    return DayProfile(kind="weekend", intensity=min(base * jitter, 1.0))
+
 
 _EVERYONE = tuple(person.person_id for person in EMPLOYEES)
 
@@ -98,6 +143,54 @@ _DMS: tuple[tuple[str, str, float], ...] = (
     ("per-grace-adeyemi", "per-peter-novak", 0.6),
     ("per-marcus-liang", "per-sofia-ramirez", 0.5),
 )
+
+# Fee earners: standard hourly rate in cents and the billable day the
+# firm expects of them. Partners carry management load and bill less than
+# the associates; paralegal rates are a third of an attorney's. These are
+# the targets, not the outcome — absence, light days, and crunch move the
+# realized figure day by day.
+_TIMEKEEPERS: tuple[tuple[str, float, int], ...] = (
+    ("per-eleanor-hartwell", 4.8, 67_500),
+    ("per-samuel-marsh", 5.9, 62_500),
+    ("per-diane-okonkwo", 5.6, 52_500),
+    ("per-marcus-liang", 7.1, 44_500),
+    ("per-sofia-ramirez", 7.0, 38_500),
+    ("per-noah-feldstein", 6.7, 36_500),
+    ("per-grace-adeyemi", 6.3, 21_500),
+    ("per-peter-novak", 6.5, 18_500),
+)
+
+# Matter complexity and staffing, in matter declaration order. Weight is
+# the share of a staffed timekeeper's day the matter competes for, so a
+# contested acquisition accretes several times the hours of a lease
+# renewal instead of every file coming out the same size.
+_STAFFING: tuple[tuple[float, tuple[str, ...]], ...] = (
+    (3.0, ("per-marcus-liang", "per-peter-novak", "per-eleanor-hartwell")),
+    (0.9, ("per-sofia-ramirez", "per-grace-adeyemi", "per-samuel-marsh")),
+    (0.7, ("per-diane-okonkwo", "per-peter-novak")),
+    (1.7, ("per-sofia-ramirez", "per-samuel-marsh", "per-grace-adeyemi")),
+    (0.5, ("per-marcus-liang", "per-peter-novak")),
+    (0.4, ("per-noah-feldstein", "per-diane-okonkwo")),
+    (0.35, ("per-noah-feldstein", "per-diane-okonkwo", "per-peter-novak")),
+    (1.4, ("per-samuel-marsh", "per-grace-adeyemi", "per-sofia-ramirez")),
+    (1.5, ("per-marcus-liang", "per-noah-feldstein", "per-eleanor-hartwell")),
+    (
+        2.2,
+        (
+            "per-sofia-ramirez",
+            "per-samuel-marsh",
+            "per-grace-adeyemi",
+            "per-peter-novak",
+        ),
+    ),
+)
+
+# The rate every time entry is recorded at, directed or procedural: a
+# storyline entry that carried no rate would stand out in the billing
+# database as sharply as the arc it belongs to.
+TIMEKEEPER_RATES: Mapping[str, int] = {
+    person_id: rate for person_id, _, rate in _TIMEKEEPERS
+}
 
 _DOCUMENTS: tuple[tuple[str, str, str, str], ...] = (
     (
@@ -430,21 +523,37 @@ def procedural_cast(genesis: HartwellGenesis) -> ProceduralCast:
         if payload.conversation_type == "dm"
     )
 
-    matters = tuple(
-        OpenMatter(
-            ticket_id=event.payload.ticket_id,
-            label=event.payload.title,
-            assignee=event.payload.assignee,
-        )
+    tickets = [
+        event.payload
         for event in genesis.events
         if isinstance(event.payload, TicketCreatedPayload)
         and event.payload.assignee is not None
+    ]
+    if len(tickets) != len(_STAFFING):
+        raise ConfigError(
+            f"{len(tickets)} matters but {len(_STAFFING)} staffing rows declared"
+        )
+    if tuple(person_id for person_id, _, _ in _TIMEKEEPERS) != TIMEKEEPER_IDS:
+        raise ConfigError("timekeeper economics drifted from the declared roster")
+    matters = tuple(
+        OpenMatter(
+            ticket_id=payload.ticket_id,
+            label=payload.title,
+            assignee=payload.assignee,
+            weight=weight,
+            staff=staff,
+        )
+        for payload, (weight, staff) in zip(tickets, _STAFFING, strict=True)
     )
     return ProceduralCast(
         internal=tuple(member(person) for person in EMPLOYEES),
         timekeepers=tuple(
-            CastMember(person_id=person_id, name=names[person_id])
-            for person_id in TIMEKEEPER_IDS
+            Timekeeper(
+                member=CastMember(person_id=person_id, name=names[person_id]),
+                daily_hours=daily_hours,
+                rate_cents=rate_cents,
+            )
+            for person_id, daily_hours, rate_cents in _TIMEKEEPERS
         ),
         externals=tuple(member(person) for person in EXTERNALS),
         standup_channel=channel("#general").conversation_id,

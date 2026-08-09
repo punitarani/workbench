@@ -4,13 +4,15 @@ with the five storyline arcs directed onto their dates in full mode.
     uv run python datasets/hartwell/build_history.py [--out out/hartwell]
         [--seed 42] [--days 5|all] [--check]
 
-Pilot mode (``--days N``) is fully offline: procedural traffic only,
-projected into ``pilot-bundle/``. Full mode (``--days all``) authors
-storyline prose through the content cache (LM on cache miss, hard-capped),
-builds all 87 workdays, validates, materializes into ``bundle/`` (seat
-unset), prints per-month tag counts, and audits the storyline evidence.
-``--check`` builds twice into temporary directories and fails unless the
-bytes are identical; in full mode it requires a warmed content cache.
+Pilot mode (``--days N``) is fully offline: procedural traffic only, for
+the first N calendar days, projected into ``pilot-bundle/``. Full mode
+(``--days all``) authors storyline prose through the content cache (LM on
+cache miss, hard-capped), builds all 121 calendar days — weekends and
+observed holidays included, at their own reduced rates — validates,
+materializes into ``bundle/`` (seat unset), prints per-month tag counts,
+and audits the storyline evidence. ``--check`` builds twice into
+temporary directories and fails unless the bytes are identical; in full
+mode it requires a warmed content cache.
 """
 
 import argparse
@@ -19,7 +21,8 @@ import os
 import re
 import sys
 from collections import Counter
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from datetime import date
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -31,7 +34,11 @@ from workbench.core.events.documents import (
     DocumentRevisedPayload,
 )
 from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.tickets import TicketCommentedPayload, TicketUpdatedPayload
+from workbench.core.events.tickets import (
+    TicketCommentedPayload,
+    TicketCreatedPayload,
+    TicketUpdatedPayload,
+)
 from workbench.core.events.work import TimeLoggedPayload
 from workbench.core.seed import Seed
 from workbench.core.worldlog import read_events, validate_events
@@ -44,7 +51,14 @@ from workbench.simulation.lm.budget import BudgetedLM
 from workbench.simulation.lm.fake import FakeLM
 from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
 from workbench.tools import check_coherence
-from workbench.workplaces.hartwell import WINDOW, build_genesis, procedural_cast
+from workbench.workplaces.hartwell import (
+    FEDERAL_HOLIDAYS_2026,
+    VOICE,
+    WINDOW,
+    build_genesis,
+    day_profile,
+    procedural_cast,
+)
 from workbench.workplaces.hartwell.storylines import (
     ARCHWAY_NDA_TITLE,
     ARROYO_HEARING_TITLE,
@@ -57,11 +71,13 @@ from workbench.workplaces.hartwell.storylines import (
     LEXIPOINT_NDA_TITLE,
     LUMEN_AGREEMENT_TITLE,
     LUMEN_SOW_TITLE,
+    MATTER_DOCUMENTS,
     PLAYBOOK_TITLE,
     S1_IRONCLAD_THREAD_REPLY,
     S2_CUTOFF_CHAT,
     S2_SUPPORT_MARKERS,
     S2_TICKET,
+    S3_TICKET,
     S4_CLOSED_DATE,
     S4_TICKET,
     S5_DM_CORRECTION,
@@ -71,17 +87,17 @@ from workbench.workplaces.hartwell.storylines import (
     missing_content,
 )
 
-PILOT_WORKDAYS = 5
+PILOT_DAYS = 5
 
 
 def build_world(
     out_dir: Path,
     seed: Seed,
     *,
-    day_count: int | None = PILOT_WORKDAYS,
+    day_count: int | None = PILOT_DAYS,
     texts: Mapping[str, str] | None = None,
 ) -> Path:
-    """``day_count=None`` builds every workday; ``texts`` enables storylines."""
+    """``day_count=None`` builds the whole window; ``texts`` enables storylines."""
 
     out_dir.mkdir(parents=True, exist_ok=True)
     log_path = out_dir / "world.jsonl"
@@ -99,10 +115,8 @@ def build_world(
         StorylineDirector(genesis=genesis, texts=texts) if texts is not None else None
     )
 
-    workdays = WINDOW.workdays()
-    if day_count is not None:
-        workdays = workdays[:day_count]
-    for day_index in workdays:
+    span = WINDOW.day_count if day_count is None else min(day_count, WINDOW.day_count)
+    for day_index in range(span):
         day = WINDOW.iso_date(day_index)
         active_cast = cast
         if director is not None and day > S4_CLOSED_DATE:
@@ -113,7 +127,9 @@ def build_world(
                 window=WINDOW,
                 day_index=day_index,
                 cast=active_cast,
+                voice=VOICE,
                 minter=minter,
+                profile=day_profile(seed, day_index),
             )
         )
         if director is not None:
@@ -198,6 +214,158 @@ def _document_versions(events: list[Event]) -> dict[str, list[tuple[int, str]]]:
 
 def _event_date(event: Event) -> str:
     return WINDOW.iso_date(int(event.time) // 86_400)
+
+
+def _audit_fabric(events: list[Event], check: Callable[[str, bool], None]) -> None:
+    """Gate the record against the degeneracy an expert reader notices.
+
+    Verbatim repetition, a calendar with no weekends, a firm that bills a
+    third of a real day, and money that exists only as prose are all
+    tells. Each is measured here so a regression fails the build rather
+    than shipping into a task.
+    """
+
+    surfaces: dict[str, list[str]] = {}
+    conversations = {
+        event.payload.conversation_id: (
+            event.payload.name or "dm",
+            event.payload.conversation_type,
+        )
+        for event in events
+        if event.payload.kind == "chat.conversation.created"
+    }
+    for event in events:
+        payload = event.payload
+        if isinstance(payload, ChatMessagePayload):
+            name, kind = conversations[payload.conversation_id]
+            surfaces.setdefault("dm" if kind == "dm" else name, []).append(payload.body)
+    worst = max(
+        (
+            (max(Counter(bodies).values()) / len(bodies), name)
+            for name, bodies in surfaces.items()
+        ),
+        default=(0.0, ""),
+    )
+    check(
+        f"no chat surface repeats one body more than 5% of the time "
+        f"(worst {worst[1]} at {worst[0]:.1%})",
+        worst[0] <= 0.05,
+    )
+    dms = surfaces.get("dm", [])
+    check(
+        f"the DM fabric carries {len(set(dms))} distinct bodies across "
+        f"{len(dms)} messages (>= 800)",
+        len(set(dms)) >= 800,
+    )
+    mail = [
+        event.payload.body
+        for event in events
+        if isinstance(event.payload, EmailMessagePayload)
+    ]
+    check(
+        f"mail bodies are {len(set(mail))} distinct across {len(mail)} "
+        "messages (>= 85%)",
+        len(set(mail)) >= 0.85 * len(mail),
+    )
+
+    entries = [
+        event for event in events if isinstance(event.payload, TimeLoggedPayload)
+    ]
+    narratives = {event.payload.note for event in entries}
+    durations = Counter(event.payload.minutes for event in entries)
+    check(
+        f"{len(narratives)} distinct billing narratives across "
+        f"{len(entries)} entries (>= 500)",
+        len(narratives) >= 500,
+    )
+    check(
+        f"no single duration covers more than 15% of entries "
+        f"({durations.most_common(1)[0][1] / len(entries):.1%})",
+        durations.most_common(1)[0][1] <= 0.15 * len(entries),
+    )
+    rated = [event for event in entries if event.payload.rate_cents is not None]
+    non_billable = [event for event in entries if not event.payload.billable]
+    billed_cents = sum(
+        event.payload.amount_cents or 0 for event in entries if event.payload.billable
+    )
+    check(
+        f"every time entry carries a rate ({len(rated)}/{len(entries)}) and "
+        f"{len(non_billable)} are written off; the window bills "
+        f"${billed_cents / 100:,.0f}",
+        len(rated) == len(entries) and non_billable,
+    )
+
+    workdays = {WINDOW.iso_date(index): True for index in WINDOW.workdays()}
+    hours: Counter[str] = Counter()
+    for event in entries:
+        if event.payload.billable:
+            hours[event.payload.person_id] += event.payload.minutes
+    per_day = {
+        person: minutes / 60 / len(workdays) for person, minutes in hours.items()
+    }
+    low, high = min(per_day.values()), max(per_day.values())
+    average = sum(per_day.values()) / len(per_day)
+    check(
+        f"fee earners bill {average:.2f} hrs/workday on average "
+        f"({low:.2f}-{high:.2f} across the eight), inside 5.5-7.0",
+        5.5 <= average <= 7.0 and low >= 4.0 and high <= 8.0,
+    )
+
+    by_matter = Counter()
+    for event in entries:
+        by_matter[event.payload.ticket_id] += event.payload.minutes
+    spread = max(by_matter.values()) / min(by_matter.values())
+    check(
+        f"per-matter hours track complexity: {spread:.1f}x between the "
+        "heaviest and lightest matter (>= 4x)",
+        spread >= 4.0,
+    )
+
+    off_calendar = Counter()
+    holidays = {day for day, _, _ in FEDERAL_HOLIDAYS_2026}
+    for event in events:
+        if event.tag.startswith("sim."):
+            continue
+        day = _event_date(event)
+        if day in holidays:
+            off_calendar["holiday"] += 1
+        elif date.fromisoformat(day).weekday() >= 5:
+            off_calendar["weekend"] += 1
+    body = [event for event in events if not event.tag.startswith("sim.")]
+    share = (off_calendar["weekend"] + off_calendar["holiday"]) / len(body)
+    check(
+        f"{off_calendar['weekend']} weekend and {off_calendar['holiday']} "
+        f"holiday events, {share:.1%} of the record (1%-8%)",
+        0.01 <= share <= 0.08
+        and off_calendar["weekend"] > 0
+        and off_calendar["holiday"] > 0,
+    )
+    clocks = Counter(int(event.time) % 86_400 // 3600 for event in entries)
+    out_of_hours = sum(
+        count for hour, count in clocks.items() if hour < 8 or hour >= 19
+    )
+    check(
+        f"time entries span {min(clocks)}:00-{max(clocks)}:00 with "
+        f"{out_of_hours} logged outside 08:00-19:00",
+        len(clocks) >= 10 and out_of_hours > 0,
+    )
+
+    documented = {document.ticket for document in MATTER_DOCUMENTS} | {S3_TICKET}
+    matters = {
+        event.payload.ticket_id
+        for event in events
+        if isinstance(event.payload, TicketCreatedPayload)
+    }
+    check(
+        f"every matter carries working documents ({len(documented)}/{len(matters)})",
+        matters <= documented,
+    )
+    history = sum(
+        len(event.payload.changes)
+        for event in events
+        if isinstance(event.payload, TicketUpdatedPayload)
+    )
+    check(f"matter history carries {history} field changes (>= 10)", history >= 10)
 
 
 def audit(log_path: Path, state_dir: Path) -> int:
@@ -449,9 +617,11 @@ def audit(log_path: Path, state_dir: Path) -> int:
         len(matter_entries) >= 60 and len(window_entries) >= 30,
     )
     check(
-        f"exactly 6 window entries have no same-day support: "
+        f"exactly 47 window entries have no same-day support: "
         f"{len(orphans)} on {orphan_days}",
-        len(orphans) == 6 and orphan_days == ["2026-04-17", "2026-04-22", "2026-04-28"],
+        len(orphans) == 47
+        and orphan_days
+        == ["2026-04-04", "2026-04-13", "2026-04-20", "2026-04-22", "2026-04-25"],
     )
     window_days = sorted({_event_date(event) for event in window_entries})
     dm_only = [day for day in window_days if coverage.get(day) == {"chat-dm"}]
@@ -524,7 +694,7 @@ def audit(log_path: Path, state_dir: Path) -> int:
         f"the multi-version corpus holds {len(multi)} documents "
         f"({len(deep)} with 3+ versions); the clean-list deliverable is "
         f"{len(multi) - 1} numbers",
-        len(multi) == 17 and len(deep) >= 5,
+        len(multi) == 32 and len(deep) >= 5,
     )
     quotes = [
         event
@@ -677,6 +847,9 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and "clerk" in recaps[0].payload.body
         and "we'll confirm" in recaps[0].payload.body,
     )
+
+    print("Fabric realism:")
+    _audit_fabric(events, check)
 
     print("Round-6 reconciliation sets:")
     histories: dict[str, list[tuple[int, str, str]]] = {}
@@ -927,8 +1100,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
         "--days",
-        default=str(PILOT_WORKDAYS),
-        help="number of workdays, or 'all' for the full directed history",
+        default=str(PILOT_DAYS),
+        help="number of calendar days, or 'all' for the full directed history",
     )
     parser.add_argument(
         "--content-cache",

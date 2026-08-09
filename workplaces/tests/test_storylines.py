@@ -118,7 +118,9 @@ def test_full_build_validates_with_zero_findings(full_log: list) -> None:
     report = validate_events(full_log)
     assert report.findings == ()
     started = [event for event in full_log if event.tag == "sim.day.started"]
-    assert len(started) == 87
+    assert len(started) == WINDOW.day_count == 121, (
+        "the record covers every calendar day, weekends and holidays included"
+    )
 
 
 def test_full_build_is_deterministic(tmp_path: Path) -> None:
@@ -260,7 +262,12 @@ def test_s2_support_audit_shapes_the_orphan_set(full_log: list) -> None:
     ]
     assert len(window) >= 30, "the disputed window carries real volume"
     orphans = [event for event in window if _event_date(event) not in coverage]
-    assert 4 <= len(orphans) <= 6, sorted(_event_date(e) for e in orphans)
+    orphan_days = sorted({_event_date(event) for event in orphans})
+    # The unsupported set is a graded deliverable: it must be a real
+    # minority of the window, spread over several days, and never empty.
+    assert orphans, "the support audit needs an answer"
+    assert len(orphans) < len(window) / 3, orphan_days
+    assert 3 <= len(orphan_days) <= 8, orphan_days
 
     window_days = {_event_date(event) for event in window}
     assert any(coverage.get(day) == {"chat-dm"} for day in window_days), (
@@ -383,6 +390,7 @@ def test_s4_souring_ends_in_closure_and_letter(full_log: list) -> None:
         for event in full_log
         if isinstance(event.payload, TicketUpdatedPayload)
         and event.payload.ticket_id == S4_TICKET
+        and any(change.field == "status" for change in event.payload.changes)
     ]
     assert len(closures) == 1
     assert _event_date(closures[0]) == S4_CLOSED_DATE
