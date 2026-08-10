@@ -2,13 +2,38 @@
 
 import json
 import math
+import os
 import re
+import stat
 from collections import Counter
 from pathlib import Path
 
 from rewardkit import criterion
 
 MAX_DELIVERABLE_BYTES = 1_000_000
+PUBLIC_FIELDS = frozenset(
+    {
+        "requests_reviewed",
+        "conversations_reviewed",
+        "same_day_breach_ts",
+        "same_day_breaches",
+        "returned_same_day",
+        "returned_next_working_day_ts",
+        "unresolved_ts",
+    }
+)
+COUNT_FIELDS = (
+    "requests_reviewed",
+    "conversations_reviewed",
+    "returned_same_day",
+)
+TIMESTAMP_FIELDS = (
+    "same_day_breach_ts",
+    "returned_next_working_day_ts",
+    "unresolved_ts",
+)
+BREACH_FIELDS = frozenset({"ts", "date", "asked_by", "asked_of", "resolution"})
+RESOLUTIONS = frozenset({"next_working_day", "unresolved"})
 
 
 def _finite_json(value: object) -> bool:
@@ -23,18 +48,65 @@ def _finite_json(value: object) -> bool:
     return value is None or isinstance(value, bool | int | str)
 
 
+def _valid_contract(document: dict[str, object]) -> bool:
+    if set(document) != PUBLIC_FIELDS:
+        return False
+    if any(
+        isinstance(document.get(field), bool)
+        or not isinstance(document.get(field), int)
+        for field in COUNT_FIELDS
+    ):
+        return False
+    for field in TIMESTAMP_FIELDS:
+        values = document.get(field)
+        if not isinstance(values, list) or not all(
+            isinstance(value, str) for value in values
+        ):
+            return False
+    breaches = document.get("same_day_breaches")
+    if not isinstance(breaches, list):
+        return False
+    for breach in breaches:
+        if not isinstance(breach, dict) or set(breach) != BREACH_FIELDS:
+            return False
+        if not all(
+            isinstance(breach.get(field), str)
+            for field in ("ts", "date", "asked_by", "asked_of", "resolution")
+        ):
+            return False
+        if breach["resolution"] not in RESOLUTIONS:
+            return False
+    return True
+
+
 def _submitted(workspace: Path, path: str) -> dict[str, object]:
     deliverable = workspace / path
+    descriptor = -1
     try:
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(deliverable, flags)
+        metadata = os.fstat(descriptor)
         if (
-            not deliverable.is_file()
-            or deliverable.stat().st_size > MAX_DELIVERABLE_BYTES
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_size > MAX_DELIVERABLE_BYTES
         ):
             return {}
-        loaded = json.loads(deliverable.read_text())
+        with os.fdopen(descriptor, encoding="utf-8") as stream:
+            descriptor = -1
+            contents = stream.read(MAX_DELIVERABLE_BYTES + 1)
+        if len(contents.encode()) > MAX_DELIVERABLE_BYTES:
+            return {}
+        loaded = json.loads(contents)
     except ValueError, UnicodeDecodeError, OSError:
         return {}
-    return loaded if isinstance(loaded, dict) and _finite_json(loaded) else {}
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+    return (
+        loaded
+        if isinstance(loaded, dict) and _finite_json(loaded) and _valid_contract(loaded)
+        else {}
+    )
 
 
 def _canonical_value(value: object) -> object:

@@ -17,6 +17,7 @@ the harness counts against the same budget.
 import asyncio
 import json
 import sys
+from collections.abc import Iterable
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -92,6 +93,21 @@ def _next_working_day(day: date) -> date:
     while moment.weekday() >= 5:
         moment += timedelta(days=1)
     return moment
+
+
+def _custody_outcome(
+    asked_on: date, asked_at: int, response_times: Iterable[int]
+) -> tuple[bool, bool, bool]:
+    first_response = min(
+        (timestamp for timestamp in response_times if timestamp > asked_at),
+        default=None,
+    )
+    if first_response is None:
+        return False, False, False
+    response_day = date.fromisoformat(_ts_day(str(first_response)))
+    same_day = response_day == asked_on
+    next_working_day = response_day == _next_working_day(asked_on)
+    return same_day, next_working_day, same_day or next_working_day
 
 
 def _working_days(start: date, end: date) -> int:
@@ -734,10 +750,13 @@ async def _one_to_one_request_audit(
             asked_on = date.fromisoformat(_ts_day(message["ts"]))
             asked_at = int(float(message["ts"]))
             next_day = _next_working_day(asked_on).isoformat()
-            chat_reply_days = {
-                _ts_day(later["ts"])
+            chat_reply_times = {
+                int(float(later["ts"]))
                 for later in messages[position + 1 :]
                 if later["user"] == asked_of and int(float(later["ts"])) > asked_at
+            }
+            chat_reply_days = {
+                _ts_day(str(timestamp)) for timestamp in chat_reply_times
             }
             window = {asked_on.isoformat(), next_day}
             directed_mail = {
@@ -746,14 +765,11 @@ async def _one_to_one_request_audit(
                 if sender == emails[asked_of] and recipient == emails[message["user"]]
             }
             if custody_deadline:
-                reply_days = chat_reply_days | {
-                    mail_day
-                    for mail_day, timestamp in directed_mail
-                    if timestamp > asked_at
-                }
-                same_day = asked_on.isoformat() in reply_days
-                next_working_day = next_day in reply_days
-                in_window = bool(reply_days & window)
+                same_day, next_working_day, in_window = _custody_outcome(
+                    asked_on,
+                    asked_at,
+                    chat_reply_times | {timestamp for _, timestamp in directed_mail},
+                )
             else:
                 # The approved second-read audit treats same-day as the direct
                 # Slack response subset while mail certifies the wider answer

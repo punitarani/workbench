@@ -68,7 +68,7 @@ def test_exact_answer_has_only_the_canonical_raw_dimensions(tmp_path: Path) -> N
     assert reward == {"answer": 1.0, "process": 0.0}
 
 
-def test_extra_top_level_or_nested_field_forfeits_format_credit(
+def test_extra_top_level_or_nested_field_invalidates_public_contract(
     tmp_path: Path,
 ) -> None:
     top = _perfect()
@@ -83,7 +83,86 @@ def test_extra_top_level_or_nested_field_forfeits_format_credit(
 
     assert _criterion(top_details, "answer", "deliverable_format") == 0.0
     assert _criterion(nested_details, "answer", "deliverable_format") == 0.0
-    assert top_reward == nested_reward == {"answer": 0.91, "process": 0.0}
+    assert top_reward == nested_reward == {"answer": 0.0, "process": 0.0}
+
+
+def test_dangling_agent_symlink_that_resolves_under_verifier_is_rejected(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    simulated_verifier_truth = (
+        tmp_path / "verifier-mount" / "tests" / "ground_truth.json"
+    )
+    deliverable = workspace / "visitor-log.json"
+    deliverable.symlink_to(simulated_verifier_truth)
+    assert deliverable.is_symlink() and not deliverable.exists()
+
+    simulated_verifier_truth.parent.mkdir(parents=True)
+    shutil.copyfile(TESTS / "ground_truth.json", simulated_verifier_truth)
+    assert deliverable.exists()
+    output = tmp_path / "logs" / "reward-raw.json"
+    output.parent.mkdir(parents=True)
+
+    subprocess.run(
+        [REWARDKIT, str(TESTS), "--workspace", str(workspace), "--output", str(output)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert json.loads(output.read_text()) == {"answer": 0.0, "process": 0.0}
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "boolean_count",
+        "float_count",
+        "numeric_breach_ts",
+        "numeric_partition_ts",
+        "numeric_unresolved_ts",
+        "numeric_record_ts",
+        "numeric_record_name",
+        "invalid_resolution",
+        "records_not_a_list",
+        "malformed_record_member",
+        "timestamps_not_a_list",
+    ],
+)
+def test_type_invalid_public_contract_scores_zero(
+    tmp_path: Path, mutation: str
+) -> None:
+    answer = _perfect()
+    breaches = answer["same_day_breaches"]
+    assert isinstance(breaches, list) and isinstance(breaches[0], dict)
+    if mutation == "boolean_count":
+        answer["requests_reviewed"] = True
+    elif mutation == "float_count":
+        answer["returned_same_day"] = 59.0
+    elif mutation == "numeric_breach_ts":
+        answer["same_day_breach_ts"][0] = 60299.000029
+    elif mutation == "numeric_partition_ts":
+        answer["returned_next_working_day_ts"][0] = 60299.000029
+    elif mutation == "numeric_unresolved_ts":
+        answer["unresolved_ts"][0] = 7456314.002498
+    elif mutation == "numeric_record_ts":
+        breaches[0]["ts"] = 60299.000029
+    elif mutation == "numeric_record_name":
+        breaches[0]["asked_by"] = 1
+    elif mutation == "invalid_resolution":
+        breaches[0]["resolution"] = "same_day"
+    elif mutation == "records_not_a_list":
+        answer["same_day_breaches"] = {}
+    elif mutation == "malformed_record_member":
+        breaches[0] = "not a record"
+    else:
+        answer["same_day_breach_ts"] = {}
+
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "answer", "deliverable_format") == 0.0
+    assert reward == {"answer": 0.0, "process": 0.0}
 
 
 @pytest.mark.parametrize("key", ["same_day_breach_ts", "same_day_breaches"])
