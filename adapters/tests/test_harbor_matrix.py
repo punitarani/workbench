@@ -248,7 +248,7 @@ def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -
         config,
         "fee-dispute-reconstruction",
         gateway_port=43121,
-        gateway_token="ephemeral-only",
+        gateway_env_file=tmp_path / "gateway.env",
     )
 
     assert command[:3] == ("harbor", "run", "-p")
@@ -262,9 +262,11 @@ def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -
         command[command.index("--ak")],
         command[command.index("--ak") + 1],
     )
-    assert "compaction_mode=local" in command
+    assert "compaction_mode=custom-provider-local" in command
     assert "OPENAI_BASE_URL=http://host.docker.internal:43121/v1" in command
-    assert "OPENAI_API_KEY=ephemeral-only" in command
+    assert command[command.index("--env-file") + 1] == str(tmp_path / "gateway.env")
+    assert "ephemeral-only" not in " ".join(command)
+    assert not any(argument.startswith("OPENAI_API_KEY=") for argument in command)
     assert "host.docker.internal" in command
     assert command[command.index("-n") + 1] == "8"
     assert command[command.index("--n-concurrent-agents") + 1] == "8"
@@ -297,9 +299,14 @@ def test_hartwell_codex_uses_local_compaction(tmp_path: Path) -> None:
             f"    logs_dir=Path({str(tmp_path)!r}),",
             "    model_name='glm-5.2',",
             f"    version={CODEX_VERSION!r},",
-            "    compaction_mode='local',",
+            "    compaction_mode='custom-provider-local',",
+            "    extra_env={",
+            "        'OPENAI_BASE_URL': 'http://host.docker.internal:43121/v1',",
+            "        'HARTWELL_GATEWAY_TOKEN': 'ephemeral-test',",
+            "    },",
             ")",
             "print(agent.build_cli_flags())",
+            "print(agent._get_env('OPENAI_API_KEY') == 'ephemeral-test')",
         )
     )
     completed = subprocess.run(
@@ -312,6 +319,15 @@ def test_hartwell_codex_uses_local_compaction(tmp_path: Path) -> None:
 
     assert completed.returncode == 0, completed.stderr
     assert "--disable remote_compaction_v2" in completed.stdout
+    assert "model_provider=hartwell_gateway" in completed.stdout
+    assert "model_providers.hartwell_gateway.base_url" in completed.stdout
+    assert "http://host.docker.internal:43121/v1" in completed.stdout
+    assert "model_providers.hartwell_gateway.env_key=OPENAI_API_KEY" in completed.stdout
+    assert "model_providers.hartwell_gateway.wire_api=responses" in completed.stdout
+    assert (
+        "model_providers.hartwell_gateway.supports_websockets=false" in completed.stdout
+    )
+    assert completed.stdout.splitlines()[-1] == "True"
 
 
 async def test_subprocess_runner_exposes_custom_agent_import_root(
@@ -527,6 +543,7 @@ class FakeCommands:
         self.mutate_environment_after_smoke = mutate_environment_after_smoke
         self.send_gateway_requests = send_gateway_requests
         self.write_results = write_results
+        self.gateway_env_files: list[Path] = []
 
     async def run(self, command: tuple[str, ...], *, cwd: Path) -> CompletedCommand:
         self.commands.append(command)
@@ -543,6 +560,9 @@ class FakeCommands:
         aliases = [
             command[index + 1] for index, value in enumerate(command) if value == "-m"
         ]
+        gateway_env_file = Path(command[command.index("--env-file") + 1])
+        self.gateway_env_files.append(gateway_env_file)
+        assert gateway_env_file.stat().st_mode & 0o777 == 0o600
         self.harbor_runs.append((task_name, attempts, tuple(aliases), job_name))
         if self.send_gateway_requests:
             base_url_arg = next(
@@ -550,13 +570,11 @@ class FakeCommands:
                 for argument in command
                 if argument.startswith("OPENAI_BASE_URL=")
             )
-            token_arg = next(
-                argument
-                for argument in command
-                if argument.startswith("OPENAI_API_KEY=")
-            )
+            token_line = gateway_env_file.read_text(encoding="utf-8").strip()
+            token_key, separator, token = token_line.partition("=")
+            assert token_key == "HARTWELL_GATEWAY_TOKEN"
+            assert separator == "="
             port = base_url_arg.split(":")[-1].split("/")[0]
-            token = token_arg.split("=", maxsplit=1)[1]
             async with httpx.AsyncClient() as client:
                 for alias in aliases:
                     await client.post(
@@ -685,6 +703,8 @@ async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
     assert len(persisted["batches"]) == 8
     assert persisted["smoke"]["valid"] is True
     assert persisted["failure"] is None
+    assert commands.gateway_env_files
+    assert all(not path.exists() for path in commands.gateway_env_files)
 
 
 async def test_invalid_smoke_is_persisted_and_stops_before_final_fee_attempts(
@@ -713,6 +733,8 @@ async def test_invalid_smoke_is_persisted_and_stops_before_final_fee_attempts(
     assert persisted["smoke"]["failure"]
     assert persisted["failure"]
     assert persisted["batches"] == []
+    assert commands.gateway_env_files
+    assert all(not path.exists() for path in commands.gateway_env_files)
 
 
 async def test_existing_smoke_job_is_rejected_before_harbor_or_post_metering(

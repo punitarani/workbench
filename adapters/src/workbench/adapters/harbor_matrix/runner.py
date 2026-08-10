@@ -3,6 +3,7 @@ import hashlib
 import math
 import os
 import stat
+import tempfile
 from collections import Counter
 from pathlib import Path
 from typing import Literal, Protocol
@@ -35,7 +36,7 @@ CODEX_VERSION = "0.147.0"
 HARTWELL_CODEX_IMPORT_PATH = (
     "workbench.adapters.harbor_matrix.codex_agent:HartwellCodex"
 )
-CODEX_COMPACTION_MODE: Literal["local"] = "local"
+CODEX_COMPACTION_MODE: Literal["custom-provider-local"] = "custom-provider-local"
 OPENROUTER_CREDITS_URL = "https://openrouter.ai/api/v1/credits"
 MODEL_ALIASES = tuple(ALIAS_TO_MODEL)
 TASK_ORDER = (
@@ -164,7 +165,7 @@ class TrialFingerprint(BaseModel):
     harbor_version: str
     codex_version: str
     codex_agent: str = HARTWELL_CODEX_IMPORT_PATH
-    codex_compaction_mode: Literal["local"] = CODEX_COMPACTION_MODE
+    codex_compaction_mode: Literal["custom-provider-local"] = CODEX_COMPACTION_MODE
     model: str
     enforced_provider_order: tuple[str, ...]
 
@@ -340,7 +341,7 @@ def build_harbor_command(
     task_name: str,
     *,
     gateway_port: int,
-    gateway_token: str,
+    gateway_env_file: Path,
     attempts: int | None = None,
     model_aliases: tuple[str, ...] = MODEL_ALIASES,
     job_label: str | None = None,
@@ -376,8 +377,8 @@ def build_harbor_command(
             f"compaction_mode={CODEX_COMPACTION_MODE}",
             "--ae",
             f"OPENAI_BASE_URL=http://host.docker.internal:{gateway_port}/v1",
-            "--ae",
-            f"OPENAI_API_KEY={gateway_token}",
+            "--env-file",
+            str(gateway_env_file),
             "--allow-agent-host",
             "host.docker.internal",
             "--max-retries",
@@ -390,15 +391,6 @@ def build_harbor_command(
         )
     )
     return tuple(command)
-
-
-def redact_harbor_command(command: tuple[str, ...]) -> tuple[str, ...]:
-    return tuple(
-        "OPENAI_API_KEY=<ephemeral-redacted>"
-        if argument.startswith("OPENAI_API_KEY=")
-        else argument
-        for argument in command
-    )
 
 
 def hash_task_content(task_dir: Path) -> str:
@@ -860,20 +852,24 @@ class MatrixRunner:
         sequence: int,
     ) -> LaunchExecution:
         start_sequence = gateway.provenance[-1].sequence if gateway.provenance else 0
-        command = build_harbor_command(
-            self.config,
-            task_name,
-            gateway_port=gateway.port,
-            gateway_token=self._gateway_token.get_secret_value(),
-            attempts=attempts,
-            job_label=job_label,
-        )
-        job_name = command[command.index("--job-name") + 1]
-        job_dir = self.config.jobs_dir / job_name
-        if job_dir.exists() or job_dir.is_symlink():
-            raise HarborRunError(f"Harbor job directory already exists: {job_dir}")
-        self._budget.assert_can_launch(credits, projected_worst_case_usd=forecast)
-        completed = await self._commands.run(command, cwd=self.config.repository)
+        gateway_env_file = _create_gateway_env_file(self._gateway_token)
+        try:
+            command = build_harbor_command(
+                self.config,
+                task_name,
+                gateway_port=gateway.port,
+                gateway_env_file=gateway_env_file,
+                attempts=attempts,
+                job_label=job_label,
+            )
+            job_name = command[command.index("--job-name") + 1]
+            job_dir = self.config.jobs_dir / job_name
+            if job_dir.exists() or job_dir.is_symlink():
+                raise HarborRunError(f"Harbor job directory already exists: {job_dir}")
+            self._budget.assert_can_launch(credits, projected_worst_case_usd=forecast)
+            completed = await self._commands.run(command, cwd=self.config.repository)
+        finally:
+            gateway_env_file.unlink(missing_ok=True)
         after = await self._credit_meter.query()
         post_meter_error: BudgetExceededError | CreditMeterError | None = None
         try:
@@ -958,6 +954,24 @@ class LaunchExecution(BaseModel):
     post_meter_error: BudgetExceededError | CreditMeterError | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+def _create_gateway_env_file(gateway_token: SecretStr) -> Path:
+    token = gateway_token.get_secret_value()
+    if "\n" in token or "\r" in token:
+        raise ValueError("gateway token contains a newline")
+    descriptor, raw_path = tempfile.mkstemp(prefix="hartwell-gateway-", suffix=".env")
+    try:
+        os.fchmod(descriptor, stat.S_IRUSR | stat.S_IWUSR)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as env_file:
+            descriptor = -1
+            env_file.write(f"HARTWELL_GATEWAY_TOKEN={token}\n")
+    except BaseException:
+        if descriptor >= 0:
+            os.close(descriptor)
+        Path(raw_path).unlink(missing_ok=True)
+        raise
+    return Path(raw_path)
 
 
 def _launch_failure(execution: LaunchExecution) -> str | None:
