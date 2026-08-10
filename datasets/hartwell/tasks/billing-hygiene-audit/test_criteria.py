@@ -99,6 +99,59 @@ def test_extra_anomalous_day_key_forfeits_full_answer_credit(
     assert reward == {"answer": 0.91, "process": 0.0}
 
 
+def test_duplicate_anomalous_day_is_counted_as_an_extra_record(
+    tmp_path: Path,
+) -> None:
+    answer = _perfect()
+    days = answer["anomalous_timekeeper_days"]
+    assert isinstance(days, list)
+    days.append(deepcopy(days[0]))
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "answer", "anomalous_days.f1") == pytest.approx(
+        6 / 7, abs=1e-4
+    )
+    assert _criterion(details, "answer", "anomalous_days.certified") == 0.0
+    assert reward["answer"] == pytest.approx(0.34 + 0.66 * 0.9 * (6 / 7), abs=1e-4)
+
+
+@pytest.mark.parametrize("nested_key", ["entry_ids", "matter_numbers"])
+def test_duplicate_nested_anomalous_day_member_loses_certification(
+    tmp_path: Path, nested_key: str
+) -> None:
+    answer = _perfect()
+    days = answer["anomalous_timekeeper_days"]
+    assert isinstance(days, list) and isinstance(days[0], dict)
+    members = days[0][nested_key]
+    assert isinstance(members, list)
+    members.append(members[0])
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "answer", "anomalous_days.f1") == pytest.approx(
+        2 / 3, abs=1e-4
+    )
+    assert _criterion(details, "answer", "anomalous_days.certified") == 0.0
+    assert reward["answer"] == pytest.approx(0.34 + 0.66 * 0.9 * (2 / 3), abs=1e-4)
+
+
+def test_reordering_records_and_nested_members_keeps_full_credit(
+    tmp_path: Path,
+) -> None:
+    answer = _perfect()
+    days = answer["anomalous_timekeeper_days"]
+    assert isinstance(days, list)
+    days.reverse()
+    for day in days:
+        assert isinstance(day, dict)
+        for nested_key in ("entry_ids", "matter_numbers"):
+            members = day[nested_key]
+            assert isinstance(members, list)
+            members.reverse()
+
+    reward, _ = _grade(tmp_path, answer)
+    assert reward == {"answer": 1.0, "process": 0.0}
+
+
 def test_missing_deliverable_scores_zero(tmp_path: Path) -> None:
     reward, _ = _grade(tmp_path, None)
     assert reward == {"answer": 0.0, "process": 0.0}

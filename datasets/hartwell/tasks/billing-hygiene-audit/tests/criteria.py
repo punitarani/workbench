@@ -3,6 +3,7 @@
 import json
 import math
 import re
+from collections import Counter
 from pathlib import Path
 
 from rewardkit import criterion
@@ -59,25 +60,27 @@ def _canonical(item: object, fields: tuple[str, ...] | None) -> str | None:
     return repr(tuple(_canonical_value(item.get(field, "")) for field in fields))
 
 
-def _as_set(values: object, fields: tuple[str, ...] | None) -> set[str]:
+def _as_multiset(values: object, fields: tuple[str, ...] | None) -> Counter[str]:
     if not isinstance(values, list):
-        return set()
-    return {
+        return Counter()
+    return Counter(
         member
         for member in (_canonical(item, fields) for item in values)
         if member is not None
-    }
+    )
 
 
-def _expected_set(expected: list[object], fields: tuple[str, ...] | None) -> set[str]:
-    return {
+def _expected_multiset(
+    expected: list[object], fields: tuple[str, ...] | None
+) -> Counter[str]:
+    return Counter(
         member
         for member in (_canonical(item, fields) for item in expected)
         if member is not None
-    }
+    )
 
 
-@criterion(description="{key}: F1 against the certified set", shared=True)
+@criterion(description="{key}: F1 against the certified multiset", shared=True)
 def set_f1(
     workspace: Path,
     path: str,
@@ -85,20 +88,20 @@ def set_f1(
     expected: list[object],
     fields: tuple[str, ...] | None = None,
 ) -> float:
-    got = _as_set(_submitted(workspace, path).get(key), fields)
-    want = _expected_set(expected, fields)
+    got = _as_multiset(_submitted(workspace, path).get(key), fields)
+    want = _expected_multiset(expected, fields)
     if not want:
         return 1.0 if not got else 0.0
-    hits = len(got & want)
+    hits = sum((got & want).values())
     if not hits:
         return 0.0
-    precision = hits / len(got)
-    recall = hits / len(want)
+    precision = hits / sum(got.values())
+    recall = hits / sum(want.values())
     return 2 * precision * recall / (precision + recall)
 
 
 @criterion(
-    description="{key}: exactly the certified set, no misses and no extras",
+    description="{key}: exactly the certified multiset, no misses and no extras",
     shared=True,
 )
 def exact_set(
@@ -108,9 +111,9 @@ def exact_set(
     expected: list[object],
     fields: tuple[str, ...] | None = None,
 ) -> bool:
-    return _as_set(_submitted(workspace, path).get(key), fields) == _expected_set(
-        expected, fields
-    )
+    return _as_multiset(
+        _submitted(workspace, path).get(key), fields
+    ) == _expected_multiset(expected, fields)
 
 
 @criterion(description="{key} within {tol} of {expected}", shared=True)
