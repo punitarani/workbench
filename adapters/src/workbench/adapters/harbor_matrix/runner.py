@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import math
+import os
 import stat
 from collections import Counter
 from pathlib import Path
@@ -31,6 +32,10 @@ from workbench.adapters.harness.openrouter_client import MODEL_PROVIDERS
 
 HARBOR_VERSION = "0.18.0"
 CODEX_VERSION = "0.147.0"
+HARTWELL_CODEX_IMPORT_PATH = (
+    "workbench.adapters.harbor_matrix.codex_agent:HartwellCodex"
+)
+CODEX_COMPACTION_MODE: Literal["local"] = "local"
 OPENROUTER_CREDITS_URL = "https://openrouter.ai/api/v1/credits"
 MODEL_ALIASES = tuple(ALIAS_TO_MODEL)
 TASK_ORDER = (
@@ -158,6 +163,8 @@ class TrialFingerprint(BaseModel):
     gateway_version: str
     harbor_version: str
     codex_version: str
+    codex_agent: str = HARTWELL_CODEX_IMPORT_PATH
+    codex_compaction_mode: Literal["local"] = CODEX_COMPACTION_MODE
     model: str
     enforced_provider_order: tuple[str, ...]
 
@@ -227,9 +234,16 @@ class CreditReader(Protocol):
 
 class SubprocessCommandRunner:
     async def run(self, command: tuple[str, ...], *, cwd: Path) -> CompletedCommand:
+        environment = os.environ.copy()
+        adapter_root = str(Path(__file__).resolve().parents[3])
+        python_paths = [adapter_root]
+        if existing_python_path := environment.get("PYTHONPATH"):
+            python_paths.extend(existing_python_path.split(os.pathsep))
+        environment["PYTHONPATH"] = os.pathsep.join(dict.fromkeys(python_paths))
         process = await asyncio.create_subprocess_exec(
             *command,
             cwd=cwd,
+            env=environment,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -342,7 +356,7 @@ def build_harbor_command(
         "-p",
         str(config.tasks_root / task_name),
         "-a",
-        "codex",
+        HARTWELL_CODEX_IMPORT_PATH,
     ]
     for alias in model_aliases:
         if alias not in ALIAS_TO_MODEL:
@@ -358,6 +372,8 @@ def build_harbor_command(
             str(config.concurrency),
             "--ak",
             f"version={CODEX_VERSION}",
+            "--ak",
+            f"compaction_mode={CODEX_COMPACTION_MODE}",
             "--ae",
             f"OPENAI_BASE_URL=http://host.docker.internal:{gateway_port}/v1",
             "--ae",
@@ -562,6 +578,8 @@ def build_trial_fingerprints(
             gateway_version=GATEWAY_VERSION,
             harbor_version=HARBOR_VERSION,
             codex_version=CODEX_VERSION,
+            codex_agent=HARTWELL_CODEX_IMPORT_PATH,
+            codex_compaction_mode=CODEX_COMPACTION_MODE,
             model=full_model,
             enforced_provider_order=MODEL_PROVIDERS[full_model],
         )

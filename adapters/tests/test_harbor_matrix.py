@@ -1,5 +1,8 @@
 import json
 import logging
+import os
+import shutil
+import subprocess
 from collections.abc import AsyncIterator
 from pathlib import Path
 
@@ -249,6 +252,9 @@ def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -
     )
 
     assert command[:3] == ("harbor", "run", "-p")
+    assert command[command.index("-a") + 1] == (
+        "workbench.adapters.harbor_matrix.codex_agent:HartwellCodex"
+    )
     assert command.count("-m") == 3
     for alias in MODEL_ALIASES:
         assert alias in command
@@ -256,6 +262,7 @@ def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -
         command[command.index("--ak")],
         command[command.index("--ak") + 1],
     )
+    assert "compaction_mode=local" in command
     assert "OPENAI_BASE_URL=http://host.docker.internal:43121/v1" in command
     assert "OPENAI_API_KEY=ephemeral-only" in command
     assert "host.docker.internal" in command
@@ -268,6 +275,75 @@ def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -
     assert validate_harbor_version("harbor 0.18.0\n") == HARBOR_VERSION
     with pytest.raises(ValueError, match="0.18.0"):
         validate_harbor_version("harbor 0.19.0")
+
+
+def test_hartwell_codex_uses_local_compaction(tmp_path: Path) -> None:
+    harbor = shutil.which("harbor")
+    if harbor is None:
+        pytest.skip("Harbor is not installed")
+    shebang = Path(harbor).resolve().read_text(encoding="utf-8").splitlines()[0]
+    if not shebang.startswith("#!"):
+        pytest.skip("Harbor launcher has no Python shebang")
+    adapter_root = Path(matrix_runner.__file__).resolve().parents[3]
+    environment = os.environ.copy()
+    environment["PYTHONPATH"] = os.pathsep.join(
+        filter(None, (str(adapter_root), environment.get("PYTHONPATH")))
+    )
+    script = "\n".join(
+        (
+            "from pathlib import Path",
+            "from workbench.adapters.harbor_matrix.codex_agent import HartwellCodex",
+            "agent = HartwellCodex(",
+            f"    logs_dir=Path({str(tmp_path)!r}),",
+            "    model_name='glm-5.2',",
+            f"    version={CODEX_VERSION!r},",
+            "    compaction_mode='local',",
+            ")",
+            "print(agent.build_cli_flags())",
+        )
+    )
+    completed = subprocess.run(
+        [shebang[2:], "-c", script],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "--disable remote_compaction_v2" in completed.stdout
+
+
+async def test_subprocess_runner_exposes_custom_agent_import_root(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class Process:
+        returncode = 0
+
+        async def communicate(self) -> tuple[bytes, bytes]:
+            return b"", b""
+
+    async def create_subprocess_exec(*command: str, **kwargs: object) -> Process:
+        captured["command"] = command
+        captured["env"] = kwargs.get("env")
+        return Process()
+
+    monkeypatch.setattr(
+        matrix_runner.asyncio,
+        "create_subprocess_exec",
+        create_subprocess_exec,
+    )
+    await matrix_runner.SubprocessCommandRunner().run(
+        ("harbor", "--version"), cwd=tmp_path
+    )
+
+    environment = captured["env"]
+    assert isinstance(environment, dict)
+    adapter_root = Path(matrix_runner.__file__).resolve().parents[3]
+    assert str(adapter_root) in environment["PYTHONPATH"].split(os.pathsep)
 
 
 def test_task_order_is_fixed() -> None:
