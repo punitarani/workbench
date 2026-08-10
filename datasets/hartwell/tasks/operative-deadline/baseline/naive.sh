@@ -55,7 +55,7 @@ assert recap and noticed[-1] in dates_in(recap[0][0])
 deadline = {
     "operative_date": noticed[-1],
     "operative_time": "10:00",
-    "correction_ts": None,
+    "correction_ts": "",
     "superseded_dates": noticed[:-1],
     "supersessions": [
         {"invalidated": noticed[index], "by": notices[index + 1][0]}

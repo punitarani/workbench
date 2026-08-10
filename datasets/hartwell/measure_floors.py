@@ -2,14 +2,13 @@
 
     uv run python datasets/hartwell/measure_floors.py [task-name ...]
 
-The floor is the call count of the honest MINIMAL tool sequence — the
+The floor is the call count of the honest minimal tool sequence — the
 discovery path an informed professional who knows the tools (but not the
 answers) would take through the real MCP servers — scripted here against
 each task's built environment bundle and counted mechanically, one tool
 call per step, no parallelism credit. Every sequence must retrieve enough of the
 record to reproduce the task's graded ground truth, and each run asserts
-that it did. The printed cap is 3x the floor (DECISIONS.md entry 17);
-task.toml's ``[harness] max_tool_calls`` carries it. The floor includes
+that it did. The floor is calibration metadata, not a hard runtime cap. It includes
 the write_file and finish builtins (one deliverable file per task), which
 the harness counts against the same budget.
 """
@@ -244,7 +243,9 @@ async def _dm_channels(client: CountingClient) -> list[dict]:
 async def fee_dispute_reconstruction(client: CountingClient) -> None:
     truth = _truth("fee-dispute-reconstruction")
     matters = await client.call("clio__list_matters")
-    matter = next(m for m in matters["data"] if "Meridian" in (m["description"] or ""))
+    matter = next(
+        m for m in matters["data"] if "Meridian" in f"{m['title']} {m['description']}"
+    )
 
     activities: list[dict] = []
     offset = 0
@@ -289,7 +290,12 @@ async def fee_dispute_reconstruction(client: CountingClient) -> None:
 
     window = [a for a in activities if "2026-04-03" < a["date"] <= "2026-04-30"]
     orphans = sorted(a["id"] for a in window if a["date"] not in coverage)
-    assert orphans == sorted(truth["unsupported_entry_ids"]), orphans
+    certified_orphans = sorted(
+        entry_id
+        for unsupported_day in truth["unsupported_days"]
+        for entry_id in unsupported_day["entry_ids"]
+    )
+    assert orphans == certified_orphans, orphans
     disputed = [
         a
         for a in window
@@ -864,19 +870,19 @@ FLOORS = {
 }
 
 
-async def measure(task: str) -> tuple[int, int]:
+async def measure(task: str) -> int:
     async with open_workspace(TASKS / task / "bundle") as workspace:
         client = CountingClient(workspace)
         await FLOORS[task](client)
     floor = client.calls + WRITE_AND_FINISH
-    return floor, 3 * floor
+    return floor
 
 
 async def main(argv: list[str]) -> int:
     tasks = argv or sorted(FLOORS)
     for task in tasks:
-        floor, cap = await measure(task)
-        print(f"{task}: floor={floor} cap={cap}")
+        floor = await measure(task)
+        print(f"{task}: floor={floor}")
     return 0
 
 

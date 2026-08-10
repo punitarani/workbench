@@ -10,6 +10,8 @@ which document, which version, and which clause.
 
 Work from the firm's systems: Gmail, Slack, Clio, and iManage, where the
 playbook and the NDAs are filed with their full version histories.
+This audit is intentionally seatless: those tools expose the firm-wide
+agent-facing record, not a single lawyer's mailbox or application seat.
 
 Save **`drift.json`** in your workspace:
 

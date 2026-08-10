@@ -1,25 +1,50 @@
-# Harbor task definition. The environment bundle is built locally from
-# the four-month history:
-#   uv run python datasets/hartwell/build_tasks.py
+schema_version = "1.3"
 
 [task]
-name = "operative-deadline"
+name = "workbench/operative-deadline"
+description = "Determine the operative Arroyo hearing and certify superseded references."
+authors = [{ name = "Workbench" }]
+keywords = ["legal", "deadline", "cross-system-retrieval", "temporal-reasoning", "mcp"]
+[metadata]
 dataset = "hartwell"
-summary = "Determine the operative Arroyo hearing date and the dates it superseded"
-
+difficulty = "hard"
+skills = ["retrieval", "reconciliation", "temporal-reasoning"]
+reference_tool_path_calls = 40
+agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and Clio records."
 [environment]
 docker_image = "workbench:dev"
-# The built bundle splits across the image: bundle/workspace seeds
-# /home/agent/workspace (exposed as /app), bundle/state stays offstage.
-
+os = "linux"
+workdir = "/home/agent/workspace"
+memory_mb = 4096
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai", "raw.githubusercontent.com", "objects.githubusercontent.com", "nodejs.org", "registry.npmjs.org", "*.ubuntu.com"]
+[environment.healthcheck]
+command = "sh /home/agent/workspace/.workbench/install.sh"
+timeout_sec = 180.0
+interval_sec = 2.0
+retries = 2
+[[environment.mcp_servers]]
+name = "gmail"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-gmail"
+[[environment.mcp_servers]]
+name = "slack"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-slack"
+[[environment.mcp_servers]]
+name = "imanage"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-imanage"
+[[environment.mcp_servers]]
+name = "clio"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-clio"
+[agent]
+user = "agent"
+timeout_sec = 1800.0
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
 [verifier]
-# In-container: tests/test.sh runs the deterministic grader and writes
-# partial-credit reward to /logs/verifier/reward.json. The Reward Kit
-# wrapper replaces the direct python3 call once runs happen through Harbor.
-weights = { operative_date = 0.1, operative_time = 0.04, correction_ts = 0.07, superseded_dates = 0.08, supersessions = 0.1, stale_calendar_refs = 0.56, format = 0.05 }
-
-[harness]
-# Task-anchored call budget (DECISIONS.md entry 17): 3x the reference
-# tool-path floor of 40 calls measured by datasets/hartwell/measure_floors.py
-# (write_file and finish count against the same budget).
-max_tool_calls = 120
+user = "verifier"
+timeout_sec = 900.0
+network_mode = "no-network"

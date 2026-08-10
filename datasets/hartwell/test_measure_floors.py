@@ -35,9 +35,32 @@ def test_second_read_and_visitor_floors_keep_independent_semantics() -> None:
     )
 
     assert completed.stdout.splitlines() == [
-        "second-read-audit: floor=54 cap=162",
-        "visitor-log-audit: floor=54 cap=162",
+        "second-read-audit: floor=54",
+        "visitor-log-audit: floor=54",
     ]
+
+
+def test_measure_api_returns_only_the_observed_floor() -> None:
+    namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
+    measure = namespace["measure"]
+
+    assert "tuple[int, int]" not in str(measure.__annotations__.get("return"))
+
+
+def test_fee_floor_discovers_meridian_through_current_clio_fields() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(HARTWELL / "measure_floors.py"),
+            "fee-dispute-reconstruction",
+        ],
+        cwd=HARTWELL.parents[1],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.stdout.strip() == "fee-dispute-reconstruction: floor=49"
 
 
 def test_visitor_custody_uses_the_first_qualifying_return() -> None:

@@ -9,6 +9,7 @@ import json
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -22,53 +23,112 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def run_grader(tmp_path: Path, produce: Path) -> dict:
-    """Reproduce the split the harness runs: the tool databases sit in
-    ``state/``, a sibling of the agent's workspace, and both the solution
-    and the grader work from ``workspace/``."""
+def test_harbor_rewardkit_layout_replaces_legacy_grader() -> None:
+    config = tomllib.loads((TASK / "task.toml").read_text())
+    assert config["schema_version"] == "1.3"
+    assert config["metadata"]["reference_tool_path_calls"] == 10
+    assert "harness" not in config
+    assert {
+        path.name
+        for path in (TASK / "tests").iterdir()
+        if path.is_dir() and path.name != "__pycache__"
+    } == {"answer", "process"}
+    assert not (TASK / "tests" / "grade.py").exists()
+    assert config["metadata"]["agent_data_scope"].startswith("Intentionally seatless")
+    assert config["environment"]["docker_image"] == "workbench:dev"
+    assert (
+        config["environment"]["healthcheck"]["command"]
+        == "sh /home/agent/workspace/.workbench/install.sh"
+    )
+    assert config["environment"]["mcp_servers"] == [
+        {
+            "name": name,
+            "transport": "stdio",
+            "command": f"/usr/local/bin/workbench-mcp-{name}",
+        }
+        for name in ("gmail", "slack", "imanage", "clio")
+    ]
+    assert config["agent"]["user"] == "agent"
+    assert config["verifier"] == {
+        "user": "verifier",
+        "timeout_sec": 900.0,
+        "network_mode": "no-network",
+    }
+
+
+def run_grader(tmp_path: Path, produce: Path) -> dict[str, float]:
     bundle = tmp_path / "bundle"
     shutil.copytree(BUNDLE, bundle)
     workspace = bundle / "workspace"
     subprocess.run(
-        ["bash", str(produce)], cwd=workspace, check=True, capture_output=True
-    )
-    logs = tmp_path / "logs"
-    result = subprocess.run(
-        [sys.executable, str(TASK / "tests" / "grade.py")],
+        ["sh", str(produce)],
         cwd=workspace,
         check=True,
         capture_output=True,
-        text=True,
         env={
-            "VERIFIER_LOG_DIR": str(logs),
             "WORKBENCH_STATE": str(bundle / "state"),
-            "PATH": "/usr/bin:/bin",
+            "PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin",
         },
     )
-    reward = json.loads((logs / "reward.json").read_text())
-    assert result.stdout.strip(), "grader prints its verdict"
-    return reward
+    logs = tmp_path / "logs"
+    output = logs / "reward-raw.json"
+    logs.mkdir(parents=True)
+    subprocess.run(
+        [
+            "rewardkit",
+            str(TASK / "tests"),
+            "--workspace",
+            str(workspace),
+            "--output",
+            str(output),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(output.read_text())
+
+
+def test_solve_python_emits_json_without_writing_workspace(tmp_path: Path) -> None:
+    bundle = tmp_path / "bundle"
+    shutil.copytree(BUNDLE, bundle)
+    workspace = bundle / "workspace"
+    completed = subprocess.run(
+        [sys.executable, str(TASK / "solution" / "solve.py")],
+        cwd=workspace,
+        env={
+            "WORKBENCH_STATE": str(bundle / "state"),
+            "PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin",
+        },
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert isinstance(json.loads(completed.stdout), dict)
+    assert completed.stderr == ""
+    assert not (workspace / "postmortem.json").exists()
 
 
 def test_solution_earns_full_reward(tmp_path: Path) -> None:
     reward = run_grader(tmp_path, TASK / "solution" / "solve.sh")
-    assert reward["score"] == pytest.approx(1.0), reward
+    assert reward == {"answer": 1.0, "process": 0.0}
 
 
 def test_naive_baseline_earns_strictly_less(tmp_path: Path) -> None:
     solved = run_grader(tmp_path / "a", TASK / "solution" / "solve.sh")
     naive = run_grader(tmp_path / "b", TASK / "baseline" / "naive.sh")
-    assert naive["score"] < solved["score"] - 0.4, (
-        f"the Slack/Clio/iManage joins must discriminate: naive={naive['score']}"
+    assert naive["answer"] < solved["answer"] - 0.4, (
+        f"the Slack/Clio/iManage joins must discriminate: naive={naive['answer']}"
     )
-    assert naive["score"] > 0.1, "the email thread still earns the baseline real credit"
+    assert naive["answer"] > 0.1
 
 
 def test_missing_deliverable_scores_zero(tmp_path: Path) -> None:
     empty = tmp_path / "noop.sh"
     empty.write_text("true\n")
     reward = run_grader(tmp_path, empty)
-    assert reward["score"] == 0.0
+    assert reward == {"answer": 0.0, "process": 0.0}
 
 
 def test_grading_is_deterministic(tmp_path: Path) -> None:

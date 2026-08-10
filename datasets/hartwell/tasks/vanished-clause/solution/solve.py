@@ -224,9 +224,8 @@ def main() -> int:
         "clean_documents": clean_documents,
         "unreviewed_revisions": sorted(unreviewed),
     }
-    with open("clause.json", "w") as handle:
-        json.dump(clause, handle, indent=2)
-    print("clause.json written")
+    json.dump(clause, sys.stdout, indent=2)
+    sys.stdout.write("\n")
     return 0
 
 

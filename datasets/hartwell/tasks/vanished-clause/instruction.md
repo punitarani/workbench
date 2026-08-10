@@ -13,6 +13,8 @@ there — and if it is there, document exactly where it happened.
 
 You have the firm's systems: Gmail, Slack, Clio, and iManage, which keeps
 every version of every document the firm has saved.
+This audit is intentionally seatless: those tools expose the firm-wide
+agent-facing record, not a single lawyer's mailbox or application seat.
 
 Save **`clause.json`** in your workspace:
 

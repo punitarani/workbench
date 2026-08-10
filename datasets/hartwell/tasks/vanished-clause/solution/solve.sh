@@ -1,4 +1,11 @@
 #!/bin/sh
-# Reference solution: surveys every multi-version document and delegates
-# the importable version-diff oracle to solve.py.
-exec python3 "$(dirname "$0")/solve.py"
+set -eu
+TEMP=$(mktemp .clause.json.XXXXXX)
+trap 'rm -f "$TEMP"' EXIT HUP INT TERM
+if [ -x /usr/local/bin/run-as-environment ]; then
+    /usr/local/bin/run-as-environment /usr/local/libexec/workbench/oracle > "$TEMP"
+else
+    python3 "$(dirname "$0")/solve.py" > "$TEMP"
+fi
+mv -f "$TEMP" clause.json
+trap - EXIT HUP INT TERM

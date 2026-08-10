@@ -9,6 +9,8 @@ the ending was papered.
 
 Everything is in the firm's systems — Gmail, Slack, iManage, and Clio.
 Work from them, not from recollection.
+This audit is intentionally seatless: those tools expose the firm-wide
+agent-facing record, not a single lawyer's mailbox or application seat.
 
 Save **`postmortem.json`** in your workspace:
 

@@ -9,6 +9,8 @@ full history of dates it replaced.
 
 The firm runs on Gmail, Slack, iManage, and Clio; the answer is somewhere
 in them.
+This audit is intentionally seatless: those tools expose the firm-wide
+agent-facing record, not a single lawyer's mailbox or application seat.
 
 Save **`deadline.json`** in your workspace:
 

@@ -11,6 +11,8 @@ Eleanor wants the list. Not an impression — the requests themselves, and
 which of them got nothing back.
 
 Everything is in the firm's systems — Gmail, Slack, iManage, and Clio.
+This audit is intentionally seatless: those tools expose the firm-wide
+agent-facing record, not a single lawyer's mailbox or application seat.
 The asking happens where people actually ask each other: one to one, in
 Slack direct messages. Chat search does not reach into those, so there is
 no shortcut here — the conversations have to be opened.
