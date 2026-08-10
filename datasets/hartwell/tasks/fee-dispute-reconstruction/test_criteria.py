@@ -228,7 +228,7 @@ def test_duplicate_outer_record_is_counted_as_an_extra(
     assert 0.0 < reward["answer"] < 1.0
 
 
-def test_duplicate_nested_unsupported_entry_id_invalidates_contract(
+def test_duplicate_nested_unsupported_entry_id_loses_f1_and_certification(
     tmp_path: Path,
 ) -> None:
     answer = _perfect()
@@ -238,8 +238,112 @@ def test_duplicate_nested_unsupported_entry_id_invalidates_contract(
     assert isinstance(entry_ids, list)
     entry_ids.append(entry_ids[0])
 
-    reward, _ = _grade(tmp_path, answer)
-    assert reward == {"answer": 0.0, "process": 0.0}
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "unsupported_days.f1") == pytest.approx(0.8)
+    assert _criterion(details, "unsupported_days.certified") == 0.0
+    assert reward["answer"] == pytest.approx(0.44 + 0.56 * 0.9 * 0.8, abs=1e-4)
+
+
+@pytest.mark.parametrize("extra_name", ["Marcus Liang", "Avery Fake"])
+def test_duplicate_or_fake_timekeeper_is_a_precision_error(
+    tmp_path: Path, extra_name: str
+) -> None:
+    answer = _perfect()
+    timekeepers = answer["timekeepers"]
+    assert isinstance(timekeepers, list)
+    timekeepers.append(extra_name)
+
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "timekeepers.f1") == pytest.approx(0.8)
+    assert _criterion(details, "timekeepers.certified") == 0.0
+    assert reward["answer"] == pytest.approx(0.98 + 0.02 * 0.9 * 0.8, abs=1e-4)
+
+
+@pytest.mark.parametrize(
+    ("extra_name", "minutes"),
+    [("Liang, Marcus", 675), ("Avery Fake", 675)],
+)
+def test_duplicate_alias_or_fake_timekeeper_map_key_is_a_precision_error(
+    tmp_path: Path, extra_name: str, minutes: int
+) -> None:
+    answer = _perfect()
+    mapping = answer["minutes_by_timekeeper"]
+    assert isinstance(mapping, dict)
+    mapping[extra_name] = minutes
+
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "minutes_by_timekeeper.f1") == pytest.approx(0.8)
+    assert _criterion(details, "minutes_by_timekeeper.certified") == 0.0
+    assert reward["answer"] == pytest.approx(0.95 + 0.05 * 0.9 * 0.8, abs=1e-4)
+
+
+def test_wrong_timekeeper_map_value_is_both_a_miss_and_an_extra(tmp_path: Path) -> None:
+    answer = _perfect()
+    mapping = answer["minutes_by_timekeeper"]
+    assert isinstance(mapping, dict)
+    mapping["Marcus Liang"] = 674
+
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "minutes_by_timekeeper.f1") == pytest.approx(0.5)
+    assert _criterion(details, "minutes_by_timekeeper.certified") == 0.0
+    assert reward["answer"] == pytest.approx(0.95 + 0.05 * 0.9 * 0.5, abs=1e-4)
+
+
+@pytest.mark.parametrize(
+    ("key", "criterion", "fixed_weight", "field_weight"),
+    [
+        ("timekeepers", "timekeepers", 0.98, 0.02),
+        (
+            "minutes_by_timekeeper",
+            "minutes_by_timekeeper",
+            0.95,
+            0.05,
+        ),
+    ],
+)
+def test_missing_timekeeper_uses_marker_aware_partial_credit(
+    tmp_path: Path,
+    key: str,
+    criterion: str,
+    fixed_weight: float,
+    field_weight: float,
+) -> None:
+    answer = _perfect()
+    value = answer[key]
+    if isinstance(value, list):
+        value.pop()
+    else:
+        assert isinstance(value, dict)
+        value.pop("Peter Novak")
+
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, f"{criterion}.f1") == pytest.approx(2 / 3, abs=1e-4)
+    assert _criterion(details, f"{criterion}.certified") == 0.0
+    assert reward["answer"] == pytest.approx(
+        fixed_weight + field_weight * 0.9 * (2 / 3), abs=1e-4
+    )
+
+
+def test_timekeeper_aliases_and_reordering_remain_exact(tmp_path: Path) -> None:
+    answer = _perfect()
+    answer["timekeepers"] = ["Novak, Peter", "Liang, Marcus"]
+    answer["minutes_by_timekeeper"] = {
+        "Novak, Peter": 215,
+        "Liang, Marcus": 675,
+    }
+
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "timekeepers.f1") == 1.0
+    assert _criterion(details, "timekeepers.certified") == 1.0
+    assert _criterion(details, "minutes_by_timekeeper.f1") == 1.0
+    assert _criterion(details, "minutes_by_timekeeper.certified") == 1.0
+    assert reward == {"answer": 1.0, "process": 0.0}
 
 
 def test_reordering_sets_and_nested_members_keeps_full_credit(tmp_path: Path) -> None:

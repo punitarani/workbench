@@ -198,19 +198,28 @@ def test_duplicate_nested_anomalous_day_member_loses_certification(
     members = days[0][nested_key]
     assert isinstance(members, list)
     members.append(members[0])
-    reward, _ = _grade(tmp_path, answer)
+    reward, details = _grade(tmp_path, answer)
 
-    assert reward == {"answer": 0.0, "process": 0.0}
+    assert _criterion(details, "answer", "anomalous_days.f1") == pytest.approx(
+        2 / 3, abs=1e-4
+    )
+    assert _criterion(details, "answer", "anomalous_days.certified") == 0.0
+    assert reward["answer"] == pytest.approx(0.34 + 0.66 * 0.9 * (2 / 3), abs=1e-4)
 
 
-def test_duplicate_phantom_note_id_invalidates_contract(tmp_path: Path) -> None:
+def test_duplicate_phantom_note_id_is_counted_as_an_extra(tmp_path: Path) -> None:
     answer = _perfect()
     note_ids = answer["phantom_note_ids"]
     assert isinstance(note_ids, list)
     note_ids.append(note_ids[0])
 
-    reward, _ = _grade(tmp_path, answer)
-    assert reward == {"answer": 0.0, "process": 0.0}
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "answer", "phantom_notes.f1") == pytest.approx(
+        2 / 3, abs=1e-4
+    )
+    assert _criterion(details, "answer", "phantom_notes.certified") == 0.0
+    assert reward["answer"] == pytest.approx(0.9 + 0.1 * 0.9 * (2 / 3), abs=1e-4)
 
 
 def test_reordering_records_and_nested_members_keeps_full_credit(

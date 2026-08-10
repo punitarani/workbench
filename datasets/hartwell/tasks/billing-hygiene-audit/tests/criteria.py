@@ -50,20 +50,12 @@ def _integer(value: object) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
-def _unique_integers(value: object) -> bool:
-    return (
-        isinstance(value, list)
-        and all(_integer(item) for item in value)
-        and len(value) == len(set(value))
-    )
+def _integer_list(value: object) -> bool:
+    return isinstance(value, list) and all(_integer(item) for item in value)
 
 
-def _unique_strings(value: object) -> bool:
-    return (
-        isinstance(value, list)
-        and all(isinstance(item, str) for item in value)
-        and len(value) == len(set(value))
-    )
+def _string_list(value: object) -> bool:
+    return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 
 def _valid_contract(document: dict[str, object]) -> bool:
@@ -80,13 +72,13 @@ def _valid_contract(document: dict[str, object]) -> bool:
         if (
             not isinstance(day.get("date"), str)
             or not isinstance(day.get("timekeeper"), str)
-            or not _unique_integers(day.get("entry_ids"))
-            or not _unique_strings(day.get("matter_numbers"))
+            or not _integer_list(day.get("entry_ids"))
+            or not _string_list(day.get("matter_numbers"))
             or not _integer(day.get("minutes"))
             or not _integer(day.get("billed_cents"))
         ):
             return False
-    return _unique_integers(document.get("phantom_note_ids"))
+    return _integer_list(document.get("phantom_note_ids"))
 
 
 def _submitted(workspace: Path, path: str) -> dict[str, object]:

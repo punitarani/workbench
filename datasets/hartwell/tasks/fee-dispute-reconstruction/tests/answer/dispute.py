@@ -67,19 +67,33 @@ rk.exact_set(
     name="disputed_entries.certified",
     weight=1.2,
 )
-rk.marker_map_recall(
+rk.marker_map_f1(
     DELIVERABLE,
     "minutes_by_timekeeper",
     TRUTH["minutes_by_timekeeper_markers"],
-    name="minutes_by_timekeeper",
-    weight=5.0,
+    name="minutes_by_timekeeper.f1",
+    weight=4.5,
 )
-rk.marker_list_recall(
+rk.exact_marker_map(
+    DELIVERABLE,
+    "minutes_by_timekeeper",
+    TRUTH["minutes_by_timekeeper_markers"],
+    name="minutes_by_timekeeper.certified",
+    weight=0.5,
+)
+rk.marker_list_f1(
     DELIVERABLE,
     "timekeepers",
     TRUTH["timekeeper_markers"],
-    name="timekeepers",
-    weight=2.0,
+    name="timekeepers.f1",
+    weight=1.8,
+)
+rk.exact_marker_list(
+    DELIVERABLE,
+    "timekeepers",
+    TRUTH["timekeeper_markers"],
+    name="timekeepers.certified",
+    weight=0.2,
 )
 rk.field_names_any(
     DELIVERABLE,

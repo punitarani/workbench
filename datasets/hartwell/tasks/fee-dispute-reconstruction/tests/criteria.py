@@ -59,12 +59,8 @@ def _integer(value: object) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
-def _unique_integers(value: object) -> bool:
-    return (
-        isinstance(value, list)
-        and all(_integer(item) for item in value)
-        and len(value) == len(set(value))
-    )
+def _integer_list(value: object) -> bool:
+    return isinstance(value, list) and all(_integer(item) for item in value)
 
 
 def _valid_contract(document: dict[str, object]) -> bool:
@@ -111,7 +107,7 @@ def _valid_contract(document: dict[str, object]) -> bool:
             return False
         if (
             not isinstance(day.get("date"), str)
-            or not _unique_integers(day.get("entry_ids"))
+            or not _integer_list(day.get("entry_ids"))
             or not _integer(day.get("entry_count"))
             or not _integer(day.get("minutes"))
             or not _integer(day.get("billed_cents"))
@@ -295,55 +291,113 @@ def field_names_any(workspace: Path, path: str, key: str, markers: list[str]) ->
     return any(marker in value for marker in markers)
 
 
-@criterion(description="{key}: share of the expected names present", shared=True)
-def marker_list_recall(
+def _maximum_matches(candidates: list[set[int]]) -> int:
+    matched_submissions: dict[int, int] = {}
+
+    def assign(submission: int, seen: set[int]) -> bool:
+        for expected in sorted(candidates[submission]):
+            if expected in seen:
+                continue
+            seen.add(expected)
+            previous = matched_submissions.get(expected)
+            if previous is None or assign(previous, seen):
+                matched_submissions[expected] = submission
+                return True
+        return False
+
+    for submission in range(len(candidates)):
+        assign(submission, set())
+    return len(matched_submissions)
+
+
+def _normalized_f1(hits: int, submitted: int, expected: int) -> float:
+    if not expected:
+        return 1.0 if not submitted else 0.0
+    if not submitted or not hits:
+        return 0.0
+    precision = hits / submitted
+    recall = hits / expected
+    return 2 * precision * recall / (precision + recall)
+
+
+def _name_candidates(names: list[str], marker_sets: list[list[str]]) -> list[set[int]]:
+    return [
+        {
+            index
+            for index, markers in enumerate(marker_sets)
+            if all(marker.lower() in name.lower() for marker in markers)
+        }
+        for name in names
+    ]
+
+
+def _map_candidates(
+    mapping: dict[str, object], expected: list[list[object]]
+) -> list[set[int]]:
+    candidates: list[set[int]] = []
+    for name, submitted_value in mapping.items():
+        matches: set[int] = set()
+        for index, pair in enumerate(expected):
+            markers, expected_value = pair
+            if not isinstance(markers, list):
+                continue
+            if submitted_value == expected_value and all(
+                str(marker).lower() in name.lower() for marker in markers
+            ):
+                matches.add(index)
+        candidates.append(matches)
+    return candidates
+
+
+@criterion(description="{key}: marker-aware F1 for expected names", shared=True)
+def marker_list_f1(
     workspace: Path, path: str, key: str, marker_sets: list[list[str]]
 ) -> float:
-    """Recall over a list of people, matched by name fragments.
-
-    Names are free text — "Marcus Liang", "M. Liang", "liang, marcus" — so the
-    grader matches fragments rather than a canonical form, exactly as the
-    legacy grader did.
-    """
-
     values = _submitted(workspace, path).get(key)
-    values = (
-        [str(value).lower() for value in values] if isinstance(values, list) else []
+    names = (
+        [value for value in values if isinstance(value, str)]
+        if isinstance(values, list)
+        else []
     )
-    if not marker_sets:
-        return 1.0
-    found = sum(
-        1
-        for markers in marker_sets
-        if any(all(marker in value for marker in markers) for value in values)
+    hits = _maximum_matches(_name_candidates(names, marker_sets))
+    return _normalized_f1(hits, len(names), len(marker_sets))
+
+
+@criterion(description="{key}: exactly the expected names by markers", shared=True)
+def exact_marker_list(
+    workspace: Path, path: str, key: str, marker_sets: list[list[str]]
+) -> bool:
+    values = _submitted(workspace, path).get(key)
+    names = (
+        [value for value in values if isinstance(value, str)]
+        if isinstance(values, list)
+        else []
     )
-    return found / len(marker_sets)
+    hits = _maximum_matches(_name_candidates(names, marker_sets))
+    return hits == len(names) == len(marker_sets)
+
+
+@criterion(description="{key}: marker-aware F1 for name/value pairs", shared=True)
+def marker_map_f1(
+    workspace: Path, path: str, key: str, expected: list[list[object]]
+) -> float:
+    mapping = _submitted(workspace, path).get(key)
+    mapping = mapping if isinstance(mapping, dict) else {}
+    candidates = _map_candidates(mapping, expected)
+    hits = _maximum_matches(candidates)
+    return _normalized_f1(hits, len(mapping), len(expected))
 
 
 @criterion(
-    description="{key}: share of the expected name/value pairs correct", shared=True
+    description="{key}: exactly the expected name/value pairs by markers", shared=True
 )
-def marker_map_recall(
+def exact_marker_map(
     workspace: Path, path: str, key: str, expected: list[list[object]]
-) -> float:
-    """Recall over a name-keyed mapping of figures.
-
-    Each expected element is ``[[name fragments], value]``: the pair counts
-    only when some key matches every fragment *and* carries the right value.
-    """
-
+) -> bool:
     mapping = _submitted(workspace, path).get(key)
     mapping = mapping if isinstance(mapping, dict) else {}
-    if not expected:
-        return 1.0
-    found = 0
-    for markers, value in expected:
-        for name, submitted_value in mapping.items():
-            if all(marker in str(name).lower() for marker in markers):
-                if submitted_value == value:
-                    found += 1
-                break
-    return found / len(expected)
+    hits = _maximum_matches(_map_candidates(mapping, expected))
+    return hits == len(mapping) == len(expected)
 
 
 @criterion(description="{path} is an object carrying every required field", shared=True)
