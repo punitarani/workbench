@@ -20,7 +20,7 @@ weights = { requests_reviewed = 0.02, conversations_reviewed = 0.02, unanswered_
 
 [harness]
 # Task-anchored call budget (DECISIONS.md entry 17): 3x the reference
-# tool-path floor of 53 calls measured by
+# tool-path floor of 54 calls measured by
 # datasets/hartwell/measure_floors.py
 # (write_file and finish count against the same budget).
-max_tool_calls = 159
+max_tool_calls = 162

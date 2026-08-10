@@ -5,7 +5,7 @@
     "term": "LexiPoint NDA v2 (2026-05-13, Noah Feldstein) flips three (3) years to five (5) years; covering email msg-000407-era accepts 'the longer term from the markup' without ever stating the number. Since round 3 the accepted length is invisible to keyword search: no NDA email or chat anywhere says 'five' — the number exists only in the v2 document content, so only the v1/v2 diff yields the practice.",
     "residuals": "Ironclad NDA v2 (2026-06-10, Noah Feldstein) adds the Residual Knowledge clause. Invisible to keyword search: no email or Slack message anywhere says 'residual' — the covering emails describe only a 'rider' and a conformed article, and the sole discussion is the oblique #matters thread reply ('folding in the carve-out LexiPoint asked for back in May'). Only the Ironclad v1/v2 content diff names the clause.",
     "decoys": "Diane's 2026-06-24 email names only LexiPoint and Ironclad, and the intake email names only BayMark and Archway — an email-trail survey covers four of nine files and forfeits the certification.",
-    "silent_versions": "Round 6: the June vendor re-papering lands substantive riders as v3s. Under the stated rule (a version substantively changed the agreement, and no email that day names the vendor or carries the file), exactly four versions are silent: Trueline v3 LEGAL!10.3 (2026-06-15), Cobalt v3 LEGAL!13.3 (2026-06-16), Archway v3 LEGAL!15.3 (2026-06-18), Summit v3 LEGAL!21.3 (2026-06-25). Noise on every side: LexiPoint v2, Ironclad v2, BayMark v3 (2026-06-18), and Harborlight v3 (2026-06-23) are substantive but covered by same-day email; Brightwater v3 (2026-06-24) is a real diff that only records notice addresses (not substantive); Summit's covering email lands the day AFTER its rider (2026-06-26, the off-by-one trap); Archway's rider day carries a BayMark-naming email (wrong vendor); every v2 of the seven conforming NDAs has no textual change at all. Same-day Slack notes name the silent vendors, but the rule counts email only. Graded all-or-nothing at 0.28; with the survey at 0.35, the non-reconciliation subset caps at 0.37."
+    "silent_versions": "Round 6: the June vendor re-papering lands substantive riders as v3s. Under the stated rule (a version substantively changed the agreement, and no email that day names the vendor or carries the file), exactly four versions are silent: Trueline v3 LEGAL!11.3 (2026-06-15), Cobalt v3 LEGAL!23.3 (2026-06-16), Archway v3 LEGAL!27.3 (2026-06-18), Summit v3 LEGAL!36.3 (2026-06-25). Noise on every side: LexiPoint v2, Ironclad v2, BayMark v3 (2026-06-18), and Harborlight v3 (2026-06-23) are substantive but covered by same-day email; Brightwater v3 (2026-06-24) is a real diff that only records notice addresses (not substantive); Summit's covering email lands the day AFTER its rider (2026-06-26, the off-by-one trap); Archway's rider day carries a BayMark-naming email (wrong vendor); every v2 of the seven conforming NDAs has no textual change at all. Same-day Slack notes name the silent vendors, but the rule counts email only. Graded all-or-nothing at 0.28; with the survey at 0.35, the non-reconciliation subset caps at 0.37."
   },
   "playbook_path": "/firm/playbooks/vendor-nda-playbook.md",
   "ndas": {
@@ -57,9 +57,9 @@
     "format": 0.1
   },
   "silent_versions": [
-    "LEGAL!10.3",
-    "LEGAL!13.3",
-    "LEGAL!15.3",
-    "LEGAL!21.3"
+    "LEGAL!11.3",
+    "LEGAL!23.3",
+    "LEGAL!27.3",
+    "LEGAL!36.3"
   ]
 }

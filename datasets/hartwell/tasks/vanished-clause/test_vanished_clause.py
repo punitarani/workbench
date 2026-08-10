@@ -5,6 +5,7 @@ Needs the built environment bundle (data, local-only):
     uv run python datasets/hartwell/build_tasks.py
 """
 
+import importlib.util
 import json
 import shutil
 import subprocess
@@ -16,10 +17,24 @@ import pytest
 TASK = Path(__file__).parent
 BUNDLE = TASK / "bundle"
 
-pytestmark = pytest.mark.skipif(
+needs_bundle = pytest.mark.skipif(
     not BUNDLE.exists(),
     reason="task bundle not built; run datasets/hartwell/build_tasks.py",
 )
+
+
+def test_document_mention_markers_match_storyline_registry() -> None:
+    from workbench.workplaces.hartwell.storylines import DOC_MENTION_MARKERS
+
+    solution_path = TASK / "solution" / "solve.py"
+    spec = importlib.util.spec_from_file_location(
+        "vanished_clause_solution", solution_path
+    )
+    assert spec is not None and spec.loader is not None
+    solution = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(solution)
+
+    assert solution.DOC_MENTION_MARKERS == DOC_MENTION_MARKERS
 
 
 def run_grader(tmp_path: Path, produce: Path) -> dict:
@@ -50,11 +65,13 @@ def run_grader(tmp_path: Path, produce: Path) -> dict:
     return reward
 
 
+@needs_bundle
 def test_solution_earns_full_reward(tmp_path: Path) -> None:
     reward = run_grader(tmp_path, TASK / "solution" / "solve.sh")
     assert reward["score"] == pytest.approx(1.0), reward
 
 
+@needs_bundle
 def test_naive_baseline_earns_strictly_less(tmp_path: Path) -> None:
     solved = run_grader(tmp_path / "a", TASK / "solution" / "solve.sh")
     naive = run_grader(tmp_path / "b", TASK / "baseline" / "naive.sh")
@@ -64,6 +81,7 @@ def test_naive_baseline_earns_strictly_less(tmp_path: Path) -> None:
     assert naive["score"] > 0.1, "the email trail still earns the baseline real credit"
 
 
+@needs_bundle
 def test_missing_deliverable_scores_zero(tmp_path: Path) -> None:
     empty = tmp_path / "noop.sh"
     empty.write_text("true\n")
@@ -71,6 +89,7 @@ def test_missing_deliverable_scores_zero(tmp_path: Path) -> None:
     assert reward["score"] == 0.0
 
 
+@needs_bundle
 def test_grading_is_deterministic(tmp_path: Path) -> None:
     first = run_grader(tmp_path / "a", TASK / "solution" / "solve.sh")
     second = run_grader(tmp_path / "b", TASK / "solution" / "solve.sh")

@@ -1,10 +1,10 @@
 {
   "_evidence": {
-    "versions": "iManage doc 12 /lumen-licensing/license-and-support-agreement.md carries seven versions with uniformly innocuous change comments. Section 9.2 Indemnification by Licensor is present in v1 (2026-03-31), v2 (2026-04-21), and v3 (2026-04-28), and first absent from v4 (2026-05-21, Marcus Liang, 'Conformed the draft following the call with licensor's counsel.'); v5-v7 are cleanup passes by Peter Novak and Marcus. Only the v3/v4 content diff shows the drop; no comment mentions it.",
-    "corpus": "The instruction no longer names the document: since round 5 the repository holds 17 multi-version documents (7 with 3+ versions) — the firm's engagement letter, intake checklist, billing guidelines, litigation hold template, discovery playbook, the vendor-NDA playbook, the Lumen SOW, and nine vendor NDAs all carry histories where nothing substantive disappears — so the clean_documents certification is a 16-number exact set: {1,2,3,4,7,9,10,11,13,14,15,16,17,18,19,21}.",
-    "decoys": "doc 14 /lumen-licensing/support-services-sow.md is a similarly named Lumen document with a clean four-version history and no indemnity language. msg-000561-era mail (2026-06-09, June Akana) quotes the OLD v2-era indemnity text verbatim AFTER the drop, and Marcus's same-day reply claims nothing substantive changed. The iManage tools serve each document's repository path and document number, so both graded id spaces are directly observable.",
+    "versions": "iManage doc 21 /lumen-licensing/license-and-support-agreement.md carries seven versions with uniformly innocuous change comments. Section 9.2 Indemnification by Licensor is present in v1 (2026-03-31), v2 (2026-04-21), and v3 (2026-04-28), and first absent from v4 (2026-05-21, Marcus Liang, 'Conformed the draft following the call with licensor's counsel.'); v5-v7 are cleanup passes by Peter Novak and Marcus. Only the v3/v4 content diff shows the drop; no comment mentions it.",
+    "corpus": "The repository holds 36 documents, 32 of them with multiple versions. The Lumen agreement is the only multi-version document with a substantive protection that disappears, so the clean_documents certification is the exact 31-document complement.",
+    "decoys": "Doc 26 /lumen-licensing/support-services-sow.md is a similarly named Lumen document with a clean four-version history and no indemnity language. June Akana's later mail quotes the old v2-era indemnity text verbatim after the drop, and Marcus's same-day reply claims nothing substantive changed. The iManage tools serve each document's repository path and document number, so both graded id spaces are directly observable.",
     "cover": "Fathom's counsel objected to the uncapped indemnity on 2026-05-19; no email or comment announces the removal.",
-    "unreviewed_revisions": "Round 6: a revision is reviewed when its save day carries an email (subject, body, or attachment filename) or public-channel Slack message that names the document the way the firm does (vendor name for an NDA; 'license and support agreement' / 'statement of work' for the Lumen drafts; 'engagement letter', 'intake checklist', 'billing guidelines', 'litigation hold', 'discovery response playbook', 'vendor NDA playbook' for the firm templates). A round-6 mention fabric covers most of the corpus's ~40 revisions; exactly five are silent: litigation-hold v2 LEGAL!4.2 (2026-05-06), BayMark NDA v2 LEGAL!11.2 (2026-03-26), the Lumen agreement's dropping v4 LEGAL!12.4 (2026-05-21 - the drop itself was never communicated), the Lumen SOW v3 LEGAL!14.3 (2026-05-26), and Archway NDA v2 LEGAL!15.2 (2026-04-14). Traps: day-after mentions exist for the hold template (05-07) and the SOW (05-27); a 'Lumen file' chat on 05-21 names the matter but not the document; matter-blind DM lanes carry the same days. Graded all-or-nothing at 0.30; with clean_documents at 0.27 the non-reconciliation subset caps at 0.43."
+    "unreviewed_revisions": "A revision is reviewed when its save day carries an email (subject, body, or attachment filename) or public-channel Slack message that names the document the way the firm does. The authoritative 32-document marker registry yields exactly five silent saves: litigation-hold v2 LEGAL!4.2 (2026-05-06), BayMark NDA v2 LEGAL!16.2 (2026-03-26), the Lumen agreement's dropping v4 LEGAL!21.4 (2026-05-21), the Lumen SOW v3 LEGAL!26.3 (2026-05-26), and Archway NDA v2 LEGAL!27.2 (2026-04-14). Graded all-or-nothing at 0.30; with clean_documents at 0.27 the non-reconciliation subset caps at 0.43."
   },
   "document_path": "/lumen-licensing/license-and-support-agreement.md",
   "clause_markers": [
@@ -27,6 +27,7 @@
     9,
     10,
     11,
+    12,
     13,
     14,
     15,
@@ -34,7 +35,21 @@
     17,
     18,
     19,
-    21
+    20,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    36
   ],
   "weights": {
     "document_path": 0.05,
@@ -49,9 +64,9 @@
   },
   "unreviewed_revisions": [
     "LEGAL!4.2",
-    "LEGAL!11.2",
-    "LEGAL!12.4",
-    "LEGAL!14.3",
-    "LEGAL!15.2"
+    "LEGAL!16.2",
+    "LEGAL!21.4",
+    "LEGAL!26.3",
+    "LEGAL!27.2"
   ]
 }

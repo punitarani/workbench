@@ -1,68 +1,57 @@
 {
   "_evidence": {
-    "join": "Directed anti-join over every one-to-one conversation (12 lanes, 2157 messages; chat search never returns them). 78 second-read requests carry the firm's standing phrasing; a request is answered when the person asked comes back to the asker \u2014 later in that same lane, or by email to them \u2014 by the end of the next working day (Mon-Fri). Exactly 4 got neither: 142725 (2026-03-03 Tue, Peter Novak -> Marcus Liang), 3424884 (2026-04-10 Fri, Anita Bailey -> Eleanor Hartwell), 6358735 (2026-05-14 Thu, Marcus Liang -> Sofia Ramirez), 8613201 (2026-06-09 Tue, Omar Haddad -> Tessa Nguyen).",
-    "decoys": "68 requests drew an answer the same day. The near misses are the whole difficulty: 6 came back after the day of the request but still inside the standard \u2014 1 of them by email rather than chat, and 2 asked on a Friday and answered on the Monday. A same-day reading lists 10; ignoring mail lists 5; counting calendar days instead of working days lists 6. Only the stated rule gives this set.",
+    "join": "Directed anti-join over every one-to-one conversation (12 lanes; chat search never returns them). 75 second-read requests carry the firm's standing phrasing; a request is answered when the person asked comes back to the asker — later in that same lane, or by email to them — by the end of the next working day (Mon-Fri). Exactly 3 got neither: 8253753 (2026-06-05 Fri, Sofia Ramirez -> Grace Adeyemi), 8586540 (2026-06-09 Tue, Grace Adeyemi -> Peter Novak), and 9823838 (2026-06-23 Tue, Marcus Liang -> Sofia Ramirez).",
+    "decoys": "66 requests drew an answer the same day. The near misses are the whole difficulty: 6 came back after the day of the request but still inside the standard. A same-day reading lists 9; only the stated next-working-day and cross-surface rule gives the certified set.",
     "grading": "unanswered_request_ts is all-or-nothing at 0.56 (exact set of seconds prefixes or zero); the non-core subset caps at 0.44. came_back_later and unanswered_requests grade hits-minus-extras; unanswered_askers penalizes extras so naming everyone earns 0."
   },
-  "requests_reviewed": 78,
+  "requests_reviewed": 75,
   "conversations_reviewed": 12,
   "unanswered_request_ts_prefixes": [
-    "142725",
-    "3424884",
-    "6358735",
-    "8613201"
+    "8253753",
+    "8586540",
+    "9823838"
   ],
   "unanswered_requests": [
     {
-      "ts_prefix": "142725",
-      "date": "2026-03-03",
-      "asked_by": "Peter Novak",
-      "asked_of": "Marcus Liang"
+      "ts_prefix": "8253753",
+      "date": "2026-06-05",
+      "asked_by": "Sofia Ramirez",
+      "asked_of": "Grace Adeyemi"
     },
     {
-      "ts_prefix": "3424884",
-      "date": "2026-04-10",
-      "asked_by": "Anita Bailey",
-      "asked_of": "Eleanor Hartwell"
+      "ts_prefix": "8586540",
+      "date": "2026-06-09",
+      "asked_by": "Grace Adeyemi",
+      "asked_of": "Peter Novak"
     },
     {
-      "ts_prefix": "6358735",
-      "date": "2026-05-14",
+      "ts_prefix": "9823838",
+      "date": "2026-06-23",
       "asked_by": "Marcus Liang",
       "asked_of": "Sofia Ramirez"
-    },
-    {
-      "ts_prefix": "8613201",
-      "date": "2026-06-09",
-      "asked_by": "Omar Haddad",
-      "asked_of": "Tessa Nguyen"
     }
   ],
-  "answered_same_day": 68,
+  "answered_same_day": 66,
   "came_back_later_prefixes": [
-    "1004156",
-    "142359",
-    "2824281",
-    "4897058",
-    "9297592",
-    "9822456"
+    "1002279",
+    "10331659",
+    "1871852",
+    "5831354",
+    "9489122",
+    "9975406"
   ],
   "asker_markers": [
     [
-      "anita",
-      "bailey"
+      "grace",
+      "adeyemi"
     ],
     [
       "marcus",
       "liang"
     ],
     [
-      "omar",
-      "haddad"
-    ],
-    [
-      "peter",
-      "novak"
+      "sofia",
+      "ramirez"
     ]
   ],
   "weights": {

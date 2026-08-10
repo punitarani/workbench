@@ -38,7 +38,16 @@ ARROYO_TOKENS = ("arroyo", "dept. 511", "fruitvale")
 # The vanished-clause mention rule, keyed by path basename (NDAs derive
 # their vendor marker from the filename). Mirrors DOC_MENTION_MARKERS.
 MENTION_MARKERS = {
+    "board-resolution-review.md": ("board resolution review",),
+    "cam-reconciliation-analysis.md": ("cam reconciliation",),
+    "case-chronology.md": ("case chronology",),
+    "closing-checklist.md": ("closing checklist",),
+    "compliance-memorandum.md": ("compliance memorandum",),
+    "disclosure-schedules.md": ("disclosure schedules",),
+    "early-case-assessment.md": ("early case assessment",),
     "engagement-letter.md": ("engagement letter",),
+    "holdback-administration-memo.md": ("holdback administration",),
+    "lien-claim-summary.md": ("lien claim summary",),
     "matter-intake-checklist.md": ("intake checklist", "matter-intake-checklist"),
     "billing-guidelines.md": (
         "billing guidelines",
@@ -56,7 +65,13 @@ MENTION_MARKERS = {
         "license and support agreement",
         "license-and-support-agreement",
     ),
+    "position-statement.md": ("position statement",),
+    "renewal-option-notice.md": ("renewal option notice",),
+    "scheduling-conference-report.md": ("scheduling conference report",),
+    "stop-notice-service-list.md": ("stop notice service list",),
     "support-services-sow.md": ("statement of work", "support-services-sow"),
+    "vendor-contract-comparison.md": ("vendor contract comparison",),
+    "witness-interview-summaries.md": ("witness interview summaries",),
 }
 
 
@@ -352,7 +367,7 @@ async def vanished_clause(client: CountingClient) -> None:
         )
         documents += children["data"]
     multi = [d for d in documents if int(str(d["id"]).rsplit(".", 1)[1]) >= 2]
-    assert len(multi) == 17
+    assert len(multi) == 32
 
     unreviewed: list[str] = []
     clean: list[int] = []
@@ -414,8 +429,12 @@ async def client_departure_postmortem(client: CountingClient) -> None:
     assert reactions == truth["happy_update_reactions"]
 
     matters = await client.call("clio__list_matters")
+    # Clio gives the substantive prose to `description` and keeps the
+    # one-line matter label — the part that names the client — in `title`.
     cascadia = next(
-        m for m in matters["data"] if "Cascadia" in (m["description"] or "")
+        m
+        for m in matters["data"]
+        if "Cascadia" in f"{m['title'] or ''} {m['description'] or ''}"
     )
     assert cascadia["close_date"] == truth["matter_closed_date"]
 
@@ -458,7 +477,11 @@ async def operative_deadline(client: CountingClient) -> None:
     assert len(notices) == 3
 
     matters = await client.call("clio__list_matters")
-    arroyo = next(m for m in matters["data"] if "Arroyo" in (m["description"] or ""))
+    arroyo = next(
+        m
+        for m in matters["data"]
+        if "Arroyo" in f"{m['title'] or ''} {m['description'] or ''}"
+    )
     assert arroyo["display_number"].startswith("00008")
 
     public = await _slack_all_pages(client, "Arroyo")

@@ -20,6 +20,6 @@ weights = { document_path = 0.05, dropped_clause = 0.07, dropped_in_version = 0.
 
 [harness]
 # Task-anchored call budget (DECISIONS.md entry 17): 3x the reference
-# tool-path floor of 110 calls measured by datasets/hartwell/measure_floors.py
+# tool-path floor of 199 calls measured by datasets/hartwell/measure_floors.py
 # (write_file and finish count against the same budget).
-max_tool_calls = 330
+max_tool_calls = 597
