@@ -689,7 +689,12 @@ async def billing_hygiene_audit(client: CountingClient) -> None:
     assert sorted(phantom) == truth["phantom_note_ids"], phantom
 
 
-async def _one_to_one_request_audit(client: CountingClient, request: str) -> list[dict]:
+async def _one_to_one_request_audit(
+    client: CountingClient,
+    request: str,
+    *,
+    custody_deadline: bool = False,
+) -> list[dict]:
     """The shared discovery path for the one-to-one request audits: every
     lane opened and paged, its two members resolved, and the mailbox swept
     because coming back can be mail rather than chat."""
@@ -707,13 +712,14 @@ async def _one_to_one_request_audit(client: CountingClient, request: str) -> lis
         )
         membership[lane["id"]] = set(members["members"])
 
-    mailed: set[tuple[str, str, int]] = set()
+    mailed: set[tuple[str, str, str, int]] = set()
     for message in await _gmail_all_pages(client, ""):
         for recipient in message["toRecipients"] + message["ccRecipients"]:
             mailed.add(
                 (
                     _sender_email(message),
                     recipient.split("<")[-1].rstrip(">"),
+                    message["date"][:10],
                     _mail_seconds(message["date"]),
                 )
             )
@@ -728,18 +734,38 @@ async def _one_to_one_request_audit(client: CountingClient, request: str) -> lis
             asked_on = date.fromisoformat(_ts_day(message["ts"]))
             asked_at = int(float(message["ts"]))
             next_day = _next_working_day(asked_on).isoformat()
-            reply_days = {
+            chat_reply_days = {
                 _ts_day(later["ts"])
                 for later in messages[position + 1 :]
                 if later["user"] == asked_of and int(float(later["ts"])) > asked_at
             }
-            reply_days.update(
-                _ts_day(str(timestamp))
-                for sender, recipient, timestamp in mailed
-                if sender == emails[asked_of]
-                and recipient == emails[message["user"]]
-                and timestamp > asked_at
-            )
+            window = {asked_on.isoformat(), next_day}
+            directed_mail = {
+                (mail_day, timestamp)
+                for sender, recipient, mail_day, timestamp in mailed
+                if sender == emails[asked_of] and recipient == emails[message["user"]]
+            }
+            if custody_deadline:
+                reply_days = chat_reply_days | {
+                    mail_day
+                    for mail_day, timestamp in directed_mail
+                    if timestamp > asked_at
+                }
+                same_day = asked_on.isoformat() in reply_days
+                next_working_day = next_day in reply_days
+                in_window = bool(reply_days & window)
+            else:
+                # The approved second-read audit treats same-day as the direct
+                # Slack response subset while mail certifies the wider answer
+                # window. Visitor custody has a different public partition and
+                # opts into the exact, cross-surface deadline branch above.
+                same_day = asked_on.isoformat() in chat_reply_days
+                next_working_day = next_day in chat_reply_days or any(
+                    mail_day == next_day for mail_day, _ in directed_mail
+                )
+                in_window = bool(chat_reply_days & window) or any(
+                    mail_day in window for mail_day, _ in directed_mail
+                )
             requests.append(
                 {
                     "ts": message["ts"],
@@ -747,9 +773,9 @@ async def _one_to_one_request_audit(client: CountingClient, request: str) -> lis
                     "asked_by": names[message["user"]],
                     "asked_of": names[asked_of],
                     "lanes": len(lanes),
-                    "same_day": asked_on.isoformat() in reply_days,
-                    "next_working_day": next_day in reply_days,
-                    "in_window": bool(reply_days & {asked_on.isoformat(), next_day}),
+                    "same_day": same_day,
+                    "next_working_day": next_working_day,
+                    "in_window": in_window,
                 }
             )
     return requests
@@ -771,7 +797,9 @@ async def second_read_audit(client: CountingClient) -> None:
 
 async def visitor_log_audit(client: CountingClient) -> None:
     truth = _truth("visitor-log-audit")
-    requests = await _one_to_one_request_audit(client, SHEET_REQUEST)
+    requests = await _one_to_one_request_audit(
+        client, SHEET_REQUEST, custody_deadline=True
+    )
     assert len(requests) == truth["requests_reviewed"], len(requests)
     assert requests[0]["lanes"] == truth["conversations_reviewed"]
     breaches = sorted(
