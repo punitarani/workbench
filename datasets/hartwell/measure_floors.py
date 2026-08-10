@@ -597,11 +597,15 @@ async def _read_all(
 async def billing_hygiene_audit(client: CountingClient) -> None:
     truth = _truth("billing-hygiene-audit")
     users = await client.call("clio__list_users")
-    names = {user["id"]: user["name"] for user in users["data"]}
-
     activities = await _all_activities(client)
     notes = await client.call("clio__list_notes")
-    assert len(activities) == truth["entries_reviewed"], len(activities)
+    billable = [activity for activity in activities if not activity["non_billable"]]
+    assert len(activities) == 4_306, len(activities)
+    assert len(billable) == truth["entries_reviewed"], len(billable)
+    assert (
+        len({activity["user"]["name"] for activity in billable})
+        == truth["timekeepers_reviewed"]
+    )
 
     # The footprint index: every surface a person can write on, per day.
     footprint: set[tuple[str, str]] = set()
@@ -617,23 +621,72 @@ async def billing_hygiene_audit(client: CountingClient) -> None:
     assert len(conversations) >= 16, conversations
 
     by_name = {user["name"]: user["email"] for user in users["data"]}
-    unsupported = [
-        activity
+    events = {
+        (
+            activity["matter"]["display_number"],
+            activity["user"]["name"],
+            activity["date"],
+        )
         for activity in activities
+    }
+    events.update(
+        (note["matter"]["display_number"], note["author"]["name"], note["date"])
+        for note in notes["data"]
+    )
+    participants: dict[tuple[str, str], set[str]] = {}
+    for matter, person, event_day in events:
+        participants.setdefault((matter, event_day), set()).add(person)
+
+    anomalous = [
+        activity
+        for activity in billable
         if (by_name[activity["user"]["name"]], activity["date"]) not in footprint
+        and participants[(activity["matter"]["display_number"], activity["date"])]
+        - {activity["user"]["name"]}
     ]
-    assert sorted(a["id"] for a in unsupported) == truth["unsupported_entry_ids"]
+    grouped: dict[tuple[str, str], list[dict]] = {}
+    for activity in anomalous:
+        grouped.setdefault((activity["date"], activity["user"]["name"]), []).append(
+            activity
+        )
+    days = [
+        {
+            "date": event_day,
+            "timekeeper": person,
+            "entry_ids": [activity["id"] for activity in entries],
+            "matter_numbers": list(
+                dict.fromkeys(
+                    activity["matter"]["display_number"] for activity in entries
+                )
+            ),
+            "minutes": sum(activity["quantity"] for activity in entries) // 60,
+            "billed_cents": sum(
+                0
+                if activity["total"] is None
+                else round(float(activity["total"]) * 100)
+                for activity in entries
+            ),
+        }
+        for (event_day, person), entries in sorted(grouped.items())
+    ]
+    assert days == truth["anomalous_timekeeper_days"], days
+    assert len(anomalous) == truth["anomalous_entry_count"]
     assert (
-        sum(a["quantity"] for a in unsupported) // 60
-        == (truth["unsupported_minutes_total"])
+        sum(activity["quantity"] for activity in anomalous) // 60
+        == truth["anomalous_minutes_total"]
+    )
+    assert (
+        sum(round(float(activity["total"]) * 100) for activity in anomalous)
+        == truth["anomalous_billed_cents_total"]
     )
     phantom = [
         note["id"]
         for note in notes["data"]
         if (by_name[note["author"]["name"]], note["date"]) not in footprint
+        and participants[(note["matter"]["display_number"], note["date"])]
+        - {note["author"]["name"]}
     ]
     assert sorted(phantom) == truth["phantom_note_ids"], phantom
-    assert names, "the firm's directory is part of the path"
 
 
 async def _one_to_one_request_audit(client: CountingClient, request: str) -> list[dict]:

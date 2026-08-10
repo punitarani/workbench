@@ -1,77 +1,427 @@
-"""Task-level verification: solve.sh earns full reward, the public-surfaces
-baseline earns strictly less, and the grader is deterministic.
+"""Bundle-backed and Harbor-contract tests for billing-hygiene-audit."""
 
-Needs the built environment bundle (data, local-only):
-    uv run python datasets/hartwell/build_tasks.py
-"""
-
+import importlib.util
+import inspect
 import json
+import os
 import shutil
+import sqlite3
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 import pytest
 
 TASK = Path(__file__).parent
 BUNDLE = TASK / "bundle"
+TESTS = TASK / "tests"
+REWARDKIT = shutil.which("rewardkit")
+PUBLIC_FIELDS = {
+    "entries_reviewed",
+    "timekeepers_reviewed",
+    "anomalous_timekeeper_days",
+    "anomalous_entry_count",
+    "anomalous_minutes_total",
+    "anomalous_billed_cents_total",
+    "phantom_note_ids",
+}
 
-pytestmark = pytest.mark.skipif(
-    not BUNDLE.exists(),
-    reason="task bundle not built; run datasets/hartwell/build_tasks.py",
-)
+type JsonObject = dict[str, object]
+
+pytestmark = [
+    pytest.mark.skipif(
+        REWARDKIT is None,
+        reason="rewardkit not on PATH; uv tool install harbor-rewardkit[all]==0.1.7",
+    ),
+    pytest.mark.skipif(
+        not BUNDLE.exists(),
+        reason="task bundle not built; run datasets/hartwell/build_tasks.py",
+    ),
+]
 
 
-def run_grader(tmp_path: Path, produce: Path) -> dict:
-    """Reproduce the split the harness runs: the tool databases sit in
-    ``state/``, a sibling of the agent's workspace, and both the solution
-    and the grader work from ``workspace/``."""
-    bundle = tmp_path / "bundle"
-    shutil.copytree(BUNDLE, bundle)
-    workspace = bundle / "workspace"
+def _truth() -> JsonObject:
+    return json.loads((TESTS / "ground_truth.json").read_text())
+
+
+def _score(workspace: Path, out_dir: Path) -> tuple[JsonObject, JsonObject]:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    output = out_dir / "reward-raw.json"
     subprocess.run(
-        ["bash", str(produce)], cwd=workspace, check=True, capture_output=True
-    )
-    logs = tmp_path / "logs"
-    result = subprocess.run(
-        [sys.executable, str(TASK / "tests" / "grade.py")],
-        cwd=workspace,
+        [REWARDKIT, str(TESTS), "--workspace", str(workspace), "--output", str(output)],
         check=True,
         capture_output=True,
         text=True,
-        env={
-            "VERIFIER_LOG_DIR": str(logs),
-            "WORKBENCH_STATE": str(bundle / "state"),
-            "PATH": "/usr/bin:/bin",
-        },
     )
-    reward = json.loads((logs / "reward.json").read_text())
-    assert result.stdout.strip(), "grader prints its verdict"
-    return reward
-
-
-def test_solution_earns_full_reward(tmp_path: Path) -> None:
-    reward = run_grader(tmp_path, TASK / "solution" / "solve.sh")
-    assert reward["score"] == pytest.approx(1.0), reward
-
-
-def test_naive_baseline_earns_strictly_less(tmp_path: Path) -> None:
-    solved = run_grader(tmp_path / "a", TASK / "solution" / "solve.sh")
-    naive = run_grader(tmp_path / "b", TASK / "baseline" / "naive.sh")
-    assert naive["score"] < solved["score"] - 0.4, (
-        f"the direct messages must discriminate: naive={naive['score']}"
+    return (
+        json.loads(output.read_text()),
+        json.loads((out_dir / "reward-details.json").read_text()),
     )
-    assert naive["score"] > 0.1, "the public sweep still earns the baseline real credit"
+
+
+def _produce(tmp_path: Path, script: Path | None) -> Path:
+    bundle = tmp_path / "bundle"
+    shutil.copytree(BUNDLE, bundle)
+    workspace = bundle / "workspace"
+    if script is not None:
+        subprocess.run(
+            ["sh", str(script)],
+            cwd=workspace,
+            check=True,
+            capture_output=True,
+            text=True,
+            env={
+                "WORKBENCH_STATE": str(bundle / "state"),
+                "PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin",
+            },
+        )
+    return workspace
+
+
+def _verified(
+    workspace: Path, out_dir: Path
+) -> tuple[JsonObject, JsonObject, JsonObject]:
+    env = dict(os.environ)
+    env.update(
+        {
+            "VERIFIER_LOG_DIR": str(out_dir),
+            "WORKBENCH_WORKSPACE": str(workspace),
+        }
+    )
+    subprocess.run(
+        ["sh", str(TESTS / "test.sh")],
+        cwd=workspace,
+        env=env,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return (
+        json.loads((out_dir / "reward.json").read_text()),
+        json.loads((out_dir / "reward-raw.json").read_text()),
+        json.loads((out_dir / "reward-details.json").read_text()),
+    )
+
+
+def test_rewardkit_layout_has_exactly_answer_and_process_dimensions() -> None:
+    dimensions = {
+        path.name
+        for path in TESTS.iterdir()
+        if path.is_dir() and path.name != "__pycache__"
+    }
+    assert dimensions == {"answer", "process"}
+    assert not (TESTS / "grade.py").exists()
+
+
+def test_task_uses_harbor_schema_and_secure_stdio_contract() -> None:
+    config = tomllib.loads((TASK / "task.toml").read_text())
+
+    assert config["schema_version"] == "1.3"
+    assert config["task"]["name"] == "workbench/billing-hygiene-audit"
+    assert config["metadata"]["reference_tool_path_calls"] > 0
+    assert "harness" not in config
+    assert set(config["environment"]) >= {
+        "docker_image",
+        "os",
+        "workdir",
+        "memory_mb",
+        "network_mode",
+        "allowed_hosts",
+        "healthcheck",
+        "mcp_servers",
+    }
+    servers = config["environment"]["mcp_servers"]
+    assert servers == [
+        {
+            "name": name,
+            "transport": "stdio",
+            "command": f"/usr/local/bin/workbench-mcp-{name}",
+        }
+        for name in ("gmail", "slack", "imanage", "clio")
+    ]
+    assert config["environment"]["healthcheck"]["command"] == (
+        "sh /home/agent/workspace/.workbench/install.sh"
+    )
+    assert config["agent"]["user"] == "agent"
+    assert config["verifier"]["user"] == "verifier"
+    assert config["verifier"]["network_mode"] == "no-network"
+
+
+def test_instruction_defines_only_the_corroborated_billable_contract() -> None:
+    instruction = (TASK / "instruction.md").read_text().lower()
+
+    for field in PUBLIC_FIELDS:
+        assert field in instruction
+    for term in (
+        "billable",
+        "same matter",
+        "another person",
+        "gmail",
+        "slack",
+        "individually rounded",
+        "phantom_note_ids",
+    ):
+        assert term in instruction
+    assert "unsupported_entry_ids" not in instruction
+    assert "unsupported_entries" not in instruction
+    assert "unsupported_timekeepers" not in instruction
+
+
+def test_solve_module_is_importable_annotated_and_side_effect_free(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    solve_path = TASK / "solution" / "solve.py"
+    assert solve_path.is_file()
+    spec = importlib.util.spec_from_file_location("billing_hygiene_solve", solve_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    monkeypatch.chdir(tmp_path)
+    spec.loader.exec_module(module)
+
+    assert not (tmp_path / "hygiene.json").exists()
+    functions = [
+        function
+        for _, function in inspect.getmembers(module, inspect.isfunction)
+        if function.__module__ == module.__name__
+    ]
+    assert {function.__name__ for function in functions} >= {"build_hygiene", "main"}
+    for function in functions:
+        signature = inspect.signature(function)
+        assert signature.return_annotation is not inspect.Signature.empty
+        assert all(
+            parameter.annotation is not inspect.Parameter.empty
+            for parameter in signature.parameters.values()
+        )
+
+
+def test_unpacked_bundle_oracle_uses_relative_state_without_overrides(
+    tmp_path: Path,
+) -> None:
+    bundle = tmp_path / "bundle"
+    shutil.copytree(BUNDLE, bundle)
+    workspace = bundle / "workspace"
+    completed = subprocess.run(
+        ["sh", str(TASK / "solution" / "solve.sh")],
+        cwd=workspace,
+        env={"PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin"},
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.stdout == ""
+    assert json.loads((workspace / "hygiene.json").read_text()) == {
+        key: value for key, value in _truth().items() if key in PUBLIC_FIELDS
+    }
+
+
+def test_solve_python_emits_document_without_writing_workspace(
+    tmp_path: Path,
+) -> None:
+    bundle = tmp_path / "bundle"
+    shutil.copytree(BUNDLE, bundle)
+    workspace = bundle / "workspace"
+    completed = subprocess.run(
+        [sys.executable, str(TASK / "solution" / "solve.py")],
+        cwd=workspace,
+        env={"PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin"},
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert json.loads(completed.stdout) == {
+        key: value for key, value in _truth().items() if key in PUBLIC_FIELDS
+    }
+    assert completed.stderr == ""
+    assert not (workspace / "hygiene.json").exists()
+
+
+def test_oracle_earns_canonical_reward_with_zero_process(tmp_path: Path) -> None:
+    workspace = _produce(tmp_path, TASK / "solution" / "solve.sh")
+    combined, raw, details = _verified(workspace, tmp_path / "logs")
+
+    assert raw == {"answer": 1.0, "process": 0.0}
+    assert combined == {"reward": 1.0, "answer": 1.0, "process": 0.0}
+    assert set(details) == {"answer", "process"}
+
+
+def test_naive_baseline_remains_more_than_point_four_below_oracle(
+    tmp_path: Path,
+) -> None:
+    solved_workspace = _produce(tmp_path / "a", TASK / "solution" / "solve.sh")
+    naive_workspace = _produce(tmp_path / "b", TASK / "baseline" / "naive.sh")
+    solved, _ = _score(solved_workspace, tmp_path / "a" / "logs")
+    naive, _ = _score(naive_workspace, tmp_path / "b" / "logs")
+
+    assert naive["answer"] < solved["answer"] - 0.4, naive
+    assert naive["answer"] > 0.1, naive
 
 
 def test_missing_deliverable_scores_zero(tmp_path: Path) -> None:
-    empty = tmp_path / "noop.sh"
-    empty.write_text("true\n")
-    reward = run_grader(tmp_path, empty)
-    assert reward["score"] == 0.0
+    reward, _ = _score(_produce(tmp_path, None), tmp_path / "logs")
+    assert reward == {"answer": 0.0, "process": 0.0}
 
 
 def test_grading_is_deterministic(tmp_path: Path) -> None:
-    first = run_grader(tmp_path / "a", TASK / "solution" / "solve.sh")
-    second = run_grader(tmp_path / "b", TASK / "solution" / "solve.sh")
+    first_workspace = _produce(tmp_path / "a", TASK / "solution" / "solve.sh")
+    second_workspace = _produce(tmp_path / "b", TASK / "solution" / "solve.sh")
+    first, _ = _score(first_workspace, tmp_path / "a" / "logs")
+    second, _ = _score(second_workspace, tmp_path / "b" / "logs")
     assert first == second
+
+
+def test_ground_truth_matches_fresh_bundle_invariants() -> None:
+    truth = _truth()
+    days = truth["anomalous_timekeeper_days"]
+
+    assert truth["entries_reviewed"] == 4233
+    assert truth["timekeepers_reviewed"] == 8
+    assert days == [
+        {
+            "date": "2026-04-04",
+            "timekeeper": "Eleanor Hartwell",
+            "entry_ids": [1318, 1319],
+            "matter_numbers": ["00001-MeridianBioLabs"],
+            "minutes": 126,
+            "billed_cents": 141750,
+        },
+        {
+            "date": "2026-05-20",
+            "timekeeper": "Noah Feldstein",
+            "entry_ids": [2884, 2885, 2887, 2896, 2898, 2899, 2910, 2915, 2923],
+            "matter_numbers": [
+                "00009-LumenSoftware",
+                "00006-NorthgateMedicalGroup",
+            ],
+            "minutes": 414,
+            "billed_cents": 251850,
+        },
+        {
+            "date": "2026-06-15",
+            "timekeeper": "Diane Okonkwo",
+            "entry_ids": [3753, 3760, 3761, 3762, 3768, 3771, 3783],
+            "matter_numbers": [
+                "00003-VeridianEnergyCooperative",
+                "00006-NorthgateMedicalGroup",
+                "00007-PelicanBayMarina",
+            ],
+            "minutes": 336,
+            "billed_cents": 294000,
+        },
+    ]
+    assert truth["anomalous_entry_count"] == 18
+    assert truth["anomalous_minutes_total"] == 876
+    assert truth["anomalous_billed_cents_total"] == 687600
+    assert truth["phantom_note_ids"] == [176]
+
+
+def test_independent_sql_asserts_corroborated_entry_and_note_sets() -> None:
+    state = BUNDLE / "state"
+    connection = sqlite3.connect(f"file:{state / 'clio.db'}?mode=ro", uri=True)
+    connection.execute("ATTACH DATABASE ? AS gmail", (str(state / "gmail.db"),))
+    connection.execute("ATTACH DATABASE ? AS slack", (str(state / "slack.db"),))
+    query = """
+        WITH indexed AS (
+          SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, activities.*,
+                 date('2026-03-02', printf('+%d days', time / 86400)) AS day
+          FROM activities
+        ),
+        messages AS (
+          SELECT sender AS person,
+                 date('2026-03-02', printf('+%d days', time / 86400)) AS day
+          FROM gmail.messages
+          UNION
+          SELECT sender,
+                 date('2026-03-02', printf('+%d days', time / 86400))
+          FROM slack.messages
+        ),
+        events AS (
+          SELECT ticket_id, person,
+                 date('2026-03-02', printf('+%d days', time / 86400)) AS day
+          FROM activities
+          UNION ALL
+          SELECT ticket_id, author,
+                 date('2026-03-02', printf('+%d days', time / 86400))
+          FROM notes
+        )
+        SELECT indexed.id
+        FROM indexed
+        WHERE indexed.billable = 1
+          AND NOT EXISTS (
+            SELECT 1 FROM messages
+            WHERE messages.person = indexed.person
+              AND messages.day = indexed.day
+          )
+          AND EXISTS (
+            SELECT 1 FROM events
+            WHERE events.ticket_id = indexed.ticket_id
+              AND events.day = indexed.day
+              AND events.person != indexed.person
+          )
+        ORDER BY indexed.id
+    """
+    activity_ids = [row[0] for row in connection.execute(query)]
+    note_query = """
+        WITH indexed AS (
+          SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, notes.*,
+                 date('2026-03-02', printf('+%d days', time / 86400)) AS day
+          FROM notes
+        ),
+        messages AS (
+          SELECT sender AS person,
+                 date('2026-03-02', printf('+%d days', time / 86400)) AS day
+          FROM gmail.messages
+          UNION
+          SELECT sender,
+                 date('2026-03-02', printf('+%d days', time / 86400))
+          FROM slack.messages
+        ),
+        events AS (
+          SELECT ticket_id, person,
+                 date('2026-03-02', printf('+%d days', time / 86400)) AS day
+          FROM activities
+          UNION ALL
+          SELECT ticket_id, author,
+                 date('2026-03-02', printf('+%d days', time / 86400))
+          FROM notes
+        )
+        SELECT indexed.id
+        FROM indexed
+        WHERE NOT EXISTS (
+            SELECT 1 FROM messages
+            WHERE messages.person = indexed.author
+              AND messages.day = indexed.day
+          )
+          AND EXISTS (
+            SELECT 1 FROM events
+            WHERE events.ticket_id = indexed.ticket_id
+              AND events.day = indexed.day
+              AND events.person != indexed.author
+          )
+        ORDER BY indexed.id
+    """
+    note_ids = [row[0] for row in connection.execute(note_query)]
+
+    assert activity_ids == [
+        1318,
+        1319,
+        2884,
+        2885,
+        2887,
+        2896,
+        2898,
+        2899,
+        2910,
+        2915,
+        2923,
+        3753,
+        3760,
+        3761,
+        3762,
+        3768,
+        3771,
+        3783,
+    ]
+    assert note_ids == [176]

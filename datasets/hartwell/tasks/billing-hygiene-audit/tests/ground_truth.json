@@ -1,35 +1,58 @@
 {
   "_evidence": {
-    "join": "Presence anti-join over all 1,427 Clio activities (positional ids, time-ordered across matters): an entry is unsupported when its timekeeper sent no Gmail message and no Slack message (channel or DM) dated the entry's date. Exactly 7 entries across 4 silent person-days: Marcus Liang 2026-03-13 (id 164), Diane Okonkwo 2026-06-05 (1150, 1161) and 2026-06-15 (1244, 1249, 1250), Marcus Liang 2026-06-29 (1409). Total 438 minutes.",
-    "decoys": "Single-surface near misses on every side: 77 entries whose timekeeper's only same-day footprint is a DM (public-channel search returns nothing), 13 entries supported only by one email, 59 supported only by a public channel message. A Gmail+public-channels survey reports 84 exceptions (7 true + 77 false); a Slack-only survey misreports the 13 email-only days. Every surface must be swept per person per day.",
-    "notes": "The identical rule over the 178 Clio notes (positional ids) flags exactly 3: note 16 (Marcus Liang, 2026-03-13, Lumen matter), note 146 (Diane Okonkwo, 2026-06-05, Veridian), note 177 (Marcus Liang, 2026-06-29, Solstice). They fall on the same silent person-days as the activities — corroboration, not a separate discovery.",
-    "grading": "unsupported_entry_ids is all-or-nothing at 0.56 (exact set or zero); the non-core subset caps at 0.44. unsupported_entries grades hits-minus-extras on (id, date, minutes); unsupported_timekeepers and phantom_note_ids penalize extras so enumeration cannot earn them."
+    "population": "Fresh Clio contains 4,306 activities. Exactly 4,233 are billable, recorded by 8 distinct timekeepers; the population fields exclude all 73 non-billable entries.",
+    "rule": "An affected billable entry is on a person-day with no sent Gmail and no sent Slack message anywhere, and on a matter where another person recorded a Clio activity or note that same day. Grouping affected entries by person and day yields exactly three records. Eleanor's same-day Lumen entry 1320 and Noah's Pelican entries 2892 and 2922 are deliberately excluded because those matters have no other-person corroboration that day.",
+    "days": "2026-04-04 Eleanor Hartwell: ids 1318 and 1319 on 00001-MeridianBioLabs, 126 minutes, 141,750 cents. 2026-05-20 Noah Feldstein: ids 2884, 2885, 2887, 2896, 2898, 2899, 2910, 2915, and 2923 on 00009-LumenSoftware and 00006-NorthgateMedicalGroup, 414 minutes, 251,850 cents. 2026-06-15 Diane Okonkwo: ids 3753, 3760, 3761, 3762, 3768, 3771, and 3783 on 00003-VeridianEnergyCooperative, 00006-NorthgateMedicalGroup, and 00007-PelicanBayMarina, 336 minutes, 294,000 cents.",
+    "money": "Each affected entry is billable. Its cents contribution is round(Clio public total * 100), after Clio rounds that individual entry total to two decimals. The 18 contributions sum to 687,600 cents; aggregating seconds or hours before rounding is not the certified method.",
+    "notes": "Applying the identical silent-author and other-person same-matter/day corroboration join to all Clio notes yields exactly public note id 176: Diane Okonkwo, 2026-06-15, 00003-VeridianEnergyCooperative.",
+    "grading": "The anomalous-day and phantom-note set weights each split 90% normalized F1 / 10% exact certification. Scalar reconciliation and format carry the remaining weight. Missing, malformed, non-finite, and oversized deliverables score zero."
   },
-  "entries_reviewed": 1427,
+  "entries_reviewed": 4233,
   "timekeepers_reviewed": 8,
-  "unsupported_entry_ids": [164, 1150, 1161, 1244, 1249, 1250, 1409],
-  "unsupported_entries": [
-    {"id": 164, "date": "2026-03-13", "minutes": 60},
-    {"id": 1150, "date": "2026-06-05", "minutes": 42},
-    {"id": 1161, "date": "2026-06-05", "minutes": 18},
-    {"id": 1244, "date": "2026-06-15", "minutes": 60},
-    {"id": 1249, "date": "2026-06-15", "minutes": 18},
-    {"id": 1250, "date": "2026-06-15", "minutes": 120},
-    {"id": 1409, "date": "2026-06-29", "minutes": 120}
+  "anomalous_timekeeper_days": [
+    {
+      "date": "2026-04-04",
+      "timekeeper": "Eleanor Hartwell",
+      "entry_ids": [1318, 1319],
+      "matter_numbers": ["00001-MeridianBioLabs"],
+      "minutes": 126,
+      "billed_cents": 141750
+    },
+    {
+      "date": "2026-05-20",
+      "timekeeper": "Noah Feldstein",
+      "entry_ids": [2884, 2885, 2887, 2896, 2898, 2899, 2910, 2915, 2923],
+      "matter_numbers": [
+        "00009-LumenSoftware",
+        "00006-NorthgateMedicalGroup"
+      ],
+      "minutes": 414,
+      "billed_cents": 251850
+    },
+    {
+      "date": "2026-06-15",
+      "timekeeper": "Diane Okonkwo",
+      "entry_ids": [3753, 3760, 3761, 3762, 3768, 3771, 3783],
+      "matter_numbers": [
+        "00003-VeridianEnergyCooperative",
+        "00006-NorthgateMedicalGroup",
+        "00007-PelicanBayMarina"
+      ],
+      "minutes": 336,
+      "billed_cents": 294000
+    }
   ],
-  "unsupported_minutes_total": 438,
-  "timekeeper_markers": [
-    ["marcus", "liang"],
-    ["diane", "okonkwo"]
-  ],
-  "phantom_note_ids": [16, 146, 177],
+  "anomalous_entry_count": 18,
+  "anomalous_minutes_total": 876,
+  "anomalous_billed_cents_total": 687600,
+  "phantom_note_ids": [176],
   "weights": {
     "entries_reviewed": 0.02,
     "timekeepers_reviewed": 0.02,
-    "unsupported_entry_ids": 0.56,
-    "unsupported_entries": 0.12,
-    "unsupported_minutes_total": 0.05,
-    "unsupported_timekeepers": 0.04,
+    "anomalous_timekeeper_days": 0.66,
+    "anomalous_entry_count": 0.03,
+    "anomalous_minutes_total": 0.04,
+    "anomalous_billed_cents_total": 0.04,
     "phantom_note_ids": 0.1,
     "format": 0.09
   }

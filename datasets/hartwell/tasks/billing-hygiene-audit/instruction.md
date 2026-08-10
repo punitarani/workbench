@@ -1,55 +1,61 @@
-# Billing hygiene: the activity-support audit
+# Billing hygiene: corroborated silent days
 
-You are **Carl Jensen**, billing coordinator at Hartwell & Marsh LLP. The
-firm is onboarding an e-billing vendor whose auditors sample time records
-against "demonstrable same-day activity." Eleanor wants the firm to find
-its own exceptions first: every time entry in the last four months whose
-timekeeper shows no working footprint anywhere in the firm's systems on
-the day the time was logged.
+You are **Carl Jensen**, billing coordinator at Hartwell & Marsh LLP. Before
+the firm's time goes to its e-billing vendor, Eleanor wants a certification of
+billable time recorded on days that look impossible only after two facts are
+joined: the timekeeper was silent in the communication systems, while a
+colleague left same-matter work evidence in Clio.
 
-You have Gmail, Slack, iManage, and Clio, where the time entries and
-matter notes live.
-
-Save **`hygiene.json`** in your workspace:
+You have Gmail, Slack, iManage, and Clio. Save **`hygiene.json`** in your
+workspace with exactly this public structure:
 
 ```json
 {
-  "entries_reviewed": <total number of time entries in the record, all matters>,
-  "timekeepers_reviewed": <number of distinct people who logged time>,
-  "unsupported_entry_ids": [<Clio activity ids, see the rule below>],
-  "unsupported_entries": [
+  "entries_reviewed": <number of billable Clio time entries>,
+  "timekeepers_reviewed": <distinct people with a billable time entry>,
+  "anomalous_timekeeper_days": [
     {
-      "id": <Clio activity id>,
-      "date": "<YYYY-MM-DD of the entry>",
-      "minutes": <minutes of the entry>
+      "date": "<YYYY-MM-DD>",
+      "timekeeper": "<Clio timekeeper name>",
+      "entry_ids": [<affected Clio activity ids>],
+      "matter_numbers": ["<affected Clio display numbers>"],
+      "minutes": <affected billable minutes>,
+      "billed_cents": <affected billed amount in cents>
     }
   ],
-  "unsupported_minutes_total": <total minutes across the unsupported entries>,
-  "unsupported_timekeepers": ["<each timekeeper with an unsupported entry>"],
-  "phantom_note_ids": [<Clio note ids, same rule applied to matter notes>]
+  "anomalous_entry_count": <affected billable entry count>,
+  "anomalous_minutes_total": <affected billable minutes across all records>,
+  "anomalous_billed_cents_total": <affected billed cents across all records>,
+  "phantom_note_ids": [<Clio note ids meeting the note rule>]
 }
 ```
 
-The mechanical rule, applied to every time entry on every matter: a time
-entry is **unsupported** when its timekeeper sent **no email and no Slack
-message — in any public channel or any direct message — dated the
-entry's own date**, anywhere in the firm's systems. Sent means the person
-is the message's sender; receiving mail, being mentioned, or someone
-else's traffic about the same matter supports nothing. A day with even
-one message from the timekeeper — a single DM line is enough — supports
-every entry that timekeeper logged that day. `phantom_note_ids` applies
-the identical rule to Clio matter notes: the note's author sent nothing
-on the note's date. Ids are the ones Clio's own API serves for
-activities and notes.
+Consider only **billable** Clio time entries. A timekeeper-day is anomalous
+when both conditions hold:
 
-Beware what the rule is not. It is not a matter-match audit: a
-timekeeper who billed one matter while writing about another is
-supported. It is not a public-visibility audit: on scores of entry-days
-a timekeeper's only footprint is a single direct message that channel
-search never returns, and on others it is one email with no chat at
-all — calling a day silent because the public channels are quiet will
-flood the list with false exceptions, and one false exception is enough
-to void the whole certification. You are handing
-`unsupported_entry_ids` to Eleanor as the firm's complete list of
-exceptions, so it has to be exactly right. Count minutes off the entries
-themselves; no summary states them.
+1. The timekeeper sent no Gmail message and no Slack message anywhere on that
+   date. Slack means every public channel and every direct message. Sent means
+   the person is the sender; receiving mail, being mentioned, iManage edits,
+   Clio activity, and Clio notes are not communication footprints.
+2. On at least one matter where that timekeeper has a billable entry that day,
+   another person recorded a Clio activity or Clio note on the same matter and
+   date.
+
+For an anomalous timekeeper-day, `entry_ids`, `matter_numbers`, `minutes`, and
+`billed_cents` cover only the timekeeper's billable entries on the matters
+corroborated by another person's same-day activity or note. Do not sweep in a
+same-day entry on a different matter where nobody else recorded work. Group
+all affected entries into one record per timekeeper and date, order records by
+date, order entry ids as Clio serves them, and list each affected matter once
+in first-entry order.
+
+`billed_cents` is the sum of the individually rounded public Clio `total` for
+the affected entries, converted to cents. Do not multiply aggregate hours by
+a rate, and do not include non-billable entries. The three aggregate fields
+must reconcile to the records.
+
+Apply the same corroboration rule to `phantom_note_ids`: a note qualifies only
+when its author sent no Gmail or Slack message anywhere on its date and
+another person recorded a Clio activity or note on that same matter and date.
+The ids are the public Clio ids. This is not a raw silent-day audit; silence
+without same-matter corroboration is not an exception.
