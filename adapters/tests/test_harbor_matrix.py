@@ -443,13 +443,17 @@ class FakeCommands:
         invalid_smoke: bool = False,
         mutate_environment_after_smoke: Path | None = None,
         send_gateway_requests: bool = False,
+        write_results: bool = True,
     ) -> None:
+        self.commands: list[tuple[str, ...]] = []
         self.harbor_runs: list[tuple[str, int, tuple[str, ...], str]] = []
         self.invalid_smoke = invalid_smoke
         self.mutate_environment_after_smoke = mutate_environment_after_smoke
         self.send_gateway_requests = send_gateway_requests
+        self.write_results = write_results
 
     async def run(self, command: tuple[str, ...], *, cwd: Path) -> CompletedCommand:
+        self.commands.append(command)
         if command == ("harbor", "--version"):
             return CompletedCommand(returncode=0, stdout="harbor 0.18.0\n")
         if command == ("git", "rev-parse", "HEAD"):
@@ -484,32 +488,34 @@ class FakeCommands:
                         headers={"Authorization": f"Bearer {token}"},
                         json={"model": alias, "input": "redacted"},
                     )
-        for alias in aliases:
-            for attempt in range(attempts):
-                trial = jobs_dir / job_name / f"{alias}-{attempt}"
-                trial.mkdir(parents=True)
-                (trial / "result.json").write_text(
-                    json.dumps(
-                        {
-                            "trial_name": trial.name,
-                            "config": {"agent": {"model_name": alias}},
-                            "agent_info": {"version": CODEX_VERSION},
-                            "exception_info": None,
-                            "verifier_result": {
-                                "rewards": {
-                                    "reward": (
-                                        0.3
-                                        if self.invalid_smoke and "smoke" in job_name
-                                        else 0.2
-                                    ),
-                                    "answer": 0.2,
-                                    "process": 0.8,
-                                }
-                            },
-                        }
-                    ),
-                    encoding="utf-8",
-                )
+        if self.write_results:
+            for alias in aliases:
+                for attempt in range(attempts):
+                    trial = jobs_dir / job_name / f"{alias}-{attempt}"
+                    trial.mkdir(parents=True)
+                    (trial / "result.json").write_text(
+                        json.dumps(
+                            {
+                                "trial_name": trial.name,
+                                "config": {"agent": {"model_name": alias}},
+                                "agent_info": {"version": CODEX_VERSION},
+                                "exception_info": None,
+                                "verifier_result": {
+                                    "rewards": {
+                                        "reward": (
+                                            0.3
+                                            if self.invalid_smoke
+                                            and "smoke" in job_name
+                                            else 0.2
+                                        ),
+                                        "answer": 0.2,
+                                        "process": 0.8,
+                                    }
+                                },
+                            }
+                        ),
+                        encoding="utf-8",
+                    )
         if "smoke" in job_name and self.mutate_environment_after_smoke is not None:
             self.mutate_environment_after_smoke.write_bytes(b"rematerialized")
         return CompletedCommand(returncode=0)
@@ -631,6 +637,82 @@ async def test_invalid_smoke_is_persisted_and_stops_before_final_fee_attempts(
     assert persisted["smoke"]["failure"]
     assert persisted["failure"]
     assert persisted["batches"] == []
+
+
+async def test_existing_smoke_job_is_rejected_before_harbor_or_post_metering(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    config = _matrix_config(tmp_path, tasks_root, run_id="stale-job")
+    stale_job = config.jobs_dir / "stale-job-smoke-01-fee-dispute-reconstruction"
+    for alias in MODEL_ALIASES:
+        trial = stale_job / f"old-{alias}"
+        trial.mkdir(parents=True)
+        (trial / "result.json").write_text(
+            json.dumps(
+                {
+                    "trial_name": trial.name,
+                    "config": {"agent": {"model_name": alias}},
+                    "agent_info": {"version": CODEX_VERSION},
+                    "exception_info": None,
+                    "verifier_result": {
+                        "rewards": {"reward": 1, "answer": 1, "process": 1}
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+    commands = FakeCommands(write_results=False)
+    meter = FakeCreditMeter()
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        credit_meter=meter,
+        gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
+    )
+
+    with pytest.raises(HarborRunError, match="already exists"):
+        await runner.run()
+
+    assert commands.harbor_runs == []
+    assert meter.queries == 1
+    persisted = json.loads(
+        (config.jobs_dir / "stale-job-matrix.json").read_text(encoding="utf-8")
+    )
+    assert persisted["smoke"] is None
+    assert persisted["batches"] == []
+    assert persisted["launches"] == []
+    assert "old-gpt-5.6-luna" not in json.dumps(persisted)
+
+
+async def test_existing_matrix_report_refuses_run_without_overwriting(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    config = _matrix_config(tmp_path, tasks_root, run_id="existing-report")
+    report_path = config.jobs_dir / "existing-report-matrix.json"
+    report_path.parent.mkdir(parents=True)
+    original = b'{"do_not_overwrite":true}\n'
+    report_path.write_bytes(original)
+    commands = FakeCommands()
+    meter = FakeCreditMeter()
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        credit_meter=meter,
+        gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
+    )
+
+    with pytest.raises(HarborRunError, match="matrix report already exists"):
+        await runner.run()
+
+    assert commands.commands == []
+    assert meter.queries == 0
+    assert report_path.read_bytes() == original
 
 
 async def test_rematerialized_environment_invalidates_smoke_before_reuse(

@@ -596,6 +596,9 @@ class MatrixRunner:
         self._budget = CreditBudget()
 
     async def run(self) -> MatrixReport:
+        report_path = self._report_path()
+        if report_path.exists() or report_path.is_symlink():
+            raise HarborRunError(f"matrix report already exists: {report_path}")
         harbor_version = await self._commands.run(
             ("harbor", "--version"), cwd=self.config.repository
         )
@@ -838,7 +841,6 @@ class MatrixRunner:
         job_label: str | None,
         sequence: int,
     ) -> LaunchExecution:
-        self._budget.assert_can_launch(credits, projected_worst_case_usd=forecast)
         start_sequence = gateway.provenance[-1].sequence if gateway.provenance else 0
         command = build_harbor_command(
             self.config,
@@ -848,6 +850,11 @@ class MatrixRunner:
             attempts=attempts,
             job_label=job_label,
         )
+        job_name = command[command.index("--job-name") + 1]
+        job_dir = self.config.jobs_dir / job_name
+        if job_dir.exists() or job_dir.is_symlink():
+            raise HarborRunError(f"Harbor job directory already exists: {job_dir}")
+        self._budget.assert_can_launch(credits, projected_worst_case_usd=forecast)
         completed = await self._commands.run(command, cwd=self.config.repository)
         after = await self._credit_meter.query()
         post_meter_error: BudgetExceededError | CreditMeterError | None = None
@@ -857,7 +864,6 @@ class MatrixRunner:
         except (BudgetExceededError, CreditMeterError) as error:
             post_meter_error = error
             metered_cost = max(0.0, float(after.total_usage - credits.total_usage))
-        job_name = command[command.index("--job-name") + 1]
         outcomes = load_trial_outcomes(self.config.jobs_dir / job_name)
         end_sequence = (
             gateway.provenance[-1].sequence if gateway.provenance else start_sequence
@@ -918,8 +924,12 @@ class MatrixRunner:
 
     def _write_report(self, report: MatrixReport) -> None:
         self.config.jobs_dir.mkdir(parents=True, exist_ok=True)
-        path = self.config.jobs_dir / f"{self.config.run_id}-matrix.json"
-        path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+        self._report_path().write_text(
+            report.model_dump_json(indent=2), encoding="utf-8"
+        )
+
+    def _report_path(self) -> Path:
+        return self.config.jobs_dir / f"{self.config.run_id}-matrix.json"
 
 
 class LaunchExecution(BaseModel):
