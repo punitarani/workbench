@@ -95,9 +95,10 @@ def test_solve_python_emits_json_without_writing_workspace(tmp_path: Path) -> No
     workspace = bundle / "workspace"
     completed = subprocess.run(
         [sys.executable, str(TASK / "solution" / "solve.py")],
-        cwd=workspace,
+        cwd=tmp_path,
         env={
             "WORKBENCH_STATE": str(bundle / "state"),
+            "WORKBENCH_WORKSPACE": str(workspace),
             "PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin",
         },
         check=True,

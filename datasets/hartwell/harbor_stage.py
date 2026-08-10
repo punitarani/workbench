@@ -58,7 +58,9 @@ ORACLE_COMMAND: str = (
     "exec env -i "
     "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin "
     "HOME=/home/environment USER=environment LOGNAME=environment "
-    f"WORKBENCH_STATE={CONTAINER_STATE} python3 {CONTAINER_SOLUTION}"
+    f"WORKBENCH_STATE={CONTAINER_STATE} "
+    "WORKBENCH_WORKSPACE=/home/agent/workspace "
+    f"python3 {CONTAINER_SOLUTION}"
 )
 
 HEALTHCHECK_COMMAND = f"sh {CONTAINER_STAGE}/install.sh"

@@ -7,5 +7,7 @@ if [ -x /usr/local/bin/run-as-environment ]; then
 else
     python3 "$(dirname "$0")/solve.py" > "$TEMP"
 fi
+
+chmod 640 "$TEMP"
 mv -f "$TEMP" postmortem.json
 trap - EXIT HUP INT TERM

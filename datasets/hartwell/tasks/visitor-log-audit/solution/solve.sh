@@ -14,5 +14,6 @@ else
     python3 "$SOLVE" > "$TEMP"
 fi
 
+chmod 640 "$TEMP"
 mv -f "$TEMP" visitor-log.json
 trap - EXIT HUP INT TERM

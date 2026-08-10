@@ -13,6 +13,7 @@ from pathlib import Path
 EPOCH = date(2026, 3, 2)
 
 STATE = os.environ.get("WORKBENCH_STATE", "../state")
+WORKSPACE = Path(os.environ.get("WORKBENCH_WORKSPACE", "."))
 
 
 def rows(db, sql, *params):
@@ -111,7 +112,7 @@ letter = rows(
 if len(letter) != 1:
     sys.exit(f"expected one disengagement letter, found {len(letter)}")
 workspace, path = letter[0]
-on_disk = Path(workspace) / path.rsplit("/", 1)[-1]
+on_disk = WORKSPACE / workspace / path.rsplit("/", 1)[-1]
 if not on_disk.exists():
     sys.exit(f"disengagement letter missing from the matter folder: {on_disk}")
 

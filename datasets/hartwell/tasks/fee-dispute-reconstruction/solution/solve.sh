@@ -19,5 +19,6 @@ else
     python3 "$SOLVE" > "$TEMP"
 fi
 
+chmod 640 "$TEMP"
 mv -f "$TEMP" dispute.json
 trap - EXIT HUP INT TERM
