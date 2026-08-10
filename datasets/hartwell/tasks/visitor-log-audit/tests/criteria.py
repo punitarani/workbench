@@ -237,10 +237,35 @@ def exact_schema(
     )
 
 
+def _starts_regex_literal(source: str, index: int) -> bool:
+    cursor = index - 1
+    while cursor >= 0 and source[cursor].isspace():
+        cursor -= 1
+    if cursor < 0:
+        return True
+    if source[cursor] in "([{=,:;!&|?+-*%^~<>":
+        return True
+    end = cursor + 1
+    while cursor >= 0 and (source[cursor].isalnum() or source[cursor] in "_$"):
+        cursor -= 1
+    return source[cursor + 1 : end] in {
+        "await",
+        "case",
+        "delete",
+        "return",
+        "throw",
+        "typeof",
+        "void",
+        "yield",
+    }
+
+
 def _executable_javascript(source: str) -> str:
     code: list[str] = []
     state = "code"
     quote = ""
+    regex_class = False
+    template_expressions: list[int] = []
     index = 0
     while index < len(source):
         char = source[index]
@@ -256,10 +281,26 @@ def _executable_javascript(source: str) -> str:
                 state = "block_comment"
                 index += 2
                 continue
-            if char in {"'", '"', chr(96)}:
+            if char == "/" and _starts_regex_literal(source, index):
+                code.append(" ")
+                state = "regex"
+                regex_class = False
+            elif char in {"'", '"'}:
                 code.append(" ")
                 state = "string"
                 quote = char
+            elif char == chr(96):
+                code.append(" ")
+                state = "template"
+            elif template_expressions and char == "{":
+                template_expressions[-1] += 1
+                code.append(char)
+            elif template_expressions and char == "}":
+                template_expressions[-1] -= 1
+                code.append(" ")
+                if template_expressions[-1] == 0:
+                    template_expressions.pop()
+                    state = "template"
             else:
                 code.append(char)
         elif state == "line_comment":
@@ -273,7 +314,7 @@ def _executable_javascript(source: str) -> str:
                 state = "code"
                 index += 2
                 continue
-        else:
+        elif state == "string":
             code.append("\n" if char == "\n" else " ")
             if char == "\\" and following:
                 code.append("\n" if following == "\n" else " ")
@@ -281,6 +322,37 @@ def _executable_javascript(source: str) -> str:
                 continue
             if char == quote:
                 state = "code"
+        elif state == "template":
+            code.append("\n" if char == "\n" else " ")
+            if char == "\\" and following:
+                code.append("\n" if following == "\n" else " ")
+                index += 2
+                continue
+            if char == chr(96):
+                state = "code"
+            elif char == "$" and following == "{":
+                code.append(" ")
+                template_expressions.append(1)
+                state = "code"
+                index += 2
+                continue
+        else:
+            code.append("\n" if char == "\n" else " ")
+            if char == "\\" and following:
+                code.append("\n" if following == "\n" else " ")
+                index += 2
+                continue
+            if char == "[" and not regex_class:
+                regex_class = True
+            elif char == "]" and regex_class:
+                regex_class = False
+            elif char == "/" and not regex_class:
+                index += 1
+                while index < len(source) and source[index].isalpha():
+                    code.append(" ")
+                    index += 1
+                state = "code"
+                continue
         index += 1
     return "".join(code)
 
@@ -311,7 +383,7 @@ def tool_invoked(
         return False
     try:
         data = json.loads(trajectory.read_text())
-    except json.JSONDecodeError, UnicodeDecodeError, OSError:
+    except json.JSONDecodeError, UnicodeDecodeError, OSError, RecursionError:
         return False
     if not isinstance(data, dict) or not isinstance(data.get("steps"), list):
         return False

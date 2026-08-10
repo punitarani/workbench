@@ -119,6 +119,25 @@ def test_tool_invoked_requires_executable_unified_expression(
             "function_name": "exec",
             "arguments": {"input": f'const hint = "{source}"; text(hint);'},
         },
+        "regex": {
+            "function_name": "exec",
+            "arguments": {
+                "input": f"const pattern = /{source.removeprefix('await ')}/;"
+            },
+        },
+        "template_interpolation": {
+            "function_name": "exec",
+            "arguments": {
+                "input": "const result = "
+                + chr(96)
+                + chr(36)
+                + "{"
+                + source
+                + "}"
+                + chr(96)
+                + ";"
+            },
+        },
     }
     paths: dict[str, Path] = {}
     for name, call in trajectories.items():
@@ -164,4 +183,68 @@ def test_tool_invoked_requires_executable_unified_expression(
         "line_comment": 0.0,
         "block_comment": 0.0,
         "string": 0.0,
+        "regex": 0.0,
+        "template_interpolation": 1.0,
     }
+
+
+@pytest.mark.parametrize(("task", "deliverable", "tool", "native"), CASES)
+def test_tool_invoked_rejects_malformed_trajectory_shapes(
+    tmp_path: Path, task: str, deliverable: str, tool: str, native: str
+) -> None:
+    del deliverable, native
+    trajectories: dict[str, object] = {
+        "steps_object": {"steps": {}},
+        "step_not_object": {"steps": ["bad"]},
+        "tool_calls_object": {"steps": [{"tool_calls": {}}]},
+        "call_not_object": {"steps": [{"tool_calls": ["bad"]}]},
+        "arguments_list": {
+            "steps": [
+                {
+                    "tool_calls": [
+                        {"function_name": "exec", "arguments": ["not", "source"]}
+                    ]
+                }
+            ]
+        },
+    }
+    paths: dict[str, Path] = {}
+    for name, trajectory in trajectories.items():
+        path = tmp_path / f"{name}.json"
+        path.write_text(json.dumps(trajectory))
+        paths[name] = path
+    deep = tmp_path / "deep.json"
+    deep.write_text('{"steps":' + "[" * 2_000 + "0" + "]" * 2_000 + "}")
+    paths["deep"] = deep
+
+    tests = tmp_path / "tests"
+    (tests / "process").mkdir(parents=True)
+    shutil.copyfile(TASKS / task / "tests" / "criteria.py", tests / "criteria.py")
+    registrations = ["import rewardkit as rk"]
+    registrations.extend(
+        f"rk.tool_invoked({tool!r}, path={str(path)!r}, name={name!r})"
+        for name, path in paths.items()
+    )
+    (tests / "process" / "method.py").write_text("\n".join(registrations) + "\n")
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    output = tmp_path / "reward.json"
+
+    completed = subprocess.run(
+        [
+            REWARDKIT,
+            str(tests),
+            "--workspace",
+            str(workspace),
+            "--output",
+            str(output),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    details = json.loads((tmp_path / "reward-details.json").read_text())
+    assert all(
+        criterion["value"] == 0.0 for criterion in details["process"]["criteria"]
+    )
