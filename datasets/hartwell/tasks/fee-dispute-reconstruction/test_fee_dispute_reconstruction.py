@@ -15,6 +15,8 @@ TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
 TRUTH = json.loads((TESTS / "ground_truth.json").read_text())
 
+type JsonObject = dict[str, object]
+
 pytestmark = [
     pytest.mark.skipif(
         REWARDKIT is None,
@@ -27,7 +29,7 @@ pytestmark = [
 ]
 
 
-def _score(workspace: Path, out_dir: Path) -> tuple[dict, dict]:
+def _score(workspace: Path, out_dir: Path) -> tuple[JsonObject, JsonObject]:
     out_dir.mkdir(parents=True, exist_ok=True)
     output = out_dir / "reward-raw.json"
     subprocess.run(
@@ -42,7 +44,7 @@ def _score(workspace: Path, out_dir: Path) -> tuple[dict, dict]:
     )
 
 
-def _criterion(details: dict, name: str) -> float:
+def _criterion(details: JsonObject, name: str) -> float:
     for score in details["answer"]["criteria"]:
         if score["name"] == name:
             return score["value"]
@@ -62,19 +64,65 @@ def _produce(tmp_path: Path, script: Path | None) -> Path:
             env={
                 "WORKBENCH_STATE": str(bundle / "state"),
                 "WORKBENCH_WORKSPACE": str(workspace),
-                "PATH": f"/usr/bin:/bin:{Path(sys.executable).parent}",
+                "PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin",
             },
         )
     return workspace
 
 
-def _graded(tmp_path: Path, script: Path | None) -> tuple[Path, dict, dict]:
+def test_unpacked_bundle_oracle_uses_relative_state_without_overrides(
+    tmp_path: Path,
+) -> None:
+    bundle = tmp_path / "bundle"
+    shutil.copytree(BUNDLE, bundle)
+    workspace = bundle / "workspace"
+    env = {"PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin"}
+
+    completed = subprocess.run(
+        ["sh", str(TASK / "solution" / "solve.sh")],
+        cwd=workspace,
+        env=env,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.stdout == ""
+    assert (
+        json.loads((workspace / "dispute.json").read_text())["entries"]
+        == TRUTH["entries"]
+    )
+
+
+def test_solve_python_emits_document_without_writing_workspace(
+    tmp_path: Path,
+) -> None:
+    bundle = tmp_path / "bundle"
+    shutil.copytree(BUNDLE, bundle)
+    workspace = bundle / "workspace"
+    completed = subprocess.run(
+        [sys.executable, str(TASK / "solution" / "solve.py")],
+        cwd=workspace,
+        env={"PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin"},
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert json.loads(completed.stdout)["unsupported_days"] == TRUTH["unsupported_days"]
+    assert completed.stderr == ""
+    assert not (workspace / "dispute.json").exists()
+
+
+def _graded(tmp_path: Path, script: Path | None) -> tuple[Path, JsonObject, JsonObject]:
     workspace = _produce(tmp_path, script)
     reward, details = _score(workspace, tmp_path / "logs")
     return workspace, reward, details
 
 
-def _verified(workspace: Path, out_dir: Path) -> tuple[dict, dict, dict]:
+def _verified(
+    workspace: Path, out_dir: Path
+) -> tuple[JsonObject, JsonObject, JsonObject]:
     env = dict(os.environ)
     env.update(
         {

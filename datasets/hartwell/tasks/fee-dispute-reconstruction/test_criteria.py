@@ -13,76 +13,7 @@ TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
 TRUTH = json.loads((TESTS / "ground_truth.json").read_text())
 
-UNSUPPORTED_DAYS = [
-    {
-        "date": "2026-04-04",
-        "entry_ids": [1316, 1317, 1318, 1319],
-        "entry_count": 4,
-        "minutes": 300,
-        "billed_cents": 195400,
-    },
-    {
-        "date": "2026-04-13",
-        "entry_ids": [1606, 1607, 1614, 1616, 1618, 1623, 1624, 1629, 1631],
-        "entry_count": 9,
-        "minutes": 660,
-        "billed_cents": 492400,
-    },
-    {
-        "date": "2026-04-20",
-        "entry_ids": [
-            1826,
-            1830,
-            1836,
-            1842,
-            1844,
-            1845,
-            1848,
-            1857,
-            1861,
-            1863,
-            1865,
-            1866,
-            1867,
-            1868,
-            1872,
-        ],
-        "entry_count": 15,
-        "minutes": 786,
-        "billed_cents": 565750,
-    },
-    {
-        "date": "2026-04-22",
-        "entry_ids": [
-            1930,
-            1932,
-            1935,
-            1942,
-            1950,
-            1955,
-            1960,
-            1963,
-            1964,
-            1965,
-            1969,
-            1973,
-            1974,
-            1976,
-            1977,
-            1980,
-        ],
-        "entry_count": 16,
-        "minutes": 1021,
-        "billed_cents": 715142,
-    },
-    {
-        "date": "2026-04-25",
-        "entry_ids": [2087, 2089, 2090],
-        "entry_count": 3,
-        "minutes": 120,
-        "billed_cents": 89000,
-    },
-]
+type JsonObject = dict[str, object]
 
 pytestmark = pytest.mark.skipif(
     REWARDKIT is None,
@@ -90,29 +21,32 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def _perfect() -> dict:
+def _perfect() -> JsonObject:
+    timekeepers = [
+        " ".join(marker.title() for marker in markers)
+        for markers in TRUTH["timekeeper_markers"]
+    ]
     return {
-        "cutoff_date": "2026-04-03",
-        "total_minutes": 890,
-        "entry_count": 7,
-        "entries": [
-            {"id": 1374, "date": "2026-04-06", "minutes": 130},
-            {"id": 1378, "date": "2026-04-06", "minutes": 95},
-            {"id": 1481, "date": "2026-04-08", "minutes": 145},
-            {"id": 1575, "date": "2026-04-10", "minutes": 160},
-            {"id": 1577, "date": "2026-04-10", "minutes": 120},
-            {"id": 1666, "date": "2026-04-14", "minutes": 150},
-            {"id": 1756, "date": "2026-04-16", "minutes": 90},
-        ],
-        "minutes_by_timekeeper": {"Marcus Liang": 675, "Peter Novak": 215},
-        "timekeepers": ["Marcus Liang", "Peter Novak"],
-        "challenged_by": "Priya Raman",
-        "challenge_date": "2026-05-08",
-        "unsupported_days": deepcopy(UNSUPPORTED_DAYS),
+        "cutoff_date": TRUTH["cutoff_date"],
+        "total_minutes": TRUTH["total_minutes"],
+        "entry_count": TRUTH["entry_count"],
+        "entries": deepcopy(TRUTH["entries"]),
+        "minutes_by_timekeeper": {
+            timekeeper: expected[1]
+            for timekeeper, expected in zip(
+                timekeepers, TRUTH["minutes_by_timekeeper_markers"], strict=True
+            )
+        },
+        "timekeepers": timekeepers,
+        "challenged_by": " ".join(
+            marker.title() for marker in TRUTH["challenged_by_markers"]
+        ),
+        "challenge_date": TRUTH["challenge_date"],
+        "unsupported_days": deepcopy(TRUTH["unsupported_days"]),
     }
 
 
-def _grade(tmp_path: Path, answer: dict | None) -> tuple[dict, dict]:
+def _grade(tmp_path: Path, answer: JsonObject | None) -> tuple[JsonObject, JsonObject]:
     workspace = tmp_path / "workspace"
     workspace.mkdir(parents=True, exist_ok=True)
     if answer is not None:
@@ -131,7 +65,7 @@ def _grade(tmp_path: Path, answer: dict | None) -> tuple[dict, dict]:
     )
 
 
-def _criterion(details: dict, name: str) -> float:
+def _criterion(details: JsonObject, name: str) -> float:
     for score in details["answer"]["criteria"]:
         if score["name"] == name:
             return score["value"]
@@ -204,7 +138,37 @@ def test_malformed_deliverable_scores_zero(tmp_path: Path, contents: str) -> Non
     assert json.loads(output.read_text()) == {"answer": 0.0, "process": 0.0}
 
 
-def _trajectory(tmp_path: Path, name: str, steps: list[dict]) -> Path:
+def test_oversized_integer_deliverable_scores_zero_without_crashing(
+    tmp_path: Path,
+) -> None:
+    contents = '{"total_minutes": ' + "9" * 5000 + "}"
+    workspace = tmp_path / "workspace"
+    workspace.mkdir(parents=True)
+    (workspace / "dispute.json").write_text(contents)
+    output = tmp_path / "logs" / "reward-raw.json"
+    output.parent.mkdir(parents=True)
+
+    subprocess.run(
+        [REWARDKIT, str(TESTS), "--workspace", str(workspace), "--output", str(output)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert json.loads(output.read_text()) == {"answer": 0.0, "process": 0.0}
+
+
+@pytest.mark.parametrize("nonfinite", [float("nan"), float("inf"), float("-inf")])
+def test_nonfinite_numeric_deliverable_scores_zero(
+    tmp_path: Path, nonfinite: float
+) -> None:
+    answer = _perfect()
+    answer["total_minutes"] = nonfinite
+    reward, _ = _grade(tmp_path, answer)
+    assert reward == {"answer": 0.0, "process": 0.0}
+
+
+def _trajectory(tmp_path: Path, name: str, steps: list[JsonObject]) -> Path:
     path = tmp_path / f"{name}.json"
     path.write_text(json.dumps({"steps": steps}))
     return path
@@ -218,9 +182,13 @@ UNIFIED_CALL = {
     },
 }
 SILENT_CALL = {"function_name": "exec", "arguments": {"input": "text(ALL_TOOLS)"}}
+MENTION_CALL = {
+    "function_name": "exec",
+    "arguments": {"input": "The slack_read_channel tool would be useful here."},
+}
 
 
-def _process_only(tmp_path: Path, trajectory: Path) -> dict:
+def _process_only(tmp_path: Path, trajectory: Path) -> JsonObject:
     tests = tmp_path / "tests"
     (tests / "process").mkdir(parents=True)
     shutil.copyfile(TESTS / "criteria.py", tests / "criteria.py")
@@ -250,10 +218,11 @@ def _process_only(tmp_path: Path, trajectory: Path) -> dict:
         ("native", NATIVE_CALL, 1.0, 1.0),
         ("unified", UNIFIED_CALL, 1.0, 0.0),
         ("silent", SILENT_CALL, 0.0, 0.0),
+        ("mention", MENTION_CALL, 0.0, 0.0),
     ],
 )
 def test_tool_invoked_reads_native_and_unified_exec_trajectories(
-    tmp_path: Path, name: str, call: dict, ours: float, builtin: float
+    tmp_path: Path, name: str, call: JsonObject, ours: float, builtin: float
 ) -> None:
     trajectory = _trajectory(
         tmp_path, name, [{"source": "agent", "tool_calls": [call]}]

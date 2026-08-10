@@ -23,6 +23,11 @@ asserts that the agent user cannot read a database, and only then deletes the
 staging tree. A failure leaves the tree intact, so the healthcheck's retry is
 a clean re-run rather than a half-installed environment.
 
+The installer also adds one oracle executable to the environment-owned
+allowlist. It accepts no arguments and runs only ``/solution/solve.py`` with a
+fixed state path. Harbor mounts that root-level file for the trusted solution
+phase; it is absent and cannot be created by the agent during a normal run.
+
 The runtime is needed because ``workbench:dev`` carries no Python packages of
 its own: ``mcp``, ``pydantic``, and the ``workbench`` distributions are all
 absent from the image, and the MCP servers cannot start without them. They are
@@ -47,6 +52,14 @@ STAGE_DIR_NAME = ".workbench"
 CONTAINER_STAGE = "/home/agent/workspace/.workbench"
 CONTAINER_STATE = "/home/environment/state"
 CONTAINER_RUNTIME = "/opt/workbench-runtime"
+CONTAINER_SOLUTION: str = "/solution/solve.py"
+ORACLE_EXECUTABLE: str = "/usr/local/libexec/workbench/oracle"
+ORACLE_COMMAND: str = (
+    "exec env -i "
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin "
+    "HOME=/home/environment USER=environment LOGNAME=environment "
+    f"WORKBENCH_STATE={CONTAINER_STATE} python3 {CONTAINER_SOLUTION}"
+)
 
 HEALTHCHECK_COMMAND = f"sh {CONTAINER_STAGE}/install.sh"
 """What the task's [environment.healthcheck] must run."""
@@ -105,6 +118,7 @@ PTH=/usr/local/lib/python{PYTHON_VERSION}/dist-packages/workbench-runtime.pth
 WRAPPER={MCP_WRAPPER_PREFIX}
 LIBEXEC=/usr/local/libexec/workbench
 SERVE="exec run-as-environment $LIBEXEC/serve"
+ORACLE={ORACLE_EXECUTABLE}
 
 if [ -d "$STAGE" ]; then
     # The tool databases are the record. Only the environment user may open
@@ -155,6 +169,23 @@ if [ -d "$STAGE" ]; then
     chown environment:environment "$LIBEXEC/serve"
     chmod 750 "$LIBEXEC/serve"
 
+    # The trusted solution phase mounts /solution at the filesystem root.
+    # This wrapper accepts no arguments, rejects links and environment-writable
+    # code, pins the database path, and executes that one script. The agent can
+    # name the wrapper but cannot supply a program or create /solution during
+    # its normal phase.
+    printf '%s\\n' \\
+        '#!/bin/sh' \\
+        'set -eu' \\
+        'test "$#" -eq 0 || exit 2' \\
+        'test -f {CONTAINER_SOLUTION} || exit 2' \\
+        'test ! -L {CONTAINER_SOLUTION} || exit 2' \\
+        'test ! -w {CONTAINER_SOLUTION} || exit 2' \\
+        '{ORACLE_COMMAND}' \\
+        > "$ORACLE"
+    chown environment:environment "$ORACLE"
+    chmod 750 "$ORACLE"
+
     for tool in $TOOLS; do
         printf '%s\\n' \\
             '#!/bin/sh' \\
@@ -176,6 +207,7 @@ for tool in $TOOLS; do
     test -s "$STATE/$tool.db" || {{ echo "missing $STATE/$tool.db" >&2; exit 1; }}
     test -x "$WRAPPER$tool" || {{ echo "missing $WRAPPER$tool" >&2; exit 1; }}
 done
+test -x "$ORACLE" || {{ echo "missing $ORACLE" >&2; exit 1; }}
 if su -s /bin/sh agent -c "test -r $STATE/clio.db"; then
     echo "the agent can read $STATE/clio.db" >&2
     exit 1
@@ -183,6 +215,20 @@ fi
 if su -s /bin/sh agent -c "run-as-environment /bin/cat $STATE/clio.db" \
         >/dev/null 2>&1; then
     echo "run-as-environment ran a command outside the allowlist" >&2
+    exit 1
+fi
+if su -s /bin/sh agent -c "run-as-environment {ORACLE_EXECUTABLE} /bin/cat" \
+        >/dev/null 2>&1; then
+    echo "the oracle wrapper accepted an arbitrary command" >&2
+    exit 1
+fi
+if [ -e /solution ]; then
+    echo "/solution leaked into the normal agent phase" >&2
+    exit 1
+fi
+if su -s /bin/sh agent -c "mkdir /solution" >/dev/null 2>&1; then
+    rmdir /solution
+    echo "the agent can inject /solution" >&2
     exit 1
 fi
 if su -s /bin/sh agent -c "test -r $RUNTIME/mcp"; then

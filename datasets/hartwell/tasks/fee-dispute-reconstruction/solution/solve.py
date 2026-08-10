@@ -9,11 +9,10 @@ has no same-day email or chat message naming the engagement, grouped by day
 with the affected minutes and billed amount. Fails rather than answer from
 assumptions — the solution must retrieve.
 
-Reads the tool databases directly, which means it runs as the environment
-user: solve.sh wraps it in run-as-environment, the same aperture the MCP
-servers use, so the oracle path exercises the real offstage boundary instead
-of a copy of the data. Paths are overridable so the same script runs against
-an unpacked bundle outside a container.
+Reads the tool databases directly and writes the JSON document to stdout.
+Inside Harbor, the staged oracle wrapper runs this exact root-mounted script
+as the environment user while solve.sh remains the agent-owned writer.
+Outside a container, the state defaults to the unpacked bundle's ``../state``.
 """
 
 import json
@@ -22,10 +21,14 @@ import re
 import sqlite3
 import sys
 from datetime import date, timedelta
-from pathlib import Path
+
+type DatabaseValue = str | int | float | bytes | None
+type DatabaseRow = tuple[DatabaseValue, ...]
+type Activity = tuple[int, str, str, int, str, int, int | None, int]
+type WindowEntry = tuple[int, int, int, int | None, int]
 
 EPOCH = date(2026, 3, 2)
-MONTHS = {
+MONTHS: dict[str, int] = {
     name: index + 1
     for index, name in enumerate(
         (
@@ -45,21 +48,20 @@ MONTHS = {
     )
 }
 
-STATE = os.environ.get("WORKBENCH_STATE", "/home/environment/state")
-OUTPUT = Path(os.environ.get("WORKBENCH_WORKSPACE", "/home/agent/workspace"))
+STATE = os.environ.get("WORKBENCH_STATE", "../state")
 
 
-def rows(db, sql, *params):
+def rows(db: str, sql: str, *params: DatabaseValue) -> list[DatabaseRow]:
     with sqlite3.connect(f"file:{STATE}/{db}?mode=ro", uri=True) as connection:
         return connection.execute(sql, params).fetchall()
 
 
-def day_of(time):
+def day_of(time: int) -> date:
     return EPOCH + timedelta(days=time // 86400)
 
 
 # The cutoff date is stated only in the billing channel.
-cutoff_posts = rows(
+cutoff_posts: list[DatabaseRow] = rows(
     "slack.db",
     "SELECT m.body FROM messages m JOIN conversations c "
     "ON c.conversation_id = m.conversation_id "
@@ -71,50 +73,71 @@ if len(cutoff_posts) != 1:
 stated = re.search(
     r"\b(January|February|March|April|May|June|July|August|September|"
     r"October|November|December)\s+(\d{1,2})\b",
-    cutoff_posts[0][0],
+    str(cutoff_posts[0][0]),
 )
 if stated is None:
     sys.exit("the billing-channel post states no cutoff date")
 cutoff = date(2026, MONTHS[stated.group(1).lower()], int(stated.group(2)))
 
-matter = rows(
+matter: list[DatabaseRow] = rows(
     "clio.db",
     "SELECT ticket_id FROM matters WHERE description LIKE '%Meridian%'",
 )
 if len(matter) != 1:
     sys.exit(f"expected one Meridian matter, found {len(matter)}")
-ticket = matter[0][0]
+ticket = str(matter[0][0])
 
 # Positional ids reproduce the Clio server's id space: 1-based position
 # in the time-ordered activity list across every matter.
-activities = rows(
-    "clio.db",
-    "SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, ticket_id, person, "
-    "quantity_seconds, note, time, rate_cents, billable FROM activities",
-)
+activities: list[Activity] = [
+    (
+        int(activity_id),
+        str(activity_ticket),
+        str(person),
+        int(seconds),
+        str(note),
+        int(time),
+        None if rate_cents is None else int(rate_cents),
+        int(billable),
+    )
+    for (
+        activity_id,
+        activity_ticket,
+        person,
+        seconds,
+        note,
+        time,
+        rate_cents,
+        billable,
+    ) in rows(
+        "clio.db",
+        "SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, ticket_id, person, "
+        "quantity_seconds, note, time, rate_cents, billable FROM activities",
+    )
+]
 
 
-def diligent(note):
+def diligent(note: str) -> bool:
     lowered = note.lower()
     return "diligence" in lowered or "data room" in lowered
 
 
-disputed = [
+disputed: list[tuple[int, str, int, int]] = [
     (activity_id, person, seconds, time)
     for activity_id, t, person, seconds, note, time, _, _ in activities
     if t == ticket and diligent(note) and day_of(time) > cutoff
 ]
-decoys = [
+decoys: list[int] = [
     1
     for _, t, _, _, note, time, _, _ in activities
     if t == ticket and diligent(note) and day_of(time) <= cutoff
 ]
-cutoff_day = [
+cutoff_day: list[int] = [
     1
     for _, t, _, _, note, time, _, _ in activities
     if t == ticket and diligent(note) and day_of(time) == cutoff
 ]
-cross_matter = [
+cross_matter: list[int] = [
     1
     for _, t, _, _, note, time, _, _ in activities
     if t != ticket and diligent(note) and day_of(time) > cutoff
@@ -133,21 +156,22 @@ if len(cross_matter) < 2:
     )
 
 total_minutes = sum(seconds for _, _, seconds, _ in disputed) // 60
-timekeeper_ids = sorted({person for _, person, _, _ in disputed})
-names = dict(
-    rows(
+timekeeper_ids: list[str] = sorted({person for _, person, _, _ in disputed})
+names: dict[str, str] = {
+    str(person_id): str(name)
+    for person_id, name in rows(
         "clio.db",
         f"SELECT person_id, name FROM people WHERE person_id IN "
         f"({','.join('?' * len(timekeeper_ids))})",
         *timekeeper_ids,
     )
-)
-minutes_by_timekeeper = {
+}
+minutes_by_timekeeper: dict[str, int] = {
     names[person]: sum(s for _, p, s, _ in disputed if p == person) // 60
     for person in timekeeper_ids
 }
 
-challenge = rows(
+challenge: list[DatabaseRow] = rows(
     "gmail.db",
     "SELECT m.sender, m.time FROM messages m JOIN people p "
     "ON p.person_id = m.sender WHERE m.subject LIKE '%April invoice%' "
@@ -156,15 +180,17 @@ challenge = rows(
 if not challenge:
     sys.exit("client challenge email not found in the record")
 challenger_id, challenge_time = challenge[0]
-challenger = dict(
-    rows(
+challenger = {
+    str(person_id): str(name)
+    for person_id, name in rows(
         "gmail.db",
         "SELECT person_id, name FROM people WHERE person_id = ?",
         challenger_id,
     )
-)[challenger_id]
+}[str(challenger_id)]
+challenge_time = int(challenge_time)
 
-note = rows(
+note: list[DatabaseRow] = rows(
     "clio.db",
     "SELECT detail FROM notes WHERE ticket_id = ? AND length(detail) > 400",
     ticket,
@@ -177,9 +203,9 @@ if cutoff.isoformat() in note[0][0] or "April 3" in note[0][0]:
 # Support audit: a window entry is supported when a same-day email or
 # chat message names the engagement — the client (meridian), the deal
 # (diagnostics), or the matter number (00001). One pass per surface.
-MARKERS = ("meridian", "diagnostics", "00001")
+MARKERS: tuple[str, ...] = ("meridian", "diagnostics", "00001")
 window_end = date(2026, 4, 30)
-window = [
+window: list[WindowEntry] = [
     (activity_id, time, seconds, rate_cents, billable)
     for activity_id, t, _, seconds, _, time, rate_cents, billable in activities
     if t == ticket and cutoff < day_of(time) <= window_end
@@ -188,19 +214,19 @@ if len(window) < 30:
     sys.exit(f"expected a busy disputed window, found {len(window)} entries")
 
 
-def referenced(text):
+def referenced(text: str) -> bool:
     lowered = text.lower()
     return any(marker in lowered for marker in MARKERS)
 
 
-coverage = {}
+coverage: dict[date, set[str]] = {}
 for subject, body, time in rows("gmail.db", "SELECT subject, body, time FROM messages"):
     text = f"{subject} {body}"
     if referenced(text):
         kind = "email-name" if "meridian" in text.lower() else "email-oblique"
-        coverage.setdefault(day_of(time), set()).add(kind)
-dm_ids = {
-    conversation_id
+        coverage.setdefault(day_of(int(time)), set()).add(kind)
+dm_ids: set[str] = {
+    str(conversation_id)
     for (conversation_id,) in rows(
         "slack.db", "SELECT conversation_id FROM conversations WHERE kind = 'dm'"
     )
@@ -208,12 +234,15 @@ dm_ids = {
 for conversation_id, body, time in rows(
     "slack.db", "SELECT conversation_id, body, time FROM messages"
 ):
+    body = str(body)
     if referenced(body):
-        kind = "chat-dm" if conversation_id in dm_ids else "chat-public"
-        coverage.setdefault(day_of(time), set()).add(kind)
+        kind = "chat-dm" if str(conversation_id) in dm_ids else "chat-public"
+        coverage.setdefault(day_of(int(time)), set()).add(kind)
 
-unsupported = [entry for entry in window if day_of(entry[1]) not in coverage]
-unsupported_by_day = {}
+unsupported: list[WindowEntry] = [
+    entry for entry in window if day_of(entry[1]) not in coverage
+]
+unsupported_by_day: dict[date, list[WindowEntry]] = {}
 for entry in unsupported:
     unsupported_by_day.setdefault(day_of(entry[1]), []).append(entry)
 if len(unsupported_by_day) != 5 or len(unsupported) != 47:
@@ -221,21 +250,21 @@ if len(unsupported_by_day) != 5 or len(unsupported) != 47:
         "expected 47 unsupported window entries across 5 days, found "
         f"{len(unsupported)} across {len(unsupported_by_day)} days"
     )
-window_days = {day_of(time) for _, time, _, _, _ in window}
+window_days: set[date] = {day_of(time) for _, time, _, _, _ in window}
 if not any(coverage.get(day) == {"chat-dm"} for day in window_days):
     sys.exit("expected a window day supported only through a DM")
 if not any(coverage.get(day) == {"email-oblique"} for day in window_days):
     sys.exit("expected a window day supported only by a client-nameless email")
 
 
-def billed_cents(seconds, rate_cents, billable):
+def billed_cents(seconds: int, rate_cents: int | None, billable: int) -> int:
     if rate_cents is None or not billable:
         return 0
     public_total = round(rate_cents / 100 * seconds / 3600, 2)
     return round(public_total * 100)
 
 
-unsupported_days = [
+unsupported_days: list[dict[str, object]] = [
     {
         "date": unsupported_day.isoformat(),
         "entry_ids": [activity_id for activity_id, _, _, _, _ in entries],
@@ -249,7 +278,7 @@ unsupported_days = [
     for unsupported_day, entries in sorted(unsupported_by_day.items())
 ]
 
-dispute = {
+dispute: dict[str, object] = {
     "cutoff_date": cutoff.isoformat(),
     "total_minutes": total_minutes,
     "entry_count": len(disputed),
@@ -267,6 +296,5 @@ dispute = {
     "challenge_date": day_of(challenge_time).isoformat(),
     "unsupported_days": unsupported_days,
 }
-deliverable = OUTPUT / "dispute.json"
-deliverable.write_text(json.dumps(dispute, indent=2))
-print(f"{deliverable} written")
+json.dump(dispute, sys.stdout, indent=2)
+sys.stdout.write("\n")

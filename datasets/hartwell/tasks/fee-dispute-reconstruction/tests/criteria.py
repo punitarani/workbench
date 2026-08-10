@@ -14,12 +14,26 @@ them.
 """
 
 import json
+import math
+import re
 from pathlib import Path
 
 from rewardkit import criterion
 
 
-def _submitted(workspace: Path, path: str) -> dict:
+def _finite_json(value: object) -> bool:
+    if isinstance(value, float):
+        return math.isfinite(value)
+    if isinstance(value, list):
+        return all(_finite_json(item) for item in value)
+    if isinstance(value, dict):
+        return all(
+            isinstance(key, str) and _finite_json(item) for key, item in value.items()
+        )
+    return value is None or isinstance(value, bool | int | str)
+
+
+def _submitted(workspace: Path, path: str) -> dict[str, object]:
     """The deliverable, or an empty mapping when it is missing or malformed.
 
     A grader that raises on a missing file turns "the agent produced nothing"
@@ -32,9 +46,9 @@ def _submitted(workspace: Path, path: str) -> dict:
         return {}
     try:
         loaded = json.loads(deliverable.read_text())
-    except json.JSONDecodeError, UnicodeDecodeError, OSError:
+    except ValueError, UnicodeDecodeError, OSError:
         return {}
-    return loaded if isinstance(loaded, dict) else {}
+    return loaded if isinstance(loaded, dict) and _finite_json(loaded) else {}
 
 
 def _canonical_value(value: object) -> object:
@@ -77,7 +91,7 @@ def _as_set(values: object, fields: tuple[str, ...] | None) -> set[str]:
     }
 
 
-def _expected_set(expected: list, fields: tuple[str, ...] | None) -> set[str]:
+def _expected_set(expected: list[object], fields: tuple[str, ...] | None) -> set[str]:
     return {
         member
         for member in (_canonical(item, fields) for item in expected)
@@ -93,7 +107,7 @@ def set_f1(
     workspace: Path,
     path: str,
     key: str,
-    expected: list,
+    expected: list[object],
     fields: tuple[str, ...] | None = None,
 ) -> float:
     """Harmonic mean of precision and recall over a set-valued field.
@@ -123,7 +137,7 @@ def exact_set(
     workspace: Path,
     path: str,
     key: str,
-    expected: list,
+    expected: list[object],
     fields: tuple[str, ...] | None = None,
 ) -> bool:
     """The certification claim, kept as its own criterion.
@@ -154,7 +168,15 @@ def numeric_close(
     value = _submitted(workspace, path).get(key)
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return False
-    return abs(float(value) - float(expected)) <= tol
+    try:
+        actual = float(value)
+        target = float(expected)
+        tolerance = float(tol)
+    except TypeError, ValueError, OverflowError:
+        return False
+    if not all(math.isfinite(number) for number in (actual, target, tolerance)):
+        return False
+    return abs(actual - target) <= tolerance
 
 
 @criterion(description="{key} == {expected}", shared=True)
@@ -199,7 +221,7 @@ def marker_list_recall(
     description="{key}: share of the expected name/value pairs correct", shared=True
 )
 def marker_map_recall(
-    workspace: Path, path: str, key: str, expected: list[list]
+    workspace: Path, path: str, key: str, expected: list[list[object]]
 ) -> float:
     """Recall over a name-keyed mapping of figures.
 
@@ -247,9 +269,8 @@ def tool_invoked(
     ``exec`` and the built-in criterion is structurally blind to it.
 
     This criterion is a superset: it matches the function name (bare or
-    namespaced ``server__tool``) and, failing that, looks for the tool name in
-    the call's own arguments. Names are distinctive enough that a mention in
-    an argument is a call.
+    namespaced ``server__tool``) and actual ``tools.<name>(`` expressions in
+    unified-exec source. A prose mention is not evidence of invocation.
     """
 
     trajectory = Path(path)
@@ -260,6 +281,9 @@ def tool_invoked(
     except json.JSONDecodeError, UnicodeDecodeError, OSError:
         return False
 
+    expression = re.compile(
+        rf"\btools\.(?:[A-Za-z_][A-Za-z0-9_]*__)*{re.escape(tool)}\s*\("
+    )
     count = 0
     for step in data.get("steps", []):
         for call in step.get("tool_calls") or []:
@@ -267,5 +291,7 @@ def tool_invoked(
             if name == tool or name.endswith(f"__{tool}"):
                 count += 1
                 continue
-            count += json.dumps(call.get("arguments", {})).count(tool)
+            arguments = call.get("arguments", {})
+            text = arguments if isinstance(arguments, str) else json.dumps(arguments)
+            count += len(expression.findall(text))
     return count >= min_count
