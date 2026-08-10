@@ -131,10 +131,31 @@ def numeric_close(
     return abs(actual - target) <= tolerance
 
 
-@criterion(description="{path} is an object carrying every required field", shared=True)
-def has_fields(workspace: Path, path: str, fields: list[str]) -> bool:
+@criterion(
+    description=(
+        "{path} has exactly the public fields and every {record_key} record has "
+        "exactly its public fields"
+    ),
+    shared=True,
+)
+def exact_schema(
+    workspace: Path,
+    path: str,
+    fields: list[str],
+    record_key: str,
+    record_fields: tuple[str, ...],
+) -> bool:
     submitted = _submitted(workspace, path)
-    return bool(submitted) and all(field in submitted for field in fields)
+    if set(submitted) != set(fields):
+        return False
+    records = submitted.get(record_key)
+    if not isinstance(records, list):
+        return False
+    expected_record_fields = set(record_fields)
+    return all(
+        isinstance(record, dict) and set(record) == expected_record_fields
+        for record in records
+    )
 
 
 @criterion(

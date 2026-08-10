@@ -68,6 +68,37 @@ def test_exact_answer_has_only_the_canonical_raw_dimensions(tmp_path: Path) -> N
     assert reward == {"answer": 1.0, "process": 0.0}
 
 
+@pytest.mark.parametrize(
+    ("extra_key", "extra_value"),
+    [
+        ("unexpected", True),
+        ("unsupported_entry_ids", [1318, 1319]),
+    ],
+)
+def test_extra_top_level_field_forfeits_full_answer_credit(
+    tmp_path: Path, extra_key: str, extra_value: object
+) -> None:
+    answer = _perfect()
+    answer[extra_key] = extra_value
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "answer", "deliverable_format") == 0.0
+    assert reward == {"answer": 0.91, "process": 0.0}
+
+
+def test_extra_anomalous_day_key_forfeits_full_answer_credit(
+    tmp_path: Path,
+) -> None:
+    answer = _perfect()
+    days = answer["anomalous_timekeeper_days"]
+    assert isinstance(days, list) and isinstance(days[0], dict)
+    days[0]["unsupported_entries"] = []
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "answer", "deliverable_format") == 0.0
+    assert reward == {"answer": 0.91, "process": 0.0}
+
+
 def test_missing_deliverable_scores_zero(tmp_path: Path) -> None:
     reward, _ = _grade(tmp_path, None)
     assert reward == {"answer": 0.0, "process": 0.0}

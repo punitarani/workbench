@@ -93,9 +93,11 @@ rk.exact_set(
     name="phantom_notes.certified",
     weight=1.0,
 )
-rk.has_fields(
+rk.exact_schema(
     DELIVERABLE,
     REQUIRED_FIELDS,
+    "anomalous_timekeeper_days",
+    ANOMALOUS_DAY_FIELDS,
     name="deliverable_format",
     weight=9.0,
 )
