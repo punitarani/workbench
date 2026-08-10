@@ -29,3 +29,19 @@ a paid model.
 RL-framework adapters remain deferred: the engine's `ActTransport`
 protocol (`simulation/src/workbench/simulation/external/`) is the seam
 one will plug into when a named target framework arrives.
+
+The Hartwell Harbor matrix runs through a local Responses gateway that restores
+the full OpenRouter model IDs and enforces the recorded provider order. The real
+OpenRouter key stays in the host process; containers receive only an ephemeral
+gateway token. Supply a conservative next-batch projection so the runner can
+enforce the recorded project cap and in-flight reserve:
+
+```bash
+OPENROUTER_API_KEY=... uv run python -m workbench.adapters.harbor_matrix \
+    --run-id final-matrix \
+    --projected-worst-case-batch-usd 3.00
+```
+
+The runner pins Harbor 0.18.0 and Codex 0.147.0, executes one task batch at a
+time, meters credits before work and after each batch, rejects invalid trials,
+and writes an incremental provenance report under `jobs/`.
