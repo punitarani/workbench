@@ -1,26 +1,76 @@
-# Harbor task definition. The environment bundle is built locally from
-# the four-month history:
-#   uv run python datasets/hartwell/build_tasks.py
+schema_version = "1.3"
 
 [task]
-name = "visitor-log-audit"
+name = "workbench/visitor-log-audit"
+description = """
+Audit every visitor-log request against the end-of-request-day custody deadline,
+then classify each breach by its next-working-day outcome.
+"""
+authors = [{ name = "Workbench" }]
+keywords = [
+    "legal",
+    "records",
+    "cross-system-retrieval",
+    "chain-of-custody",
+    "mcp",
+]
+
+[metadata]
 dataset = "hartwell"
-summary = "Certify the visitor-log handovers that were never closed inside the firm's standard"
+difficulty = "hard"
+skills = ["retrieval", "reconciliation", "temporal-reasoning", "anti-join"]
+# Measured by datasets/hartwell/measure_floors.py against the real public MCP
+# path. Recorded for calibration only; Harbor has no per-task hard call cap.
+reference_tool_path_calls = 54
 
 [environment]
 docker_image = "workbench:dev"
-# The built bundle splits across the image: bundle/workspace seeds
-# /home/agent/workspace (exposed as /app), bundle/state stays offstage.
+os = "linux"
+workdir = "/home/agent/workspace"
+memory_mb = 4096
+network_mode = "allowlist"
+allowed_hosts = [
+    "openrouter.ai",
+    "raw.githubusercontent.com",
+    "objects.githubusercontent.com",
+    "nodejs.org",
+    "registry.npmjs.org",
+    "*.ubuntu.com",
+]
+
+[environment.healthcheck]
+command = "sh /home/agent/workspace/.workbench/install.sh"
+timeout_sec = 180.0
+interval_sec = 2.0
+retries = 2
+
+[[environment.mcp_servers]]
+name = "gmail"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-gmail"
+
+[[environment.mcp_servers]]
+name = "slack"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-slack"
+
+[[environment.mcp_servers]]
+name = "imanage"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-imanage"
+
+[[environment.mcp_servers]]
+name = "clio"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-clio"
+
+[agent]
+user = "agent"
+timeout_sec = 1800.0
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
 
 [verifier]
-# In-container: tests/test.sh runs the deterministic grader and writes
-# partial-credit reward to /logs/verifier/reward.json. The Reward Kit
-# wrapper replaces the direct python3 call once runs happen through Harbor.
-weights = { requests_reviewed = 0.02, conversations_reviewed = 0.02, open_handover_ts = 0.56, open_handovers = 0.12, closed_same_day = 0.05, closed_next_day = 0.1, open_requesters = 0.04, format = 0.09 }
-
-[harness]
-# Task-anchored call budget (DECISIONS.md entry 17): 3x the reference
-# tool-path floor of 53 calls measured by
-# datasets/hartwell/measure_floors.py
-# (write_file and finish count against the same budget).
-max_tool_calls = 159
+user = "verifier"
+timeout_sec = 900.0
+network_mode = "no-network"

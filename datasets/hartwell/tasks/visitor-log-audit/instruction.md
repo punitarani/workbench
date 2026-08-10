@@ -1,63 +1,56 @@
-# Chain of custody: the visitor log nobody sent back
+# Chain of custody: the visitor log returned after its deadline
 
-You are **Omar Haddad**, records clerk at Hartwell & Marsh LLP. The
-reception sign-in sheet is a firm record — the retention policy in the
-firm's own repository says so, and it is you who administers the
-schedule. In practice the sheet wanders: somebody takes yesterday's page
-upstairs for a conflicts note or a billing query, and it is supposed to
-come back.
+You are **Omar Haddad**, records clerk at Hartwell & Marsh LLP. The reception
+sign-in sheet is a firm record, but yesterday's page regularly travels upstairs
+for conflicts and billing work. The annual records review found that the old
+log treated an eventual return as timely even when custody had already broken.
+Anita needs the audit rebuilt from the record.
 
-The annual records review found gaps in the log. Anita wants to know
-where the chain broke, and she wants it from the record rather than from
-whoever remembers what. The asking happens where people ask each other
-for things: one to one, in Slack direct messages. Chat search does not
-reach into those, so there is no shortcut — the conversations have to be
-opened, one at a time.
-
-Save **`visitor-log.json`** in your workspace:
+Save **`visitor-log.json`** in your workspace with exactly this structure:
 
 ```json
 {
-  "requests_reviewed": <how many times the sheet was asked for, all conversations>,
-  "conversations_reviewed": <how many one-to-one conversations you went through>,
-  "open_handover_ts": ["<Slack ts of the request>", "..."],
-  "open_handovers": [
+  "requests_reviewed": <all requests across all one-to-one conversations>,
+  "conversations_reviewed": <all one-to-one conversations reviewed>,
+  "same_day_breach_ts": ["<Slack ts of each request not returned that day>"],
+  "same_day_breaches": [
     {
       "ts": "<Slack ts of the request>",
       "date": "<YYYY-MM-DD it was asked>",
       "asked_by": "<who asked for the sheet>",
-      "asked_of": "<who was asked>"
+      "asked_of": "<who was asked>",
+      "resolution": "<next_working_day or unresolved>"
     }
   ],
-  "closed_same_day": <how many requests drew something back the same day>,
-  "closed_next_day": ["<Slack ts of each request answered after the day it was asked but still inside the standard>"],
-  "open_requesters": ["<each person who asked and got nothing>"]
+  "returned_same_day": <requests returned by the end of the day asked>,
+  "returned_next_working_day_ts": ["<breach request ts later returned the next working day>"],
+  "unresolved_ts": ["<breach request ts not returned by the end of the next working day>"]
 }
 ```
 
-The firm asks for the sheet in one standing form of words: *do you still
-have the sign-in sheet from yesterday?* Every instance of that request,
-in every one-to-one conversation, is in scope.
+The standing request is exactly *do you still have the sign-in sheet from
+yesterday?* Every instance in every Slack direct-message conversation from
+March through June is in scope. Slack search does not expose DMs, so enumerate
+and open every one-to-one lane. This audit is intentionally seatless: the tools
+expose the firm's audit corpus rather than one employee's mailbox or Slack seat.
 
-A request is **closed** when the person who was asked comes back to the
-person who asked — anywhere in the firm's systems — by the end of the
-next working day. The firm works Monday through Friday, so a Friday
-request is still inside the standard if the answer lands on the Monday.
-Coming back means either a message from them later in that same one-to-one
-conversation, or an email from them to the person who asked. It does not
-mean the asker writing again, it does not mean the two of them being
-active somewhere else in the firm, and it does not mean somebody else
-answering on their behalf.
+Custody is timely only when the person asked comes back to the asker by the
+**end of the day it was asked**. A qualifying return is either a later message
+from the person asked in that same DM lane or a later email from that person
+directed to the asker. The response must occur after the request. The asker
+writing again, either person speaking elsewhere, or a third party answering
+does not close custody.
 
-`open_handover_ts` lists the request's own Slack `ts` for every request
-that got neither, inside that window. The near misses are the whole
-difficulty: several requests sat overnight and were picked up the next
-working day, and one of those was answered by mail rather than chat —
-close the audit at the end of the day it was asked, or look only at chat,
-and the list comes out wrong in a different way each time. Sweep every
-one-to-one conversation from March through June; they run to thousands of
-messages and none of the long ones comes back in a single read.
+Every request without that same-day return is a breach and belongs in both
+`same_day_breach_ts` and `same_day_breaches`. Classify it
+`next_working_day` only if a qualifying return arrives on the immediately next
+working day; the firm works Monday through Friday, so Friday's next working day
+is Monday. Classify it `unresolved` if no qualifying return arrives by the end
+of that next working day, even if someone eventually replies later. Repeat the
+same partition in `returned_next_working_day_ts` and `unresolved_ts`.
 
-You are certifying this to Anita as the complete list of breaks in the
-chain. One request named that was in fact answered, or one true break left
-off, and the certification is worth nothing.
+The cross-surface direction and timing rules matter. One next-working-day
+return arrived by email before the Slack reply, weekend requests cross to
+Monday, and two requests were not returned until after their next-working-day
+window. Certify the exact population, breach records, and partitions without
+adding commentary or private evidence fields to the JSON.

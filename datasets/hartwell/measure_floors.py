@@ -707,14 +707,14 @@ async def _one_to_one_request_audit(client: CountingClient, request: str) -> lis
         )
         membership[lane["id"]] = set(members["members"])
 
-    mailed: set[tuple[str, str, str]] = set()
+    mailed: set[tuple[str, str, int]] = set()
     for message in await _gmail_all_pages(client, ""):
         for recipient in message["toRecipients"] + message["ccRecipients"]:
             mailed.add(
                 (
                     _sender_email(message),
                     recipient.split("<")[-1].rstrip(">"),
-                    message["date"][:10],
+                    _mail_seconds(message["date"]),
                 )
             )
 
@@ -726,24 +726,30 @@ async def _one_to_one_request_audit(client: CountingClient, request: str) -> lis
                 continue
             (asked_of,) = membership[lane["id"]] - {message["user"]}
             asked_on = date.fromisoformat(_ts_day(message["ts"]))
-            window = {asked_on.isoformat(), _next_working_day(asked_on).isoformat()}
+            asked_at = int(float(message["ts"]))
+            next_day = _next_working_day(asked_on).isoformat()
             reply_days = {
                 _ts_day(later["ts"])
                 for later in messages[position + 1 :]
-                if later["user"] == asked_of
+                if later["user"] == asked_of and int(float(later["ts"])) > asked_at
             }
-            by_mail = any(
-                (emails[asked_of], emails[message["user"]], day) in mailed
-                for day in window
+            reply_days.update(
+                _ts_day(str(timestamp))
+                for sender, recipient, timestamp in mailed
+                if sender == emails[asked_of]
+                and recipient == emails[message["user"]]
+                and timestamp > asked_at
             )
             requests.append(
                 {
                     "ts": message["ts"],
                     "date": asked_on.isoformat(),
                     "asked_by": names[message["user"]],
+                    "asked_of": names[asked_of],
                     "lanes": len(lanes),
                     "same_day": asked_on.isoformat() in reply_days,
-                    "in_window": bool(reply_days & window) or by_mail,
+                    "next_working_day": next_day in reply_days,
+                    "in_window": bool(reply_days & {asked_on.isoformat(), next_day}),
                 }
             )
     return requests
@@ -768,13 +774,38 @@ async def visitor_log_audit(client: CountingClient) -> None:
     requests = await _one_to_one_request_audit(client, SHEET_REQUEST)
     assert len(requests) == truth["requests_reviewed"], len(requests)
     assert requests[0]["lanes"] == truth["conversations_reviewed"]
-    still_open = sorted(_ts_prefix(r["ts"]) for r in requests if not r["in_window"])
-    assert still_open == truth["open_handover_ts_prefixes"], still_open
-    next_day = sorted(
-        _ts_prefix(r["ts"]) for r in requests if r["in_window"] and not r["same_day"]
+    breaches = sorted(
+        (
+            {
+                "ts": request["ts"],
+                "date": request["date"],
+                "asked_by": request["asked_by"],
+                "asked_of": request["asked_of"],
+                "resolution": (
+                    "next_working_day" if request["next_working_day"] else "unresolved"
+                ),
+            }
+            for request in requests
+            if not request["same_day"]
+        ),
+        key=lambda record: float(record["ts"]),
     )
-    assert next_day == truth["closed_next_day_prefixes"], next_day
-    assert sum(1 for r in requests if r["same_day"]) == truth["closed_same_day"]
+    assert breaches == truth["same_day_breaches"], breaches
+    assert [record["ts"] for record in breaches] == truth["same_day_breach_ts"]
+    next_day = [
+        record["ts"]
+        for record in breaches
+        if record["resolution"] == "next_working_day"
+    ]
+    assert next_day == truth["returned_next_working_day_ts"], next_day
+    unresolved = [
+        record["ts"] for record in breaches if record["resolution"] == "unresolved"
+    ]
+    assert unresolved == truth["unresolved_ts"], unresolved
+    assert (
+        sum(1 for request in requests if request["same_day"])
+        == truth["returned_same_day"]
+    )
 
 
 FLOORS = {
