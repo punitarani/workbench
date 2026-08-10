@@ -1,4 +1,4 @@
-"""Synthetic contract tests for the fee reconstruction verifier."""
+"""Synthetic contract tests for the fee-dispute Reward Kit verifier."""
 
 import json
 import shutil

@@ -1,4 +1,4 @@
-"""Synthetic contract tests for the billing hygiene Reward Kit verifier."""
+"""Synthetic contract tests for the billing-hygiene Reward Kit verifier."""
 
 import json
 import shutil
