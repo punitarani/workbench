@@ -20,6 +20,7 @@ from workbench.adapters.harbor_matrix.gateway import (
     ProviderGateway,
 )
 from workbench.adapters.harbor_matrix.runner import (
+    AGENT_TIMEOUT_MULTIPLIER,
     CODEX_VERSION,
     HARBOR_VERSION,
     MODEL_ALIASES,
@@ -36,6 +37,8 @@ from workbench.adapters.harbor_matrix.runner import (
     TrialFingerprint,
     build_harbor_command,
     classify_trial_result,
+    full_batch_projection_from_launch,
+    launch_projection,
     smoke_is_reusable,
     validate_batch_outcomes,
     validate_harbor_version,
@@ -271,6 +274,7 @@ def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -
     assert command[command.index("-n") + 1] == "8"
     assert command[command.index("--n-concurrent-agents") + 1] == "8"
     assert command[command.index("-k") + 1] == "3"
+    assert command[command.index("--agent-timeout-multiplier") + 1] == "2.0"
     assert command[command.index("--job-name") + 1] == (
         "final-matrix-01-fee-dispute-reconstruction"
     )
@@ -485,6 +489,20 @@ def test_budget_enforces_project_cap_and_reserve() -> None:
         budget.assert_observed_within_cap(
             CreditSnapshot(total_credits=100, total_usage=57.3)
         )
+
+
+def test_cost_projection_scales_with_launch_size() -> None:
+    assert launch_projection(9.0, attempts_per_model=1) == pytest.approx(3.0)
+    assert launch_projection(9.0, attempts_per_model=2) == pytest.approx(6.0)
+    assert launch_projection(9.0, attempts_per_model=3) == pytest.approx(9.0)
+    assert full_batch_projection_from_launch(
+        2.5, attempts_per_model=1
+    ) == pytest.approx(7.5)
+    assert full_batch_projection_from_launch(
+        5.0, attempts_per_model=2
+    ) == pytest.approx(7.5)
+    with pytest.raises(ValueError, match="attempts"):
+        launch_projection(1.0, attempts_per_model=0)
 
 
 async def test_credit_meter_uses_authoritative_endpoint_without_leaking_key() -> None:
@@ -850,7 +868,7 @@ async def test_post_batch_cap_breach_is_persisted_before_runner_stops(
     tasks_root = _make_tasks(tmp_path)
     config = _matrix_config(tmp_path, tasks_root, run_id="cap-breach")
     commands = FakeCommands()
-    meter = FakeCreditMeter([53.0, 54.0, 57.3])
+    meter = FakeCreditMeter([53.0, 53.1, 57.3])
     runner = MatrixRunner(
         config,
         openrouter_api_key="host-only",
@@ -935,10 +953,13 @@ def test_fingerprint_is_content_sensitive_and_smoke_requires_exact_match(
         gateway_version="1",
         harbor_version=HARBOR_VERSION,
         codex_version=CODEX_VERSION,
+        agent_timeout_multiplier=AGENT_TIMEOUT_MULTIPLIER,
         model="z-ai/glm-5.2",
         enforced_provider_order=MODEL_PROVIDERS["z-ai/glm-5.2"],
     )
     assert smoke_is_reusable(fingerprint, fingerprint, smoke_valid=True)
     changed = fingerprint.model_copy(update={"image_id": "sha256:other"})
     assert not smoke_is_reusable(fingerprint, changed, smoke_valid=True)
+    changed_timeout = fingerprint.model_copy(update={"agent_timeout_multiplier": 1.0})
+    assert not smoke_is_reusable(fingerprint, changed_timeout, smoke_valid=True)
     assert not smoke_is_reusable(fingerprint, fingerprint, smoke_valid=False)

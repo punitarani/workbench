@@ -37,6 +37,7 @@ HARTWELL_CODEX_IMPORT_PATH = (
     "workbench.adapters.harbor_matrix.codex_agent:HartwellCodex"
 )
 CODEX_COMPACTION_MODE: Literal["custom-provider-local"] = "custom-provider-local"
+AGENT_TIMEOUT_MULTIPLIER = 2.0
 OPENROUTER_CREDITS_URL = "https://openrouter.ai/api/v1/credits"
 MODEL_ALIASES = tuple(ALIAS_TO_MODEL)
 TASK_ORDER = (
@@ -120,6 +121,22 @@ class CreditBudget(BaseModel):
             )
 
 
+def launch_projection(
+    full_batch_projection_usd: float, *, attempts_per_model: int
+) -> float:
+    if not 1 <= attempts_per_model <= 3:
+        raise ValueError("attempts_per_model must be between 1 and 3")
+    return full_batch_projection_usd * attempts_per_model / 3
+
+
+def full_batch_projection_from_launch(
+    launch_cost_usd: float, *, attempts_per_model: int
+) -> float:
+    if not 1 <= attempts_per_model <= 3:
+        raise ValueError("attempts_per_model must be between 1 and 3")
+    return launch_cost_usd * 3 / attempts_per_model
+
+
 class CreditMeter:
     def __init__(
         self,
@@ -166,6 +183,7 @@ class TrialFingerprint(BaseModel):
     codex_version: str
     codex_agent: str = HARTWELL_CODEX_IMPORT_PATH
     codex_compaction_mode: Literal["custom-provider-local"] = CODEX_COMPACTION_MODE
+    agent_timeout_multiplier: float = AGENT_TIMEOUT_MULTIPLIER
     model: str
     enforced_provider_order: tuple[str, ...]
 
@@ -371,6 +389,8 @@ def build_harbor_command(
             str(config.concurrency),
             "--n-concurrent-agents",
             str(config.concurrency),
+            "--agent-timeout-multiplier",
+            str(AGENT_TIMEOUT_MULTIPLIER),
             "--ak",
             f"version={CODEX_VERSION}",
             "--ak",
@@ -572,6 +592,7 @@ def build_trial_fingerprints(
             codex_version=CODEX_VERSION,
             codex_agent=HARTWELL_CODEX_IMPORT_PATH,
             codex_compaction_mode=CODEX_COMPACTION_MODE,
+            agent_timeout_multiplier=AGENT_TIMEOUT_MULTIPLIER,
             model=full_model,
             enforced_provider_order=MODEL_PROVIDERS[full_model],
         )
@@ -616,7 +637,7 @@ class MatrixRunner:
             raise HarborRunError("could not read the Harbor version")
         validate_harbor_version(harbor_version.stdout)
         credits = await self._credit_meter.query()
-        forecast = float(self.config.projected_worst_case_batch_usd)
+        full_batch_forecast = float(self.config.projected_worst_case_batch_usd)
         smoke: SmokeReport | None = None
         batches: list[BatchReport] = []
         launches: list[LaunchReport] = []
@@ -638,7 +659,9 @@ class MatrixRunner:
                     smoke_execution = await self._execute_launch(
                         gateway=gateway,
                         credits=credits,
-                        forecast=forecast,
+                        forecast=launch_projection(
+                            full_batch_forecast, attempts_per_model=1
+                        ),
                         task_name=fee_task,
                         attempts=1,
                         phase="smoke",
@@ -647,7 +670,13 @@ class MatrixRunner:
                     )
                     launches.append(smoke_execution.launch)
                     credits = smoke_execution.credits_after
-                    forecast = max(forecast, smoke_execution.launch.metered_cost_usd)
+                    full_batch_forecast = max(
+                        full_batch_forecast,
+                        full_batch_projection_from_launch(
+                            smoke_execution.launch.metered_cost_usd,
+                            attempts_per_model=1,
+                        ),
+                    )
                     smoke_trials = _build_trial_records(
                         smoke_execution.outcomes,
                         smoke_fingerprints,
@@ -710,7 +739,9 @@ class MatrixRunner:
                     fee_execution = await self._execute_launch(
                         gateway=gateway,
                         credits=credits,
-                        forecast=forecast,
+                        forecast=launch_projection(
+                            full_batch_forecast, attempts_per_model=2
+                        ),
                         task_name=fee_task,
                         attempts=2,
                         phase="additional",
@@ -719,7 +750,13 @@ class MatrixRunner:
                     )
                     launches.append(fee_execution.launch)
                     credits = fee_execution.credits_after
-                    forecast = max(forecast, fee_execution.launch.metered_cost_usd)
+                    full_batch_forecast = max(
+                        full_batch_forecast,
+                        full_batch_projection_from_launch(
+                            fee_execution.launch.metered_cost_usd,
+                            attempts_per_model=2,
+                        ),
+                    )
                     fee_trials = smoke_trials + _build_trial_records(
                         fee_execution.outcomes,
                         final_fee_fingerprints,
@@ -762,7 +799,9 @@ class MatrixRunner:
                         execution = await self._execute_launch(
                             gateway=gateway,
                             credits=credits,
-                            forecast=forecast,
+                            forecast=launch_projection(
+                                full_batch_forecast, attempts_per_model=3
+                            ),
                             task_name=task_name,
                             attempts=3,
                             phase="matrix",
@@ -771,7 +810,13 @@ class MatrixRunner:
                         )
                         launches.append(execution.launch)
                         credits = execution.credits_after
-                        forecast = max(forecast, execution.launch.metered_cost_usd)
+                        full_batch_forecast = max(
+                            full_batch_forecast,
+                            full_batch_projection_from_launch(
+                                execution.launch.metered_cost_usd,
+                                attempts_per_model=3,
+                            ),
+                        )
                         trials = _build_trial_records(
                             execution.outcomes,
                             fingerprints,
