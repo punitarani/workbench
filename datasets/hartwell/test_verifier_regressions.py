@@ -125,6 +125,24 @@ def test_tool_invoked_requires_executable_unified_expression(
                 "input": f"const pattern = /{source.removeprefix('await ')}/;"
             },
         },
+        "regex_after_control": {
+            "function_name": "exec",
+            "arguments": {
+                "input": f"if (ready) /{source.removeprefix('await ')}/.test(text);"
+            },
+        },
+        "regex_after_block": {
+            "function_name": "exec",
+            "arguments": {
+                "input": "if (ready) {} /"
+                + source.removeprefix("await ")
+                + "/.test(text);"
+            },
+        },
+        "template_text": {
+            "function_name": "exec",
+            "arguments": {"input": f"const hint = {chr(96)}{source}{chr(96)};"},
+        },
         "template_interpolation": {
             "function_name": "exec",
             "arguments": {
@@ -184,6 +202,9 @@ def test_tool_invoked_requires_executable_unified_expression(
         "block_comment": 0.0,
         "string": 0.0,
         "regex": 0.0,
+        "regex_after_control": 0.0,
+        "regex_after_block": 0.0,
+        "template_text": 0.0,
         "template_interpolation": 1.0,
     }
 

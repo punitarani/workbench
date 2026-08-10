@@ -159,14 +159,57 @@ def exact_schema(workspace: Path, path: str) -> bool:
     return bool(_submitted(workspace, path))
 
 
-def _starts_regex_literal(source: str, index: int) -> bool:
+def _previous_nonspace(source: str, index: int) -> int:
     cursor = index - 1
     while cursor >= 0 and source[cursor].isspace():
         cursor -= 1
+    return cursor
+
+
+def _matching_open(source: str, close: int, opening: str, closing: str) -> int | None:
+    depth = 0
+    for cursor in range(close, -1, -1):
+        if source[cursor] == closing:
+            depth += 1
+        elif source[cursor] == opening:
+            depth -= 1
+            if depth == 0:
+                return cursor
+    return None
+
+
+def _ends_control_condition(source: str, close: int) -> bool:
+    opening = _matching_open(source, close, "(", ")")
+    if opening is None:
+        return False
+    cursor = _previous_nonspace(source, opening)
+    end = cursor + 1
+    while cursor >= 0 and (source[cursor].isalnum() or source[cursor] in "_$"):
+        cursor -= 1
+    return source[cursor + 1 : end] in {
+        "catch",
+        "for",
+        "if",
+        "switch",
+        "while",
+        "with",
+    }
+
+
+def _starts_regex_literal(source: str, index: int) -> bool:
+    cursor = _previous_nonspace(source, index)
     if cursor < 0:
         return True
-    if source[cursor] in "([{=,:;!&|?+-*%^~<>":
+    previous = source[cursor]
+    if previous in "([{=,:;!&|?+-*%^~<>":
         return True
+    if previous == ")" and _ends_control_condition(source, cursor):
+        return True
+    if previous == "}":
+        opening = _matching_open(source, cursor, "{", "}")
+        before = _previous_nonspace(source, opening) if opening is not None else -1
+        if before >= 0 and source[before] == ")":
+            return _ends_control_condition(source, before)
     end = cursor + 1
     while cursor >= 0 and (source[cursor].isalnum() or source[cursor] in "_$"):
         cursor -= 1
@@ -174,6 +217,8 @@ def _starts_regex_literal(source: str, index: int) -> bool:
         "await",
         "case",
         "delete",
+        "do",
+        "else",
         "return",
         "throw",
         "typeof",
@@ -203,7 +248,7 @@ def _executable_javascript(source: str) -> str:
                 state = "block_comment"
                 index += 2
                 continue
-            if char == "/" and _starts_regex_literal(source, index):
+            if char == "/" and _starts_regex_literal("".join(code), len(code)):
                 code.append(" ")
                 state = "regex"
                 regex_class = False
