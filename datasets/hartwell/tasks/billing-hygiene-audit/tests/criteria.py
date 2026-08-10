@@ -2,13 +2,36 @@
 
 import json
 import math
+import os
 import re
+import stat
 from collections import Counter
 from pathlib import Path
 
 from rewardkit import criterion
 
 MAX_DELIVERABLE_BYTES = 1_000_000
+PUBLIC_FIELDS = frozenset(
+    {
+        "entries_reviewed",
+        "timekeepers_reviewed",
+        "anomalous_timekeeper_days",
+        "anomalous_entry_count",
+        "anomalous_minutes_total",
+        "anomalous_billed_cents_total",
+        "phantom_note_ids",
+    }
+)
+COUNT_FIELDS = (
+    "entries_reviewed",
+    "timekeepers_reviewed",
+    "anomalous_entry_count",
+    "anomalous_minutes_total",
+    "anomalous_billed_cents_total",
+)
+ANOMALOUS_DAY_FIELDS = frozenset(
+    {"date", "timekeeper", "entry_ids", "matter_numbers", "minutes", "billed_cents"}
+)
 
 
 def _finite_json(value: object) -> bool:
@@ -23,18 +46,76 @@ def _finite_json(value: object) -> bool:
     return value is None or isinstance(value, bool | int | str)
 
 
+def _integer(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _unique_integers(value: object) -> bool:
+    return (
+        isinstance(value, list)
+        and all(_integer(item) for item in value)
+        and len(value) == len(set(value))
+    )
+
+
+def _unique_strings(value: object) -> bool:
+    return (
+        isinstance(value, list)
+        and all(isinstance(item, str) for item in value)
+        and len(value) == len(set(value))
+    )
+
+
+def _valid_contract(document: dict[str, object]) -> bool:
+    if set(document) != PUBLIC_FIELDS or any(
+        not _integer(document.get(field)) for field in COUNT_FIELDS
+    ):
+        return False
+    days = document.get("anomalous_timekeeper_days")
+    if not isinstance(days, list):
+        return False
+    for day in days:
+        if not isinstance(day, dict) or set(day) != ANOMALOUS_DAY_FIELDS:
+            return False
+        if (
+            not isinstance(day.get("date"), str)
+            or not isinstance(day.get("timekeeper"), str)
+            or not _unique_integers(day.get("entry_ids"))
+            or not _unique_strings(day.get("matter_numbers"))
+            or not _integer(day.get("minutes"))
+            or not _integer(day.get("billed_cents"))
+        ):
+            return False
+    return _unique_integers(document.get("phantom_note_ids"))
+
+
 def _submitted(workspace: Path, path: str) -> dict[str, object]:
     deliverable = workspace / path
+    descriptor = -1
     try:
+        descriptor = os.open(deliverable, os.O_RDONLY | os.O_NOFOLLOW)
+        metadata = os.fstat(descriptor)
         if (
-            not deliverable.is_file()
-            or deliverable.stat().st_size > MAX_DELIVERABLE_BYTES
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_size > MAX_DELIVERABLE_BYTES
         ):
             return {}
-        loaded = json.loads(deliverable.read_text())
+        with os.fdopen(descriptor, "rb") as stream:
+            descriptor = -1
+            contents = stream.read(MAX_DELIVERABLE_BYTES + 1)
+        if len(contents) > MAX_DELIVERABLE_BYTES:
+            return {}
+        loaded = json.loads(contents.decode("utf-8"))
     except ValueError, UnicodeDecodeError, OSError:
         return {}
-    return loaded if isinstance(loaded, dict) and _finite_json(loaded) else {}
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+    return (
+        loaded
+        if isinstance(loaded, dict) and _finite_json(loaded) and _valid_contract(loaded)
+        else {}
+    )
 
 
 def _canonical_value(value: object) -> object:
@@ -47,7 +128,17 @@ def _canonical_value(value: object) -> object:
                 for key, item in value.items()
             )
         )
-    return str(value).strip()
+    if value is None:
+        return ("null", None)
+    if isinstance(value, bool):
+        return ("bool", value)
+    if isinstance(value, int):
+        return ("int", value)
+    if isinstance(value, float):
+        return ("float", value)
+    if isinstance(value, str):
+        return ("str", value.strip())
+    return ("invalid", repr(value))
 
 
 def _canonical(item: object, fields: tuple[str, ...] | None) -> str | None:

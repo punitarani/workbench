@@ -1,6 +1,6 @@
 """Shared criteria for the Hartwell graders.
 
-Reward Kit ships no normalized set criterion, numeric tolerance, or marker
+Reward Kit ships no normalized multiset criterion, numeric tolerance, or marker
 matching. ``set_f1`` gives a near miss proportional credit while
 ``exact_set`` preserves a small certification premium. Together they replace
 the exact-set cliffs without changing any field's total weight.
@@ -15,10 +15,32 @@ them.
 
 import json
 import math
+import os
 import re
+import stat
+from collections import Counter
 from pathlib import Path
 
 from rewardkit import criterion
+
+MAX_DELIVERABLE_BYTES = 1_000_000
+PUBLIC_FIELDS = frozenset(
+    {
+        "cutoff_date",
+        "total_minutes",
+        "entry_count",
+        "entries",
+        "minutes_by_timekeeper",
+        "timekeepers",
+        "challenged_by",
+        "challenge_date",
+        "unsupported_days",
+    }
+)
+ENTRY_FIELDS = frozenset({"id", "date", "minutes"})
+UNSUPPORTED_DAY_FIELDS = frozenset(
+    {"date", "entry_ids", "entry_count", "minutes", "billed_cents"}
+)
 
 
 def _finite_json(value: object) -> bool:
@@ -33,22 +55,98 @@ def _finite_json(value: object) -> bool:
     return value is None or isinstance(value, bool | int | str)
 
 
+def _integer(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _unique_integers(value: object) -> bool:
+    return (
+        isinstance(value, list)
+        and all(_integer(item) for item in value)
+        and len(value) == len(set(value))
+    )
+
+
+def _valid_contract(document: dict[str, object]) -> bool:
+    if set(document) != PUBLIC_FIELDS:
+        return False
+    if not isinstance(document.get("cutoff_date"), str):
+        return False
+    if not _integer(document.get("total_minutes")) or not _integer(
+        document.get("entry_count")
+    ):
+        return False
+    entries = document.get("entries")
+    if not isinstance(entries, list):
+        return False
+    for entry in entries:
+        if not isinstance(entry, dict) or set(entry) != ENTRY_FIELDS:
+            return False
+        if (
+            not _integer(entry.get("id"))
+            or not isinstance(entry.get("date"), str)
+            or not _integer(entry.get("minutes"))
+        ):
+            return False
+    minutes_by_timekeeper = document.get("minutes_by_timekeeper")
+    if not isinstance(minutes_by_timekeeper, dict) or not all(
+        isinstance(name, str) and _integer(minutes)
+        for name, minutes in minutes_by_timekeeper.items()
+    ):
+        return False
+    timekeepers = document.get("timekeepers")
+    if not isinstance(timekeepers, list) or not all(
+        isinstance(name, str) for name in timekeepers
+    ):
+        return False
+    if not isinstance(document.get("challenged_by"), str) or not isinstance(
+        document.get("challenge_date"), str
+    ):
+        return False
+    unsupported_days = document.get("unsupported_days")
+    if not isinstance(unsupported_days, list):
+        return False
+    for day in unsupported_days:
+        if not isinstance(day, dict) or set(day) != UNSUPPORTED_DAY_FIELDS:
+            return False
+        if (
+            not isinstance(day.get("date"), str)
+            or not _unique_integers(day.get("entry_ids"))
+            or not _integer(day.get("entry_count"))
+            or not _integer(day.get("minutes"))
+            or not _integer(day.get("billed_cents"))
+        ):
+            return False
+    return True
+
+
 def _submitted(workspace: Path, path: str) -> dict[str, object]:
-    """The deliverable, or an empty mapping when it is missing or malformed.
-
-    A grader that raises on a missing file turns "the agent produced nothing"
-    into a verifier crash, which Harbor reports as an error rather than a
-    zero. Absence is an answer; it scores zero.
-    """
-
     deliverable = workspace / path
-    if not deliverable.is_file():
-        return {}
+    descriptor = -1
     try:
-        loaded = json.loads(deliverable.read_text())
+        descriptor = os.open(deliverable, os.O_RDONLY | os.O_NOFOLLOW)
+        metadata = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_size > MAX_DELIVERABLE_BYTES
+        ):
+            return {}
+        with os.fdopen(descriptor, "rb") as stream:
+            descriptor = -1
+            contents = stream.read(MAX_DELIVERABLE_BYTES + 1)
+        if len(contents) > MAX_DELIVERABLE_BYTES:
+            return {}
+        loaded = json.loads(contents.decode("utf-8"))
     except ValueError, UnicodeDecodeError, OSError:
         return {}
-    return loaded if isinstance(loaded, dict) and _finite_json(loaded) else {}
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+    return (
+        loaded
+        if isinstance(loaded, dict) and _finite_json(loaded) and _valid_contract(loaded)
+        else {}
+    )
 
 
 def _canonical_value(value: object) -> object:
@@ -61,19 +159,22 @@ def _canonical_value(value: object) -> object:
                 for key, item in value.items()
             )
         )
-    return str(value).strip()
+    if value is None:
+        return ("null", None)
+    if isinstance(value, bool):
+        return ("bool", value)
+    if isinstance(value, int):
+        return ("int", value)
+    if isinstance(value, float):
+        return ("float", value)
+    if isinstance(value, str):
+        return ("str", value.strip())
+    return ("invalid", repr(value))
 
 
 def _canonical(item: object, fields: tuple[str, ...] | None) -> str | None:
-    """One comparable string per set member.
-
-    Scalars normalize through ``str`` so 439 and "439" are the same entry.
-    Records compare on the named fields only, so a submission carrying extra
-    keys is neither rewarded nor punished for them.
-    """
-
     if fields is None:
-        if isinstance(item, (dict, list)):
+        if isinstance(item, dict | list):
             return None
         return repr(_canonical_value(item))
     if not isinstance(item, dict):
@@ -81,26 +182,28 @@ def _canonical(item: object, fields: tuple[str, ...] | None) -> str | None:
     return repr(tuple(_canonical_value(item.get(field, "")) for field in fields))
 
 
-def _as_set(values: object, fields: tuple[str, ...] | None) -> set[str]:
+def _as_multiset(values: object, fields: tuple[str, ...] | None) -> Counter[str]:
     if not isinstance(values, list):
-        return set()
-    return {
+        return Counter()
+    return Counter(
         member
         for member in (_canonical(item, fields) for item in values)
         if member is not None
-    }
+    )
 
 
-def _expected_set(expected: list[object], fields: tuple[str, ...] | None) -> set[str]:
-    return {
+def _expected_multiset(
+    expected: list[object], fields: tuple[str, ...] | None
+) -> Counter[str]:
+    return Counter(
         member
         for member in (_canonical(item, fields) for item in expected)
         if member is not None
-    }
+    )
 
 
 @criterion(
-    description="{key}: F1 against the certified set",
+    description="{key}: F1 against the certified multiset",
     shared=True,
 )
 def set_f1(
@@ -110,27 +213,27 @@ def set_f1(
     expected: list[object],
     fields: tuple[str, ...] | None = None,
 ) -> float:
-    """Harmonic mean of precision and recall over a set-valued field.
+    """Harmonic mean of precision and recall over a multiset-valued field.
 
     Partial credit is the point: a near-miss has to score near one, and a
     shotgun answer has to score near zero. F1 does both — listing everything
     drives precision to the base rate, listing six of seven scores 0.923.
     """
 
-    got = _as_set(_submitted(workspace, path).get(key), fields)
-    want = _expected_set(expected, fields)
+    got = _as_multiset(_submitted(workspace, path).get(key), fields)
+    want = _expected_multiset(expected, fields)
     if not want:
         return 1.0 if not got else 0.0
-    hits = len(got & want)
+    hits = sum((got & want).values())
     if not hits:
         return 0.0
-    precision = hits / len(got)
-    recall = hits / len(want)
+    precision = hits / sum(got.values())
+    recall = hits / sum(want.values())
     return 2 * precision * recall / (precision + recall)
 
 
 @criterion(
-    description="{key}: exactly the certified set, no misses and no extras",
+    description="{key}: exactly the certified multiset, no misses and no extras",
     shared=True,
 )
 def exact_set(
@@ -147,9 +250,9 @@ def exact_set(
     deserves a bonus, not the whole grade.
     """
 
-    return _as_set(_submitted(workspace, path).get(key), fields) == _expected_set(
-        expected, fields
-    )
+    return _as_multiset(
+        _submitted(workspace, path).get(key), fields
+    ) == _expected_multiset(expected, fields)
 
 
 @criterion(

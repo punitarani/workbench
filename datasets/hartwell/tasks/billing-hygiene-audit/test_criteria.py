@@ -75,7 +75,7 @@ def test_exact_answer_has_only_the_canonical_raw_dimensions(tmp_path: Path) -> N
         ("unsupported_entry_ids", [1318, 1319]),
     ],
 )
-def test_extra_top_level_field_forfeits_full_answer_credit(
+def test_extra_top_level_field_invalidates_public_contract(
     tmp_path: Path, extra_key: str, extra_value: object
 ) -> None:
     answer = _perfect()
@@ -83,10 +83,10 @@ def test_extra_top_level_field_forfeits_full_answer_credit(
     reward, details = _grade(tmp_path, answer)
 
     assert _criterion(details, "answer", "deliverable_format") == 0.0
-    assert reward == {"answer": 0.91, "process": 0.0}
+    assert reward == {"answer": 0.0, "process": 0.0}
 
 
-def test_extra_anomalous_day_key_forfeits_full_answer_credit(
+def test_extra_anomalous_day_key_invalidates_public_contract(
     tmp_path: Path,
 ) -> None:
     answer = _perfect()
@@ -96,7 +96,80 @@ def test_extra_anomalous_day_key_forfeits_full_answer_credit(
     reward, details = _grade(tmp_path, answer)
 
     assert _criterion(details, "answer", "deliverable_format") == 0.0
-    assert reward == {"answer": 0.91, "process": 0.0}
+    assert reward == {"answer": 0.0, "process": 0.0}
+
+
+def test_dangling_agent_symlink_that_resolves_under_verifier_is_rejected(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    simulated_verifier_truth = (
+        tmp_path / "verifier-mount" / "tests" / "ground_truth.json"
+    )
+    deliverable = workspace / "hygiene.json"
+    deliverable.symlink_to(simulated_verifier_truth)
+    assert deliverable.is_symlink() and not deliverable.exists()
+
+    simulated_verifier_truth.parent.mkdir(parents=True)
+    shutil.copyfile(TESTS / "ground_truth.json", simulated_verifier_truth)
+    assert deliverable.exists()
+    output = tmp_path / "logs" / "reward-raw.json"
+    output.parent.mkdir(parents=True)
+
+    subprocess.run(
+        [REWARDKIT, str(TESTS), "--workspace", str(workspace), "--output", str(output)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert json.loads(output.read_text()) == {"answer": 0.0, "process": 0.0}
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "numeric_string_count",
+        "boolean_aggregate",
+        "numeric_date",
+        "numeric_timekeeper",
+        "string_entry_id",
+        "numeric_matter",
+        "boolean_minutes",
+        "string_billed_cents",
+        "string_phantom_note_id",
+    ],
+)
+def test_type_invalid_public_contract_scores_zero(
+    tmp_path: Path, mutation: str
+) -> None:
+    answer = _perfect()
+    days = answer["anomalous_timekeeper_days"]
+    phantom_ids = answer["phantom_note_ids"]
+    assert isinstance(days, list) and isinstance(days[0], dict)
+    assert isinstance(phantom_ids, list)
+    if mutation == "numeric_string_count":
+        answer["entries_reviewed"] = str(answer["entries_reviewed"])
+    elif mutation == "boolean_aggregate":
+        answer["anomalous_entry_count"] = True
+    elif mutation == "numeric_date":
+        days[0]["date"] = 20260404
+    elif mutation == "numeric_timekeeper":
+        days[0]["timekeeper"] = 1
+    elif mutation == "string_entry_id":
+        days[0]["entry_ids"][0] = str(days[0]["entry_ids"][0])
+    elif mutation == "numeric_matter":
+        days[0]["matter_numbers"][0] = 1
+    elif mutation == "boolean_minutes":
+        days[0]["minutes"] = False
+    elif mutation == "string_billed_cents":
+        days[0]["billed_cents"] = str(days[0]["billed_cents"])
+    else:
+        phantom_ids[0] = str(phantom_ids[0])
+
+    reward, _ = _grade(tmp_path, answer)
+    assert reward == {"answer": 0.0, "process": 0.0}
 
 
 def test_duplicate_anomalous_day_is_counted_as_an_extra_record(
@@ -125,13 +198,19 @@ def test_duplicate_nested_anomalous_day_member_loses_certification(
     members = days[0][nested_key]
     assert isinstance(members, list)
     members.append(members[0])
-    reward, details = _grade(tmp_path, answer)
+    reward, _ = _grade(tmp_path, answer)
 
-    assert _criterion(details, "answer", "anomalous_days.f1") == pytest.approx(
-        2 / 3, abs=1e-4
-    )
-    assert _criterion(details, "answer", "anomalous_days.certified") == 0.0
-    assert reward["answer"] == pytest.approx(0.34 + 0.66 * 0.9 * (2 / 3), abs=1e-4)
+    assert reward == {"answer": 0.0, "process": 0.0}
+
+
+def test_duplicate_phantom_note_id_invalidates_contract(tmp_path: Path) -> None:
+    answer = _perfect()
+    note_ids = answer["phantom_note_ids"]
+    assert isinstance(note_ids, list)
+    note_ids.append(note_ids[0])
+
+    reward, _ = _grade(tmp_path, answer)
+    assert reward == {"answer": 0.0, "process": 0.0}
 
 
 def test_reordering_records_and_nested_members_keeps_full_credit(

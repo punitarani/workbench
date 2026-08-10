@@ -78,6 +78,191 @@ def test_exact_answer_has_only_the_canonical_raw_dimensions(tmp_path: Path) -> N
     assert reward == {"answer": 1.0, "process": 0.0}
 
 
+def test_extra_top_level_or_nested_field_invalidates_public_contract(
+    tmp_path: Path,
+) -> None:
+    top = _perfect()
+    top["private_evidence"] = True
+    top_reward, _ = _grade(tmp_path / "top", top)
+
+    nested = _perfect()
+    entries = nested["entries"]
+    assert isinstance(entries, list) and isinstance(entries[0], dict)
+    entries[0]["timekeeper"] = "Marcus Liang"
+    nested_reward, _ = _grade(tmp_path / "nested", nested)
+
+    unsupported = _perfect()
+    days = unsupported["unsupported_days"]
+    assert isinstance(days, list) and isinstance(days[0], dict)
+    days[0]["supporting_message_ids"] = []
+    unsupported_reward, _ = _grade(tmp_path / "unsupported", unsupported)
+
+    assert (
+        top_reward
+        == nested_reward
+        == unsupported_reward
+        == {
+            "answer": 0.0,
+            "process": 0.0,
+        }
+    )
+
+
+def test_dangling_agent_symlink_that_resolves_under_verifier_is_rejected(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    simulated_verifier_truth = (
+        tmp_path / "verifier-mount" / "tests" / "ground_truth.json"
+    )
+    deliverable = workspace / "dispute.json"
+    deliverable.symlink_to(simulated_verifier_truth)
+    assert deliverable.is_symlink() and not deliverable.exists()
+
+    simulated_verifier_truth.parent.mkdir(parents=True)
+    shutil.copyfile(TESTS / "ground_truth.json", simulated_verifier_truth)
+    assert deliverable.exists()
+    output = tmp_path / "logs" / "reward-raw.json"
+    output.parent.mkdir(parents=True)
+
+    subprocess.run(
+        [REWARDKIT, str(TESTS), "--workspace", str(workspace), "--output", str(output)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert json.loads(output.read_text()) == {"answer": 0.0, "process": 0.0}
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "numeric_cutoff_date",
+        "numeric_string_total",
+        "boolean_entry_count",
+        "string_entry_id",
+        "numeric_entry_date",
+        "boolean_entry_minutes",
+        "string_timekeeper_minutes",
+        "numeric_timekeeper",
+        "numeric_challenger",
+        "numeric_challenge_date",
+        "numeric_unsupported_date",
+        "string_unsupported_entry_id",
+        "boolean_unsupported_entry_count",
+        "string_unsupported_minutes",
+        "string_unsupported_billed_cents",
+    ],
+)
+def test_type_invalid_public_contract_scores_zero(
+    tmp_path: Path, mutation: str
+) -> None:
+    answer = _perfect()
+    entries = answer["entries"]
+    days = answer["unsupported_days"]
+    assert isinstance(entries, list) and isinstance(entries[0], dict)
+    assert isinstance(days, list) and isinstance(days[0], dict)
+    if mutation == "numeric_cutoff_date":
+        answer["cutoff_date"] = 20260403
+    elif mutation == "numeric_string_total":
+        answer["total_minutes"] = str(answer["total_minutes"])
+    elif mutation == "boolean_entry_count":
+        answer["entry_count"] = True
+    elif mutation == "string_entry_id":
+        entries[0]["id"] = str(entries[0]["id"])
+    elif mutation == "numeric_entry_date":
+        entries[0]["date"] = 20260406
+    elif mutation == "boolean_entry_minutes":
+        entries[0]["minutes"] = True
+    elif mutation == "string_timekeeper_minutes":
+        mapping = answer["minutes_by_timekeeper"]
+        assert isinstance(mapping, dict)
+        first_key = next(iter(mapping))
+        mapping[first_key] = str(mapping[first_key])
+    elif mutation == "numeric_timekeeper":
+        timekeepers = answer["timekeepers"]
+        assert isinstance(timekeepers, list)
+        timekeepers[0] = 1
+    elif mutation == "numeric_challenger":
+        answer["challenged_by"] = 1
+    elif mutation == "numeric_challenge_date":
+        answer["challenge_date"] = 20260508
+    elif mutation == "numeric_unsupported_date":
+        days[0]["date"] = 20260404
+    elif mutation == "string_unsupported_entry_id":
+        days[0]["entry_ids"][0] = str(days[0]["entry_ids"][0])
+    elif mutation == "boolean_unsupported_entry_count":
+        days[0]["entry_count"] = False
+    elif mutation == "string_unsupported_minutes":
+        days[0]["minutes"] = str(days[0]["minutes"])
+    else:
+        days[0]["billed_cents"] = str(days[0]["billed_cents"])
+
+    reward, _ = _grade(tmp_path, answer)
+    assert reward == {"answer": 0.0, "process": 0.0}
+
+
+@pytest.mark.parametrize(
+    ("key", "criterion", "expected_f1"),
+    [
+        ("entries", "disputed_entries", 14 / 15),
+        ("unsupported_days", "unsupported_days", 10 / 11),
+    ],
+)
+def test_duplicate_outer_record_is_counted_as_an_extra(
+    tmp_path: Path, key: str, criterion: str, expected_f1: float
+) -> None:
+    answer = _perfect()
+    records = answer[key]
+    assert isinstance(records, list)
+    records.append(deepcopy(records[0]))
+
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, f"{criterion}.f1") == pytest.approx(
+        expected_f1, abs=1e-4
+    )
+    assert _criterion(details, f"{criterion}.certified") == 0.0
+    assert 0.0 < reward["answer"] < 1.0
+
+
+def test_duplicate_nested_unsupported_entry_id_invalidates_contract(
+    tmp_path: Path,
+) -> None:
+    answer = _perfect()
+    days = answer["unsupported_days"]
+    assert isinstance(days, list) and isinstance(days[0], dict)
+    entry_ids = days[0]["entry_ids"]
+    assert isinstance(entry_ids, list)
+    entry_ids.append(entry_ids[0])
+
+    reward, _ = _grade(tmp_path, answer)
+    assert reward == {"answer": 0.0, "process": 0.0}
+
+
+def test_reordering_sets_and_nested_members_keeps_full_credit(tmp_path: Path) -> None:
+    answer = _perfect()
+    entries = answer["entries"]
+    timekeepers = answer["timekeepers"]
+    days = answer["unsupported_days"]
+    assert isinstance(entries, list)
+    assert isinstance(timekeepers, list)
+    assert isinstance(days, list)
+    entries.reverse()
+    timekeepers.reverse()
+    days.reverse()
+    for day in days:
+        assert isinstance(day, dict)
+        entry_ids = day["entry_ids"]
+        assert isinstance(entry_ids, list)
+        entry_ids.reverse()
+
+    reward, _ = _grade(tmp_path, answer)
+    assert reward == {"answer": 1.0, "process": 0.0}
+
+
 def test_missing_deliverable_scores_zero(tmp_path: Path) -> None:
     reward, _ = _grade(tmp_path, None)
     assert reward == {"answer": 0.0, "process": 0.0}
