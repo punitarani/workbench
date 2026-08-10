@@ -97,16 +97,20 @@ def _submitted(workspace: Path, path: str) -> dict[str, object]:
         if len(contents.encode()) > MAX_DELIVERABLE_BYTES:
             return {}
         loaded = json.loads(contents)
-    except ValueError, UnicodeDecodeError, OSError:
+    except ValueError, UnicodeDecodeError, OSError, RecursionError:
         return {}
     finally:
         if descriptor >= 0:
             os.close(descriptor)
-    return (
-        loaded
-        if isinstance(loaded, dict) and _finite_json(loaded) and _valid_contract(loaded)
-        else {}
-    )
+    try:
+        valid = (
+            isinstance(loaded, dict)
+            and _finite_json(loaded)
+            and _valid_contract(loaded)
+        )
+    except RecursionError:
+        return {}
+    return loaded if valid else {}
 
 
 def _canonical_value(value: object) -> object:
@@ -233,6 +237,65 @@ def exact_schema(
     )
 
 
+def _executable_javascript(source: str) -> str:
+    code: list[str] = []
+    state = "code"
+    quote = ""
+    index = 0
+    while index < len(source):
+        char = source[index]
+        following = source[index + 1] if index + 1 < len(source) else ""
+        if state == "code":
+            if char == "/" and following == "/":
+                code.extend((" ", " "))
+                state = "line_comment"
+                index += 2
+                continue
+            if char == "/" and following == "*":
+                code.extend((" ", " "))
+                state = "block_comment"
+                index += 2
+                continue
+            if char in {"'", '"', chr(96)}:
+                code.append(" ")
+                state = "string"
+                quote = char
+            else:
+                code.append(char)
+        elif state == "line_comment":
+            code.append("\n" if char == "\n" else " ")
+            if char == "\n":
+                state = "code"
+        elif state == "block_comment":
+            code.append("\n" if char == "\n" else " ")
+            if char == "*" and following == "/":
+                code.append(" ")
+                state = "code"
+                index += 2
+                continue
+        else:
+            code.append("\n" if char == "\n" else " ")
+            if char == "\\" and following:
+                code.append("\n" if following == "\n" else " ")
+                index += 2
+                continue
+            if char == quote:
+                state = "code"
+        index += 1
+    return "".join(code)
+
+
+def _unified_exec_source(name: str, arguments: object) -> str | None:
+    if name != "exec" and not name.endswith("__exec"):
+        return None
+    if isinstance(arguments, str):
+        return arguments
+    if isinstance(arguments, dict):
+        source = arguments.get("input")
+        return source if isinstance(source, str) else None
+    return None
+
+
 @criterion(description="agent invoked {tool} at least {min_count} time(s)", shared=True)
 def tool_invoked(
     workspace: Path,
@@ -270,7 +333,7 @@ def tool_invoked(
             if name == tool or name.endswith(f"__{tool}"):
                 count += 1
                 continue
-            arguments = call.get("arguments", {})
-            text = arguments if isinstance(arguments, str) else json.dumps(arguments)
-            count += len(expression.findall(text))
+            source = _unified_exec_source(name, call.get("arguments", {}))
+            if source is not None:
+                count += len(expression.findall(_executable_javascript(source)))
     return count >= min_count

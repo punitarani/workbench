@@ -156,7 +156,7 @@ if [ -d "$STAGE" ]; then
     # the privileged half lives there and the wrapper merely names it.
     install -d -o environment -g environment -m 750 "$LIBEXEC"
     printf '%s\\n' \\
-        '#!/bin/sh' \\
+        '#!/bin/sh -p' \\
         '# Runs as environment. The tool name is validated against the set the' \\
         '# installer staged, so an extra argument cannot widen the aperture.' \\
         'set -eu' \\
@@ -164,7 +164,7 @@ if [ -d "$STAGE" ]; then
         "  $(echo $TOOLS | tr ' ' '|')) ;;" \\
         '  *) echo "unknown tool: $1" >&2; exit 2 ;;' \\
         'esac' \\
-        "exec python3 -m workbench.tools.serve \"$1\" --db $STATE/\"$1\".db" \\
+        'exec python3 -m workbench.tools.serve "$1" --db {CONTAINER_STATE}/"$1".db' \\
         > "$LIBEXEC/serve"
     chown environment:environment "$LIBEXEC/serve"
     chmod 750 "$LIBEXEC/serve"
@@ -175,7 +175,7 @@ if [ -d "$STAGE" ]; then
     # name the wrapper but cannot supply a program or create /solution during
     # its normal phase.
     printf '%s\\n' \\
-        '#!/bin/sh' \\
+        '#!/bin/sh -p' \\
         'set -eu' \\
         'test "$#" -eq 0 || exit 2' \\
         'test -f {CONTAINER_SOLUTION} || exit 2' \\
