@@ -3,6 +3,7 @@
 import runpy
 import subprocess
 import sys
+import tomllib
 from datetime import date
 from pathlib import Path
 
@@ -61,6 +62,14 @@ def test_fee_floor_discovers_meridian_through_current_clio_fields() -> None:
     )
 
     assert completed.stdout.strip() == "fee-dispute-reconstruction: floor=49"
+
+
+def test_fee_floor_metadata_matches_the_measured_reference_path() -> None:
+    manifest = tomllib.loads(
+        (TASKS / "fee-dispute-reconstruction" / "task.toml").read_text()
+    )
+
+    assert manifest["metadata"]["reference_tool_path_calls"] == 49
 
 
 def test_visitor_custody_uses_the_first_qualifying_return() -> None:
