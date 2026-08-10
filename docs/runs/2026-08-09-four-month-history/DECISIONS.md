@@ -3,6 +3,47 @@
 Assumptions and judgment calls made while executing autonomously; each
 entry says what was ambiguous and which reading was taken.
 
+## Final Harbor decisions — 2026-08-10
+
+The numbered material below this section is the historical build diary. Where
+it discusses five/seven-task suites, exact-set-or-zero grading, or 3x hard call
+caps, this final section supersedes it.
+
+1. **The suite has eight tasks, not five or seven.** Fee dispute, client
+   departure, billing hygiene, second read, visitor log, operative deadline,
+   standard drift, and vanished clause are the canonical set.
+2. **Generated databases were stale and were not trusted.** The 9,427-event
+   log was checked byte-for-byte, then all task environments were
+   rematerialized with the current projectors before truth was refreshed.
+3. **Reference floors are metadata only.** Harbor has no task call-budget
+   contract, and a hard 3x floor cap confounds answer quality with exploration.
+   The final floors are 49, 10, 146, 54, 54, 40, 48, and 199 in task order.
+4. **Canonical reward measures answer quality.** Process remains a separate
+   trajectory diagnostic. A direct reference therefore earns answer/reward 1
+   even though process is zero.
+5. **Set grading is partial but certifiable.** Ninety percent of each formerly
+   exact set field is Counter-F1 and ten percent is exact certification.
+6. **Portable stdio is the supported Harbor design.** The proposed compose
+   sidecar was not implemented. Environment-owned state plus fixed wrappers
+   provides the required offstage boundary in one shared image.
+7. **OpenRouter requires a custom Codex provider.** Provider name
+   `hartwell_gateway` forces local compaction; providers named `OpenAI` caused
+   Codex to call an unsupported remote compact endpoint.
+8. **A 2x Harbor agent-time multiplier is part of the fingerprint.** GLM and
+   DeepSeek were still doing valid work at 1,800 seconds. Their timeout cells
+   were invalid and were rerun, never scored as zero answers.
+9. **Budget projection is normalized by launch size.** A three-cell smoke,
+   six-cell continuation, and nine-cell task batch cannot share one raw dollar
+   forecast. Observed cost is normalized to full-batch units before the next
+   authorization.
+10. **The `$25.00` cap is binding.** The authoritative final meter is
+    `56.005689513` against baseline `32.2139`. With only `$1.208210487`
+    remaining before cap and a `$1.50` reserve, seven task matrices were not
+    launched.
+11. **No missing or invalid trial is a low score.** The completed fee matrix is
+    diagnostic evidence. Seven unlaunched task matrices and model-based Harbor
+    checks remain genuinely unresolved pending an explicit budget change.
+
 1. **Prior GEPA spend counts against the cap.** The goal's cap names GEPA;
    tonight's persona-optimization spend (~$0.23 est) predates the goal but
    is the same key and purpose, so it is in the ledger.

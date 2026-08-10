@@ -1,146 +1,83 @@
-# Failure-mode audit — why models score low
+# Hartwell Harbor failure modes
 
-Five clean-room auditors (Sonnet 5), each given only the artifacts and one
-question, explicitly barred from reading this run's own reports. Two
-per-task grader sub-audits ran adversarial variant batteries. One auditor
-ran 7 fresh episodes, read every transcript, and re-graded each deliverable
-field by field. Findings below are theirs; corrections are mine, marked.
+This document records failures observed during the Harbor port and final paid
+pilot. Invalid trials are operational evidence only; they are never model
+scores.
 
-## The answer in one line
+## Resolved release blockers
 
-Low scores are **roughly one third grading artifact, one third search
-economy, one third genuine difficulty** — and almost none of it is a broken
-environment.
-
-Cause breakdown over 7 graded episodes (transcript-level, not inferred):
-
-| cause | count | example |
+| Failure | Effect | Repair and evidence |
 |---|---|---|
-| F — model capability | 4 | never opened a single DM on a task whose instruction names DMs as the trap; quit at 31% of budget |
-| C — budget exhaustion | 2 | GLM and DeepSeek both scored 0.00 on the *cheapest* task (11-call floor) by never reaching write_file |
-| E — grader mismatch | 1 | 100% recall on the true answer set, scored 0 on the 0.56 field |
-| B — tool obstruction | 1 contributing | a silent empty result from a plausible-but-wrong timestamp |
-| A — genuine difficulty | never the sole cause | always compounded by F |
+| stale Clio materialization | money and billable truth predated current projectors | rebuilt all eight environments from the 9,427-event log; independent bundle queries rerun |
+| exact-set cliffs | one set error zeroed otherwise useful answers | 90% Counter-F1 plus 10% exact certification for formerly exact set fields |
+| reward aggregation mismatch | reference reward could depend on process | one Reward Kit run over answer/process; canonical `reward=answer` |
+| deliverable symlink | verifier could follow `/tests/ground_truth.json` | `O_NOFOLLOW`, `fstat` regular-file check, and size bound |
+| weak scalar typing | numeric timestamps and bool integers could certify | exact top-level and nested typed contracts before scoring |
+| duplicate collapse | set conversion hid duplicate evidence | Counter-based one-to-one comparison and explicit extra penalties |
+| deep JSON/trajectory crash | malformed input raised `RecursionError` or `TypeError` | bounded parsing and defensive process traversal return zero |
+| fake unified-exec credit | comments, strings, and regex literals looked executable | JavaScript scrubber covers comments, strings, templates, regex statement contexts, and executable interpolation |
+| setuid shell wrapper | `/bin/sh` dropped the environment effective UID | privilege-preserving `#!/bin/sh -p`; actual container reports EUID 10000 |
+| arbitrary oracle arguments | agent could try to widen environment execution | fixed argument-free wrappers; extra arguments rejected |
+| stale Harbor job reuse | old `result.json` files could be relabeled with current fingerprints | refuse existing report/job path, including broken symlinks, before launch |
+| unsafe transport logs | exception text could contain request or secret data | fixed-category logging without exception text |
+| score-contract acceptance | finite but out-of-range or `reward != answer` cells passed | enforce `[0,1]` and exact reward/answer equality |
+| uncorrelated routing provenance | cumulative gateway records could not be tied to launches | persist sequence spans and per-trial fingerprints; label actual provider unknown |
+| meter regression/post-cap gap | decreasing or over-cap post-launch readings could pass | reject regression; persist and stop on post-launch cap breach |
 
-## 1. Environment — sound
+## Paid-run failures
 
-Referential and causal integrity are clean: zero dangling references, zero
-backwards replies, all attachments resolve, cross-server `people`/`meta`
-tables byte-identical, `check_coherence` returns zero findings. Errors are
-clean over real stdio. Full enumeration is cheap (all Gmail 9 calls, all
-Slack 41). **No environment defect causes a single observed failure.**
+### Remote compaction
 
-## 2. Tools — one blocking gap, several silent-wrong bugs
+Codex treats providers named `OpenAI` as supporting remote compaction. OpenRouter
+supports Responses but not Codex's `/responses/compact` extension.
 
-| severity | finding |
-|---|---|
-| **blocking** | `slack_search_public` structurally excludes DMs — **2,157 of 3,331 messages (65%) unsearchable**, silently. Real Slack MCP ships a `search_public_and_private` variant we never implemented, so DM difficulty is partly *our missing tool*, not a realistic constraint |
-| serious | iManage search matches **stale superseded versions** without saying which version hit — agents cite facts the head no longer contains, on tasks explicitly about version drift |
-| serious | Clio types all three associates as `NonAttorney` (`ATTORNEY_TITLE_WORDS` omits "associate") |
-| serious | Clio's substantive `matter.detail` is projected but read by **no tool** — permanently unreachable |
-| serious | `WORKBENCH_SEAT` honored by Gmail, partially by Clio, **ignored by Slack and iManage**; no task sets a seat, so every agent has omniscient access including others' private DMs |
-| serious | `who_am_i` fabricates an identity when no seat is set |
-| minor | `slack_search_public` computes a pagination cursor and discards it |
+- Run A's remote-compaction v2 path produced `invalid_prompt`.
+- Run B disabled v2, but the v1 path called `/v1/responses/compact` and received
+  a 404.
+- Repair: custom provider name `hartwell_gateway`, Responses wire API,
+  WebSockets disabled, and local Codex compaction. Luna, GLM, and DeepSeek all
+  subsequently completed valid long-context cells.
 
-## 3. Verifiers — the dominant artifact
+### Agent timeout
 
-**56–63% of the score in 8 of 10 tasks is a single exact-set-match field
-with no partial credit.** Measured consequences:
+The fee task's 1,800-second Harbor timeout expired while GLM and DeepSeek were
+still collecting evidence. Both trials had live containers and trajectories but
+no deliverable. They were correctly invalid.
 
-- An otherwise-perfect answer missing **one item** of a 4–7 item set
-  collapses 1.00 → **0.44**.
-- Outcomes cluster in two bands — ~0.10–0.20 (nothing) and ~0.44–0.73
-  (near-perfect) — with almost nothing between. Poor for ranking, worse as
-  RL gradient: improving 60% → 95% coverage moves the score not at all.
-- **Shotgun vulnerability is task-specific.** `visitor-log-audit`: marking
-  all 74 requests open scores **0.44** — identical to near-perfect work, so
-  that number is uninterpretable. `operative-deadline` closes the same hole
-  with an exact-length check (kitchen sink → **0.00**). The fix is already
-  in the repo; the sibling graders just lack it.
-- `vantage-triage` scores **0.92 with keyword-stuffed boilerplate and zero
-  tool calls** — its `basis` field is substring-matched and carries 60% of
-  each clause. The template the suite was built from is its worst grader.
-- `client-departure-postmortem` scopes to "the Cascadia engagement" in
-  prose but enforces literal `"Cascadia" in subject`. The client contact
-  also sends templated filler ("Availability next week") that a reasonable
-  agent judges on-engagement. Luna had **100% recall on the true four** and
-  scored 0 on the 0.56 field.
+- Repair: Harbor agent-time multiplier 2.0.
+- Targeted reruns completed at 0.8432 GLM and 0.6416 DeepSeek answer.
+- Commit `dd6e11f` makes the multiplier part of the command and fingerprint.
 
-Where ground truth was independently re-derived it was **exact** —
-billing-hygiene (all 7 fields), operative-deadline (two methods),
-visitor-log, vanished-clause's clean set, redline-provenance. Graders are
-deterministic and crash-safe. `vantage-triage`'s evidence trail cites a
-document revision that does not exist, and its playbook explicitly
-disclaims vendor paper while the ground truth requires applying it —
-costing a careful agent 0.3.
+### Budget forecast granularity
 
-## 4. Data — real needles, degenerate corpus
+The original runner reused one dollar forecast for a three-cell smoke, six-cell
+fee continuation, and nine-cell task batch. A six-cell launch therefore cost
+more than its operator projection, although it stayed below the hard cap.
 
-Verified signal: billing-hygiene's answer is **7 of 1,427 entries (0.49%)**
-ringed by three decoy classes (77 DM-only, 13 email-only, 59 channel-only)
-that defeat any single-surface shortcut. Cross-message numeric consistency
-holds across independent senders.
+- Repair: maintain forecast in full-nine-cell units, normalize each observed
+  launch by attempts per model, and scale it to the exact next launch size.
+- The final settled meter is below the hard cap but below the required reserve,
+  so no further paid launch is permitted.
 
-Degeneracy, measured:
+## Remaining limitations
 
-| surface | volume | distinct | note |
-|---|---|---|---|
-| Gmail | 671 | 434 bodies | **91.5% is 9 admin templates** with names swapped |
-| Slack | 3,331 | 459 bodies | **86% exact duplicates** |
-| Slack DMs | 2,157 (65% of chat) | **62 strings** | one repeated 114× |
-| Clio narratives | 1,427 | 78 | 8 phrases × 10 matters |
-| Clio notes | 178 | 5 phrases + 2 | the 2 unique notes *are* the planted needles |
+1. Seven tasks lack a final 3x3. No competence or defeat claim can be made for
+   those cells.
+2. The only completed task, fee dispute, has best-of-three answer 1.0 for all
+   models and does not satisfy the defeat target.
+3. OpenRouter's Responses result did not expose the selected upstream provider.
+   Provenance certifies enforced order and fallback denial, not actual provider.
+4. Harbor's default `harbor check` is model-based. It was not run for all eight
+   tasks after the cap bound; static layout tests and an actual offline 8/8
+   Harbor reference job pass.
+5. Source hardening commit `dd6e11f` postdates the paid diagnostic matrix.
+   A future final matrix must use a new run ID and rerun every cell under one
+   fingerprint.
 
-Plus: **zero weekend or holiday activity in four months**, time entries
-only 15:00–18:00, 2.08 billed hrs/person/day, **no rate/dollar/invoice
-field anywhere in Clio**, 49 calendar events projected into no database,
-7 of 10 matters with zero documents, `matter_history` with one row.
+## Resume rule
 
-Consequence: usable for retrieval evals, **not suitable as post-training
-corpus** without aggressive dedup — and the filler is *load-bearing* for
-the ambiguity in §3's Cascadia case.
-
-## 5. Design problems that outlast any bug fix
-
-1. **No code execution.** The harness offers `write_file`/`finish` plus
-   read-only MCP. Exhaustive-recall tasks (1,427 activities × 8 people ×
-   120 days) must be tracked in-context across dozens of turns with no way
-   to verify bookkeeping. This is the structural reason those tasks cluster
-   at 0.10–0.15 while the same model scores **1.00** on standard-drift's
-   small enumerable universe. A real professional would use a spreadsheet.
-2. **Call budgets derived from an oracle.** `measure_floors.py` hardcodes
-   ground-truth markers, so the floor never counts exploratory search.
-   Budget exhaustion then scores identically to never trying.
-3. **~4–5 distinct skills across 10 tasks**; one anti-join idiom supplies
-   56% of the score in six of them. Ranking on this suite over-weights one
-   shape.
-4. **One world, eight framings** — all bundles byte-identical. No
-   distributional coverage, no generalization evidence.
-5. **Workspace leakage**: head-version documents sit in the agent
-   workspace, so some graded sub-fields are answerable with zero tool calls.
-
-## What this means for the headline result
-
-"All three models under 0.5" is **not** established as a competence claim.
-Luna's 0.44 on two tasks is exactly the near-miss value; on
-`client-departure-postmortem` it demonstrably found the right answer and
-lost to grader operationalization. The suite currently separates "did
-nothing" from "did the work" and cannot separate competent models from each
-other.
-
-## Fix order (highest value first)
-
-1. Replace exact-set-or-zero with F1/precision-recall partial credit —
-   mechanical, the hits/extras computation already exists in these files.
-   Restores both ranking power and RL gradient.
-2. Add the `operative-deadline` exact-length guard to every set field that
-   lacks it (closes the shotgun band).
-3. Fix `vantage-triage`'s `basis` grading (semantic or rubric, not
-   substring) — currently 0.92 for boilerplate.
-4. Implement `slack_search_public_and_private`; make iManage search report
-   the matching version; fix the Clio associate and `matter.detail` bugs.
-5. Add a code-execution tool, then re-measure — the exhaustive tasks may be
-   testing note-taking stamina rather than professional competence.
-6. Re-derive call budgets from a blind-search strategy.
-7. State each grader's operative rule verbatim in its instruction.
-8. Dedup the filler corpus, or stop routing it through client contacts.
+Resume only after an explicit budget/cap change. Query the credits endpoint,
+retain the `$1.50` reserve, use the then-current clean revision, and allow the
+hardened runner to stop if its normalized full-batch forecast does not fit.
+Never convert setup, provider, MCP, timeout, verifier, or meter failures into
+low model scores.

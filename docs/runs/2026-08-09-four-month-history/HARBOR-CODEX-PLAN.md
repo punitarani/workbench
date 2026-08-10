@@ -1,130 +1,103 @@
-# Running the suite on Harbor with the Codex harness
+# Running Hartwell on Harbor with Codex
 
-Supersedes the Pi approach in HARBOR-MIGRATION.md §4. Everything below is
-read from `harbor/agents/installed/codex.py` in the installed package.
+This is the implemented runbook, not a proposed migration.
 
-## Why Codex, concretely
+## Pinned stack
 
-| requirement | Codex | Pi |
+- Harbor 0.18.0.
+- Reward Kit 0.1.7, preinstalled in `workbench:dev`.
+- Codex 0.147.0.
+- Custom Harbor agent:
+  `workbench.adapters.harbor_matrix.codex_agent:HartwellCodex`.
+- Agent timeout multiplier: 2.0.
+- Codex local compaction through custom provider `hartwell_gateway`.
+
+## Provider routes
+
+The host gateway accepts Responses requests from containers, restores the full
+OpenRouter model ID, injects the provider object, and proxies streaming bytes
+unchanged.
+
+| Harbor alias | OpenRouter model | Enforced providers |
 |---|---|---|
-| Registers task MCP servers | **yes** — `_build_register_mcp_servers_command()` writes `[mcp_servers.<name>]` blocks into `$CODEX_HOME/config.toml` | **no** — `run()` never reads `self.mcp_servers` |
-| Non-OpenAI models | **yes** — `OPENAI_BASE_URL` is honored *and* written into `config.toml` (source comment: codex 0.118.0 reads it only from config, not the env) | n/a |
-| Code execution | **yes** — `codex exec --enable unified_exec` | yes |
-| Resume across steps | `SUPPORTS_RESUME` | yes |
+| `gpt-5.6-luna` | `openai/gpt-5.6-luna` | OpenAI |
+| `glm-5.2` | `z-ai/glm-5.2` | Baidu FP8, Novita FP8, StreamLake FP8 |
+| `deepseek-v4-flash-0731` | `deepseek/deepseek-v4-flash-0731` | Baidu FP8, GMI Cloud FP8, Baseten FP8 |
 
-Code execution is the decisive one. The failure audit found our
-exhaustive-recall tasks (1,427 activities × 8 people × 120 days) were
-partly measuring in-context bookkeeping stamina, because our harness gave
-the agent no way to compute. Codex can write and run a script — the same
-thing a real billing coordinator does with a spreadsheet.
+`allow_fallbacks` is always false. The report records the enforced route and
+request sequence span. Actual selected provider remains `null` unless the
+upstream Responses API exposes it.
 
-## How Codex is wired (verified)
+## Secret boundary
 
-**Install**: `npm install -g @openai/codex@<version|latest>` as the agent
-user, under nvm. Pin with `--ak version=<x.y.z>` for reproducibility.
+Set `OPENROUTER_API_KEY` only in the host environment. For this workspace the
+operator used:
 
-**MCP registration**, per server declared in `[[environment.mcp_servers]]`:
-```toml
-# appended to $CODEX_HOME/config.toml  (CODEX_HOME=/tmp/codex-home)
-[mcp_servers.gmail]
-command = "run-as-environment python3 -m workbench.tools.serve gmail --db /home/environment/state/gmail.db"
-```
-Note the shape: for `transport = "stdio"` Codex takes **one joined command
-string** (`shlex.join([command] + args)`), not a command/args split. For
-`sse`/`streamable-http` it writes `url = "..."` instead.
-
-**Auth**: `OPENAI_API_KEY` by default (written to `auth.json` and symlinked
-into `$CODEX_HOME`), or a real `auth.json` via `CODEX_AUTH_JSON_PATH` /
-`CODEX_FORCE_AUTH_JSON`.
-
-**Run**:
-```
-codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check \
-  --model <model> --json --enable unified_exec -- "<instruction>"
-```
-Harbor parses `last_token_usage` from the JSON stream for cost accounting.
-
-## Provider strategy for a three-model matrix
-
-OpenRouter is OpenAI-compatible, so all three models run through Codex by
-pointing it at OpenRouter:
-
-```bash
-harbor run -p datasets/hartwell -a codex \
-  --ae OPENAI_BASE_URL=https://openrouter.ai/api/v1 \
-  --ae OPENAI_API_KEY=$OPENROUTER_API_KEY \
-  -m openai/gpt-5.6-luna -m z-ai/glm-5.2 -m deepseek/deepseek-v4-flash-0731 \
-  -k 3 -n 24 --n-concurrent-agents 8 \
-  --ve OPENAI_API_KEY=$OPENROUTER_API_KEY \
-  --ve OPENAI_BASE_URL=https://openrouter.ai/api/v1 \
-  -o jobs/ --job-name codex-matrix-01
+```shell
+uv run --env-file /Users/punit/projects/workbench/.env \
+  python -m workbench.adapters.harbor_matrix \
+  --run-id <unique-run-id> \
+  --projected-worst-case-batch-usd <full-nine-cell-projection>
 ```
 
-**Risk to validate first**: Codex is built for OpenAI models and may assume
-provider-specific behavior (reasoning params, tool-call formatting, streaming
-shape). GLM and DeepSeek through an OpenAI-compatible shim is plausible but
-unproven. Validate with one task × one attempt per model *before* the matrix;
-if a model misbehaves under Codex, that is a harness artifact and must be
-reported as such, never as a task result.
+The runner creates a random gateway token, writes only that token to a mode-0600
+temporary env file, passes the path to Harbor, and deletes it after the launch.
+The OpenRouter key never enters a container or command line.
 
-**Provider pinning**: our `MODEL_PROVIDERS` map (openai; baidu/novita/
-streamlake fp8; baidu/gmicloud/baseten fp8) has no equivalent here — Codex
-sends a bare model string. Either accept OpenRouter's default routing for the
-Harbor matrix (and say so), or pass provider preferences through OpenRouter's
-`provider` field if Codex forwards unknown body keys (it likely does not).
-This is a real reproducibility regression versus our own harness; document it.
+## Task environment
 
-## Network posture
+Each task references `workbench:dev`. `harbor_stage.py` installs four
+argument-free stdio MCP wrappers and an argument-free reference wrapper. State
+and runtime live in environment-owned mode-0700 storage and staged source is
+removed before the agent starts. The agent cannot read databases, import the
+runtime, call arbitrary commands through `run-as-environment`, or observe
+offstage truth.
 
-Agent phase needs egress to the model provider, so `network_mode` cannot be
-`no-network` as I proposed for the stdio design. Use `allowlist`:
+The MCP servers are Gmail, Slack, iManage, and Clio. Their current public tool
+counts are 4, 9, 9, and 8.
 
-```toml
-[environment]
-network_mode = "allowlist"
-allowed_hosts = ["openrouter.ai"]
-```
+## Reward contract
 
-The tool databases stay unreachable by *filesystem* placement, not network
-policy — or, better, move them behind the sidecar (below) so the agent has no
-path to them at all.
+Every task runs Reward Kit once over `answer` and `process` criteria.
 
-## Sidecar option (strongest isolation, local Docker only)
+- `answer`: deterministic content score; F1/exact splits for set fields.
+- `process`: surface use and turn efficiency from the Codex trajectory.
+- canonical `reward.json`: `reward = answer`, plus separate `answer` and
+  `process` fields.
+- missing or malformed deliverable: zero.
+- reference solution: `reward=answer=1`, `process=0`.
 
-Rather than stdio-behind-`run-as-environment`, run the four tool servers as a
-compose service and give Codex URLs:
+The matrix runner rejects a cell unless the trial has no exception, Codex is
+0.147.0, all three metrics are finite and in `[0,1]`, and `reward == answer`.
 
-```toml
-[[environment.mcp_servers]]
-name = "gmail"
-transport = "streamable-http"
-url = "http://tools:8000/gmail/mcp"
-```
+## Launch protocol
 
-The agent container then has **no filesystem path to the SQLite files at
-all**. Requires: a streamable-http mode on our servers (mcp 2.0 supports it),
-`environment/docker-compose.yaml` with a healthcheck, and `--env docker`
-(compose is local-Docker only — cloud backends take single-Dockerfile tasks,
-so keep the stdio form as the portable fallback).
+The runner executes in this order:
 
-## Sequence
+1. one fee attempt per model;
+2. two more fee attempts per model;
+3. client departure, three attempts per model;
+4. billing hygiene;
+5. second read;
+6. visitor log;
+7. operative deadline;
+8. standard drift;
+9. vanished clause.
 
-| step | action | gate |
-|---|---|---|
-| 1 | start Docker; build `workbench:dev` | image exists |
-| 2 | `uv tool install harbor-rewardkit[all]`; port **one** task's grader to the Reward Kit layout with the F1 criterion | rewardkit reproduces the old score on solve.sh output |
-| 3 | rewrite that task's `task.toml` to the real schema (PackageInfo, mcp_servers, agent/verifier users) | `harbor check` passes |
-| 4 | `harbor run -p <task> -a codex -m openai/gpt-5.6-luna -k 1 -n 1` | non-zero reward; MCP tools visible in the trajectory |
-| 5 | repeat step 4 for GLM and DeepSeek | confirms the OpenAI-compat shim works per model |
-| 6 | port remaining tasks; add judge + trajectory dimensions | each passes `harbor check` |
-| 7 | full matrix, `-n 24` | matrix reproduces or explains deltas vs the adapters harness |
+No more than eight agents run concurrently. Existing report or job paths,
+including symlinks, are fatal before Harbor starts. This prevents Harbor resume
+semantics from relabeling stale trials.
 
-Steps 4–5 are the real risk. Everything after is throughput.
+The CLI projection is the worst-case cost of a full nine-cell task batch. A
+three-cell smoke uses one third and a six-cell continuation uses two thirds.
+After every launch, observed cost is normalized back to full-batch units and
+becomes the new floor for later projections. Every launch retains the `$1.50`
+reserve and every return is metered before result validation.
 
-## What changes in the results
+## Current resume status
 
-Expect scores to **rise** — code execution plus a stronger agent loop removes
-the bookkeeping bottleneck the audit identified. That is the point: the
-current numbers partly measure our harness's limits, not model competence.
-The Codex matrix is the first measurement where a low score can be attributed
-to the task rather than the runner, provided steps 4–5 pass cleanly.
+The 2026-08-10 run stopped after the fee matrix at meter
+`56.005689513`, leaving less than the reserve. Because source hardening commit
+`dd6e11f` followed the paid diagnostics, a future authorized run must start a
+new run ID and rerun all eight task matrices from one clean fingerprint. Do not
+reuse invalid compaction or timeout trials.

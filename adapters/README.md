@@ -33,8 +33,9 @@ one will plug into when a named target framework arrives.
 The Hartwell Harbor matrix runs through a local Responses gateway that restores
 the full OpenRouter model IDs and enforces the recorded provider order. The real
 OpenRouter key stays in the host process; containers receive only an ephemeral
-gateway token. Supply a conservative next-batch projection so the runner can
-enforce the recorded project cap and in-flight reserve:
+gateway token. Supply a conservative projection for a full nine-cell task batch
+so the runner can scale smoke/continuation launches and enforce the recorded
+project cap and in-flight reserve:
 
 ```bash
 OPENROUTER_API_KEY=... uv run python -m workbench.adapters.harbor_matrix \
@@ -42,7 +43,8 @@ OPENROUTER_API_KEY=... uv run python -m workbench.adapters.harbor_matrix \
     --projected-worst-case-batch-usd 3.00
 ```
 
-The runner pins Harbor 0.18.0 and Codex 0.147.0. It first runs one fee-dispute
+The runner pins Harbor 0.18.0 and Codex 0.147.0, uses a 2x agent-time multiplier,
+and includes that execution setting in every fingerprint. It first runs one fee-dispute
 smoke trial for each model, validates that the complete task and materialized
 environment fingerprint is unchanged, and reuses those trials as attempt one.
 It then runs two more fee attempts per model and three attempts per model for

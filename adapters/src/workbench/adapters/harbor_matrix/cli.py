@@ -17,7 +17,7 @@ def _parser() -> argparse.ArgumentParser:
         "--projected-worst-case-batch-usd",
         required=True,
         type=float,
-        help="Conservative cost projection for the next task batch.",
+        help="Conservative cost projection for a full nine-cell task batch.",
     )
     parser.add_argument("--repository", type=Path, default=Path.cwd())
     parser.add_argument("--tasks-root", type=Path)
