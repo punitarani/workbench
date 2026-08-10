@@ -1,58 +1,139 @@
 {
   "_evidence": {
-    "activities": "Clio tkt-000001 (00001-MeridianBioLabs): 7 diligence/data-room entries dated strictly after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16) totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). Clio activity ids are the server's positional ids (1-based, time-ordered across all matters): 439, 442, 469, 504, 506, 534, 568.",
+    "activities": "Fresh bundle: Clio tkt-000001 (00001-MeridianBioLabs) has 7 diligence/data-room entries dated strictly after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16), totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). Clio activity ids are the server's positional ids (1-based, time-ordered across all matters): 1374, 1378, 1481, 1575, 1577, 1666, 1756.",
     "decoys": "Near misses on every side of the join: 5 diligence/data-room entries on or before the cutoff (Mar 31, Apr 1, Apr 2, and two on Apr 3 itself — the call-prep entry and a data-room coordination entry), post-cutoff diligence-worded entries on OTHER matters (Lumen licensing Apr 8, Solstice asset purchase Apr 14), and post-cutoff Meridian entries describing the scope expansion without the diligence wording (Apr 22). A whole-April keyword sum, an on-or-after sum, and a cross-matter keyword sum are all wrong.",
     "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio, and since round 4 the instruction no longer states it either: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-002120 (ts 6185100.002105, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
     "challenge": "Gmail msg-000389 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her.",
-    "support_audit": "Round 6: 35 Meridian entries fall in the disputed window (Apr 4-30) among 118 matter entries. A window day is supported when a same-day email or Slack message names the engagement ('meridian', 'diagnostics', or '00001'). Exactly 6 entries have silent days: Apr 17 (ids 581, 588), Apr 22 (ids 629, 631, 634 - 629 is the round-4 scope-expansion decoy), and Apr 28 (id 697, the round-6 consent-tracker entry). Apr 28 carries same-day-oblique near misses: a deal-flavored consent-tracker email and a 'license and support agreement' chat, neither of which names the engagement under the marker rule. Traps unchanged from round 5: Apr 7 is supported ONLY inside the Marcus<->Peter DM, Apr 9/Apr 21 only by internal emails that never say 'Meridian'. Round 6 grades the component all-or-nothing (exact set or zero) at weight 0.56, so the non-reconciliation subset caps at 0.44."
+    "support_audit": "Fresh bundle: 254 Meridian entries fall after the 2026-04-03 cutoff through April 30. A window day is supported when a same-day Gmail or Slack message names the engagement ('meridian', 'diagnostics', or '00001'). Exactly 47 entries across five silent days are unsupported: Apr 4 (4 entries, 300 minutes, 195400 billed cents), Apr 13 (9, 660, 492400), Apr 20 (15, 786, 565750), Apr 22 (16, 1021, 715142), and Apr 25 (3, 120, 89000). Billed cents sum each billable entry's public Clio total after its own cents rounding. The audit groups those entries by day; normalized F1 carries 90% of the preserved 0.56 component weight and exact certification carries 10%."
   },
   "cutoff_date": "2026-04-03",
   "total_minutes": 890,
   "entry_count": 7,
   "entries": [
     {
-      "id": 439,
+      "id": 1374,
       "date": "2026-04-06",
       "minutes": 130
     },
     {
-      "id": 442,
+      "id": 1378,
       "date": "2026-04-06",
       "minutes": 95
     },
     {
-      "id": 469,
+      "id": 1481,
       "date": "2026-04-08",
       "minutes": 145
     },
     {
-      "id": 504,
+      "id": 1575,
       "date": "2026-04-10",
       "minutes": 160
     },
     {
-      "id": 506,
+      "id": 1577,
       "date": "2026-04-10",
       "minutes": 120
     },
     {
-      "id": 534,
+      "id": 1666,
       "date": "2026-04-14",
       "minutes": 150
     },
     {
-      "id": 568,
+      "id": 1756,
       "date": "2026-04-16",
       "minutes": 90
     }
   ],
-  "unsupported_entry_ids": [
-    581,
-    588,
-    629,
-    631,
-    634,
-    697
+  "unsupported_days": [
+    {
+      "date": "2026-04-04",
+      "entry_ids": [
+        1316,
+        1317,
+        1318,
+        1319
+      ],
+      "entry_count": 4,
+      "minutes": 300,
+      "billed_cents": 195400
+    },
+    {
+      "date": "2026-04-13",
+      "entry_ids": [
+        1606,
+        1607,
+        1614,
+        1616,
+        1618,
+        1623,
+        1624,
+        1629,
+        1631
+      ],
+      "entry_count": 9,
+      "minutes": 660,
+      "billed_cents": 492400
+    },
+    {
+      "date": "2026-04-20",
+      "entry_ids": [
+        1826,
+        1830,
+        1836,
+        1842,
+        1844,
+        1845,
+        1848,
+        1857,
+        1861,
+        1863,
+        1865,
+        1866,
+        1867,
+        1868,
+        1872
+      ],
+      "entry_count": 15,
+      "minutes": 786,
+      "billed_cents": 565750
+    },
+    {
+      "date": "2026-04-22",
+      "entry_ids": [
+        1930,
+        1932,
+        1935,
+        1942,
+        1950,
+        1955,
+        1960,
+        1963,
+        1964,
+        1965,
+        1969,
+        1973,
+        1974,
+        1976,
+        1977,
+        1980
+      ],
+      "entry_count": 16,
+      "minutes": 1021,
+      "billed_cents": 715142
+    },
+    {
+      "date": "2026-04-25",
+      "entry_ids": [
+        2087,
+        2089,
+        2090
+      ],
+      "entry_count": 3,
+      "minutes": 120,
+      "billed_cents": 89000
+    }
   ],
   "minutes_by_timekeeper_markers": [
     [
@@ -94,7 +175,7 @@
     "timekeepers": 0.02,
     "challenged_by": 0.02,
     "challenge_date": 0.03,
-    "unsupported_entry_ids": 0.56,
+    "unsupported_days": 0.56,
     "format": 0.09
   }
 }

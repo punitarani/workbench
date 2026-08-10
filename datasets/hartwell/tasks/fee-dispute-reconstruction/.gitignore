@@ -1,0 +1,5 @@
+# Derived data: rebuilt by datasets/hartwell/build_tasks.py from the
+# four-month world log. bundle/ is the materialized environment;
+# environment/ is its Harbor upload context.
+bundle/
+environment/

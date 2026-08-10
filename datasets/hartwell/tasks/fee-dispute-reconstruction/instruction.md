@@ -28,7 +28,15 @@ Save **`dispute.json`** in your workspace:
   "timekeepers": ["<everyone who logged that work>"],
   "challenged_by": "<who challenged the invoice>",
   "challenge_date": "<YYYY-MM-DD the client disputed the invoice>",
-  "unsupported_entry_ids": [<Clio activity ids, see the support audit>]
+  "unsupported_days": [
+    {
+      "date": "<YYYY-MM-DD with no qualifying support>",
+      "entry_ids": [<every Clio activity id on that date>],
+      "entry_count": <number of those entries>,
+      "minutes": <their total minutes>,
+      "billed_cents": <their billed amount in cents>
+    }
+  ]
 }
 ```
 
@@ -58,13 +66,17 @@ references do not count: a data room, a tranche, a privilege screen, or
 a diligence call could belong to any matter (the Solstice closing
 staged a seller data room the same month), so a message supports an
 entry only when it names the engagement in one of those three forms.
-`unsupported_entry_ids` must list the Clio activity id of every window
-entry — diligence-worded or not — with no such message anywhere in the
-firm's systems on its date. Check every surface before calling a day
+`unsupported_days` must cover every window entry — diligence-worded or not —
+with no such message anywhere in the firm's systems on its date. Group those
+unsupported entries by date, one object per silent day in chronological order.
+Each object must list every affected activity id and sum that day's entry
+count, minutes, and billed cents. `billed_cents` is the sum of the Clio `total`
+for each billable entry, with each entry rounded to cents as Clio displays it;
+non-billable entries contribute zero. Check every surface before calling a day
 silent: on some days the only qualifying message sits in a DM that
 channel search never returns, on others it never uses the client's
 name, and on others the day is full of deal-flavored traffic that never
-names the engagement at all. The audit goes back to the client as a
-single statement, so it has to be exactly right: one entry listed whose
-day does have support, or one true exception missed, and the audit is
-worthless.
+names the engagement at all. The audit goes back to the client as a single
+statement, so it has to be exactly right: one day listed that does have
+support, one affected entry missed, or one daily figure misstated, and the
+audit is worthless.

@@ -1,25 +1,107 @@
-# Harbor task definition. The environment bundle is built locally from
-# the four-month history:
+schema_version = "1.3"
+
+# The environment/ build context is derived data, rebuilt from the four-month
+# history alongside the bundle:
 #   uv run python datasets/hartwell/build_tasks.py
 
 [task]
-name = "fee-dispute-reconstruction"
+name = "workbench/fee-dispute-reconstruction"
+description = """Reconstruct the billing facts behind the Meridian BioLabs April \
+invoice dispute across Gmail, Slack, iManage, and Clio, and reconcile every time \
+entry in the disputed window against same-day client-visible activity."""
+authors = [{ name = "Workbench" }]
+keywords = [
+    "legal",
+    "billing",
+    "cross-system-retrieval",
+    "reconciliation",
+    "mcp",
+]
+
+[metadata]
 dataset = "hartwell"
-summary = "Reconstruct the billing facts behind the Meridian April invoice dispute"
+difficulty = "hard"
+skills = ["retrieval", "reconciliation", "arithmetic", "anti-join"]
+# Measured by datasets/hartwell/measure_floors.py against the reference tool
+# path. Recorded, not enforced: Harbor has no per-task call budget, so the
+# process dimension grades efficiency by trajectory turn count instead.
+reference_tool_path_calls = 33
 
 [environment]
 docker_image = "workbench:dev"
-# The built bundle splits across the image: bundle/workspace seeds
-# /home/agent/workspace (exposed as /app), bundle/state stays offstage.
+os = "linux"
+workdir = "/home/agent/workspace"
+memory_mb = 4096
+# The agent phase needs the model provider. The baseline additionally needs
+# the hosts Harbor's codex installer reaches (nvm, node, npm, and apt for
+# ripgrep) because workbench:dev ships no coding agent; [agent] below narrows
+# the run phase back down to the provider alone. The tool databases are kept
+# out of reach by file ownership, not by network policy.
+network_mode = "allowlist"
+allowed_hosts = [
+    "openrouter.ai",
+    "raw.githubusercontent.com",
+    "objects.githubusercontent.com",
+    "nodejs.org",
+    "registry.npmjs.org",
+    "*.ubuntu.com",
+]
+
+# Runs as root after the environment starts and before agent setup: moves the
+# projected tool databases to /home/environment/state (0700, environment-owned),
+# installs the MCP servers and their dependencies at /opt/workbench-runtime,
+# asserts the agent cannot read a database, and removes the staging tree from
+# the workspace. See datasets/hartwell/harbor_stage.py.
+[environment.healthcheck]
+command = "sh /home/agent/workspace/.workbench/install.sh"
+timeout_sec = 180.0
+interval_sec = 2.0
+retries = 2
+
+# The emulated products are the agent's only aperture onto the record. Each
+# command is a one-line wrapper installed by the healthcheck:
+#
+#   PYTHONPATH=/opt/workbench-runtime exec run-as-environment \
+#       python3 -m workbench.tools.serve <tool> --db /home/environment/state/<tool>.db
+#
+# run-as-environment is the setuid helper that drops to the environment user,
+# so the server opens a database the agent cannot. The wrapper exists because
+# Harbor's Codex adapter joins command and args into Codex's `command` field,
+# which Codex execs as a program name: declaring command = "run-as-environment"
+# with args reaches Codex as a program literally named "run-as-environment
+# python3 -m ..." and silently spawns nothing. Measured, not assumed — the
+# first pilot run left the agent with no task tools at all. A single
+# executable survives that join and is equally correct for adapters that
+# honor the command/args split.
+[[environment.mcp_servers]]
+name = "gmail"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-gmail"
+
+[[environment.mcp_servers]]
+name = "slack"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-slack"
+
+[[environment.mcp_servers]]
+name = "imanage"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-imanage"
+
+[[environment.mcp_servers]]
+name = "clio"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-clio"
+
+[agent]
+user = "agent"
+timeout_sec = 1800.0
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
 
 [verifier]
-# In-container: tests/test.sh runs the deterministic grader and writes
-# partial-credit reward to /logs/verifier/reward.json. The Reward Kit
-# wrapper replaces the direct python3 call once runs happen through Harbor.
-weights = { cutoff_date = 0.03, total_minutes = 0.05, entry_count = 0.03, entries = 0.12, minutes_by_timekeeper = 0.05, timekeepers = 0.02, challenged_by = 0.02, challenge_date = 0.03, unsupported_entry_ids = 0.56, format = 0.09 }
-
-[harness]
-# Task-anchored call budget (DECISIONS.md entry 17): 3x the reference
-# tool-path floor of 33 calls measured by datasets/hartwell/measure_floors.py
-# (write_file and finish count against the same budget).
-max_tool_calls = 99
+user = "verifier"
+timeout_sec = 900.0
+# Every criterion is deterministic and local: the deliverable, the certified
+# ground truth, and the agent's own trajectory. No judge, so no egress.
+network_mode = "no-network"

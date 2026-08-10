@@ -63,14 +63,22 @@ for (time,) in rows(
 ):
     supported.add(day_of(time))
 unsupported = sorted(
-    activity_id
-    for activity_id, t, _, _, _, time in rows(
+    (activity_id, time, seconds, rate_cents, billable)
+    for activity_id, t, _, seconds, _, time, rate_cents, billable in rows(
         "clio.db",
         "SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, ticket_id, person, "
-        "quantity_seconds, note, time FROM activities",
+        "quantity_seconds, note, time, rate_cents, billable FROM activities",
     )
     if t == ticket and 30 <= time // 86400 <= 59 and day_of(time) not in supported
 )
+by_day = {}
+for entry in unsupported:
+    by_day.setdefault(day_of(entry[1]), []).append(entry)
+
+def billed_cents(seconds, rate_cents, billable):
+    if rate_cents is None or not billable:
+        return 0
+    return round(round(rate_cents / 100 * seconds / 3600, 2) * 100)
 
 dispute = {
     "cutoff_date": "2026-04-01",
@@ -84,7 +92,19 @@ dispute = {
     "timekeepers": sorted({names[person] for _, person, _, _ in april}),
     "challenged_by": "Meridian BioLabs",
     "challenge_date": "2026-05-08",
-    "unsupported_entry_ids": unsupported,
+    "unsupported_days": [
+        {
+            "date": day.isoformat(),
+            "entry_ids": [activity_id for activity_id, _, _, _, _ in entries],
+            "entry_count": len(entries),
+            "minutes": sum(seconds for _, _, seconds, _, _ in entries) // 60,
+            "billed_cents": sum(
+                billed_cents(seconds, rate_cents, billable)
+                for _, _, seconds, rate_cents, billable in entries
+            ),
+        }
+        for day, entries in sorted(by_day.items())
+    ],
 }
 with open("dispute.json", "w") as handle:
     json.dump(dispute, handle, indent=2)
