@@ -1,9 +1,10 @@
 import asyncio
 import hashlib
 import math
+import stat
 from collections import Counter
 from pathlib import Path
-from typing import Protocol
+from typing import Literal, Protocol
 
 import httpx
 from pydantic import (
@@ -42,7 +43,7 @@ TASK_ORDER = (
     "standard-drift",
     "vanished-clause",
 )
-IGNORED_TASK_PARTS = {
+IGNORED_TASK_SOURCE_PARTS = {
     ".git",
     ".pytest_cache",
     "__pycache__",
@@ -57,7 +58,7 @@ class MatrixConfig(BaseModel):
     tasks_root: Path
     jobs_dir: Path
     run_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
-    attempts: int = Field(default=3, ge=1)
+    attempts: Literal[3] = 3
     concurrency: int = Field(default=8, ge=1, le=8)
     projected_worst_case_batch_usd: FiniteFloat = Field(gt=0)
     gateway_bind_host: str = "0.0.0.0"
@@ -96,6 +97,20 @@ class CreditBudget(BaseModel):
                 "projected batch exceeds the Hartwell cap: "
                 f"${projected_worst_case_usd:.4f} projected, "
                 f"${available:.4f} available after reserve"
+            )
+
+    def metered_cost(self, before: CreditSnapshot, after: CreditSnapshot) -> float:
+        if after.total_usage < before.total_usage:
+            raise CreditMeterError(
+                "OpenRouter total_usage decreased between meter snapshots"
+            )
+        return float(after.total_usage - before.total_usage)
+
+    def assert_observed_within_cap(self, credits: CreditSnapshot) -> None:
+        if credits.total_usage > self.cap_usage:
+            raise BudgetExceededError(
+                "observed OpenRouter usage exceeded the Hartwell project cap: "
+                f"${credits.total_usage:.4f} used versus ${self.cap_usage:.4f} cap"
             )
 
 
@@ -138,12 +153,20 @@ class TrialFingerprint(BaseModel):
     git_revision: str
     image_id: str
     task_name: str
-    task_content_sha256: str
+    task_source_sha256: str
+    environment_sha256: str
     gateway_version: str
     harbor_version: str
     codex_version: str
     model: str
-    provider_order: tuple[str, ...]
+    enforced_provider_order: tuple[str, ...]
+
+
+class HarborInputHashes(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    task_source_sha256: str
+    environment_sha256: str
 
 
 class VerifierRewards(BaseModel):
@@ -218,23 +241,61 @@ class SubprocessCommandRunner:
         )
 
 
-class BatchReport(BaseModel):
+class GatewaySequenceSpan(BaseModel):
+    start_exclusive: int = Field(ge=0)
+    end_inclusive: int = Field(ge=0)
+
+
+class LaunchReport(BaseModel):
+    sequence: int = Field(ge=1)
+    phase: Literal["smoke", "additional", "matrix"]
     task_name: str
     job_name: str
+    attempts_per_model: int = Field(ge=1, le=3)
+    enforced_model_routes: dict[str, tuple[str, ...]]
+    gateway_sequences: GatewaySequenceSpan
     usage_before: float
     usage_after: float
     metered_cost_usd: float
     projected_worst_case_usd: float
-    fingerprints: tuple[TrialFingerprint, ...]
-    outcomes: tuple[TrialOutcome, ...]
+    valid: bool
+    failure: str | None = None
+
+
+class TrialRecord(BaseModel):
+    attempt: int | None = Field(default=None, ge=1, le=3)
+    source_job_name: str
+    phase: Literal["smoke", "additional", "matrix"]
+    fingerprint: TrialFingerprint | None
+    outcome: TrialOutcome
+
+
+class SmokeReport(BaseModel):
+    task_name: Literal["fee-dispute-reconstruction"]
+    job_name: str
+    valid: bool
+    failure: str | None = None
+    trials: tuple[TrialRecord, ...]
+    launch_sequence: int
+
+
+class BatchReport(BaseModel):
+    task_name: str
+    trials: tuple[TrialRecord, ...]
+    launch_sequences: tuple[int, ...]
+    valid: bool
+    failure: str | None = None
 
 
 class MatrixReport(BaseModel):
     run_id: str
     baseline_usage: float
     cap_usage: float
+    smoke: SmokeReport | None = None
     batches: tuple[BatchReport, ...]
+    launches: tuple[LaunchReport, ...]
     gateway_provenance: tuple[GatewayProvenance, ...]
+    failure: str | None = None
 
 
 class BudgetExceededError(RuntimeError):
@@ -268,11 +329,13 @@ def build_harbor_command(
     gateway_token: str,
     attempts: int | None = None,
     model_aliases: tuple[str, ...] = MODEL_ALIASES,
+    job_label: str | None = None,
 ) -> tuple[str, ...]:
     if task_name not in TASK_ORDER:
         raise ValueError(f"unknown Hartwell matrix task: {task_name}")
     task_number = TASK_ORDER.index(task_name) + 1
-    job_name = f"{config.run_id}-{task_number:02d}-{task_name}"
+    label = f"-{job_label}" if job_label is not None else ""
+    job_name = f"{config.run_id}{label}-{task_number:02d}-{task_name}"
     command = [
         "harbor",
         "run",
@@ -323,20 +386,55 @@ def redact_harbor_command(command: tuple[str, ...]) -> tuple[str, ...]:
 
 
 def hash_task_content(task_dir: Path) -> str:
+    return _hash_tree(task_dir, ignored_top_level=IGNORED_TASK_SOURCE_PARTS)
+
+
+def hash_harbor_inputs(task_dir: Path) -> HarborInputHashes:
+    """Hash task source and the exact environment tree Harbor uploads.
+
+    ``bundle/`` is build input for ``environment/`` and is not referenced by
+    ``task.toml`` or passed separately to Harbor. The materialized
+    ``environment/`` tree is hashed without exclusions, including workspace
+    documents, staged databases, runtime files, symlinks, and mode bits.
+    """
+
+    return HarborInputHashes(
+        task_source_sha256=hash_task_content(task_dir),
+        environment_sha256=_hash_tree(task_dir / "environment"),
+    )
+
+
+def _hash_tree(root: Path, *, ignored_top_level: set[str] | None = None) -> str:
     digest = hashlib.sha256()
+    digest.update(b"missing\0" if not root.exists() else b"tree\0")
+    if not root.exists():
+        return digest.hexdigest()
+    ignored = ignored_top_level or set()
     paths = sorted(
         path
-        for path in task_dir.rglob("*")
-        if path.is_file()
-        and not IGNORED_TASK_PARTS.intersection(path.relative_to(task_dir).parts)
+        for path in root.rglob("*")
+        if path.relative_to(root).parts[0] not in ignored
     )
     for path in paths:
-        relative = path.relative_to(task_dir).as_posix().encode()
+        relative = path.relative_to(root).as_posix().encode()
         digest.update(len(relative).to_bytes(8, "big"))
         digest.update(relative)
-        content = path.read_bytes()
-        digest.update(len(content).to_bytes(8, "big"))
-        digest.update(content)
+        metadata = path.lstat()
+        digest.update(stat.S_IMODE(metadata.st_mode).to_bytes(4, "big"))
+        if path.is_symlink():
+            digest.update(b"link\0")
+            target = path.readlink().as_posix().encode()
+            digest.update(len(target).to_bytes(8, "big"))
+            digest.update(target)
+        elif path.is_dir():
+            digest.update(b"directory\0")
+        elif path.is_file():
+            digest.update(b"file\0")
+            content = path.read_bytes()
+            digest.update(len(content).to_bytes(8, "big"))
+            digest.update(content)
+        else:
+            digest.update(b"other\0")
     return digest.hexdigest()
 
 
@@ -376,6 +474,24 @@ def classify_trial_result(path: Path) -> TrialOutcome:
             path=path,
             valid=False,
             reason="non-finite verifier reward",
+            trial_name=result.trial_name,
+            model_alias=model_alias,
+            agent_version=agent_version,
+        )
+    if not all(0.0 <= value <= 1.0 for value in values):
+        return TrialOutcome(
+            path=path,
+            valid=False,
+            reason="verifier reward outside [0, 1]",
+            trial_name=result.trial_name,
+            model_alias=model_alias,
+            agent_version=agent_version,
+        )
+    if values[0] != values[1]:
+        return TrialOutcome(
+            path=path,
+            valid=False,
+            reason="reward does not equal answer",
             trial_name=result.trial_name,
             model_alias=model_alias,
             agent_version=agent_version,
@@ -433,19 +549,21 @@ def build_trial_fingerprints(
     git_revision: str,
     image_id: str,
     task_name: str,
-    task_content_sha256: str,
+    task_source_sha256: str,
+    environment_sha256: str,
 ) -> tuple[TrialFingerprint, ...]:
     return tuple(
         TrialFingerprint(
             git_revision=git_revision,
             image_id=image_id,
             task_name=task_name,
-            task_content_sha256=task_content_sha256,
+            task_source_sha256=task_source_sha256,
+            environment_sha256=environment_sha256,
             gateway_version=GATEWAY_VERSION,
             harbor_version=HARBOR_VERSION,
             codex_version=CODEX_VERSION,
             model=full_model,
-            provider_order=MODEL_PROVIDERS[full_model],
+            enforced_provider_order=MODEL_PROVIDERS[full_model],
         )
         for full_model in ALIAS_TO_MODEL.values()
     )
@@ -484,14 +602,12 @@ class MatrixRunner:
         if harbor_version.returncode != 0:
             raise HarborRunError("could not read the Harbor version")
         validate_harbor_version(harbor_version.stdout)
-        git_revision = await self._capture(("git", "rev-parse", "HEAD"), "git revision")
-        image_id = await self._capture(
-            ("docker", "image", "inspect", "--format", "{{.Id}}", "workbench:dev"),
-            "workbench:dev image ID",
-        )
         credits = await self._credit_meter.query()
         forecast = float(self.config.projected_worst_case_batch_usd)
+        smoke: SmokeReport | None = None
         batches: list[BatchReport] = []
+        launches: list[LaunchReport] = []
+        failure: str | None = None
         gateway = ProviderGateway(
             GatewayConfig(
                 openrouter_api_key=self._openrouter_api_key,
@@ -503,66 +619,294 @@ class MatrixRunner:
         )
         try:
             async with gateway:
-                for task_name in TASK_ORDER:
-                    self._budget.assert_can_launch(
-                        credits, projected_worst_case_usd=forecast
+                try:
+                    fee_task = TASK_ORDER[0]
+                    smoke_fingerprints = await self._resolve_fingerprints(fee_task)
+                    smoke_execution = await self._execute_launch(
+                        gateway=gateway,
+                        credits=credits,
+                        forecast=forecast,
+                        task_name=fee_task,
+                        attempts=1,
+                        phase="smoke",
+                        job_label="smoke",
+                        sequence=1,
                     )
-                    task_dir = self.config.tasks_root / task_name
-                    task_hash = hash_task_content(task_dir)
-                    fingerprints = build_trial_fingerprints(
-                        git_revision=git_revision,
-                        image_id=image_id,
-                        task_name=task_name,
-                        task_content_sha256=task_hash,
+                    launches.append(smoke_execution.launch)
+                    credits = smoke_execution.credits_after
+                    forecast = max(forecast, smoke_execution.launch.metered_cost_usd)
+                    smoke_trials = _build_trial_records(
+                        smoke_execution.outcomes,
+                        smoke_fingerprints,
+                        job_name=smoke_execution.launch.job_name,
+                        phase="smoke",
+                        first_attempt=1,
                     )
-                    command = build_harbor_command(
-                        self.config,
-                        task_name,
-                        gateway_port=gateway.port,
-                        gateway_token=self._gateway_token.get_secret_value(),
+                    smoke = SmokeReport(
+                        task_name="fee-dispute-reconstruction",
+                        job_name=smoke_execution.launch.job_name,
+                        valid=False,
+                        trials=smoke_trials,
+                        launch_sequence=smoke_execution.launch.sequence,
                     )
-                    completed = await self._commands.run(
-                        command, cwd=self.config.repository
-                    )
-                    after = await self._credit_meter.query()
-                    metered_cost = max(0.0, after.total_usage - credits.total_usage)
-                    job_name = command[command.index("--job-name") + 1]
-                    outcomes = load_trial_outcomes(self.config.jobs_dir / job_name)
-                    batch = BatchReport(
-                        task_name=task_name,
-                        job_name=job_name,
-                        usage_before=float(credits.total_usage),
-                        usage_after=float(after.total_usage),
-                        metered_cost_usd=metered_cost,
-                        projected_worst_case_usd=forecast,
-                        fingerprints=fingerprints,
-                        outcomes=outcomes,
-                    )
-                    batches.append(batch)
-                    report = MatrixReport(
-                        run_id=self.config.run_id,
-                        baseline_usage=float(self._budget.baseline_usage),
-                        cap_usage=self._budget.cap_usage,
-                        batches=tuple(batches),
-                        gateway_provenance=tuple(gateway.provenance),
-                    )
-                    self._write_report(report)
-                    credits = after
-                    forecast = max(forecast, metered_cost)
-                    if completed.returncode != 0:
-                        raise HarborRunError(
-                            f"Harbor batch {task_name} exited {completed.returncode}"
+                    smoke_failure = _launch_failure(smoke_execution)
+                    if smoke_failure is None:
+                        try:
+                            validate_batch_outcomes(
+                                smoke_execution.outcomes, attempts=1
+                            )
+                        except HarborRunError as error:
+                            smoke_failure = f"fee smoke invalid: {error}"
+                    try:
+                        final_fee_fingerprints = await self._resolve_fingerprints(
+                            fee_task
                         )
-                    validate_batch_outcomes(outcomes, attempts=self.config.attempts)
+                    except HarborRunError as error:
+                        final_fee_fingerprints = smoke_fingerprints
+                        smoke_failure = f"fee smoke fingerprint check failed: {error}"
+                    if smoke_failure is None:
+                        if not _fingerprint_sets_reusable(
+                            smoke_fingerprints,
+                            final_fee_fingerprints,
+                            smoke_valid=True,
+                        ):
+                            smoke_failure = (
+                                "fee smoke fingerprint does not match the final fee "
+                                "config"
+                            )
+                    smoke = smoke.model_copy(
+                        update={
+                            "valid": smoke_failure is None,
+                            "failure": smoke_failure,
+                        }
+                    )
+                    launches[-1] = launches[-1].model_copy(
+                        update={
+                            "valid": smoke_failure is None,
+                            "failure": smoke_failure,
+                        }
+                    )
+                    self._write_report(
+                        self._report(smoke, batches, launches, gateway, smoke_failure)
+                    )
+                    if smoke_failure is not None:
+                        if smoke_execution.post_meter_error is not None:
+                            raise smoke_execution.post_meter_error
+                        raise HarborRunError(smoke_failure)
+
+                    fee_execution = await self._execute_launch(
+                        gateway=gateway,
+                        credits=credits,
+                        forecast=forecast,
+                        task_name=fee_task,
+                        attempts=2,
+                        phase="additional",
+                        job_label="additional",
+                        sequence=2,
+                    )
+                    launches.append(fee_execution.launch)
+                    credits = fee_execution.credits_after
+                    forecast = max(forecast, fee_execution.launch.metered_cost_usd)
+                    fee_trials = smoke_trials + _build_trial_records(
+                        fee_execution.outcomes,
+                        final_fee_fingerprints,
+                        job_name=fee_execution.launch.job_name,
+                        phase="additional",
+                        first_attempt=2,
+                    )
+                    fee_outcomes = smoke_execution.outcomes + fee_execution.outcomes
+                    fee_failure = _launch_failure(fee_execution)
+                    if fee_failure is None:
+                        try:
+                            validate_batch_outcomes(fee_outcomes, attempts=3)
+                        except HarborRunError as error:
+                            fee_failure = str(error)
+                    batches.append(
+                        BatchReport(
+                            task_name=fee_task,
+                            trials=fee_trials,
+                            launch_sequences=(1, 2),
+                            valid=fee_failure is None,
+                            failure=fee_failure,
+                        )
+                    )
+                    launches[-1] = launches[-1].model_copy(
+                        update={
+                            "valid": fee_failure is None,
+                            "failure": fee_failure,
+                        }
+                    )
+                    self._write_report(
+                        self._report(smoke, batches, launches, gateway, fee_failure)
+                    )
+                    if fee_failure is not None:
+                        if fee_execution.post_meter_error is not None:
+                            raise fee_execution.post_meter_error
+                        raise HarborRunError(f"Harbor fee batch invalid: {fee_failure}")
+
+                    for sequence, task_name in enumerate(TASK_ORDER[1:], start=3):
+                        fingerprints = await self._resolve_fingerprints(task_name)
+                        execution = await self._execute_launch(
+                            gateway=gateway,
+                            credits=credits,
+                            forecast=forecast,
+                            task_name=task_name,
+                            attempts=3,
+                            phase="matrix",
+                            job_label=None,
+                            sequence=sequence,
+                        )
+                        launches.append(execution.launch)
+                        credits = execution.credits_after
+                        forecast = max(forecast, execution.launch.metered_cost_usd)
+                        trials = _build_trial_records(
+                            execution.outcomes,
+                            fingerprints,
+                            job_name=execution.launch.job_name,
+                            phase="matrix",
+                            first_attempt=1,
+                        )
+                        batch_failure = _launch_failure(execution)
+                        if batch_failure is None:
+                            try:
+                                validate_batch_outcomes(execution.outcomes, attempts=3)
+                            except HarborRunError as error:
+                                batch_failure = str(error)
+                        batches.append(
+                            BatchReport(
+                                task_name=task_name,
+                                trials=trials,
+                                launch_sequences=(sequence,),
+                                valid=batch_failure is None,
+                                failure=batch_failure,
+                            )
+                        )
+                        launches[-1] = launches[-1].model_copy(
+                            update={
+                                "valid": batch_failure is None,
+                                "failure": batch_failure,
+                            }
+                        )
+                        self._write_report(
+                            self._report(
+                                smoke, batches, launches, gateway, batch_failure
+                            )
+                        )
+                        if batch_failure is not None:
+                            if execution.post_meter_error is not None:
+                                raise execution.post_meter_error
+                            raise HarborRunError(
+                                f"Harbor batch {task_name} invalid: {batch_failure}"
+                            )
+                except (BudgetExceededError, CreditMeterError, HarborRunError) as error:
+                    failure = str(error)
+                    self._write_report(
+                        self._report(smoke, batches, launches, gateway, failure)
+                    )
+                    raise
         finally:
             if self._owned_credit_meter is not None:
                 await self._owned_credit_meter.aclose()
+        return self._report(smoke, batches, launches, gateway, failure)
+
+    async def _resolve_fingerprints(
+        self, task_name: str
+    ) -> tuple[TrialFingerprint, ...]:
+        git_revision = await self._capture(("git", "rev-parse", "HEAD"), "git revision")
+        image_id = await self._capture(
+            ("docker", "image", "inspect", "--format", "{{.Id}}", "workbench:dev"),
+            "workbench:dev image ID",
+        )
+        inputs = hash_harbor_inputs(self.config.tasks_root / task_name)
+        return build_trial_fingerprints(
+            git_revision=git_revision,
+            image_id=image_id,
+            task_name=task_name,
+            task_source_sha256=inputs.task_source_sha256,
+            environment_sha256=inputs.environment_sha256,
+        )
+
+    async def _execute_launch(
+        self,
+        *,
+        gateway: ProviderGateway,
+        credits: CreditSnapshot,
+        forecast: float,
+        task_name: str,
+        attempts: int,
+        phase: Literal["smoke", "additional", "matrix"],
+        job_label: str | None,
+        sequence: int,
+    ) -> LaunchExecution:
+        self._budget.assert_can_launch(credits, projected_worst_case_usd=forecast)
+        start_sequence = gateway.provenance[-1].sequence if gateway.provenance else 0
+        command = build_harbor_command(
+            self.config,
+            task_name,
+            gateway_port=gateway.port,
+            gateway_token=self._gateway_token.get_secret_value(),
+            attempts=attempts,
+            job_label=job_label,
+        )
+        completed = await self._commands.run(command, cwd=self.config.repository)
+        after = await self._credit_meter.query()
+        post_meter_error: BudgetExceededError | CreditMeterError | None = None
+        try:
+            metered_cost = self._budget.metered_cost(credits, after)
+            self._budget.assert_observed_within_cap(after)
+        except (BudgetExceededError, CreditMeterError) as error:
+            post_meter_error = error
+            metered_cost = max(0.0, float(after.total_usage - credits.total_usage))
+        job_name = command[command.index("--job-name") + 1]
+        outcomes = load_trial_outcomes(self.config.jobs_dir / job_name)
+        end_sequence = (
+            gateway.provenance[-1].sequence if gateway.provenance else start_sequence
+        )
+        launch = LaunchReport(
+            sequence=sequence,
+            phase=phase,
+            task_name=task_name,
+            job_name=job_name,
+            attempts_per_model=attempts,
+            enforced_model_routes={
+                alias: MODEL_PROVIDERS[full_model]
+                for alias, full_model in ALIAS_TO_MODEL.items()
+            },
+            gateway_sequences=GatewaySequenceSpan(
+                start_exclusive=start_sequence,
+                end_inclusive=end_sequence,
+            ),
+            usage_before=float(credits.total_usage),
+            usage_after=float(after.total_usage),
+            metered_cost_usd=metered_cost,
+            projected_worst_case_usd=forecast,
+            valid=False,
+        )
+        return LaunchExecution(
+            launch=launch,
+            outcomes=outcomes,
+            completed=completed,
+            credits_after=after,
+            post_meter_error=post_meter_error,
+        )
+
+    def _report(
+        self,
+        smoke: SmokeReport | None,
+        batches: list[BatchReport],
+        launches: list[LaunchReport],
+        gateway: ProviderGateway,
+        failure: str | None,
+    ) -> MatrixReport:
         return MatrixReport(
             run_id=self.config.run_id,
             baseline_usage=float(self._budget.baseline_usage),
             cap_usage=self._budget.cap_usage,
+            smoke=smoke,
             batches=tuple(batches),
+            launches=tuple(launches),
             gateway_provenance=tuple(gateway.provenance),
+            failure=failure,
         )
 
     async def _capture(self, command: tuple[str, ...], label: str) -> str:
@@ -576,6 +920,77 @@ class MatrixRunner:
         self.config.jobs_dir.mkdir(parents=True, exist_ok=True)
         path = self.config.jobs_dir / f"{self.config.run_id}-matrix.json"
         path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+
+
+class LaunchExecution(BaseModel):
+    launch: LaunchReport
+    outcomes: tuple[TrialOutcome, ...]
+    completed: CompletedCommand
+    credits_after: CreditSnapshot
+    post_meter_error: BudgetExceededError | CreditMeterError | None = None
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+def _launch_failure(execution: LaunchExecution) -> str | None:
+    if execution.post_meter_error is not None:
+        return str(execution.post_meter_error)
+    if execution.completed.returncode != 0:
+        return (
+            f"Harbor batch {execution.launch.task_name} exited "
+            f"{execution.completed.returncode}"
+        )
+    return None
+
+
+def _build_trial_records(
+    outcomes: tuple[TrialOutcome, ...],
+    fingerprints: tuple[TrialFingerprint, ...],
+    *,
+    job_name: str,
+    phase: Literal["smoke", "additional", "matrix"],
+    first_attempt: int,
+) -> tuple[TrialRecord, ...]:
+    by_alias = {
+        alias: next(
+            fingerprint
+            for fingerprint in fingerprints
+            if fingerprint.model == ALIAS_TO_MODEL[alias]
+        )
+        for alias in MODEL_ALIASES
+    }
+    seen: Counter[str | None] = Counter()
+    records: list[TrialRecord] = []
+    for outcome in outcomes:
+        alias = outcome.model_alias
+        attempt: int | None = None
+        fingerprint: TrialFingerprint | None = None
+        if alias in by_alias:
+            attempt = first_attempt + seen[alias]
+            fingerprint = by_alias[alias]
+        seen[alias] += 1
+        records.append(
+            TrialRecord(
+                attempt=attempt,
+                source_job_name=job_name,
+                phase=phase,
+                fingerprint=fingerprint,
+                outcome=outcome,
+            )
+        )
+    return tuple(records)
+
+
+def _fingerprint_sets_reusable(
+    smoke: tuple[TrialFingerprint, ...],
+    final: tuple[TrialFingerprint, ...],
+    *,
+    smoke_valid: bool,
+) -> bool:
+    return len(smoke) == len(final) and all(
+        smoke_is_reusable(smoke_item, final_item, smoke_valid=smoke_valid)
+        for smoke_item, final_item in zip(smoke, final, strict=True)
+    )
 
 
 def _exception_name(exception_info: object) -> str:

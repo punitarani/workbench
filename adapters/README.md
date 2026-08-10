@@ -42,6 +42,11 @@ OPENROUTER_API_KEY=... uv run python -m workbench.adapters.harbor_matrix \
     --projected-worst-case-batch-usd 3.00
 ```
 
-The runner pins Harbor 0.18.0 and Codex 0.147.0, executes one task batch at a
-time, meters credits before work and after each batch, rejects invalid trials,
-and writes an incremental provenance report under `jobs/`.
+The runner pins Harbor 0.18.0 and Codex 0.147.0. It first runs one fee-dispute
+smoke trial for each model, validates that the complete task and materialized
+environment fingerprint is unchanged, and reuses those trials as attempt one.
+It then runs two more fee attempts per model and three attempts per model for
+each remaining task, one task batch at a time. Credits are metered before paid
+work and after every launch. The incremental report under `jobs/` records each
+attempt's fingerprint, enforced routing order, unobserved actual-provider
+status, request-sequence spans, spend, and any failure that stops the run.

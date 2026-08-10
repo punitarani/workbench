@@ -5,8 +5,13 @@ from pathlib import Path
 
 import httpx
 import pytest
+from pydantic import ValidationError
 
+from workbench.adapters.harbor_matrix import runner as matrix_runner
 from workbench.adapters.harbor_matrix.cli import parse_args
+from workbench.adapters.harbor_matrix.gateway import (
+    MODEL_ALIASES as ALIAS_TO_MODEL_FOR_TEST,
+)
 from workbench.adapters.harbor_matrix.gateway import (
     GatewayConfig,
     ProviderGateway,
@@ -20,6 +25,7 @@ from workbench.adapters.harbor_matrix.runner import (
     CompletedCommand,
     CreditBudget,
     CreditMeter,
+    CreditMeterError,
     CreditSnapshot,
     HarborRunError,
     MatrixConfig,
@@ -27,7 +33,6 @@ from workbench.adapters.harbor_matrix.runner import (
     TrialFingerprint,
     build_harbor_command,
     classify_trial_result,
-    hash_task_content,
     smoke_is_reusable,
     validate_batch_outcomes,
     validate_harbor_version,
@@ -90,7 +95,10 @@ async def test_gateway_restores_alias_and_injects_provider_pin(
         },
     }
     assert gateway.provenance[0].model == "z-ai/glm-5.2"
-    assert gateway.provenance[0].provider_order == MODEL_PROVIDERS["z-ai/glm-5.2"]
+    assert (
+        gateway.provenance[0].enforced_provider_order == MODEL_PROVIDERS["z-ai/glm-5.2"]
+    )
+    assert gateway.provenance[0].actual_provider is None
     log_text = caplog.text
     assert "z-ai/glm-5.2" in log_text
     assert "private client request" not in log_text
@@ -189,6 +197,40 @@ async def test_gateway_rejects_bad_auth_and_cleans_up_on_failure(
             await client.post(gateway.local_url, timeout=0.1)
 
 
+async def test_gateway_generic_failure_log_never_contains_exception_or_request_secrets(
+    gateway_config: GatewayConfig,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    async def upstream(request: httpx.Request) -> httpx.Response:
+        await request.aread()
+        raise RuntimeError(
+            "private client request openrouter-host-secret "
+            "ephemeral-container-secret Authorization"
+        )
+
+    caplog.set_level(logging.ERROR, logger="workbench.adapters.harbor_matrix.gateway")
+    gateway = ProviderGateway(
+        gateway_config, upstream_transport=httpx.MockTransport(upstream)
+    )
+    async with gateway:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{gateway.local_url}/v1/responses",
+                headers={"Authorization": "Bearer ephemeral-container-secret"},
+                json={"model": "gpt-5.6-luna", "input": "private client request"},
+            )
+
+    assert response.status_code == 502
+    assert "provider gateway transport failure" in caplog.text
+    for secret in (
+        "private client request",
+        "openrouter-host-secret",
+        "ephemeral-container-secret",
+        "Authorization",
+    ):
+        assert secret not in caplog.text
+
+
 def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -> None:
     config = MatrixConfig(
         repository=tmp_path,
@@ -257,6 +299,15 @@ def test_matrix_cli_requires_explicit_run_and_cost_projection(tmp_path: Path) ->
     assert config.jobs_dir == tmp_path / "jobs"
     assert config.attempts == 3
     assert config.concurrency == 8
+    with pytest.raises(ValidationError):
+        MatrixConfig(
+            repository=tmp_path,
+            tasks_root=tmp_path / "tasks",
+            jobs_dir=tmp_path / "jobs",
+            run_id="not-three",
+            attempts=2,
+            projected_worst_case_batch_usd=1,
+        )
 
 
 def _result(
@@ -291,6 +342,9 @@ def test_trial_result_requires_complete_finite_verifier_metrics(tmp_path: Path) 
     for name, rewards in {
         "missing": {"reward": 0, "answer": 0},
         "not-finite": {"reward": 0, "answer": float("nan"), "process": 0},
+        "negative": {"reward": 0, "answer": 0, "process": -0.01},
+        "above-one": {"reward": 0, "answer": 0, "process": 1.01},
+        "reward-not-answer": {"reward": 0.4, "answer": 0.5, "process": 0},
         "malformed": None,
     }.items():
         result = tmp_path / f"{name}.json"
@@ -330,6 +384,15 @@ def test_budget_enforces_project_cap_and_reserve() -> None:
     with pytest.raises(BudgetExceededError):
         budget.assert_can_launch(credits, projected_worst_case_usd=5.714)
     assert budget.cap_usage == pytest.approx(57.2139)
+    with pytest.raises(CreditMeterError, match="decreased"):
+        budget.metered_cost(
+            CreditSnapshot(total_credits=100, total_usage=50.0),
+            CreditSnapshot(total_credits=100, total_usage=49.9),
+        )
+    with pytest.raises(BudgetExceededError, match="observed"):
+        budget.assert_observed_within_cap(
+            CreditSnapshot(total_credits=100, total_usage=57.3)
+        )
 
 
 async def test_credit_meter_uses_authoritative_endpoint_without_leaking_key() -> None:
@@ -355,21 +418,36 @@ async def test_credit_meter_uses_authoritative_endpoint_without_leaking_key() ->
 
 
 class FakeCreditMeter:
-    def __init__(self) -> None:
+    def __init__(self, usages: list[float] | None = None) -> None:
         self.queries = 0
+        self._usages = usages
 
     async def query(self) -> CreditSnapshot:
+        usage = (
+            self._usages[self.queries]
+            if self._usages is not None
+            else 40.0 + (self.queries * 0.25)
+        )
         snapshot = CreditSnapshot(
             total_credits=100,
-            total_usage=40.0 + (self.queries * 0.25),
+            total_usage=usage,
         )
         self.queries += 1
         return snapshot
 
 
 class FakeCommands:
-    def __init__(self) -> None:
-        self.harbor_tasks: list[str] = []
+    def __init__(
+        self,
+        *,
+        invalid_smoke: bool = False,
+        mutate_environment_after_smoke: Path | None = None,
+        send_gateway_requests: bool = False,
+    ) -> None:
+        self.harbor_runs: list[tuple[str, int, tuple[str, ...], str]] = []
+        self.invalid_smoke = invalid_smoke
+        self.mutate_environment_after_smoke = mutate_environment_after_smoke
+        self.send_gateway_requests = send_gateway_requests
 
     async def run(self, command: tuple[str, ...], *, cwd: Path) -> CompletedCommand:
         if command == ("harbor", "--version"):
@@ -379,13 +457,33 @@ class FakeCommands:
         if command[:3] == ("docker", "image", "inspect"):
             return CompletedCommand(returncode=0, stdout="sha256:image\n")
         task_name = Path(command[command.index("-p") + 1]).name
-        self.harbor_tasks.append(task_name)
         jobs_dir = Path(command[command.index("-o") + 1])
         job_name = command[command.index("--job-name") + 1]
         attempts = int(command[command.index("-k") + 1])
         aliases = [
             command[index + 1] for index, value in enumerate(command) if value == "-m"
         ]
+        self.harbor_runs.append((task_name, attempts, tuple(aliases), job_name))
+        if self.send_gateway_requests:
+            base_url_arg = next(
+                argument
+                for argument in command
+                if argument.startswith("OPENAI_BASE_URL=")
+            )
+            token_arg = next(
+                argument
+                for argument in command
+                if argument.startswith("OPENAI_API_KEY=")
+            )
+            port = base_url_arg.split(":")[-1].split("/")[0]
+            token = token_arg.split("=", maxsplit=1)[1]
+            async with httpx.AsyncClient() as client:
+                for alias in aliases:
+                    await client.post(
+                        f"http://127.0.0.1:{port}/v1/responses",
+                        headers={"Authorization": f"Bearer {token}"},
+                        json={"model": alias, "input": "redacted"},
+                    )
         for alias in aliases:
             for attempt in range(attempts):
                 trial = jobs_dir / job_name / f"{alias}-{attempt}"
@@ -399,7 +497,11 @@ class FakeCommands:
                             "exception_info": None,
                             "verifier_result": {
                                 "rewards": {
-                                    "reward": 0.2,
+                                    "reward": (
+                                        0.3
+                                        if self.invalid_smoke and "smoke" in job_name
+                                        else 0.2
+                                    ),
                                     "answer": 0.2,
                                     "process": 0.8,
                                 }
@@ -408,6 +510,8 @@ class FakeCommands:
                     ),
                     encoding="utf-8",
                 )
+        if "smoke" in job_name and self.mutate_environment_after_smoke is not None:
+            self.mutate_environment_after_smoke.write_bytes(b"rematerialized")
         return CompletedCommand(returncode=0)
 
 
@@ -426,8 +530,147 @@ async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
         run_id="offline-matrix",
         projected_worst_case_batch_usd=1.0,
     )
-    commands = FakeCommands()
+    commands = FakeCommands(send_gateway_requests=True)
     meter = FakeCreditMeter()
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        credit_meter=meter,
+        gateway_transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, json={"status": "completed"})
+        ),
+    )
+
+    report = await runner.run()
+
+    assert [run[:3] for run in commands.harbor_runs] == [
+        ("fee-dispute-reconstruction", 1, MODEL_ALIASES),
+        ("fee-dispute-reconstruction", 2, MODEL_ALIASES),
+        *[(task_name, 3, MODEL_ALIASES) for task_name in TASK_ORDER[1:]],
+    ]
+    assert "smoke" in commands.harbor_runs[0][3]
+    assert "additional" in commands.harbor_runs[1][3]
+    assert meter.queries == 1 + len(commands.harbor_runs)
+    assert report.smoke is not None
+    assert report.smoke.valid
+    assert len(report.smoke.trials) == 3
+    assert [batch.task_name for batch in report.batches] == list(TASK_ORDER)
+    assert all(len(batch.trials) == 9 for batch in report.batches)
+    assert all(
+        trial.outcome.valid for batch in report.batches for trial in batch.trials
+    )
+    assert [launch.sequence for launch in report.launches] == list(range(1, 10))
+    assert [launch.phase for launch in report.launches[:2]] == [
+        "smoke",
+        "additional",
+    ]
+    assert [launch.task_name for launch in report.launches] == [
+        "fee-dispute-reconstruction",
+        *TASK_ORDER,
+    ]
+    assert all(
+        launch.enforced_model_routes
+        == {
+            alias: MODEL_PROVIDERS[full_model]
+            for alias, full_model in ALIAS_TO_MODEL_FOR_TEST.items()
+        }
+        for launch in report.launches
+    )
+    assert [
+        (
+            launch.gateway_sequences.start_exclusive,
+            launch.gateway_sequences.end_inclusive,
+        )
+        for launch in report.launches
+    ] == [(index * 3, (index + 1) * 3) for index in range(9)]
+    assert all(record.actual_provider is None for record in report.gateway_provenance)
+    assert all(
+        trial.fingerprint.model == ALIAS_TO_MODEL_FOR_TEST[trial.outcome.model_alias]
+        for batch in report.batches
+        for trial in batch.trials
+    )
+    assert all(
+        len([trial for trial in batch.trials if trial.outcome.model_alias == alias])
+        == 3
+        for batch in report.batches
+        for alias in MODEL_ALIASES
+    )
+    persisted = json.loads(
+        (config.jobs_dir / "offline-matrix-matrix.json").read_text(encoding="utf-8")
+    )
+    assert len(persisted["batches"]) == 8
+    assert persisted["smoke"]["valid"] is True
+    assert persisted["failure"] is None
+
+
+async def test_invalid_smoke_is_persisted_and_stops_before_final_fee_attempts(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    config = _matrix_config(tmp_path, tasks_root, run_id="invalid-smoke")
+    commands = FakeCommands(invalid_smoke=True)
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        credit_meter=FakeCreditMeter(),
+        gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
+    )
+
+    with pytest.raises(HarborRunError, match="smoke"):
+        await runner.run()
+
+    assert len(commands.harbor_runs) == 1
+    persisted = json.loads(
+        (config.jobs_dir / "invalid-smoke-matrix.json").read_text(encoding="utf-8")
+    )
+    assert persisted["smoke"]["valid"] is False
+    assert persisted["smoke"]["failure"]
+    assert persisted["failure"]
+    assert persisted["batches"] == []
+
+
+async def test_rematerialized_environment_invalidates_smoke_before_reuse(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    state = tasks_root / "fee-dispute-reconstruction/environment/.workbench/state.db"
+    state.parent.mkdir(parents=True)
+    state.write_bytes(b"original")
+    config = _matrix_config(tmp_path, tasks_root, run_id="changed-environment")
+    commands = FakeCommands(mutate_environment_after_smoke=state)
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        credit_meter=FakeCreditMeter(),
+        gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
+    )
+
+    with pytest.raises(HarborRunError, match="fingerprint"):
+        await runner.run()
+
+    assert len(commands.harbor_runs) == 1
+    persisted = json.loads(
+        (config.jobs_dir / "changed-environment-matrix.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert persisted["smoke"]["valid"] is False
+    assert "fingerprint" in persisted["smoke"]["failure"]
+
+
+async def test_post_batch_cap_breach_is_persisted_before_runner_stops(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    config = _matrix_config(tmp_path, tasks_root, run_id="cap-breach")
+    commands = FakeCommands()
+    meter = FakeCreditMeter([53.0, 54.0, 57.3])
     runner = MatrixRunner(
         config,
         openrouter_api_key="host-only",
@@ -437,17 +680,36 @@ async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
         gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
     )
 
-    report = await runner.run()
+    with pytest.raises(BudgetExceededError, match="observed"):
+        await runner.run()
 
-    assert tuple(commands.harbor_tasks) == TASK_ORDER
-    assert meter.queries == 1 + len(TASK_ORDER)
-    assert [batch.task_name for batch in report.batches] == list(TASK_ORDER)
-    assert all(len(batch.outcomes) == 9 for batch in report.batches)
-    assert all(outcome.valid for batch in report.batches for outcome in batch.outcomes)
+    assert len(commands.harbor_runs) == 2
     persisted = json.loads(
-        (config.jobs_dir / "offline-matrix-matrix.json").read_text(encoding="utf-8")
+        (config.jobs_dir / "cap-breach-matrix.json").read_text(encoding="utf-8")
     )
-    assert len(persisted["batches"]) == 8
+    assert persisted["smoke"]["valid"] is True
+    assert len(persisted["batches"]) == 1
+    assert persisted["batches"][0]["task_name"] == "fee-dispute-reconstruction"
+    assert "observed" in persisted["failure"]
+
+
+def _make_tasks(tmp_path: Path) -> Path:
+    tasks_root = tmp_path / "tasks"
+    for task_name in TASK_ORDER:
+        task = tasks_root / task_name
+        task.mkdir(parents=True)
+        (task / "task.toml").write_text('version = "1.3"\n', encoding="utf-8")
+    return tasks_root
+
+
+def _matrix_config(tmp_path: Path, tasks_root: Path, *, run_id: str) -> MatrixConfig:
+    return MatrixConfig(
+        repository=tmp_path,
+        tasks_root=tasks_root,
+        jobs_dir=tmp_path / "jobs",
+        run_id=run_id,
+        projected_worst_case_batch_usd=1.0,
+    )
 
 
 def test_fingerprint_is_content_sensitive_and_smoke_requires_exact_match(
@@ -457,24 +719,44 @@ def test_fingerprint_is_content_sensitive_and_smoke_requires_exact_match(
     (task / "tests").mkdir(parents=True)
     (task / "task.toml").write_text("version = '1.0'\n", encoding="utf-8")
     (task / "tests" / "criteria.py").write_text("WEIGHT = 1\n", encoding="utf-8")
-    first_hash = hash_task_content(task)
+    first = matrix_runner.hash_harbor_inputs(task)
     (task / "bundle").mkdir()
     (task / "bundle" / "clio.db").write_bytes(b"ignored generated state")
-    assert hash_task_content(task) == first_hash
+    assert matrix_runner.hash_harbor_inputs(task) == first
+    environment = task / "environment"
+    (environment / ".workbench" / "runtime").mkdir(parents=True)
+    (environment / "workspace.md").write_text("agent workspace\n", encoding="utf-8")
+    (environment / ".workbench" / "state.db").write_bytes(b"state one")
+    (environment / ".workbench" / "runtime" / "server.py").write_text(
+        "VERSION = 1\n", encoding="utf-8"
+    )
+    staged = matrix_runner.hash_harbor_inputs(task)
+    assert staged.task_source_sha256 == first.task_source_sha256
+    assert staged.environment_sha256 != first.environment_sha256
+    (environment / ".workbench" / "state.db").write_bytes(b"state two")
+    rematerialized = matrix_runner.hash_harbor_inputs(task)
+    assert rematerialized.environment_sha256 != staged.environment_sha256
+    (environment / ".workbench" / "runtime" / "server.py").write_text(
+        "VERSION = 2\n", encoding="utf-8"
+    )
+    assert matrix_runner.hash_harbor_inputs(task).environment_sha256 != (
+        rematerialized.environment_sha256
+    )
     (task / "tests" / "criteria.py").write_text("WEIGHT = 2\n", encoding="utf-8")
-    second_hash = hash_task_content(task)
-    assert second_hash != first_hash
+    second = matrix_runner.hash_harbor_inputs(task)
+    assert second.task_source_sha256 != first.task_source_sha256
 
     fingerprint = TrialFingerprint(
         git_revision="abc123",
         image_id="sha256:image",
         task_name="fee-dispute-reconstruction",
-        task_content_sha256=second_hash,
+        task_source_sha256=second.task_source_sha256,
+        environment_sha256=second.environment_sha256,
         gateway_version="1",
         harbor_version=HARBOR_VERSION,
         codex_version=CODEX_VERSION,
         model="z-ai/glm-5.2",
-        provider_order=MODEL_PROVIDERS["z-ai/glm-5.2"],
+        enforced_provider_order=MODEL_PROVIDERS["z-ai/glm-5.2"],
     )
     assert smoke_is_reusable(fingerprint, fingerprint, smoke_valid=True)
     changed = fingerprint.model_copy(update={"image_id": "sha256:other"})

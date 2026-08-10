@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
 from workbench.adapters.harness.openrouter_client import MODEL_PROVIDERS
 
 LOGGER = logging.getLogger(__name__)
-GATEWAY_VERSION = "1"
+GATEWAY_VERSION = "2"
 MAX_HEADER_BYTES = 64 * 1024
 MAX_BODY_BYTES = 16 * 1024 * 1024
 HOP_BY_HOP_HEADERS = {
@@ -43,7 +43,8 @@ class GatewayConfig(BaseModel):
 class GatewayProvenance(BaseModel):
     sequence: int = Field(ge=1)
     model: str
-    provider_order: tuple[str, ...]
+    enforced_provider_order: tuple[str, ...]
+    actual_provider: str | None = None
     status: int = Field(ge=100, le=599)
 
 
@@ -160,7 +161,7 @@ class ProviderGateway:
         except asyncio.IncompleteReadError, asyncio.LimitOverrunError, ValueError:
             await self._write_json_error(writer, 400, "malformed request")
         except Exception:
-            LOGGER.exception("provider gateway transport failure")
+            LOGGER.error("provider gateway transport failure")
             await self._write_json_error(writer, 502, "upstream unavailable")
         finally:
             writer.close()
@@ -261,7 +262,7 @@ class ProviderGateway:
                         writer.write(chunk)
                         await writer.drain()
                 except httpx.HTTPError, ConnectionError:
-                    LOGGER.exception("provider gateway response stream failed")
+                    LOGGER.error("provider gateway response stream failed")
         finally:
             await response.aclose()
 
@@ -270,7 +271,10 @@ class ProviderGateway:
         record = GatewayProvenance(
             sequence=self._sequence,
             model=model,
-            provider_order=providers,
+            enforced_provider_order=providers,
+            # The Responses stream is proxied byte-for-byte, so the gateway
+            # does not inspect response content to infer the serving provider.
+            actual_provider=None,
             status=status,
         )
         self.provenance.append(record)
