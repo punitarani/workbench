@@ -472,6 +472,36 @@ def test_matrix_cli_can_select_canonical_task_batches(tmp_path: Path) -> None:
         )
 
 
+def test_diagnostic_smoke_cli_requires_exactly_one_task(tmp_path: Path) -> None:
+    config = parse_args(
+        [
+            "--run-id",
+            "billing-screen",
+            "--projected-worst-case-batch-usd",
+            "9.0",
+            "--task",
+            "billing-hygiene-audit",
+            "--diagnostic-smoke",
+            "--repository",
+            str(tmp_path),
+        ]
+    )
+
+    assert config.diagnostic_smoke is True
+    assert config.tasks == ("billing-hygiene-audit",)
+
+    with pytest.raises(ValidationError, match="diagnostic_smoke"):
+        MatrixConfig(
+            repository=tmp_path,
+            tasks_root=tmp_path / "tasks",
+            jobs_dir=tmp_path / "jobs",
+            run_id="multi-screen",
+            tasks=("billing-hygiene-audit", "visitor-log-audit"),
+            diagnostic_smoke=True,
+            projected_worst_case_batch_usd=9.0,
+        )
+
+
 def _result(
     path: Path,
     *,
@@ -855,6 +885,51 @@ async def test_matrix_runner_executes_a_selected_non_fee_task_without_fee_smoke(
     assert len(report.batches[0].trials) == 9
     assert len(report.launches) == 1
     assert report.launches[0].phase == "matrix"
+
+
+async def test_matrix_runner_executes_one_attempt_per_model_diagnostic_smoke(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    config = MatrixConfig(
+        repository=tmp_path,
+        tasks_root=tasks_root,
+        jobs_dir=tmp_path / "jobs",
+        run_id="billing-screen",
+        tasks=("billing-hygiene-audit",),
+        diagnostic_smoke=True,
+        projected_worst_case_batch_usd=9.0,
+    )
+    commands = FakeCommands()
+    meter = FakeCreditMeter()
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        credit_meter=meter,
+        gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
+    )
+
+    report = await runner.run()
+
+    assert commands.harbor_runs == [
+        (
+            "billing-hygiene-audit",
+            1,
+            MODEL_ALIASES,
+            "billing-screen-diagnostic-smoke-03-billing-hygiene-audit",
+        )
+    ]
+    assert meter.queries == 2
+    assert report.smoke is not None
+    assert report.smoke.task_name == "billing-hygiene-audit"
+    assert report.smoke.valid
+    assert len(report.smoke.trials) == 3
+    assert report.batches == ()
+    assert len(report.launches) == 1
+    assert report.launches[0].phase == "diagnostic-smoke"
+    assert report.launches[0].projected_worst_case_usd == pytest.approx(3.0)
 
 
 async def test_invalid_smoke_is_persisted_and_stops_before_final_fee_attempts(

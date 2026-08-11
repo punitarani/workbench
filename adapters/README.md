@@ -74,3 +74,9 @@ work, during every launch, and after every launch. The incremental report under
 `jobs/` records each
 attempt's fingerprint, enforced routing order, unobserved actual-provider
 status, request-sequence spans, spend, and any failure that stops the run.
+
+To screen one task before purchasing a full matrix, add `--diagnostic-smoke`
+with exactly one `--task`. This runs one attempt for each pinned model under the
+same gateway, provenance, fingerprint, and live-budget controls. Diagnostic
+smokes are reported separately and are not merged into the final best-of-three
+matrix.

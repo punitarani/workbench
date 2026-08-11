@@ -27,6 +27,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--tasks-root", type=Path)
     parser.add_argument("--jobs-dir", type=Path)
     parser.add_argument("--attempts", type=int, default=3)
+    parser.add_argument(
+        "--diagnostic-smoke",
+        action="store_true",
+        help="Run one non-reusable attempt per model for exactly one task.",
+    )
     parser.add_argument("--concurrency", type=int, default=8)
     parser.add_argument("--task", action="append", choices=TASK_ORDER)
     parser.add_argument("--budget-baseline-usage", type=float, default=32.2139)
@@ -49,6 +54,7 @@ def parse_args(argv: list[str] | None = None) -> MatrixConfig:
         run_id=args.run_id,
         tasks=tuple(task for task in TASK_ORDER if task in selected),
         attempts=args.attempts,
+        diagnostic_smoke=args.diagnostic_smoke,
         concurrency=args.concurrency,
         projected_worst_case_batch_usd=args.projected_worst_case_batch_usd,
         budget_baseline_usage=args.budget_baseline_usage,

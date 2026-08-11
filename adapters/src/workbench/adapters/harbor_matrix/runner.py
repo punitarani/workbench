@@ -8,7 +8,7 @@ import tempfile
 from collections import Counter
 from contextlib import suppress
 from pathlib import Path
-from typing import Literal, Protocol
+from typing import Literal, Protocol, Self
 
 import httpx
 from pydantic import (
@@ -21,6 +21,7 @@ from pydantic import (
     StrictInt,
     ValidationError,
     field_validator,
+    model_validator,
 )
 
 from workbench.adapters.harbor_matrix.gateway import (
@@ -63,6 +64,7 @@ TaskName = Literal[
     "standard-drift",
     "vanished-clause",
 ]
+TrialPhase = Literal["smoke", "diagnostic-smoke", "additional", "matrix"]
 IGNORED_TASK_SOURCE_PARTS = {
     ".git",
     ".pytest_cache",
@@ -80,6 +82,7 @@ class MatrixConfig(BaseModel):
     run_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
     tasks: tuple[TaskName, ...] = Field(default=TASK_ORDER, min_length=1)
     attempts: Literal[3] = 3
+    diagnostic_smoke: bool = False
     concurrency: int = Field(default=8, ge=1, le=8)
     projected_worst_case_batch_usd: FiniteFloat = Field(gt=0)
     budget_baseline_usage: FiniteFloat = Field(default=32.2139, ge=0)
@@ -94,6 +97,12 @@ class MatrixConfig(BaseModel):
             raise ValueError("tasks must not contain duplicates")
         selected = set(tasks)
         return tuple(task for task in TASK_ORDER if task in selected)
+
+    @model_validator(mode="after")
+    def diagnostic_smoke_has_one_task(self) -> Self:
+        if self.diagnostic_smoke and len(self.tasks) != 1:
+            raise ValueError("diagnostic_smoke requires exactly one selected task")
+        return self
 
 
 class CreditSnapshot(BaseModel):
@@ -344,7 +353,7 @@ class GatewaySequenceSpan(BaseModel):
 
 class LaunchReport(BaseModel):
     sequence: int = Field(ge=1)
-    phase: Literal["smoke", "additional", "matrix"]
+    phase: TrialPhase
     task_name: str
     job_name: str
     attempts_per_model: int = Field(ge=1, le=3)
@@ -361,13 +370,13 @@ class LaunchReport(BaseModel):
 class TrialRecord(BaseModel):
     attempt: int | None = Field(default=None, ge=1, le=3)
     source_job_name: str
-    phase: Literal["smoke", "additional", "matrix"]
+    phase: TrialPhase
     fingerprint: TrialFingerprint | None
     outcome: TrialOutcome
 
 
 class SmokeReport(BaseModel):
-    task_name: Literal["fee-dispute-reconstruction"]
+    task_name: TaskName
     job_name: str
     valid: bool
     failure: str | None = None
@@ -720,6 +729,68 @@ class MatrixRunner:
         try:
             async with gateway:
                 try:
+                    if self.config.diagnostic_smoke:
+                        diagnostic_task = self.config.tasks[0]
+                        diagnostic_fingerprints = await self._resolve_fingerprints(
+                            diagnostic_task
+                        )
+                        diagnostic_execution = await self._execute_launch(
+                            gateway=gateway,
+                            credits=credits,
+                            forecast=launch_projection(
+                                full_batch_forecast, attempts_per_model=1
+                            ),
+                            task_name=diagnostic_task,
+                            attempts=1,
+                            phase="diagnostic-smoke",
+                            job_label="diagnostic-smoke",
+                            sequence=1,
+                        )
+                        launches.append(diagnostic_execution.launch)
+                        diagnostic_trials = _build_trial_records(
+                            diagnostic_execution.outcomes,
+                            diagnostic_fingerprints,
+                            job_name=diagnostic_execution.launch.job_name,
+                            phase="diagnostic-smoke",
+                            first_attempt=1,
+                        )
+                        diagnostic_failure = _launch_failure(diagnostic_execution)
+                        if diagnostic_failure is None:
+                            try:
+                                validate_batch_outcomes(
+                                    diagnostic_execution.outcomes, attempts=1
+                                )
+                            except HarborRunError as error:
+                                diagnostic_failure = (
+                                    f"diagnostic smoke invalid: {error}"
+                                )
+                        smoke = SmokeReport(
+                            task_name=diagnostic_task,
+                            job_name=diagnostic_execution.launch.job_name,
+                            valid=diagnostic_failure is None,
+                            failure=diagnostic_failure,
+                            trials=diagnostic_trials,
+                            launch_sequence=1,
+                        )
+                        launches[-1] = launches[-1].model_copy(
+                            update={
+                                "valid": diagnostic_failure is None,
+                                "failure": diagnostic_failure,
+                            }
+                        )
+                        report = self._report(
+                            smoke,
+                            batches,
+                            launches,
+                            gateway,
+                            diagnostic_failure,
+                        )
+                        self._write_report(report)
+                        if diagnostic_failure is not None:
+                            if diagnostic_execution.post_meter_error is not None:
+                                raise diagnostic_execution.post_meter_error
+                            raise HarborRunError(diagnostic_failure)
+                        return report
                     fee_task = TASK_ORDER[0]
                     if fee_task not in self.config.tasks:
                         await self._execute_matrix_tasks(
@@ -992,7 +1063,7 @@ class MatrixRunner:
         forecast: float,
         task_name: str,
         attempts: int,
-        phase: Literal["smoke", "additional", "matrix"],
+        phase: TrialPhase,
         job_label: str | None,
         sequence: int,
     ) -> LaunchExecution:
@@ -1170,7 +1241,7 @@ def _build_trial_records(
     fingerprints: tuple[TrialFingerprint, ...],
     *,
     job_name: str,
-    phase: Literal["smoke", "additional", "matrix"],
+    phase: TrialPhase,
     first_attempt: int,
 ) -> tuple[TrialRecord, ...]:
     by_alias = {
