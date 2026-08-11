@@ -43,6 +43,14 @@ drift = {
         "version": 3,
         "date": "2026-03-25",
     },
+    "versions_reviewed": 0,
+    "substantive_versions": 0,
+    "notices_only_versions": 0,
+    "unchanged_versions": 0,
+    "covered_substantive_versions": 0,
+    "silent_substantive_versions": 0,
+    "covering_email_count": 0,
+    "version_audit": [],
 }
 with open("drift.json", "w") as handle:
     json.dump(drift, handle, indent=2)

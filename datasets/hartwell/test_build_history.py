@@ -28,3 +28,7 @@ def test_history_audit_certifies_quiet_drop_revision_ledger(
         "[ok] revision evidence ledger has 57 post-v1 saves, 52 covered, "
         "5 unreviewed, and 53 exact citations" in output
     )
+    assert (
+        "[ok] NDA version audit has 16 post-v1 saves: 8 substantive, "
+        "1 notices-only, 7 unchanged, and 4 exact covering emails" in output
+    )

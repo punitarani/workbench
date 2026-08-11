@@ -900,20 +900,29 @@ def audit(log_path: Path, state_dir: Path) -> int:
     silent_substantive: list[tuple[str, int]] = []
     covered_substantive: list[tuple[str, int]] = []
     nonsubstantive_diffs: list[tuple[str, int]] = []
+    nda_versions_reviewed = 0
+    unchanged_nda_versions = 0
+    nda_covering_emails = 0
     for title in nda_titles_all:
         vendor = title.split(" — ")[1].split()[0].lower()
         ordered = sorted(histories[title])
         for (_, previous, _), (version, current, day) in zip(
             ordered, ordered[1:], strict=False
         ):
+            nda_versions_reviewed += 1
             if previous == current:
+                unchanged_nda_versions += 1
                 continue
             if strip_notices(previous) == strip_notices(current):
                 nonsubstantive_diffs.append((title, version))
                 continue
-            covered = any(
-                vendor in text for text, text_day, _ in emails if text_day == day
-            )
+            covering_emails = [
+                text
+                for text, text_day, _ in emails
+                if text_day == day and vendor in text
+            ]
+            covered = bool(covering_emails)
+            nda_covering_emails += len(covering_emails)
             bucket = covered_substantive if covered else silent_substantive
             bucket.append((title, version))
 
@@ -937,6 +946,15 @@ def audit(log_path: Path, state_dir: Path) -> int:
         f"a real-but-nonsubstantive diff exists as near-miss noise "
         f"({short(nonsubstantive_diffs)})",
         short(nonsubstantive_diffs) == [("Brightwater", 3)],
+    )
+    check(
+        "NDA version audit has 16 post-v1 saves: 8 substantive, "
+        "1 notices-only, 7 unchanged, and 4 exact covering emails",
+        nda_versions_reviewed == 16
+        and len(silent_substantive) + len(covered_substantive) == 8
+        and len(nonsubstantive_diffs) == 1
+        and unchanged_nda_versions == 7
+        and nda_covering_emails == 4,
     )
 
     # (b) unreviewed revisions: v2+ of any multi-version document whose

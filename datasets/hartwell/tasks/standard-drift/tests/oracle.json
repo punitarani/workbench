@@ -1,4 +1,6 @@
 {
+  "covered_substantive_versions": 4,
+  "covering_email_count": 4,
   "ndas": {
     "/firm/vendor-ndas/mutual-nda-archway.md": "conforms",
     "/firm/vendor-ndas/mutual-nda-baymark.md": "conforms",
@@ -10,6 +12,7 @@
     "/firm/vendor-ndas/mutual-nda-summit.md": "conforms",
     "/firm/vendor-ndas/mutual-nda-trueline.md": "conforms"
   },
+  "notices_only_versions": 1,
   "playbook_path": "/firm/playbooks/vendor-nda-playbook.md",
   "residuals": {
     "date": "2026-06-10",
@@ -18,17 +21,143 @@
     "practice": "Accepted the vendor's position: a Residual Knowledge clause was added to the signing draft.",
     "version": 2
   },
+  "silent_substantive_versions": 4,
   "silent_versions": [
     "LEGAL!11.3",
     "LEGAL!23.3",
     "LEGAL!27.3",
     "LEGAL!36.3"
   ],
+  "substantive_versions": 8,
   "term": {
     "date": "2026-05-13",
     "document_path": "/firm/vendor-ndas/mutual-nda-lexipoint.md",
     "playbook_standard": "Confidentiality obligations capped at three (3) years; longer terms need Managing Partner sign-off.",
     "practice": "Agreed to the vendor's five (5) year confidentiality term to keep the renewal on schedule.",
     "version": 2
-  }
+  },
+  "unchanged_versions": 7,
+  "version_audit": [
+    {
+      "change_class": "unchanged",
+      "date": "2026-04-14",
+      "document_path": "/firm/vendor-ndas/mutual-nda-archway.md",
+      "email_ids": [],
+      "version_id": "LEGAL!27.2"
+    },
+    {
+      "change_class": "substantive",
+      "date": "2026-06-18",
+      "document_path": "/firm/vendor-ndas/mutual-nda-archway.md",
+      "email_ids": [],
+      "version_id": "LEGAL!27.3"
+    },
+    {
+      "change_class": "unchanged",
+      "date": "2026-03-26",
+      "document_path": "/firm/vendor-ndas/mutual-nda-baymark.md",
+      "email_ids": [],
+      "version_id": "LEGAL!16.2"
+    },
+    {
+      "change_class": "substantive",
+      "date": "2026-06-18",
+      "document_path": "/firm/vendor-ndas/mutual-nda-baymark.md",
+      "email_ids": [
+        "msg-000630"
+      ],
+      "version_id": "LEGAL!16.3"
+    },
+    {
+      "change_class": "unchanged",
+      "date": "2026-06-02",
+      "document_path": "/firm/vendor-ndas/mutual-nda-brightwater.md",
+      "email_ids": [],
+      "version_id": "LEGAL!33.2"
+    },
+    {
+      "change_class": "notices_only",
+      "date": "2026-06-24",
+      "document_path": "/firm/vendor-ndas/mutual-nda-brightwater.md",
+      "email_ids": [],
+      "version_id": "LEGAL!33.3"
+    },
+    {
+      "change_class": "unchanged",
+      "date": "2026-04-21",
+      "document_path": "/firm/vendor-ndas/mutual-nda-cobalt.md",
+      "email_ids": [],
+      "version_id": "LEGAL!23.2"
+    },
+    {
+      "change_class": "substantive",
+      "date": "2026-06-16",
+      "document_path": "/firm/vendor-ndas/mutual-nda-cobalt.md",
+      "email_ids": [],
+      "version_id": "LEGAL!23.3"
+    },
+    {
+      "change_class": "unchanged",
+      "date": "2026-05-06",
+      "document_path": "/firm/vendor-ndas/mutual-nda-harborlight.md",
+      "email_ids": [],
+      "version_id": "LEGAL!30.2"
+    },
+    {
+      "change_class": "substantive",
+      "date": "2026-06-23",
+      "document_path": "/firm/vendor-ndas/mutual-nda-harborlight.md",
+      "email_ids": [
+        "msg-000653"
+      ],
+      "version_id": "LEGAL!30.3"
+    },
+    {
+      "change_class": "substantive",
+      "date": "2026-06-10",
+      "document_path": "/firm/vendor-ndas/mutual-nda-ironclad.md",
+      "email_ids": [
+        "msg-000582"
+      ],
+      "version_id": "LEGAL!34.2"
+    },
+    {
+      "change_class": "substantive",
+      "date": "2026-05-13",
+      "document_path": "/firm/vendor-ndas/mutual-nda-lexipoint.md",
+      "email_ids": [
+        "msg-000429"
+      ],
+      "version_id": "LEGAL!32.2"
+    },
+    {
+      "change_class": "unchanged",
+      "date": "2026-06-22",
+      "document_path": "/firm/vendor-ndas/mutual-nda-summit.md",
+      "email_ids": [],
+      "version_id": "LEGAL!36.2"
+    },
+    {
+      "change_class": "substantive",
+      "date": "2026-06-25",
+      "document_path": "/firm/vendor-ndas/mutual-nda-summit.md",
+      "email_ids": [],
+      "version_id": "LEGAL!36.3"
+    },
+    {
+      "change_class": "unchanged",
+      "date": "2026-03-24",
+      "document_path": "/firm/vendor-ndas/mutual-nda-trueline.md",
+      "email_ids": [],
+      "version_id": "LEGAL!11.2"
+    },
+    {
+      "change_class": "substantive",
+      "date": "2026-06-15",
+      "document_path": "/firm/vendor-ndas/mutual-nda-trueline.md",
+      "email_ids": [],
+      "version_id": "LEGAL!11.3"
+    }
+  ],
+  "versions_reviewed": 16
 }

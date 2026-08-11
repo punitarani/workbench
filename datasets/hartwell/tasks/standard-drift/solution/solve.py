@@ -138,10 +138,10 @@ if mailed[0][0]:
 # same-day mail record naming the vendor or carrying the file.
 numbers = dict(rows("imanage.db", "SELECT path, document_number FROM documents"))
 mail_texts = [
-    (iso(time), (subject + " " + body + " " + filenames).lower())
-    for subject, body, time, filenames in rows(
+    (message_id, iso(time), (subject + " " + body + " " + filenames).lower())
+    for message_id, subject, body, time, filenames in rows(
         "gmail.db",
-        "SELECT m.subject, m.body, m.time, "
+        "SELECT m.message_id, m.subject, m.body, m.time, "
         "COALESCE((SELECT group_concat(a.filename, ' ') FROM attachments a "
         "WHERE a.message_id = m.message_id), '') FROM messages m",
     )
@@ -157,22 +157,39 @@ def strip_notices(content):
 silent_versions = []
 covered = 0
 nonsubstantive = 0
+version_audit = []
 for path in nda_paths:
     vendor = path.rsplit("/", 1)[-1].removeprefix("mutual-nda-").removesuffix(".md")
     history = versions(path)
     for (_, _, _, previous, _), (_, version, _, current, time) in zip(
         history, history[1:], strict=False
     ):
-        if previous == current:
-            continue
-        if strip_notices(previous) == strip_notices(current):
-            nonsubstantive += 1
-            continue
         day = iso(time)
-        if any(day == mail_day and vendor in text for mail_day, text in mail_texts):
-            covered += 1
-            continue
-        silent_versions.append(f"LEGAL!{numbers[path]}.{version}")
+        email_ids = sorted(
+            message_id
+            for message_id, mail_day, text in mail_texts
+            if day == mail_day and vendor in text
+        )
+        if previous == current:
+            change_class = "unchanged"
+        elif strip_notices(previous) == strip_notices(current):
+            change_class = "notices_only"
+            nonsubstantive += 1
+        else:
+            change_class = "substantive"
+            if email_ids:
+                covered += 1
+            else:
+                silent_versions.append(f"LEGAL!{numbers[path]}.{version}")
+        version_audit.append(
+            {
+                "version_id": f"LEGAL!{numbers[path]}.{version}",
+                "document_path": path,
+                "date": day,
+                "change_class": change_class,
+                "email_ids": email_ids,
+            }
+        )
 if len(silent_versions) != 4:
     sys.exit(f"expected exactly four silent substantive versions: {silent_versions}")
 if covered != 4:
@@ -187,6 +204,20 @@ drift = {
     "playbook_path": playbook_path,
     "ndas": survey,
     "silent_versions": sorted(silent_versions),
+    "versions_reviewed": len(version_audit),
+    "substantive_versions": sum(
+        item["change_class"] == "substantive" for item in version_audit
+    ),
+    "notices_only_versions": sum(
+        item["change_class"] == "notices_only" for item in version_audit
+    ),
+    "unchanged_versions": sum(
+        item["change_class"] == "unchanged" for item in version_audit
+    ),
+    "covered_substantive_versions": covered,
+    "silent_substantive_versions": len(silent_versions),
+    "covering_email_count": sum(len(item["email_ids"]) for item in version_audit),
+    "version_audit": version_audit,
     "term": {
         "playbook_standard": (
             "Confidentiality obligations capped at three (3) years; longer "

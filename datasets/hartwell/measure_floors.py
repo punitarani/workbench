@@ -192,6 +192,12 @@ def _oracle(task: str) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _canonical_records(values: Iterable[object]) -> list[str]:
+    return sorted(
+        json.dumps(item, sort_keys=True, separators=(",", ":")) for item in values
+    )
+
+
 async def _read_window(
     client: CountingClient, channel: str, oldest: int, latest: int
 ) -> list[dict]:
@@ -311,6 +317,7 @@ async def fee_dispute_reconstruction(client: CountingClient) -> None:
 
 async def standard_drift(client: CountingClient) -> None:
     truth = _truth("standard-drift")
+    oracle = _oracle("standard-drift")
     workspaces = await client.call("imanage__search_workspaces", criteria="")
     firm = next(w for w in workspaces if "firm" in w["name"].lower())
     children = await client.call(
@@ -328,6 +335,7 @@ async def standard_drift(client: CountingClient) -> None:
     assert "three (3) years" in playbook_head["content"]
 
     silent: list[str] = []
+    version_audit: list[dict[str, object]] = []
     for document in ndas:
         path = document["path"]
         vendor = path.rsplit("/", 1)[-1].removeprefix("mutual-nda-").removesuffix(".md")
@@ -348,18 +356,61 @@ async def standard_drift(client: CountingClient) -> None:
                 )
             )
         mail = await _gmail_all_pages(client, vendor)
-        covered_days = {m["date"][:10] for m in mail if vendor in _mail_text(m)}
+        qualifying_mail = [m for m in mail if vendor in _mail_text(m)]
         contents.sort()
         for (_, previous, _), (version, current, day) in zip(
             contents, contents[1:], strict=False
         ):
             if previous == current:
-                continue
-            if _strip_notices(previous) == _strip_notices(current):
-                continue
-            if day not in covered_days:
-                silent.append(f"LEGAL!{number}.{version}")
+                change_class = "unchanged"
+            elif _strip_notices(previous) == _strip_notices(current):
+                change_class = "notices_only"
+            else:
+                change_class = "substantive"
+            email_ids = sorted(
+                m["id"] for m in qualifying_mail if m["date"][:10] == day
+            )
+            version_id = f"LEGAL!{number}.{version}"
+            version_audit.append(
+                {
+                    "version_id": version_id,
+                    "document_path": path,
+                    "date": day,
+                    "change_class": change_class,
+                    "email_ids": email_ids,
+                }
+            )
+            if change_class == "substantive" and not email_ids:
+                silent.append(version_id)
     assert sorted(silent) == sorted(truth["silent_versions"]), silent
+    assert _canonical_records(version_audit) == _canonical_records(
+        oracle["version_audit"]
+    ), version_audit
+    assert len(version_audit) == oracle["versions_reviewed"]
+    assert (
+        sum(item["change_class"] == "substantive" for item in version_audit)
+        == oracle["substantive_versions"]
+    )
+    assert (
+        sum(item["change_class"] == "notices_only" for item in version_audit)
+        == oracle["notices_only_versions"]
+    )
+    assert (
+        sum(item["change_class"] == "unchanged" for item in version_audit)
+        == oracle["unchanged_versions"]
+    )
+    assert (
+        sum(
+            item["change_class"] == "substantive" and bool(item["email_ids"])
+            for item in version_audit
+        )
+        == oracle["covered_substantive_versions"]
+    )
+    assert len(silent) == oracle["silent_substantive_versions"]
+    assert (
+        sum(len(item["email_ids"]) for item in version_audit)
+        == oracle["covering_email_count"]
+    )
 
 
 def _dropped_block_exists(contents: list[str]) -> bool:
@@ -462,11 +513,8 @@ async def vanished_clause(client: CountingClient) -> None:
             clean.append(number)
     assert sorted(unreviewed) == sorted(truth["unreviewed_revisions"]), unreviewed
 
-    def canonical(item: object) -> str:
-        return json.dumps(item, sort_keys=True, separators=(",", ":"))
-
-    assert sorted(map(canonical, revision_audit)) == sorted(
-        map(canonical, oracle["revision_audit"])
+    assert _canonical_records(revision_audit) == _canonical_records(
+        oracle["revision_audit"]
     ), revision_audit
     assert len(revision_audit) == oracle["revisions_reviewed"]
     assert (

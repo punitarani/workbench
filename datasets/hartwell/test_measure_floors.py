@@ -114,6 +114,42 @@ def test_vanished_floor_metadata_matches_the_measured_reference_path() -> None:
     assert manifest["metadata"]["reference_tool_path_calls"] == 199
 
 
+def test_standard_floor_certifies_the_full_version_audit() -> None:
+    namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
+    measure = namespace["measure"]
+    oracle = json.loads(
+        (TASKS / "standard-drift" / "tests" / "oracle.json").read_text()
+    )
+    oracle["version_audit"][0]["change_class"] = "substantive"
+    measure.__globals__["_oracle"] = lambda task: oracle
+
+    with pytest.raises(BaseExceptionGroup) as caught:
+        asyncio.run(measure("standard-drift"))
+    pending = list(caught.value.exceptions)
+    leaves: list[BaseException] = []
+    while pending:
+        exception = pending.pop()
+        if isinstance(exception, BaseExceptionGroup):
+            pending.extend(exception.exceptions)
+        else:
+            leaves.append(exception)
+    assert any(isinstance(exception, AssertionError) for exception in leaves)
+
+
+def test_standard_floor_metadata_matches_the_measured_reference_path() -> None:
+    completed = subprocess.run(
+        [sys.executable, str(HARTWELL / "measure_floors.py"), "standard-drift"],
+        cwd=HARTWELL.parents[1],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    manifest = tomllib.loads((TASKS / "standard-drift" / "task.toml").read_text())
+
+    assert completed.stdout.strip() == "standard-drift: floor=48"
+    assert manifest["metadata"]["reference_tool_path_calls"] == 48
+
+
 def test_visitor_custody_uses_the_first_qualifying_return() -> None:
     namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
     outcome = namespace["_custody_outcome"]

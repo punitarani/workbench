@@ -7,15 +7,18 @@ Needs the built environment bundle (data, local-only):
 
 import json
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tomllib
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
 
 TASK = Path(__file__).parent
 BUNDLE = TASK / "bundle"
+EPOCH = date(2026, 3, 2)
 
 pytestmark = pytest.mark.skipif(
     not BUNDLE.exists(),
@@ -54,6 +57,108 @@ def test_harbor_rewardkit_layout_replaces_legacy_grader() -> None:
         "timeout_sec": 900.0,
         "network_mode": "no-network",
     }
+
+
+def _rows(database: str, sql: str) -> list[tuple]:
+    with sqlite3.connect(BUNDLE / "state" / database) as connection:
+        return connection.execute(sql).fetchall()
+
+
+def _day(timestamp: int) -> str:
+    return (EPOCH + timedelta(days=timestamp // 86400)).isoformat()
+
+
+def _strip_notices(content: str) -> str:
+    sections = content.split("\n## ")
+    return "\n## ".join(
+        [sections[0]]
+        + [section for section in sections[1:] if not section.startswith("Notices")]
+    )
+
+
+def test_reference_version_audit_matches_fresh_bundle() -> None:
+    completed = subprocess.run(
+        [sys.executable, str(TASK / "solution" / "solve.py")],
+        cwd=BUNDLE / "workspace",
+        env={
+            "WORKBENCH_STATE": str(BUNDLE / "state"),
+            "PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin",
+        },
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    answer = json.loads(completed.stdout)
+    attachments: dict[str, str] = {}
+    for message_id, filename in _rows(
+        "gmail.db", "SELECT message_id, filename FROM attachments"
+    ):
+        attachments[message_id] = f"{attachments.get(message_id, '')} {filename}"
+    emails = [
+        (
+            message_id,
+            _day(timestamp),
+            f"{subject} {body} {attachments.get(message_id, '')}".lower(),
+        )
+        for message_id, subject, body, timestamp in _rows(
+            "gmail.db", "SELECT message_id, subject, body, time FROM messages"
+        )
+    ]
+    histories: dict[str, list[tuple[int, str, int, int]]] = {}
+    for path, number, version, content, timestamp in _rows(
+        "imanage.db",
+        "SELECT d.path, d.document_number, v.version, v.content, v.time "
+        "FROM versions v JOIN documents d ON d.document_id = v.document_id "
+        "WHERE d.path LIKE '%/firm/vendor-ndas/%' ORDER BY d.path, v.version",
+    ):
+        histories.setdefault(path, []).append((version, content, timestamp, number))
+
+    expected = []
+    for path, history in histories.items():
+        vendor = path.rsplit("/", 1)[-1].removeprefix("mutual-nda-").removesuffix(".md")
+        for (previous_version, previous, _, _), (
+            version,
+            current,
+            timestamp,
+            number,
+        ) in zip(history, history[1:], strict=False):
+            assert previous_version + 1 == version
+            if previous == current:
+                change_class = "unchanged"
+            elif _strip_notices(previous) == _strip_notices(current):
+                change_class = "notices_only"
+            else:
+                change_class = "substantive"
+            saved = _day(timestamp)
+            email_ids = sorted(
+                message_id
+                for message_id, sent, text in emails
+                if sent == saved and vendor in text
+            )
+            expected.append(
+                {
+                    "version_id": f"LEGAL!{number}.{version}",
+                    "document_path": path,
+                    "date": saved,
+                    "change_class": change_class,
+                    "email_ids": email_ids,
+                }
+            )
+    expected.sort(key=lambda row: (row["document_path"], row["version_id"]))
+
+    assert len(expected) == 16
+    assert sum(row["change_class"] == "substantive" for row in expected) == 8
+    assert sum(row["change_class"] == "notices_only" for row in expected) == 1
+    assert sum(row["change_class"] == "unchanged" for row in expected) == 7
+    assert sum(len(row["email_ids"]) for row in expected) == 4
+    assert answer["version_audit"] == expected
+    assert answer["versions_reviewed"] == 16
+    assert answer["substantive_versions"] == 8
+    assert answer["notices_only_versions"] == 1
+    assert answer["unchanged_versions"] == 7
+    assert answer["covered_substantive_versions"] == 4
+    assert answer["silent_substantive_versions"] == 4
+    assert answer["covering_email_count"] == 4
 
 
 def run_grader(tmp_path: Path, produce: Path) -> dict[str, float]:

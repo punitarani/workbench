@@ -12,29 +12,22 @@ TASK = Path(__file__).parent
 TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
 TRUTH = json.loads((TESTS / "ground_truth.json").read_text())
+ORACLE = json.loads((TESTS / "oracle.json").read_text())
 pytestmark = pytest.mark.skipif(REWARDKIT is None, reason="rewardkit not installed")
 
 
 def _perfect() -> dict[str, object]:
-    return {
-        "playbook_path": TRUTH["playbook_path"],
-        "ndas": deepcopy(TRUTH["ndas"]),
-        "silent_versions": deepcopy(TRUTH["silent_versions"]),
-        "term": {
-            "playbook_standard": "three years",
-            "practice": "five years",
-            "document_path": TRUTH["clauses"]["term"]["document_path"],
-            "version": TRUTH["clauses"]["term"]["version"],
-            "date": TRUTH["clauses"]["term"]["date"],
-        },
-        "residuals": {
-            "playbook_standard": "reject residual knowledge",
-            "practice": "accepted residual knowledge",
-            "document_path": TRUTH["clauses"]["residuals"]["document_path"],
-            "version": TRUTH["clauses"]["residuals"]["version"],
-            "date": TRUTH["clauses"]["residuals"]["date"],
-        },
-    }
+    return deepcopy(ORACLE)
+
+
+def test_committed_oracle_has_complete_version_audit() -> None:
+    assert len(ORACLE["version_audit"]) == ORACLE["versions_reviewed"] == 16
+    assert ORACLE["substantive_versions"] == 8
+    assert ORACLE["notices_only_versions"] == 1
+    assert ORACLE["unchanged_versions"] == 7
+    assert ORACLE["covered_substantive_versions"] == 4
+    assert ORACLE["silent_substantive_versions"] == 4
+    assert ORACLE["covering_email_count"] == 4
 
 
 def _grade(
@@ -80,6 +73,56 @@ def test_duplicate_is_an_extra_but_reordering_is_neutral(tmp_path: Path) -> None
     assert _grade(tmp_path / "order", reordered)["answer"] == 1.0
 
 
+def test_headline_only_work_product_cannot_reach_half_credit(tmp_path: Path) -> None:
+    answer = _perfect()
+    answer["version_audit"] = []
+
+    assert 0.1 < _grade(tmp_path, answer)["answer"] < 0.5
+
+
+def test_version_audit_near_miss_shotgun_duplicate_and_reorder(
+    tmp_path: Path,
+) -> None:
+    near = _perfect()
+    near["version_audit"].pop()
+    shotgun = _perfect()
+    shotgun["version_audit"].extend(deepcopy(shotgun["version_audit"][:1]) * 30)
+    duplicate = _perfect()
+    duplicate["version_audit"].append(deepcopy(duplicate["version_audit"][0]))
+    reordered = _perfect()
+    reordered["version_audit"].reverse()
+
+    near_score = _grade(tmp_path / "near", near)["answer"]
+    assert 0.5 < near_score < 1.0
+    assert _grade(tmp_path / "shotgun", shotgun)["answer"] < near_score
+    assert 0.5 < _grade(tmp_path / "duplicate", duplicate)["answer"] < 1.0
+    assert _grade(tmp_path / "reorder", reordered)["answer"] == 1.0
+
+
+def test_wrong_or_duplicate_email_citation_loses_credit(tmp_path: Path) -> None:
+    wrong = _perfect()
+    covered = next(row for row in wrong["version_audit"] if row["email_ids"])
+    covered["email_ids"].append("invented-message")
+    duplicate = _perfect()
+    covered = next(row for row in duplicate["version_audit"] if row["email_ids"])
+    covered["email_ids"].append(covered["email_ids"][0])
+
+    assert 0.5 < _grade(tmp_path / "wrong", wrong)["answer"] < 1.0
+    assert 0.5 < _grade(tmp_path / "duplicate", duplicate)["answer"] < 1.0
+
+
+def test_version_audit_reconciliation_is_graded_separately(tmp_path: Path) -> None:
+    inconsistent = _perfect()
+    inconsistent["substantive_versions"] -= 1
+
+    score = _grade(tmp_path, inconsistent)["answer"]
+    details = json.loads((tmp_path / "reward-details.json").read_text())
+    criteria = {item["name"]: item["value"] for item in details["answer"]["criteria"]}
+
+    assert 0.0 < score < 1.0
+    assert criteria["version_audit_reconciles"] == 0.0
+
+
 @pytest.mark.parametrize(
     "mutation",
     [
@@ -90,6 +133,11 @@ def test_duplicate_is_an_extra_but_reordering_is_neutral(tmp_path: Path) -> None
         "numeric_id",
         "bad_status",
         "nonfinite",
+        "audit_not_list",
+        "audit_extra_key",
+        "audit_numeric_id",
+        "audit_bad_class",
+        "audit_numeric_email",
     ],
 )
 def test_malformed_or_type_invalid_contract_scores_zero(
@@ -108,6 +156,16 @@ def test_malformed_or_type_invalid_contract_scores_zero(
         answer["silent_versions"][0] = 11
     elif mutation == "bad_status":
         answer["ndas"][next(iter(answer["ndas"]))] = "unknown"
+    elif mutation == "audit_not_list":
+        answer["version_audit"] = {}
+    elif mutation == "audit_extra_key":
+        answer["version_audit"][0]["note"] = "invented"
+    elif mutation == "audit_numeric_id":
+        answer["version_audit"][0]["version_id"] = 11
+    elif mutation == "audit_bad_class":
+        answer["version_audit"][0]["change_class"] = "formatting"
+    elif mutation == "audit_numeric_email":
+        answer["version_audit"][0]["email_ids"] = [7]
     else:
         answer["term"]["version"] = float("nan")
     assert _grade(tmp_path, answer) == {"answer": 0.0, "process": 0.0}

@@ -12,10 +12,27 @@ from rewardkit import criterion
 
 MAX_DELIVERABLE_BYTES = 1_000_000
 PUBLIC_FIELDS = frozenset(
-    {"playbook_path", "ndas", "silent_versions", "term", "residuals"}
+    {
+        "playbook_path",
+        "ndas",
+        "silent_versions",
+        "term",
+        "residuals",
+        "versions_reviewed",
+        "substantive_versions",
+        "notices_only_versions",
+        "unchanged_versions",
+        "covered_substantive_versions",
+        "silent_substantive_versions",
+        "covering_email_count",
+        "version_audit",
+    }
 )
 CLAUSE_FIELDS = frozenset(
     {"playbook_standard", "practice", "document_path", "version", "date"}
+)
+VERSION_AUDIT_FIELDS = frozenset(
+    {"version_id", "document_path", "date", "change_class", "email_ids"}
 )
 
 
@@ -35,6 +52,21 @@ def _finite_json(value: object) -> bool:
     return value is None or isinstance(value, bool | int | str)
 
 
+def _valid_version_audit_row(value: object) -> bool:
+    if not isinstance(value, dict) or set(value) != VERSION_AUDIT_FIELDS:
+        return False
+    email_ids = value.get("email_ids")
+    return (
+        all(
+            isinstance(value.get(key), str)
+            for key in ("version_id", "document_path", "date", "change_class")
+        )
+        and value.get("change_class") in {"substantive", "notices_only", "unchanged"}
+        and isinstance(email_ids, list)
+        and all(isinstance(item, str) for item in email_ids)
+    )
+
+
 def _valid_contract(document: dict[str, object]) -> bool:
     if set(document) != PUBLIC_FIELDS or not isinstance(
         document.get("playbook_path"), str
@@ -49,6 +81,24 @@ def _valid_contract(document: dict[str, object]) -> bool:
     silent = document.get("silent_versions")
     if not isinstance(silent, list) or not all(
         isinstance(item, str) for item in silent
+    ):
+        return False
+    if not all(
+        _integer(document.get(key))
+        for key in (
+            "versions_reviewed",
+            "substantive_versions",
+            "notices_only_versions",
+            "unchanged_versions",
+            "covered_substantive_versions",
+            "silent_substantive_versions",
+            "covering_email_count",
+        )
+    ):
+        return False
+    version_audit = document.get("version_audit")
+    if not isinstance(version_audit, list) or not all(
+        _valid_version_audit_row(item) for item in version_audit
     ):
         return False
     for key in ("term", "residuals"):
@@ -106,7 +156,7 @@ def _counter(values: object) -> Counter[str]:
     return Counter(_version(value) for value in values)
 
 
-def _f1(got: Counter[str], want: Counter[str]) -> float:
+def _f1(got: Counter[object], want: Counter[object]) -> float:
     hits = sum((got & want).values())
     if not hits:
         return 0.0
@@ -170,6 +220,72 @@ def version_f1(workspace: Path, path: str, key: str, expected: list[str]) -> flo
 @criterion(description="silent versions exact", shared=True)
 def version_exact(workspace: Path, path: str, key: str, expected: list[str]) -> bool:
     return _counter(_submitted(workspace, path).get(key)) == _counter(expected)
+
+
+def _version_audit_counter(values: object) -> Counter[object]:
+    if not isinstance(values, list):
+        return Counter()
+    return Counter(
+        (
+            _version(item["version_id"]),
+            item["document_path"],
+            item["date"],
+            item["change_class"],
+            tuple(sorted(item["email_ids"])),
+        )
+        for item in values
+        if _valid_version_audit_row(item)
+    )
+
+
+@criterion(description="version classification and email ledger F1", shared=True)
+def version_audit_f1(workspace: Path, path: str, expected: list[object]) -> float:
+    return _f1(
+        _version_audit_counter(_submitted(workspace, path).get("version_audit")),
+        _version_audit_counter(expected),
+    )
+
+
+@criterion(description="exact version classification and email ledger", shared=True)
+def version_audit_exact(workspace: Path, path: str, expected: list[object]) -> bool:
+    return _version_audit_counter(
+        _submitted(workspace, path).get("version_audit")
+    ) == _version_audit_counter(expected)
+
+
+@criterion(
+    description="version audit aggregates and silent partition reconcile", shared=True
+)
+def version_audit_reconciles(workspace: Path, path: str) -> bool:
+    document = _submitted(workspace, path)
+    version_audit = document.get("version_audit")
+    if not isinstance(version_audit, list):
+        return False
+    classes = Counter(
+        item["change_class"] for item in version_audit if _valid_version_audit_row(item)
+    )
+    if sum(classes.values()) != len(version_audit):
+        return False
+    silent = [
+        item["version_id"]
+        for item in version_audit
+        if item["change_class"] == "substantive" and not item["email_ids"]
+    ]
+    covered = sum(
+        item["change_class"] == "substantive" and bool(item["email_ids"])
+        for item in version_audit
+    )
+    return (
+        document.get("versions_reviewed") == len(version_audit)
+        and document.get("substantive_versions") == classes["substantive"]
+        and document.get("notices_only_versions") == classes["notices_only"]
+        and document.get("unchanged_versions") == classes["unchanged"]
+        and document.get("covered_substantive_versions") == covered
+        and document.get("silent_substantive_versions") == len(silent)
+        and document.get("covering_email_count")
+        == sum(len(item["email_ids"]) for item in version_audit)
+        and _counter(document.get("silent_versions")) == _counter(silent)
+    )
 
 
 @criterion(description="exact public schema and types", shared=True)

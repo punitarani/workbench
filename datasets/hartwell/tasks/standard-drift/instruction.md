@@ -35,7 +35,23 @@ Save **`drift.json`** in your workspace:
     "document_path": "<iManage path of the vendor NDA whose redline diverged>",
     "version": <version number that introduced the divergence>,
     "date": "<YYYY-MM-DD of that version>"
-  }
+  },
+  "versions_reviewed": <number of post-v1 NDA versions reviewed>,
+  "substantive_versions": <number with an operative-clause change>,
+  "notices_only_versions": <number changing notices only>,
+  "unchanged_versions": <number with no text change>,
+  "covered_substantive_versions": <substantive versions with same-day email>,
+  "silent_substantive_versions": <substantive versions without same-day email>,
+  "covering_email_count": <total exact emails cited in the audit>,
+  "version_audit": [
+    {
+      "version_id": "LEGAL!<document number>.<version>",
+      "document_path": "<exact iManage path>",
+      "date": "<YYYY-MM-DD save date>",
+      "change_class": "<substantive, notices_only, or unchanged>",
+      "email_ids": ["<exact same-day covering Gmail message id>", "..."]
+    }
+  ]
 }
 ```
 
@@ -70,3 +86,14 @@ id (`LEGAL!<number>.<version>`). This finding is exact as well — a
 missed version or a padded one and the process point falls apart. The
 mail discusses some of these files and never mentions others, so only
 the version walk plus a per-day mail check answers it.
+
+The review committee needs the certification schedule behind those four
+exceptions. `version_audit` must contain every version 2 and later of all nine
+vendor NDAs. Classify a row `unchanged` when its text is byte-identical to the
+prior version, `notices_only` when removing the Notices section makes the two
+versions identical, and `substantive` otherwise. Cite every same-day covering
+email under the rule above, including its exact Gmail message ID; do not cite a
+thread ID, next-day transmittal, Slack message, or email naming another vendor.
+The seven aggregate fields must reconcile with the schedule, and
+`silent_versions` must be exactly the `version_id` partition of substantive
+rows with an empty `email_ids` list.
