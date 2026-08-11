@@ -1,0 +1,66 @@
+{
+  "anomalous_billed_cents_total": 687600,
+  "anomalous_entry_count": 18,
+  "anomalous_minutes_total": 876,
+  "anomalous_timekeeper_days": [
+    {
+      "billed_cents": 141750,
+      "date": "2026-04-04",
+      "entry_ids": [
+        1318,
+        1319
+      ],
+      "matter_numbers": [
+        "00001-MeridianBioLabs"
+      ],
+      "minutes": 126,
+      "timekeeper": "Eleanor Hartwell"
+    },
+    {
+      "billed_cents": 251850,
+      "date": "2026-05-20",
+      "entry_ids": [
+        2884,
+        2885,
+        2887,
+        2896,
+        2898,
+        2899,
+        2910,
+        2915,
+        2923
+      ],
+      "matter_numbers": [
+        "00009-LumenSoftware",
+        "00006-NorthgateMedicalGroup"
+      ],
+      "minutes": 414,
+      "timekeeper": "Noah Feldstein"
+    },
+    {
+      "billed_cents": 294000,
+      "date": "2026-06-15",
+      "entry_ids": [
+        3753,
+        3760,
+        3761,
+        3762,
+        3768,
+        3771,
+        3783
+      ],
+      "matter_numbers": [
+        "00003-VeridianEnergyCooperative",
+        "00006-NorthgateMedicalGroup",
+        "00007-PelicanBayMarina"
+      ],
+      "minutes": 336,
+      "timekeeper": "Diane Okonkwo"
+    }
+  ],
+  "entries_reviewed": 4233,
+  "phantom_note_ids": [
+    176
+  ],
+  "timekeepers_reviewed": 8
+}

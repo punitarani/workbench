@@ -1,0 +1,121 @@
+{
+  "conversations_reviewed": 12,
+  "requests_reviewed": 71,
+  "returned_next_working_day_ts": [
+    "60299.000029",
+    "249677.000094",
+    "640998.000188",
+    "2474963.000769",
+    "3062010.000962",
+    "4028550.001452",
+    "4291116.001510",
+    "5065091.001816",
+    "5831780.002083",
+    "8771802.002925"
+  ],
+  "returned_same_day": 59,
+  "same_day_breach_ts": [
+    "60299.000029",
+    "249677.000094",
+    "640998.000188",
+    "2474963.000769",
+    "3062010.000962",
+    "4028550.001452",
+    "4291116.001510",
+    "5065091.001816",
+    "5831780.002083",
+    "7456314.002498",
+    "7569818.002563",
+    "8771802.002925"
+  ],
+  "same_day_breaches": [
+    {
+      "asked_by": "Omar Haddad",
+      "asked_of": "Tessa Nguyen",
+      "date": "2026-03-02",
+      "resolution": "next_working_day",
+      "ts": "60299.000029"
+    },
+    {
+      "asked_by": "Peter Novak",
+      "asked_of": "Grace Adeyemi",
+      "date": "2026-03-04",
+      "resolution": "next_working_day",
+      "ts": "249677.000094"
+    },
+    {
+      "asked_by": "Omar Haddad",
+      "asked_of": "Tessa Nguyen",
+      "date": "2026-03-09",
+      "resolution": "next_working_day",
+      "ts": "640998.000188"
+    },
+    {
+      "asked_by": "Grace Adeyemi",
+      "asked_of": "Peter Novak",
+      "date": "2026-03-30",
+      "resolution": "next_working_day",
+      "ts": "2474963.000769"
+    },
+    {
+      "asked_by": "Diane Okonkwo",
+      "asked_of": "Noah Feldstein",
+      "date": "2026-04-06",
+      "resolution": "next_working_day",
+      "ts": "3062010.000962"
+    },
+    {
+      "asked_by": "Samuel Marsh",
+      "asked_of": "Grace Adeyemi",
+      "date": "2026-04-17",
+      "resolution": "next_working_day",
+      "ts": "4028550.001452"
+    },
+    {
+      "asked_by": "Grace Adeyemi",
+      "asked_of": "Sofia Ramirez",
+      "date": "2026-04-20",
+      "resolution": "next_working_day",
+      "ts": "4291116.001510"
+    },
+    {
+      "asked_by": "Marcus Liang",
+      "asked_of": "Peter Novak",
+      "date": "2026-04-29",
+      "resolution": "next_working_day",
+      "ts": "5065091.001816"
+    },
+    {
+      "asked_by": "Grace Adeyemi",
+      "asked_of": "Peter Novak",
+      "date": "2026-05-08",
+      "resolution": "next_working_day",
+      "ts": "5831780.002083"
+    },
+    {
+      "asked_by": "Noah Feldstein",
+      "asked_of": "Diane Okonkwo",
+      "date": "2026-05-27",
+      "resolution": "unresolved",
+      "ts": "7456314.002498"
+    },
+    {
+      "asked_by": "Peter Novak",
+      "asked_of": "Noah Feldstein",
+      "date": "2026-05-28",
+      "resolution": "unresolved",
+      "ts": "7569818.002563"
+    },
+    {
+      "asked_by": "Eleanor Hartwell",
+      "asked_of": "Anita Bailey",
+      "date": "2026-06-11",
+      "resolution": "next_working_day",
+      "ts": "8771802.002925"
+    }
+  ],
+  "unresolved_ts": [
+    "7456314.002498",
+    "7569818.002563"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "ndas": {
+    "/firm/vendor-ndas/mutual-nda-archway.md": "conforms",
+    "/firm/vendor-ndas/mutual-nda-baymark.md": "conforms",
+    "/firm/vendor-ndas/mutual-nda-brightwater.md": "conforms",
+    "/firm/vendor-ndas/mutual-nda-cobalt.md": "conforms",
+    "/firm/vendor-ndas/mutual-nda-harborlight.md": "conforms",
+    "/firm/vendor-ndas/mutual-nda-ironclad.md": "deviates",
+    "/firm/vendor-ndas/mutual-nda-lexipoint.md": "deviates",
+    "/firm/vendor-ndas/mutual-nda-summit.md": "conforms",
+    "/firm/vendor-ndas/mutual-nda-trueline.md": "conforms"
+  },
+  "playbook_path": "/firm/playbooks/vendor-nda-playbook.md",
+  "residuals": {
+    "date": "2026-06-10",
+    "document_path": "/firm/vendor-ndas/mutual-nda-ironclad.md",
+    "playbook_standard": "Reject any residual-knowledge clause outright; unaided-memory information stays confidential.",
+    "practice": "Accepted the vendor's position: a Residual Knowledge clause was added to the signing draft.",
+    "version": 2
+  },
+  "silent_versions": [
+    "LEGAL!11.3",
+    "LEGAL!23.3",
+    "LEGAL!27.3",
+    "LEGAL!36.3"
+  ],
+  "term": {
+    "date": "2026-05-13",
+    "document_path": "/firm/vendor-ndas/mutual-nda-lexipoint.md",
+    "playbook_standard": "Confidentiality obligations capped at three (3) years; longer terms need Managing Partner sign-off.",
+    "practice": "Agreed to the vendor's five (5) year confidentiality term to keep the renewal on schedule.",
+    "version": 2
+  }
+}

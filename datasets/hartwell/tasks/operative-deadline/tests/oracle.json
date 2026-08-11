@@ -1,0 +1,31 @@
+{
+  "correction_ts": "8767500.002917",
+  "operative_date": "2026-06-25",
+  "operative_time": "09:00",
+  "stale_calendar_refs": [
+    "msg-000289",
+    "6431100.002256",
+    "msg-000600",
+    "9107100.002999",
+    "msg-000617"
+  ],
+  "superseded_dates": [
+    "2026-04-28",
+    "2026-05-20",
+    "2026-06-18"
+  ],
+  "supersessions": [
+    {
+      "by": "msg-000274",
+      "invalidated": "2026-04-28"
+    },
+    {
+      "by": "msg-000430",
+      "invalidated": "2026-05-20"
+    },
+    {
+      "by": "8767500.002917",
+      "invalidated": "2026-06-18"
+    }
+  ]
+}

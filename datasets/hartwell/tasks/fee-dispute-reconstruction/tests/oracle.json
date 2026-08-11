@@ -1,0 +1,141 @@
+{
+  "challenge_date": "2026-05-08",
+  "challenged_by": "Priya Raman",
+  "cutoff_date": "2026-04-03",
+  "entries": [
+    {
+      "date": "2026-04-06",
+      "id": 1374,
+      "minutes": 130
+    },
+    {
+      "date": "2026-04-06",
+      "id": 1378,
+      "minutes": 95
+    },
+    {
+      "date": "2026-04-08",
+      "id": 1481,
+      "minutes": 145
+    },
+    {
+      "date": "2026-04-10",
+      "id": 1575,
+      "minutes": 160
+    },
+    {
+      "date": "2026-04-10",
+      "id": 1577,
+      "minutes": 120
+    },
+    {
+      "date": "2026-04-14",
+      "id": 1666,
+      "minutes": 150
+    },
+    {
+      "date": "2026-04-16",
+      "id": 1756,
+      "minutes": 90
+    }
+  ],
+  "entry_count": 7,
+  "minutes_by_timekeeper": {
+    "Marcus Liang": 675,
+    "Peter Novak": 215
+  },
+  "timekeepers": [
+    "Marcus Liang",
+    "Peter Novak"
+  ],
+  "total_minutes": 890,
+  "unsupported_days": [
+    {
+      "billed_cents": 195400,
+      "date": "2026-04-04",
+      "entry_count": 4,
+      "entry_ids": [
+        1316,
+        1317,
+        1318,
+        1319
+      ],
+      "minutes": 300
+    },
+    {
+      "billed_cents": 492400,
+      "date": "2026-04-13",
+      "entry_count": 9,
+      "entry_ids": [
+        1606,
+        1607,
+        1614,
+        1616,
+        1618,
+        1623,
+        1624,
+        1629,
+        1631
+      ],
+      "minutes": 660
+    },
+    {
+      "billed_cents": 565750,
+      "date": "2026-04-20",
+      "entry_count": 15,
+      "entry_ids": [
+        1826,
+        1830,
+        1836,
+        1842,
+        1844,
+        1845,
+        1848,
+        1857,
+        1861,
+        1863,
+        1865,
+        1866,
+        1867,
+        1868,
+        1872
+      ],
+      "minutes": 786
+    },
+    {
+      "billed_cents": 715142,
+      "date": "2026-04-22",
+      "entry_count": 16,
+      "entry_ids": [
+        1930,
+        1932,
+        1935,
+        1942,
+        1950,
+        1955,
+        1960,
+        1963,
+        1964,
+        1965,
+        1969,
+        1973,
+        1974,
+        1976,
+        1977,
+        1980
+      ],
+      "minutes": 1021
+    },
+    {
+      "billed_cents": 89000,
+      "date": "2026-04-25",
+      "entry_count": 3,
+      "entry_ids": [
+        2087,
+        2089,
+        2090
+      ],
+      "minutes": 120
+    }
+  ]
+}

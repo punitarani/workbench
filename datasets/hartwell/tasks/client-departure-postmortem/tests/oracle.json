@@ -1,0 +1,23 @@
+{
+  "disengagement_letter_path": "/cascadia-supplier-dispute/disengagement-letter.md",
+  "first_negative_signal_date": "2026-04-16",
+  "first_negative_signal_reactions": 2,
+  "first_negative_signal_ts": "3921300.001367",
+  "happy_update_reactions": 3,
+  "happy_update_ts": "1960800.000633",
+  "matter_closed_date": "2026-06-04",
+  "reaction_trajectory": [
+    3,
+    2,
+    1,
+    0,
+    0
+  ],
+  "termination_email_date": "2026-05-27",
+  "unanswered_client_emails": [
+    "msg-000311",
+    "msg-000375",
+    "msg-000468",
+    "msg-000565"
+  ]
+}

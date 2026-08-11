@@ -1,0 +1,43 @@
+{
+  "answered_same_day": 66,
+  "came_back_later": [
+    "1002279.000349",
+    "10331659.003378",
+    "1871852.000590",
+    "5831354.002082",
+    "9489122.003155",
+    "9975406.003279"
+  ],
+  "conversations_reviewed": 12,
+  "requests_reviewed": 75,
+  "unanswered_askers": [
+    "Grace Adeyemi",
+    "Marcus Liang",
+    "Sofia Ramirez"
+  ],
+  "unanswered_request_ts": [
+    "8253753.002780",
+    "8586540.002830",
+    "9823838.003234"
+  ],
+  "unanswered_requests": [
+    {
+      "asked_by": "Sofia Ramirez",
+      "asked_of": "Grace Adeyemi",
+      "date": "2026-06-05",
+      "ts": "8253753.002780"
+    },
+    {
+      "asked_by": "Grace Adeyemi",
+      "asked_of": "Peter Novak",
+      "date": "2026-06-09",
+      "ts": "8586540.002830"
+    },
+    {
+      "asked_by": "Marcus Liang",
+      "asked_of": "Sofia Ramirez",
+      "date": "2026-06-23",
+      "ts": "9823838.003234"
+    }
+  ]
+}
