@@ -12,6 +12,9 @@ Work from the firm's systems: Gmail, Slack, Clio, and iManage, where the
 playbook and the NDAs are filed with their full version histories.
 This audit is intentionally seatless: those tools expose the firm-wide
 agent-facing record, not a single lawyer's mailbox or application seat.
+All `YYYY-MM-DD` values use the firm's Pacific calendar
+(`America/Los_Angeles`). iManage exposes save timestamps in UTC, so convert
+those timestamps to Pacific time before assigning a version to a calendar day.
 
 Save **`drift.json`** in your workspace:
 

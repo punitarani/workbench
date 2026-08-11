@@ -13,6 +13,11 @@ skills = ["retrieval", "reconciliation", "temporal-reasoning", "anti-join"]
 reference_tool_path_calls = 10
 agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and Clio records."
 
+[metadata.evidence]
+primary_field = "unanswered_client_emails"
+records = 4
+source_surfaces = ["gmail", "slack", "imanage", "clio"]
+
 [environment]
 docker_image = "workbench:dev"
 os = "linux"

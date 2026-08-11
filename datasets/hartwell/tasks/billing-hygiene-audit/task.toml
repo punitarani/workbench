@@ -28,6 +28,13 @@ skills = ["retrieval", "reconciliation", "arithmetic", "anti-join"]
 # path. Recorded for calibration only; Harbor has no per-task hard call cap.
 reference_tool_path_calls = 146
 
+[metadata.evidence]
+primary_field = "daily_review"
+records = 655
+item_fields = ["billable_entry_ids"]
+items = 4233
+source_surfaces = ["gmail", "slack", "clio"]
+
 [environment]
 docker_image = "workbench:dev"
 os = "linux"

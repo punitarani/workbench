@@ -11,6 +11,10 @@ difficulty = "hard"
 skills = ["retrieval", "reconciliation", "temporal-reasoning", "anti-join"]
 reference_tool_path_calls = 54
 agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and Clio records."
+[metadata.evidence]
+primary_field = "response_audit"
+records = 75
+source_surfaces = ["gmail", "slack"]
 [environment]
 docker_image = "workbench:dev"
 os = "linux"

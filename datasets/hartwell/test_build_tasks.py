@@ -24,6 +24,17 @@ def _task(tmp_path: Path, source: str) -> tuple[Path, Path]:
     return task, bundle
 
 
+def _add_evidence_contract(task: Path) -> None:
+    (task / "task.toml").write_text(
+        """
+[metadata.evidence]
+primary_field = "audit"
+records = 1
+source_surfaces = ["gmail", "slack"]
+"""
+    )
+
+
 def test_oracle_output_is_canonical_and_workspace_is_unchanged(tmp_path: Path) -> None:
     task, bundle = _task(
         tmp_path,
@@ -56,7 +67,8 @@ def test_oracle_rejects_invalid_deliverables(tmp_path: Path, output: str) -> Non
 
 
 def test_default_check_fails_loudly_on_missing_or_drifted_truth(tmp_path: Path) -> None:
-    task, bundle = _task(tmp_path, "print('{\"answer\": 7}')\n")
+    task, bundle = _task(tmp_path, 'print(\'{"answer": 7, "audit": [{}]}\')\n')
+    _add_evidence_contract(task)
 
     with pytest.raises(build_tasks.OracleDriftError, match="missing"):
         build_tasks.certify_oracle(task, bundle, refresh=False)
@@ -69,12 +81,15 @@ def test_default_check_fails_loudly_on_missing_or_drifted_truth(tmp_path: Path) 
 def test_explicit_refresh_writes_canonical_truth_then_default_check_passes(
     tmp_path: Path,
 ) -> None:
-    task, bundle = _task(tmp_path, "print('{\"answer\": 7}')\n")
+    task, bundle = _task(tmp_path, 'print(\'{"answer": 7, "audit": [{}]}\')\n')
+    _add_evidence_contract(task)
 
     artifact = build_tasks.certify_oracle(task, bundle, refresh=True)
 
     assert artifact == task / "tests" / "oracle.json"
-    assert artifact.read_bytes() == b'{\n  "answer": 7\n}\n'
+    assert artifact.read_bytes() == (
+        b'{\n  "answer": 7,\n  "audit": [\n    {}\n  ]\n}\n'
+    )
     assert build_tasks.certify_oracle(task, bundle, refresh=False) == artifact
 
 
@@ -119,3 +134,59 @@ def test_cli_requires_explicit_refresh_flag() -> None:
 
     assert parser.parse_args([]).refresh_truth is False
     assert parser.parse_args(["--refresh-truth"]).refresh_truth is True
+
+
+def test_evidence_contract_certifies_rows_nested_items_and_surfaces(
+    tmp_path: Path,
+) -> None:
+    task, _ = _task(tmp_path, "print('{}')\n")
+    (task / "task.toml").write_text(
+        """
+[metadata.evidence]
+primary_field = "audit"
+records = 2
+item_fields = ["email_ids", "slack_ts"]
+items = 3
+source_surfaces = ["gmail", "slack"]
+"""
+    )
+    oracle = (
+        b'{"audit":[{"email_ids":["m1"],"slack_ts":[]},'
+        b'{"email_ids":[],"slack_ts":["1","2"]}]}'
+    )
+
+    build_tasks.certify_evidence_contract(task, oracle)
+
+
+@pytest.mark.parametrize(
+    ("toml", "oracle", "message"),
+    [
+        ("[metadata]\ndataset='hartwell'\n", b'{"audit":[]}', "missing"),
+        (
+            "[metadata.evidence]\nprimary_field='audit'\nrecords=2\n"
+            "source_surfaces=['gmail','slack']\n",
+            b'{"audit":[]}',
+            "expected 2 records",
+        ),
+        (
+            "[metadata.evidence]\nprimary_field='audit'\nrecords=1\n"
+            "item_fields=['ids']\nitems=2\nsource_surfaces=['gmail','slack']\n",
+            b'{"audit":[{"ids":[1]}]}',
+            "expected 2 nested evidence items",
+        ),
+        (
+            "[metadata.evidence]\nprimary_field='audit'\nrecords=1\n"
+            "source_surfaces=['gmail']\n",
+            b'{"audit":[{}]}',
+            "at least two source surfaces",
+        ),
+    ],
+)
+def test_evidence_contract_fails_loudly_on_quality_drift(
+    tmp_path: Path, toml: str, oracle: bytes, message: str
+) -> None:
+    task, _ = _task(tmp_path, "print('{}')\n")
+    (task / "task.toml").write_text(toml)
+
+    with pytest.raises(build_tasks.OracleError, match=message):
+        build_tasks.certify_evidence_contract(task, oracle)

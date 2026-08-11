@@ -240,3 +240,10 @@ def test_grading_is_deterministic(tmp_path: Path) -> None:
     first = run_grader(tmp_path / "a", TASK / "solution" / "solve.sh")
     second = run_grader(tmp_path / "b", TASK / "solution" / "solve.sh")
     assert first == second
+
+
+def test_instruction_declares_the_firm_calendar_timezone() -> None:
+    instruction = (TASK / "instruction.md").read_text()
+
+    assert "Pacific" in instruction
+    assert "UTC" in instruction

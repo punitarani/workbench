@@ -27,6 +27,13 @@ skills = ["retrieval", "reconciliation", "arithmetic", "anti-join"]
 # process dimension grades efficiency by trajectory turn count instead.
 reference_tool_path_calls = 49
 
+[metadata.evidence]
+primary_field = "unsupported_days"
+records = 5
+item_fields = ["entry_ids"]
+items = 47
+source_surfaces = ["gmail", "slack", "clio"]
+
 [environment]
 docker_image = "workbench:dev"
 os = "linux"

@@ -28,6 +28,9 @@ import subprocess
 import sys
 import tomllib
 from pathlib import Path
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from workbench.environment import materialize
 
@@ -45,6 +48,18 @@ class OracleError(RuntimeError):
 
 class OracleDriftError(OracleError):
     """The fresh bundle's oracle differs from the committed certification."""
+
+
+class EvidenceContract(BaseModel):
+    """Machine-checkable scope of the retained evidence workpaper."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    primary_field: str = Field(min_length=1)
+    records: int = Field(ge=1)
+    item_fields: tuple[str, ...] = ()
+    items: int | None = Field(default=None, ge=1)
+    source_surfaces: tuple[Literal["gmail", "slack", "imanage", "clio"], ...]
 
 
 def parser() -> argparse.ArgumentParser:
@@ -138,9 +153,65 @@ def run_oracle(task: Path, bundle: Path) -> bytes:
         ) from error
 
 
+def certify_evidence_contract(task: Path, oracle: bytes) -> None:
+    """Prove the fresh oracle still spans the declared evidence population."""
+    try:
+        config = tomllib.loads((task / "task.toml").read_text())
+        raw_contract = config.get("metadata", {}).get("evidence")
+        if raw_contract is None:
+            raise OracleError(f"{task.name} evidence contract is missing")
+        contract = EvidenceContract.model_validate(raw_contract)
+    except (OSError, tomllib.TOMLDecodeError, ValidationError) as error:
+        raise OracleError(
+            f"{task.name} evidence contract is invalid: {error}"
+        ) from error
+    if len(set(contract.source_surfaces)) < 2:
+        raise OracleError(
+            f"{task.name} evidence contract needs at least two source surfaces"
+        )
+    try:
+        document = json.loads(oracle)
+    except (RecursionError, TypeError, ValueError) as error:
+        raise OracleError(f"{task.name} oracle is not valid JSON") from error
+    records = document.get(contract.primary_field)
+    if not isinstance(records, list) or len(records) != contract.records:
+        actual = len(records) if isinstance(records, list) else "non-list"
+        raise OracleError(
+            f"{task.name} evidence contract expected {contract.records} records "
+            f"in {contract.primary_field}, found {actual}"
+        )
+    if contract.items is None:
+        if contract.item_fields:
+            raise OracleError(
+                f"{task.name} evidence contract declares item_fields without items"
+            )
+        return
+    if not contract.item_fields:
+        raise OracleError(
+            f"{task.name} evidence contract declares items without item_fields"
+        )
+    nested_items = 0
+    for record in records:
+        if not isinstance(record, dict):
+            raise OracleError(f"{task.name} evidence contract expected object records")
+        for field in contract.item_fields:
+            values = record.get(field)
+            if not isinstance(values, list):
+                raise OracleError(
+                    f"{task.name} evidence contract expected list field {field}"
+                )
+            nested_items += len(values)
+    if nested_items != contract.items:
+        raise OracleError(
+            f"{task.name} evidence contract expected {contract.items} nested "
+            f"evidence items, found {nested_items}"
+        )
+
+
 def certify_oracle(task: Path, bundle: Path, *, refresh: bool) -> Path:
     """Refresh explicitly or prove fresh output equals committed oracle bytes."""
     actual = run_oracle(task, bundle)
+    certify_evidence_contract(task, actual)
     artifact = task / "tests" / "oracle.json"
     if refresh:
         temporary = artifact.with_name(f".{artifact.name}.tmp")
