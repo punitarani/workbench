@@ -1,8 +1,8 @@
 {
   "_evidence": {
-    "join": "Directed anti-join over every one-to-one conversation (12 lanes; chat search never returns them). 75 second-read requests carry the firm's standing phrasing; a request is answered when the person asked comes back to the asker — later in that same lane, or by email to them — by the end of the next working day (Mon-Fri). Exactly 3 got neither: 8253753 (2026-06-05 Fri, Sofia Ramirez -> Grace Adeyemi), 8586540 (2026-06-09 Tue, Grace Adeyemi -> Peter Novak), and 9823838 (2026-06-23 Tue, Marcus Liang -> Sofia Ramirez).",
-    "decoys": "66 requests drew an answer the same day. The near misses are the whole difficulty: 6 came back after the day of the request but still inside the standard. A same-day reading lists 9; only the stated next-working-day and cross-surface rule gives the certified set.",
-    "grading": "unanswered_request_ts is all-or-nothing at 0.56 (exact set of seconds prefixes or zero); the non-core subset caps at 0.44. came_back_later and unanswered_requests grade hits-minus-extras; unanswered_askers penalizes extras so naming everyone earns 0."
+    "join": "Directed first-response audit over every one-to-one conversation (12 lanes; chat search never returns them). Seventy-five second-read requests carry the firm's standing phrasing. A request is timely when the person asked first comes back to the asker — later in that same lane or by directed email — by the end of the next working day. Exactly three miss that deadline: 8253753 (2026-06-05 Fri, Sofia Ramirez -> Grace Adeyemi), 8586540 (2026-06-09 Tue, Grace Adeyemi -> Peter Novak), and 9823838 (2026-06-23 Tue, Marcus Liang -> Sofia Ramirez). All three eventually receive late Slack replies, which the retained ledger cites without reclassifying them as timely.",
+    "decoys": "Sixty-seven requests drew their first qualifying answer the same day, including request 1871852's same-day directed Gmail response. Five first came back after the request day but by the next-working-day deadline. One Friday request first gets a Saturday Slack response; it is timely because Saturday precedes Monday's deadline. A Slack-only or calendar-day reading misclassifies these cross-surface and weekend records.",
+    "grading": "The primary 75-row response ledger carries 0.72 with normalized multiset F1 plus exact certification. The exception summaries, aggregates, and ledger reconciliation are separately graded; a headline-only answer cannot reach half credit."
   },
   "requests_reviewed": 75,
   "conversations_reviewed": 12,
@@ -31,11 +31,10 @@
       "asked_of": "Sofia Ramirez"
     }
   ],
-  "answered_same_day": 66,
+  "answered_same_day": 67,
   "came_back_later_prefixes": [
     "1002279",
     "10331659",
-    "1871852",
     "5831354",
     "9489122",
     "9975406"
@@ -55,13 +54,17 @@
     ]
   ],
   "weights": {
-    "requests_reviewed": 0.02,
-    "conversations_reviewed": 0.02,
-    "unanswered_request_ts": 0.56,
-    "unanswered_requests": 0.12,
-    "answered_same_day": 0.05,
-    "came_back_later": 0.1,
-    "unanswered_askers": 0.04,
-    "format": 0.09
+    "requests_reviewed": 0.01,
+    "conversations_reviewed": 0.01,
+    "unanswered_request_ts": 0.05,
+    "unanswered_requests": 0.04,
+    "answered_same_day": 0.01,
+    "answered_next_working_day": 0.01,
+    "unanswered_by_deadline": 0.01,
+    "came_back_later": 0.03,
+    "unanswered_askers": 0.02,
+    "response_audit": 0.72,
+    "audit_reconciliation": 0.06,
+    "format": 0.03
   }
 }

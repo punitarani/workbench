@@ -4,10 +4,11 @@ import json
 import os
 import sqlite3
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 EPOCH = date(2026, 3, 2)
 REQUEST = "mind taking a quick look at my draft before it goes out?"
+PACIFIC = timezone(timedelta(hours=-8))
 
 STATE = os.environ.get("WORKBENCH_STATE", "../state")
 
@@ -26,6 +27,10 @@ def next_working_day(day):
     while moment.weekday() >= 5:
         moment += timedelta(days=1)
     return moment
+
+
+def iso(time):
+    return (datetime(2026, 3, 2, tzinfo=PACIFIC) + timedelta(seconds=time)).isoformat()
 
 
 names = dict(rows("slack.db", "SELECT person_id, name FROM people"))
@@ -51,19 +56,19 @@ for conversation_id, sender, body, time, ts in rows(
 if len(chat) < 10:
     sys.exit(f"expected the firm's one-to-one conversations, found {len(chat)}")
 
-# Directed mail: who wrote to whom, on which day.
+# Directed mail: who wrote to whom, with exact source identity and time.
 recipients = {}
 for message_id, person in rows(
     "gmail.db", "SELECT message_id, person_id FROM recipients"
 ):
     recipients.setdefault(message_id, set()).add(person)
-mailed = {
-    (sender, recipient, day_of(time))
+mailed = [
+    (sender, recipient, time, message_id)
     for message_id, sender, time in rows(
         "gmail.db", "SELECT message_id, sender, time FROM messages"
     )
     for recipient in recipients.get(message_id, ())
-}
+]
 
 requests = []
 for conversation_id, messages in chat.items():
@@ -72,30 +77,45 @@ for conversation_id, messages in chat.items():
             continue
         (asked_of,) = membership[conversation_id] - {sender}
         asked_on = day_of(time)
-        replies = {
-            day_of(reply_time)
-            for reply_sender, _, reply_time, _ in messages[position + 1 :]
-            if reply_sender == asked_of
-        }
-        window = {asked_on, next_working_day(asked_on)}
+        candidates = [
+            (reply_time, "slack", reply_ts)
+            for reply_sender, _, reply_time, reply_ts in messages[position + 1 :]
+            if reply_sender == asked_of and reply_time > time
+        ]
+        candidates.extend(
+            (mail_time, "gmail", message_id)
+            for mail_sender, recipient, mail_time, message_id in mailed
+            if mail_sender == asked_of and recipient == sender and mail_time > time
+        )
+        first = min(candidates, default=None)
+        deadline = next_working_day(asked_on)
+        if first is None:
+            outcome = "unanswered"
+        elif day_of(first[0]) == asked_on:
+            outcome = "same_day"
+        elif day_of(first[0]) <= deadline:
+            outcome = "next_working_day"
+        else:
+            outcome = "unanswered"
         requests.append(
             {
                 "ts": ts,
                 "date": asked_on.isoformat(),
                 "asked_by": names[sender],
                 "asked_of": names[asked_of],
-                "same_day": asked_on in replies,
-                "in_window": bool(replies & window)
-                or any((asked_of, sender, moment) in mailed for moment in window),
+                "first_response_surface": first[1] if first else "none",
+                "first_response_id": first[2] if first else "",
+                "first_response_at": iso(first[0]) if first else "",
+                "outcome": outcome,
             }
         )
 if len(requests) < 50:
     sys.exit(f"expected a dense request fabric, found {len(requests)}")
 
-unanswered = [r for r in requests if not r["in_window"]]
+unanswered = [r for r in requests if r["outcome"] == "unanswered"]
 if not 3 <= len(unanswered) <= 8:
     sys.exit(f"expected a small unanswered set, found {len(unanswered)}")
-later = [r for r in requests if r["in_window"] and not r["same_day"]]
+later = [r for r in requests if r["outcome"] == "next_working_day"]
 if len(later) < 3:
     sys.exit(f"expected overnight pickups to decoy a same-day reading, {len(later)}")
 if len({r["asked_by"] for r in unanswered}) < 3:
@@ -114,9 +134,24 @@ review = {
         }
         for r in sorted(unanswered, key=lambda r: r["date"])
     ],
-    "answered_same_day": sum(1 for r in requests if r["same_day"]),
+    "answered_same_day": sum(1 for r in requests if r["outcome"] == "same_day"),
+    "answered_next_working_day": len(later),
+    "unanswered_by_deadline": len(unanswered),
     "came_back_later": sorted(r["ts"] for r in later),
     "unanswered_askers": sorted({r["asked_by"] for r in unanswered}),
+    "response_audit": [
+        {
+            "request_ts": r["ts"],
+            "request_date": r["date"],
+            "asked_by": r["asked_by"],
+            "asked_of": r["asked_of"],
+            "first_response_surface": r["first_response_surface"],
+            "first_response_id": r["first_response_id"],
+            "first_response_at": r["first_response_at"],
+            "outcome": r["outcome"],
+        }
+        for r in sorted(requests, key=lambda item: float(item["ts"]))
+    ],
 }
 json.dump(review, sys.stdout, indent=2)
 sys.stdout.write("\n")

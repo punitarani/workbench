@@ -12,34 +12,19 @@ TASK = Path(__file__).parent
 TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
 T = json.loads((TESTS / "ground_truth.json").read_text())
+ORACLE = json.loads((TESTS / "oracle.json").read_text())
 pytestmark = pytest.mark.skipif(REWARDKIT is None, reason="rewardkit not installed")
 
 
 def _perfect() -> dict[str, object]:
-    return {
-        "requests_reviewed": T["requests_reviewed"],
-        "conversations_reviewed": T["conversations_reviewed"],
-        "unanswered_request_ts": [
-            prefix + ".001" for prefix in T["unanswered_request_ts_prefixes"]
-        ],
-        "unanswered_requests": [
-            {
-                "ts": record["ts_prefix"] + ".001",
-                "date": record["date"],
-                "asked_by": record["asked_by"],
-                "asked_of": record["asked_of"],
-            }
-            for record in T["unanswered_requests"]
-        ],
-        "answered_same_day": T["answered_same_day"],
-        "came_back_later": [
-            prefix + ".001" for prefix in T["came_back_later_prefixes"]
-        ],
-        "unanswered_askers": [
-            " ".join(marker.title() for marker in markers)
-            for markers in T["asker_markers"]
-        ],
-    }
+    return deepcopy(ORACLE)
+
+
+def test_committed_oracle_has_complete_response_audit() -> None:
+    assert len(ORACLE["response_audit"]) == ORACLE["requests_reviewed"] == 75
+    assert ORACLE["answered_same_day"] == 67
+    assert ORACLE["answered_next_working_day"] == 5
+    assert ORACLE["unanswered_by_deadline"] == 3
 
 
 def _grade(
@@ -97,6 +82,51 @@ def test_duplicate_nested_request_member_is_a_precision_error(tmp_path: Path) ->
     assert 0.0 < _grade(tmp_path, answer)["answer"] < 1.0
 
 
+def test_headline_only_work_product_cannot_reach_half_credit(tmp_path: Path) -> None:
+    answer = _perfect()
+    answer["response_audit"] = []
+
+    assert 0.1 < _grade(tmp_path, answer)["answer"] < 0.5
+
+
+def test_response_audit_near_miss_shotgun_duplicate_and_reorder(
+    tmp_path: Path,
+) -> None:
+    near = _perfect()
+    near["response_audit"].pop()
+    shotgun = _perfect()
+    shotgun["response_audit"].extend(deepcopy(shotgun["response_audit"][:1]) * 50)
+    duplicate = _perfect()
+    duplicate["response_audit"].append(deepcopy(duplicate["response_audit"][0]))
+    reordered = _perfect()
+    reordered["response_audit"].reverse()
+
+    near_score = _grade(tmp_path / "near", near)["answer"]
+    assert 0.5 < near_score < 1.0
+    assert _grade(tmp_path / "shotgun", shotgun)["answer"] < near_score
+    assert 0.5 < _grade(tmp_path / "duplicate", duplicate)["answer"] < 1.0
+    assert _grade(tmp_path / "reorder", reordered)["answer"] == 1.0
+
+
+def test_wrong_first_response_identity_loses_credit(tmp_path: Path) -> None:
+    wrong = _perfect()
+    wrong["response_audit"][0]["first_response_id"] = "invented-response"
+
+    assert 0.5 < _grade(tmp_path, wrong)["answer"] < 1.0
+
+
+def test_response_audit_reconciliation_is_graded_separately(tmp_path: Path) -> None:
+    inconsistent = _perfect()
+    inconsistent["answered_same_day"] -= 1
+
+    score = _grade(tmp_path, inconsistent)["answer"]
+    details = json.loads((tmp_path / "reward-details.json").read_text())
+    criteria = {item["name"]: item["value"] for item in details["answer"]["criteria"]}
+
+    assert 0.0 < score < 1.0
+    assert criteria["response_audit_reconciles"] == 0.0
+
+
 @pytest.mark.parametrize(
     "mutation",
     [
@@ -108,6 +138,12 @@ def test_duplicate_nested_request_member_is_a_precision_error(tmp_path: Path) ->
         "nested_extra",
         "numeric_date",
         "nonfinite",
+        "audit_not_list",
+        "audit_extra_key",
+        "audit_numeric_ts",
+        "audit_bad_surface",
+        "audit_bad_outcome",
+        "audit_missing_response_id",
     ],
 )
 def test_type_invalid_contract_scores_zero(tmp_path: Path, mutation: str) -> None:
@@ -126,6 +162,18 @@ def test_type_invalid_contract_scores_zero(tmp_path: Path, mutation: str) -> Non
         answer["unanswered_requests"][0]["id"] = "x"
     elif mutation == "numeric_date":
         answer["unanswered_requests"][0]["date"] = 20260605
+    elif mutation == "audit_not_list":
+        answer["response_audit"] = {}
+    elif mutation == "audit_extra_key":
+        answer["response_audit"][0]["note"] = "invented"
+    elif mutation == "audit_numeric_ts":
+        answer["response_audit"][0]["request_ts"] = 7
+    elif mutation == "audit_bad_surface":
+        answer["response_audit"][0]["first_response_surface"] = "clio"
+    elif mutation == "audit_bad_outcome":
+        answer["response_audit"][0]["outcome"] = "late"
+    elif mutation == "audit_missing_response_id":
+        answer["response_audit"][0]["first_response_id"] = ""
     else:
         answer["requests_reviewed"] = float("inf")
     assert _grade(tmp_path, answer) == {"answer": 0.0, "process": 0.0}

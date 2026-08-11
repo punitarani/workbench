@@ -150,6 +150,29 @@ def test_standard_floor_metadata_matches_the_measured_reference_path() -> None:
     assert manifest["metadata"]["reference_tool_path_calls"] == 48
 
 
+def test_second_read_floor_certifies_the_full_first_response_audit() -> None:
+    namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
+    measure = namespace["measure"]
+    oracle = json.loads(
+        (TASKS / "second-read-audit" / "tests" / "oracle.json").read_text()
+    )
+    assert asyncio.run(measure("second-read-audit")) == 54
+    oracle["response_audit"][0]["first_response_id"] = "invented-response"
+    measure.__globals__["_oracle"] = lambda task: oracle
+
+    with pytest.raises(BaseExceptionGroup) as caught:
+        asyncio.run(measure("second-read-audit"))
+    pending = list(caught.value.exceptions)
+    leaves: list[BaseException] = []
+    while pending:
+        exception = pending.pop()
+        if isinstance(exception, BaseExceptionGroup):
+            pending.extend(exception.exceptions)
+        else:
+            leaves.append(exception)
+    assert any(isinstance(exception, AssertionError) for exception in leaves)
+
+
 def test_visitor_custody_uses_the_first_qualifying_return() -> None:
     namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
     outcome = namespace["_custody_outcome"]

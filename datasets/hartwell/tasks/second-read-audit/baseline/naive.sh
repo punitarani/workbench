@@ -76,8 +76,11 @@ review = {
     "unanswered_request_ts": sorted(r["ts"] for r in unanswered),
     "unanswered_requests": sorted(unanswered, key=lambda r: r["date"]),
     "answered_same_day": same_day,
+    "answered_next_working_day": 0,
+    "unanswered_by_deadline": len(unanswered),
     "came_back_later": [],
     "unanswered_askers": sorted({r["asked_by"] for r in unanswered}),
+    "response_audit": [],
 }
 with open("second-read.json", "w") as handle:
     json.dump(review, handle, indent=2)

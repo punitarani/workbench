@@ -7,15 +7,21 @@ Needs the built environment bundle (data, local-only):
 
 import json
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tomllib
+from collections import Counter
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
 
 TASK = Path(__file__).parent
 BUNDLE = TASK / "bundle"
+EPOCH = date(2026, 3, 2)
+REQUEST = "mind taking a quick look at my draft before it goes out?"
+PACIFIC = timezone(timedelta(hours=-8))
 
 pytestmark = pytest.mark.skipif(
     not BUNDLE.exists(),
@@ -54,6 +60,130 @@ def test_harbor_rewardkit_layout_replaces_legacy_grader() -> None:
         "timeout_sec": 900.0,
         "network_mode": "no-network",
     }
+
+
+def _rows(database: str, sql: str) -> list[tuple]:
+    with sqlite3.connect(BUNDLE / "state" / database) as connection:
+        return connection.execute(sql).fetchall()
+
+
+def _day(timestamp: int) -> date:
+    return EPOCH + timedelta(days=timestamp // 86_400)
+
+
+def _iso(timestamp: int) -> str:
+    return (
+        datetime(2026, 3, 2, tzinfo=PACIFIC) + timedelta(seconds=timestamp)
+    ).isoformat()
+
+
+def _next_working_day(value: date) -> date:
+    value += timedelta(days=1)
+    while value.weekday() >= 5:
+        value += timedelta(days=1)
+    return value
+
+
+def test_reference_response_audit_matches_fresh_bundle() -> None:
+    completed = subprocess.run(
+        [sys.executable, str(TASK / "solution" / "solve.py")],
+        cwd=BUNDLE / "workspace",
+        env={
+            "WORKBENCH_STATE": str(BUNDLE / "state"),
+            "PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin",
+        },
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    answer = json.loads(completed.stdout)
+    names = dict(_rows("slack.db", "SELECT person_id, name FROM people"))
+    members: dict[str, set[str]] = {}
+    for conversation_id, person_id in _rows(
+        "slack.db", "SELECT conversation_id, person_id FROM members"
+    ):
+        members.setdefault(conversation_id, set()).add(person_id)
+    dm_ids = {
+        conversation_id
+        for (conversation_id,) in _rows(
+            "slack.db", "SELECT conversation_id FROM conversations WHERE kind = 'dm'"
+        )
+    }
+    messages: dict[str, list[tuple[str, str, int, str]]] = {}
+    for conversation_id, sender, body, timestamp, timestamp_id in _rows(
+        "slack.db",
+        "SELECT conversation_id, sender, body, time, ts FROM messages ORDER BY time",
+    ):
+        if conversation_id in dm_ids:
+            messages.setdefault(conversation_id, []).append(
+                (sender, body, timestamp, timestamp_id)
+            )
+    recipients: dict[str, set[str]] = {}
+    for message_id, person_id in _rows(
+        "gmail.db", "SELECT message_id, person_id FROM recipients"
+    ):
+        recipients.setdefault(message_id, set()).add(person_id)
+    mail = [
+        (sender, recipient, timestamp, message_id)
+        for message_id, sender, timestamp in _rows(
+            "gmail.db", "SELECT message_id, sender, time FROM messages"
+        )
+        for recipient in recipients.get(message_id, ())
+    ]
+
+    expected = []
+    for conversation_id, lane in messages.items():
+        for position, (sender, body, asked_at, request_ts) in enumerate(lane):
+            if body.strip().lower() != REQUEST:
+                continue
+            (asked_of,) = members[conversation_id] - {sender}
+            candidates = [
+                (timestamp, "slack", timestamp_id)
+                for reply_sender, _, timestamp, timestamp_id in lane[position + 1 :]
+                if reply_sender == asked_of and timestamp > asked_at
+            ]
+            candidates.extend(
+                (timestamp, "gmail", message_id)
+                for mail_sender, recipient, timestamp, message_id in mail
+                if mail_sender == asked_of
+                and recipient == sender
+                and timestamp > asked_at
+            )
+            first = min(candidates, default=None)
+            asked_on = _day(asked_at)
+            deadline = _next_working_day(asked_on)
+            if first is None:
+                outcome = "unanswered"
+            elif _day(first[0]) == asked_on:
+                outcome = "same_day"
+            elif _day(first[0]) <= deadline:
+                outcome = "next_working_day"
+            else:
+                outcome = "unanswered"
+            expected.append(
+                {
+                    "request_ts": request_ts,
+                    "request_date": asked_on.isoformat(),
+                    "asked_by": names[sender],
+                    "asked_of": names[asked_of],
+                    "first_response_surface": first[1] if first else "none",
+                    "first_response_id": first[2] if first else "",
+                    "first_response_at": _iso(first[0]) if first else "",
+                    "outcome": outcome,
+                }
+            )
+    expected.sort(key=lambda row: float(row["request_ts"]))
+    outcomes = Counter(row["outcome"] for row in expected)
+    surfaces = Counter(row["first_response_surface"] for row in expected)
+
+    assert len(expected) == 75
+    assert outcomes == {"same_day": 67, "next_working_day": 5, "unanswered": 3}
+    assert surfaces == {"slack": 74, "gmail": 1}
+    assert answer["response_audit"] == expected
+    assert answer["requests_reviewed"] == 75
+    assert answer["answered_same_day"] == 67
+    assert answer["answered_next_working_day"] == 5
+    assert answer["unanswered_by_deadline"] == 3
 
 
 def run_grader(tmp_path: Path, produce: Path) -> dict[str, float]:

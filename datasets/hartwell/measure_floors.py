@@ -17,7 +17,7 @@ import asyncio
 import json
 import sys
 from collections.abc import Iterable
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -124,6 +124,13 @@ def _mail_seconds(iso_datetime: str) -> int:
     return (moment.date() - EPOCH).days * 86_400 + int(
         (moment - midnight).total_seconds()
     )
+
+
+def _seconds_iso(timestamp: int) -> str:
+    pacific = timezone(timedelta(hours=-8))
+    return (
+        datetime(2026, 3, 2, tzinfo=pacific) + timedelta(seconds=timestamp)
+    ).isoformat()
 
 
 def _imanage_day(edit_date: str) -> str:
@@ -826,15 +833,15 @@ async def _one_to_one_request_audit(
         )
         membership[lane["id"]] = set(members["members"])
 
-    mailed: set[tuple[str, str, str, int]] = set()
+    mailed: list[tuple[str, str, int, str]] = []
     for message in await _gmail_all_pages(client, ""):
         for recipient in message["toRecipients"] + message["ccRecipients"]:
-            mailed.add(
+            mailed.append(
                 (
                     _sender_email(message),
                     recipient.split("<")[-1].rstrip(">"),
-                    message["date"][:10],
                     _mail_seconds(message["date"]),
+                    message["id"],
                 )
             )
 
@@ -848,38 +855,37 @@ async def _one_to_one_request_audit(
             asked_on = date.fromisoformat(_ts_day(message["ts"]))
             asked_at = int(float(message["ts"]))
             next_day = _next_working_day(asked_on).isoformat()
-            chat_reply_times = {
-                int(float(later["ts"]))
+            chat_candidates = {
+                (int(float(later["ts"])), "slack", later["ts"])
                 for later in messages[position + 1 :]
                 if later["user"] == asked_of and int(float(later["ts"])) > asked_at
             }
-            chat_reply_days = {
-                _ts_day(str(timestamp)) for timestamp in chat_reply_times
+            mail_candidates = {
+                (timestamp, "gmail", message_id)
+                for sender, recipient, timestamp, message_id in mailed
+                if sender == emails[asked_of]
+                and recipient == emails[message["user"]]
+                and timestamp > asked_at
             }
-            window = {asked_on.isoformat(), next_day}
-            directed_mail = {
-                (mail_day, timestamp)
-                for sender, recipient, mail_day, timestamp in mailed
-                if sender == emails[asked_of] and recipient == emails[message["user"]]
-            }
+            candidates = chat_candidates | mail_candidates
+            first_response = min(candidates, default=None)
             if custody_deadline:
                 same_day, next_working_day, in_window = _custody_outcome(
                     asked_on,
                     asked_at,
-                    chat_reply_times | {timestamp for _, timestamp in directed_mail},
+                    {timestamp for timestamp, _, _ in candidates},
                 )
             else:
-                # The approved second-read audit treats same-day as the direct
-                # Slack response subset while mail certifies the wider answer
-                # window. Visitor custody has a different public partition and
-                # opts into the exact, cross-surface deadline branch above.
-                same_day = asked_on.isoformat() in chat_reply_days
-                next_working_day = next_day in chat_reply_days or any(
-                    mail_day == next_day for mail_day, _ in directed_mail
+                first_day = (
+                    date.fromisoformat(_ts_day(str(first_response[0])))
+                    if first_response
+                    else None
                 )
-                in_window = bool(chat_reply_days & window) or any(
-                    mail_day in window for mail_day, _ in directed_mail
+                same_day = first_day == asked_on
+                in_window = first_day is not None and first_day <= date.fromisoformat(
+                    next_day
                 )
+                next_working_day = in_window and not same_day
             requests.append(
                 {
                     "ts": message["ts"],
@@ -890,6 +896,13 @@ async def _one_to_one_request_audit(
                     "same_day": same_day,
                     "next_working_day": next_working_day,
                     "in_window": in_window,
+                    "first_response_surface": (
+                        first_response[1] if first_response else "none"
+                    ),
+                    "first_response_id": first_response[2] if first_response else "",
+                    "first_response_at": (
+                        _seconds_iso(first_response[0]) if first_response else ""
+                    ),
                 }
             )
     return requests
@@ -897,6 +910,7 @@ async def _one_to_one_request_audit(
 
 async def second_read_audit(client: CountingClient) -> None:
     truth = _truth("second-read-audit")
+    oracle = _oracle("second-read-audit")
     requests = await _one_to_one_request_audit(client, SECOND_READ_REQUEST)
     assert len(requests) == truth["requests_reviewed"], len(requests)
     assert requests[0]["lanes"] == truth["conversations_reviewed"]
@@ -907,6 +921,36 @@ async def second_read_audit(client: CountingClient) -> None:
     )
     assert later_pickups == truth["came_back_later_prefixes"], later_pickups
     assert sum(1 for r in requests if r["same_day"]) == truth["answered_same_day"]
+    assert (
+        sum(1 for r in requests if r["next_working_day"])
+        == oracle["answered_next_working_day"]
+    )
+    assert (
+        sum(1 for r in requests if not r["in_window"])
+        == oracle["unanswered_by_deadline"]
+    )
+    response_audit = [
+        {
+            "request_ts": request["ts"],
+            "request_date": request["date"],
+            "asked_by": request["asked_by"],
+            "asked_of": request["asked_of"],
+            "first_response_surface": request["first_response_surface"],
+            "first_response_id": request["first_response_id"],
+            "first_response_at": request["first_response_at"],
+            "outcome": (
+                "same_day"
+                if request["same_day"]
+                else "next_working_day"
+                if request["next_working_day"]
+                else "unanswered"
+            ),
+        }
+        for request in sorted(requests, key=lambda item: float(item["ts"]))
+    ]
+    assert _canonical_records(response_audit) == _canonical_records(
+        oracle["response_audit"]
+    ), response_audit
 
 
 async def visitor_log_audit(client: CountingClient) -> None:

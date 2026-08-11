@@ -18,11 +18,26 @@ PUBLIC_FIELDS = frozenset(
         "unanswered_request_ts",
         "unanswered_requests",
         "answered_same_day",
+        "answered_next_working_day",
+        "unanswered_by_deadline",
         "came_back_later",
         "unanswered_askers",
+        "response_audit",
     }
 )
 REQUEST_FIELDS = frozenset({"ts", "date", "asked_by", "asked_of"})
+RESPONSE_FIELDS = frozenset(
+    {
+        "request_ts",
+        "request_date",
+        "asked_by",
+        "asked_of",
+        "first_response_surface",
+        "first_response_id",
+        "first_response_at",
+        "outcome",
+    }
+)
 
 
 def _integer(value: object) -> bool:
@@ -41,10 +56,35 @@ def _finite_json(value: object) -> bool:
     return value is None or isinstance(value, bool | int | str)
 
 
+def _valid_response(value: object) -> bool:
+    if not isinstance(value, dict) or set(value) != RESPONSE_FIELDS:
+        return False
+    if not all(isinstance(value.get(field), str) for field in RESPONSE_FIELDS):
+        return False
+    surface = value.get("first_response_surface")
+    if surface not in {"slack", "gmail", "none"} or value.get("outcome") not in {
+        "same_day",
+        "next_working_day",
+        "unanswered",
+    }:
+        return False
+    first_response_id = value.get("first_response_id")
+    first_response_at = value.get("first_response_at")
+    if surface == "none":
+        return first_response_id == "" and first_response_at == ""
+    return first_response_id != "" and first_response_at != ""
+
+
 def _valid_contract(document: dict[str, object]) -> bool:
     if set(document) != PUBLIC_FIELDS or not all(
         _integer(document.get(key))
-        for key in ("requests_reviewed", "conversations_reviewed", "answered_same_day")
+        for key in (
+            "requests_reviewed",
+            "conversations_reviewed",
+            "answered_same_day",
+            "answered_next_working_day",
+            "unanswered_by_deadline",
+        )
     ):
         return False
     for key in ("unanswered_request_ts", "came_back_later", "unanswered_askers"):
@@ -54,11 +94,16 @@ def _valid_contract(document: dict[str, object]) -> bool:
         ):
             return False
     requests = document.get("unanswered_requests")
-    return isinstance(requests, list) and all(
+    if not isinstance(requests, list) or not all(
         isinstance(record, dict)
         and set(record) == REQUEST_FIELDS
         and all(isinstance(record.get(field), str) for field in REQUEST_FIELDS)
         for record in requests
+    ):
+        return False
+    response_audit = document.get("response_audit")
+    return isinstance(response_audit, list) and all(
+        _valid_response(record) for record in response_audit
     )
 
 
@@ -194,6 +239,86 @@ def marker_exact(workspace: Path, path: str, expected: list[list[str]]) -> bool:
     return (
         _marker_counter(_submitted(workspace, path).get("unanswered_askers"), expected)
         == want
+    )
+
+
+def _response_counter(values: object) -> Counter[str]:
+    if not isinstance(values, list):
+        return Counter()
+    return Counter(
+        "\0".join(
+            (
+                record["request_ts"].strip(),
+                record["request_date"].strip(),
+                record["asked_by"].strip().lower(),
+                record["asked_of"].strip().lower(),
+                record["first_response_surface"],
+                record["first_response_id"].strip(),
+                record["first_response_at"].strip(),
+                record["outcome"],
+            )
+        )
+        for record in values
+        if _valid_response(record)
+    )
+
+
+@criterion(description="complete first-response audit F1", shared=True)
+def response_audit_f1(workspace: Path, path: str, expected: list[object]) -> float:
+    return _f1(
+        _response_counter(_submitted(workspace, path).get("response_audit")),
+        _response_counter(expected),
+    )
+
+
+@criterion(description="exact certified first-response audit", shared=True)
+def response_audit_exact(workspace: Path, path: str, expected: list[object]) -> bool:
+    return _response_counter(
+        _submitted(workspace, path).get("response_audit")
+    ) == _response_counter(expected)
+
+
+@criterion(
+    description="response audit aggregates and exception sets reconcile", shared=True
+)
+def response_audit_reconciles(workspace: Path, path: str) -> bool:
+    document = _submitted(workspace, path)
+    response_audit = document.get("response_audit")
+    if not isinstance(response_audit, list) or not all(
+        _valid_response(record) for record in response_audit
+    ):
+        return False
+    outcomes = Counter(record["outcome"] for record in response_audit)
+    unanswered = [
+        {
+            "ts": record["request_ts"],
+            "date": record["request_date"],
+            "asked_by": record["asked_by"],
+            "asked_of": record["asked_of"],
+        }
+        for record in response_audit
+        if record["outcome"] == "unanswered"
+    ]
+    later = [
+        record["request_ts"]
+        for record in response_audit
+        if record["outcome"] == "next_working_day"
+    ]
+    return (
+        document.get("requests_reviewed") == len(response_audit)
+        and document.get("answered_same_day") == outcomes["same_day"]
+        and document.get("answered_next_working_day") == outcomes["next_working_day"]
+        and document.get("unanswered_by_deadline") == outcomes["unanswered"]
+        and _seconds_counter(document.get("unanswered_request_ts"))
+        == _seconds_counter([record["ts"] for record in unanswered])
+        and _request_counter(document.get("unanswered_requests"))
+        == _request_counter(unanswered)
+        and _seconds_counter(document.get("came_back_later")) == _seconds_counter(later)
+        and Counter(
+            str(value).strip().lower()
+            for value in document.get("unanswered_askers", [])
+        )
+        == Counter(record["asked_by"].strip().lower() for record in unanswered)
     )
 
 
