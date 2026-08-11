@@ -84,6 +84,7 @@ class MatrixConfig(BaseModel):
     tasks: tuple[TaskName, ...] = Field(default=TASK_ORDER, min_length=1)
     attempts: Literal[3] = 3
     diagnostic_smoke: bool = False
+    diagnostic_models: tuple[str, ...] | None = None
     concurrency: int = Field(default=8, ge=1, le=8)
     projected_worst_case_batch_usd: FiniteFloat = Field(gt=0)
     budget_baseline_usage: FiniteFloat = Field(default=32.2139, ge=0)
@@ -99,10 +100,31 @@ class MatrixConfig(BaseModel):
         selected = set(tasks)
         return tuple(task for task in TASK_ORDER if task in selected)
 
+    @field_validator("diagnostic_models")
+    @classmethod
+    def canonical_diagnostic_models(
+        cls, models: tuple[str, ...] | None
+    ) -> tuple[str, ...] | None:
+        if models is None:
+            return None
+        if not models:
+            raise ValueError("diagnostic_models must not be empty")
+        if len(set(models)) != len(models):
+            raise ValueError("diagnostic_models must not contain duplicates")
+        unsupported = set(models) - set(MODEL_ALIASES)
+        if unsupported:
+            raise ValueError(f"unsupported diagnostic_models: {sorted(unsupported)}")
+        selected = set(models)
+        return tuple(alias for alias in MODEL_ALIASES if alias in selected)
+
     @model_validator(mode="after")
     def diagnostic_smoke_has_one_task(self) -> Self:
         if self.diagnostic_smoke and len(self.tasks) != 1:
             raise ValueError("diagnostic_smoke requires exactly one selected task")
+        if self.diagnostic_smoke and self.diagnostic_models is None:
+            self.diagnostic_models = MODEL_ALIASES
+        if not self.diagnostic_smoke and self.diagnostic_models is not None:
+            raise ValueError("diagnostic_models requires diagnostic_smoke")
         return self
 
 
@@ -177,19 +199,34 @@ class CreditBudget(BaseModel):
 
 
 def launch_projection(
-    full_batch_projection_usd: float, *, attempts_per_model: int
+    full_batch_projection_usd: float,
+    *,
+    attempts_per_model: int,
+    model_count: int = len(MODEL_ALIASES),
 ) -> float:
     if not 1 <= attempts_per_model <= 3:
         raise ValueError("attempts_per_model must be between 1 and 3")
-    return full_batch_projection_usd * attempts_per_model / 3
+    if not 1 <= model_count <= len(MODEL_ALIASES):
+        raise ValueError("model_count must be between 1 and 3")
+    return (
+        full_batch_projection_usd
+        * attempts_per_model
+        * model_count
+        / (3 * len(MODEL_ALIASES))
+    )
 
 
 def full_batch_projection_from_launch(
-    launch_cost_usd: float, *, attempts_per_model: int
+    launch_cost_usd: float,
+    *,
+    attempts_per_model: int,
+    model_count: int = len(MODEL_ALIASES),
 ) -> float:
     if not 1 <= attempts_per_model <= 3:
         raise ValueError("attempts_per_model must be between 1 and 3")
-    return launch_cost_usd * 3 / attempts_per_model
+    if not 1 <= model_count <= len(MODEL_ALIASES):
+        raise ValueError("model_count must be between 1 and 3")
+    return launch_cost_usd * 3 * len(MODEL_ALIASES) / (attempts_per_model * model_count)
 
 
 class CreditMeter:
@@ -679,13 +716,20 @@ def load_trial_outcomes(job_dir: Path) -> tuple[TrialOutcome, ...]:
 
 
 def validate_batch_outcomes(
-    outcomes: tuple[TrialOutcome, ...], *, attempts: int
+    outcomes: tuple[TrialOutcome, ...],
+    *,
+    attempts: int,
+    model_aliases: tuple[str, ...] = MODEL_ALIASES,
 ) -> None:
     invalid = [outcome for outcome in outcomes if not outcome.valid]
     if invalid:
         raise HarborRunError(f"Harbor batch has {len(invalid)} invalid trials")
     actual = Counter(outcome.model_alias for outcome in outcomes)
-    expected = Counter({alias: attempts for alias in MODEL_ALIASES})
+    if not model_aliases or len(set(model_aliases)) != len(model_aliases):
+        raise HarborRunError("expected model aliases must be nonempty and unique")
+    if set(model_aliases) - set(MODEL_ALIASES):
+        raise HarborRunError("expected model aliases contain an unsupported alias")
+    expected = Counter({alias: attempts for alias in model_aliases})
     if actual != expected:
         raise HarborRunError(
             "Harbor batch did not produce the required model-attempt cells: "
@@ -801,6 +845,11 @@ class MatrixRunner:
                 try:
                     if self.config.diagnostic_smoke:
                         diagnostic_task = self.config.tasks[0]
+                        diagnostic_models = self.config.diagnostic_models
+                        if diagnostic_models is None:
+                            raise HarborRunError(
+                                "diagnostic smoke has no selected models"
+                            )
                         diagnostic_fingerprints = await self._resolve_fingerprints(
                             diagnostic_task
                         )
@@ -808,13 +857,16 @@ class MatrixRunner:
                             gateway=gateway,
                             credits=credits,
                             forecast=launch_projection(
-                                full_batch_forecast, attempts_per_model=1
+                                full_batch_forecast,
+                                attempts_per_model=1,
+                                model_count=len(diagnostic_models),
                             ),
                             task_name=diagnostic_task,
                             attempts=1,
                             phase="diagnostic-smoke",
                             job_label="diagnostic-smoke",
                             sequence=1,
+                            model_aliases=diagnostic_models,
                         )
                         launches.append(diagnostic_execution.launch)
                         diagnostic_trials = _build_trial_records(
@@ -828,7 +880,9 @@ class MatrixRunner:
                         if diagnostic_failure is None:
                             try:
                                 validate_batch_outcomes(
-                                    diagnostic_execution.outcomes, attempts=1
+                                    diagnostic_execution.outcomes,
+                                    attempts=1,
+                                    model_aliases=diagnostic_models,
                                 )
                             except HarborRunError as error:
                                 diagnostic_failure = (
@@ -1136,6 +1190,7 @@ class MatrixRunner:
         phase: TrialPhase,
         job_label: str | None,
         sequence: int,
+        model_aliases: tuple[str, ...] = MODEL_ALIASES,
     ) -> LaunchExecution:
         start_sequence = gateway.provenance[-1].sequence if gateway.provenance else 0
         gateway_env_file = _create_gateway_env_file(self._gateway_token)
@@ -1147,6 +1202,7 @@ class MatrixRunner:
                 gateway_port=gateway.port,
                 gateway_env_file=gateway_env_file,
                 attempts=attempts,
+                model_aliases=model_aliases,
                 job_label=job_label,
             )
             job_name = command[command.index("--job-name") + 1]
@@ -1193,6 +1249,7 @@ class MatrixRunner:
             enforced_model_routes={
                 alias: MODEL_PROVIDERS[full_model]
                 for alias, full_model in ALIAS_TO_MODEL.items()
+                if alias in model_aliases
             },
             gateway_sequences=GatewaySequenceSpan(
                 start_exclusive=start_sequence,

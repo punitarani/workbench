@@ -5,6 +5,7 @@ import secrets
 from pathlib import Path
 
 from workbench.adapters.harbor_matrix.runner import (
+    MODEL_ALIASES,
     TASK_ORDER,
     MatrixConfig,
     MatrixRunner,
@@ -30,7 +31,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--diagnostic-smoke",
         action="store_true",
-        help="Run one non-reusable attempt per model for exactly one task.",
+        help="Run one non-reusable attempt per selected model for one task.",
+    )
+    parser.add_argument(
+        "--diagnostic-model",
+        action="append",
+        choices=MODEL_ALIASES,
+        help="Limit a diagnostic smoke to this model alias; may be repeated.",
     )
     parser.add_argument("--concurrency", type=int, default=8)
     parser.add_argument("--task", action="append", choices=TASK_ORDER)
@@ -55,6 +62,9 @@ def parse_args(argv: list[str] | None = None) -> MatrixConfig:
         tasks=tuple(task for task in TASK_ORDER if task in selected),
         attempts=args.attempts,
         diagnostic_smoke=args.diagnostic_smoke,
+        diagnostic_models=(
+            tuple(args.diagnostic_model) if args.diagnostic_model else None
+        ),
         concurrency=args.concurrency,
         projected_worst_case_batch_usd=args.projected_worst_case_batch_usd,
         budget_baseline_usage=args.budget_baseline_usage,

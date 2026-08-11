@@ -76,7 +76,8 @@ attempt's fingerprint, enforced routing order, unobserved actual-provider
 status, request-sequence spans, spend, and any failure that stops the run.
 
 To screen one task before purchasing a full matrix, add `--diagnostic-smoke`
-with exactly one `--task`. This runs one attempt for each pinned model under the
-same gateway, provenance, fingerprint, and live-budget controls. Diagnostic
-smokes are reported separately and are not merged into the final best-of-three
-matrix.
+with exactly one `--task`. It runs one attempt for each pinned model by default;
+repeat `--diagnostic-model MODEL_ALIAS` to screen only selected models. Launch
+authorization scales by both attempts and selected-model count. Every diagnostic
+uses the same gateway, provenance, fingerprint, and live-budget controls, but is
+reported separately and never merged into the final best-of-three matrix.

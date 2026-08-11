@@ -489,6 +489,24 @@ def test_diagnostic_smoke_cli_requires_exactly_one_task(tmp_path: Path) -> None:
 
     assert config.diagnostic_smoke is True
     assert config.tasks == ("billing-hygiene-audit",)
+    assert config.diagnostic_models == MODEL_ALIASES
+
+    single_model = parse_args(
+        [
+            "--run-id",
+            "billing-luna-screen",
+            "--projected-worst-case-batch-usd",
+            "9.0",
+            "--task",
+            "billing-hygiene-audit",
+            "--diagnostic-smoke",
+            "--diagnostic-model",
+            MODEL_ALIASES[0],
+            "--repository",
+            str(tmp_path),
+        ]
+    )
+    assert single_model.diagnostic_models == (MODEL_ALIASES[0],)
 
     with pytest.raises(ValidationError, match="diagnostic_smoke"):
         MatrixConfig(
@@ -498,6 +516,16 @@ def test_diagnostic_smoke_cli_requires_exactly_one_task(tmp_path: Path) -> None:
             run_id="multi-screen",
             tasks=("billing-hygiene-audit", "visitor-log-audit"),
             diagnostic_smoke=True,
+            projected_worst_case_batch_usd=9.0,
+        )
+
+    with pytest.raises(ValidationError, match="diagnostic_models"):
+        MatrixConfig(
+            repository=tmp_path,
+            tasks_root=tmp_path / "tasks",
+            jobs_dir=tmp_path / "jobs",
+            run_id="not-a-screen",
+            diagnostic_models=(MODEL_ALIASES[0],),
             projected_worst_case_batch_usd=9.0,
         )
 
@@ -568,6 +596,10 @@ def test_batch_requires_each_model_attempt_cell(tmp_path: Path) -> None:
     with pytest.raises(HarborRunError, match="Codex"):
         validate_batch_outcomes(tuple(outcomes[:-1] + [wrong_version]), attempts=3)
 
+    validate_batch_outcomes(
+        tuple(outcomes[:3]), attempts=3, model_aliases=(MODEL_ALIASES[0],)
+    )
+
 
 def test_budget_enforces_project_cap_and_reserve() -> None:
     budget = CreditBudget()
@@ -597,8 +629,16 @@ def test_cost_projection_scales_with_launch_size() -> None:
     assert full_batch_projection_from_launch(
         5.0, attempts_per_model=2
     ) == pytest.approx(7.5)
+    assert launch_projection(9.0, attempts_per_model=1, model_count=1) == pytest.approx(
+        1.0
+    )
+    assert full_batch_projection_from_launch(
+        1.0, attempts_per_model=1, model_count=1
+    ) == pytest.approx(9.0)
     with pytest.raises(ValueError, match="attempts"):
         launch_projection(1.0, attempts_per_model=0)
+    with pytest.raises(ValueError, match="model_count"):
+        launch_projection(1.0, attempts_per_model=1, model_count=0)
 
 
 async def test_credit_meter_uses_authoritative_endpoint_without_leaking_key() -> None:
@@ -973,6 +1013,49 @@ async def test_matrix_runner_executes_one_attempt_per_model_diagnostic_smoke(
     assert len(report.launches) == 1
     assert report.launches[0].phase == "diagnostic-smoke"
     assert report.launches[0].projected_worst_case_usd == pytest.approx(3.0)
+
+
+async def test_matrix_runner_executes_a_single_model_diagnostic_smoke(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    config = MatrixConfig(
+        repository=tmp_path,
+        tasks_root=tasks_root,
+        jobs_dir=tmp_path / "jobs",
+        run_id="visitor-luna-screen",
+        tasks=("visitor-log-audit",),
+        diagnostic_smoke=True,
+        diagnostic_models=(MODEL_ALIASES[0],),
+        projected_worst_case_batch_usd=9.0,
+    )
+    commands = FakeCommands()
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        credit_meter=FakeCreditMeter(),
+        gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
+    )
+
+    report = await runner.run()
+
+    assert commands.harbor_runs == [
+        (
+            "visitor-log-audit",
+            1,
+            (MODEL_ALIASES[0],),
+            "visitor-luna-screen-diagnostic-smoke-05-visitor-log-audit",
+        )
+    ]
+    assert report.smoke is not None
+    assert report.smoke.valid
+    assert len(report.smoke.trials) == 1
+    assert report.launches[0].enforced_model_routes == {
+        MODEL_ALIASES[0]: MODEL_PROVIDERS[ALIAS_TO_MODEL_FOR_TEST[MODEL_ALIASES[0]]]
+    }
+    assert report.launches[0].projected_worst_case_usd == pytest.approx(1.0)
 
 
 async def test_invalid_smoke_is_persisted_and_stops_before_final_fee_attempts(
