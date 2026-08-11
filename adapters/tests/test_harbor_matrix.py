@@ -395,6 +395,8 @@ def test_matrix_cli_requires_explicit_run_and_cost_projection(tmp_path: Path) ->
     assert config.jobs_dir == tmp_path / "jobs"
     assert config.attempts == 3
     assert config.concurrency == 8
+    assert config.budget_baseline_usage == pytest.approx(32.2139)
+    assert config.project_cap_usd == pytest.approx(25.0)
     with pytest.raises(ValidationError):
         MatrixConfig(
             repository=tmp_path,
@@ -403,6 +405,69 @@ def test_matrix_cli_requires_explicit_run_and_cost_projection(tmp_path: Path) ->
             run_id="not-three",
             attempts=2,
             projected_worst_case_batch_usd=1,
+        )
+
+
+def test_matrix_cli_records_an_incremental_budget_checkpoint(tmp_path: Path) -> None:
+    config = parse_args(
+        [
+            "--run-id",
+            "continued-matrix",
+            "--projected-worst-case-batch-usd",
+            "3.25",
+            "--budget-baseline-usage",
+            "56.005689513",
+            "--project-cap-usd",
+            "12.50",
+            "--repository",
+            str(tmp_path),
+        ]
+    )
+
+    assert config.budget_baseline_usage == pytest.approx(56.005689513)
+    assert config.project_cap_usd == pytest.approx(12.5)
+
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=FakeCommands(),
+        credit_meter=FakeCreditMeter(),
+    )
+    assert runner._budget.baseline_usage == pytest.approx(56.005689513)
+    assert runner._budget.project_cap_usd == pytest.approx(12.5)
+    assert runner._budget.cap_usage == pytest.approx(68.505689513)
+
+
+def test_matrix_cli_can_select_canonical_task_batches(tmp_path: Path) -> None:
+    config = parse_args(
+        [
+            "--run-id",
+            "targeted-matrix",
+            "--projected-worst-case-batch-usd",
+            "3.25",
+            "--task",
+            "vanished-clause",
+            "--task",
+            "billing-hygiene-audit",
+            "--repository",
+            str(tmp_path),
+        ]
+    )
+
+    assert config.tasks == (
+        "billing-hygiene-audit",
+        "vanished-clause",
+    )
+
+    with pytest.raises(ValidationError, match="tasks"):
+        MatrixConfig(
+            repository=tmp_path,
+            tasks_root=tmp_path / "tasks",
+            jobs_dir=tmp_path / "jobs",
+            run_id="duplicate-task",
+            projected_worst_case_batch_usd=1,
+            tasks=("vanished-clause", "vanished-clause"),
         )
 
 
@@ -723,6 +788,46 @@ async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
     assert persisted["failure"] is None
     assert commands.gateway_env_files
     assert all(not path.exists() for path in commands.gateway_env_files)
+
+
+async def test_matrix_runner_executes_a_selected_non_fee_task_without_fee_smoke(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    config = MatrixConfig(
+        repository=tmp_path,
+        tasks_root=tasks_root,
+        jobs_dir=tmp_path / "jobs",
+        run_id="targeted-matrix",
+        tasks=("billing-hygiene-audit",),
+        projected_worst_case_batch_usd=1.0,
+    )
+    commands = FakeCommands()
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        credit_meter=FakeCreditMeter(),
+        gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
+    )
+
+    report = await runner.run()
+
+    assert commands.harbor_runs == [
+        (
+            "billing-hygiene-audit",
+            3,
+            MODEL_ALIASES,
+            "targeted-matrix-03-billing-hygiene-audit",
+        )
+    ]
+    assert report.smoke is None
+    assert [batch.task_name for batch in report.batches] == ["billing-hygiene-audit"]
+    assert report.batches[0].valid
+    assert len(report.batches[0].trials) == 9
+    assert len(report.launches) == 1
+    assert report.launches[0].phase == "matrix"
 
 
 async def test_invalid_smoke_is_persisted_and_stops_before_final_fee_attempts(

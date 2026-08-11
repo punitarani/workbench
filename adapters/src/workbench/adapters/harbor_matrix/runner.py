@@ -18,6 +18,7 @@ from pydantic import (
     StrictFloat,
     StrictInt,
     ValidationError,
+    field_validator,
 )
 
 from workbench.adapters.harbor_matrix.gateway import (
@@ -50,6 +51,16 @@ TASK_ORDER = (
     "standard-drift",
     "vanished-clause",
 )
+TaskName = Literal[
+    "fee-dispute-reconstruction",
+    "client-departure-postmortem",
+    "billing-hygiene-audit",
+    "second-read-audit",
+    "visitor-log-audit",
+    "operative-deadline",
+    "standard-drift",
+    "vanished-clause",
+]
 IGNORED_TASK_SOURCE_PARTS = {
     ".git",
     ".pytest_cache",
@@ -65,10 +76,21 @@ class MatrixConfig(BaseModel):
     tasks_root: Path
     jobs_dir: Path
     run_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+    tasks: tuple[TaskName, ...] = Field(default=TASK_ORDER, min_length=1)
     attempts: Literal[3] = 3
     concurrency: int = Field(default=8, ge=1, le=8)
     projected_worst_case_batch_usd: FiniteFloat = Field(gt=0)
+    budget_baseline_usage: FiniteFloat = Field(default=32.2139, ge=0)
+    project_cap_usd: FiniteFloat = Field(default=25.0, gt=0)
     gateway_bind_host: str = "0.0.0.0"
+
+    @field_validator("tasks")
+    @classmethod
+    def canonical_tasks(cls, tasks: tuple[TaskName, ...]) -> tuple[TaskName, ...]:
+        if len(set(tasks)) != len(tasks):
+            raise ValueError("tasks must not contain duplicates")
+        selected = set(tasks)
+        return tuple(task for task in TASK_ORDER if task in selected)
 
 
 class CreditSnapshot(BaseModel):
@@ -624,7 +646,10 @@ class MatrixRunner:
             self._owned_credit_meter = None
             self._credit_meter = credit_meter
         self._gateway_transport = gateway_transport
-        self._budget = CreditBudget()
+        self._budget = CreditBudget(
+            baseline_usage=config.budget_baseline_usage,
+            project_cap_usd=config.project_cap_usd,
+        )
 
     async def run(self) -> MatrixReport:
         report_path = self._report_path()
@@ -655,6 +680,18 @@ class MatrixRunner:
             async with gateway:
                 try:
                     fee_task = TASK_ORDER[0]
+                    if fee_task not in self.config.tasks:
+                        await self._execute_matrix_tasks(
+                            gateway=gateway,
+                            credits=credits,
+                            full_batch_forecast=full_batch_forecast,
+                            task_names=self.config.tasks,
+                            start_sequence=1,
+                            smoke=smoke,
+                            batches=batches,
+                            launches=launches,
+                        )
+                        return self._report(smoke, batches, launches, gateway, failure)
                     smoke_fingerprints = await self._resolve_fingerprints(fee_task)
                     smoke_execution = await self._execute_launch(
                         gateway=gateway,
@@ -794,68 +831,18 @@ class MatrixRunner:
                             raise fee_execution.post_meter_error
                         raise HarborRunError(f"Harbor fee batch invalid: {fee_failure}")
 
-                    for sequence, task_name in enumerate(TASK_ORDER[1:], start=3):
-                        fingerprints = await self._resolve_fingerprints(task_name)
-                        execution = await self._execute_launch(
-                            gateway=gateway,
-                            credits=credits,
-                            forecast=launch_projection(
-                                full_batch_forecast, attempts_per_model=3
-                            ),
-                            task_name=task_name,
-                            attempts=3,
-                            phase="matrix",
-                            job_label=None,
-                            sequence=sequence,
-                        )
-                        launches.append(execution.launch)
-                        credits = execution.credits_after
-                        full_batch_forecast = max(
-                            full_batch_forecast,
-                            full_batch_projection_from_launch(
-                                execution.launch.metered_cost_usd,
-                                attempts_per_model=3,
-                            ),
-                        )
-                        trials = _build_trial_records(
-                            execution.outcomes,
-                            fingerprints,
-                            job_name=execution.launch.job_name,
-                            phase="matrix",
-                            first_attempt=1,
-                        )
-                        batch_failure = _launch_failure(execution)
-                        if batch_failure is None:
-                            try:
-                                validate_batch_outcomes(execution.outcomes, attempts=3)
-                            except HarborRunError as error:
-                                batch_failure = str(error)
-                        batches.append(
-                            BatchReport(
-                                task_name=task_name,
-                                trials=trials,
-                                launch_sequences=(sequence,),
-                                valid=batch_failure is None,
-                                failure=batch_failure,
-                            )
-                        )
-                        launches[-1] = launches[-1].model_copy(
-                            update={
-                                "valid": batch_failure is None,
-                                "failure": batch_failure,
-                            }
-                        )
-                        self._write_report(
-                            self._report(
-                                smoke, batches, launches, gateway, batch_failure
-                            )
-                        )
-                        if batch_failure is not None:
-                            if execution.post_meter_error is not None:
-                                raise execution.post_meter_error
-                            raise HarborRunError(
-                                f"Harbor batch {task_name} invalid: {batch_failure}"
-                            )
+                    await self._execute_matrix_tasks(
+                        gateway=gateway,
+                        credits=credits,
+                        full_batch_forecast=full_batch_forecast,
+                        task_names=tuple(
+                            task for task in self.config.tasks if task != fee_task
+                        ),
+                        start_sequence=3,
+                        smoke=smoke,
+                        batches=batches,
+                        launches=launches,
+                    )
                 except (BudgetExceededError, CreditMeterError, HarborRunError) as error:
                     failure = str(error)
                     self._write_report(
@@ -866,6 +853,78 @@ class MatrixRunner:
             if self._owned_credit_meter is not None:
                 await self._owned_credit_meter.aclose()
         return self._report(smoke, batches, launches, gateway, failure)
+
+    async def _execute_matrix_tasks(
+        self,
+        *,
+        gateway: ProviderGateway,
+        credits: CreditSnapshot,
+        full_batch_forecast: float,
+        task_names: tuple[TaskName, ...],
+        start_sequence: int,
+        smoke: SmokeReport | None,
+        batches: list[BatchReport],
+        launches: list[LaunchReport],
+    ) -> tuple[CreditSnapshot, float]:
+        for sequence, task_name in enumerate(task_names, start=start_sequence):
+            fingerprints = await self._resolve_fingerprints(task_name)
+            execution = await self._execute_launch(
+                gateway=gateway,
+                credits=credits,
+                forecast=launch_projection(full_batch_forecast, attempts_per_model=3),
+                task_name=task_name,
+                attempts=3,
+                phase="matrix",
+                job_label=None,
+                sequence=sequence,
+            )
+            launches.append(execution.launch)
+            credits = execution.credits_after
+            full_batch_forecast = max(
+                full_batch_forecast,
+                full_batch_projection_from_launch(
+                    execution.launch.metered_cost_usd,
+                    attempts_per_model=3,
+                ),
+            )
+            trials = _build_trial_records(
+                execution.outcomes,
+                fingerprints,
+                job_name=execution.launch.job_name,
+                phase="matrix",
+                first_attempt=1,
+            )
+            batch_failure = _launch_failure(execution)
+            if batch_failure is None:
+                try:
+                    validate_batch_outcomes(execution.outcomes, attempts=3)
+                except HarborRunError as error:
+                    batch_failure = str(error)
+            batches.append(
+                BatchReport(
+                    task_name=task_name,
+                    trials=trials,
+                    launch_sequences=(sequence,),
+                    valid=batch_failure is None,
+                    failure=batch_failure,
+                )
+            )
+            launches[-1] = launches[-1].model_copy(
+                update={
+                    "valid": batch_failure is None,
+                    "failure": batch_failure,
+                }
+            )
+            self._write_report(
+                self._report(smoke, batches, launches, gateway, batch_failure)
+            )
+            if batch_failure is not None:
+                if execution.post_meter_error is not None:
+                    raise execution.post_meter_error
+                raise HarborRunError(
+                    f"Harbor batch {task_name} invalid: {batch_failure}"
+                )
+        return credits, full_batch_forecast
 
     async def _resolve_fingerprints(
         self, task_name: str

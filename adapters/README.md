@@ -43,6 +43,24 @@ OPENROUTER_API_KEY=... uv run python -m workbench.adapters.harbor_matrix \
     --projected-worst-case-batch-usd 3.00
 ```
 
+An explicitly authorized continuation can start a new spend ledger and select
+only the task batches that need fresh cells:
+
+```bash
+OPENROUTER_API_KEY=... uv run python -m workbench.adapters.harbor_matrix \
+    --run-id hard-task-matrix \
+    --task vanished-clause \
+    --budget-baseline-usage 56.005689513 \
+    --project-cap-usd 12.50 \
+    --projected-worst-case-batch-usd 8.00
+```
+
+Repeated `--task` flags are normalized to the suite's canonical order. Each
+selected task still runs exactly three attempts for each of the three pinned
+models; omitting the flag retains the full eight-task protocol. The recorded
+budget baseline and incremental cap are written to the matrix report, and the
+same `$1.50` in-flight reserve remains enforced.
+
 The runner pins Harbor 0.18.0 and Codex 0.147.0, uses a 2x agent-time multiplier,
 and includes that execution setting in every fingerprint. It first runs one fee-dispute
 smoke trial for each model, validates that the complete task and materialized
