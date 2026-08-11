@@ -12,20 +12,23 @@ TASK = Path(__file__).parent
 TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
 T = json.loads((TESTS / "ground_truth.json").read_text())
+ORACLE = json.loads((TESTS / "oracle.json").read_text())
 pytestmark = pytest.mark.skipif(REWARDKIT is None, reason="rewardkit not installed")
 
 
 def _perfect() -> dict[str, object]:
-    return {
-        "document_path": T["document_path"],
-        "dropped_clause": "indemnification protection",
-        "dropped_in_version": T["dropped_in_version"],
-        "author": "Marcus Liang",
-        "date": T["date"],
-        "change_comment": "conformed draft",
-        "clean_documents": deepcopy(T["clean_documents"]),
-        "unreviewed_revisions": deepcopy(T["unreviewed_revisions"]),
-    }
+    answer = deepcopy(ORACLE)
+    answer["dropped_clause"] = "indemnification protection"
+    answer["author"] = "Marcus Liang"
+    answer["change_comment"] = "conformed draft"
+    return answer
+
+
+def test_committed_oracle_has_complete_revision_ledger() -> None:
+    assert len(ORACLE["revision_audit"]) == ORACLE["revisions_reviewed"] == 57
+    assert ORACLE["covered_revisions"] == 52
+    assert ORACLE["unreviewed_revision_count"] == 5
+    assert ORACLE["covering_communications"] == 53
 
 
 def _grade(
@@ -69,6 +72,74 @@ def test_sets_near_miss_shotgun_duplicate_and_reorder(
     assert _grade(tmp_path / "order", reordered)["answer"] == 1.0
 
 
+def test_headline_only_work_product_cannot_reach_half_credit(tmp_path: Path) -> None:
+    answer = _perfect()
+    answer["revision_audit"] = []
+
+    score = _grade(tmp_path, answer)["answer"]
+
+    assert 0.1 < score < 0.5
+
+
+def test_revision_ledger_near_miss_shotgun_duplicate_and_reorder(
+    tmp_path: Path,
+) -> None:
+    near = _perfect()
+    near["revision_audit"].pop()
+    shotgun = _perfect()
+    shotgun["revision_audit"].extend(deepcopy(shotgun["revision_audit"][:1]) * 40)
+    duplicate = _perfect()
+    duplicate["revision_audit"].append(deepcopy(duplicate["revision_audit"][0]))
+    reordered = _perfect()
+    reordered["revision_audit"].reverse()
+    for row in reordered["revision_audit"]:
+        row["email_ids"].reverse()
+        row["public_slack_ts"].reverse()
+
+    near_score = _grade(tmp_path / "near", near)["answer"]
+    assert 0.5 < near_score < 1.0
+    assert _grade(tmp_path / "shotgun", shotgun)["answer"] < near_score
+    assert 0.5 < _grade(tmp_path / "duplicate", duplicate)["answer"] < 1.0
+    assert _grade(tmp_path / "reordered", reordered)["answer"] == 1.0
+
+
+def test_wrong_or_duplicate_nested_citation_loses_credit(tmp_path: Path) -> None:
+    wrong = _perfect()
+    covered = next(
+        row
+        for row in wrong["revision_audit"]
+        if row["email_ids"] or row["public_slack_ts"]
+    )
+    citations = covered["email_ids"] or covered["public_slack_ts"]
+    citations.append("invented-evidence")
+    duplicate = _perfect()
+    covered = next(
+        row
+        for row in duplicate["revision_audit"]
+        if row["email_ids"] or row["public_slack_ts"]
+    )
+    citations = covered["email_ids"] or covered["public_slack_ts"]
+    citations.append(citations[0])
+
+    wrong_score = _grade(tmp_path / "wrong", wrong)["answer"]
+    duplicate_score = _grade(tmp_path / "duplicate", duplicate)["answer"]
+    assert 0.5 < wrong_score < 1.0
+    assert 0.5 < duplicate_score < 1.0
+
+
+def test_ledger_reconciliation_is_graded_separately(tmp_path: Path) -> None:
+    inconsistent = _perfect()
+    inconsistent["covered_revisions"] -= 1
+
+    details_path = tmp_path / "reward-details.json"
+    score = _grade(tmp_path, inconsistent)["answer"]
+    details = json.loads(details_path.read_text())
+    criteria = {item["name"]: item["value"] for item in details["answer"]["criteria"]}
+
+    assert 0.0 < score < 1.0
+    assert criteria["ledger_reconciles"] == 0.0
+
+
 @pytest.mark.parametrize(
     "mutation",
     [
@@ -79,6 +150,12 @@ def test_sets_near_miss_shotgun_duplicate_and_reorder(
         "numeric_revision",
         "numeric_date",
         "nonfinite",
+        "ledger_not_list",
+        "ledger_extra_key",
+        "ledger_wrong_number",
+        "ledger_wrong_status",
+        "ledger_numeric_email",
+        "ledger_numeric_slack",
     ],
 )
 def test_type_invalid_contract_scores_zero(tmp_path: Path, mutation: str) -> None:
@@ -95,6 +172,18 @@ def test_type_invalid_contract_scores_zero(tmp_path: Path, mutation: str) -> Non
         answer["unreviewed_revisions"][0] = 4
     elif mutation == "numeric_date":
         answer["date"] = 20260521
+    elif mutation == "ledger_not_list":
+        answer["revision_audit"] = {}
+    elif mutation == "ledger_extra_key":
+        answer["revision_audit"][0]["note"] = "invented"
+    elif mutation == "ledger_wrong_number":
+        answer["revision_audit"][0]["document_number"] = "21"
+    elif mutation == "ledger_wrong_status":
+        answer["revision_audit"][0]["coverage_status"] = "late"
+    elif mutation == "ledger_numeric_email":
+        answer["revision_audit"][0]["email_ids"] = [7]
+    elif mutation == "ledger_numeric_slack":
+        answer["revision_audit"][0]["public_slack_ts"] = [7]
     else:
         answer["dropped_in_version"] = float("nan")
     assert _grade(tmp_path, answer) == {"answer": 0.0, "process": 0.0}

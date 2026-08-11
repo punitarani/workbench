@@ -27,7 +27,22 @@ Save **`clause.json`** in your workspace:
   "date": "<YYYY-MM-DD of that version>",
   "change_comment": "<that version's change summary, verbatim>",
   "clean_documents": [<iManage document numbers of every clean multi-version document>],
-  "unreviewed_revisions": ["<iManage version id, e.g. LEGAL!7.2>", "..."]
+  "unreviewed_revisions": ["<iManage version id, e.g. LEGAL!7.2>", "..."],
+  "revisions_reviewed": <number of post-v1 revisions reviewed>,
+  "covered_revisions": <number with a qualifying same-day communication>,
+  "unreviewed_revision_count": <number with no qualifying communication>,
+  "covering_communications": <total cited Gmail messages plus public Slack messages>,
+  "revision_audit": [
+    {
+      "version_id": "LEGAL!<document number>.<version>",
+      "document_number": <iManage document number>,
+      "document_path": "<iManage path>",
+      "date": "<YYYY-MM-DD save date>",
+      "coverage_status": "<covered or unreviewed>",
+      "email_ids": ["<exact qualifying Gmail message id>", "..."],
+      "public_slack_ts": ["<exact qualifying public Slack timestamp>", "..."]
+    }
+  ]
 }
 ```
 
@@ -60,3 +75,12 @@ the firm forms; naming only the matter, the client, or the workspace
 does not count, and neither does a mention the day before or the day
 after. This list has to be exact too — most saves are mentioned
 somewhere, and the handful that never were is the answer.
+
+The carrier needs the review file behind that exception list, not only the
+exceptions. `revision_audit` must contain one row for every version 2 and later
+of every multi-version document. For a covered row, cite every same-day Gmail
+message and public-channel Slack message that qualifies under the naming rule;
+do not cite a thread ID, DM, neighboring-day mention, or matter-only mention.
+For an unreviewed row, both citation lists are empty. The four aggregate fields
+must reconcile with the rows, and `unreviewed_revisions` must be the exact
+`version_id` partition of the rows marked `unreviewed`.

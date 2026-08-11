@@ -181,33 +181,65 @@ def main() -> int:
     if len(clean_documents) != 31:
         sys.exit("the clean certification must cover all 31 other multi-version docs")
 
-    day_texts: dict[str, list[str]] = {}
-    for subject, mail_body, filenames, sent in rows(
+    emails_by_day: dict[str, list[tuple[str, str]]] = {}
+    for message_id, subject, mail_body, filenames, sent in rows(
         "gmail.db",
-        "SELECT m.subject, m.body, "
+        "SELECT m.message_id, m.subject, m.body, "
         "COALESCE((SELECT group_concat(a.filename, ' ') FROM attachments a "
         "WHERE a.message_id = m.message_id), ''), m.time FROM messages m",
     ):
-        day_texts.setdefault(day_of(sent), []).append(
-            f"{subject} {mail_body} {filenames}".lower()
+        emails_by_day.setdefault(day_of(sent), []).append(
+            (message_id, f"{subject} {mail_body} {filenames}".lower())
         )
-    for chat_body, sent in rows(
+    slack_by_day: dict[str, list[tuple[str, str]]] = {}
+    for timestamp_id, chat_body, sent in rows(
         "slack.db",
-        "SELECT m.body, m.time FROM messages m JOIN conversations c "
+        "SELECT m.ts, m.body, m.time FROM messages m JOIN conversations c "
         "ON c.conversation_id = m.conversation_id WHERE c.kind != 'dm'",
     ):
-        day_texts.setdefault(day_of(sent), []).append(chat_body.lower())
+        slack_by_day.setdefault(day_of(sent), []).append(
+            (timestamp_id, chat_body.lower())
+        )
 
-    unreviewed = []
+    revision_audit = []
     for doc_path, doc_versions in multi.items():
         markers = DOC_MENTION_MARKERS[titles[doc_path]]
         for saved_version, _, _, _, saved in doc_versions[1:]:
-            mentioned = any(
-                any(marker in text for marker in markers)
-                for text in day_texts.get(day_of(saved), ())
+            saved_day = day_of(saved)
+            email_ids = sorted(
+                message_id
+                for message_id, text in emails_by_day.get(saved_day, ())
+                if any(marker in text for marker in markers)
             )
-            if not mentioned:
-                unreviewed.append(f"LEGAL!{numbers[doc_path]}.{saved_version}")
+            public_slack_ts = sorted(
+                timestamp_id
+                for timestamp_id, text in slack_by_day.get(saved_day, ())
+                if any(marker in text for marker in markers)
+            )
+            revision_audit.append(
+                {
+                    "version_id": f"LEGAL!{numbers[doc_path]}.{saved_version}",
+                    "document_number": numbers[doc_path],
+                    "document_path": doc_path,
+                    "date": saved_day,
+                    "coverage_status": (
+                        "covered" if email_ids or public_slack_ts else "unreviewed"
+                    ),
+                    "email_ids": email_ids,
+                    "public_slack_ts": public_slack_ts,
+                }
+            )
+    revision_audit.sort(
+        key=lambda item: (
+            item["document_number"],
+            int(str(item["version_id"]).rsplit(".", 1)[1]),
+        )
+    )
+    unreviewed = [
+        str(item["version_id"])
+        for item in revision_audit
+        if item["coverage_status"] == "unreviewed"
+    ]
     if len(unreviewed) != 5:
         sys.exit(f"expected exactly five unreviewed revisions, found {unreviewed}")
     if f"LEGAL!{numbers[path]}.{first_absent + 1}" not in unreviewed:
@@ -223,6 +255,16 @@ def main() -> int:
         "change_comment": comment,
         "clean_documents": clean_documents,
         "unreviewed_revisions": sorted(unreviewed),
+        "revisions_reviewed": len(revision_audit),
+        "covered_revisions": sum(
+            item["coverage_status"] == "covered" for item in revision_audit
+        ),
+        "unreviewed_revision_count": len(unreviewed),
+        "covering_communications": sum(
+            len(item["email_ids"]) + len(item["public_slack_ts"])
+            for item in revision_audit
+        ),
+        "revision_audit": revision_audit,
     }
     json.dump(clause, sys.stdout, indent=2)
     sys.stdout.write("\n")

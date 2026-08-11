@@ -4,7 +4,8 @@
     "corpus": "The repository holds 36 documents, 32 of them with multiple versions. The Lumen agreement is the only multi-version document with a substantive protection that disappears, so the clean_documents certification is the exact 31-document complement.",
     "decoys": "Doc 26 /lumen-licensing/support-services-sow.md is a similarly named Lumen document with a clean four-version history and no indemnity language. June Akana's later mail quotes the old v2-era indemnity text verbatim after the drop, and Marcus's same-day reply claims nothing substantive changed. The iManage tools serve each document's repository path and document number, so both graded id spaces are directly observable.",
     "cover": "Fathom's counsel objected to the uncapped indemnity on 2026-05-19; no email or comment announces the removal.",
-    "unreviewed_revisions": "A revision is reviewed when its save day carries an email (subject, body, or attachment filename) or public-channel Slack message that names the document the way the firm does. The authoritative 32-document marker registry yields exactly five silent saves: litigation-hold v2 LEGAL!4.2 (2026-05-06), BayMark NDA v2 LEGAL!16.2 (2026-03-26), the Lumen agreement's dropping v4 LEGAL!21.4 (2026-05-21), the Lumen SOW v3 LEGAL!26.3 (2026-05-26), and Archway NDA v2 LEGAL!27.2 (2026-04-14). Graded all-or-nothing at 0.30; with clean_documents at 0.27 the non-reconciliation subset caps at 0.43."
+    "unreviewed_revisions": "A revision is reviewed when its save day carries an email (subject, body, or attachment filename) or public-channel Slack message that names the document the way the firm does. The authoritative 32-document marker registry yields exactly five silent saves: litigation-hold v2 LEGAL!4.2 (2026-05-06), BayMark NDA v2 LEGAL!16.2 (2026-03-26), the Lumen agreement's dropping v4 LEGAL!21.4 (2026-05-21), the Lumen SOW v3 LEGAL!26.3 (2026-05-26), and Archway NDA v2 LEGAL!27.2 (2026-04-14).",
+    "revision_audit": "The retained carrier schedule contains all 57 post-v1 saves across the 32 multi-version documents. Fifty-two saves have same-day document-specific coverage, five are unreviewed, and the covered rows cite exactly 53 source communications: five Gmail messages and 48 public Slack messages. One row has both surfaces and every other covered row has one citation."
   },
   "document_path": "/lumen-licensing/license-and-support-agreement.md",
   "clause_markers": [
@@ -52,15 +53,18 @@
     36
   ],
   "weights": {
-    "document_path": 0.05,
-    "dropped_clause": 0.07,
-    "dropped_in_version": 0.09,
-    "author": 0.04,
-    "date": 0.05,
-    "change_comment": 0.05,
-    "clean_documents": 0.27,
-    "unreviewed_revisions": 0.3,
-    "format": 0.08
+    "document_path": 0.02,
+    "dropped_clause": 0.03,
+    "dropped_in_version": 0.03,
+    "author": 0.02,
+    "date": 0.02,
+    "change_comment": 0.02,
+    "clean_documents": 0.09,
+    "unreviewed_revisions": 0.06,
+    "revision_aggregates": 0.04,
+    "revision_audit": 0.61,
+    "ledger_reconciliation": 0.03,
+    "format": 0.03
   },
   "unreviewed_revisions": [
     "LEGAL!4.2",

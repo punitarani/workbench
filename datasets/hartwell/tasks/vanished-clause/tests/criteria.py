@@ -21,6 +21,22 @@ PUBLIC_FIELDS = frozenset(
         "change_comment",
         "clean_documents",
         "unreviewed_revisions",
+        "revisions_reviewed",
+        "covered_revisions",
+        "unreviewed_revision_count",
+        "covering_communications",
+        "revision_audit",
+    }
+)
+REVISION_FIELDS = frozenset(
+    {
+        "version_id",
+        "document_number",
+        "document_path",
+        "date",
+        "coverage_status",
+        "email_ids",
+        "public_slack_ts",
     }
 )
 
@@ -41,6 +57,26 @@ def _finite_json(value: object) -> bool:
     return value is None or isinstance(value, bool | int | str)
 
 
+def _valid_revision(value: object) -> bool:
+    if not isinstance(value, dict) or set(value) != REVISION_FIELDS:
+        return False
+    if not all(
+        isinstance(value.get(key), str)
+        for key in ("version_id", "document_path", "date", "coverage_status")
+    ):
+        return False
+    email_ids = value.get("email_ids")
+    public_slack_ts = value.get("public_slack_ts")
+    return (
+        _integer(value.get("document_number"))
+        and value.get("coverage_status") in {"covered", "unreviewed"}
+        and isinstance(email_ids, list)
+        and all(isinstance(item, str) for item in email_ids)
+        and isinstance(public_slack_ts, list)
+        and all(isinstance(item, str) for item in public_slack_ts)
+    )
+
+
 def _valid_contract(document: dict[str, object]) -> bool:
     if set(document) != PUBLIC_FIELDS or not all(
         isinstance(document.get(key), str)
@@ -57,12 +93,24 @@ def _valid_contract(document: dict[str, object]) -> bool:
         document.get("clean_documents"),
         document.get("unreviewed_revisions"),
     )
+    revision_audit = document.get("revision_audit")
     return (
         _integer(document.get("dropped_in_version"))
+        and all(
+            _integer(document.get(key))
+            for key in (
+                "revisions_reviewed",
+                "covered_revisions",
+                "unreviewed_revision_count",
+                "covering_communications",
+            )
+        )
         and isinstance(clean, list)
         and all(_integer(value) for value in clean)
         and isinstance(unreviewed, list)
         and all(isinstance(value, str) for value in unreviewed)
+        and isinstance(revision_audit, list)
+        and all(_valid_revision(value) for value in revision_audit)
     )
 
 
@@ -109,6 +157,24 @@ def _counter(values: object, versions: bool = False) -> Counter[object]:
     return Counter(_version(value) if versions else value for value in values)
 
 
+def _revision_counter(values: object) -> Counter[object]:
+    if not isinstance(values, list):
+        return Counter()
+    return Counter(
+        (
+            _version(item["version_id"]),
+            item["document_number"],
+            item["document_path"],
+            item["date"],
+            item["coverage_status"],
+            tuple(sorted(item["email_ids"])),
+            tuple(sorted(item["public_slack_ts"])),
+        )
+        for item in values
+        if _valid_revision(item)
+    )
+
+
 def _f1(got: Counter[object], want: Counter[object]) -> float:
     hits = sum((got & want).values())
     if not hits:
@@ -146,6 +212,55 @@ def exact_set(
 ) -> bool:
     return _counter(_submitted(workspace, path).get(key), versions) == _counter(
         expected, versions
+    )
+
+
+@criterion(description="revision evidence ledger multiset F1", shared=True)
+def revision_audit_f1(workspace: Path, path: str, expected: list[object]) -> float:
+    return _f1(
+        _revision_counter(_submitted(workspace, path).get("revision_audit")),
+        _revision_counter(expected),
+    )
+
+
+@criterion(description="exact certified revision evidence ledger", shared=True)
+def exact_revision_audit(workspace: Path, path: str, expected: list[object]) -> bool:
+    return _revision_counter(
+        _submitted(workspace, path).get("revision_audit")
+    ) == _revision_counter(expected)
+
+
+@criterion(
+    description="ledger aggregates and unreviewed partition reconcile", shared=True
+)
+def ledger_reconciles(workspace: Path, path: str) -> bool:
+    document = _submitted(workspace, path)
+    revision_audit = document.get("revision_audit")
+    if not isinstance(revision_audit, list):
+        return False
+    covered = 0
+    unreviewed: list[str] = []
+    communications = 0
+    for item in revision_audit:
+        if not _valid_revision(item):
+            return False
+        citations = len(item["email_ids"]) + len(item["public_slack_ts"])
+        if item["coverage_status"] == "covered":
+            if citations == 0:
+                return False
+            covered += 1
+        else:
+            if citations != 0:
+                return False
+            unreviewed.append(item["version_id"])
+        communications += citations
+    return (
+        document.get("revisions_reviewed") == len(revision_audit)
+        and document.get("covered_revisions") == covered
+        and document.get("unreviewed_revision_count") == len(unreviewed)
+        and document.get("covering_communications") == communications
+        and _counter(document.get("unreviewed_revisions"), versions=True)
+        == _counter(unreviewed, versions=True)
     )
 
 

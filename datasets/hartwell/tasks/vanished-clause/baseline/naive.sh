@@ -75,6 +75,11 @@ clause = {
     # The mail trail discusses drafts constantly, so the naive read is
     # that every save was communicated somewhere.
     "unreviewed_revisions": [],
+    "revisions_reviewed": 0,
+    "covered_revisions": 0,
+    "unreviewed_revision_count": 0,
+    "covering_communications": 0,
+    "revision_audit": [],
 }
 with open("clause.json", "w") as handle:
     json.dump(clause, handle, indent=2)

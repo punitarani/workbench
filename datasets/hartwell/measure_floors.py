@@ -187,6 +187,11 @@ def _truth(task: str) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _oracle(task: str) -> dict:
+    path = TASKS / task / "tests" / "oracle.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 async def _read_window(
     client: CountingClient, channel: str, oldest: int, latest: int
 ) -> list[dict]:
@@ -381,6 +386,7 @@ def _dropped_block_exists(contents: list[str]) -> bool:
 
 async def vanished_clause(client: CountingClient) -> None:
     truth = _truth("vanished-clause")
+    oracle = _oracle("vanished-clause")
     workspaces = await client.call("imanage__search_workspaces", criteria="")
     documents: list[dict] = []
     for workspace in workspaces:
@@ -392,6 +398,7 @@ async def vanished_clause(client: CountingClient) -> None:
     assert len(multi) == 32
 
     unreviewed: list[str] = []
+    revision_audit: list[dict[str, object]] = []
     clean: list[int] = []
     drop_path: str | None = None
     for document in multi:
@@ -417,26 +424,63 @@ async def vanished_clause(client: CountingClient) -> None:
                 )
             )
         mail = await _gmail_all_pages(client, markers[0])
-        mail_days = {
-            m["date"][:10]
-            for m in mail
-            if any(marker in _mail_text(m) for marker in markers)
-        }
+        qualifying_mail = [
+            m for m in mail if any(marker in _mail_text(m) for marker in markers)
+        ]
+        mail_days = {m["date"][:10] for m in qualifying_mail}
         chat = await _slack_all_pages(client, f'"{markers[0]}"')
-        chat_days = {
-            _ts_day(m["ts"])
-            for m in chat
-            if any(marker in m["text"].lower() for marker in markers)
-        }
+        qualifying_chat = [
+            m for m in chat if any(marker in m["text"].lower() for marker in markers)
+        ]
+        chat_days = {_ts_day(m["ts"]) for m in qualifying_chat}
         contents.sort()
         for version, _, day in contents[1:]:
-            if day not in mail_days and day not in chat_days:
-                unreviewed.append(f"LEGAL!{number}.{version}")
+            email_ids = sorted(
+                m["id"] for m in qualifying_mail if m["date"][:10] == day
+            )
+            public_slack_ts = sorted(
+                m["ts"] for m in qualifying_chat if _ts_day(m["ts"]) == day
+            )
+            version_id = f"LEGAL!{number}.{version}"
+            status = "covered" if day in mail_days or day in chat_days else "unreviewed"
+            revision_audit.append(
+                {
+                    "version_id": version_id,
+                    "document_number": number,
+                    "document_path": document["path"],
+                    "date": day,
+                    "coverage_status": status,
+                    "email_ids": email_ids,
+                    "public_slack_ts": public_slack_ts,
+                }
+            )
+            if status == "unreviewed":
+                unreviewed.append(version_id)
         if _dropped_block_exists([content for _, content, _ in contents]):
             drop_path = document["path"]
         else:
             clean.append(number)
     assert sorted(unreviewed) == sorted(truth["unreviewed_revisions"]), unreviewed
+
+    def canonical(item: object) -> str:
+        return json.dumps(item, sort_keys=True, separators=(",", ":"))
+
+    assert sorted(map(canonical, revision_audit)) == sorted(
+        map(canonical, oracle["revision_audit"])
+    ), revision_audit
+    assert len(revision_audit) == oracle["revisions_reviewed"]
+    assert (
+        sum(item["coverage_status"] == "covered" for item in revision_audit)
+        == oracle["covered_revisions"]
+    )
+    assert len(unreviewed) == oracle["unreviewed_revision_count"]
+    assert (
+        sum(
+            len(item["email_ids"]) + len(item["public_slack_ts"])
+            for item in revision_audit
+        )
+        == oracle["covering_communications"]
+    )
     assert drop_path == truth["document_path"]
     assert sorted(clean) == sorted(truth["clean_documents"]), clean
 

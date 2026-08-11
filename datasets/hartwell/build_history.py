@@ -943,22 +943,39 @@ def audit(log_path: Path, state_dir: Path) -> int:
     # save day carries no email or public-channel message with one of the
     # document's mention markers.
     unreviewed: list[tuple[str, int]] = []
+    revisions_reviewed = 0
+    covered_revisions = 0
+    covering_communications = 0
     for title, markers in DOC_MENTION_MARKERS.items():
         ordered = sorted(histories[title])
         if len(ordered) < 2:
             continue
         for version, _, day in ordered[1:]:
-            mentioned = any(
-                any(marker in text for marker in markers)
+            email_matches = [
+                text
                 for text, text_day, _ in emails
-                if text_day == day
-            ) or any(
-                any(marker in text for marker in markers)
+                if text_day == day and any(marker in text for marker in markers)
+            ]
+            chat_matches = [
+                text
                 for text, text_day, _ in public_chat_texts
-                if text_day == day
-            )
-            if not mentioned:
+                if text_day == day and any(marker in text for marker in markers)
+            ]
+            mentioned = bool(email_matches or chat_matches)
+            revisions_reviewed += 1
+            covering_communications += len(email_matches) + len(chat_matches)
+            if mentioned:
+                covered_revisions += 1
+            else:
                 unreviewed.append((title, version))
+    check(
+        "revision evidence ledger has 57 post-v1 saves, 52 covered, "
+        "5 unreviewed, and 53 exact citations",
+        revisions_reviewed == 57
+        and covered_revisions == 52
+        and len(unreviewed) == 5
+        and covering_communications == 53,
+    )
     check(
         f"unreviewed revisions are exactly {sorted(unreviewed)} "
         "(BayMark v2, Archway v2, hold v2, Lumen agreement v4, SOW v3)",

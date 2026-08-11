@@ -1,5 +1,7 @@
 """Integration regressions for Hartwell's shared request-audit floors."""
 
+import asyncio
+import json
 import runpy
 import subprocess
 import sys
@@ -70,6 +72,46 @@ def test_fee_floor_metadata_matches_the_measured_reference_path() -> None:
     )
 
     assert manifest["metadata"]["reference_tool_path_calls"] == 49
+
+
+def test_vanished_floor_certifies_the_full_revision_ledger() -> None:
+    namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
+    measure = namespace["measure"]
+    oracle = json.loads(
+        (TASKS / "vanished-clause" / "tests" / "oracle.json").read_text()
+    )
+    oracle["revision_audit"][0]["coverage_status"] = "unreviewed"
+    measure.__globals__["_oracle"] = lambda task: oracle
+
+    with pytest.raises(BaseExceptionGroup) as caught:
+        asyncio.run(measure("vanished-clause"))
+    pending = list(caught.value.exceptions)
+    leaves: list[BaseException] = []
+    while pending:
+        exception = pending.pop()
+        if isinstance(exception, BaseExceptionGroup):
+            pending.extend(exception.exceptions)
+        else:
+            leaves.append(exception)
+    assert any(isinstance(exception, AssertionError) for exception in leaves)
+
+
+def test_vanished_floor_metadata_matches_the_measured_reference_path() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(HARTWELL / "measure_floors.py"),
+            "vanished-clause",
+        ],
+        cwd=HARTWELL.parents[1],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    manifest = tomllib.loads((TASKS / "vanished-clause" / "task.toml").read_text())
+
+    assert completed.stdout.strip() == "vanished-clause: floor=199"
+    assert manifest["metadata"]["reference_tool_path_calls"] == 199
 
 
 def test_visitor_custody_uses_the_first_qualifying_return() -> None:
