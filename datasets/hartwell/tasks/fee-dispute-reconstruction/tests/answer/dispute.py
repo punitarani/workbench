@@ -5,9 +5,9 @@ from pathlib import Path
 
 import rewardkit as rk
 
-TRUTH = json.loads(
-    (Path(__file__).resolve().parent.parent / "ground_truth.json").read_text()
-)
+TESTS = Path(__file__).resolve().parent.parent
+TRUTH = json.loads((TESTS / "oracle.json").read_text())
+MARKERS = json.loads((TESTS / "ground_truth.json").read_text())
 
 DELIVERABLE = "dispute.json"
 ENTRY_FIELDS = ("id", "date", "minutes")
@@ -18,6 +18,16 @@ UNSUPPORTED_DAY_FIELDS = (
     "minutes",
     "billed_cents",
 )
+SUPPORT_AUDIT_FIELDS = (
+    "date",
+    "entry_ids",
+    "entry_count",
+    "minutes",
+    "billed_cents",
+    "gmail_message_ids",
+    "slack_message_ts",
+    "supported",
+)
 REQUIRED_FIELDS = [
     "cutoff_date",
     "total_minutes",
@@ -27,6 +37,7 @@ REQUIRED_FIELDS = [
     "timekeepers",
     "challenged_by",
     "challenge_date",
+    "support_audit",
     "unsupported_days",
 ]
 
@@ -35,21 +46,21 @@ rk.field_equals(
     "cutoff_date",
     TRUTH["cutoff_date"],
     name="cutoff_date",
-    weight=3.0,
+    weight=2.0,
 )
 rk.numeric_close(
     DELIVERABLE,
     "total_minutes",
     TRUTH["total_minutes"],
     name="total_minutes",
-    weight=5.0,
+    weight=2.0,
 )
 rk.numeric_close(
     DELIVERABLE,
     "entry_count",
     TRUTH["entry_count"],
     name="entry_count",
-    weight=3.0,
+    weight=1.0,
 )
 rk.set_f1(
     DELIVERABLE,
@@ -57,7 +68,7 @@ rk.set_f1(
     TRUTH["entries"],
     fields=ENTRY_FIELDS,
     name="disputed_entries.f1",
-    weight=10.8,
+    weight=7.2,
 )
 rk.exact_set(
     DELIVERABLE,
@@ -65,49 +76,65 @@ rk.exact_set(
     TRUTH["entries"],
     fields=ENTRY_FIELDS,
     name="disputed_entries.certified",
-    weight=1.2,
+    weight=0.8,
 )
 rk.marker_map_f1(
     DELIVERABLE,
     "minutes_by_timekeeper",
-    TRUTH["minutes_by_timekeeper_markers"],
+    MARKERS["minutes_by_timekeeper_markers"],
     name="minutes_by_timekeeper.f1",
-    weight=4.5,
+    weight=2.7,
 )
 rk.exact_marker_map(
     DELIVERABLE,
     "minutes_by_timekeeper",
-    TRUTH["minutes_by_timekeeper_markers"],
+    MARKERS["minutes_by_timekeeper_markers"],
     name="minutes_by_timekeeper.certified",
-    weight=0.5,
+    weight=0.3,
 )
 rk.marker_list_f1(
     DELIVERABLE,
     "timekeepers",
-    TRUTH["timekeeper_markers"],
+    MARKERS["timekeeper_markers"],
     name="timekeepers.f1",
-    weight=1.8,
+    weight=0.9,
 )
 rk.exact_marker_list(
     DELIVERABLE,
     "timekeepers",
-    TRUTH["timekeeper_markers"],
+    MARKERS["timekeeper_markers"],
     name="timekeepers.certified",
-    weight=0.2,
+    weight=0.1,
 )
 rk.field_names_any(
     DELIVERABLE,
     "challenged_by",
-    TRUTH["challenged_by_markers"],
+    MARKERS["challenged_by_markers"],
     name="challenged_by",
-    weight=2.0,
+    weight=1.0,
 )
 rk.field_equals(
     DELIVERABLE,
     "challenge_date",
     TRUTH["challenge_date"],
     name="challenge_date",
-    weight=3.0,
+    weight=2.0,
+)
+rk.set_f1(
+    DELIVERABLE,
+    "support_audit",
+    TRUTH["support_audit"],
+    fields=SUPPORT_AUDIT_FIELDS,
+    name="support_audit.f1",
+    weight=48.6,
+)
+rk.exact_set(
+    DELIVERABLE,
+    "support_audit",
+    TRUTH["support_audit"],
+    fields=SUPPORT_AUDIT_FIELDS,
+    name="support_audit.certified",
+    weight=5.4,
 )
 rk.set_f1(
     DELIVERABLE,
@@ -115,7 +142,7 @@ rk.set_f1(
     TRUTH["unsupported_days"],
     fields=UNSUPPORTED_DAY_FIELDS,
     name="unsupported_days.f1",
-    weight=50.4,
+    weight=18.0,
 )
 rk.exact_set(
     DELIVERABLE,
@@ -123,11 +150,11 @@ rk.exact_set(
     TRUTH["unsupported_days"],
     fields=UNSUPPORTED_DAY_FIELDS,
     name="unsupported_days.certified",
-    weight=5.6,
+    weight=2.0,
 )
 rk.has_fields(
     DELIVERABLE,
     REQUIRED_FIELDS,
     name="deliverable_format",
-    weight=9.0,
+    weight=6.0,
 )

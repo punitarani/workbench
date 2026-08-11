@@ -220,24 +220,34 @@ def referenced(text: str) -> bool:
 
 
 coverage: dict[date, set[str]] = {}
-for subject, body, time in rows("gmail.db", "SELECT subject, body, time FROM messages"):
+gmail_support: dict[date, list[str]] = {}
+for message_id, subject, body, time in rows(
+    "gmail.db",
+    "SELECT message_id, subject, body, time FROM messages ORDER BY time, message_id",
+):
     text = f"{subject} {body}"
     if referenced(text):
         kind = "email-name" if "meridian" in text.lower() else "email-oblique"
-        coverage.setdefault(day_of(int(time)), set()).add(kind)
+        message_day = day_of(int(time))
+        coverage.setdefault(message_day, set()).add(kind)
+        gmail_support.setdefault(message_day, []).append(str(message_id))
 dm_ids: set[str] = {
     str(conversation_id)
     for (conversation_id,) in rows(
         "slack.db", "SELECT conversation_id FROM conversations WHERE kind = 'dm'"
     )
 }
-for conversation_id, body, time in rows(
-    "slack.db", "SELECT conversation_id, body, time FROM messages"
+slack_support: dict[date, list[str]] = {}
+for conversation_id, ts, body, time in rows(
+    "slack.db",
+    "SELECT conversation_id, ts, body, time FROM messages ORDER BY time, ts",
 ):
     body = str(body)
     if referenced(body):
         kind = "chat-dm" if str(conversation_id) in dm_ids else "chat-public"
-        coverage.setdefault(day_of(int(time)), set()).add(kind)
+        message_day = day_of(int(time))
+        coverage.setdefault(message_day, set()).add(kind)
+        slack_support.setdefault(message_day, []).append(str(ts))
 
 unsupported: list[WindowEntry] = [
     entry for entry in window if day_of(entry[1]) not in coverage
@@ -263,6 +273,27 @@ def billed_cents(seconds: int, rate_cents: int | None, billable: int) -> int:
     public_total = round(rate_cents / 100 * seconds / 3600, 2)
     return round(public_total * 100)
 
+
+window_by_day: dict[date, list[WindowEntry]] = {}
+for entry in window:
+    window_by_day.setdefault(day_of(entry[1]), []).append(entry)
+
+support_audit: list[dict[str, object]] = [
+    {
+        "date": audit_day.isoformat(),
+        "entry_ids": [activity_id for activity_id, _, _, _, _ in entries],
+        "entry_count": len(entries),
+        "minutes": sum(seconds for _, _, seconds, _, _ in entries) // 60,
+        "billed_cents": sum(
+            billed_cents(seconds, rate_cents, billable)
+            for _, _, seconds, rate_cents, billable in entries
+        ),
+        "gmail_message_ids": gmail_support.get(audit_day, []),
+        "slack_message_ts": slack_support.get(audit_day, []),
+        "supported": audit_day in coverage,
+    }
+    for audit_day, entries in sorted(window_by_day.items())
+]
 
 unsupported_days: list[dict[str, object]] = [
     {
@@ -294,6 +325,7 @@ dispute: dict[str, object] = {
     "timekeepers": [names[person] for person in timekeeper_ids],
     "challenged_by": challenger,
     "challenge_date": day_of(challenge_time).isoformat(),
+    "support_audit": support_audit,
     "unsupported_days": unsupported_days,
 }
 json.dump(dispute, sys.stdout, indent=2)

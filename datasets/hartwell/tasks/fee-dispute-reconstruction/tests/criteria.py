@@ -34,12 +34,25 @@ PUBLIC_FIELDS = frozenset(
         "timekeepers",
         "challenged_by",
         "challenge_date",
+        "support_audit",
         "unsupported_days",
     }
 )
 ENTRY_FIELDS = frozenset({"id", "date", "minutes"})
 UNSUPPORTED_DAY_FIELDS = frozenset(
     {"date", "entry_ids", "entry_count", "minutes", "billed_cents"}
+)
+SUPPORT_AUDIT_FIELDS = frozenset(
+    {
+        "date",
+        "entry_ids",
+        "entry_count",
+        "minutes",
+        "billed_cents",
+        "gmail_message_ids",
+        "slack_message_ts",
+        "supported",
+    }
 )
 
 
@@ -99,6 +112,29 @@ def _valid_contract(document: dict[str, object]) -> bool:
         document.get("challenge_date"), str
     ):
         return False
+    support_audit = document.get("support_audit")
+    if not isinstance(support_audit, list):
+        return False
+    for day in support_audit:
+        if not isinstance(day, dict) or set(day) != SUPPORT_AUDIT_FIELDS:
+            return False
+        if (
+            not isinstance(day.get("date"), str)
+            or not _integer_list(day.get("entry_ids"))
+            or not _integer(day.get("entry_count"))
+            or not _integer(day.get("minutes"))
+            or not _integer(day.get("billed_cents"))
+            or not isinstance(day.get("gmail_message_ids"), list)
+            or not all(
+                isinstance(identity, str) for identity in day["gmail_message_ids"]
+            )
+            or not isinstance(day.get("slack_message_ts"), list)
+            or not all(
+                isinstance(identity, str) for identity in day["slack_message_ts"]
+            )
+            or not isinstance(day.get("supported"), bool)
+        ):
+            return False
     unsupported_days = document.get("unsupported_days")
     if not isinstance(unsupported_days, list):
         return False

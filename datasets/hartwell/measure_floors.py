@@ -259,7 +259,7 @@ async def _dm_channels(client: CountingClient) -> list[dict]:
 
 
 async def fee_dispute_reconstruction(client: CountingClient) -> None:
-    truth = _truth("fee-dispute-reconstruction")
+    truth = _oracle("fee-dispute-reconstruction")
     matters = await client.call("clio__list_matters")
     matter = next(
         m for m in matters["data"] if "Meridian" in f"{m['title']} {m['description']}"
@@ -288,23 +288,31 @@ async def fee_dispute_reconstruction(client: CountingClient) -> None:
     assert any(m["date"][:10] == truth["challenge_date"] for m in challenge)
 
     coverage: set[str] = set()
+    gmail_support: dict[str, set[str]] = {}
     for marker in S2_MARKERS:
         query = f"{marker} after:2026/04/04 before:2026/05/01"
         for message in await _gmail_all_pages(client, query):
             if marker in f"{message['subject']} {message['plaintextBody']}".lower():
-                coverage.add(message["date"][:10])
+                message_day = message["date"][:10]
+                coverage.add(message_day)
+                gmail_support.setdefault(message_day, set()).add(message["id"])
+    slack_support: dict[str, set[str]] = {}
     for marker in S2_MARKERS:
         query = f"{marker} after:2026-04-03 before:2026-05-01"
         for message in await _slack_all_pages(client, query):
             if marker in message["text"].lower():
-                coverage.add(_ts_day(message["ts"]))
+                message_day = _ts_day(message["ts"])
+                coverage.add(message_day)
+                slack_support.setdefault(message_day, set()).add(message["ts"])
 
     oldest, latest = _day_seconds("2026-04-04"), _day_seconds("2026-05-01")
     for dm in await _dm_channels(client):
         for message in await _read_window(client, dm["id"], oldest, latest):
             lowered = message["text"].lower()
             if any(marker in lowered for marker in S2_MARKERS):
-                coverage.add(_ts_day(message["ts"]))
+                message_day = _ts_day(message["ts"])
+                coverage.add(message_day)
+                slack_support.setdefault(message_day, set()).add(message["ts"])
 
     window = [a for a in activities if "2026-04-03" < a["date"] <= "2026-04-30"]
     orphans = sorted(a["id"] for a in window if a["date"] not in coverage)
@@ -314,6 +322,26 @@ async def fee_dispute_reconstruction(client: CountingClient) -> None:
         for entry_id in unsupported_day["entry_ids"]
     )
     assert orphans == certified_orphans, orphans
+    by_day: dict[str, list[dict]] = {}
+    for activity in window:
+        by_day.setdefault(activity["date"], []).append(activity)
+    support_audit = [
+        {
+            "date": day,
+            "entry_ids": [activity["id"] for activity in entries],
+            "entry_count": len(entries),
+            "minutes": sum(activity["quantity"] for activity in entries) // 60,
+            "billed_cents": sum(
+                0 if activity["total"] is None else round(activity["total"] * 100)
+                for activity in entries
+            ),
+            "gmail_message_ids": sorted(gmail_support.get(day, set())),
+            "slack_message_ts": sorted(slack_support.get(day, set())),
+            "supported": day in coverage,
+        }
+        for day, entries in sorted(by_day.items())
+    ]
+    assert support_audit == truth["support_audit"]
     disputed = [
         a
         for a in window

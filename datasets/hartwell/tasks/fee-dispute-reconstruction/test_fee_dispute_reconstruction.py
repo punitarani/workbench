@@ -13,7 +13,7 @@ TASK = Path(__file__).parent
 BUNDLE = TASK / "bundle"
 TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
-TRUTH = json.loads((TESTS / "ground_truth.json").read_text())
+TRUTH = json.loads((TESTS / "oracle.json").read_text())
 
 type JsonObject = dict[str, object]
 
@@ -187,7 +187,7 @@ def test_one_missing_day_and_entry_receive_f1_partial_credit(tmp_path: Path) -> 
         12 / 13, abs=1e-4
     )
     assert _criterion(details, "disputed_entries.certified") == 0.0
-    assert 0.8 < reward["answer"] < 0.9
+    assert 0.94 < reward["answer"] < 0.95
 
 
 def test_ground_truth_and_oracle_match_the_fresh_bundle(tmp_path: Path) -> None:
@@ -229,3 +229,28 @@ def test_unsupported_day_invariants_are_explicit() -> None:
     ]
     assert sum(day["minutes"] for day in days) == 2887
     assert sum(day["billed_cents"] for day in days) == 2057692
+
+
+def test_complete_support_audit_covers_the_whole_disputed_window() -> None:
+    audit = TRUTH["support_audit"]
+    entry_ids = [entry_id for day in audit for entry_id in day["entry_ids"]]
+    communications = [
+        identity
+        for day in audit
+        for key in ("gmail_message_ids", "slack_message_ts")
+        for identity in day[key]
+    ]
+
+    assert len(audit) == 22
+    assert sum(day["entry_count"] for day in audit) == 254
+    assert len(entry_ids) == len(set(entry_ids)) == 254
+    assert all(day["entry_count"] == len(day["entry_ids"]) for day in audit)
+    assert all(
+        day["supported"] == bool(day["gmail_message_ids"] or day["slack_message_ts"])
+        for day in audit
+    )
+    assert sum(not day["supported"] for day in audit) == 5
+    assert len(communications) == len(set(communications)) == 28
+    assert [day["date"] for day in audit if not day["supported"]] == [
+        day["date"] for day in TRUTH["unsupported_days"]
+    ]

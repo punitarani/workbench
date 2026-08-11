@@ -11,7 +11,8 @@ import pytest
 TASK = Path(__file__).parent
 TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
-TRUTH = json.loads((TESTS / "ground_truth.json").read_text())
+TRUTH = json.loads((TESTS / "oracle.json").read_text())
+MARKERS = json.loads((TESTS / "ground_truth.json").read_text())
 
 type JsonObject = dict[str, object]
 
@@ -24,7 +25,7 @@ pytestmark = pytest.mark.skipif(
 def _perfect() -> JsonObject:
     timekeepers = [
         " ".join(marker.title() for marker in markers)
-        for markers in TRUTH["timekeeper_markers"]
+        for markers in MARKERS["timekeeper_markers"]
     ]
     return {
         "cutoff_date": TRUTH["cutoff_date"],
@@ -34,14 +35,15 @@ def _perfect() -> JsonObject:
         "minutes_by_timekeeper": {
             timekeeper: expected[1]
             for timekeeper, expected in zip(
-                timekeepers, TRUTH["minutes_by_timekeeper_markers"], strict=True
+                timekeepers, MARKERS["minutes_by_timekeeper_markers"], strict=True
             )
         },
         "timekeepers": timekeepers,
         "challenged_by": " ".join(
-            marker.title() for marker in TRUTH["challenged_by_markers"]
+            marker.title() for marker in MARKERS["challenged_by_markers"]
         ),
         "challenge_date": TRUTH["challenge_date"],
+        "support_audit": deepcopy(TRUTH["support_audit"]),
         "unsupported_days": deepcopy(TRUTH["unsupported_days"]),
     }
 
@@ -97,10 +99,17 @@ def test_extra_top_level_or_nested_field_invalidates_public_contract(
     days[0]["supporting_message_ids"] = []
     unsupported_reward, _ = _grade(tmp_path / "unsupported", unsupported)
 
+    support = _perfect()
+    audit = support["support_audit"]
+    assert isinstance(audit, list) and isinstance(audit[0], dict)
+    audit[0]["reviewer"] = "Carl Jensen"
+    support_reward, _ = _grade(tmp_path / "support", support)
+
     assert (
         top_reward
         == nested_reward
         == unsupported_reward
+        == support_reward
         == {
             "answer": 0.0,
             "process": 0.0,
@@ -154,6 +163,11 @@ def test_dangling_agent_symlink_that_resolves_under_verifier_is_rejected(
         "boolean_unsupported_entry_count",
         "string_unsupported_minutes",
         "string_unsupported_billed_cents",
+        "numeric_support_date",
+        "string_support_entry_id",
+        "numeric_gmail_id",
+        "numeric_slack_ts",
+        "integer_supported",
     ],
 )
 def test_type_invalid_public_contract_scores_zero(
@@ -162,8 +176,10 @@ def test_type_invalid_public_contract_scores_zero(
     answer = _perfect()
     entries = answer["entries"]
     days = answer["unsupported_days"]
+    audit = answer["support_audit"]
     assert isinstance(entries, list) and isinstance(entries[0], dict)
     assert isinstance(days, list) and isinstance(days[0], dict)
+    assert isinstance(audit, list) and isinstance(audit[0], dict)
     if mutation == "numeric_cutoff_date":
         answer["cutoff_date"] = 20260403
     elif mutation == "numeric_string_total":
@@ -197,8 +213,20 @@ def test_type_invalid_public_contract_scores_zero(
         days[0]["entry_count"] = False
     elif mutation == "string_unsupported_minutes":
         days[0]["minutes"] = str(days[0]["minutes"])
-    else:
+    elif mutation == "string_unsupported_billed_cents":
         days[0]["billed_cents"] = str(days[0]["billed_cents"])
+    elif mutation == "numeric_support_date":
+        audit[0]["date"] = 20260404
+    elif mutation == "string_support_entry_id":
+        audit[0]["entry_ids"][0] = str(audit[0]["entry_ids"][0])
+    elif mutation == "numeric_gmail_id":
+        email_day = next(day for day in audit if day["gmail_message_ids"])
+        email_day["gmail_message_ids"][0] = 1
+    elif mutation == "numeric_slack_ts":
+        slack_day = next(day for day in audit if day["slack_message_ts"])
+        slack_day["slack_message_ts"][0] = 1
+    else:
+        audit[0]["supported"] = 0
 
     reward, _ = _grade(tmp_path, answer)
     assert reward == {"answer": 0.0, "process": 0.0}
@@ -209,6 +237,7 @@ def test_type_invalid_public_contract_scores_zero(
     [
         ("entries", "disputed_entries", 14 / 15),
         ("unsupported_days", "unsupported_days", 10 / 11),
+        ("support_audit", "support_audit", 44 / 45),
     ],
 )
 def test_duplicate_outer_record_is_counted_as_an_extra(
@@ -242,7 +271,7 @@ def test_duplicate_nested_unsupported_entry_id_loses_f1_and_certification(
 
     assert _criterion(details, "unsupported_days.f1") == pytest.approx(0.8)
     assert _criterion(details, "unsupported_days.certified") == 0.0
-    assert reward["answer"] == pytest.approx(0.44 + 0.56 * 0.9 * 0.8, abs=1e-4)
+    assert reward["answer"] == pytest.approx(0.8 + 0.20 * 0.9 * 0.8, abs=1e-4)
 
 
 @pytest.mark.parametrize("extra_name", ["Marcus Liang", "Avery Fake"])
@@ -258,7 +287,7 @@ def test_duplicate_or_fake_timekeeper_is_a_precision_error(
 
     assert _criterion(details, "timekeepers.f1") == pytest.approx(0.8)
     assert _criterion(details, "timekeepers.certified") == 0.0
-    assert reward["answer"] == pytest.approx(0.98 + 0.02 * 0.9 * 0.8, abs=1e-4)
+    assert reward["answer"] == pytest.approx(0.99 + 0.01 * 0.9 * 0.8, abs=1e-4)
 
 
 @pytest.mark.parametrize(
@@ -277,7 +306,7 @@ def test_duplicate_alias_or_fake_timekeeper_map_key_is_a_precision_error(
 
     assert _criterion(details, "minutes_by_timekeeper.f1") == pytest.approx(0.8)
     assert _criterion(details, "minutes_by_timekeeper.certified") == 0.0
-    assert reward["answer"] == pytest.approx(0.95 + 0.05 * 0.9 * 0.8, abs=1e-4)
+    assert reward["answer"] == pytest.approx(0.97 + 0.03 * 0.9 * 0.8, abs=1e-4)
 
 
 def test_wrong_timekeeper_map_value_is_both_a_miss_and_an_extra(tmp_path: Path) -> None:
@@ -290,18 +319,18 @@ def test_wrong_timekeeper_map_value_is_both_a_miss_and_an_extra(tmp_path: Path) 
 
     assert _criterion(details, "minutes_by_timekeeper.f1") == pytest.approx(0.5)
     assert _criterion(details, "minutes_by_timekeeper.certified") == 0.0
-    assert reward["answer"] == pytest.approx(0.95 + 0.05 * 0.9 * 0.5, abs=1e-4)
+    assert reward["answer"] == pytest.approx(0.97 + 0.03 * 0.9 * 0.5, abs=1e-4)
 
 
 @pytest.mark.parametrize(
     ("key", "criterion", "fixed_weight", "field_weight"),
     [
-        ("timekeepers", "timekeepers", 0.98, 0.02),
+        ("timekeepers", "timekeepers", 0.99, 0.01),
         (
             "minutes_by_timekeeper",
             "minutes_by_timekeeper",
-            0.95,
-            0.05,
+            0.97,
+            0.03,
         ),
     ],
 )
@@ -351,17 +380,26 @@ def test_reordering_sets_and_nested_members_keeps_full_credit(tmp_path: Path) ->
     entries = answer["entries"]
     timekeepers = answer["timekeepers"]
     days = answer["unsupported_days"]
+    audit = answer["support_audit"]
     assert isinstance(entries, list)
     assert isinstance(timekeepers, list)
     assert isinstance(days, list)
+    assert isinstance(audit, list)
     entries.reverse()
     timekeepers.reverse()
     days.reverse()
+    audit.reverse()
     for day in days:
         assert isinstance(day, dict)
         entry_ids = day["entry_ids"]
         assert isinstance(entry_ids, list)
         entry_ids.reverse()
+    for day in audit:
+        assert isinstance(day, dict)
+        for key in ("entry_ids", "gmail_message_ids", "slack_message_ts"):
+            values = day[key]
+            assert isinstance(values, list)
+            values.reverse()
 
     reward, _ = _grade(tmp_path, answer)
     assert reward == {"answer": 1.0, "process": 0.0}
@@ -387,7 +425,7 @@ def test_near_miss_preserves_weights_and_uses_ninety_ten_set_scoring(
     )
     assert _criterion(details, "disputed_entries.certified") == 0.0
     assert reward["answer"] == pytest.approx(
-        0.32 + 0.56 * 0.9 * (8 / 9) + 0.12 * 0.9 * (12 / 13),
+        0.72 + 0.20 * 0.9 * (8 / 9) + 0.08 * 0.9 * (12 / 13),
         abs=1e-4,
     )
 
@@ -408,7 +446,36 @@ def test_shotgun_days_score_below_a_near_miss(tmp_path: Path) -> None:
 
     assert _criterion(details, "unsupported_days.f1") == pytest.approx(0.25)
     assert _criterion(details, "unsupported_days.certified") == 0.0
-    assert 0.44 < reward["answer"] < 0.60
+    assert 0.84 < reward["answer"] < 0.85
+
+
+def test_headline_and_exception_view_without_complete_workpaper_stays_below_half(
+    tmp_path: Path,
+) -> None:
+    answer = _perfect()
+    answer["support_audit"] = []
+
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "support_audit.f1") == 0.0
+    assert _criterion(details, "support_audit.certified") == 0.0
+    assert reward["answer"] == pytest.approx(0.46)
+
+
+def test_duplicate_support_identity_is_a_partial_precision_and_recall_error(
+    tmp_path: Path,
+) -> None:
+    answer = _perfect()
+    audit = answer["support_audit"]
+    assert isinstance(audit, list)
+    supported_day = next(day for day in audit if day["slack_message_ts"])
+    supported_day["slack_message_ts"].append(supported_day["slack_message_ts"][0])
+
+    reward, details = _grade(tmp_path, answer)
+
+    assert _criterion(details, "support_audit.f1") == pytest.approx(21 / 22, abs=1e-4)
+    assert _criterion(details, "support_audit.certified") == 0.0
+    assert 0.92 < reward["answer"] < 0.93
 
 
 @pytest.mark.parametrize("contents", ["{not json", "[]", '"answer"'])

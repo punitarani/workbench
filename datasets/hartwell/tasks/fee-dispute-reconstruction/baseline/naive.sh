@@ -49,28 +49,35 @@ for _, person, seconds, _ in april:
 # Support audit, the obvious way: one client-name grep over email and
 # the public channels; DMs and deal-name-only references never checked.
 supported = set()
-for (time,) in rows(
+gmail_support = {}
+for message_id, time in rows(
     "gmail.db",
-    "SELECT time FROM messages WHERE lower(subject) LIKE '%meridian%' "
+    "SELECT message_id, time FROM messages WHERE lower(subject) LIKE '%meridian%' "
     "OR lower(body) LIKE '%meridian%'",
 ):
-    supported.add(day_of(time))
-for (time,) in rows(
+    message_day = day_of(time)
+    supported.add(message_day)
+    gmail_support.setdefault(message_day, []).append(message_id)
+slack_support = {}
+for ts, time in rows(
     "slack.db",
-    "SELECT m.time FROM messages m JOIN conversations c "
+    "SELECT m.ts, m.time FROM messages m JOIN conversations c "
     "ON c.conversation_id = m.conversation_id WHERE c.kind = 'channel' "
     "AND lower(m.body) LIKE '%meridian%'",
 ):
-    supported.add(day_of(time))
-unsupported = sorted(
+    message_day = day_of(time)
+    supported.add(message_day)
+    slack_support.setdefault(message_day, []).append(ts)
+window = sorted(
     (activity_id, time, seconds, rate_cents, billable)
     for activity_id, t, _, seconds, _, time, rate_cents, billable in rows(
         "clio.db",
         "SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, ticket_id, person, "
         "quantity_seconds, note, time, rate_cents, billable FROM activities",
     )
-    if t == ticket and 30 <= time // 86400 <= 59 and day_of(time) not in supported
+    if t == ticket and 31 <= time // 86400 <= 59
 )
+unsupported = [entry for entry in window if day_of(entry[1]) not in supported]
 by_day = {}
 for entry in unsupported:
     by_day.setdefault(day_of(entry[1]), []).append(entry)
@@ -79,6 +86,10 @@ def billed_cents(seconds, rate_cents, billable):
     if rate_cents is None or not billable:
         return 0
     return round(round(rate_cents / 100 * seconds / 3600, 2) * 100)
+
+window_by_day = {}
+for entry in window:
+    window_by_day.setdefault(day_of(entry[1]), []).append(entry)
 
 dispute = {
     "cutoff_date": "2026-04-01",
@@ -92,6 +103,22 @@ dispute = {
     "timekeepers": sorted({names[person] for _, person, _, _ in april}),
     "challenged_by": "Meridian BioLabs",
     "challenge_date": "2026-05-08",
+    "support_audit": [
+        {
+            "date": day.isoformat(),
+            "entry_ids": [activity_id for activity_id, _, _, _, _ in entries],
+            "entry_count": len(entries),
+            "minutes": sum(seconds for _, _, seconds, _, _ in entries) // 60,
+            "billed_cents": sum(
+                billed_cents(seconds, rate_cents, billable)
+                for _, _, seconds, rate_cents, billable in entries
+            ),
+            "gmail_message_ids": gmail_support.get(day, []),
+            "slack_message_ts": slack_support.get(day, []),
+            "supported": day in supported,
+        }
+        for day, entries in sorted(window_by_day.items())
+    ],
     "unsupported_days": [
         {
             "date": day.isoformat(),

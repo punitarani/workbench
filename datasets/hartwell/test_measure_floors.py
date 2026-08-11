@@ -97,6 +97,28 @@ def test_fee_floor_metadata_matches_the_measured_reference_path() -> None:
     assert manifest["metadata"]["reference_tool_path_calls"] == 49
 
 
+def test_fee_floor_certifies_the_complete_support_workpaper() -> None:
+    namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
+    measure = namespace["measure"]
+    oracle = json.loads(
+        (TASKS / "fee-dispute-reconstruction" / "tests" / "oracle.json").read_text()
+    )
+    oracle["support_audit"][1]["slack_message_ts"][0] = "invented-message"
+    measure.__globals__["_oracle"] = lambda task: oracle
+
+    with pytest.raises(BaseExceptionGroup) as caught:
+        asyncio.run(measure("fee-dispute-reconstruction"))
+    pending = list(caught.value.exceptions)
+    leaves: list[BaseException] = []
+    while pending:
+        exception = pending.pop()
+        if isinstance(exception, BaseExceptionGroup):
+            pending.extend(exception.exceptions)
+        else:
+            leaves.append(exception)
+    assert any(isinstance(exception, AssertionError) for exception in leaves)
+
+
 def test_vanished_floor_certifies_the_full_revision_ledger() -> None:
     namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
     measure = namespace["measure"]

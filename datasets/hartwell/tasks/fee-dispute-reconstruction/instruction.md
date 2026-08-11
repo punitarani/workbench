@@ -28,6 +28,18 @@ Save **`dispute.json`** in your workspace:
   "timekeepers": ["<everyone who logged that work>"],
   "challenged_by": "<who challenged the invoice>",
   "challenge_date": "<YYYY-MM-DD the client disputed the invoice>",
+  "support_audit": [
+    {
+      "date": "<YYYY-MM-DD in the post-cutoff April review window>",
+      "entry_ids": [<every Meridian Clio activity id that day>],
+      "entry_count": <number of those entries>,
+      "minutes": <their total minutes>,
+      "billed_cents": <their billed amount in cents>,
+      "gmail_message_ids": ["<every qualifying same-day Gmail message id>"],
+      "slack_message_ts": ["<every qualifying same-day Slack ts>"],
+      "supported": <true when either evidence list is nonempty>
+    }
+  ],
   "unsupported_days": [
     {
       "date": "<YYYY-MM-DD with no qualifying support>",
@@ -55,28 +67,31 @@ the exact disputed Clio time entries — id, date, and minutes each — and
 the minutes have to be counted off the entries themselves; no email
 states the figures.
 
-The resolution also ordered a **support audit** over the disputed
-window. For every time entry on the Meridian matter dated after the
-budget-call cutoff through the end of April, the file must show
-same-day client-visible activity: at least one email (subject or body
-text) or Slack message (any channel or any DM), sent on the entry's
-date, that names the engagement — the client (Meridian), the deal (the
-diagnostics acquisition), or the matter number (00001). Vague
+The resolution also ordered a **complete daily support audit** over the
+disputed window. `support_audit` has one chronological row for every date with
+a Meridian time entry strictly after the budget-call cutoff through the end of
+April. Each row must account for every entry on that date and every qualifying
+same-day email or Slack message. A message qualifies when its subject or body
+text names the engagement — the client (Meridian), the deal (the diagnostics
+acquisition), or the matter number (00001). Search Gmail, public Slack channels,
+and every Slack DM; use Gmail message ids and Slack `ts` values as the evidence
+identities. Vague
 references do not count: a data room, a tranche, a privilege screen, or
 a diligence call could belong to any matter (the Solstice closing
 staged a seller data room the same month), so a message supports an
-entry only when it names the engagement in one of those three forms.
-`unsupported_days` must cover every window entry — diligence-worded or not —
-with no such message anywhere in the firm's systems on its date. Group those
-unsupported entries by date, one object per silent day in chronological order.
-Each object must list every affected activity id and sum that day's entry
-count, minutes, and billed cents. `billed_cents` is the sum of the Clio `total`
-for each billable entry, with each entry rounded to cents as Clio displays it;
+entry only when it names the engagement in one of those three forms. A row is
+`supported` exactly when at least one of its two evidence lists is nonempty.
+
+`unsupported_days` is the exception view of that complete workpaper. It must
+cover every window entry — diligence-worded or not — with no qualifying message
+anywhere in the firm's systems on its date. Group those unsupported entries by
+date, one object per silent day in chronological order. Each daily object in
+both views must list every affected activity id and sum that day's entry count,
+minutes, and billed cents. `billed_cents` is the sum of the Clio `total` for each
+billable entry, with each entry rounded to cents as Clio displays it;
 non-billable entries contribute zero. Check every surface before calling a day
 silent: on some days the only qualifying message sits in a DM that
 channel search never returns, on others it never uses the client's
 name, and on others the day is full of deal-flavored traffic that never
-names the engagement at all. The audit goes back to the client as a single
-statement, so it has to be exactly right: one day listed that does have
-support, one affected entry missed, or one daily figure misstated, and the
-audit is worthless.
+names the engagement at all. The complete workpaper and its exception view go
+back to the client together, so they must reconcile exactly.

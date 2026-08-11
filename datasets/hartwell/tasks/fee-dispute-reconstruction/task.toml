@@ -28,10 +28,10 @@ skills = ["retrieval", "reconciliation", "arithmetic", "anti-join"]
 reference_tool_path_calls = 49
 
 [metadata.evidence]
-primary_field = "unsupported_days"
-records = 5
+primary_field = "support_audit"
+records = 22
 item_fields = ["entry_ids"]
-items = 47
+items = 254
 source_surfaces = ["gmail", "slack", "clio"]
 
 [environment]

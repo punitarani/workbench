@@ -1,66 +1,230 @@
 {
-  "_evidence": {
-    "activities": "Fresh bundle: Clio tkt-000001 (00001-MeridianBioLabs) has 7 diligence/data-room entries dated strictly after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16), totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). Clio activity ids are the server's positional ids (1-based, time-ordered across all matters): 1374, 1378, 1481, 1575, 1577, 1666, 1756.",
-    "decoys": "Near misses on every side of the join: 5 diligence/data-room entries on or before the cutoff (Mar 31, Apr 1, Apr 2, and two on Apr 3 itself — the call-prep entry and a data-room coordination entry), post-cutoff diligence-worded entries on OTHER matters (Lumen licensing Apr 8, Solstice asset purchase Apr 14), and post-cutoff Meridian entries describing the scope expansion without the diligence wording (Apr 22). A whole-April keyword sum, an on-or-after sum, and a cross-matter keyword sum are all wrong.",
-    "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio, and since round 4 the instruction no longer states it either: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-002120 (ts 6185100.002105, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
-    "challenge": "Gmail msg-000389 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her.",
-    "support_audit": "Fresh bundle: 254 Meridian entries fall after the 2026-04-03 cutoff through April 30. A window day is supported when a same-day Gmail or Slack message names the engagement ('meridian', 'diagnostics', or '00001'). Exactly 47 entries across five silent days are unsupported: Apr 4 (4 entries, 300 minutes, 195400 billed cents), Apr 13 (9, 660, 492400), Apr 20 (15, 786, 565750), Apr 22 (16, 1021, 715142), and Apr 25 (3, 120, 89000). Billed cents sum each billable entry's public Clio total after its own cents rounding. The audit groups those entries by day; normalized F1 carries 90% of the preserved 0.56 component weight and exact certification carries 10%."
-  },
+  "challenge_date": "2026-05-08",
+  "challenged_by": "Priya Raman",
   "cutoff_date": "2026-04-03",
-  "total_minutes": 890,
-  "entry_count": 7,
   "entries": [
     {
-      "id": 1374,
       "date": "2026-04-06",
+      "id": 1374,
       "minutes": 130
     },
     {
-      "id": 1378,
       "date": "2026-04-06",
+      "id": 1378,
       "minutes": 95
     },
     {
-      "id": 1481,
       "date": "2026-04-08",
+      "id": 1481,
       "minutes": 145
     },
     {
-      "id": 1575,
       "date": "2026-04-10",
+      "id": 1575,
       "minutes": 160
     },
     {
-      "id": 1577,
       "date": "2026-04-10",
+      "id": 1577,
       "minutes": 120
     },
     {
-      "id": 1666,
       "date": "2026-04-14",
+      "id": 1666,
       "minutes": 150
     },
     {
-      "id": 1756,
       "date": "2026-04-16",
+      "id": 1756,
       "minutes": 90
     }
   ],
-  "unsupported_days": [
+  "entry_count": 7,
+  "minutes_by_timekeeper": {
+    "Marcus Liang": 675,
+    "Peter Novak": 215
+  },
+  "support_audit": [
     {
+      "billed_cents": 195400,
       "date": "2026-04-04",
+      "entry_count": 4,
       "entry_ids": [
         1316,
         1317,
         1318,
         1319
       ],
-      "entry_count": 4,
+      "gmail_message_ids": [],
       "minutes": 300,
-      "billed_cents": 195400
+      "slack_message_ts": [],
+      "supported": false
     },
     {
+      "billed_cents": 621459,
+      "date": "2026-04-06",
+      "entry_count": 18,
+      "entry_ids": [
+        1323,
+        1327,
+        1329,
+        1330,
+        1347,
+        1350,
+        1351,
+        1352,
+        1353,
+        1355,
+        1361,
+        1364,
+        1366,
+        1370,
+        1371,
+        1374,
+        1377,
+        1378
+      ],
+      "gmail_message_ids": [],
+      "minutes": 1011,
+      "slack_message_ts": [
+        "3056930.000950",
+        "3057474.000958"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 561600,
+      "date": "2026-04-07",
+      "entry_count": 11,
+      "entry_ids": [
+        1386,
+        1391,
+        1399,
+        1408,
+        1415,
+        1419,
+        1421,
+        1425,
+        1427,
+        1428,
+        1429
+      ],
+      "gmail_message_ids": [],
+      "minutes": 708,
+      "slack_message_ts": [
+        "3143566.001007",
+        "3144594.001015",
+        "3151200.001021"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 775742,
+      "date": "2026-04-08",
+      "entry_count": 17,
+      "entry_ids": [
+        1443,
+        1444,
+        1447,
+        1453,
+        1456,
+        1457,
+        1458,
+        1460,
+        1461,
+        1462,
+        1471,
+        1479,
+        1480,
+        1481,
+        1486,
+        1488,
+        1490
+      ],
+      "gmail_message_ids": [],
+      "minutes": 1093,
+      "slack_message_ts": [
+        "3229458.001058"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 413200,
+      "date": "2026-04-09",
+      "entry_count": 12,
+      "entry_ids": [
+        1497,
+        1503,
+        1504,
+        1507,
+        1512,
+        1513,
+        1516,
+        1517,
+        1518,
+        1520,
+        1524,
+        1539
+      ],
+      "gmail_message_ids": [
+        "msg-000227"
+      ],
+      "minutes": 558,
+      "slack_message_ts": [
+        "3317369.001118"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 460767,
+      "date": "2026-04-10",
+      "entry_count": 15,
+      "entry_ids": [
+        1546,
+        1548,
+        1550,
+        1563,
+        1568,
+        1572,
+        1574,
+        1575,
+        1576,
+        1577,
+        1579,
+        1585,
+        1587,
+        1588,
+        1589
+      ],
+      "gmail_message_ids": [],
+      "minutes": 712,
+      "slack_message_ts": [
+        "3403780.001176",
+        "3416539.001185"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 175500,
+      "date": "2026-04-11",
+      "entry_count": 4,
+      "entry_ids": [
+        1592,
+        1593,
+        1596,
+        1597
+      ],
+      "gmail_message_ids": [],
+      "minutes": 156,
+      "slack_message_ts": [
+        "3486188.001214"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 492400,
       "date": "2026-04-13",
+      "entry_count": 9,
       "entry_ids": [
         1606,
         1607,
@@ -72,12 +236,120 @@
         1629,
         1631
       ],
-      "entry_count": 9,
+      "gmail_message_ids": [],
       "minutes": 660,
-      "billed_cents": 492400
+      "slack_message_ts": [],
+      "supported": false
     },
     {
+      "billed_cents": 437600,
+      "date": "2026-04-14",
+      "entry_count": 14,
+      "entry_ids": [
+        1642,
+        1643,
+        1644,
+        1646,
+        1648,
+        1649,
+        1650,
+        1652,
+        1655,
+        1659,
+        1660,
+        1663,
+        1666,
+        1667
+      ],
+      "gmail_message_ids": [],
+      "minutes": 744,
+      "slack_message_ts": [
+        "3748427.001279",
+        "3749078.001282"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 527500,
+      "date": "2026-04-15",
+      "entry_count": 12,
+      "entry_ids": [
+        1677,
+        1678,
+        1684,
+        1685,
+        1688,
+        1690,
+        1691,
+        1700,
+        1703,
+        1708,
+        1711,
+        1716
+      ],
+      "gmail_message_ids": [],
+      "minutes": 720,
+      "slack_message_ts": [
+        "3842400.001338"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 529500,
+      "date": "2026-04-16",
+      "entry_count": 8,
+      "entry_ids": [
+        1729,
+        1730,
+        1732,
+        1736,
+        1739,
+        1753,
+        1756,
+        1761
+      ],
+      "gmail_message_ids": [],
+      "minutes": 600,
+      "slack_message_ts": [
+        "3920626.001365",
+        "3921443.001369"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 573808,
+      "date": "2026-04-17",
+      "entry_count": 17,
+      "entry_ids": [
+        1763,
+        1765,
+        1772,
+        1775,
+        1780,
+        1786,
+        1787,
+        1794,
+        1799,
+        1800,
+        1801,
+        1806,
+        1807,
+        1811,
+        1812,
+        1814,
+        1816
+      ],
+      "gmail_message_ids": [],
+      "minutes": 841,
+      "slack_message_ts": [
+        "4008188.001423"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 565750,
       "date": "2026-04-20",
+      "entry_count": 15,
       "entry_ids": [
         1826,
         1830,
@@ -95,12 +367,37 @@
         1868,
         1872
       ],
-      "entry_count": 15,
+      "gmail_message_ids": [],
       "minutes": 786,
-      "billed_cents": 565750
+      "slack_message_ts": [],
+      "supported": false
     },
     {
+      "billed_cents": 606150,
+      "date": "2026-04-21",
+      "entry_count": 9,
+      "entry_ids": [
+        1893,
+        1894,
+        1895,
+        1900,
+        1908,
+        1911,
+        1913,
+        1917,
+        1929
+      ],
+      "gmail_message_ids": [
+        "msg-000287"
+      ],
+      "minutes": 762,
+      "slack_message_ts": [],
+      "supported": true
+    },
+    {
+      "billed_cents": 715142,
       "date": "2026-04-22",
+      "entry_count": 16,
       "entry_ids": [
         1930,
         1932,
@@ -119,21 +416,285 @@
         1977,
         1980
       ],
-      "entry_count": 16,
+      "gmail_message_ids": [],
       "minutes": 1021,
-      "billed_cents": 715142
+      "slack_message_ts": [],
+      "supported": false
     },
     {
+      "billed_cents": 918550,
+      "date": "2026-04-23",
+      "entry_count": 13,
+      "entry_ids": [
+        1988,
+        1993,
+        1995,
+        1999,
+        2006,
+        2010,
+        2012,
+        2014,
+        2015,
+        2016,
+        2019,
+        2025,
+        2043
+      ],
+      "gmail_message_ids": [],
+      "minutes": 1122,
+      "slack_message_ts": [
+        "4525310.001607"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 487100,
+      "date": "2026-04-24",
+      "entry_count": 9,
+      "entry_ids": [
+        2046,
+        2051,
+        2052,
+        2055,
+        2059,
+        2066,
+        2078,
+        2080,
+        2084
+      ],
+      "gmail_message_ids": [],
+      "minutes": 684,
+      "slack_message_ts": [
+        "4612443.001658"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 89000,
       "date": "2026-04-25",
+      "entry_count": 3,
       "entry_ids": [
         2087,
         2089,
         2090
       ],
-      "entry_count": 3,
+      "gmail_message_ids": [],
       "minutes": 120,
-      "billed_cents": 89000
+      "slack_message_ts": [],
+      "supported": false
+    },
+    {
+      "billed_cents": 405450,
+      "date": "2026-04-27",
+      "entry_count": 9,
+      "entry_ids": [
+        2101,
+        2106,
+        2107,
+        2116,
+        2117,
+        2126,
+        2137,
+        2144,
+        2147
+      ],
+      "gmail_message_ids": [],
+      "minutes": 522,
+      "slack_message_ts": [
+        "4871372.001704",
+        "4871879.001711",
+        "4873425.001716"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 540617,
+      "date": "2026-04-28",
+      "entry_count": 16,
+      "entry_ids": [
+        2150,
+        2157,
+        2158,
+        2160,
+        2161,
+        2163,
+        2170,
+        2177,
+        2178,
+        2180,
+        2186,
+        2194,
+        2197,
+        2199,
+        2200,
+        2207
+      ],
+      "gmail_message_ids": [],
+      "minutes": 770,
+      "slack_message_ts": [
+        "4958248.001754"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 559800,
+      "date": "2026-04-29",
+      "entry_count": 15,
+      "entry_ids": [
+        2209,
+        2212,
+        2213,
+        2219,
+        2221,
+        2223,
+        2227,
+        2230,
+        2231,
+        2238,
+        2240,
+        2247,
+        2253,
+        2260,
+        2263
+      ],
+      "gmail_message_ids": [],
+      "minutes": 876,
+      "slack_message_ts": [
+        "5044061.001794"
+      ],
+      "supported": true
+    },
+    {
+      "billed_cents": 280000,
+      "date": "2026-04-30",
+      "entry_count": 8,
+      "entry_ids": [
+        2272,
+        2283,
+        2299,
+        2307,
+        2308,
+        2312,
+        2316,
+        2319
+      ],
+      "gmail_message_ids": [],
+      "minutes": 450,
+      "slack_message_ts": [
+        "5130391.001827",
+        "5131108.001836",
+        "5152146.001865"
+      ],
+      "supported": true
     }
+  ],
+  "timekeepers": [
+    "Marcus Liang",
+    "Peter Novak"
+  ],
+  "total_minutes": 890,
+  "unsupported_days": [
+    {
+      "billed_cents": 195400,
+      "date": "2026-04-04",
+      "entry_count": 4,
+      "entry_ids": [
+        1316,
+        1317,
+        1318,
+        1319
+      ],
+      "minutes": 300
+    },
+    {
+      "billed_cents": 492400,
+      "date": "2026-04-13",
+      "entry_count": 9,
+      "entry_ids": [
+        1606,
+        1607,
+        1614,
+        1616,
+        1618,
+        1623,
+        1624,
+        1629,
+        1631
+      ],
+      "minutes": 660
+    },
+    {
+      "billed_cents": 565750,
+      "date": "2026-04-20",
+      "entry_count": 15,
+      "entry_ids": [
+        1826,
+        1830,
+        1836,
+        1842,
+        1844,
+        1845,
+        1848,
+        1857,
+        1861,
+        1863,
+        1865,
+        1866,
+        1867,
+        1868,
+        1872
+      ],
+      "minutes": 786
+    },
+    {
+      "billed_cents": 715142,
+      "date": "2026-04-22",
+      "entry_count": 16,
+      "entry_ids": [
+        1930,
+        1932,
+        1935,
+        1942,
+        1950,
+        1955,
+        1960,
+        1963,
+        1964,
+        1965,
+        1969,
+        1973,
+        1974,
+        1976,
+        1977,
+        1980
+      ],
+      "minutes": 1021
+    },
+    {
+      "billed_cents": 89000,
+      "date": "2026-04-25",
+      "entry_count": 3,
+      "entry_ids": [
+        2087,
+        2089,
+        2090
+      ],
+      "minutes": 120
+    }
+  ],
+  "challenged_by_markers": [
+    "priya",
+    "raman"
+  ],
+  "timekeeper_markers": [
+    [
+      "marcus",
+      "liang"
+    ],
+    [
+      "peter",
+      "novak"
+    ]
   ],
   "minutes_by_timekeeper_markers": [
     [
@@ -151,31 +712,24 @@
       215
     ]
   ],
-  "timekeeper_markers": [
-    [
-      "marcus",
-      "liang"
-    ],
-    [
-      "peter",
-      "novak"
-    ]
-  ],
-  "challenged_by_markers": [
-    "priya",
-    "raman"
-  ],
-  "challenge_date": "2026-05-08",
+  "_evidence": {
+    "activities": "Fresh bundle: Clio tkt-000001 (00001-MeridianBioLabs) has 7 diligence/data-room entries dated strictly after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16), totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). Clio activity ids are the server's positional ids (1-based, time-ordered across all matters): 1374, 1378, 1481, 1575, 1577, 1666, 1756.",
+    "decoys": "Near misses on every side of the join: 5 diligence/data-room entries on or before the cutoff (Mar 31, Apr 1, Apr 2, and two on Apr 3 itself — the call-prep entry and a data-room coordination entry), post-cutoff diligence-worded entries on OTHER matters (Lumen licensing Apr 8, Solstice asset purchase Apr 14), and post-cutoff Meridian entries describing the scope expansion without the diligence wording (Apr 22). A whole-April keyword sum, an on-or-after sum, and a cross-matter keyword sum are all wrong.",
+    "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio, and since round 4 the instruction no longer states it either: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-002120 (ts 6185100.002105, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
+    "challenge": "Gmail msg-000389 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her.",
+    "support_audit": "Fresh bundle: 254 Meridian entries fall after the 2026-04-03 cutoff through April 30. A window day is supported when a same-day Gmail or Slack message names the engagement ('meridian', 'diagnostics', or '00001'). Exactly 47 entries across five silent days are unsupported: Apr 4 (4 entries, 300 minutes, 195400 billed cents), Apr 13 (9, 660, 492400), Apr 20 (15, 786, 565750), Apr 22 (16, 1021, 715142), and Apr 25 (3, 120, 89000). Billed cents sum each billable entry's public Clio total after its own cents rounding. The audit groups those entries by day; normalized F1 carries 90% of the preserved 0.56 component weight and exact certification carries 10%."
+  },
   "weights": {
-    "cutoff_date": 0.03,
-    "total_minutes": 0.05,
-    "entry_count": 0.03,
-    "entries": 0.12,
-    "minutes_by_timekeeper": 0.05,
-    "timekeepers": 0.02,
-    "challenged_by": 0.02,
-    "challenge_date": 0.03,
-    "unsupported_days": 0.56,
-    "format": 0.09
+    "cutoff_date": 0.02,
+    "total_minutes": 0.02,
+    "entry_count": 0.01,
+    "entries": 0.08,
+    "minutes_by_timekeeper": 0.03,
+    "timekeepers": 0.01,
+    "challenged_by": 0.01,
+    "challenge_date": 0.02,
+    "support_audit": 0.54,
+    "unsupported_days": 0.20,
+    "format": 0.06
   }
 }
