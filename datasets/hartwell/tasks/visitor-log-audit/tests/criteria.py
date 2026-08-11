@@ -18,22 +18,40 @@ PUBLIC_FIELDS = frozenset(
         "same_day_breach_ts",
         "same_day_breaches",
         "returned_same_day",
+        "returned_next_working_day",
+        "unresolved_by_followup",
         "returned_next_working_day_ts",
         "unresolved_ts",
+        "custody_audit",
     }
 )
 COUNT_FIELDS = (
     "requests_reviewed",
     "conversations_reviewed",
     "returned_same_day",
+    "returned_next_working_day",
+    "unresolved_by_followup",
 )
 TIMESTAMP_FIELDS = (
     "same_day_breach_ts",
     "returned_next_working_day_ts",
     "unresolved_ts",
 )
-BREACH_FIELDS = frozenset({"ts", "date", "asked_by", "asked_of", "resolution"})
+BREACH_FIELD_ORDER = ("ts", "date", "asked_by", "asked_of", "resolution")
+BREACH_FIELDS = frozenset(BREACH_FIELD_ORDER)
+CUSTODY_FIELDS = (
+    "request_ts",
+    "request_date",
+    "asked_by",
+    "asked_of",
+    "first_return_surface",
+    "first_return_id",
+    "first_return_at",
+    "outcome",
+)
 RESOLUTIONS = frozenset({"next_working_day", "unresolved"})
+CUSTODY_OUTCOMES = frozenset({"same_day", "next_working_day", "unresolved"})
+RETURN_SURFACES = frozenset({"slack", "gmail", "none"})
 
 
 def _finite_json(value: object) -> bool:
@@ -75,6 +93,24 @@ def _valid_contract(document: dict[str, object]) -> bool:
         ):
             return False
         if breach["resolution"] not in RESOLUTIONS:
+            return False
+    custody_audit = document.get("custody_audit")
+    if not isinstance(custody_audit, list):
+        return False
+    for record in custody_audit:
+        if not isinstance(record, dict) or set(record) != set(CUSTODY_FIELDS):
+            return False
+        if not all(isinstance(record.get(field), str) for field in CUSTODY_FIELDS):
+            return False
+        surface = record["first_return_surface"]
+        return_id = record["first_return_id"]
+        return_at = record["first_return_at"]
+        if surface not in RETURN_SURFACES or record["outcome"] not in CUSTODY_OUTCOMES:
+            return False
+        if surface == "none":
+            if return_id or return_at:
+                return False
+        elif not return_id or not return_at:
             return False
     return True
 
@@ -210,30 +246,56 @@ def numeric_close(
     return abs(actual - target) <= tolerance
 
 
+@criterion(description="{path} exactly follows the typed public contract", shared=True)
+def exact_schema(workspace: Path, path: str) -> bool:
+    return bool(_submitted(workspace, path))
+
+
 @criterion(
-    description=(
-        "{path} has exactly the public fields and every {record_key} record has "
-        "exactly its public fields"
-    ),
+    description="the custody ledger reconciles to every public count and partition",
     shared=True,
 )
-def exact_schema(
-    workspace: Path,
-    path: str,
-    fields: list[str],
-    record_key: str,
-    record_fields: tuple[str, ...],
-) -> bool:
+def custody_audit_reconciles(workspace: Path, path: str) -> bool:
     submitted = _submitted(workspace, path)
-    if set(submitted) != set(fields):
+    audit = submitted.get("custody_audit")
+    if not isinstance(audit, list):
         return False
-    records = submitted.get(record_key)
-    if not isinstance(records, list):
+    request_ts = [record["request_ts"] for record in audit]
+    if len(request_ts) != len(set(request_ts)):
         return False
-    expected_record_fields = set(record_fields)
-    return all(
-        isinstance(record, dict) and set(record) == expected_record_fields
-        for record in records
+    outcomes = Counter(record["outcome"] for record in audit)
+    breaches = [record for record in audit if record["outcome"] != "same_day"]
+    breach_records = [
+        {
+            "ts": record["request_ts"],
+            "date": record["request_date"],
+            "asked_by": record["asked_by"],
+            "asked_of": record["asked_of"],
+            "resolution": record["outcome"],
+        }
+        for record in breaches
+    ]
+    next_ts = [
+        record["request_ts"]
+        for record in audit
+        if record["outcome"] == "next_working_day"
+    ]
+    unresolved_ts = [
+        record["request_ts"] for record in audit if record["outcome"] == "unresolved"
+    ]
+    return (
+        len(audit) == submitted.get("requests_reviewed")
+        and outcomes["same_day"] == submitted.get("returned_same_day")
+        and outcomes["next_working_day"] == submitted.get("returned_next_working_day")
+        and outcomes["unresolved"] == submitted.get("unresolved_by_followup")
+        and _as_multiset(submitted.get("same_day_breach_ts"), None)
+        == _expected_multiset([record["request_ts"] for record in breaches], None)
+        and _as_multiset(submitted.get("same_day_breaches"), BREACH_FIELD_ORDER)
+        == _expected_multiset(breach_records, BREACH_FIELD_ORDER)
+        and _as_multiset(submitted.get("returned_next_working_day_ts"), None)
+        == _expected_multiset(next_ts, None)
+        and _as_multiset(submitted.get("unresolved_ts"), None)
+        == _expected_multiset(unresolved_ts, None)
     )
 
 

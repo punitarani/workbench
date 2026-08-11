@@ -184,10 +184,33 @@ def test_visitor_custody_uses_the_first_qualifying_return() -> None:
     sunday = asked_at + 2 * 86_400
     monday = asked_at + 3 * 86_400
 
-    assert outcome(friday, asked_at, [sunday, monday]) == (False, False, False)
+    assert outcome(friday, asked_at, [sunday, monday]) == (False, True, True)
     assert outcome(friday, asked_at, [monday]) == (False, True, True)
     assert outcome(friday, asked_at, [asked_at - 60, monday]) == (
         False,
         True,
         True,
     )
+
+
+def test_visitor_floor_certifies_the_full_custody_audit() -> None:
+    namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
+    measure = namespace["measure"]
+    oracle = json.loads(
+        (TASKS / "visitor-log-audit" / "tests" / "oracle.json").read_text()
+    )
+    assert asyncio.run(measure("visitor-log-audit")) == 54
+    oracle["custody_audit"][0]["first_return_id"] = "invented-return"
+    measure.__globals__["_oracle"] = lambda task: oracle
+
+    with pytest.raises(BaseExceptionGroup) as caught:
+        asyncio.run(measure("visitor-log-audit"))
+    pending = list(caught.value.exceptions)
+    leaves: list[BaseException] = []
+    while pending:
+        exception = pending.pop()
+        if isinstance(exception, BaseExceptionGroup):
+            pending.extend(exception.exceptions)
+        else:
+            leaves.append(exception)
+    assert any(isinstance(exception, AssertionError) for exception in leaves)

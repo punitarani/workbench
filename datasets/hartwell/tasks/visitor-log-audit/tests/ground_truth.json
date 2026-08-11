@@ -1,9 +1,9 @@
 {
   "_evidence": {
     "population": "The fresh seatless Slack projection has 12 DM lanes. Opening every lane yields 71 exact standing-form requests.",
-    "rule": "A same-day return is a later message from the person asked in the same DM or a later directed email from that person to the asker. The end of request day is the custody deadline. A breach is next_working_day only when the first qualifying return is on the immediately next Mon-Fri day; otherwise it is unresolved at that follow-up deadline.",
+    "rule": "A same-day return is a later message from the person asked in the same DM or a later directed email from that person to the asker. The end of request day is the custody deadline. A breach is next_working_day when the first qualifying return arrives after the request date but no later than the immediately next Mon-Fri deadline; otherwise it is unresolved at that follow-up deadline.",
     "outcomes": "59 requests returned the same day. Ten breaches returned the next working day, including request 60299 by directed email. Requests 7456314 and 7569818 did not return until after their next-working-day window and are unresolved for this audit.",
-    "grading": "Every set-valued field assigns 90% of its weight to normalized multiset F1 and 10% to exact certification. Scalar reconciliation and exact public schema carry the remaining weight. Missing, malformed, non-finite, oversized, or schema-expanded deliverables cannot certify the answer."
+    "grading": "The certified oracle also records all 71 requests with their earliest cross-surface return identity, time, and outcome. Every set-valued field assigns 90% of its weight to normalized multiset F1 and 10% to exact certification. Ledger reconciliation and exact public schema carry the remaining weight. Missing, malformed, non-finite, oversized, or schema-expanded deliverables cannot certify the answer."
   },
   "requests_reviewed": 71,
   "conversations_reviewed": 12,
@@ -36,6 +36,8 @@
     {"ts": "8771802.002925", "date": "2026-06-11", "asked_by": "Eleanor Hartwell", "asked_of": "Anita Bailey", "resolution": "next_working_day"}
   ],
   "returned_same_day": 59,
+  "returned_next_working_day": 10,
+  "unresolved_by_followup": 2,
   "returned_next_working_day_ts": [
     "60299.000029",
     "249677.000094",

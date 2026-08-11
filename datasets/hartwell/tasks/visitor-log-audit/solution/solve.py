@@ -9,7 +9,7 @@ import json
 import os
 import sqlite3
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 type DatabaseValue = str | int | float | bytes | None
@@ -37,6 +37,13 @@ def next_working_day(moment: date) -> date:
     while candidate.weekday() >= 5:
         candidate += timedelta(days=1)
     return candidate
+
+
+def iso_datetime(timestamp: int) -> str:
+    pacific = timezone(timedelta(hours=-8))
+    return (
+        datetime(2026, 3, 2, tzinfo=pacific) + timedelta(seconds=timestamp)
+    ).isoformat()
 
 
 def build_visitor_log(state: Path) -> dict[str, object]:
@@ -78,8 +85,13 @@ def build_visitor_log(state: Path) -> dict[str, object]:
         state, "gmail.db", "SELECT message_id, person_id FROM recipients"
     ):
         recipients.setdefault(str(message_id), set()).add(str(person_id))
-    directed_mail: list[tuple[str, set[str], int]] = [
-        (str(sender), recipients.get(str(message_id), set()), int(timestamp))
+    directed_mail: list[tuple[str, set[str], int, str]] = [
+        (
+            str(sender),
+            recipients.get(str(message_id), set()),
+            int(timestamp),
+            str(message_id),
+        )
         for message_id, sender, timestamp in rows(
             state, "gmail.db", "SELECT message_id, sender, time FROM messages"
         )
@@ -97,48 +109,67 @@ def build_visitor_log(state: Path) -> dict[str, object]:
             if body.strip().lower() != REQUEST:
                 continue
             (asked_of,) = lane_members - {asker}
-            response_times = [
-                timestamp
-                for sender, _, timestamp, _ in messages[position + 1 :]
+            candidates = [
+                (timestamp, "slack", response_ts)
+                for sender, _, timestamp, response_ts in messages[position + 1 :]
                 if sender == asked_of and timestamp > request_time
             ]
-            response_times.extend(
-                timestamp
-                for sender, to_people, timestamp in directed_mail
+            candidates.extend(
+                (timestamp, "gmail", message_id)
+                for sender, to_people, timestamp, message_id in directed_mail
                 if sender == asked_of
                 and asker in to_people
                 and timestamp > request_time
             )
-            response_time = min(response_times, default=None)
+            first_response = min(candidates, default=None)
             request_day = day_of(request_time)
-            response_day = None if response_time is None else day_of(response_time)
+            response_day = None if first_response is None else day_of(first_response[0])
             if response_day == request_day:
-                resolution = "same_day"
-            elif response_day == next_working_day(request_day):
-                resolution = "next_working_day"
+                outcome = "same_day"
+            elif response_day is not None and response_day <= next_working_day(
+                request_day
+            ):
+                outcome = "next_working_day"
             else:
-                resolution = "unresolved"
+                outcome = "unresolved"
             requests.append(
                 {
-                    "ts": ts,
-                    "date": request_day.isoformat(),
+                    "request_ts": ts,
+                    "request_date": request_day.isoformat(),
                     "asked_by": names[asker],
                     "asked_of": names[asked_of],
-                    "resolution": resolution,
+                    "first_return_surface": (
+                        first_response[1] if first_response else "none"
+                    ),
+                    "first_return_id": first_response[2] if first_response else "",
+                    "first_return_at": (
+                        iso_datetime(first_response[0]) if first_response else ""
+                    ),
+                    "outcome": outcome,
                 }
             )
 
-    requests.sort(key=lambda request: float(str(request["ts"])))
-    breaches = [request for request in requests if request["resolution"] != "same_day"]
+    requests.sort(key=lambda request: float(str(request["request_ts"])))
+    breach_audit = [request for request in requests if request["outcome"] != "same_day"]
+    breaches = [
+        {
+            "ts": request["request_ts"],
+            "date": request["request_date"],
+            "asked_by": request["asked_by"],
+            "asked_of": request["asked_of"],
+            "resolution": request["outcome"],
+        }
+        for request in breach_audit
+    ]
     returned_next = [
-        str(request["ts"])
-        for request in breaches
-        if request["resolution"] == "next_working_day"
+        str(request["request_ts"])
+        for request in breach_audit
+        if request["outcome"] == "next_working_day"
     ]
     unresolved = [
-        str(request["ts"])
-        for request in breaches
-        if request["resolution"] == "unresolved"
+        str(request["request_ts"])
+        for request in breach_audit
+        if request["outcome"] == "unresolved"
     ]
 
     if len(requests) != 71 or len(history) != 12:
@@ -146,7 +177,7 @@ def build_visitor_log(state: Path) -> dict[str, object]:
             f"expected 71 requests in 12 DM lanes, found {len(requests)} in "
             f"{len(history)}"
         )
-    returned_same_day = len(requests) - len(breaches)
+    returned_same_day = len(requests) - len(breach_audit)
     if (returned_same_day, len(returned_next), len(unresolved)) != (59, 10, 2):
         raise RuntimeError(
             "expected 59 same-day returns, 10 next-working-day returns, and "
@@ -160,8 +191,11 @@ def build_visitor_log(state: Path) -> dict[str, object]:
         "same_day_breach_ts": [str(request["ts"]) for request in breaches],
         "same_day_breaches": breaches,
         "returned_same_day": returned_same_day,
+        "returned_next_working_day": len(returned_next),
+        "unresolved_by_followup": len(unresolved),
         "returned_next_working_day_ts": returned_next,
         "unresolved_ts": unresolved,
+        "custody_audit": requests,
     }
 
 

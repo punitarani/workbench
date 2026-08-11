@@ -105,7 +105,7 @@ def _custody_outcome(
         return False, False, False
     response_day = date.fromisoformat(_ts_day(str(first_response)))
     same_day = response_day == asked_on
-    next_working_day = response_day == _next_working_day(asked_on)
+    next_working_day = asked_on < response_day <= _next_working_day(asked_on)
     return same_day, next_working_day, same_day or next_working_day
 
 
@@ -955,6 +955,7 @@ async def second_read_audit(client: CountingClient) -> None:
 
 async def visitor_log_audit(client: CountingClient) -> None:
     truth = _truth("visitor-log-audit")
+    oracle = _oracle("visitor-log-audit")
     requests = await _one_to_one_request_audit(
         client, SHEET_REQUEST, custody_deadline=True
     )
@@ -992,6 +993,30 @@ async def visitor_log_audit(client: CountingClient) -> None:
         sum(1 for request in requests if request["same_day"])
         == truth["returned_same_day"]
     )
+    assert len(next_day) == truth["returned_next_working_day"]
+    assert len(unresolved) == truth["unresolved_by_followup"]
+    custody_audit = [
+        {
+            "request_ts": request["ts"],
+            "request_date": request["date"],
+            "asked_by": request["asked_by"],
+            "asked_of": request["asked_of"],
+            "first_return_surface": request["first_response_surface"],
+            "first_return_id": request["first_response_id"],
+            "first_return_at": request["first_response_at"],
+            "outcome": (
+                "same_day"
+                if request["same_day"]
+                else "next_working_day"
+                if request["next_working_day"]
+                else "unresolved"
+            ),
+        }
+        for request in sorted(requests, key=lambda item: float(item["ts"]))
+    ]
+    assert _canonical_records(custody_audit) == _canonical_records(
+        oracle["custody_audit"]
+    ), custody_audit
 
 
 FLOORS = {

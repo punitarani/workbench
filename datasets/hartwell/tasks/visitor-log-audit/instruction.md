@@ -23,8 +23,22 @@ Save **`visitor-log.json`** in your workspace with exactly this structure:
     }
   ],
   "returned_same_day": <requests returned by the end of the day asked>,
+  "returned_next_working_day": <breaches returned by the follow-up deadline>,
+  "unresolved_by_followup": <breaches not returned by the follow-up deadline>,
   "returned_next_working_day_ts": ["<breach request ts later returned the next working day>"],
-  "unresolved_ts": ["<breach request ts not returned by the end of the next working day>"]
+  "unresolved_ts": ["<breach request ts not returned by the end of the next working day>"],
+  "custody_audit": [
+    {
+      "request_ts": "<Slack ts of the request>",
+      "request_date": "<YYYY-MM-DD it was asked>",
+      "asked_by": "<who asked for the sheet>",
+      "asked_of": "<who was asked>",
+      "first_return_surface": "<slack, gmail, or none>",
+      "first_return_id": "<source-native Slack ts or Gmail message id, or empty>",
+      "first_return_at": "<ISO timestamp with offset, or empty>",
+      "outcome": "<same_day, next_working_day, or unresolved>"
+    }
+  ]
 }
 ```
 
@@ -43,11 +57,20 @@ does not close custody.
 
 Every request without that same-day return is a breach and belongs in both
 `same_day_breach_ts` and `same_day_breaches`. Classify it
-`next_working_day` only if a qualifying return arrives on the immediately next
-working day; the firm works Monday through Friday, so Friday's next working day
-is Monday. Classify it `unresolved` if no qualifying return arrives by the end
-of that next working day, even if someone eventually replies later. Repeat the
-same partition in `returned_next_working_day_ts` and `unresolved_ts`.
+`next_working_day` only if a qualifying return arrives after the request date
+but no later than the end of the immediately next working day; the firm works
+Monday through Friday, so a weekend return after a Friday request is timely for
+this follow-up classification because Monday is the deadline. Classify it
+`unresolved` if no qualifying return arrives by that deadline, even if someone
+eventually replies later. Repeat the same partition in the two scalar counts,
+`returned_next_working_day_ts`, and `unresolved_ts`.
+
+`custody_audit` must contain one row for every request, not only the breaches.
+For each row, report the earliest qualifying return across both surfaces. Keep
+the actual source, source-native identifier, and time even when that first
+return missed the follow-up deadline; use `none` and empty strings only when no
+qualifying return exists. The ledger, counts, breach records, and timestamp
+partitions must reconcile exactly.
 
 The cross-surface direction and timing rules matter. One next-working-day
 return arrived by email before the Slack reply, weekend requests cross to

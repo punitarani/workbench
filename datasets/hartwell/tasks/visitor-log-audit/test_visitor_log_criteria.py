@@ -21,20 +21,19 @@ pytestmark = pytest.mark.skipif(
 
 
 def _truth() -> JsonObject:
-    return json.loads((TESTS / "ground_truth.json").read_text())
+    return json.loads((TESTS / "oracle.json").read_text())
 
 
 def _perfect() -> JsonObject:
+    return deepcopy(_truth())
+
+
+def test_committed_oracle_has_complete_custody_audit() -> None:
     truth = _truth()
-    return {
-        "requests_reviewed": truth["requests_reviewed"],
-        "conversations_reviewed": truth["conversations_reviewed"],
-        "same_day_breach_ts": deepcopy(truth["same_day_breach_ts"]),
-        "same_day_breaches": deepcopy(truth["same_day_breaches"]),
-        "returned_same_day": truth["returned_same_day"],
-        "returned_next_working_day_ts": deepcopy(truth["returned_next_working_day_ts"]),
-        "unresolved_ts": deepcopy(truth["unresolved_ts"]),
-    }
+    assert len(truth["custody_audit"]) == truth["requests_reviewed"] == 71
+    assert truth["returned_same_day"] == 59
+    assert truth["returned_next_working_day"] == 10
+    assert truth["unresolved_by_followup"] == 2
 
 
 def _grade(tmp_path: Path, answer: JsonObject | None) -> tuple[JsonObject, JsonObject]:
@@ -128,6 +127,13 @@ def test_dangling_agent_symlink_that_resolves_under_verifier_is_rejected(
         "records_not_a_list",
         "malformed_record_member",
         "timestamps_not_a_list",
+        "audit_not_a_list",
+        "audit_extra_field",
+        "numeric_request_ts",
+        "invalid_return_surface",
+        "invalid_outcome",
+        "missing_return_id",
+        "none_surface_with_return",
     ],
 )
 def test_type_invalid_public_contract_scores_zero(
@@ -136,6 +142,8 @@ def test_type_invalid_public_contract_scores_zero(
     answer = _perfect()
     breaches = answer["same_day_breaches"]
     assert isinstance(breaches, list) and isinstance(breaches[0], dict)
+    audit = answer["custody_audit"]
+    assert isinstance(audit, list) and isinstance(audit[0], dict)
     if mutation == "boolean_count":
         answer["requests_reviewed"] = True
     elif mutation == "float_count":
@@ -156,8 +164,25 @@ def test_type_invalid_public_contract_scores_zero(
         answer["same_day_breaches"] = {}
     elif mutation == "malformed_record_member":
         breaches[0] = "not a record"
-    else:
+    elif mutation == "timestamps_not_a_list":
         answer["same_day_breach_ts"] = {}
+    elif mutation == "audit_not_a_list":
+        answer["custody_audit"] = {}
+    elif mutation == "audit_extra_field":
+        audit[0]["private_note"] = "hidden"
+    elif mutation == "numeric_request_ts":
+        audit[0]["request_ts"] = 60299.000029
+    elif mutation == "invalid_return_surface":
+        audit[0]["first_return_surface"] = "teams"
+    elif mutation == "invalid_outcome":
+        audit[0]["outcome"] = "eventual"
+    elif mutation == "missing_return_id":
+        audit[0]["first_return_surface"] = "slack"
+        audit[0]["first_return_id"] = ""
+    else:
+        audit[0]["first_return_surface"] = "none"
+        audit[0]["first_return_id"] = "invented"
+        audit[0]["first_return_at"] = "2026-03-02T12:00:00-08:00"
 
     reward, details = _grade(tmp_path, answer)
 
@@ -183,6 +208,54 @@ def test_duplicate_breach_member_is_counted_as_an_extra(
     assert reward["answer"] < 0.97
 
 
+def test_headline_only_work_product_cannot_reach_half_credit(tmp_path: Path) -> None:
+    answer = _perfect()
+    answer["custody_audit"] = []
+
+    reward, _ = _grade(tmp_path, answer)
+    assert 0.1 < reward["answer"] < 0.5
+
+
+def test_custody_audit_near_miss_shotgun_duplicate_and_reorder(
+    tmp_path: Path,
+) -> None:
+    near = _perfect()
+    near["custody_audit"].pop()
+    shotgun = _perfect()
+    shotgun["custody_audit"].extend(deepcopy(shotgun["custody_audit"][:1]) * 50)
+    duplicate = _perfect()
+    duplicate["custody_audit"].append(deepcopy(duplicate["custody_audit"][0]))
+    reordered = _perfect()
+    reordered["custody_audit"].reverse()
+
+    near_reward, _ = _grade(tmp_path / "near", near)
+    shotgun_reward, _ = _grade(tmp_path / "shotgun", shotgun)
+    duplicate_reward, _ = _grade(tmp_path / "duplicate", duplicate)
+    reordered_reward, _ = _grade(tmp_path / "reorder", reordered)
+    assert 0.5 < near_reward["answer"] < 1.0
+    assert shotgun_reward["answer"] < near_reward["answer"]
+    assert 0.5 < duplicate_reward["answer"] < 1.0
+    assert reordered_reward["answer"] == 1.0
+
+
+def test_wrong_first_return_identity_loses_credit(tmp_path: Path) -> None:
+    wrong = _perfect()
+    wrong["custody_audit"][0]["first_return_id"] = "invented-return"
+
+    reward, _ = _grade(tmp_path, wrong)
+    assert 0.5 < reward["answer"] < 1.0
+
+
+def test_custody_audit_reconciliation_is_graded_separately(tmp_path: Path) -> None:
+    inconsistent = _perfect()
+    inconsistent["returned_same_day"] -= 1
+
+    reward, details = _grade(tmp_path, inconsistent)
+
+    assert 0.0 < reward["answer"] < 1.0
+    assert _criterion(details, "answer", "custody_audit_reconciles") == 0.0
+
+
 def test_reordering_all_sets_keeps_full_credit(tmp_path: Path) -> None:
     answer = _perfect()
     for key in (
@@ -190,6 +263,7 @@ def test_reordering_all_sets_keeps_full_credit(tmp_path: Path) -> None:
         "same_day_breaches",
         "returned_next_working_day_ts",
         "unresolved_ts",
+        "custody_audit",
     ):
         values = answer[key]
         assert isinstance(values, list)
@@ -225,27 +299,26 @@ def test_near_miss_uses_ninety_ten_scoring_for_every_affected_set(
     assert 0.85 < reward["answer"] < 0.95
 
 
-def test_shotgun_breaches_score_below_a_near_miss(tmp_path: Path) -> None:
+def test_shotgun_custody_records_score_below_half(tmp_path: Path) -> None:
     answer = _perfect()
     for index in range(200):
         ts = f"99{index:04d}.999999"
-        answer["same_day_breach_ts"].append(ts)
-        answer["same_day_breaches"].append(
+        answer["custody_audit"].append(
             {
-                "ts": ts,
-                "date": "2026-07-01",
+                "request_ts": ts,
+                "request_date": "2026-07-01",
                 "asked_by": f"Decoy {index}",
                 "asked_of": "Nobody",
-                "resolution": "unresolved",
+                "first_return_surface": "none",
+                "first_return_id": "",
+                "first_return_at": "",
+                "outcome": "unresolved",
             }
         )
     reward, details = _grade(tmp_path, answer)
 
-    assert _criterion(details, "answer", "breach_ts.f1") == pytest.approx(
-        24 / 224, abs=1e-4
-    )
-    assert _criterion(details, "answer", "breaches.f1") == pytest.approx(
-        24 / 224, abs=1e-4
+    assert _criterion(details, "answer", "custody_audit.f1") == pytest.approx(
+        142 / 342, abs=1e-4
     )
     assert 0.4 < reward["answer"] < 0.5
 

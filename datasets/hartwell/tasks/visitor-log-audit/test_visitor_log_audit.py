@@ -9,6 +9,8 @@ import sqlite3
 import subprocess
 import sys
 import tomllib
+from collections import Counter
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -23,8 +25,11 @@ PUBLIC_FIELDS = {
     "same_day_breach_ts",
     "same_day_breaches",
     "returned_same_day",
+    "returned_next_working_day",
+    "unresolved_by_followup",
     "returned_next_working_day_ts",
     "unresolved_ts",
+    "custody_audit",
 }
 BREACH_FIELDS = {"ts", "date", "asked_by", "asked_of", "resolution"}
 
@@ -43,8 +48,7 @@ pytestmark = [
 
 
 def _truth() -> JsonObject:
-    truth = json.loads((TESTS / "ground_truth.json").read_text())
-    return {key: value for key, value in truth.items() if key in PUBLIC_FIELDS}
+    return json.loads((TESTS / "oracle.json").read_text())
 
 
 def _score(workspace: Path, out_dir: Path) -> tuple[JsonObject, JsonObject]:
@@ -278,11 +282,116 @@ def test_ground_truth_matches_fresh_bundle_invariants() -> None:
     assert truth["requests_reviewed"] == 71
     assert truth["conversations_reviewed"] == 12
     assert truth["returned_same_day"] == 59
+    assert truth["returned_next_working_day"] == 10
+    assert truth["unresolved_by_followup"] == 2
     assert len(breaches) == 12
     assert len(truth["returned_next_working_day_ts"]) == 10
     assert truth["unresolved_ts"] == ["7456314.002498", "7569818.002563"]
     assert truth["same_day_breach_ts"] == [record["ts"] for record in breaches]
     assert all(set(record) == BREACH_FIELDS for record in breaches)
+
+
+def test_reference_custody_audit_matches_fresh_bundle() -> None:
+    state = BUNDLE / "state"
+    document = _solve_with_state(state, BUNDLE / "workspace")
+    epoch = date(2026, 3, 2)
+    pacific = timezone(timedelta(hours=-8))
+    connection = sqlite3.connect(f"file:{state / 'slack.db'}?mode=ro", uri=True)
+    connection.execute("ATTACH DATABASE ? AS gmail", (str(state / "gmail.db"),))
+    names = dict(connection.execute("SELECT person_id, name FROM people"))
+    members: dict[str, set[str]] = {}
+    for conversation_id, person_id in connection.execute(
+        "SELECT conversation_id, person_id FROM members"
+    ):
+        members.setdefault(conversation_id, set()).add(person_id)
+    dm_ids = {
+        conversation_id
+        for (conversation_id,) in connection.execute(
+            "SELECT conversation_id FROM conversations WHERE kind = 'dm'"
+        )
+    }
+    history: dict[str, list[tuple[str, str, int, str]]] = {}
+    for conversation_id, sender, body, timestamp, timestamp_id in connection.execute(
+        "SELECT conversation_id, sender, body, time, ts FROM messages ORDER BY time"
+    ):
+        if conversation_id in dm_ids:
+            history.setdefault(conversation_id, []).append(
+                (sender, body, timestamp, timestamp_id)
+            )
+    recipients: dict[str, set[str]] = {}
+    for message_id, person_id in connection.execute(
+        "SELECT message_id, person_id FROM gmail.recipients"
+    ):
+        recipients.setdefault(message_id, set()).add(person_id)
+    mail = [
+        (sender, recipient, timestamp, message_id)
+        for message_id, sender, timestamp in connection.execute(
+            "SELECT message_id, sender, time FROM gmail.messages"
+        )
+        for recipient in recipients.get(message_id, ())
+    ]
+
+    def request_day(timestamp: int) -> date:
+        return epoch + timedelta(days=timestamp // 86_400)
+
+    def next_working_day(value: date) -> date:
+        value += timedelta(days=1)
+        while value.weekday() >= 5:
+            value += timedelta(days=1)
+        return value
+
+    def iso(timestamp: int) -> str:
+        return (
+            datetime(2026, 3, 2, tzinfo=pacific) + timedelta(seconds=timestamp)
+        ).isoformat()
+
+    expected = []
+    for conversation_id, messages in history.items():
+        for position, (asker, body, asked_at, request_ts) in enumerate(messages):
+            if body.strip().lower() != (
+                "do you still have the sign-in sheet from yesterday?"
+            ):
+                continue
+            (asked_of,) = members[conversation_id] - {asker}
+            candidates = [
+                (timestamp, "slack", timestamp_id)
+                for sender, _, timestamp, timestamp_id in messages[position + 1 :]
+                if sender == asked_of and timestamp > asked_at
+            ]
+            candidates.extend(
+                (timestamp, "gmail", message_id)
+                for sender, recipient, timestamp, message_id in mail
+                if sender == asked_of and recipient == asker and timestamp > asked_at
+            )
+            first = min(candidates, default=None)
+            asked_on = request_day(asked_at)
+            deadline = next_working_day(asked_on)
+            if first is None:
+                outcome = "unresolved"
+            elif request_day(first[0]) == asked_on:
+                outcome = "same_day"
+            elif request_day(first[0]) <= deadline:
+                outcome = "next_working_day"
+            else:
+                outcome = "unresolved"
+            expected.append(
+                {
+                    "request_ts": request_ts,
+                    "request_date": asked_on.isoformat(),
+                    "asked_by": names[asker],
+                    "asked_of": names[asked_of],
+                    "first_return_surface": first[1] if first else "none",
+                    "first_return_id": first[2] if first else "",
+                    "first_return_at": iso(first[0]) if first else "",
+                    "outcome": outcome,
+                }
+            )
+    expected.sort(key=lambda record: float(record["request_ts"]))
+    outcomes = Counter(record["outcome"] for record in expected)
+
+    assert len(expected) == 71
+    assert outcomes == {"same_day": 59, "next_working_day": 10, "unresolved": 2}
+    assert document["custody_audit"] == expected
 
 
 def test_independent_sql_rederives_requests_and_first_response_outcomes() -> None:
@@ -345,7 +454,7 @@ def test_independent_sql_rederives_requests_and_first_response_outcomes() -> Non
 
 def test_unresolved_means_not_returned_by_next_working_day_not_never_answered() -> None:
     evidence = json.loads((TESTS / "ground_truth.json").read_text())["_evidence"]
-    instruction = (TASK / "instruction.md").read_text().lower()
+    instruction = " ".join((TASK / "instruction.md").read_text().lower().split())
 
     assert "did not return until after" in evidence["outcomes"]
     assert "even if someone eventually replies later" in instruction
