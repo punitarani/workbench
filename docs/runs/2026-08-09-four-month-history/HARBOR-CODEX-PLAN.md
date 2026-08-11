@@ -92,12 +92,17 @@ The CLI projection is the worst-case cost of a full nine-cell task batch. A
 three-cell smoke uses one third and a six-cell continuation uses two thirds.
 After every launch, observed cost is normalized back to full-batch units and
 becomes the new floor for later projections. Every launch retains the `$1.50`
-reserve and every return is metered before result validation.
+reserve and every return is metered before result validation. While Harbor is
+running, the authoritative meter is polled every 30 seconds. If observed
+in-flight cost exceeds the launch authorization or reaches the pre-reserve
+limit, the runner terminates the entire paid process group and records a budget
+failure. `--credit-poll-interval-sec` may tighten the interval.
 
 ## Current resume status
 
-The 2026-08-10 run stopped after the fee matrix at meter
-`56.005689513`, leaving less than the reserve. Because source hardening commit
-`dd6e11f` followed the paid diagnostics, a future authorized run must start a
-new run ID and rerun all eight task matrices from one clean fingerprint. Do not
-reuse invalid compaction or timeout trials.
+The 2026-08-11 continuation settled at `84.197153415` against its
+`64.274128970` baseline, leaving `$3.576975555` launchable after the reserve.
+That cannot cover another full matrix under the observed `$12.940024093`
+long-ledger worst case. A future authorized run must start a new run ID and use
+exact current fingerprints. Do not reuse invalid compaction, timeout, cancelled,
+or stale-source trials.

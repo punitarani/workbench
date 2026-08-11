@@ -23,6 +23,9 @@ scores.
 | score-contract acceptance | finite but out-of-range or `reward != answer` cells passed | enforce `[0,1]` and exact reward/answer equality |
 | uncorrelated routing provenance | cumulative gateway records could not be tied to launches | persist sequence spans and per-trial fingerprints; label actual provider unknown |
 | meter regression/post-cap gap | decreasing or over-cap post-launch readings could pass | reject regression; persist and stop on post-launch cap breach |
+| in-flight forecast overrun | a long Harbor batch could spend far beyond its authorization before the next post-launch reading | poll authoritative credits every 30 seconds; terminate the paid process group at the authorized forecast or pre-reserve boundary |
+| unstated UTC-to-Pacific conversion | correct iManage save timestamp was graded against an undisclosed firm-calendar conversion | instruction now names `America/Los_Angeles` and requires converting iManage UTC timestamps; regression test added |
+| silent evidence-population shrink | canonical oracle bytes caught drift but did not state the professional workpaper's intended population | typed task metadata certifies primary record and nested evidence counts before staging |
 
 ## Paid-run failures
 
@@ -59,25 +62,47 @@ more than its operator projection, although it stayed below the hard cap.
 - The final settled meter is below the hard cap but below the required reserve,
   so no further paid launch is permitted.
 
+### In-flight budget overrun
+
+The 2026-08-11 second-read batch was admitted with a `$4.00` nine-cell
+projection derived from the preceding standard and operative batches. Six
+GLM/DeepSeek agents continued reconstructing the 75-row ledger for more than 35
+minutes. A manual live meter check found nearly `$12` of in-flight usage. The
+operator stopped the run; delayed settlement brought the batch to
+`$12.940024093`.
+
+- Three Luna results had already completed and are valid.
+- Six `CancelledError` results have no verifier output and are invalid.
+- Repair: `8e47e9c` runs Harbor in a dedicated process group, polls the
+  authoritative meter every 30 seconds, and cancels the group when observed
+  in-flight cost exceeds its launch authorization or consumes the reserve.
+- Pre-launch projection and post-launch settlement checks still run. The live
+  check is an additional guard against duration-driven cost drift and delayed
+  discovery.
+
 ## Remaining limitations
 
-1. Seven tasks lack a final 3x3. No competence or defeat claim can be made for
-   those cells.
-2. The only completed task, fee dispute, has best-of-three answer 1.0 for all
-   models and does not satisfy the defeat target.
+1. The five-task best-of-three `<0.5` target is not established. Current
+   standard and operative diagnostics are too easy; second read has only three
+   valid Luna cells because GLM/DeepSeek were cancelled for budget protection.
+2. Cancelled second-read cells and all still-unmeasured current evidence-ledger
+   cells require a new authorization and exact current fingerprints.
 3. OpenRouter's Responses result did not expose the selected upstream provider.
    Provenance certifies enforced order and fallback denial, not actual provider.
 4. Harbor's default `harbor check` is model-based. It was not run for all eight
    tasks after the cap bound; static layout tests and an actual offline 8/8
    Harbor reference job pass.
-5. Source hardening commit `dd6e11f` postdates the paid diagnostic matrix.
-   A future final matrix must use a new run ID and rerun every cell under one
-   fingerprint.
+5. The strict runner fingerprint includes git revision, task source,
+   materialized environment, image, gateway, Harbor, Codex, provider order, and
+   timeout multiplier. Diagnostic cells may guide design but cannot be silently
+   relabeled as a final matrix after source or harness changes.
 
 ## Resume rule
 
 Resume only after an explicit budget/cap change. Query the credits endpoint,
-retain the `$1.50` reserve, use the then-current clean revision, and allow the
-hardened runner to stop if its normalized full-batch forecast does not fit.
+retain the `$1.50` reserve, use the then-current clean revision, and use at
+least `$12.9401` as the long-ledger forecast until equivalent cheaper evidence
+supports a lower value. Allow the hardened runner to stop an in-flight batch
+when the live meter reaches its authorization.
 Never convert setup, provider, MCP, timeout, verifier, or meter failures into
 low model scores.

@@ -118,6 +118,16 @@ environment, gateway version, Harbor/Codex versions, custom agent, compaction
 mode, timeout multiplier, model, and provider order. Existing job/report paths
 are rejected before launch.
 
+Credits are checked before, during, and after each launch. In-flight polling
+runs every 30 seconds and cancels Harbor's dedicated process group if observed
+cost exceeds the authorized forecast or touches the reserve. This closes the
+duration-driven overrun found in the second-read evidence-ledger batch.
+
+Fresh task generation also validates each `[metadata.evidence]` contract before
+staging: the primary workpaper row count, optional nested source-ID count, and
+joined product surfaces must match the fresh oracle. Canonical-byte comparison
+still detects every value-level truth drift.
+
 ## Verification status
 
 Completed:
@@ -127,13 +137,15 @@ Completed:
 - eight reference solutions at full answer reward;
 - synthetic answer/process/security regressions;
 - actual Docker security probes;
-- actual offline Harbor 8/8 reference job;
+- actual current-source offline Harbor 8/8 reference job
+  `hartwell-oracle-current-20260811-2`;
 - gateway lifecycle/provenance/budget tests;
 - shared image build and workspace static/test gates.
 
-Not completed because the project cap bound:
+Not completed because the continuation cap bound:
 
-- seven paid 3x3 task matrices;
+- the final five-task best-of-three hardness matrix;
+- six cancelled second-read GLM/DeepSeek cells;
 - eight model-based `harbor check` quality evaluations.
 
 Static Harbor layout tests and actual Harbor execution pass; the unrun

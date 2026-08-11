@@ -1,52 +1,72 @@
 # Hartwell spend ledger
 
-Hard project cap: `$25.00` of OpenRouter usage after the recorded
-`32.2139`-credit baseline. Required pre-launch reserve: `$1.50`.
+OpenRouter's credits endpoint is authoritative. Token-count estimates are not
+used because cached reads and provider routing make them materially inaccurate.
+Every launch must retain a `$1.50` reserve.
 
-The credits endpoint is authoritative. Token-times-list-price estimates from
-the earlier run were discarded because cached prompt reads made them materially
-wrong.
+## Original authorization
 
-## Authoritative checkpoints
+The original project authorization was `$25.00` after the recorded
+`32.213900000` usage baseline. That phase ended at `56.005689513`, or
+`$23.791789513` of metered usage. Its fee-dispute matrix and invalid-run history
+remain documented in `REPORT.md` and `FAILURE-MODES.md`.
 
-| Point | Meter total_usage | Spend since baseline | Notes |
+Post-ledger Harbor pilots settled before the continuation was authorized. The
+new authorization therefore starts from the then-current meter, not from the
+older report's final value.
+
+## 2026-08-11 continuation authorization
+
+- settled continuation baseline: `64.274128970`;
+- additional authorized usage: `$25.00`;
+- continuation cap: `89.274128970`;
+- required reserve: `$1.50`.
+
+| Point | Meter `total_usage` | Spend since continuation | Notes |
 |---|---:|---:|---|
-| recorded project baseline | 32.213900000 | 0.000000000 | cap origin |
-| before final Harbor routing work | 44.330760849 | 12.116860849 | prior generation, legacy probes, and pilots reconciled |
-| after run A settled | 45.572103713 | 13.358203713 | remote-compaction `invalid_prompt`; invalid trials |
-| after run B settled | 47.050413805 | 14.836513805 | unsupported `/responses/compact`; invalid DeepSeek |
-| after run C smoke settled | 49.358639206 | 17.144739206 | valid Luna; GLM/DeepSeek timed out and invalid |
-| before additional fee batch | 50.722100267 | 18.508200267 | targeted valid GLM/DeepSeek recovery settled |
-| final settled reading | 56.005689513 | 23.791789513 | six valid additional fee attempts |
+| continuation baseline | 64.274128970 | 0.000000000 | user-authorized start |
+| standard-drift settled | 67.686196267 | 3.412067297 | nine valid diagnostic cells |
+| operative-deadline settled | 71.257129322 | 6.983000352 | nine valid diagnostic cells |
+| second-read live stop | 83.258674679 | 18.984545709 | six long cells cancelled to protect cap |
+| second-read final settlement | 84.197153415 | 19.923024445 | delayed provider settlement stabilized |
 
-Final remaining budget before cap: `$1.208210487`.
+Final continuation budget:
 
-Final launchable budget after the required reserve:
-`$1.208210487 - $1.50 = -$0.291789513`.
+- remaining before cap: `$5.076975555`;
+- launchable after reserve: `$3.576975555`.
 
-No later task batch was launched.
+No additional paid launch is authorized: the observed cost of the interrupted
+second-read batch was `$12.940024093`, so the remaining amount cannot safely
+cover a full nine-cell task batch.
 
-## Final-phase deltas
+## Continuation work by batch
 
-| Work | Settled cost | Valid evaluation output |
+| Work | Settled cost | Valid output |
 |---|---:|---|
-| run A | $1.241342864 | none; remote compaction rejected |
-| run B | $1.478310092 | Luna/GLM diagnostics only; run invalid because DeepSeek used unsupported compact endpoint |
-| run C initial smoke | $2.308225401 | Luna 1.0/1.0; GLM/DeepSeek invalid 1,800-second timeouts |
-| targeted GLM/DeepSeek recovery | $1.363461061 | GLM 0.8432/1.0; DeepSeek 0.6416/0.8625 |
-| six additional fee attempts | $5.283589246 | all six valid; completes fee 3x3 |
+| standard-drift diagnostic 3x3 | $3.412067297 | 9/9 valid; task too easy |
+| operative-deadline diagnostic 3x3 | $3.570933055 | 9/9 valid; only GLM best-of-three below 0.5 |
+| second-read evidence-ledger batch | $12.940024093 | 3 valid Luna cells; 6 cancelled GLM/DeepSeek cells excluded |
 
-The final-phase total is `$11.674928664`. Earlier reconciled project work was
-`$12.116860849`, producing the final `$23.791789513` total.
+The second-read launch was admitted with a `$4.00` full-batch forecast based on
+the preceding settled batches. After 37 minutes, a live manual meter check
+showed `$11.94` of in-flight usage. The run was interrupted before the reserve
+was consumed; delayed settlement added another `$1.00`.
 
-## Budget decision
+Commit `8e47e9c` closes that gap. Paid commands now run in a dedicated process
+group while the authoritative meter is polled every 30 seconds. The runner
+terminates the full process group when observed in-flight cost exceeds the
+launch's authorized forecast or reaches the pre-reserve limit, then persists a
+typed budget failure. Pre-launch and post-launch checks remain in place.
 
-The additional fee launch was authorized when the meter read
-`50.722100267`; its `$3.50` operator projection fit under the cap and reserve,
-but the settled cost was `$5.283589246`. It remained below the hard cap but
-consumed the reserve. Commit `dd6e11f` prevents recurrence by normalizing every
-observed launch cost to a full nine-cell task batch, then scaling that forecast
-to the exact size of the next launch.
+## Budget rule
 
-The seven remaining task matrices and eight model-based `harbor check` calls
-are unpaid and unrun. Their absence is not represented as a zero model score.
+Before resuming paid work:
+
+1. obtain a new explicit authorization;
+2. query and record a new settled baseline;
+3. retain the `$1.50` reserve;
+4. use an observed worst-case forecast no lower than `$12.9401` for a full
+   long-ledger batch unless a cheaper identical-protocol batch establishes a
+   defensible lower bound;
+5. never count cancelled, timeout, setup, provider, MCP, verifier, or meter
+   failures as model scores.

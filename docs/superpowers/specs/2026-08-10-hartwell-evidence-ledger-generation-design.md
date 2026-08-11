@@ -23,6 +23,21 @@ The current output therefore discards the hard part of the work. Agents inspect
 unreviewed IDs. The improved tasks will grade the complete evidence ledger that
 supports the conclusion.
 
+Later current-era diagnostics confirmed the design boundary. `standard-drift`
+with a 16-row ledger remained easy (best-of-three 0.8944/0.9094/0.9094); its
+consistent remaining miss was an unstated UTC-to-Pacific date conversion, now
+fixed as a fairness defect. `operative-deadline` produced a meaningful repeated
+0.4633 partial reconstruction, but Luna reached 0.8180 and DeepSeek reached 1.0
+by continuing the evidence sweep. Compact conclusions and small schedules are
+therefore diagnostic tasks, not candidates for the five-task hardness claim.
+
+The 75-row `second-read-audit` produced three valid Luna answers at
+0.2886/0.2886/0.1219. The 0.2886 answers got every headline finding right but
+matched only one ledger row. This is the desired separation between conclusion
+quality and retained-workpaper completeness. GLM/DeepSeek were still
+reconciling the full workpaper when the operator cancelled them to protect the
+explicit spend reserve; those six cells are invalid and provide no score.
+
 ## Generation pipeline
 
 `build_history.py` remains the deterministic source-world generator and keeps
@@ -33,6 +48,13 @@ refresh mode updates those artifacts after an intentional storyline or rule
 change; the default build fails on drift. Harbor staging occurs only after the
 oracle check, so stale projected databases or stale expected answers cannot be
 evaluated.
+
+Each `task.toml` also carries a typed `[metadata.evidence]` contract naming the
+primary retained workpaper, its exact row count, optional nested source-ID
+count, and the product surfaces joined to derive it. The default build validates
+that contract against the freshly emitted oracle before byte certification and
+staging. This makes scope shrinkage visible even when an intentionally refreshed
+oracle would otherwise bless a smaller task.
 
 Each hardened task owns a deterministic builder inside its self-contained
 solution. The same builder emits the reference deliverable and supplies the
@@ -102,5 +124,8 @@ through the same secret-safe gateway; its reward-hacking and task-specification
 findings supplement, but do not replace, deterministic adversarial tests.
 
 Paid work uses settled-meter checkpoints, explicit incremental caps, and the
-$1.50 reserve. Offline history generation, truth derivation, reference runs,
-security probes, and verifier adversarial tests precede each paid rerun.
+$1.50 reserve. The matrix runner polls credits during the launch as well as
+before and after it, and terminates the paid process group if observed cost
+exceeds the launch authorization or reaches the reserve. Offline history
+generation, truth derivation, reference runs, security probes, and verifier
+adversarial tests precede each paid rerun.

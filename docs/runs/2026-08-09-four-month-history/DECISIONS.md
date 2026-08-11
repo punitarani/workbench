@@ -594,3 +594,34 @@ caps, this final section supersedes it.
     response-latency 0.88 Luna twice, which is why it is not in the suite.
     Every shipped cell is far under the 0.5 bar; the retired one never
     got near it.
+22. **Evidence population is now a generation contract, not a report claim.**
+    Each Harbor task declares `[metadata.evidence]`: the primary retained
+    workpaper, exact record count, optional nested source-ID fields/count, and
+    joined product surfaces. `build_tasks.py` validates that typed contract
+    against the fresh restricted-oracle output before canonical-byte comparison
+    and before Harbor staging. Current contracts span 5/47 fee day/entry items,
+    655/4,233 billing person-day/activity items, 75 second-read requests, 71
+    custody requests, 16/4 NDA version/email items, and 57/53 document
+    revision/communication items. An intentional truth refresh can no longer
+    silently bless a smaller task without updating a reviewable scope contract.
+23. **Fresh model evidence separates real difficulty from specification
+    defects.** Standard drift was easy for all models; its repeated remaining
+    miss was the Harborlight v2 date because iManage exposes UTC and the oracle
+    uses the firm's Pacific calendar. The instruction now states
+    `America/Los_Angeles` and the conversion explicitly. Operative deadline
+    produced repeated 0.4633 partial answers, but Luna reached 0.818 and
+    DeepSeek reached 1.0 by completing the private-correction/stale-reference
+    chain. Neither compact task is a defensible hardness win. In contrast,
+    second read produced three valid Luna answers at 0.2886/0.2886/0.1219: the
+    two 0.2886 answers got the full exception summary right but only one of 75
+    workpaper rows, proving the ledger scores professionally retained evidence
+    rather than an arbitrary trap.
+24. **A launch forecast is now an in-flight authorization.** The second-read
+    batch was admitted at `$4.00` after two roughly `$3.5` nine-cell batches,
+    but six long GLM/DeepSeek trajectories drove its settled cost to
+    `$12.940024093`. They were manually cancelled before the reserve and remain
+    invalid. Commit `8e47e9c` runs paid commands in a dedicated process group,
+    polls authoritative credits every 30 seconds, and terminates the group when
+    observed in-flight cost exceeds the launch authorization or reaches the
+    pre-reserve boundary. Pre/post metering and settled-cost forecasting remain;
+    live cancellation closes the discovery gap.

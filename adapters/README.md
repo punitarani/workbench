@@ -58,8 +58,11 @@ OPENROUTER_API_KEY=... uv run python -m workbench.adapters.harbor_matrix \
 Repeated `--task` flags are normalized to the suite's canonical order. Each
 selected task still runs exactly three attempts for each of the three pinned
 models; omitting the flag retains the full eight-task protocol. The recorded
-budget baseline and incremental cap are written to the matrix report, and the
-same `$1.50` in-flight reserve remains enforced.
+budget baseline and incremental cap are written to the matrix report. Credits
+are polled every 30 seconds while Harbor is running; the runner terminates the
+paid process group if observed in-flight cost exceeds the launch's authorized
+projection or reaches the `$1.50` reserve. The interval can be tightened with
+`--credit-poll-interval-sec` for unusually expensive routes.
 
 The runner pins Harbor 0.18.0 and Codex 0.147.0, uses a 2x agent-time multiplier,
 and includes that execution setting in every fingerprint. It first runs one fee-dispute
@@ -67,6 +70,7 @@ smoke trial for each model, validates that the complete task and materialized
 environment fingerprint is unchanged, and reuses those trials as attempt one.
 It then runs two more fee attempts per model and three attempts per model for
 each remaining task, one task batch at a time. Credits are metered before paid
-work and after every launch. The incremental report under `jobs/` records each
+work, during every launch, and after every launch. The incremental report under
+`jobs/` records each
 attempt's fingerprint, enforced routing order, unobserved actual-provider
 status, request-sequence spans, spend, and any failure that stops the run.
