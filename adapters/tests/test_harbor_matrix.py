@@ -755,6 +755,49 @@ class BlockingHarborCommands(FakeCommands):
         raise AssertionError("unreachable")
 
 
+class PartialResultBlockingHarborCommands(BlockingHarborCommands):
+    async def run(self, command: tuple[str, ...], *, cwd: Path) -> CompletedCommand:
+        if (
+            command == ("harbor", "--version")
+            or command[:3] == ("docker", "image", "inspect")
+            or command == ("git", "rev-parse", "HEAD")
+        ):
+            return await FakeCommands.run(self, command, cwd=cwd)
+        self.commands.append(command)
+        jobs_dir = Path(command[command.index("-o") + 1])
+        job_name = command[command.index("--job-name") + 1]
+        trial = jobs_dir / job_name / "gpt-5.6-luna-0"
+        trial.mkdir(parents=True)
+        (trial / "result.json").write_text(
+            json.dumps(
+                {
+                    "trial_name": trial.name,
+                    "config": {"agent": {"model_name": "gpt-5.6-luna"}},
+                    "agent_info": {"version": CODEX_VERSION},
+                    "exception_info": None,
+                    "verifier_result": {
+                        "rewards": {"reward": 0.27, "answer": 0.27, "process": 1.0}
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        try:
+            await asyncio.Future()
+        except asyncio.CancelledError:
+            self.cancelled = True
+            raise
+        raise AssertionError("unreachable")
+
+
+class RecordingJobCleaner:
+    def __init__(self) -> None:
+        self.jobs: list[Path] = []
+
+    async def cleanup(self, job_dir: Path) -> None:
+        self.jobs.append(job_dir)
+
+
 async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
     tmp_path: Path,
 ) -> None:
@@ -1111,7 +1154,7 @@ async def test_in_flight_meter_cancels_a_batch_that_exceeds_its_authorization(
         openrouter_api_key="host-only",
         gateway_token="ephemeral-only",
         commands=commands,
-        credit_meter=FakeCreditMeter([50.0, 51.1]),
+        credit_meter=FakeCreditMeter([50.0, 51.1, 51.1]),
         gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
     )
 
@@ -1124,6 +1167,65 @@ async def test_in_flight_meter_cancels_a_batch_that_exceeds_its_authorization(
     )
     assert "in-flight" in persisted["failure"]
     assert persisted["batches"] == []
+    assert len(persisted["launches"]) == 1
+    assert persisted["launches"][0]["valid"] is False
+    assert persisted["launches"][0]["metered_cost_usd"] == pytest.approx(1.1)
+
+
+async def test_in_flight_stop_preserves_completed_diagnostic_evidence(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    config = MatrixConfig(
+        repository=tmp_path,
+        tasks_root=tasks_root,
+        jobs_dir=tmp_path / "jobs",
+        run_id="partial-diagnostic",
+        tasks=("visitor-log-audit",),
+        diagnostic_smoke=True,
+        projected_worst_case_batch_usd=1.0,
+        credit_poll_interval_sec=0.01,
+    )
+    commands = PartialResultBlockingHarborCommands()
+    cleaner = RecordingJobCleaner()
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        job_cleaner=cleaner,
+        credit_meter=FakeCreditMeter([50.0, 51.1, 51.1]),
+        gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
+    )
+
+    with pytest.raises(BudgetExceededError, match="in-flight.*authorized"):
+        await runner.run()
+
+    persisted = json.loads(
+        (config.jobs_dir / "partial-diagnostic-matrix.json").read_text(encoding="utf-8")
+    )
+    assert persisted["smoke"]["valid"] is False
+    assert len(persisted["smoke"]["trials"]) == 1
+    assert persisted["smoke"]["trials"][0]["outcome"]["valid"] is True
+    assert persisted["smoke"]["trials"][0]["outcome"]["answer"] == 0.27
+    assert cleaner.jobs == [
+        config.jobs_dir / "partial-diagnostic-diagnostic-smoke-05-visitor-log-audit"
+    ]
+
+
+def test_cancelled_job_cleanup_targets_only_exact_trial_compose_projects(
+    tmp_path: Path,
+) -> None:
+    job = tmp_path / "job"
+    (job / "visitor-log-audit__AbC123").mkdir(parents=True)
+    (job / "visitor-log-audit__z9Y8x7").mkdir()
+    (job / "result.json").write_text("{}", encoding="utf-8")
+    (job / "untrusted name").mkdir()
+
+    assert matrix_runner._compose_projects_for_job(job) == (
+        "visitor-log-audit__abc123__env",
+        "visitor-log-audit__z9y8x7__env",
+    )
 
 
 def _make_tasks(tmp_path: Path) -> Path:

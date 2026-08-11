@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import math
 import os
+import re
 import signal
 import stat
 import tempfile
@@ -299,6 +300,69 @@ class CompletedCommand(BaseModel):
 
 class CommandRunner(Protocol):
     async def run(self, command: tuple[str, ...], *, cwd: Path) -> CompletedCommand: ...
+
+
+class JobCleaner(Protocol):
+    async def cleanup(self, job_dir: Path) -> None: ...
+
+
+class NoopJobCleaner:
+    async def cleanup(self, job_dir: Path) -> None:
+        del job_dir
+
+
+def _compose_projects_for_job(job_dir: Path) -> tuple[str, ...]:
+    if not job_dir.is_dir():
+        return ()
+    projects = []
+    for trial in sorted(job_dir.iterdir(), key=lambda path: path.name):
+        metadata = trial.lstat()
+        if not stat.S_ISDIR(metadata.st_mode):
+            continue
+        if not re.fullmatch(r"[A-Za-z0-9._-]+__[A-Za-z0-9]+", trial.name):
+            continue
+        projects.append(f"{trial.name.lower()}__env")
+    return tuple(projects)
+
+
+class DockerComposeJobCleaner:
+    def __init__(self, commands: CommandRunner, repository: Path) -> None:
+        self._commands = commands
+        self._repository = repository
+
+    async def cleanup(self, job_dir: Path) -> None:
+        for project in _compose_projects_for_job(job_dir):
+            await self._remove_project_resources("container", project)
+            await self._remove_project_resources("network", project)
+
+    async def _remove_project_resources(self, kind: str, project: str) -> None:
+        listed = await self._commands.run(
+            (
+                "docker",
+                kind,
+                "ls",
+                "-aq" if kind == "container" else "-q",
+                "--filter",
+                f"label=com.docker.compose.project={project}",
+            ),
+            cwd=self._repository,
+        )
+        if listed.returncode != 0:
+            raise HarborRunError(f"could not list Docker {kind}s for {project}")
+        identifiers = tuple(listed.stdout.split())
+        if not identifiers:
+            return
+        if not all(re.fullmatch(r"[0-9a-f]{12,64}", value) for value in identifiers):
+            raise HarborRunError(f"Docker returned an invalid {kind} id for {project}")
+        removal = ("docker", kind, "rm")
+        if kind == "container":
+            removal += ("-f",)
+        removed = await self._commands.run(
+            removal + identifiers,
+            cwd=self._repository,
+        )
+        if removed.returncode != 0:
+            raise HarborRunError(f"could not remove Docker {kind}s for {project}")
 
 
 class CreditReader(Protocol):
@@ -680,6 +744,7 @@ class MatrixRunner:
         openrouter_api_key: str,
         gateway_token: str,
         commands: CommandRunner | None = None,
+        job_cleaner: JobCleaner | None = None,
         credit_meter: CreditReader | None = None,
         gateway_transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
@@ -687,6 +752,11 @@ class MatrixRunner:
         self._openrouter_api_key = SecretStr(openrouter_api_key)
         self._gateway_token = SecretStr(gateway_token)
         self._commands = commands or SubprocessCommandRunner()
+        self._job_cleaner = job_cleaner or (
+            DockerComposeJobCleaner(self._commands, config.repository)
+            if commands is None
+            else NoopJobCleaner()
+        )
         if credit_meter is None:
             self._owned_credit_meter: CreditMeter | None = CreditMeter(
                 openrouter_api_key
@@ -1069,6 +1139,7 @@ class MatrixRunner:
     ) -> LaunchExecution:
         start_sequence = gateway.provenance[-1].sequence if gateway.provenance else 0
         gateway_env_file = _create_gateway_env_file(self._gateway_token)
+        in_flight_error: BudgetExceededError | CreditMeterError | None = None
         try:
             command = build_harbor_command(
                 self.config,
@@ -1083,20 +1154,31 @@ class MatrixRunner:
             if job_dir.exists() or job_dir.is_symlink():
                 raise HarborRunError(f"Harbor job directory already exists: {job_dir}")
             self._budget.assert_can_launch(credits, projected_worst_case_usd=forecast)
-            completed = await self._run_with_budget_monitor(
-                command,
-                credits=credits,
-                forecast=forecast,
-            )
+            try:
+                completed = await self._run_with_budget_monitor(
+                    command,
+                    credits=credits,
+                    forecast=forecast,
+                )
+            except (BudgetExceededError, CreditMeterError) as error:
+                in_flight_error = error
+                try:
+                    await self._job_cleaner.cleanup(job_dir)
+                except HarborRunError as cleanup_error:
+                    in_flight_error.args = (
+                        f"{in_flight_error}; Docker cleanup failed: {cleanup_error}",
+                    )
+                completed = CompletedCommand(returncode=1, stderr=str(error))
         finally:
             gateway_env_file.unlink(missing_ok=True)
         after = await self._credit_meter.query()
-        post_meter_error: BudgetExceededError | CreditMeterError | None = None
+        post_meter_error = in_flight_error
         try:
             metered_cost = self._budget.metered_cost(credits, after)
             self._budget.assert_observed_within_cap(after)
         except (BudgetExceededError, CreditMeterError) as error:
-            post_meter_error = error
+            if post_meter_error is None:
+                post_meter_error = error
             metered_cost = max(0.0, float(after.total_usage - credits.total_usage))
         outcomes = load_trial_outcomes(self.config.jobs_dir / job_name)
         end_sequence = (
