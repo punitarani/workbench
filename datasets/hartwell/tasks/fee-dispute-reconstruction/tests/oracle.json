@@ -87,8 +87,8 @@
       "gmail_message_ids": [],
       "minutes": 1011,
       "slack_message_ts": [
-        "1775495330.000000",
-        "1775495874.000000"
+        "1775491730.000000",
+        "1775492274.000000"
       ],
       "supported": true
     },
@@ -112,9 +112,9 @@
       "gmail_message_ids": [],
       "minutes": 708,
       "slack_message_ts": [
-        "1775581966.000000",
-        "1775582994.000000",
-        "1775589600.000000"
+        "1775578366.000000",
+        "1775579394.000000",
+        "1775586000.000000"
       ],
       "supported": true
     },
@@ -144,7 +144,7 @@
       "gmail_message_ids": [],
       "minutes": 1093,
       "slack_message_ts": [
-        "1775667858.000000"
+        "1775664258.000000"
       ],
       "supported": true
     },
@@ -171,7 +171,7 @@
       ],
       "minutes": 558,
       "slack_message_ts": [
-        "1775755769.000000"
+        "1775752169.000000"
       ],
       "supported": true
     },
@@ -199,8 +199,8 @@
       "gmail_message_ids": [],
       "minutes": 712,
       "slack_message_ts": [
-        "1775842180.000000",
-        "1775854939.000000"
+        "1775838580.000000",
+        "1775851339.000000"
       ],
       "supported": true
     },
@@ -217,7 +217,7 @@
       "gmail_message_ids": [],
       "minutes": 156,
       "slack_message_ts": [
-        "1775924588.000000"
+        "1775920988.000000"
       ],
       "supported": true
     },
@@ -264,8 +264,8 @@
       "gmail_message_ids": [],
       "minutes": 744,
       "slack_message_ts": [
-        "1776186827.000000",
-        "1776187478.000000"
+        "1776183227.000000",
+        "1776183878.000000"
       ],
       "supported": true
     },
@@ -290,7 +290,7 @@
       "gmail_message_ids": [],
       "minutes": 720,
       "slack_message_ts": [
-        "1776280800.000000"
+        "1776277200.000000"
       ],
       "supported": true
     },
@@ -311,8 +311,8 @@
       "gmail_message_ids": [],
       "minutes": 600,
       "slack_message_ts": [
-        "1776359026.000000",
-        "1776359843.000000"
+        "1776355426.000000",
+        "1776356243.000000"
       ],
       "supported": true
     },
@@ -342,7 +342,7 @@
       "gmail_message_ids": [],
       "minutes": 841,
       "slack_message_ts": [
-        "1776446588.000000"
+        "1776442988.000000"
       ],
       "supported": true
     },
@@ -443,7 +443,7 @@
       "gmail_message_ids": [],
       "minutes": 1122,
       "slack_message_ts": [
-        "1776963710.000000"
+        "1776960110.000000"
       ],
       "supported": true
     },
@@ -465,7 +465,7 @@
       "gmail_message_ids": [],
       "minutes": 684,
       "slack_message_ts": [
-        "1777050843.000000"
+        "1777047243.000000"
       ],
       "supported": true
     },
@@ -501,9 +501,9 @@
       "gmail_message_ids": [],
       "minutes": 522,
       "slack_message_ts": [
-        "1777309772.000000",
-        "1777310279.000000",
-        "1777311825.000000"
+        "1777306172.000000",
+        "1777306679.000000",
+        "1777308225.000000"
       ],
       "supported": true
     },
@@ -532,7 +532,7 @@
       "gmail_message_ids": [],
       "minutes": 770,
       "slack_message_ts": [
-        "1777396648.000000"
+        "1777393048.000000"
       ],
       "supported": true
     },
@@ -560,7 +560,7 @@
       "gmail_message_ids": [],
       "minutes": 876,
       "slack_message_ts": [
-        "1777482461.000000"
+        "1777478861.000000"
       ],
       "supported": true
     },
@@ -581,9 +581,9 @@
       "gmail_message_ids": [],
       "minutes": 450,
       "slack_message_ts": [
-        "1777568791.000000",
-        "1777569508.000000",
-        "1777590546.000000"
+        "1777565191.000000",
+        "1777565908.000000",
+        "1777586946.000000"
       ],
       "supported": true
     }

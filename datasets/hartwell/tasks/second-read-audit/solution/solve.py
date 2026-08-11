@@ -4,11 +4,12 @@ import json
 import os
 import sqlite3
 import sys
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 EPOCH = date(2026, 3, 2)
 REQUEST = "mind taking a quick look at my draft before it goes out?"
-PACIFIC = timezone(timedelta(hours=-8))
+PACIFIC = ZoneInfo("America/Los_Angeles")
 
 STATE = os.environ.get("WORKBENCH_STATE", "../state")
 

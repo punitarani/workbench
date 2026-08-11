@@ -10,8 +10,9 @@ import subprocess
 import sys
 import tomllib
 from collections import Counter
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -287,8 +288,8 @@ def test_ground_truth_matches_fresh_bundle_invariants() -> None:
     assert len(breaches) == 12
     assert len(truth["returned_next_working_day_ts"]) == 10
     assert truth["unresolved_ts"] == [
-        "1779894714.000000",
-        "1780008218.000000",
+        "1779891114.000000",
+        "1780004618.000000",
     ]
     assert truth["same_day_breach_ts"] == [record["ts"] for record in breaches]
     assert all(set(record) == BREACH_FIELDS for record in breaches)
@@ -298,7 +299,7 @@ def test_reference_custody_audit_matches_fresh_bundle() -> None:
     state = BUNDLE / "state"
     document = _solve_with_state(state, BUNDLE / "workspace")
     epoch = date(2026, 3, 2)
-    pacific = timezone(timedelta(hours=-8))
+    pacific = ZoneInfo("America/Los_Angeles")
     connection = sqlite3.connect(f"file:{state / 'slack.db'}?mode=ro", uri=True)
     connection.execute("ATTACH DATABASE ? AS gmail", (str(state / "gmail.db"),))
     names = dict(connection.execute("SELECT person_id, name FROM people"))
@@ -450,11 +451,11 @@ def test_independent_sql_rederives_requests_and_first_response_outcomes() -> Non
     response_day = {ts: day for ts, _, day in rows}
     truth = _truth()
     assert sum(day == asked_on for _, asked_on, day in rows) == 59
-    assert response_day["1779894714.000000"] == "2026-06-01"
-    assert response_day["1780008218.000000"] == "2026-06-05"
+    assert response_day["1779891114.000000"] == "2026-06-01"
+    assert response_day["1780004618.000000"] == "2026-06-05"
     assert truth["unresolved_ts"] == [
-        "1779894714.000000",
-        "1780008218.000000",
+        "1779891114.000000",
+        "1780004618.000000",
     ]
 
 
@@ -510,4 +511,4 @@ def test_pre_request_or_wrong_direction_mail_cannot_close_custody(
     gmail.close()
 
     document = _solve_with_state(bundle / "state", bundle / "workspace")
-    assert "1779894714.000000" in document["unresolved_ts"]
+    assert "1779891114.000000" in document["unresolved_ts"]

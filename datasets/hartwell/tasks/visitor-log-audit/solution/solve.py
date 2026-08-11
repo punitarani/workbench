@@ -9,8 +9,9 @@ import json
 import os
 import sqlite3
 import sys
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 type DatabaseValue = str | int | float | bytes | None
 type DatabaseRow = tuple[DatabaseValue, ...]
@@ -40,7 +41,7 @@ def next_working_day(moment: date) -> date:
 
 
 def iso_datetime(timestamp: int) -> str:
-    pacific = timezone(timedelta(hours=-8))
+    pacific = ZoneInfo("America/Los_Angeles")
     return (
         datetime(2026, 3, 2, tzinfo=pacific) + timedelta(seconds=timestamp)
     ).isoformat()

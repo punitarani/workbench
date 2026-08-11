@@ -12,8 +12,9 @@ import subprocess
 import sys
 import tomllib
 from collections import Counter
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -21,7 +22,7 @@ TASK = Path(__file__).parent
 BUNDLE = TASK / "bundle"
 EPOCH = date(2026, 3, 2)
 REQUEST = "mind taking a quick look at my draft before it goes out?"
-PACIFIC = timezone(timedelta(hours=-8))
+PACIFIC = ZoneInfo("America/Los_Angeles")
 
 pytestmark = pytest.mark.skipif(
     not BUNDLE.exists(),

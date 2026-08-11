@@ -30,13 +30,14 @@ import subprocess
 import sys
 import tomllib
 from collections import Counter
-from datetime import datetime
+from datetime import timedelta
 from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from workbench.environment import materialize
+from workbench.tools.framework import ToolContractError, read_epoch
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -320,22 +321,19 @@ def certify_slack_timestamp_realism(bundle: Path) -> None:
     database = bundle / "state" / "slack.db"
     try:
         with sqlite3.connect(f"file:{database}?mode=ro", uri=True) as connection:
-            epoch_row = connection.execute(
-                "SELECT value FROM meta WHERE key = 'epoch'"
-            ).fetchone()
+            epoch = read_epoch(connection)
             messages = connection.execute("SELECT time, ts FROM messages").fetchall()
-    except sqlite3.Error as error:
+    except (sqlite3.Error, ToolContractError, ValueError) as error:
         raise OracleError(f"materialized Slack state is unreadable: {error}") from error
-    if epoch_row is None or not messages:
-        raise OracleError("materialized Slack state has no epoch or messages")
-    try:
-        epoch_seconds = int(datetime.fromisoformat(epoch_row[0]).timestamp())
-    except (TypeError, ValueError) as error:
-        raise OracleError("materialized Slack state has an invalid epoch") from error
+    if not messages:
+        raise OracleError("materialized Slack state has no messages")
     seen: set[str] = set()
     for relative_seconds, timestamp in messages:
         match = SLACK_TIMESTAMP.fullmatch(timestamp)
-        if match is None or int(match["seconds"]) != epoch_seconds + relative_seconds:
+        expected_seconds = int(
+            (epoch + timedelta(seconds=relative_seconds)).timestamp()
+        )
+        if match is None or int(match["seconds"]) != expected_seconds:
             raise OracleError(
                 f"materialized Slack id {timestamp!r} is not the event's Unix timestamp"
             )

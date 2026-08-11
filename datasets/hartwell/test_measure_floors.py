@@ -223,11 +223,11 @@ def test_visitor_custody_uses_the_first_qualifying_return() -> None:
     outcome = namespace["_custody_outcome"]
     assert callable(outcome)
 
-    epoch = date(2026, 3, 2)
     friday = date(2026, 4, 17)
-    asked_at = namespace["EPOCH_SECONDS"] + (friday - epoch).days * 86_400 + 12 * 3_600
-    sunday = asked_at + 2 * 86_400
-    monday = asked_at + 3 * 86_400
+    day_seconds = namespace["_day_seconds"]
+    asked_at = day_seconds(friday.isoformat()) + 12 * 3_600
+    sunday = day_seconds("2026-04-19") + 12 * 3_600
+    monday = day_seconds("2026-04-20") + 12 * 3_600
 
     assert outcome(friday, asked_at, [sunday, monday]) == (False, True, True)
     assert outcome(friday, asked_at, [monday]) == (False, True, True)

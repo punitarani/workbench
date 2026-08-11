@@ -17,17 +17,16 @@ import asyncio
 import json
 import sys
 from collections.abc import Iterable
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from workbench.adapters.harness.mcp_workspace import McpWorkspace, open_workspace
 
 TASKS = Path(__file__).parent / "tasks"
 EPOCH = date(2026, 3, 2)
-PACIFIC = timezone(timedelta(hours=-8))
-EPOCH_MOMENT = datetime(2026, 3, 2, tzinfo=PACIFIC)
-EPOCH_SECONDS = int(EPOCH_MOMENT.timestamp())
+PACIFIC = ZoneInfo("America/Los_Angeles")
 WRITE_AND_FINISH = 2
 
 # The firm's standing phrasings for the one-to-one requests each audit
@@ -79,7 +78,9 @@ MENTION_MARKERS = {
 
 
 def _day_seconds(iso: str) -> int:
-    return EPOCH_SECONDS + (date.fromisoformat(iso) - EPOCH).days * 86_400
+    return int(
+        datetime.combine(date.fromisoformat(iso), time.min, tzinfo=PACIFIC).timestamp()
+    )
 
 
 def _ts_day(ts: str) -> str:
@@ -130,10 +131,9 @@ def _seconds_iso(timestamp: int) -> str:
 
 
 def _imanage_day(edit_date: str) -> str:
-    """iManage serves true-UTC instants; the record's calendar runs on the
-    epoch's own -08:00 offset, so shift back before taking the date."""
+    """iManage serves true-UTC instants; audit dates use the firm timezone."""
     moment = datetime.fromisoformat(edit_date.replace("Z", "+00:00"))
-    return (moment - timedelta(hours=8)).date().isoformat()
+    return moment.astimezone(PACIFIC).date().isoformat()
 
 
 def _mail_text(message: dict) -> str:

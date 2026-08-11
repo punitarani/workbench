@@ -6,6 +6,7 @@ import os
 import re
 import stat
 from collections import Counter
+from datetime import UTC, datetime
 from pathlib import Path
 
 from rewardkit import criterion
@@ -52,6 +53,16 @@ CUSTODY_FIELDS = (
 RESOLUTIONS = frozenset({"next_working_day", "unresolved"})
 CUSTODY_OUTCOMES = frozenset({"same_day", "next_working_day", "unresolved"})
 RETURN_SURFACES = frozenset({"slack", "gmail", "none"})
+
+
+def _instant(value: str) -> str | None:
+    try:
+        moment = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if moment.utcoffset() is None:
+        return None
+    return moment.astimezone(UTC).isoformat(timespec="microseconds")
 
 
 def _finite_json(value: object) -> bool:
@@ -110,7 +121,7 @@ def _valid_contract(document: dict[str, object]) -> bool:
         if surface == "none":
             if return_id or return_at:
                 return False
-        elif not return_id or not return_at:
+        elif not return_id or not return_at or _instant(return_at) is None:
             return False
     return True
 
@@ -162,6 +173,12 @@ def _canonical_value(value: object) -> object:
     return str(value).strip()
 
 
+def _canonical_field(field: str, value: object) -> object:
+    if field == "first_return_at" and isinstance(value, str) and value:
+        return _instant(value)
+    return _canonical_value(value)
+
+
 def _canonical(item: object, fields: tuple[str, ...] | None) -> str | None:
     if fields is None:
         if isinstance(item, dict | list):
@@ -169,7 +186,7 @@ def _canonical(item: object, fields: tuple[str, ...] | None) -> str | None:
         return repr(_canonical_value(item))
     if not isinstance(item, dict):
         return None
-    return repr(tuple(_canonical_value(item.get(field, "")) for field in fields))
+    return repr(tuple(_canonical_field(field, item.get(field, "")) for field in fields))
 
 
 def _as_multiset(values: object, fields: tuple[str, ...] | None) -> Counter[str]:

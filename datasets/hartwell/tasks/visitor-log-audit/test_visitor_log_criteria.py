@@ -4,6 +4,7 @@ import json
 import shutil
 import subprocess
 from copy import deepcopy
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -64,6 +65,18 @@ def _criterion(details: JsonObject, dimension: str, name: str) -> float:
 
 def test_exact_answer_has_only_the_canonical_raw_dimensions(tmp_path: Path) -> None:
     reward, _ = _grade(tmp_path, _perfect())
+    assert reward == {"answer": 1.0, "process": 0.0}
+
+
+def test_equivalent_utc_return_instant_earns_full_credit(tmp_path: Path) -> None:
+    answer = _perfect()
+    record = answer["custody_audit"][0]
+    record["first_return_at"] = (
+        datetime.fromisoformat(record["first_return_at"]).astimezone(UTC).isoformat()
+    )
+
+    reward, _ = _grade(tmp_path, answer)
+
     assert reward == {"answer": 1.0, "process": 0.0}
 
 
@@ -134,6 +147,7 @@ def test_dangling_agent_symlink_that_resolves_under_verifier_is_rejected(
         "invalid_outcome",
         "missing_return_id",
         "none_surface_with_return",
+        "return_time_without_offset",
     ],
 )
 def test_type_invalid_public_contract_scores_zero(
@@ -179,10 +193,12 @@ def test_type_invalid_public_contract_scores_zero(
     elif mutation == "missing_return_id":
         audit[0]["first_return_surface"] = "slack"
         audit[0]["first_return_id"] = ""
-    else:
+    elif mutation == "none_surface_with_return":
         audit[0]["first_return_surface"] = "none"
         audit[0]["first_return_id"] = "invented"
         audit[0]["first_return_at"] = "2026-03-02T12:00:00-08:00"
+    else:
+        audit[0]["first_return_at"] = "2026-03-03T12:27:24"
 
     reward, details = _grade(tmp_path, answer)
 

@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import build_tasks  # noqa: E402
 
 
-def _slack_state(bundle: Path, *, ts: str) -> None:
+def _slack_state(bundle: Path, *, ts: str, event_time: int = 90) -> None:
     with sqlite3.connect(bundle / "state" / "slack.db") as connection:
         connection.executescript(
             "CREATE TABLE meta (key TEXT, value TEXT);"
@@ -23,8 +23,12 @@ def _slack_state(bundle: Path, *, ts: str) -> None:
             ("epoch", "2026-03-01T00:00:00-08:00"),
         )
         connection.execute(
+            "INSERT INTO meta VALUES (?, ?)",
+            ("timezone", "America/Los_Angeles"),
+        )
+        connection.execute(
             "INSERT INTO messages VALUES (?, ?, ?)",
-            ("chm-1", 90, ts),
+            ("chm-1", event_time, ts),
         )
 
 
@@ -156,6 +160,13 @@ def test_harbor_staging_occurs_only_after_oracle_certification(
 def test_materialized_slack_timestamps_are_real_unix_time(tmp_path: Path) -> None:
     _, bundle = _task(tmp_path, "print('{}')\n")
     _slack_state(bundle, ts="1772352090.000000")
+
+    build_tasks.certify_slack_timestamp_realism(bundle)
+
+
+def test_materialized_slack_timestamps_follow_calendar_dst(tmp_path: Path) -> None:
+    _, bundle = _task(tmp_path, "print('{}')\n")
+    _slack_state(bundle, ts="1773039600.000000", event_time=8 * 86_400)
 
     build_tasks.certify_slack_timestamp_realism(bundle)
 

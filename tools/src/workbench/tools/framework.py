@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from mcp.server import MCPServer
 from pydantic import BaseModel
@@ -91,7 +92,20 @@ def read_epoch(connection: sqlite3.Connection) -> datetime:
         raise ToolContractError(
             "database carries no epoch; it was not projected from a world log"
         )
-    return datetime.fromisoformat(entries[0].value)
+    epoch = datetime.fromisoformat(entries[0].value)
+    timezone_entries = META_TABLE.select(connection, where={"key": "timezone"})
+    if not timezone_entries:
+        return epoch
+    try:
+        timezone = ZoneInfo(timezone_entries[0].value)
+    except ZoneInfoNotFoundError as error:
+        raise ToolContractError("database carries an unknown timezone") from error
+    zoned_epoch = epoch.replace(tzinfo=timezone)
+    if epoch.utcoffset() is None or epoch.utcoffset() != zoned_epoch.utcoffset():
+        raise ToolContractError(
+            "database epoch offset does not match its calendar timezone"
+        )
+    return zoned_epoch
 
 
 type Projector = Callable[[Sequence[Event], sqlite3.Connection], None]
@@ -148,11 +162,12 @@ def _people(events: Sequence[Event]) -> Iterator[Person]:
 
 
 def _meta(events: Sequence[Event]) -> Iterator[MetaEntry]:
-    # Only the epoch string leaves the run.started payload: it is onstage
-    # calendar reality. Everything else in it stays offstage.
+    # Calendar origin and timezone are onstage reality. Run identity,
+    # configuration, and seed remain offstage.
     for event in events:
         if isinstance(event.payload, SimRunStartedPayload):
             yield MetaEntry(key="epoch", value=event.payload.epoch)
+            yield MetaEntry(key="timezone", value=event.payload.timezone)
             return
 
 

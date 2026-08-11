@@ -4,6 +4,7 @@ import json
 import shutil
 import subprocess
 from copy import deepcopy
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -48,6 +49,16 @@ def _grade(
 
 def test_exact_answer_has_canonical_dimensions(tmp_path: Path) -> None:
     assert _grade(tmp_path, _perfect()) == {"answer": 1.0, "process": 0.0}
+
+
+def test_equivalent_utc_response_instant_earns_full_credit(tmp_path: Path) -> None:
+    answer = _perfect()
+    record = answer["response_audit"][0]
+    record["first_response_at"] = (
+        datetime.fromisoformat(record["first_response_at"]).astimezone(UTC).isoformat()
+    )
+
+    assert _grade(tmp_path, answer) == {"answer": 1.0, "process": 0.0}
 
 
 @pytest.mark.parametrize(
@@ -144,6 +155,7 @@ def test_response_audit_reconciliation_is_graded_separately(tmp_path: Path) -> N
         "audit_bad_surface",
         "audit_bad_outcome",
         "audit_missing_response_id",
+        "audit_response_time_without_offset",
     ],
 )
 def test_type_invalid_contract_scores_zero(tmp_path: Path, mutation: str) -> None:
@@ -174,6 +186,8 @@ def test_type_invalid_contract_scores_zero(tmp_path: Path, mutation: str) -> Non
         answer["response_audit"][0]["outcome"] = "late"
     elif mutation == "audit_missing_response_id":
         answer["response_audit"][0]["first_response_id"] = ""
+    elif mutation == "audit_response_time_without_offset":
+        answer["response_audit"][0]["first_response_at"] = "2026-03-03T12:27:24"
     else:
         answer["requests_reviewed"] = float("inf")
     assert _grade(tmp_path, answer) == {"answer": 0.0, "process": 0.0}

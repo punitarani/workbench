@@ -6,6 +6,7 @@ import os
 import re
 import stat
 from collections import Counter
+from datetime import UTC, datetime
 from pathlib import Path
 
 from rewardkit import criterion
@@ -40,6 +41,16 @@ RESPONSE_FIELDS = frozenset(
 )
 
 
+def _instant(value: str) -> str | None:
+    try:
+        moment = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if moment.utcoffset() is None:
+        return None
+    return moment.astimezone(UTC).isoformat(timespec="microseconds")
+
+
 def _integer(value: object) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
@@ -72,7 +83,11 @@ def _valid_response(value: object) -> bool:
     first_response_at = value.get("first_response_at")
     if surface == "none":
         return first_response_id == "" and first_response_at == ""
-    return first_response_id != "" and first_response_at != ""
+    return (
+        first_response_id != ""
+        and first_response_at != ""
+        and _instant(first_response_at) is not None
+    )
 
 
 def _valid_contract(document: dict[str, object]) -> bool:
@@ -254,7 +269,7 @@ def _response_counter(values: object) -> Counter[str]:
                 record["asked_of"].strip().lower(),
                 record["first_response_surface"],
                 record["first_response_id"].strip(),
-                record["first_response_at"].strip(),
+                _instant(record["first_response_at"]) or "",
                 record["outcome"],
             )
         )

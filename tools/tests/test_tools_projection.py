@@ -1,11 +1,14 @@
 """Registry-level projection invariants over the product systems."""
 
 import sqlite3
+from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from projection_fixtures import coherent_events
 
 from workbench.tools import REGISTRY, check_coherence, project_all
+from workbench.tools.framework import read_epoch
 
 DBS = sorted(f"{system.name}.db" for system in REGISTRY)
 
@@ -42,14 +45,55 @@ def test_sim_events_never_project(tmp_path: Path) -> None:
                         assert "config_hash" not in str(value)
 
 
-def test_meta_carries_only_the_epoch(tmp_path: Path) -> None:
-    """The epoch string is onstage calendar reality; every other
-    run.started field stays offstage."""
+def test_meta_carries_calendar_epoch_and_timezone(tmp_path: Path) -> None:
+    """Calendar origin data is onstage; run identity stays offstage."""
     out = project_fixture(tmp_path)
     for name in DBS:
         with sqlite3.connect(out / name) as connection:
             rows = connection.execute("SELECT key, value FROM meta").fetchall()
-        assert rows == [("epoch", "2026-03-12T00:00:00-07:00")], name
+        assert rows == [
+            ("epoch", "2026-03-12T00:00:00-07:00"),
+            ("timezone", "America/Los_Angeles"),
+        ], name
+
+
+def test_calendar_timezone_preserves_wall_clock_across_dst(tmp_path: Path) -> None:
+    events = coherent_events()
+    started = events[0]
+    events[0] = started.model_copy(
+        update={
+            "payload": started.payload.model_copy(
+                update={
+                    "epoch": "2026-03-02T00:00:00-08:00",
+                    "timezone": "America/Los_Angeles",
+                }
+            )
+        }
+    )
+    chat_index = next(
+        index
+        for index, event in enumerate(events)
+        if getattr(event.payload, "chat_message_id", None) == "chm-000001"
+    )
+    simulated_time = 7 * 86_400 + 12 * 3_600
+    events[chat_index] = events[chat_index].model_copy(update={"time": simulated_time})
+    out = tmp_path / "state"
+    project_all(events, out)
+
+    with sqlite3.connect(out / "slack.db") as connection:
+        epoch = read_epoch(connection)
+        [(timestamp,)] = connection.execute(
+            "SELECT ts FROM messages WHERE chat_message_id = 'chm-000001'"
+        ).fetchall()
+
+    assert epoch.tzinfo == ZoneInfo("America/Los_Angeles")
+    assert (epoch + timedelta(seconds=simulated_time)).isoformat() == (
+        "2026-03-09T12:00:00-07:00"
+    )
+    expected = int(
+        datetime(2026, 3, 9, 12, tzinfo=ZoneInfo("America/Los_Angeles")).timestamp()
+    )
+    assert timestamp == f"{expected}.000000"
 
 
 def test_projection_is_content_deterministic(tmp_path: Path) -> None:
