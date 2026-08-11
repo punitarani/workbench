@@ -138,7 +138,7 @@ Completed:
 - synthetic answer/process/security regressions;
 - actual Docker security probes;
 - actual current-source offline Harbor 8/8 reference job
-  `hartwell-oracle-current-20260811-2`;
+  `hartwell-oracle-current-20260811-3`;
 - gateway lifecycle/provenance/budget tests;
 - shared image build and workspace static/test gates.
 

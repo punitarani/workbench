@@ -599,7 +599,7 @@ caps, this final section supersedes it.
     workpaper, exact record count, optional nested source-ID fields/count, and
     joined product surfaces. `build_tasks.py` validates that typed contract
     against the fresh restricted-oracle output before canonical-byte comparison
-    and before Harbor staging. Current contracts span 5/47 fee day/entry items,
+    and before Harbor staging. Current contracts span 22/254 fee day/entry items,
     655/4,233 billing person-day/activity items, 75 second-read requests, 71
     custody requests, 16/4 NDA version/email items, and 57/53 document
     revision/communication items. An intentional truth refresh can no longer
@@ -625,3 +625,14 @@ caps, this final section supersedes it.
     observed in-flight cost exceeds the launch authorization or reaches the
     pre-reserve boundary. Pre/post metering and settled-cost forecasting remain;
     live cancellation closes the discovery gap.
+25. **Fee support now retains the complete review file.** The public reference
+    path already enumerated every Meridian entry and every qualifying Gmail,
+    public Slack, and DM message to find five silent days, but the deliverable
+    discarded the 17 supported days. The task now returns 22 daily rows covering
+    all 254 activities and all 28 exact support identities, with the five-day
+    exception schedule retained separately. The primary workpaper carries 54%
+    of answer weight under the same 90/10 Counter-F1/certification split; a
+    perfect headline plus exception list without the complete workpaper scores
+    0.46. The measured honest path stays at 49 calls because no new retrieval is
+    required. This is a normal invoice-dispute workpaper, not artificial output
+    expansion.

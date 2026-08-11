@@ -70,11 +70,12 @@ trusting the committed artifact alone.
    date, coverage status, exact same-day Gmail message IDs, and exact same-day
    public Slack timestamps. Current invariant: 57 revisions, 52 covered, five
    unreviewed, and 53 covering communications.
-2. **Vendor-NDA playbook drift.** Retain the playbook and clause conclusions and
-   add one version record for every post-v1 NDA revision. Each record certifies
-   substantive, notices-only, or unchanged change status and the exact same-day
-   covering-email IDs. This is the defensible schedule behind a nine-file
-   playbook certification.
+2. **Meridian fee-support audit.** Retain the challenged diligence entries and
+   add one daily record for every date in the post-cutoff April review window.
+   Each record accounts for every Meridian activity, minutes, billed cents, and
+   every qualifying same-day Gmail or Slack identity. Current invariant: 22
+   daily rows, 254 activities, 28 supporting communications, and five silent
+   days in the separately graded exception view.
 3. **Second-read supervision review.** Return all 75 requests, not only the three
    misses. Each row records the request, participants, first qualifying response
    surface/ID/timestamp, and same-day, next-working-day, or unanswered outcome.
@@ -87,8 +88,11 @@ trusting the committed artifact alone.
    corroborate each affected matter/day. This turns an anomaly flag into an
    e-billing review file that another lawyer can reproduce.
 
-The client-departure and operative-deadline tasks remain candidates for the same
-pattern if matrix evidence shows one of the first five is still too easy.
+Vendor-NDA playbook drift remains a useful compact diagnostic, but its complete
+16-row ledger was easy for all three models and is not one of the five hardness
+candidates. Client departure remains a candidate for the same retained-workpaper
+pattern if paid evidence shows one of the five above is still too easy;
+operative deadline is a sound reasoning diagnostic but proved too compact.
 
 ## Verifier contract
 

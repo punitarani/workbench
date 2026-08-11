@@ -33,7 +33,7 @@ contracts certify:
 
 | Task | Primary retained evidence | Certified population |
 |---|---|---:|
-| fee dispute | unsupported day workpapers | 5 days / 47 activity IDs |
+| fee dispute | complete daily support workpaper | 22 days / 254 activity IDs / 28 communications |
 | client departure | unanswered client correspondence | 4 emails |
 | billing hygiene | complete billable person-day review | 655 rows / 4,233 activity IDs |
 | second read | complete first-response audit | 75 requests |
@@ -55,7 +55,7 @@ Current public-path floors and naive scores are:
 
 | Task | Truth summary | Floor | Naive answer |
 |---|---|---:|---:|
-| fee dispute | 7 disputed entries; 5 unsupported days; 47 IDs | 49 | 0.6440 |
+| fee dispute | 22 review days; 254 IDs; 28 support messages; 5 unsupported days | 49 | 0.6763 |
 | client departure | repaired cross-surface departure record | 10 | 0.5340 |
 | billing hygiene | 655 rows; 3 anomalous days; 18 entries; note 176 | 146 | 0.2226 |
 | second read | 75 requests; 12 lanes; 66 same-day; 3 unanswered | 54 | 0.5130 |
@@ -72,6 +72,14 @@ strict public schemas, and duplicate-sensitive canonicalization. Tests cover
 symlinks to offstage truth, wrong scalar types, extra keys, non-finite values,
 deep inputs, nested/outer duplicates, reordered sets, missing deliverables,
 malformed trajectories, and mention-only unified-exec text.
+
+The current fee task now retains the complete post-cutoff April support audit
+that its public tool path was already constructing: 22 daily rows reconcile all
+254 Meridian activities and the exact 2 Gmail plus 26 Slack support identities.
+The five silent days remain a separately graded exception view. An otherwise
+perfect submission that omits this retained workpaper scores `0.46`; the prior
+compact fee matrices are therefore design diagnostics, not reusable cells for
+the current task revision.
 
 ## Harbor and routing
 
@@ -169,12 +177,12 @@ reserve. No later paid work was launched.
 - synthetic answer/process verifier corpus across all eight tasks;
 - actual Docker privilege/offstage-state probes;
 - current-source offline Harbor reference job
-  `hartwell-oracle-current-20260811-2`: 8/8 complete, no exceptions,
+  `hartwell-oracle-current-20260811-3`: 8/8 complete, no exceptions,
   `reward=answer=1`, `process=0`;
 - provider-gateway alias, pin, fallback, streaming, error, logging, provenance,
   lifecycle, freshness, and budget tests;
 - environment image build at the digest above;
-- Python workspace tests: 772 passed, 13 skipped, 1 deliberately deselected;
+- Python workspace tests: 782 passed, 13 skipped, 1 deliberately deselected;
 - Ruff check/format and `git diff --check` gates.
 
 ## Unresolved items
@@ -186,6 +194,8 @@ reserve. No later paid work was launched.
    it.
 3. Cancelled second-read GLM/DeepSeek cells must be rerun; they cannot be merged
    with a future revision unless every stored fingerprint matches exactly.
-4. Use model-based `harbor analyze`/`harbor check` only under a separately
+4. The expanded fee workpaper requires a new paid 3x3; all earlier fee cells
+   predate its current fingerprint.
+5. Use model-based `harbor analyze`/`harbor check` only under a separately
    budgeted evaluator run. Deterministic criterion/trajectory inspection was
    used here because the remaining reserve was binding.

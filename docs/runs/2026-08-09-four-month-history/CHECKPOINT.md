@@ -18,7 +18,7 @@ cover another full matrix after a long-ledger cost overrun.
 | Harbor schema | complete | eight schema-1.3 tasks on `workbench:dev` |
 | Reward contract | complete | `reward=answer`; separate deterministic `answer` and diagnostic `process` |
 | Reference solutions | complete | all eight `reward=answer=1`, `process=0` |
-| Current Harbor oracle | complete | `hartwell-oracle-current-20260811-2`: 8/8, zero exceptions |
+| Current Harbor oracle | complete | `hartwell-oracle-current-20260811-3`: 8/8, zero exceptions |
 | Security boundary | complete | real container state/runtime denial, fixed wrappers, no-follow verifiers, malformed trajectory safety |
 | Provider gateway | complete | pins/fallback denial, passthrough, secret-safe logs, provenance, freshness, lifecycle tests |
 | In-flight budget guard | complete | 30-second authoritative polling and paid process-group cancellation |
@@ -27,7 +27,7 @@ cover another full matrix after a long-ledger cost overrun.
 | Paid second-read diagnostic | partial | Luna 3/3 valid, best 0.2886; six GLM/DeepSeek cells cancelled and invalid |
 | Five-task defeat target | not established | cancelled/unrun cells are not scores |
 
-The final offline workspace gate completed with 772 passed, 13 skipped, and one
+The final offline workspace gate completed with 782 passed, 13 skipped, and one
 deliberately deselected test.
 
 ## Task ledger
@@ -37,7 +37,7 @@ build-time contract.
 
 | Task | Certified primary evidence | Floor | Reference | Naive |
 |---|---|---:|---:|---:|
-| fee dispute | 5 unsupported days / 47 activity IDs | 49 | 1.0000 | 0.6440 |
+| fee dispute | 22 support-audit days / 254 activity IDs / 28 messages | 49 | 1.0000 | 0.6763 |
 | client departure | 4 unanswered client emails plus cross-surface milestones | 10 | 1.0000 | 0.5340 |
 | billing hygiene | 655 person-day rows / 4,233 billable IDs | 146 | 1.0000 | 0.2226 |
 | second read | 75 first-response rows / 12 DM lanes | 54 | 1.0000 | 0.5130 |

@@ -26,6 +26,7 @@ scores.
 | in-flight forecast overrun | a long Harbor batch could spend far beyond its authorization before the next post-launch reading | poll authoritative credits every 30 seconds; terminate the paid process group at the authorized forecast or pre-reserve boundary |
 | unstated UTC-to-Pacific conversion | correct iManage save timestamp was graded against an undisclosed firm-calendar conversion | instruction now names `America/Los_Angeles` and requires converting iManage UTC timestamps; regression test added |
 | silent evidence-population shrink | canonical oracle bytes caught drift but did not state the professional workpaper's intended population | typed task metadata certifies primary record and nested evidence counts before staging |
+| exception-only fee workpaper | the public path reviewed 254 activities but retained only 47 IDs on five silent days | return all 22 daily review rows with all activity and support identities; keep silent days as a reconciled exception view |
 
 ## Paid-run failures
 
