@@ -15,22 +15,52 @@ PUBLIC_FIELDS = frozenset(
     {
         "entries_reviewed",
         "timekeepers_reviewed",
+        "person_days_reviewed",
+        "cleared_by_communication",
+        "cleared_no_corroboration",
         "anomalous_timekeeper_days",
+        "anomalous_timekeeper_day_count",
         "anomalous_entry_count",
         "anomalous_minutes_total",
         "anomalous_billed_cents_total",
         "phantom_note_ids",
+        "daily_review",
     }
 )
 COUNT_FIELDS = (
     "entries_reviewed",
     "timekeepers_reviewed",
+    "person_days_reviewed",
+    "cleared_by_communication",
+    "cleared_no_corroboration",
+    "anomalous_timekeeper_day_count",
     "anomalous_entry_count",
     "anomalous_minutes_total",
     "anomalous_billed_cents_total",
 )
 ANOMALOUS_DAY_FIELDS = frozenset(
     {"date", "timekeeper", "entry_ids", "matter_numbers", "minutes", "billed_cents"}
+)
+ANOMALOUS_DAY_FIELD_ORDER = (
+    "date",
+    "timekeeper",
+    "entry_ids",
+    "matter_numbers",
+    "minutes",
+    "billed_cents",
+)
+DAILY_REVIEW_FIELDS = (
+    "date",
+    "timekeeper",
+    "billable_entry_ids",
+    "sent_gmail_ids",
+    "sent_slack_ts",
+    "corroborated_entry_ids",
+    "corroborated_matter_numbers",
+    "disposition",
+)
+DISPOSITIONS = frozenset(
+    {"cleared_by_communication", "cleared_no_corroboration", "anomalous"}
 )
 
 
@@ -78,7 +108,26 @@ def _valid_contract(document: dict[str, object]) -> bool:
             or not _integer(day.get("billed_cents"))
         ):
             return False
-    return _integer_list(document.get("phantom_note_ids"))
+    if not _integer_list(document.get("phantom_note_ids")):
+        return False
+    review = document.get("daily_review")
+    if not isinstance(review, list):
+        return False
+    for record in review:
+        if not isinstance(record, dict) or set(record) != set(DAILY_REVIEW_FIELDS):
+            return False
+        if (
+            not isinstance(record.get("date"), str)
+            or not isinstance(record.get("timekeeper"), str)
+            or not _integer_list(record.get("billable_entry_ids"))
+            or not _string_list(record.get("sent_gmail_ids"))
+            or not _string_list(record.get("sent_slack_ts"))
+            or not _integer_list(record.get("corroborated_entry_ids"))
+            or not _string_list(record.get("corroborated_matter_numbers"))
+            or record.get("disposition") not in DISPOSITIONS
+        ):
+            return False
+    return True
 
 
 def _submitted(workspace: Path, path: str) -> dict[str, object]:
@@ -221,30 +270,98 @@ def numeric_close(
     return abs(actual - target) <= tolerance
 
 
+@criterion(description="{path} exactly follows the typed public contract", shared=True)
+def exact_schema(workspace: Path, path: str) -> bool:
+    return bool(_submitted(workspace, path))
+
+
 @criterion(
-    description=(
-        "{path} has exactly the public fields and every {record_key} record has "
-        "exactly its public fields"
-    ),
+    description="the daily review reconciles to the population and anomaly summary",
     shared=True,
 )
-def exact_schema(
-    workspace: Path,
-    path: str,
-    fields: list[str],
-    record_key: str,
-    record_fields: tuple[str, ...],
-) -> bool:
+def daily_review_reconciles(workspace: Path, path: str) -> bool:
     submitted = _submitted(workspace, path)
-    if set(submitted) != set(fields):
+    review = submitted.get("daily_review")
+    if not isinstance(review, list):
         return False
-    records = submitted.get(record_key)
-    if not isinstance(records, list):
+    identities = [(record["date"], record["timekeeper"]) for record in review]
+    billable_ids = [
+        activity_id for record in review for activity_id in record["billable_entry_ids"]
+    ]
+    dispositions = Counter(record["disposition"] for record in review)
+    anomalous = [record for record in review if record["disposition"] == "anomalous"]
+    if any(
+        len(record["billable_entry_ids"]) != len(set(record["billable_entry_ids"]))
+        or len(record["sent_gmail_ids"]) != len(set(record["sent_gmail_ids"]))
+        or len(record["sent_slack_ts"]) != len(set(record["sent_slack_ts"]))
+        or len(record["corroborated_entry_ids"])
+        != len(set(record["corroborated_entry_ids"]))
+        or len(record["corroborated_matter_numbers"])
+        != len(set(record["corroborated_matter_numbers"]))
+        or not set(record["corroborated_entry_ids"]).issubset(
+            record["billable_entry_ids"]
+        )
+        or bool(record["corroborated_entry_ids"])
+        != bool(record["corroborated_matter_numbers"])
+        or (
+            record["disposition"] == "cleared_by_communication"
+            and not (record["sent_gmail_ids"] or record["sent_slack_ts"])
+        )
+        or (
+            record["disposition"] == "cleared_no_corroboration"
+            and (
+                record["sent_gmail_ids"]
+                or record["sent_slack_ts"]
+                or record["corroborated_entry_ids"]
+            )
+        )
+        or (
+            record["disposition"] == "anomalous"
+            and (
+                record["sent_gmail_ids"]
+                or record["sent_slack_ts"]
+                or not record["corroborated_entry_ids"]
+            )
+        )
+        for record in review
+    ):
         return False
-    expected_record_fields = set(record_fields)
-    return all(
-        isinstance(record, dict) and set(record) == expected_record_fields
-        for record in records
+    submitted_anomalies = submitted.get("anomalous_timekeeper_days")
+    if not isinstance(submitted_anomalies, list):
+        return False
+    summary_keys = Counter(
+        (
+            record["date"],
+            record["timekeeper"],
+            tuple(sorted(record["entry_ids"])),
+            tuple(sorted(record["matter_numbers"])),
+        )
+        for record in submitted_anomalies
+    )
+    ledger_keys = Counter(
+        (
+            record["date"],
+            record["timekeeper"],
+            tuple(sorted(record["corroborated_entry_ids"])),
+            tuple(sorted(record["corroborated_matter_numbers"])),
+        )
+        for record in anomalous
+    )
+    return (
+        len(review) == submitted.get("person_days_reviewed")
+        and len(identities) == len(set(identities))
+        and len({record["timekeeper"] for record in review})
+        == submitted.get("timekeepers_reviewed")
+        and len(billable_ids) == submitted.get("entries_reviewed")
+        and len(billable_ids) == len(set(billable_ids))
+        and dispositions["cleared_by_communication"]
+        == submitted.get("cleared_by_communication")
+        and dispositions["cleared_no_corroboration"]
+        == submitted.get("cleared_no_corroboration")
+        and dispositions["anomalous"] == submitted.get("anomalous_timekeeper_day_count")
+        and sum(len(record["corroborated_entry_ids"]) for record in anomalous)
+        == submitted.get("anomalous_entry_count")
+        and summary_keys == ledger_keys
     )
 
 

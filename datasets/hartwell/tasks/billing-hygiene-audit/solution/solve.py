@@ -9,6 +9,7 @@ import json
 import os
 import sqlite3
 import sys
+from collections import Counter
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -88,18 +89,23 @@ def build_hygiene(state: Path) -> dict[str, object]:
         )
     }
 
-    sent: set[tuple[str, date]] = {
-        (str(sender), day_of(int(timestamp)))
-        for sender, timestamp in rows(
-            state, "gmail.db", "SELECT sender, time FROM messages"
+    sent_gmail: dict[tuple[str, date], list[str]] = {}
+    for message_id, sender, timestamp in rows(
+        state,
+        "gmail.db",
+        "SELECT message_id, sender, time FROM messages ORDER BY time, message_id",
+    ):
+        sent_gmail.setdefault((str(sender), day_of(int(timestamp))), []).append(
+            str(message_id)
         )
-    }
-    sent.update(
-        (str(sender), day_of(int(timestamp)))
-        for sender, timestamp in rows(
-            state, "slack.db", "SELECT sender, time FROM messages"
-        )
-    )
+    sent_slack: dict[tuple[str, date], list[str]] = {}
+    for ts, sender, timestamp in rows(
+        state,
+        "slack.db",
+        "SELECT ts, sender, time FROM messages ORDER BY time, ts",
+    ):
+        sent_slack.setdefault((str(sender), day_of(int(timestamp))), []).append(str(ts))
+    sent = set(sent_gmail) | set(sent_slack)
 
     events: set[EventKey] = {
         (ticket_id, person, day_of(timestamp))
@@ -124,6 +130,44 @@ def build_hygiene(state: Path) -> dict[str, object]:
     grouped: dict[tuple[date, str], list[Activity]] = {}
     for activity in anomalous:
         grouped.setdefault((day_of(activity[4]), activity[2]), []).append(activity)
+
+    billable_by_day: dict[tuple[date, str], list[Activity]] = {}
+    for activity in billable:
+        billable_by_day.setdefault((day_of(activity[4]), activity[2]), []).append(
+            activity
+        )
+
+    daily_review: list[dict[str, object]] = []
+    for (activity_day, person), entries in sorted(
+        billable_by_day.items(), key=lambda item: (item[0][0], names[item[0][1]])
+    ):
+        corroborated = [
+            entry
+            for entry in entries
+            if participants[(entry[1], activity_day)] - {person}
+        ]
+        gmail_ids = sent_gmail.get((person, activity_day), [])
+        slack_ts = sent_slack.get((person, activity_day), [])
+        if gmail_ids or slack_ts:
+            disposition = "cleared_by_communication"
+        elif corroborated:
+            disposition = "anomalous"
+        else:
+            disposition = "cleared_no_corroboration"
+        daily_review.append(
+            {
+                "date": activity_day.isoformat(),
+                "timekeeper": names[person],
+                "billable_entry_ids": [entry[0] for entry in entries],
+                "sent_gmail_ids": gmail_ids,
+                "sent_slack_ts": slack_ts,
+                "corroborated_entry_ids": [entry[0] for entry in corroborated],
+                "corroborated_matter_numbers": list(
+                    dict.fromkeys(matter_numbers[entry[1]] for entry in corroborated)
+                ),
+                "disposition": disposition,
+            }
+        )
 
     anomalous_days: list[dict[str, object]] = []
     for (activity_day, person), entries in sorted(grouped.items()):
@@ -155,6 +199,16 @@ def build_hygiene(state: Path) -> dict[str, object]:
         )
     if len({activity[2] for activity in billable}) != 8:
         raise RuntimeError("expected eight distinct billable timekeepers")
+    dispositions = Counter(str(record["disposition"]) for record in daily_review)
+    if len(daily_review) != 655 or dispositions != {
+        "cleared_by_communication": 637,
+        "cleared_no_corroboration": 15,
+        "anomalous": 3,
+    }:
+        raise RuntimeError(
+            "expected 655 person-days split 637 communication-cleared, "
+            f"15 uncorroborated, and 3 anomalous; found {dispositions}"
+        )
     if len(anomalous_days) != 3 or len(anomalous) != 18:
         raise RuntimeError(
             "expected 18 affected entries across three timekeeper-days, found "
@@ -168,13 +222,18 @@ def build_hygiene(state: Path) -> dict[str, object]:
     return {
         "entries_reviewed": len(billable),
         "timekeepers_reviewed": len({activity[2] for activity in billable}),
+        "person_days_reviewed": len(daily_review),
+        "cleared_by_communication": dispositions["cleared_by_communication"],
+        "cleared_no_corroboration": dispositions["cleared_no_corroboration"],
         "anomalous_timekeeper_days": anomalous_days,
+        "anomalous_timekeeper_day_count": dispositions["anomalous"],
         "anomalous_entry_count": len(anomalous),
         "anomalous_minutes_total": sum(entry[3] for entry in anomalous) // 60,
         "anomalous_billed_cents_total": sum(
             billed_cents(entry[3], entry[5], entry[6]) for entry in anomalous
         ),
         "phantom_note_ids": phantom_notes,
+        "daily_review": daily_review,
     }
 
 

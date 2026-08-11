@@ -13,6 +13,9 @@ workspace with exactly this public structure:
 {
   "entries_reviewed": <number of billable Clio time entries>,
   "timekeepers_reviewed": <distinct people with a billable time entry>,
+  "person_days_reviewed": <distinct billable timekeeper-days reviewed>,
+  "cleared_by_communication": <person-days with sent Gmail or Slack evidence>,
+  "cleared_no_corroboration": <silent person-days with no corroborated entries>,
   "anomalous_timekeeper_days": [
     {
       "date": "<YYYY-MM-DD>",
@@ -23,10 +26,23 @@ workspace with exactly this public structure:
       "billed_cents": <affected billed amount in cents>
     }
   ],
+  "anomalous_timekeeper_day_count": <anomalous person-day count>,
   "anomalous_entry_count": <affected billable entry count>,
   "anomalous_minutes_total": <affected billable minutes across all records>,
   "anomalous_billed_cents_total": <affected billed cents across all records>,
-  "phantom_note_ids": [<Clio note ids meeting the note rule>]
+  "phantom_note_ids": [<Clio note ids meeting the note rule>],
+  "daily_review": [
+    {
+      "date": "<YYYY-MM-DD>",
+      "timekeeper": "<Clio timekeeper name>",
+      "billable_entry_ids": [<all billable Clio activity ids for this person-day>],
+      "sent_gmail_ids": ["<all Gmail message ids sent by the timekeeper that date>"],
+      "sent_slack_ts": ["<all Slack message ts values sent by the timekeeper that date>"],
+      "corroborated_entry_ids": [<billable entry ids on corroborated matters>],
+      "corroborated_matter_numbers": ["<corroborated Clio display numbers>"],
+      "disposition": "<cleared_by_communication, cleared_no_corroboration, or anomalous>"
+    }
+  ]
 }
 ```
 
@@ -53,6 +69,18 @@ in first-entry order.
 the affected entries, converted to cents. Do not multiply aggregate hours by
 a rate, and do not include non-billable entries. The three aggregate fields
 must reconcile to the records.
+
+`daily_review` is the certification workpaper and must contain one row for
+every distinct timekeeper and date represented in the billable population.
+List all billable activity ids for that person-day and all source-native Gmail
+message ids and Slack `ts` values sent by that timekeeper anywhere on the same
+date. Independently list the subset of billable ids whose matters carry
+another person's same-day Clio activity or note, plus those distinct matter
+numbers. Use `cleared_by_communication` whenever either sent-message list is
+nonempty, `cleared_no_corroboration` when both communication and corroboration
+lists are empty, and `anomalous` only when communication is empty but
+corroboration is present. The daily ledger, person-day counts, and anomaly
+summary must reconcile without duplicate rows or evidence ids.
 
 Apply the same corroboration rule to `phantom_note_ids`: a note qualifies only
 when its author sent no Gmail or Slack message anywhere on its date and

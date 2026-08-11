@@ -20,11 +20,16 @@ REWARDKIT = shutil.which("rewardkit")
 PUBLIC_FIELDS = {
     "entries_reviewed",
     "timekeepers_reviewed",
+    "person_days_reviewed",
+    "cleared_by_communication",
+    "cleared_no_corroboration",
     "anomalous_timekeeper_days",
+    "anomalous_timekeeper_day_count",
     "anomalous_entry_count",
     "anomalous_minutes_total",
     "anomalous_billed_cents_total",
     "phantom_note_ids",
+    "daily_review",
 }
 
 type JsonObject = dict[str, object]
@@ -42,7 +47,7 @@ pytestmark = [
 
 
 def _truth() -> JsonObject:
-    return json.loads((TESTS / "ground_truth.json").read_text())
+    return json.loads((TESTS / "oracle.json").read_text())
 
 
 def _score(workspace: Path, out_dir: Path) -> tuple[JsonObject, JsonObject]:
@@ -256,7 +261,7 @@ def test_naive_baseline_remains_more_than_point_four_below_oracle(
     naive, _ = _score(naive_workspace, tmp_path / "b" / "logs")
 
     assert naive["answer"] < solved["answer"] - 0.4, naive
-    assert naive["answer"] > 0.1, naive
+    assert naive["answer"] > 0.05, naive
 
 
 def test_missing_deliverable_scores_zero(tmp_path: Path) -> None:
@@ -278,6 +283,10 @@ def test_ground_truth_matches_fresh_bundle_invariants() -> None:
 
     assert truth["entries_reviewed"] == 4233
     assert truth["timekeepers_reviewed"] == 8
+    assert truth["person_days_reviewed"] == 655
+    assert truth["cleared_by_communication"] == 637
+    assert truth["cleared_no_corroboration"] == 15
+    assert truth["anomalous_timekeeper_day_count"] == 3
     assert days == [
         {
             "date": "2026-04-04",
@@ -315,6 +324,100 @@ def test_ground_truth_matches_fresh_bundle_invariants() -> None:
     assert truth["anomalous_minutes_total"] == 876
     assert truth["anomalous_billed_cents_total"] == 687600
     assert truth["phantom_note_ids"] == [176]
+
+
+def test_reference_daily_review_matches_fresh_bundle() -> None:
+    state = BUNDLE / "state"
+    connection = sqlite3.connect(f"file:{state / 'clio.db'}?mode=ro", uri=True)
+    connection.execute("ATTACH DATABASE ? AS gmail", (str(state / "gmail.db"),))
+    connection.execute("ATTACH DATABASE ? AS slack", (str(state / "slack.db"),))
+    names = dict(connection.execute("SELECT person_id, name FROM people"))
+    matter_numbers = dict(
+        connection.execute("SELECT ticket_id, display_number FROM matters")
+    )
+    activities = connection.execute(
+        "SELECT ROW_NUMBER() OVER (ORDER BY time), ticket_id, person, time, "
+        "billable FROM activities ORDER BY time"
+    ).fetchall()
+    notes = connection.execute(
+        "SELECT ticket_id, author, time FROM notes ORDER BY time"
+    ).fetchall()
+
+    def day(timestamp: int) -> str:
+        return connection.execute(
+            "SELECT date('2026-03-02', printf('+%d days', ? / 86400))",
+            (timestamp,),
+        ).fetchone()[0]
+
+    sent_gmail: dict[tuple[str, str], list[str]] = {}
+    for message_id, sender, timestamp in connection.execute(
+        "SELECT message_id, sender, time FROM gmail.messages ORDER BY time, message_id"
+    ):
+        sent_gmail.setdefault((sender, day(timestamp)), []).append(message_id)
+    sent_slack: dict[tuple[str, str], list[str]] = {}
+    for ts, sender, timestamp in connection.execute(
+        "SELECT ts, sender, time FROM slack.messages ORDER BY time, ts"
+    ):
+        sent_slack.setdefault((sender, day(timestamp)), []).append(ts)
+
+    participants: dict[tuple[str, str], set[str]] = {}
+    for _, ticket_id, person, timestamp, _ in activities:
+        participants.setdefault((ticket_id, day(timestamp)), set()).add(person)
+    for ticket_id, author, timestamp in notes:
+        participants.setdefault((ticket_id, day(timestamp)), set()).add(author)
+
+    grouped: dict[tuple[str, str], list[tuple[int, str]]] = {}
+    for activity_id, ticket_id, person, timestamp, billable in activities:
+        if billable:
+            grouped.setdefault((day(timestamp), person), []).append(
+                (activity_id, ticket_id)
+            )
+
+    daily_review = []
+    for (activity_day, person), entries in sorted(
+        grouped.items(), key=lambda item: (item[0][0], names[item[0][1]])
+    ):
+        corroborated = [
+            entry
+            for entry in entries
+            if participants[(entry[1], activity_day)] - {person}
+        ]
+        gmail_ids = sent_gmail.get((person, activity_day), [])
+        slack_ts = sent_slack.get((person, activity_day), [])
+        if gmail_ids or slack_ts:
+            disposition = "cleared_by_communication"
+        elif corroborated:
+            disposition = "anomalous"
+        else:
+            disposition = "cleared_no_corroboration"
+        daily_review.append(
+            {
+                "date": activity_day,
+                "timekeeper": names[person],
+                "billable_entry_ids": [entry[0] for entry in entries],
+                "sent_gmail_ids": gmail_ids,
+                "sent_slack_ts": slack_ts,
+                "corroborated_entry_ids": [entry[0] for entry in corroborated],
+                "corroborated_matter_numbers": list(
+                    dict.fromkeys(matter_numbers[entry[1]] for entry in corroborated)
+                ),
+                "disposition": disposition,
+            }
+        )
+
+    truth = _truth()
+    assert len(daily_review) == truth["person_days_reviewed"] == 655
+    assert sum(len(row["billable_entry_ids"]) for row in daily_review) == 4233
+    assert (
+        sum(row["disposition"] == "cleared_by_communication" for row in daily_review)
+        == 637
+    )
+    assert (
+        sum(row["disposition"] == "cleared_no_corroboration" for row in daily_review)
+        == 15
+    )
+    assert sum(row["disposition"] == "anomalous" for row in daily_review) == 3
+    assert daily_review == truth["daily_review"]
 
 
 def test_independent_sql_asserts_corroborated_entry_and_note_sets() -> None:

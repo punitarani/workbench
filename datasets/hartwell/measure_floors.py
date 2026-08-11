@@ -717,6 +717,7 @@ async def _read_all(
 
 async def billing_hygiene_audit(client: CountingClient) -> None:
     truth = _truth("billing-hygiene-audit")
+    oracle = _oracle("billing-hygiene-audit")
     users = await client.call("clio__list_users")
     activities = await _all_activities(client)
     notes = await client.call("clio__list_notes")
@@ -730,7 +731,8 @@ async def billing_hygiene_audit(client: CountingClient) -> None:
 
     # The footprint index: every surface a person can write on, per day.
     footprint: set[tuple[str, str]] = set()
-    for message in await _gmail_all_pages(client, ""):
+    mail_messages = await _gmail_all_pages(client, "")
+    for message in mail_messages:
         footprint.add((_sender_email(message), message["date"][:10]))
     conversations = await _conversation_listing(client)
     history = await _read_all(client, conversations)
@@ -808,6 +810,75 @@ async def billing_hygiene_audit(client: CountingClient) -> None:
         - {note["author"]["name"]}
     ]
     assert sorted(phantom) == truth["phantom_note_ids"], phantom
+
+    sent_gmail: dict[tuple[str, str], list[str]] = {}
+    for message in sorted(mail_messages, key=lambda item: _mail_seconds(item["date"])):
+        key = (_sender_email(message), message["date"][:10])
+        sent_gmail.setdefault(key, []).append(message["id"])
+    sent_slack: dict[tuple[str, str], list[str]] = {}
+    chat_messages = sorted(
+        (message for messages in history.values() for message in messages),
+        key=lambda item: float(item["ts"]),
+    )
+    for message in chat_messages:
+        key = (emails[message["user"]], _ts_day(message["ts"]))
+        sent_slack.setdefault(key, []).append(message["ts"])
+    grouped_billable: dict[tuple[str, str], list[dict]] = {}
+    for activity in billable:
+        grouped_billable.setdefault(
+            (activity["date"], activity["user"]["name"]), []
+        ).append(activity)
+    daily_review = []
+    for (activity_day, person), entries in sorted(grouped_billable.items()):
+        corroborated = [
+            activity
+            for activity in entries
+            if participants[(activity["matter"]["display_number"], activity_day)]
+            - {person}
+        ]
+        gmail_ids = sent_gmail.get((by_name[person], activity_day), [])
+        slack_ts = sent_slack.get((by_name[person], activity_day), [])
+        if gmail_ids or slack_ts:
+            disposition = "cleared_by_communication"
+        elif corroborated:
+            disposition = "anomalous"
+        else:
+            disposition = "cleared_no_corroboration"
+        daily_review.append(
+            {
+                "date": activity_day,
+                "timekeeper": person,
+                "billable_entry_ids": [activity["id"] for activity in entries],
+                "sent_gmail_ids": gmail_ids,
+                "sent_slack_ts": slack_ts,
+                "corroborated_entry_ids": [activity["id"] for activity in corroborated],
+                "corroborated_matter_numbers": list(
+                    dict.fromkeys(
+                        activity["matter"]["display_number"]
+                        for activity in corroborated
+                    )
+                ),
+                "disposition": disposition,
+            }
+        )
+    assert len(daily_review) == truth["person_days_reviewed"]
+    assert (
+        sum(
+            record["disposition"] == "cleared_by_communication"
+            for record in daily_review
+        )
+        == truth["cleared_by_communication"]
+    )
+    assert (
+        sum(
+            record["disposition"] == "cleared_no_corroboration"
+            for record in daily_review
+        )
+        == truth["cleared_no_corroboration"]
+    )
+    assert _canonical_records(daily_review) == _canonical_records(
+        oracle["daily_review"]
+    ), daily_review
 
 
 async def _one_to_one_request_audit(

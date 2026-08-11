@@ -5,10 +5,14 @@
     "days": "2026-04-04 Eleanor Hartwell: ids 1318 and 1319 on 00001-MeridianBioLabs, 126 minutes, 141,750 cents. 2026-05-20 Noah Feldstein: ids 2884, 2885, 2887, 2896, 2898, 2899, 2910, 2915, and 2923 on 00009-LumenSoftware and 00006-NorthgateMedicalGroup, 414 minutes, 251,850 cents. 2026-06-15 Diane Okonkwo: ids 3753, 3760, 3761, 3762, 3768, 3771, and 3783 on 00003-VeridianEnergyCooperative, 00006-NorthgateMedicalGroup, and 00007-PelicanBayMarina, 336 minutes, 294,000 cents.",
     "money": "Each affected entry is billable. Its cents contribution is round(Clio public total * 100), after Clio rounds that individual entry total to two decimals. The 18 contributions sum to 687,600 cents; aggregating seconds or hours before rounding is not the certified method.",
     "notes": "Applying the identical silent-author and other-person same-matter/day corroboration join to all Clio notes yields exactly public note id 176: Diane Okonkwo, 2026-06-15, 00003-VeridianEnergyCooperative.",
-    "grading": "The anomalous-day and phantom-note set weights each split 90% normalized F1 / 10% exact certification. Scalar reconciliation and format carry the remaining weight. Missing, malformed, non-finite, and oversized deliverables score zero."
+    "ledger": "The certified workpaper has 655 distinct billable timekeeper-days covering all 4,233 billable activity ids. It classifies 637 days by sent communication, 15 silent days by absent same-matter corroboration, and 3 anomalous days. Each row retains all source-native Gmail message ids, Slack ts values, and corroborated entry/matter evidence.",
+    "grading": "The daily review, anomalous-day, and phantom-note set weights each split 90% normalized F1 / 10% exact certification. Population reconciliation and exact typed format carry the remaining weight. Missing, malformed, non-finite, and oversized deliverables score zero."
   },
   "entries_reviewed": 4233,
   "timekeepers_reviewed": 8,
+  "person_days_reviewed": 655,
+  "cleared_by_communication": 637,
+  "cleared_no_corroboration": 15,
   "anomalous_timekeeper_days": [
     {
       "date": "2026-04-04",
@@ -42,18 +46,17 @@
       "billed_cents": 294000
     }
   ],
+  "anomalous_timekeeper_day_count": 3,
   "anomalous_entry_count": 18,
   "anomalous_minutes_total": 876,
   "anomalous_billed_cents_total": 687600,
   "phantom_note_ids": [176],
   "weights": {
-    "entries_reviewed": 0.02,
-    "timekeepers_reviewed": 0.02,
-    "anomalous_timekeeper_days": 0.66,
-    "anomalous_entry_count": 0.03,
-    "anomalous_minutes_total": 0.04,
-    "anomalous_billed_cents_total": 0.04,
-    "phantom_note_ids": 0.1,
-    "format": 0.09
+    "scalar_summary": 0.09,
+    "anomalous_timekeeper_days": 0.06,
+    "phantom_note_ids": 0.04,
+    "daily_review": 0.72,
+    "reconciliation": 0.06,
+    "format": 0.03
   }
 }

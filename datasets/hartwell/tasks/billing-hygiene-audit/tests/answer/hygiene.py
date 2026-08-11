@@ -5,9 +5,7 @@ from pathlib import Path
 
 import rewardkit as rk
 
-TRUTH = json.loads(
-    (Path(__file__).resolve().parent.parent / "ground_truth.json").read_text()
-)
+TRUTH = json.loads((Path(__file__).resolve().parent.parent / "oracle.json").read_text())
 
 DELIVERABLE = "hygiene.json"
 ANOMALOUS_DAY_FIELDS = (
@@ -18,37 +16,43 @@ ANOMALOUS_DAY_FIELDS = (
     "minutes",
     "billed_cents",
 )
-REQUIRED_FIELDS = [
+DAILY_REVIEW_FIELDS = (
+    "date",
+    "timekeeper",
+    "billable_entry_ids",
+    "sent_gmail_ids",
+    "sent_slack_ts",
+    "corroborated_entry_ids",
+    "corroborated_matter_numbers",
+    "disposition",
+)
+
+for key in (
     "entries_reviewed",
     "timekeepers_reviewed",
-    "anomalous_timekeeper_days",
+    "person_days_reviewed",
+    "cleared_by_communication",
+    "cleared_no_corroboration",
+    "anomalous_timekeeper_day_count",
     "anomalous_entry_count",
     "anomalous_minutes_total",
     "anomalous_billed_cents_total",
-    "phantom_note_ids",
-]
+):
+    rk.numeric_close(
+        DELIVERABLE,
+        key,
+        TRUTH[key],
+        name=key,
+        weight=1.0,
+    )
 
-rk.numeric_close(
-    DELIVERABLE,
-    "entries_reviewed",
-    TRUTH["entries_reviewed"],
-    name="entries_reviewed",
-    weight=2.0,
-)
-rk.numeric_close(
-    DELIVERABLE,
-    "timekeepers_reviewed",
-    TRUTH["timekeepers_reviewed"],
-    name="timekeepers_reviewed",
-    weight=2.0,
-)
 rk.set_f1(
     DELIVERABLE,
     "anomalous_timekeeper_days",
     TRUTH["anomalous_timekeeper_days"],
     fields=ANOMALOUS_DAY_FIELDS,
     name="anomalous_days.f1",
-    weight=59.4,
+    weight=5.4,
 )
 rk.exact_set(
     DELIVERABLE,
@@ -56,48 +60,45 @@ rk.exact_set(
     TRUTH["anomalous_timekeeper_days"],
     fields=ANOMALOUS_DAY_FIELDS,
     name="anomalous_days.certified",
-    weight=6.6,
-)
-rk.numeric_close(
-    DELIVERABLE,
-    "anomalous_entry_count",
-    TRUTH["anomalous_entry_count"],
-    name="anomalous_entry_count",
-    weight=3.0,
-)
-rk.numeric_close(
-    DELIVERABLE,
-    "anomalous_minutes_total",
-    TRUTH["anomalous_minutes_total"],
-    name="anomalous_minutes_total",
-    weight=4.0,
-)
-rk.numeric_close(
-    DELIVERABLE,
-    "anomalous_billed_cents_total",
-    TRUTH["anomalous_billed_cents_total"],
-    name="anomalous_billed_cents_total",
-    weight=4.0,
+    weight=0.6,
 )
 rk.set_f1(
     DELIVERABLE,
     "phantom_note_ids",
     TRUTH["phantom_note_ids"],
     name="phantom_notes.f1",
-    weight=9.0,
+    weight=3.6,
 )
 rk.exact_set(
     DELIVERABLE,
     "phantom_note_ids",
     TRUTH["phantom_note_ids"],
     name="phantom_notes.certified",
-    weight=1.0,
+    weight=0.4,
+)
+rk.set_f1(
+    DELIVERABLE,
+    "daily_review",
+    TRUTH["daily_review"],
+    fields=DAILY_REVIEW_FIELDS,
+    name="daily_review.f1",
+    weight=64.8,
+)
+rk.exact_set(
+    DELIVERABLE,
+    "daily_review",
+    TRUTH["daily_review"],
+    fields=DAILY_REVIEW_FIELDS,
+    name="daily_review.certified",
+    weight=7.2,
+)
+rk.daily_review_reconciles(
+    DELIVERABLE,
+    name="daily_review_reconciles",
+    weight=6.0,
 )
 rk.exact_schema(
     DELIVERABLE,
-    REQUIRED_FIELDS,
-    "anomalous_timekeeper_days",
-    ANOMALOUS_DAY_FIELDS,
     name="deliverable_format",
-    weight=9.0,
+    weight=3.0,
 )

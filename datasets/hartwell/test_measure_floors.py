@@ -50,6 +50,29 @@ def test_measure_api_returns_only_the_observed_floor() -> None:
     assert "tuple[int, int]" not in str(measure.__annotations__.get("return"))
 
 
+def test_billing_floor_certifies_the_complete_daily_review() -> None:
+    namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
+    measure = namespace["measure"]
+    oracle = json.loads(
+        (TASKS / "billing-hygiene-audit" / "tests" / "oracle.json").read_text()
+    )
+    assert asyncio.run(measure("billing-hygiene-audit")) == 146
+    oracle["daily_review"][0]["sent_slack_ts"][0] = "invented-message"
+    measure.__globals__["_oracle"] = lambda task: oracle
+
+    with pytest.raises(BaseExceptionGroup) as caught:
+        asyncio.run(measure("billing-hygiene-audit"))
+    pending = list(caught.value.exceptions)
+    leaves: list[BaseException] = []
+    while pending:
+        exception = pending.pop()
+        if isinstance(exception, BaseExceptionGroup):
+            pending.extend(exception.exceptions)
+        else:
+            leaves.append(exception)
+    assert any(isinstance(exception, AssertionError) for exception in leaves)
+
+
 def test_fee_floor_discovers_meridian_through_current_clio_fields() -> None:
     completed = subprocess.run(
         [

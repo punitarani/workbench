@@ -1013,7 +1013,69 @@ def audit(log_path: Path, state_dir: Path) -> int:
         multi_titles == set(DOC_MENTION_MARKERS),
     )
 
-    # (c) unanswered client emails on the Cascadia engagement: thread
+    # (c) billing hygiene: every billable timekeeper-day is classified by
+    # sent communication and same-matter other-person work evidence.
+    time_entries = [
+        event for event in events if isinstance(event.payload, TimeLoggedPayload)
+    ]
+    billable_entries = [event for event in time_entries if event.payload.billable]
+    sent_person_days = {
+        (event.payload.sender, _event_date(event))
+        for event in events
+        if isinstance(event.payload, EmailMessagePayload | ChatMessagePayload)
+    }
+    work_participants: dict[tuple[str, str], set[str]] = {}
+    for event in time_entries:
+        work_participants.setdefault(
+            (event.payload.ticket_id, _event_date(event)), set()
+        ).add(event.payload.person_id)
+    for event in events:
+        if isinstance(event.payload, TicketCommentedPayload):
+            work_participants.setdefault(
+                (event.payload.ticket_id, _event_date(event)), set()
+            ).add(event.payload.actor)
+    billable_person_days: dict[tuple[str, str], list[Event]] = {}
+    for event in billable_entries:
+        billable_person_days.setdefault(
+            (_event_date(event), event.payload.person_id), []
+        ).append(event)
+    billing_dispositions: Counter[str] = Counter()
+    anomalous_billing_entries = 0
+    corroborated_billing_entries = 0
+    for (entry_day, person), person_entries in billable_person_days.items():
+        corroborated = [
+            event
+            for event in person_entries
+            if work_participants[(event.payload.ticket_id, entry_day)] - {person}
+        ]
+        corroborated_billing_entries += len(corroborated)
+        if (person, entry_day) in sent_person_days:
+            billing_dispositions["cleared_by_communication"] += 1
+        elif corroborated:
+            billing_dispositions["anomalous"] += 1
+            anomalous_billing_entries += len(corroborated)
+        else:
+            billing_dispositions["cleared_no_corroboration"] += 1
+    check(
+        "billing hygiene workpaper has 4,233 billable entries across 655 "
+        "person-days, with 3,786 entries carrying same-day corroboration",
+        len(billable_entries) == 4_233
+        and len(billable_person_days) == 655
+        and corroborated_billing_entries == 3_786,
+    )
+    check(
+        "billing person-days split 637 communication-cleared, 15 silent "
+        "without corroboration, and 3 anomalous carrying 18 affected entries",
+        billing_dispositions
+        == {
+            "cleared_by_communication": 637,
+            "cleared_no_corroboration": 15,
+            "anomalous": 3,
+        }
+        and anomalous_billing_entries == 18,
+    )
+
+    # (d) unanswered client emails on the Cascadia engagement: thread
     # anti-join — no later in-thread reply from a firm-side sender.
     internal_people = {
         event.payload.person_id
@@ -1048,7 +1110,7 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and len(client_mail) >= 9,
     )
 
-    # (d) stale calendar references: communications citing a superseded
+    # (e) stale calendar references: communications citing a superseded
     # hearing date after its supersession record, negations excluded.
     supersession_times = {
         "2026-04-28": None,

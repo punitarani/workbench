@@ -41,6 +41,7 @@ activities = rows(
     "quantity_seconds, time, rate_cents, billable FROM activities",
 )
 billable = [entry for entry in activities if entry[6]]
+person_days = {(day_of(entry[4]), entry[2]) for entry in billable}
 flagged = [
     entry for entry in billable if (entry[2], day_of(entry[4])) not in sent
 ]
@@ -72,7 +73,11 @@ notes = rows(
 hygiene = {
     "entries_reviewed": len(billable),
     "timekeepers_reviewed": len({entry[2] for entry in billable}),
+    "person_days_reviewed": len(person_days),
+    "cleared_by_communication": len(person_days) - len(grouped),
+    "cleared_no_corroboration": 0,
     "anomalous_timekeeper_days": days,
+    "anomalous_timekeeper_day_count": len(days),
     "anomalous_entry_count": len(flagged),
     "anomalous_minutes_total": sum(entry[3] for entry in flagged) // 60,
     "anomalous_billed_cents_total": sum(
@@ -83,6 +88,7 @@ hygiene = {
         for note_id, author, timestamp in notes
         if (author, day_of(timestamp)) not in sent
     ),
+    "daily_review": [],
 }
 with open("hygiene.json", "w") as handle:
     json.dump(hygiene, handle, indent=2)
