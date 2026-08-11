@@ -365,6 +365,33 @@ class TestProceduralDays:
             draft.model_dump_json() for draft in second
         ]
 
+    def test_extending_the_horizon_preserves_every_existing_day(self) -> None:
+        extended = CalendarWindow(
+            start_date=PHASE2_WINDOW.start_date,
+            end_date="2026-09-30",
+            timezone=PHASE2_WINDOW.timezone,
+        )
+        for day_index in PHASE2_WINDOW.workdays():
+            original = procedural_day(
+                seed=Seed(root=42),
+                window=PHASE2_WINDOW,
+                day_index=day_index,
+                cast=small_cast(),
+                voice=small_voice(),
+                minter=minter_from_events(small_genesis()),
+            )
+            longer = procedural_day(
+                seed=Seed(root=42),
+                window=extended,
+                day_index=day_index,
+                cast=small_cast(),
+                voice=small_voice(),
+                minter=minter_from_events(small_genesis()),
+            )
+            assert [draft.model_dump_json() for draft in original] == [
+                draft.model_dump_json() for draft in longer
+            ], extended.iso_date(day_index)
+
     def test_different_seed_or_day_changes_the_traffic(self) -> None:
         base = procedural_day(
             seed=Seed(root=42),

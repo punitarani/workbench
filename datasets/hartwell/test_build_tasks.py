@@ -184,6 +184,10 @@ def test_cli_requires_explicit_refresh_flag() -> None:
 
     assert parser.parse_args([]).refresh_truth is False
     assert parser.parse_args(["--refresh-truth"]).refresh_truth is True
+    assert parser.parse_args(["--task", "one", "--task", "two"]).tasks == [
+        "one",
+        "two",
+    ]
 
 
 def test_evidence_contract_certifies_rows_nested_items_and_surfaces(

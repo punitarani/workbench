@@ -20,6 +20,8 @@ type Note = tuple[int, str, str, int]
 type EventKey = tuple[str, str, date]
 
 EPOCH = date(2026, 3, 2)
+SCOPE_END = date(2026, 7, 1)
+SCOPE_SECONDS = (SCOPE_END - EPOCH).days * 86_400
 
 
 def rows(
@@ -64,7 +66,9 @@ def build_hygiene(state: Path) -> dict[str, object]:
             state,
             "clio.db",
             "SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, ticket_id, person, "
-            "quantity_seconds, time, rate_cents, billable FROM activities",
+            "quantity_seconds, time, rate_cents, billable FROM activities "
+            "WHERE time < ?",
+            SCOPE_SECONDS,
         )
     ]
     notes: list[Note] = [
@@ -73,7 +77,8 @@ def build_hygiene(state: Path) -> dict[str, object]:
             state,
             "clio.db",
             "SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, ticket_id, author, "
-            "time FROM notes",
+            "time FROM notes WHERE time < ?",
+            SCOPE_SECONDS,
         )
     ]
     names: dict[str, str] = {
@@ -93,7 +98,9 @@ def build_hygiene(state: Path) -> dict[str, object]:
     for message_id, sender, timestamp in rows(
         state,
         "gmail.db",
-        "SELECT message_id, sender, time FROM messages ORDER BY time, message_id",
+        "SELECT message_id, sender, time FROM messages WHERE time < ? "
+        "ORDER BY time, message_id",
+        SCOPE_SECONDS,
     ):
         sent_gmail.setdefault((str(sender), day_of(int(timestamp))), []).append(
             str(message_id)
@@ -102,7 +109,8 @@ def build_hygiene(state: Path) -> dict[str, object]:
     for ts, sender, timestamp in rows(
         state,
         "slack.db",
-        "SELECT ts, sender, time FROM messages ORDER BY time, ts",
+        "SELECT ts, sender, time FROM messages WHERE time < ? ORDER BY time, ts",
+        SCOPE_SECONDS,
     ):
         sent_slack.setdefault((str(sender), day_of(int(timestamp))), []).append(str(ts))
     sent = set(sent_gmail) | set(sent_slack)

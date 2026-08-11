@@ -377,6 +377,7 @@ def test_task_order_is_fixed() -> None:
         "operative-deadline",
         "standard-drift",
         "vanished-clause",
+        "settlement-authority-audit",
     )
 
 

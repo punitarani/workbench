@@ -1,0 +1,70 @@
+schema_version = "1.3"
+
+[task]
+name = "workbench/settlement-authority-audit"
+description = "Reconstruct Goldleaf settlement authority and audit every outbound proposal against it."
+authors = [{ name = "Workbench" }]
+keywords = ["legal", "litigation", "settlement-authority", "professional-responsibility", "temporal-reasoning", "mcp"]
+
+[metadata]
+dataset = "hartwell"
+difficulty = "hard"
+skills = ["retrieval", "chronology", "legal-operations", "evidence-reconciliation"]
+reference_tool_path_calls = 28
+agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and Clio records."
+
+[metadata.evidence]
+primary_field = "proposal_audit"
+records = 14
+item_fields = ["authority_source_ids"]
+items = 15
+source_surfaces = ["gmail", "slack", "clio"]
+unique_by = ["message_id"]
+classification_field = "disposition"
+classification_counts = { authorized = 7, amount_outside_authority = 1, economic_terms_mismatch = 1, authority_revoked = 2, authority_expired = 2, nonmonetary_terms_mismatch = 1 }
+nonempty_fields = ["message_id", "authority_source_ids"]
+
+[environment]
+docker_image = "workbench:dev"
+os = "linux"
+workdir = "/home/agent/workspace"
+memory_mb = 4096
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai", "raw.githubusercontent.com", "objects.githubusercontent.com", "nodejs.org", "registry.npmjs.org", "*.ubuntu.com"]
+
+[environment.healthcheck]
+command = "sh /home/agent/workspace/.workbench/install.sh"
+timeout_sec = 180.0
+interval_sec = 2.0
+retries = 2
+
+[[environment.mcp_servers]]
+name = "gmail"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-gmail"
+
+[[environment.mcp_servers]]
+name = "slack"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-slack"
+
+[[environment.mcp_servers]]
+name = "imanage"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-imanage"
+
+[[environment.mcp_servers]]
+name = "clio"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-clio"
+
+[agent]
+user = "agent"
+timeout_sec = 1800.0
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
+
+[verifier]
+user = "verifier"
+timeout_sec = 900.0
+network_mode = "no-network"

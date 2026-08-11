@@ -1,6 +1,7 @@
-"""Build every hartwell task's environment bundle from the four-month world log.
+"""Build Hartwell task environments from the certified world log.
 
     uv run python datasets/hartwell/build_tasks.py [world_log] [--refresh-truth]
+        [--task task-name ...]
 
 Bundles are materialized seatless: no ``--user`` seat is passed, so the
 Gmail server projects the whole firm's mail org-wide rather than a single
@@ -88,6 +89,12 @@ def parser() -> argparse.ArgumentParser:
         "--refresh-truth",
         action="store_true",
         help="replace committed oracle artifacts from freshly materialized bundles",
+    )
+    argument_parser.add_argument(
+        "--task",
+        dest="tasks",
+        action="append",
+        help="materialize only this task name; repeat for multiple tasks",
     )
     return argument_parser
 
@@ -364,10 +371,23 @@ def main() -> int:
     world_log = arguments.world_log
     if not world_log.exists():
         raise SystemExit(
-            f"{world_log} not found — build the four-month history first: "
+            f"{world_log} not found — build the Hartwell history first: "
             "uv run python datasets/hartwell/build_history.py --days all"
         )
-    for task in sorted(p for p in TASKS.iterdir() if (p / "task.toml").exists()):
+    available = {
+        path.name: path
+        for path in TASKS.iterdir()
+        if (path / "task.toml").exists()
+    }
+    selected = sorted(available) if not arguments.tasks else arguments.tasks
+    unknown = sorted(set(selected) - set(available))
+    if unknown:
+        raise SystemExit(
+            f"unknown Hartwell task(s): {', '.join(unknown)}; "
+            f"available: {', '.join(sorted(available))}"
+        )
+    for name in selected:
+        task = available[name]
         build_task(world_log, task, refresh=arguments.refresh_truth)
     return 0
 

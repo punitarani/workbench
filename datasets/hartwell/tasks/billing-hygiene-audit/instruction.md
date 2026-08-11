@@ -9,6 +9,9 @@ colleague left same-matter work evidence in Clio.
 You have Gmail, Slack, iManage, and Clio. Save **`hygiene.json`** in your
 workspace with exactly this public structure:
 
+The certification period is March 2 through June 30, 2026, inclusive. Do not
+fold later activity or communications into this closed billing review.
+
 ```json
 {
   "entries_reviewed": <number of billable Clio time entries>,

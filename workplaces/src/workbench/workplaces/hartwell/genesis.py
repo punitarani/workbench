@@ -1,5 +1,5 @@
 """Genesis for Hartwell & Marsh LLP: the world as it stands on Monday
-2026-03-02, before the four-month history begins.
+2026-03-02, before the seven-month history begins.
 
 Everything is data assembled into time-zero events. Every minted id comes
 from one IdMinter; the statically declared org ids are re-minted against it
@@ -42,9 +42,10 @@ WORKPLACE_ID = "hartwell"
 TIMEZONE = "America/Los_Angeles"
 EPOCH_ISO = "2026-03-02T00:00:00-08:00"
 SCHEMA_VERSION = 1
+DIRECTED_ONLY_EXTERNAL_IDS = frozenset({"per-olivia-chen"})
 
 WINDOW = CalendarWindow(
-    start_date="2026-03-02", end_date="2026-06-30", timezone=TIMEZONE
+    start_date="2026-03-02", end_date="2026-09-30", timezone=TIMEZONE
 )
 
 # US federal holidays for 2026, in observed form, paired with how much of
@@ -555,7 +556,11 @@ def procedural_cast(genesis: HartwellGenesis) -> ProceduralCast:
             )
             for person_id, daily_hours, rate_cents in _TIMEKEEPERS
         ),
-        externals=tuple(member(person) for person in EXTERNALS),
+        externals=tuple(
+            member(person)
+            for person in EXTERNALS
+            if person.person_id not in DIRECTED_ONLY_EXTERNAL_IDS
+        ),
         standup_channel=channel("#general").conversation_id,
         matters_channel=channel("#matters"),
         billing_channel=channel("#billing"),

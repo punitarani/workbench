@@ -1,0 +1,378 @@
+{
+  "authority_timeline": [
+    {
+      "amount_cents": 42500000,
+      "amount_rule": "minimum",
+      "economic_basis": "exclusive",
+      "effective_at": "2026-07-07T08:42:00-07:00",
+      "expires_at": "2026-07-17T17:00:00-07:00",
+      "prohibited_terms": [
+        "confidentiality"
+      ],
+      "required_terms": [],
+      "source_ids": [
+        "msg-000722"
+      ],
+      "status": "grant",
+      "surface": "gmail"
+    },
+    {
+      "amount_cents": 0,
+      "amount_rule": "none",
+      "economic_basis": "none",
+      "effective_at": "2026-07-17T15:02:00-07:00",
+      "expires_at": "",
+      "prohibited_terms": [],
+      "required_terms": [],
+      "source_ids": [
+        "msg-000786"
+      ],
+      "status": "hold",
+      "surface": "gmail"
+    },
+    {
+      "amount_cents": 39000000,
+      "amount_rule": "exact",
+      "economic_basis": "exclusive",
+      "effective_at": "2026-07-22T09:18:00-07:00",
+      "expires_at": "2026-07-31T17:00:00-07:00",
+      "prohibited_terms": [],
+      "required_terms": [
+        "mutual_release"
+      ],
+      "source_ids": [
+        "msg-000811"
+      ],
+      "status": "grant",
+      "surface": "gmail"
+    },
+    {
+      "amount_cents": 34000000,
+      "amount_rule": "exact",
+      "economic_basis": "inclusive",
+      "effective_at": "2026-07-29T13:11:00-07:00",
+      "expires_at": "2026-08-03T12:00:00-07:00",
+      "prohibited_terms": [],
+      "required_terms": [
+        "inventory_transition_60_days"
+      ],
+      "source_ids": [
+        "msg-000850"
+      ],
+      "status": "grant",
+      "surface": "gmail"
+    },
+    {
+      "amount_cents": 31500000,
+      "amount_rule": "exact",
+      "economic_basis": "exclusive",
+      "effective_at": "2026-08-06T08:56:00-07:00",
+      "expires_at": "2026-08-14T17:00:00-07:00",
+      "prohibited_terms": [
+        "release_unknown_claims"
+      ],
+      "required_terms": [
+        "mutual_non_disparagement"
+      ],
+      "source_ids": [
+        "msg-000898"
+      ],
+      "status": "grant",
+      "surface": "gmail"
+    },
+    {
+      "amount_cents": 30000000,
+      "amount_rule": "exact",
+      "economic_basis": "inclusive",
+      "effective_at": "2026-08-10T09:12:00-07:00",
+      "expires_at": "2026-08-12T12:00:00-07:00",
+      "prohibited_terms": [],
+      "required_terms": [
+        "general_release",
+        "payment_within_10_days"
+      ],
+      "source_ids": [
+        "1786378320.000000",
+        "1786378680.000000"
+      ],
+      "status": "grant",
+      "surface": "slack"
+    },
+    {
+      "amount_cents": 0,
+      "amount_rule": "none",
+      "economic_basis": "none",
+      "effective_at": "2026-08-12T09:31:00-07:00",
+      "expires_at": "",
+      "prohibited_terms": [],
+      "required_terms": [],
+      "source_ids": [
+        "1786552260.000000"
+      ],
+      "status": "hold",
+      "surface": "slack"
+    },
+    {
+      "amount_cents": 28500000,
+      "amount_rule": "exact",
+      "economic_basis": "net_plus_fees",
+      "effective_at": "2026-08-20T10:07:00-07:00",
+      "expires_at": "2026-08-28T17:00:00-07:00",
+      "prohibited_terms": [],
+      "required_terms": [
+        "confidentiality"
+      ],
+      "source_ids": [
+        "msg-000974"
+      ],
+      "status": "grant",
+      "surface": "gmail"
+    },
+    {
+      "amount_cents": 27500000,
+      "amount_rule": "exact",
+      "economic_basis": "inclusive",
+      "effective_at": "2026-09-02T09:26:00-07:00",
+      "expires_at": "2026-09-04T12:00:00-07:00",
+      "prohibited_terms": [
+        "confidentiality"
+      ],
+      "required_terms": [
+        "mutual_release",
+        "no_confidentiality"
+      ],
+      "source_ids": [
+        "msg-001040"
+      ],
+      "status": "grant",
+      "surface": "gmail"
+    }
+  ],
+  "authorized_count": 7,
+  "breach_count": 7,
+  "breach_message_ids": [
+    "msg-000761",
+    "msg-000777",
+    "msg-000787",
+    "msg-000876",
+    "msg-000907",
+    "msg-000933",
+    "msg-001058"
+  ],
+  "client_decision_maker": "Olivia Chen",
+  "matter_number": "00010-GoldleafHospitalityGroup",
+  "negotiation_alias": "Project Marigold",
+  "opposing_counsel": [
+    "Derek Strauss",
+    "Mia Denning"
+  ],
+  "proposal_audit": [
+    {
+      "amount_cents": 47500000,
+      "authority_source_ids": [
+        "msg-000722"
+      ],
+      "disposition": "authorized",
+      "economic_basis": "exclusive",
+      "message_id": "msg-000737",
+      "sender": "Samuel Marsh",
+      "sent_at": "2026-07-09T10:14:00-07:00",
+      "terms": [
+        "mutual_release",
+        "no_confidentiality"
+      ]
+    },
+    {
+      "amount_cents": 42000000,
+      "authority_source_ids": [
+        "msg-000722"
+      ],
+      "disposition": "amount_outside_authority",
+      "economic_basis": "exclusive",
+      "message_id": "msg-000761",
+      "sender": "Sofia Ramirez",
+      "sent_at": "2026-07-14T16:03:00-07:00",
+      "terms": [
+        "mutual_release",
+        "no_confidentiality"
+      ]
+    },
+    {
+      "amount_cents": 42500000,
+      "authority_source_ids": [
+        "msg-000722"
+      ],
+      "disposition": "economic_terms_mismatch",
+      "economic_basis": "inclusive",
+      "message_id": "msg-000777",
+      "sender": "Sofia Ramirez",
+      "sent_at": "2026-07-16T11:37:00-07:00",
+      "terms": [
+        "mutual_release",
+        "no_confidentiality"
+      ]
+    },
+    {
+      "amount_cents": 42500000,
+      "authority_source_ids": [
+        "msg-000786"
+      ],
+      "disposition": "authority_revoked",
+      "economic_basis": "exclusive",
+      "message_id": "msg-000787",
+      "sender": "Samuel Marsh",
+      "sent_at": "2026-07-17T16:08:00-07:00",
+      "terms": [
+        "mutual_release",
+        "no_confidentiality"
+      ]
+    },
+    {
+      "amount_cents": 39000000,
+      "authority_source_ids": [
+        "msg-000811"
+      ],
+      "disposition": "authorized",
+      "economic_basis": "exclusive",
+      "message_id": "msg-000820",
+      "sender": "Sofia Ramirez",
+      "sent_at": "2026-07-23T14:21:00-07:00",
+      "terms": [
+        "confidentiality",
+        "mutual_release"
+      ]
+    },
+    {
+      "amount_cents": 34000000,
+      "authority_source_ids": [
+        "msg-000850"
+      ],
+      "disposition": "authorized",
+      "economic_basis": "inclusive",
+      "message_id": "msg-000856",
+      "sender": "Sofia Ramirez",
+      "sent_at": "2026-07-30T09:44:00-07:00",
+      "terms": [
+        "inventory_transition_60_days"
+      ]
+    },
+    {
+      "amount_cents": 34000000,
+      "authority_source_ids": [
+        "msg-000850"
+      ],
+      "disposition": "authorized",
+      "economic_basis": "inclusive",
+      "message_id": "msg-000875",
+      "sender": "Samuel Marsh",
+      "sent_at": "2026-08-03T11:55:00-07:00",
+      "terms": [
+        "inventory_transition_60_days"
+      ]
+    },
+    {
+      "amount_cents": 34000000,
+      "authority_source_ids": [
+        "msg-000850"
+      ],
+      "disposition": "authority_expired",
+      "economic_basis": "inclusive",
+      "message_id": "msg-000876",
+      "sender": "Sofia Ramirez",
+      "sent_at": "2026-08-03T12:05:00-07:00",
+      "terms": [
+        "inventory_transition_60_days"
+      ]
+    },
+    {
+      "amount_cents": 31500000,
+      "authority_source_ids": [
+        "msg-000898"
+      ],
+      "disposition": "nonmonetary_terms_mismatch",
+      "economic_basis": "exclusive",
+      "message_id": "msg-000907",
+      "sender": "Sofia Ramirez",
+      "sent_at": "2026-08-07T15:16:00-07:00",
+      "terms": [
+        "mutual_non_disparagement",
+        "release_unknown_claims"
+      ]
+    },
+    {
+      "amount_cents": 30000000,
+      "authority_source_ids": [
+        "1786378320.000000",
+        "1786378680.000000"
+      ],
+      "disposition": "authorized",
+      "economic_basis": "inclusive",
+      "message_id": "msg-000923",
+      "sender": "Samuel Marsh",
+      "sent_at": "2026-08-11T14:04:00-07:00",
+      "terms": [
+        "general_release",
+        "payment_within_10_days"
+      ]
+    },
+    {
+      "amount_cents": 30000000,
+      "authority_source_ids": [
+        "1786552260.000000"
+      ],
+      "disposition": "authority_revoked",
+      "economic_basis": "inclusive",
+      "message_id": "msg-000933",
+      "sender": "Sofia Ramirez",
+      "sent_at": "2026-08-12T13:06:00-07:00",
+      "terms": [
+        "general_release",
+        "payment_within_10_days"
+      ]
+    },
+    {
+      "amount_cents": 28500000,
+      "authority_source_ids": [
+        "msg-000974"
+      ],
+      "disposition": "authorized",
+      "economic_basis": "net_plus_fees",
+      "message_id": "msg-000983",
+      "sender": "Sofia Ramirez",
+      "sent_at": "2026-08-21T11:12:00-07:00",
+      "terms": [
+        "confidentiality"
+      ]
+    },
+    {
+      "amount_cents": 28500000,
+      "authority_source_ids": [
+        "msg-000974"
+      ],
+      "disposition": "authorized",
+      "economic_basis": "net_plus_fees",
+      "message_id": "msg-001017",
+      "sender": "Samuel Marsh",
+      "sent_at": "2026-08-28T16:59:00-07:00",
+      "terms": [
+        "confidentiality"
+      ]
+    },
+    {
+      "amount_cents": 27500000,
+      "authority_source_ids": [
+        "msg-001040"
+      ],
+      "disposition": "authority_expired",
+      "economic_basis": "inclusive",
+      "message_id": "msg-001058",
+      "sender": "Sofia Ramirez",
+      "sent_at": "2026-09-04T12:01:00-07:00",
+      "terms": [
+        "mutual_release",
+        "no_confidentiality"
+      ]
+    }
+  ],
+  "proposal_count": 14
+}

@@ -313,4 +313,11 @@ EXTERNALS: tuple[PersonRecordPayload, ...] = (
         CLIENT_ORGS[8],
         "lumensoftware.example",
     ),
+    _external(
+        "per-olivia-chen",
+        "Olivia Chen",
+        "General Counsel",
+        CLIENT_ORGS[9],
+        "goldleafhospitality.example",
+    ),
 )

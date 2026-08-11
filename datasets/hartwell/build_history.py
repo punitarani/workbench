@@ -44,6 +44,7 @@ from workbench.core.seed import Seed
 from workbench.core.worldlog import read_events, validate_events
 from workbench.environment import materialize
 from workbench.simulation.chronicle.builder import Chronicle
+from workbench.simulation.chronicle.calendar import CalendarWindow
 from workbench.simulation.chronicle.content import ContentStore
 from workbench.simulation.chronicle.minter import minter_from_events
 from workbench.simulation.chronicle.procedural import ProceduralCast, procedural_day
@@ -88,6 +89,17 @@ from workbench.workplaces.hartwell.storylines import (
 )
 
 PILOT_DAYS = 5
+LEGACY_AUDIT_END = "2026-06-30"
+LEGACY_ABSENCE_SCOPE = CalendarWindow(
+    start_date="2026-03-02",
+    end_date=LEGACY_AUDIT_END,
+    timezone=WINDOW.timezone,
+)
+CHALLENGE_ABSENCE_SCOPE = CalendarWindow(
+    start_date="2026-07-01",
+    end_date="2026-09-30",
+    timezone=WINDOW.timezone,
+)
 
 
 def build_world(
@@ -130,6 +142,11 @@ def build_world(
                 voice=VOICE,
                 minter=minter,
                 profile=day_profile(seed, day_index),
+                absence_scope=(
+                    LEGACY_ABSENCE_SCOPE
+                    if day <= LEGACY_AUDIT_END
+                    else CHALLENGE_ABSENCE_SCOPE
+                ),
             )
         )
         if director is not None:
@@ -1016,13 +1033,17 @@ def audit(log_path: Path, state_dir: Path) -> int:
     # (c) billing hygiene: every billable timekeeper-day is classified by
     # sent communication and same-matter other-person work evidence.
     time_entries = [
-        event for event in events if isinstance(event.payload, TimeLoggedPayload)
+        event
+        for event in events
+        if isinstance(event.payload, TimeLoggedPayload)
+        and _event_date(event) <= LEGACY_AUDIT_END
     ]
     billable_entries = [event for event in time_entries if event.payload.billable]
     sent_person_days = {
         (event.payload.sender, _event_date(event))
         for event in events
         if isinstance(event.payload, EmailMessagePayload | ChatMessagePayload)
+        and _event_date(event) <= LEGACY_AUDIT_END
     }
     work_participants: dict[tuple[str, str], set[str]] = {}
     for event in time_entries:
@@ -1030,7 +1051,10 @@ def audit(log_path: Path, state_dir: Path) -> int:
             (event.payload.ticket_id, _event_date(event)), set()
         ).add(event.payload.person_id)
     for event in events:
-        if isinstance(event.payload, TicketCommentedPayload):
+        if (
+            isinstance(event.payload, TicketCommentedPayload)
+            and _event_date(event) <= LEGACY_AUDIT_END
+        ):
             work_participants.setdefault(
                 (event.payload.ticket_id, _event_date(event)), set()
             ).add(event.payload.actor)

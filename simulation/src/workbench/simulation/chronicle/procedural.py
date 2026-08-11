@@ -635,21 +635,48 @@ def _external_emails(
 
 
 def _away_days(seed: Seed, window: CalendarWindow, person_id: str) -> frozenset[str]:
-    """The person's out-of-office blocks, stable for the whole window.
+    """The person's out-of-office blocks, stable as a horizon grows.
 
     Absence is contiguous: a fee earner takes a week, not seven scattered
     Tuesdays, and the resulting holes are what make a season of billing
-    look recorded rather than generated.
+    look recorded rather than generated. Select against complete calendar
+    years rather than the requested window: otherwise extending a simulation
+    changes the random indices—and therefore the historical record—inside its
+    already-materialized prefix.
     """
 
+    away: set[str] = set()
+    first_year = int(window.start_date[:4])
+    last_year = int(window.end_date[:4])
+    for year in range(first_year, last_year + 1):
+        annual = CalendarWindow(
+            start_date=f"{year}-01-01",
+            end_date=f"{year}-12-31",
+            timezone=window.timezone,
+        )
+        rng = derive_rng(seed, "chronicle.absence", person_id, str(year))
+        workdays = annual.workdays()
+        for _ in range(rng.randrange(2, 4)):
+            start = rng.randrange(0, len(workdays))
+            length = rng.choice((1, 1, 2, 3, 5, 5))
+            for index in workdays[start : start + length]:
+                away.add(annual.iso_date(index))
+    return frozenset(away)
+
+
+def _scoped_away_days(
+    seed: Seed, scope: CalendarWindow, person_id: str
+) -> frozenset[str]:
+    """Reproduce an explicitly versioned dataset's absence cohort."""
+
     rng = derive_rng(seed, "chronicle.absence", person_id)
-    workdays = window.workdays()
+    workdays = scope.workdays()
     away: set[str] = set()
     for _ in range(rng.randrange(2, 4)):
         start = rng.randrange(0, len(workdays))
         length = rng.choice((1, 1, 2, 3, 5, 5))
         for index in workdays[start : start + length]:
-            away.add(window.iso_date(index))
+            away.add(scope.iso_date(index))
     return frozenset(away)
 
 
@@ -681,11 +708,17 @@ def _time_entries(
     day: str,
     profile: DayProfile,
     drafts: list[TimedDraft],
+    absence_scope: CalendarWindow | None,
 ) -> None:
     for keeper in cast.timekeepers:
         person_id = keeper.member.person_id
         if profile.kind == "workday":
-            if day in _away_days(seed, window, person_id):
+            away = (
+                _away_days(seed, window, person_id)
+                if absence_scope is None
+                else _scoped_away_days(seed, absence_scope, person_id)
+            )
+            if day in away:
                 continue
             target = keeper.daily_hours * _day_factor(rng) * 60
         else:
@@ -805,8 +838,14 @@ def procedural_day(
     voice: ProceduralVoice,
     minter: IdMinter,
     profile: DayProfile = WORKDAY,
+    absence_scope: CalendarWindow | None = None,
 ) -> tuple[TimedDraft, ...]:
-    """One day of background traffic, sorted by intra-day clock."""
+    """One day of background traffic, sorted by intra-day clock.
+
+    The default absence schedule is horizon-stable. ``absence_scope`` exists
+    only for a dataset that has committed an earlier finite-window schedule
+    and needs to extend its future without rewriting that historical prefix.
+    """
 
     day = window.iso_date(day_index)
     day_offset = int(window.day_offset(day_index))
@@ -821,7 +860,17 @@ def procedural_day(
     _dm_chatter(rng, voice, cast, minter, profile, drafts)
     _internal_emails(rng, voice, cast, minter, profile, drafts)
     _external_emails(rng, voice, cast, minter, profile, drafts)
-    _time_entries(rng, voice, cast, seed, window, day, profile, drafts)
+    _time_entries(
+        rng,
+        voice,
+        cast,
+        seed,
+        window,
+        day,
+        profile,
+        drafts,
+        absence_scope,
+    )
     _matter_comments(rng, voice, cast, profile, drafts)
     _calendar_events(rng, voice, cast, minter, day_offset, profile, drafts)
 

@@ -54,6 +54,7 @@ TASK_ORDER = (
     "operative-deadline",
     "standard-drift",
     "vanished-clause",
+    "settlement-authority-audit",
 )
 TaskName = Literal[
     "fee-dispute-reconstruction",
@@ -64,6 +65,7 @@ TaskName = Literal[
     "operative-deadline",
     "standard-drift",
     "vanished-clause",
+    "settlement-authority-audit",
 ]
 TrialPhase = Literal["smoke", "diagnostic-smoke", "additional", "matrix"]
 IGNORED_TASK_SOURCE_PARTS = {

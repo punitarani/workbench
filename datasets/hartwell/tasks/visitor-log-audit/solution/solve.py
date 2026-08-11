@@ -19,6 +19,7 @@ type SlackMessage = tuple[str, str, int, str]
 
 EPOCH = date(2026, 3, 2)
 REQUEST = "do you still have the sign-in sheet from yesterday?"
+CUTOFF = (date(2026, 7, 1) - EPOCH).days * 86_400
 
 
 def rows(
@@ -73,7 +74,8 @@ def build_visitor_log(state: Path) -> dict[str, object]:
         state,
         "slack.db",
         "SELECT conversation_id, sender, body, time, ts FROM messages "
-        "ORDER BY time, ts",
+        "WHERE time < ? ORDER BY time, ts",
+        CUTOFF,
     ):
         lane = str(conversation_id)
         if lane in conversations:
@@ -94,7 +96,10 @@ def build_visitor_log(state: Path) -> dict[str, object]:
             str(message_id),
         )
         for message_id, sender, timestamp in rows(
-            state, "gmail.db", "SELECT message_id, sender, time FROM messages"
+            state,
+            "gmail.db",
+            "SELECT message_id, sender, time FROM messages WHERE time < ?",
+            CUTOFF,
         )
     ]
 

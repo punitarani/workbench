@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 EPOCH = date(2026, 3, 2)
 REQUEST = "mind taking a quick look at my draft before it goes out?"
 PACIFIC = ZoneInfo("America/Los_Angeles")
+CUTOFF = (date(2026, 7, 1) - EPOCH).days * 86_400
 
 STATE = os.environ.get("WORKBENCH_STATE", "../state")
 
@@ -50,7 +51,9 @@ for conversation_id, person in rows(
 chat = {}
 for conversation_id, sender, body, time, ts in rows(
     "slack.db",
-    "SELECT conversation_id, sender, body, time, ts FROM messages ORDER BY time",
+    "SELECT conversation_id, sender, body, time, ts FROM messages "
+    "WHERE time < ? ORDER BY time",
+    CUTOFF,
 ):
     if conversation_id in pairs:
         chat.setdefault(conversation_id, []).append((sender, body, time, ts))
@@ -66,7 +69,7 @@ for message_id, person in rows(
 mailed = [
     (sender, recipient, time, message_id)
     for message_id, sender, time in rows(
-        "gmail.db", "SELECT message_id, sender, time FROM messages"
+        "gmail.db", "SELECT message_id, sender, time FROM messages WHERE time < ?", CUTOFF
     )
     for recipient in recipients.get(message_id, ())
 ]

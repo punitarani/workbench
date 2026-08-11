@@ -41,6 +41,9 @@ from workbench.workplaces.hartwell.storylines import (
     S4_TICKET,
     S5_DM_CORRECTION,
     S5_RECAP_SUBJECT,
+    S6_AUTHORITY_SUBJECTS,
+    S6_OUTBOUND_SUBJECTS,
+    S6_TICKET,
     StorylineDirector,
     author_content_offline,
     content_requests,
@@ -118,9 +121,82 @@ def test_full_build_validates_with_zero_findings(full_log: list) -> None:
     report = validate_events(full_log)
     assert report.findings == ()
     started = [event for event in full_log if event.tag == "sim.day.started"]
-    assert len(started) == WINDOW.day_count == 121, (
+    assert len(started) == WINDOW.day_count == 213, (
         "the record covers every calendar day, weekends and holidays included"
     )
+
+
+def test_s6_settlement_authority_is_a_chronological_cross_surface_audit(
+    full_log: list,
+) -> None:
+    """Goldleaf requires judgment over authority state, not phrase counting."""
+
+    people = {
+        event.payload.person_id: event.payload
+        for event in full_log
+        if event.payload.kind == "person.record"
+    }
+    assert people["per-olivia-chen"].organization == "org-000010"
+
+    messages = [
+        event
+        for event in full_log
+        if isinstance(event.payload, EmailMessagePayload)
+    ]
+    authority = [
+        event
+        for event in messages
+        if event.payload.subject in S6_AUTHORITY_SUBJECTS
+        and event.payload.sender == "per-olivia-chen"
+    ]
+    outbound = [
+        event
+        for event in messages
+        if event.payload.subject in S6_OUTBOUND_SUBJECTS
+        and event.payload.sender in {"per-samuel-marsh", "per-sofia-ramirez"}
+    ]
+    assert len(authority) == len(S6_AUTHORITY_SUBJECTS) == 7
+    assert len(outbound) == len(S6_OUTBOUND_SUBJECTS) == 14
+    assert len({event.payload.subject for event in outbound}) == 14
+    assert {
+        recipient
+        for event in outbound
+        for recipient in event.payload.to
+    } <= {"per-derek-strauss", "per-mia-denning"}
+    assert all(_event_date(event) >= "2026-07-01" for event in authority + outbound)
+
+    call_notes = [
+        event
+        for event in full_log
+        if isinstance(event.payload, ChatMessagePayload)
+        and "Project Marigold" in event.payload.body
+        and "Olivia" in event.payload.body
+        and event.payload.conversation_id
+        == next(
+            item.payload.conversation_id
+            for item in full_log
+            if item.payload.kind == "chat.conversation.created"
+            and item.payload.conversation_type == "dm"
+            and set(item.payload.members)
+            == {"per-eleanor-hartwell", "per-samuel-marsh"}
+        )
+    ]
+    assert len(call_notes) == 3, "phone authority and revocation live in the partner DM"
+
+    goldleaf_notes = [
+        event
+        for event in full_log
+        if isinstance(event.payload, TicketCommentedPayload)
+        and event.payload.ticket_id == S6_TICKET
+        and "Project Marigold" in event.payload.body
+    ]
+    assert len(goldleaf_notes) == 1, "Clio resolves the negotiation code name"
+
+    bodies = [event.payload.body.lower() for event in authority + outbound]
+    assert any("inclusive" in body for body in bodies)
+    assert any("exclusive" in body for body in bodies)
+    assert any("net to goldleaf" in body for body in bodies)
+    assert any("expires" in body or "good through" in body for body in bodies)
 
 
 def test_full_build_is_deterministic(tmp_path: Path) -> None:
