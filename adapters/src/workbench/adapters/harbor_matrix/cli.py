@@ -31,6 +31,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--task", action="append", choices=TASK_ORDER)
     parser.add_argument("--budget-baseline-usage", type=float, default=32.2139)
     parser.add_argument("--project-cap-usd", type=float, default=25.0)
+    parser.add_argument("--credit-poll-interval-sec", type=float, default=30.0)
     parser.add_argument("--gateway-bind-host", default="0.0.0.0")
     return parser
 
@@ -52,6 +53,7 @@ def parse_args(argv: list[str] | None = None) -> MatrixConfig:
         projected_worst_case_batch_usd=args.projected_worst_case_batch_usd,
         budget_baseline_usage=args.budget_baseline_usage,
         project_cap_usd=args.project_cap_usd,
+        credit_poll_interval_sec=args.credit_poll_interval_sec,
         gateway_bind_host=args.gateway_bind_host,
     )
 

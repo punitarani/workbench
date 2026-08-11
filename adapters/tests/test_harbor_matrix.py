@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -698,6 +699,32 @@ class FakeCommands:
         return CompletedCommand(returncode=0)
 
 
+class BlockingHarborCommands(FakeCommands):
+    def __init__(self) -> None:
+        super().__init__()
+        self.cancelled = False
+
+    async def run(self, command: tuple[str, ...], *, cwd: Path) -> CompletedCommand:
+        if (
+            command == ("harbor", "--version")
+            or command[:3]
+            == (
+                "docker",
+                "image",
+                "inspect",
+            )
+            or command == ("git", "rev-parse", "HEAD")
+        ):
+            return await super().run(command, cwd=cwd)
+        self.commands.append(command)
+        try:
+            await asyncio.Future()
+        except asyncio.CancelledError:
+            self.cancelled = True
+            raise
+        raise AssertionError("unreachable")
+
+
 async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
     tmp_path: Path,
 ) -> None:
@@ -994,6 +1021,34 @@ async def test_post_batch_cap_breach_is_persisted_before_runner_stops(
     assert len(persisted["batches"]) == 1
     assert persisted["batches"][0]["task_name"] == "fee-dispute-reconstruction"
     assert "observed" in persisted["failure"]
+
+
+async def test_in_flight_meter_cancels_a_batch_that_exceeds_its_authorization(
+    tmp_path: Path,
+) -> None:
+    tasks_root = _make_tasks(tmp_path)
+    config = _matrix_config(tmp_path, tasks_root, run_id="in-flight-cap").model_copy(
+        update={"credit_poll_interval_sec": 0.01}
+    )
+    commands = BlockingHarborCommands()
+    runner = MatrixRunner(
+        config,
+        openrouter_api_key="host-only",
+        gateway_token="ephemeral-only",
+        commands=commands,
+        credit_meter=FakeCreditMeter([50.0, 51.1]),
+        gateway_transport=httpx.MockTransport(lambda request: httpx.Response(500)),
+    )
+
+    with pytest.raises(BudgetExceededError, match="in-flight.*authorized"):
+        await runner.run()
+
+    assert commands.cancelled
+    persisted = json.loads(
+        (config.jobs_dir / "in-flight-cap-matrix.json").read_text(encoding="utf-8")
+    )
+    assert "in-flight" in persisted["failure"]
+    assert persisted["batches"] == []
 
 
 def _make_tasks(tmp_path: Path) -> Path:

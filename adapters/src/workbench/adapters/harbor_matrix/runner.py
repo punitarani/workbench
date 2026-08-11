@@ -2,9 +2,11 @@ import asyncio
 import hashlib
 import math
 import os
+import signal
 import stat
 import tempfile
 from collections import Counter
+from contextlib import suppress
 from pathlib import Path
 from typing import Literal, Protocol
 
@@ -82,6 +84,7 @@ class MatrixConfig(BaseModel):
     projected_worst_case_batch_usd: FiniteFloat = Field(gt=0)
     budget_baseline_usage: FiniteFloat = Field(default=32.2139, ge=0)
     project_cap_usd: FiniteFloat = Field(default=25.0, gt=0)
+    credit_poll_interval_sec: FiniteFloat = Field(default=30.0, gt=0)
     gateway_bind_host: str = "0.0.0.0"
 
     @field_validator("tasks")
@@ -140,6 +143,26 @@ class CreditBudget(BaseModel):
             raise BudgetExceededError(
                 "observed OpenRouter usage exceeded the Hartwell project cap: "
                 f"${credits.total_usage:.4f} used versus ${self.cap_usage:.4f} cap"
+            )
+
+    def assert_in_flight_authorized(
+        self,
+        before: CreditSnapshot,
+        observed: CreditSnapshot,
+        *,
+        authorized_cost_usd: float,
+    ) -> None:
+        cost = self.metered_cost(before, observed)
+        if observed.total_usage + self.reserve_usd > self.cap_usage:
+            raise BudgetExceededError(
+                "observed in-flight usage consumed the Hartwell reserve: "
+                f"${observed.total_usage:.4f} used versus "
+                f"${self.cap_usage - self.reserve_usd:.4f} pre-reserve limit"
+            )
+        if cost > authorized_cost_usd:
+            raise BudgetExceededError(
+                "observed in-flight cost exceeded the authorized launch forecast: "
+                f"${cost:.4f} observed versus ${authorized_cost_usd:.4f} authorized"
             )
 
 
@@ -287,13 +310,31 @@ class SubprocessCommandRunner:
             env=environment,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            start_new_session=True,
         )
-        stdout, stderr = await process.communicate()
+        try:
+            stdout, stderr = await process.communicate()
+        except asyncio.CancelledError:
+            await _terminate_process_group(process)
+            raise
         return CompletedCommand(
             returncode=process.returncode or 0,
             stdout=stdout.decode(errors="replace"),
             stderr=stderr.decode(errors="replace"),
         )
+
+
+async def _terminate_process_group(process: asyncio.subprocess.Process) -> None:
+    if process.returncode is not None:
+        return
+    with suppress(ProcessLookupError):
+        os.killpg(process.pid, signal.SIGTERM)
+    try:
+        await asyncio.wait_for(process.communicate(), timeout=10.0)
+    except TimeoutError:
+        with suppress(ProcessLookupError):
+            os.killpg(process.pid, signal.SIGKILL)
+        await process.communicate()
 
 
 class GatewaySequenceSpan(BaseModel):
@@ -971,7 +1012,11 @@ class MatrixRunner:
             if job_dir.exists() or job_dir.is_symlink():
                 raise HarborRunError(f"Harbor job directory already exists: {job_dir}")
             self._budget.assert_can_launch(credits, projected_worst_case_usd=forecast)
-            completed = await self._commands.run(command, cwd=self.config.repository)
+            completed = await self._run_with_budget_monitor(
+                command,
+                credits=credits,
+                forecast=forecast,
+            )
         finally:
             gateway_env_file.unlink(missing_ok=True)
         after = await self._credit_meter.query()
@@ -1013,6 +1058,37 @@ class MatrixRunner:
             credits_after=after,
             post_meter_error=post_meter_error,
         )
+
+    async def _run_with_budget_monitor(
+        self,
+        command: tuple[str, ...],
+        *,
+        credits: CreditSnapshot,
+        forecast: float,
+    ) -> CompletedCommand:
+        running = asyncio.create_task(
+            self._commands.run(command, cwd=self.config.repository)
+        )
+        try:
+            while True:
+                done, _ = await asyncio.wait(
+                    {running},
+                    timeout=float(self.config.credit_poll_interval_sec),
+                )
+                if done:
+                    return await running
+                observed = await self._credit_meter.query()
+                self._budget.assert_in_flight_authorized(
+                    credits,
+                    observed,
+                    authorized_cost_usd=forecast,
+                )
+        except BaseException:
+            if not running.done():
+                running.cancel()
+                with suppress(asyncio.CancelledError):
+                    await running
+            raise
 
     def _report(
         self,
