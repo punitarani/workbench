@@ -1,5 +1,6 @@
 """Contract tests for fresh-bundle Hartwell oracle certification."""
 
+import sqlite3
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -9,6 +10,22 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent))
 
 import build_tasks  # noqa: E402
+
+
+def _slack_state(bundle: Path, *, ts: str) -> None:
+    with sqlite3.connect(bundle / "state" / "slack.db") as connection:
+        connection.executescript(
+            "CREATE TABLE meta (key TEXT, value TEXT);"
+            "CREATE TABLE messages (chat_message_id TEXT, time INTEGER, ts TEXT);"
+        )
+        connection.execute(
+            "INSERT INTO meta VALUES (?, ?)",
+            ("epoch", "2026-03-01T00:00:00-08:00"),
+        )
+        connection.execute(
+            "INSERT INTO messages VALUES (?, ?, ?)",
+            ("chm-1", 90, ts),
+        )
 
 
 def _task(tmp_path: Path, source: str) -> tuple[Path, Path]:
@@ -115,18 +132,40 @@ def test_harbor_staging_occurs_only_after_oracle_certification(
         calls.append("certify")
         return task / "tests" / "oracle.json"
 
+    def fake_certify_clock(bundle_path: Path) -> None:
+        assert bundle_path == bundle
+        calls.append("certify-clock")
+
     def fake_stage(bundle_path: Path, environment: Path) -> Path:
         assert (bundle_path, environment) == (bundle, task / "environment")
         calls.append("stage")
         return environment / ".workbench"
 
     monkeypatch.setattr(build_tasks, "materialize", fake_materialize)
+    monkeypatch.setattr(
+        build_tasks, "certify_slack_timestamp_realism", fake_certify_clock
+    )
     monkeypatch.setattr(build_tasks, "certify_oracle", fake_certify)
     monkeypatch.setattr(build_tasks, "stage", fake_stage)
 
     build_tasks.build_task(world, task, refresh=False)
 
-    assert calls == ["materialize", "certify", "stage"]
+    assert calls == ["materialize", "certify-clock", "certify", "stage"]
+
+
+def test_materialized_slack_timestamps_are_real_unix_time(tmp_path: Path) -> None:
+    _, bundle = _task(tmp_path, "print('{}')\n")
+    _slack_state(bundle, ts="1772352090.000000")
+
+    build_tasks.certify_slack_timestamp_realism(bundle)
+
+
+def test_materialized_relative_slack_timestamps_fail_loudly(tmp_path: Path) -> None:
+    _, bundle = _task(tmp_path, "print('{}')\n")
+    _slack_state(bundle, ts="90.000000")
+
+    with pytest.raises(build_tasks.OracleError, match="Unix timestamp"):
+        build_tasks.certify_slack_timestamp_realism(bundle)
 
 
 def test_cli_requires_explicit_refresh_flag() -> None:
@@ -148,11 +187,19 @@ records = 2
 item_fields = ["email_ids", "slack_ts"]
 items = 3
 source_surfaces = ["gmail", "slack"]
+unique_by = ["id"]
+classification_field = "outcome"
+classification_counts = { cleared = 1, exception = 1 }
+source_field = "surface"
+source_counts = { gmail = 1, slack = 1 }
+nonempty_fields = ["evidence_id"]
 """
     )
     oracle = (
-        b'{"audit":[{"email_ids":["m1"],"slack_ts":[]},'
-        b'{"email_ids":[],"slack_ts":["1","2"]}]}'
+        b'{"audit":[{"id":"a","outcome":"cleared","surface":"gmail",'
+        b'"evidence_id":"m1","email_ids":["m1"],"slack_ts":[]},'
+        b'{"id":"b","outcome":"exception","surface":"slack",'
+        b'"evidence_id":"1","email_ids":[],"slack_ts":["1","2"]}]}'
     )
 
     build_tasks.certify_evidence_contract(task, oracle)
@@ -179,6 +226,25 @@ source_surfaces = ["gmail", "slack"]
             "source_surfaces=['gmail']\n",
             b'{"audit":[{}]}',
             "at least two source surfaces",
+        ),
+        (
+            "[metadata.evidence]\nprimary_field='audit'\nrecords=2\n"
+            "source_surfaces=['gmail','slack']\nunique_by=['id']\n",
+            b'{"audit":[{"id":"same"},{"id":"same"}]}',
+            "unique evidence key",
+        ),
+        (
+            "[metadata.evidence]\nprimary_field='audit'\nrecords=1\n"
+            "source_surfaces=['gmail','slack']\nclassification_field='outcome'\n"
+            "classification_counts={cleared=1}\n",
+            b'{"audit":[{"outcome":"exception"}]}',
+            "classification counts",
+        ),
+        (
+            "[metadata.evidence]\nprimary_field='audit'\nrecords=1\n"
+            "source_surfaces=['gmail','slack']\nnonempty_fields=['source_id']\n",
+            b'{"audit":[{"source_id":""}]}',
+            "non-empty evidence field",
         ),
     ],
 )

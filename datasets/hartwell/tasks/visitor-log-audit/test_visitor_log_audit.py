@@ -286,7 +286,10 @@ def test_ground_truth_matches_fresh_bundle_invariants() -> None:
     assert truth["unresolved_by_followup"] == 2
     assert len(breaches) == 12
     assert len(truth["returned_next_working_day_ts"]) == 10
-    assert truth["unresolved_ts"] == ["7456314.002498", "7569818.002563"]
+    assert truth["unresolved_ts"] == [
+        "1779894714.000000",
+        "1780008218.000000",
+    ]
     assert truth["same_day_breach_ts"] == [record["ts"] for record in breaches]
     assert all(set(record) == BREACH_FIELDS for record in breaches)
 
@@ -447,9 +450,12 @@ def test_independent_sql_rederives_requests_and_first_response_outcomes() -> Non
     response_day = {ts: day for ts, _, day in rows}
     truth = _truth()
     assert sum(day == asked_on for _, asked_on, day in rows) == 59
-    assert response_day["7456314.002498"] == "2026-06-01"
-    assert response_day["7569818.002563"] == "2026-06-05"
-    assert truth["unresolved_ts"] == ["7456314.002498", "7569818.002563"]
+    assert response_day["1779894714.000000"] == "2026-06-01"
+    assert response_day["1780008218.000000"] == "2026-06-05"
+    assert truth["unresolved_ts"] == [
+        "1779894714.000000",
+        "1780008218.000000",
+    ]
 
 
 def test_unresolved_means_not_returned_by_next_working_day_not_never_answered() -> None:
@@ -504,4 +510,4 @@ def test_pre_request_or_wrong_direction_mail_cannot_close_custody(
     gmail.close()
 
     document = _solve_with_state(bundle / "state", bundle / "workspace")
-    assert "7456314.002498" in document["unresolved_ts"]
+    assert "1779894714.000000" in document["unresolved_ts"]

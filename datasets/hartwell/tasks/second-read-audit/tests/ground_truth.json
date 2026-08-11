@@ -1,31 +1,31 @@
 {
   "_evidence": {
-    "join": "Directed first-response audit over every one-to-one conversation (12 lanes; chat search never returns them). Seventy-five second-read requests carry the firm's standing phrasing. A request is timely when the person asked first comes back to the asker — later in that same lane or by directed email — by the end of the next working day. Exactly three miss that deadline: 8253753 (2026-06-05 Fri, Sofia Ramirez -> Grace Adeyemi), 8586540 (2026-06-09 Tue, Grace Adeyemi -> Peter Novak), and 9823838 (2026-06-23 Tue, Marcus Liang -> Sofia Ramirez). All three eventually receive late Slack replies, which the retained ledger cites without reclassifying them as timely.",
+    "join": "Directed first-response audit over every one-to-one conversation (12 lanes; chat search never returns them). Seventy-five second-read requests carry the firm's standing phrasing. A request is timely when the person asked first comes back to the asker — later in that same lane or by directed email — by the end of the next working day. Exactly three miss that deadline: 1780692153 (2026-06-05 Fri, Sofia Ramirez -> Grace Adeyemi), 1781024940 (2026-06-09 Tue, Grace Adeyemi -> Peter Novak), and 1782262238 (2026-06-23 Tue, Marcus Liang -> Sofia Ramirez). All three eventually receive late Slack replies, which the retained ledger cites without reclassifying them as timely.",
     "decoys": "Sixty-seven requests drew their first qualifying answer the same day, including request 1871852's same-day directed Gmail response. Five first came back after the request day but by the next-working-day deadline. One Friday request first gets a Saturday Slack response; it is timely because Saturday precedes Monday's deadline. A Slack-only or calendar-day reading misclassifies these cross-surface and weekend records.",
     "grading": "The primary 75-row response ledger carries 0.72 with normalized multiset F1 plus exact certification. The exception summaries, aggregates, and ledger reconciliation are separately graded; a headline-only answer cannot reach half credit."
   },
   "requests_reviewed": 75,
   "conversations_reviewed": 12,
   "unanswered_request_ts_prefixes": [
-    "8253753",
-    "8586540",
-    "9823838"
+    "1780692153",
+    "1781024940",
+    "1782262238"
   ],
   "unanswered_requests": [
     {
-      "ts_prefix": "8253753",
+      "ts_prefix": "1780692153",
       "date": "2026-06-05",
       "asked_by": "Sofia Ramirez",
       "asked_of": "Grace Adeyemi"
     },
     {
-      "ts_prefix": "8586540",
+      "ts_prefix": "1781024940",
       "date": "2026-06-09",
       "asked_by": "Grace Adeyemi",
       "asked_of": "Peter Novak"
     },
     {
-      "ts_prefix": "9823838",
+      "ts_prefix": "1782262238",
       "date": "2026-06-23",
       "asked_by": "Marcus Liang",
       "asked_of": "Sofia Ramirez"
@@ -33,11 +33,11 @@
   ],
   "answered_same_day": 67,
   "came_back_later_prefixes": [
-    "1002279",
-    "10331659",
-    "5831354",
-    "9489122",
-    "9975406"
+    "1773440679",
+    "1778269754",
+    "1781927522",
+    "1782413806",
+    "1782770059"
   ],
   "asker_markers": [
     [

@@ -25,6 +25,9 @@ from workbench.adapters.harness.mcp_workspace import McpWorkspace, open_workspac
 
 TASKS = Path(__file__).parent / "tasks"
 EPOCH = date(2026, 3, 2)
+PACIFIC = timezone(timedelta(hours=-8))
+EPOCH_MOMENT = datetime(2026, 3, 2, tzinfo=PACIFIC)
+EPOCH_SECONDS = int(EPOCH_MOMENT.timestamp())
 WRITE_AND_FINISH = 2
 
 # The firm's standing phrasings for the one-to-one requests each audit
@@ -76,11 +79,11 @@ MENTION_MARKERS = {
 
 
 def _day_seconds(iso: str) -> int:
-    return (date.fromisoformat(iso) - EPOCH).days * 86_400
+    return EPOCH_SECONDS + (date.fromisoformat(iso) - EPOCH).days * 86_400
 
 
 def _ts_day(ts: str) -> str:
-    return (EPOCH + timedelta(seconds=int(float(ts)))).isoformat()
+    return datetime.fromtimestamp(int(float(ts)), tz=PACIFIC).date().isoformat()
 
 
 def _ts_prefix(ts: str) -> str:
@@ -119,18 +122,11 @@ def _working_days(start: date, end: date) -> int:
 
 
 def _mail_seconds(iso_datetime: str) -> int:
-    moment = datetime.fromisoformat(iso_datetime)
-    midnight = moment.replace(hour=0, minute=0, second=0, microsecond=0)
-    return (moment.date() - EPOCH).days * 86_400 + int(
-        (moment - midnight).total_seconds()
-    )
+    return int(datetime.fromisoformat(iso_datetime).timestamp())
 
 
 def _seconds_iso(timestamp: int) -> str:
-    pacific = timezone(timedelta(hours=-8))
-    return (
-        datetime(2026, 3, 2, tzinfo=pacific) + timedelta(seconds=timestamp)
-    ).isoformat()
+    return datetime.fromtimestamp(timestamp, tz=PACIFIC).isoformat()
 
 
 def _imanage_day(edit_date: str) -> str:

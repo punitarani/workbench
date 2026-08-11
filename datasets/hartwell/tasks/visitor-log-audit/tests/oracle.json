@@ -9,737 +9,737 @@
       "first_return_surface": "gmail",
       "outcome": "next_working_day",
       "request_date": "2026-03-02",
-      "request_ts": "60299.000029"
+      "request_ts": "1772498699.000000"
     },
     {
       "asked_by": "Peter Novak",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-03-05T16:44:16-08:00",
-      "first_return_id": "319456.000134",
+      "first_return_id": "1772757856.000000",
       "first_return_surface": "slack",
       "outcome": "next_working_day",
       "request_date": "2026-03-04",
-      "request_ts": "249677.000094"
+      "request_ts": "1772688077.000000"
     },
     {
       "asked_by": "Marcus Liang",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-03-05T16:00:43-08:00",
-      "first_return_id": "316843.000130",
+      "first_return_id": "1772755243.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-05",
-      "request_ts": "316201.000126"
+      "request_ts": "1772754601.000000"
     },
     {
       "asked_by": "Peter Novak",
       "asked_of": "Marcus Liang",
       "first_return_at": "2026-03-06T10:17:28-08:00",
-      "first_return_id": "382648.000150",
+      "first_return_id": "1772821048.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-06",
-      "request_ts": "381759.000149"
+      "request_ts": "1772820159.000000"
     },
     {
       "asked_by": "Omar Haddad",
       "asked_of": "Tessa Nguyen",
       "first_return_at": "2026-03-10T14:18:30-08:00",
-      "first_return_id": "742710.000239",
+      "first_return_id": "1773181110.000000",
       "first_return_surface": "slack",
       "outcome": "next_working_day",
       "request_date": "2026-03-09",
-      "request_ts": "640998.000188"
+      "request_ts": "1773079398.000000"
     },
     {
       "asked_by": "Peter Novak",
       "asked_of": "Marcus Liang",
       "first_return_at": "2026-03-11T13:14:46-08:00",
-      "first_return_id": "825286.000272",
+      "first_return_id": "1773263686.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-11",
-      "request_ts": "824793.000270"
+      "request_ts": "1773263193.000000"
     },
     {
       "asked_by": "Eleanor Hartwell",
       "asked_of": "Anita Bailey",
       "first_return_at": "2026-03-11T13:17:23-08:00",
-      "first_return_id": "825443.000273",
+      "first_return_id": "1773263843.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-11",
-      "request_ts": "824920.000271"
+      "request_ts": "1773263320.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-03-12T15:30:23-08:00",
-      "first_return_id": "919823.000314",
+      "first_return_id": "1773358223.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-12",
-      "request_ts": "919301.000312"
+      "request_ts": "1773357701.000000"
     },
     {
       "asked_by": "Marcus Liang",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-03-17T14:43:30-08:00",
-      "first_return_id": "1349010.000433",
+      "first_return_id": "1773787410.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-17",
-      "request_ts": "1348816.000431"
+      "request_ts": "1773787216.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Samuel Marsh",
       "first_return_at": "2026-03-18T11:36:15-08:00",
-      "first_return_id": "1424175.000458",
+      "first_return_id": "1773862575.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-18",
-      "request_ts": "1423290.000453"
+      "request_ts": "1773861690.000000"
     },
     {
       "asked_by": "Omar Haddad",
       "asked_of": "Tessa Nguyen",
       "first_return_at": "2026-03-20T15:57:23-08:00",
-      "first_return_id": "1612643.000547",
+      "first_return_id": "1774051043.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-20",
-      "request_ts": "1612459.000546"
+      "request_ts": "1774050859.000000"
     },
     {
       "asked_by": "Diane Okonkwo",
       "asked_of": "Noah Feldstein",
       "first_return_at": "2026-03-23T15:25:30-08:00",
-      "first_return_id": "1869930.000587",
+      "first_return_id": "1774308330.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-23",
-      "request_ts": "1869727.000586"
+      "request_ts": "1774308127.000000"
     },
     {
       "asked_by": "Peter Novak",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-03-24T07:42:15-08:00",
-      "first_return_id": "1928535.000598",
+      "first_return_id": "1774366935.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-24",
-      "request_ts": "1927972.000597"
+      "request_ts": "1774366372.000000"
     },
     {
       "asked_by": "Anita Bailey",
       "asked_of": "Carl Jensen",
       "first_return_at": "2026-03-26T15:47:44-08:00",
-      "first_return_id": "2130464.000698",
+      "first_return_id": "1774568864.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-26",
-      "request_ts": "2129684.000697"
+      "request_ts": "1774568084.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Samuel Marsh",
       "first_return_at": "2026-03-27T13:27:05-08:00",
-      "first_return_id": "2208425.000723",
+      "first_return_id": "1774646825.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-27",
-      "request_ts": "2207577.000721"
+      "request_ts": "1774645977.000000"
     },
     {
       "asked_by": "Eleanor Hartwell",
       "asked_of": "Anita Bailey",
       "first_return_at": "2026-03-30T11:29:37-08:00",
-      "first_return_id": "2460577.000755",
+      "first_return_id": "1774898977.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-30",
-      "request_ts": "2460305.000754"
+      "request_ts": "1774898705.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Eleanor Hartwell",
       "first_return_at": "2026-03-30T14:26:52-08:00",
-      "first_return_id": "2471212.000766",
+      "first_return_id": "1774909612.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-30",
-      "request_ts": "2470901.000765"
+      "request_ts": "1774909301.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-03-31T16:21:24-08:00",
-      "first_return_id": "2564484.000805",
+      "first_return_id": "1775002884.000000",
       "first_return_surface": "slack",
       "outcome": "next_working_day",
       "request_date": "2026-03-30",
-      "request_ts": "2474963.000769"
+      "request_ts": "1774913363.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-03-31T17:01:02-08:00",
-      "first_return_id": "2566862.000809",
+      "first_return_id": "1775005262.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-03-31",
-      "request_ts": "2566603.000808"
+      "request_ts": "1775005003.000000"
     },
     {
       "asked_by": "Carl Jensen",
       "asked_of": "Anita Bailey",
       "first_return_at": "2026-04-02T15:29:24-08:00",
-      "first_return_id": "2734164.000893",
+      "first_return_id": "1775172564.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-02",
-      "request_ts": "2733367.000892"
+      "request_ts": "1775171767.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-04-02T16:41:40-08:00",
-      "first_return_id": "2738500.000898",
+      "first_return_id": "1775176900.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-02",
-      "request_ts": "2738166.000897"
+      "request_ts": "1775176566.000000"
     },
     {
       "asked_by": "Anita Bailey",
       "asked_of": "Carl Jensen",
       "first_return_at": "2026-04-03T16:33:56-08:00",
-      "first_return_id": "2824436.000934",
+      "first_return_id": "1775262836.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-03",
-      "request_ts": "2823732.000933"
+      "request_ts": "1775262132.000000"
     },
     {
       "asked_by": "Diane Okonkwo",
       "asked_of": "Noah Feldstein",
       "first_return_at": "2026-04-07T16:03:49-08:00",
-      "first_return_id": "3168229.001042",
+      "first_return_id": "1775606629.000000",
       "first_return_surface": "slack",
       "outcome": "next_working_day",
       "request_date": "2026-04-06",
-      "request_ts": "3062010.000962"
+      "request_ts": "1775500410.000000"
     },
     {
       "asked_by": "Tessa Nguyen",
       "asked_of": "Omar Haddad",
       "first_return_at": "2026-04-09T15:23:32-08:00",
-      "first_return_id": "3338612.001144",
+      "first_return_id": "1775777012.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-09",
-      "request_ts": "3338287.001143"
+      "request_ts": "1775776687.000000"
     },
     {
       "asked_by": "Noah Feldstein",
       "asked_of": "Diane Okonkwo",
       "first_return_at": "2026-04-10T09:30:22-08:00",
-      "first_return_id": "3403822.001177",
+      "first_return_id": "1775842222.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-10",
-      "request_ts": "3403600.001174"
+      "request_ts": "1775842000.000000"
     },
     {
       "asked_by": "Eleanor Hartwell",
       "asked_of": "Samuel Marsh",
       "first_return_at": "2026-04-14T17:01:16-08:00",
-      "first_return_id": "3776476.001309",
+      "first_return_id": "1776214876.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-14",
-      "request_ts": "3776252.001308"
+      "request_ts": "1776214652.000000"
     },
     {
       "asked_by": "Anita Bailey",
       "asked_of": "Carl Jensen",
       "first_return_at": "2026-04-15T10:16:45-08:00",
-      "first_return_id": "3838605.001334",
+      "first_return_id": "1776277005.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-15",
-      "request_ts": "3838304.001333"
+      "request_ts": "1776276704.000000"
     },
     {
       "asked_by": "Sofia Ramirez",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-04-16T19:59:20-08:00",
-      "first_return_id": "3959960.001407",
+      "first_return_id": "1776398360.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-16",
-      "request_ts": "3959891.001406"
+      "request_ts": "1776398291.000000"
     },
     {
       "asked_by": "Carl Jensen",
       "asked_of": "Anita Bailey",
       "first_return_at": "2026-04-17T14:31:44-08:00",
-      "first_return_id": "4026704.001442",
+      "first_return_id": "1776465104.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-17",
-      "request_ts": "4026184.001441"
+      "request_ts": "1776464584.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-04-20T13:59:50-08:00",
-      "first_return_id": "4283990.001497",
+      "first_return_id": "1776722390.000000",
       "first_return_surface": "slack",
       "outcome": "next_working_day",
       "request_date": "2026-04-17",
-      "request_ts": "4028550.001452"
+      "request_ts": "1776466950.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-04-21T11:59:02-08:00",
-      "first_return_id": "4363142.001543",
+      "first_return_id": "1776801542.000000",
       "first_return_surface": "slack",
       "outcome": "next_working_day",
       "request_date": "2026-04-20",
-      "request_ts": "4291116.001510"
+      "request_ts": "1776729516.000000"
     },
     {
       "asked_by": "Sofia Ramirez",
       "asked_of": "Marcus Liang",
       "first_return_at": "2026-04-23T13:33:01-08:00",
-      "first_return_id": "4541581.001625",
+      "first_return_id": "1776979981.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-23",
-      "request_ts": "4540802.001624"
+      "request_ts": "1776979202.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-04-28T15:16:15-08:00",
-      "first_return_id": "4979775.001776",
+      "first_return_id": "1777418175.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-28",
-      "request_ts": "4979510.001774"
+      "request_ts": "1777417910.000000"
     },
     {
       "asked_by": "Marcus Liang",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-04-30T14:09:58-08:00",
-      "first_return_id": "5148598.001854",
+      "first_return_id": "1777586998.000000",
       "first_return_surface": "slack",
       "outcome": "next_working_day",
       "request_date": "2026-04-29",
-      "request_ts": "5065091.001816"
+      "request_ts": "1777503491.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-04-30T14:16:28-08:00",
-      "first_return_id": "5148988.001857",
+      "first_return_id": "1777587388.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-04-30",
-      "request_ts": "5148765.001855"
+      "request_ts": "1777587165.000000"
     },
     {
       "asked_by": "Sofia Ramirez",
       "asked_of": "Marcus Liang",
       "first_return_at": "2026-05-05T09:09:59-08:00",
-      "first_return_id": "5562599.001951",
+      "first_return_id": "1778000999.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-05",
-      "request_ts": "5562221.001948"
+      "request_ts": "1778000621.000000"
     },
     {
       "asked_by": "Diane Okonkwo",
       "asked_of": "Noah Feldstein",
       "first_return_at": "2026-05-05T16:37:15-08:00",
-      "first_return_id": "5589435.001979",
+      "first_return_id": "1778027835.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-05",
-      "request_ts": "5588905.001978"
+      "request_ts": "1778027305.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-05-07T15:32:23-08:00",
-      "first_return_id": "5758343.002052",
+      "first_return_id": "1778196743.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-07",
-      "request_ts": "5740839.002029"
+      "request_ts": "1778179239.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-05-08T11:48:17-08:00",
-      "first_return_id": "5831297.002081",
+      "first_return_id": "1778269697.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-08",
-      "request_ts": "5831229.002080"
+      "request_ts": "1778269629.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-05-11T13:33:40-08:00",
-      "first_return_id": "6096820.002115",
+      "first_return_id": "1778535220.000000",
       "first_return_surface": "slack",
       "outcome": "next_working_day",
       "request_date": "2026-05-08",
-      "request_ts": "5831780.002083"
+      "request_ts": "1778270180.000000"
     },
     {
       "asked_by": "Noah Feldstein",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-05-11T11:01:24-08:00",
-      "first_return_id": "6087684.002107",
+      "first_return_id": "1778526084.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-11",
-      "request_ts": "6086866.002106"
+      "request_ts": "1778525266.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-05-11T16:47:35-08:00",
-      "first_return_id": "6108455.002130",
+      "first_return_id": "1778546855.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-11",
-      "request_ts": "6108381.002129"
+      "request_ts": "1778546781.000000"
     },
     {
       "asked_by": "Sofia Ramirez",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-05-12T11:35:51-08:00",
-      "first_return_id": "6176151.002151",
+      "first_return_id": "1778614551.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-12",
-      "request_ts": "6175767.002150"
+      "request_ts": "1778614167.000000"
     },
     {
       "asked_by": "Noah Feldstein",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-05-12T15:50:37-08:00",
-      "first_return_id": "6191437.002166",
+      "first_return_id": "1778629837.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-12",
-      "request_ts": "6190943.002165"
+      "request_ts": "1778629343.000000"
     },
     {
       "asked_by": "Tessa Nguyen",
       "asked_of": "Omar Haddad",
       "first_return_at": "2026-05-21T09:13:18-08:00",
-      "first_return_id": "6945198.002391",
+      "first_return_id": "1779383598.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-21",
-      "request_ts": "6945018.002387"
+      "request_ts": "1779383418.000000"
     },
     {
       "asked_by": "Tessa Nguyen",
       "asked_of": "Omar Haddad",
       "first_return_at": "2026-05-22T09:20:16-08:00",
-      "first_return_id": "7032016.002428",
+      "first_return_id": "1779470416.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-22",
-      "request_ts": "7031427.002422"
+      "request_ts": "1779469827.000000"
     },
     {
       "asked_by": "Noah Feldstein",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-05-26T12:00:37-08:00",
-      "first_return_id": "7387237.002481",
+      "first_return_id": "1779825637.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-26",
-      "request_ts": "7386845.002479"
+      "request_ts": "1779825245.000000"
     },
     {
       "asked_by": "Eleanor Hartwell",
       "asked_of": "Anita Bailey",
       "first_return_at": "2026-05-26T16:35:33-08:00",
-      "first_return_id": "7403733.002493",
+      "first_return_id": "1779842133.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-26",
-      "request_ts": "7403579.002492"
+      "request_ts": "1779841979.000000"
     },
     {
       "asked_by": "Noah Feldstein",
       "asked_of": "Diane Okonkwo",
       "first_return_at": "2026-06-01T12:09:12-08:00",
-      "first_return_id": "7906152.002634",
+      "first_return_id": "1780344552.000000",
       "first_return_surface": "slack",
       "outcome": "unresolved",
       "request_date": "2026-05-27",
-      "request_ts": "7456314.002498"
+      "request_ts": "1779894714.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Samuel Marsh",
       "first_return_at": "2026-05-27T09:25:47-08:00",
-      "first_return_id": "7464347.002509",
+      "first_return_id": "1779902747.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-05-27",
-      "request_ts": "7463985.002506"
+      "request_ts": "1779902385.000000"
     },
     {
       "asked_by": "Peter Novak",
       "asked_of": "Noah Feldstein",
       "first_return_at": "2026-06-05T17:03:49-08:00",
-      "first_return_id": "8269429.002792",
+      "first_return_id": "1780707829.000000",
       "first_return_surface": "slack",
       "outcome": "unresolved",
       "request_date": "2026-05-28",
-      "request_ts": "7569818.002563"
+      "request_ts": "1780008218.000000"
     },
     {
       "asked_by": "Anita Bailey",
       "asked_of": "Carl Jensen",
       "first_return_at": "2026-06-01T09:08:23-08:00",
-      "first_return_id": "7895303.002615",
+      "first_return_id": "1780333703.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-01",
-      "request_ts": "7894817.002610"
+      "request_ts": "1780333217.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-06-01T13:05:15-08:00",
-      "first_return_id": "7909515.002637",
+      "first_return_id": "1780347915.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-01",
-      "request_ts": "7909343.002636"
+      "request_ts": "1780347743.000000"
     },
     {
       "asked_by": "Marcus Liang",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-06-04T12:31:57-08:00",
-      "first_return_id": "8166717.002743",
+      "first_return_id": "1780605117.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-04",
-      "request_ts": "8166060.002742"
+      "request_ts": "1780604460.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Sofia Ramirez",
       "first_return_at": "2026-06-04T15:37:01-08:00",
-      "first_return_id": "8177821.002754",
+      "first_return_id": "1780616221.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-04",
-      "request_ts": "8176998.002751"
+      "request_ts": "1780615398.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-06-08T11:27:34-08:00",
-      "first_return_id": "8508454.002816",
+      "first_return_id": "1780946854.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-08",
-      "request_ts": "8507985.002815"
+      "request_ts": "1780946385.000000"
     },
     {
       "asked_by": "Omar Haddad",
       "asked_of": "Tessa Nguyen",
       "first_return_at": "2026-06-09T16:47:54-08:00",
-      "first_return_id": "8614074.002866",
+      "first_return_id": "1781052474.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-09",
-      "request_ts": "8613956.002865"
+      "request_ts": "1781052356.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-06-10T09:46:59-08:00",
-      "first_return_id": "8675219.002885",
+      "first_return_id": "1781113619.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-10",
-      "request_ts": "8674687.002883"
+      "request_ts": "1781113087.000000"
     },
     {
       "asked_by": "Eleanor Hartwell",
       "asked_of": "Anita Bailey",
       "first_return_at": "2026-06-12T15:29:22-08:00",
-      "first_return_id": "8868562.002970",
+      "first_return_id": "1781306962.000000",
       "first_return_surface": "slack",
       "outcome": "next_working_day",
       "request_date": "2026-06-11",
-      "request_ts": "8771802.002925"
+      "request_ts": "1781210202.000000"
     },
     {
       "asked_by": "Eleanor Hartwell",
       "asked_of": "Anita Bailey",
       "first_return_at": "2026-06-12T15:29:22-08:00",
-      "first_return_id": "8868562.002970",
+      "first_return_id": "1781306962.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-12",
-      "request_ts": "8868485.002969"
+      "request_ts": "1781306885.000000"
     },
     {
       "asked_by": "Marcus Liang",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-06-15T08:07:33-08:00",
-      "first_return_id": "9101253.002990",
+      "first_return_id": "1781539653.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-15",
-      "request_ts": "9101164.002989"
+      "request_ts": "1781539564.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-06-16T15:52:32-08:00",
-      "first_return_id": "9215552.003055",
+      "first_return_id": "1781653952.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-16",
-      "request_ts": "9215240.003052"
+      "request_ts": "1781653640.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-06-17T15:00:18-08:00",
-      "first_return_id": "9298818.003090",
+      "first_return_id": "1781737218.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-17",
-      "request_ts": "9298442.003089"
+      "request_ts": "1781736842.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Peter Novak",
       "first_return_at": "2026-06-18T11:37:39-08:00",
-      "first_return_id": "9373059.003120",
+      "first_return_id": "1781811459.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-18",
-      "request_ts": "9372478.003119"
+      "request_ts": "1781810878.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Grace Adeyemi",
       "first_return_at": "2026-06-18T12:41:34-08:00",
-      "first_return_id": "9376894.003123",
+      "first_return_id": "1781815294.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-18",
-      "request_ts": "9376494.003121"
+      "request_ts": "1781814894.000000"
     },
     {
       "asked_by": "Peter Novak",
       "asked_of": "Marcus Liang",
       "first_return_at": "2026-06-23T12:50:11-08:00",
-      "first_return_id": "9809411.003220",
+      "first_return_id": "1782247811.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-23",
-      "request_ts": "9808606.003218"
+      "request_ts": "1782247006.000000"
     },
     {
       "asked_by": "Diane Okonkwo",
       "asked_of": "Noah Feldstein",
       "first_return_at": "2026-06-23T16:29:11-08:00",
-      "first_return_id": "9822551.003231",
+      "first_return_id": "1782260951.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-23",
-      "request_ts": "9822378.003230"
+      "request_ts": "1782260778.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Samuel Marsh",
       "first_return_at": "2026-06-26T11:15:44-08:00",
-      "first_return_id": "10062944.003320",
+      "first_return_id": "1782501344.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-26",
-      "request_ts": "10062749.003319"
+      "request_ts": "1782501149.000000"
     },
     {
       "asked_by": "Peter Novak",
       "asked_of": "Noah Feldstein",
       "first_return_at": "2026-06-27T17:28:25-08:00",
-      "first_return_id": "10171705.003338",
+      "first_return_id": "1782610105.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-27",
-      "request_ts": "10170830.003337"
+      "request_ts": "1782609230.000000"
     },
     {
       "asked_by": "Anita Bailey",
       "asked_of": "Eleanor Hartwell",
       "first_return_at": "2026-06-29T16:03:46-08:00",
-      "first_return_id": "10339426.003386",
+      "first_return_id": "1782777826.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-29",
-      "request_ts": "10338782.003385"
+      "request_ts": "1782777182.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Samuel Marsh",
       "first_return_at": "2026-06-30T10:11:51-08:00",
-      "first_return_id": "10404711.003403",
+      "first_return_id": "1782843111.000000",
       "first_return_surface": "slack",
       "outcome": "same_day",
       "request_date": "2026-06-30",
-      "request_ts": "10404382.003402"
+      "request_ts": "1782842782.000000"
     }
   ],
   "requests_reviewed": 71,
   "returned_next_working_day": 10,
   "returned_next_working_day_ts": [
-    "60299.000029",
-    "249677.000094",
-    "640998.000188",
-    "2474963.000769",
-    "3062010.000962",
-    "4028550.001452",
-    "4291116.001510",
-    "5065091.001816",
-    "5831780.002083",
-    "8771802.002925"
+    "1772498699.000000",
+    "1772688077.000000",
+    "1773079398.000000",
+    "1774913363.000000",
+    "1775500410.000000",
+    "1776466950.000000",
+    "1776729516.000000",
+    "1777503491.000000",
+    "1778270180.000000",
+    "1781210202.000000"
   ],
   "returned_same_day": 59,
   "same_day_breach_ts": [
-    "60299.000029",
-    "249677.000094",
-    "640998.000188",
-    "2474963.000769",
-    "3062010.000962",
-    "4028550.001452",
-    "4291116.001510",
-    "5065091.001816",
-    "5831780.002083",
-    "7456314.002498",
-    "7569818.002563",
-    "8771802.002925"
+    "1772498699.000000",
+    "1772688077.000000",
+    "1773079398.000000",
+    "1774913363.000000",
+    "1775500410.000000",
+    "1776466950.000000",
+    "1776729516.000000",
+    "1777503491.000000",
+    "1778270180.000000",
+    "1779894714.000000",
+    "1780008218.000000",
+    "1781210202.000000"
   ],
   "same_day_breaches": [
     {
@@ -747,89 +747,89 @@
       "asked_of": "Tessa Nguyen",
       "date": "2026-03-02",
       "resolution": "next_working_day",
-      "ts": "60299.000029"
+      "ts": "1772498699.000000"
     },
     {
       "asked_by": "Peter Novak",
       "asked_of": "Grace Adeyemi",
       "date": "2026-03-04",
       "resolution": "next_working_day",
-      "ts": "249677.000094"
+      "ts": "1772688077.000000"
     },
     {
       "asked_by": "Omar Haddad",
       "asked_of": "Tessa Nguyen",
       "date": "2026-03-09",
       "resolution": "next_working_day",
-      "ts": "640998.000188"
+      "ts": "1773079398.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Peter Novak",
       "date": "2026-03-30",
       "resolution": "next_working_day",
-      "ts": "2474963.000769"
+      "ts": "1774913363.000000"
     },
     {
       "asked_by": "Diane Okonkwo",
       "asked_of": "Noah Feldstein",
       "date": "2026-04-06",
       "resolution": "next_working_day",
-      "ts": "3062010.000962"
+      "ts": "1775500410.000000"
     },
     {
       "asked_by": "Samuel Marsh",
       "asked_of": "Grace Adeyemi",
       "date": "2026-04-17",
       "resolution": "next_working_day",
-      "ts": "4028550.001452"
+      "ts": "1776466950.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Sofia Ramirez",
       "date": "2026-04-20",
       "resolution": "next_working_day",
-      "ts": "4291116.001510"
+      "ts": "1776729516.000000"
     },
     {
       "asked_by": "Marcus Liang",
       "asked_of": "Peter Novak",
       "date": "2026-04-29",
       "resolution": "next_working_day",
-      "ts": "5065091.001816"
+      "ts": "1777503491.000000"
     },
     {
       "asked_by": "Grace Adeyemi",
       "asked_of": "Peter Novak",
       "date": "2026-05-08",
       "resolution": "next_working_day",
-      "ts": "5831780.002083"
+      "ts": "1778270180.000000"
     },
     {
       "asked_by": "Noah Feldstein",
       "asked_of": "Diane Okonkwo",
       "date": "2026-05-27",
       "resolution": "unresolved",
-      "ts": "7456314.002498"
+      "ts": "1779894714.000000"
     },
     {
       "asked_by": "Peter Novak",
       "asked_of": "Noah Feldstein",
       "date": "2026-05-28",
       "resolution": "unresolved",
-      "ts": "7569818.002563"
+      "ts": "1780008218.000000"
     },
     {
       "asked_by": "Eleanor Hartwell",
       "asked_of": "Anita Bailey",
       "date": "2026-06-11",
       "resolution": "next_working_day",
-      "ts": "8771802.002925"
+      "ts": "1781210202.000000"
     }
   ],
   "unresolved_by_followup": 2,
   "unresolved_ts": [
-    "7456314.002498",
-    "7569818.002563"
+    "1779894714.000000",
+    "1780008218.000000"
   ]
 }

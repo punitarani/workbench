@@ -225,7 +225,7 @@ def test_visitor_custody_uses_the_first_qualifying_return() -> None:
 
     epoch = date(2026, 3, 2)
     friday = date(2026, 4, 17)
-    asked_at = (friday - epoch).days * 86_400 + 12 * 3_600
+    asked_at = namespace["EPOCH_SECONDS"] + (friday - epoch).days * 86_400 + 12 * 3_600
     sunday = asked_at + 2 * 86_400
     monday = asked_at + 3 * 86_400
 

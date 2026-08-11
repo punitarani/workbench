@@ -15,6 +15,21 @@ agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and 
 primary_field = "response_audit"
 records = 75
 source_surfaces = ["gmail", "slack"]
+unique_by = ["request_ts"]
+classification_field = "outcome"
+classification_counts = { same_day = 67, next_working_day = 5, unanswered = 3 }
+source_field = "first_response_surface"
+source_counts = { gmail = 1, slack = 74 }
+nonempty_fields = [
+    "request_ts",
+    "request_date",
+    "asked_by",
+    "asked_of",
+    "first_response_surface",
+    "first_response_id",
+    "first_response_at",
+    "outcome",
+]
 [environment]
 docker_image = "workbench:dev"
 os = "linux"

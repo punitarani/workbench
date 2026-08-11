@@ -23,10 +23,14 @@ import hashlib
 import json
 import math
 import os
+import re
+import sqlite3
 import stat
 import subprocess
 import sys
 import tomllib
+from collections import Counter
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
@@ -40,6 +44,7 @@ from harbor_stage import stage  # noqa: E402
 
 TASKS = Path(__file__).parent / "tasks"
 ORACLE_TIMEOUT_SECONDS = 300
+SLACK_TIMESTAMP = re.compile(r"(?P<seconds>\d+)\.(?P<microseconds>\d{6})")
 
 
 class OracleError(RuntimeError):
@@ -60,6 +65,12 @@ class EvidenceContract(BaseModel):
     item_fields: tuple[str, ...] = ()
     items: int | None = Field(default=None, ge=1)
     source_surfaces: tuple[Literal["gmail", "slack", "imanage", "clio"], ...]
+    unique_by: tuple[str, ...] = ()
+    classification_field: str | None = None
+    classification_counts: dict[str, int] = Field(default_factory=dict)
+    source_field: str | None = None
+    source_counts: dict[str, int] = Field(default_factory=dict)
+    nonempty_fields: tuple[str, ...] = ()
 
 
 def parser() -> argparse.ArgumentParser:
@@ -180,6 +191,81 @@ def certify_evidence_contract(task: Path, oracle: bytes) -> None:
             f"{task.name} evidence contract expected {contract.records} records "
             f"in {contract.primary_field}, found {actual}"
         )
+    object_records = [record for record in records if isinstance(record, dict)]
+    needs_object_records = bool(
+        contract.item_fields
+        or contract.unique_by
+        or contract.classification_field
+        or contract.source_field
+        or contract.nonempty_fields
+    )
+    if needs_object_records and len(object_records) != len(records):
+        raise OracleError(f"{task.name} evidence contract expected object records")
+    if contract.unique_by:
+        if any(
+            field not in record
+            or isinstance(value := record[field], bool)
+            or not isinstance(value, str | int)
+            or (isinstance(value, str) and not value.strip())
+            for record in object_records
+            for field in contract.unique_by
+        ):
+            raise OracleError(
+                f"{task.name} evidence contract has an invalid unique evidence key"
+            )
+        keys = [
+            json.dumps(
+                tuple(record.get(field) for field in contract.unique_by),
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            for record in object_records
+        ]
+        if len(set(keys)) != len(keys):
+            raise OracleError(
+                f"{task.name} evidence contract has a duplicate unique evidence key"
+            )
+    if bool(contract.classification_field) != bool(contract.classification_counts):
+        raise OracleError(
+            f"{task.name} evidence contract needs both classification field and counts"
+        )
+    if contract.classification_field is not None:
+        values = [
+            record.get(contract.classification_field) for record in object_records
+        ]
+        if not all(isinstance(value, str) and value for value in values):
+            raise OracleError(
+                f"{task.name} evidence contract classification field is invalid"
+            )
+        actual_counts = Counter(values)
+        if actual_counts != Counter(contract.classification_counts):
+            raise OracleError(
+                f"{task.name} evidence contract classification counts drifted: "
+                f"{dict(actual_counts)}"
+            )
+    if bool(contract.source_field) != bool(contract.source_counts):
+        raise OracleError(
+            f"{task.name} evidence contract needs both source field and counts"
+        )
+    if contract.source_field is not None:
+        sources = [record.get(contract.source_field) for record in object_records]
+        if not all(isinstance(source, str) and source for source in sources):
+            raise OracleError(f"{task.name} evidence contract source field is invalid")
+        actual_sources = Counter(sources)
+        if actual_sources != Counter(contract.source_counts):
+            raise OracleError(
+                f"{task.name} evidence contract source counts drifted: "
+                f"{dict(actual_sources)}"
+            )
+    for field in contract.nonempty_fields:
+        if any(
+            (not isinstance(value := record.get(field), str | list | dict)) or not value
+            for record in object_records
+        ):
+            raise OracleError(
+                f"{task.name} evidence contract expected non-empty evidence "
+                f"field {field}"
+            )
     if contract.items is None:
         if contract.item_fields:
             raise OracleError(
@@ -191,9 +277,7 @@ def certify_evidence_contract(task: Path, oracle: bytes) -> None:
             f"{task.name} evidence contract declares items without item_fields"
         )
     nested_items = 0
-    for record in records:
-        if not isinstance(record, dict):
-            raise OracleError(f"{task.name} evidence contract expected object records")
+    for record in object_records:
         for field in contract.item_fields:
             values = record.get(field)
             if not isinstance(values, list):
@@ -231,6 +315,35 @@ def certify_oracle(task: Path, bundle: Path, *, refresh: bool) -> Path:
     return artifact
 
 
+def certify_slack_timestamp_realism(bundle: Path) -> None:
+    """Reject materializations whose Slack ids are not real Unix timestamps."""
+    database = bundle / "state" / "slack.db"
+    try:
+        with sqlite3.connect(f"file:{database}?mode=ro", uri=True) as connection:
+            epoch_row = connection.execute(
+                "SELECT value FROM meta WHERE key = 'epoch'"
+            ).fetchone()
+            messages = connection.execute("SELECT time, ts FROM messages").fetchall()
+    except sqlite3.Error as error:
+        raise OracleError(f"materialized Slack state is unreadable: {error}") from error
+    if epoch_row is None or not messages:
+        raise OracleError("materialized Slack state has no epoch or messages")
+    try:
+        epoch_seconds = int(datetime.fromisoformat(epoch_row[0]).timestamp())
+    except (TypeError, ValueError) as error:
+        raise OracleError("materialized Slack state has an invalid epoch") from error
+    seen: set[str] = set()
+    for relative_seconds, timestamp in messages:
+        match = SLACK_TIMESTAMP.fullmatch(timestamp)
+        if match is None or int(match["seconds"]) != epoch_seconds + relative_seconds:
+            raise OracleError(
+                f"materialized Slack id {timestamp!r} is not the event's Unix timestamp"
+            )
+        if timestamp in seen:
+            raise OracleError(f"materialized Slack id {timestamp!r} is duplicated")
+        seen.add(timestamp)
+
+
 def _is_harbor_task(task: Path) -> bool:
     config = tomllib.loads((task / "task.toml").read_text())
     return bool(config.get("environment", {}).get("mcp_servers"))
@@ -239,6 +352,7 @@ def _is_harbor_task(task: Path) -> bool:
 def build_task(world_log: Path, task: Path, *, refresh: bool) -> None:
     result = materialize(world_log, task / "bundle")
     print(f"{task.name}: {result.event_count} events -> {result.bundle}")
+    certify_slack_timestamp_realism(result.bundle)
     artifact = certify_oracle(task, result.bundle, refresh=refresh)
     action = "refreshed" if refresh else "certified"
     print(f"{task.name}: oracle {action} -> {artifact}")

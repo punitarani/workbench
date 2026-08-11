@@ -48,7 +48,7 @@
       "document_path": "/firm/templates/engagement-letter.md",
       "email_ids": [],
       "public_slack_ts": [
-        "1526700.000507"
+        "1773965100.000000"
       ],
       "version_id": "LEGAL!1.2"
     },
@@ -59,7 +59,7 @@
       "document_path": "/firm/templates/engagement-letter.md",
       "email_ids": [],
       "public_slack_ts": [
-        "7053300.002448"
+        "1779491700.000000"
       ],
       "version_id": "LEGAL!1.3"
     },
@@ -70,7 +70,7 @@
       "document_path": "/firm/playbooks/matter-intake-checklist.md",
       "email_ids": [],
       "public_slack_ts": [
-        "3240900.001083"
+        "1775679300.000000"
       ],
       "version_id": "LEGAL!2.2"
     },
@@ -81,7 +81,7 @@
       "document_path": "/firm/playbooks/matter-intake-checklist.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9301800.003094"
+        "1781740200.000000"
       ],
       "version_id": "LEGAL!2.3"
     },
@@ -92,7 +92,7 @@
       "document_path": "/firm/policies/billing-guidelines.md",
       "email_ids": [],
       "public_slack_ts": [
-        "5049000.001805"
+        "1777487400.000000"
       ],
       "version_id": "LEGAL!3.2"
     },
@@ -103,7 +103,7 @@
       "document_path": "/firm/policies/billing-guidelines.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9822900.003232"
+        "1782261300.000000"
       ],
       "version_id": "LEGAL!3.3"
     },
@@ -123,7 +123,7 @@
       "document_path": "/firm/playbooks/discovery-responses.md",
       "email_ids": [],
       "public_slack_ts": [
-        "4446000.001579"
+        "1776884400.000000"
       ],
       "version_id": "LEGAL!7.2"
     },
@@ -134,7 +134,7 @@
       "document_path": "/firm/playbooks/discovery-responses.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9462000.003148"
+        "1781900400.000000"
       ],
       "version_id": "LEGAL!7.3"
     },
@@ -145,7 +145,7 @@
       "document_path": "/firm/playbooks/vendor-nda-playbook.md",
       "email_ids": [],
       "public_slack_ts": [
-        "918600.000309"
+        "1773357000.000000"
       ],
       "version_id": "LEGAL!9.2"
     },
@@ -156,7 +156,7 @@
       "document_path": "/firm/playbooks/vendor-nda-playbook.md",
       "email_ids": [],
       "public_slack_ts": [
-        "2041200.000661"
+        "1774479600.000000"
       ],
       "version_id": "LEGAL!9.3"
     },
@@ -167,7 +167,7 @@
       "document_path": "/meridian-acquisition/closing-checklist.md",
       "email_ids": [],
       "public_slack_ts": [
-        "3859800.001355"
+        "1776298200.000000"
       ],
       "version_id": "LEGAL!10.2"
     },
@@ -178,7 +178,7 @@
       "document_path": "/meridian-acquisition/closing-checklist.md",
       "email_ids": [],
       "public_slack_ts": [
-        "7987200.002657"
+        "1780425600.000000"
       ],
       "version_id": "LEGAL!10.3"
     },
@@ -189,7 +189,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-trueline.md",
       "email_ids": [],
       "public_slack_ts": [
-        "1956900.000630"
+        "1774395300.000000"
       ],
       "version_id": "LEGAL!11.2"
     },
@@ -200,7 +200,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-trueline.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9115500.003008"
+        "1781553900.000000"
       ],
       "version_id": "LEGAL!11.3"
     },
@@ -211,7 +211,7 @@
       "document_path": "/veridian-rate-filing/compliance-memorandum.md",
       "email_ids": [],
       "public_slack_ts": [
-        "4362600.001541"
+        "1776801000.000000"
       ],
       "version_id": "LEGAL!12.2"
     },
@@ -222,7 +222,7 @@
       "document_path": "/veridian-rate-filing/compliance-memorandum.md",
       "email_ids": [],
       "public_slack_ts": [
-        "8523000.002822"
+        "1780961400.000000"
       ],
       "version_id": "LEGAL!12.3"
     },
@@ -233,7 +233,7 @@
       "document_path": "/brightline-termination/position-statement.md",
       "email_ids": [],
       "public_slack_ts": [
-        "3342900.001150"
+        "1775781300.000000"
       ],
       "version_id": "LEGAL!13.2"
     },
@@ -244,7 +244,7 @@
       "document_path": "/brightline-termination/position-statement.md",
       "email_ids": [],
       "public_slack_ts": [
-        "7387500.002482"
+        "1779825900.000000"
       ],
       "version_id": "LEGAL!13.3"
     },
@@ -255,7 +255,7 @@
       "document_path": "/arroyo-lien-action/lien-claim-summary.md",
       "email_ids": [],
       "public_slack_ts": [
-        "5483700.001918"
+        "1777922100.000000"
       ],
       "version_id": "LEGAL!14.2"
     },
@@ -266,7 +266,7 @@
       "document_path": "/cascadia-supplier-dispute/case-chronology.md",
       "email_ids": [],
       "public_slack_ts": [
-        "5150700.001861"
+        "1777589100.000000"
       ],
       "version_id": "LEGAL!15.2"
     },
@@ -297,7 +297,7 @@
       "document_path": "/solstice-closing/holdback-administration-memo.md",
       "email_ids": [],
       "public_slack_ts": [
-        "6190800.002164"
+        "1778629200.000000"
       ],
       "version_id": "LEGAL!17.2"
     },
@@ -308,7 +308,7 @@
       "document_path": "/goldleaf-franchise/early-case-assessment.md",
       "email_ids": [],
       "public_slack_ts": [
-        "4986300.001785"
+        "1777424700.000000"
       ],
       "version_id": "LEGAL!18.2"
     },
@@ -319,7 +319,7 @@
       "document_path": "/goldleaf-franchise/early-case-assessment.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9107100.003000"
+        "1781545500.000001"
       ],
       "version_id": "LEGAL!18.3"
     },
@@ -330,7 +330,7 @@
       "document_path": "/meridian-acquisition/disclosure-schedules.md",
       "email_ids": [],
       "public_slack_ts": [
-        "5590500.001980"
+        "1778028900.000000"
       ],
       "version_id": "LEGAL!19.2"
     },
@@ -341,7 +341,7 @@
       "document_path": "/northgate-vendor-refresh/vendor-contract-comparison.md",
       "email_ids": [],
       "public_slack_ts": [
-        "5754300.002048"
+        "1778192700.000000"
       ],
       "version_id": "LEGAL!20.2"
     },
@@ -352,7 +352,7 @@
       "document_path": "/northgate-vendor-refresh/vendor-contract-comparison.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9888900.003253"
+        "1782327300.000000"
       ],
       "version_id": "LEGAL!20.3"
     },
@@ -374,7 +374,7 @@
       "document_path": "/lumen-licensing/license-and-support-agreement.md",
       "email_ids": [],
       "public_slack_ts": [
-        "4984200.001782"
+        "1777422600.000000"
       ],
       "version_id": "LEGAL!21.3"
     },
@@ -394,7 +394,7 @@
       "document_path": "/lumen-licensing/license-and-support-agreement.md",
       "email_ids": [],
       "public_slack_ts": [
-        "7577100.002567"
+        "1780015500.000000"
       ],
       "version_id": "LEGAL!21.5"
     },
@@ -405,7 +405,7 @@
       "document_path": "/lumen-licensing/license-and-support-agreement.md",
       "email_ids": [],
       "public_slack_ts": [
-        "8078400.002699"
+        "1780516800.000000"
       ],
       "version_id": "LEGAL!21.6"
     },
@@ -416,7 +416,7 @@
       "document_path": "/lumen-licensing/license-and-support-agreement.md",
       "email_ids": [],
       "public_slack_ts": [
-        "8525700.002823"
+        "1780964100.000000"
       ],
       "version_id": "LEGAL!21.7"
     },
@@ -427,7 +427,7 @@
       "document_path": "/brightline-termination/witness-interview-summaries.md",
       "email_ids": [],
       "public_slack_ts": [
-        "6257400.002185"
+        "1778695800.000000"
       ],
       "version_id": "LEGAL!22.2"
     },
@@ -438,7 +438,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-cobalt.md",
       "email_ids": [],
       "public_slack_ts": [
-        "4374300.001557"
+        "1776812700.000000"
       ],
       "version_id": "LEGAL!23.2"
     },
@@ -449,7 +449,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-cobalt.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9213000.003049"
+        "1781651400.000000"
       ],
       "version_id": "LEGAL!23.3"
     },
@@ -460,7 +460,7 @@
       "document_path": "/veridian-rate-filing/board-resolution-review.md",
       "email_ids": [],
       "public_slack_ts": [
-        "6777000.002321"
+        "1779215400.000000"
       ],
       "version_id": "LEGAL!24.2"
     },
@@ -471,7 +471,7 @@
       "document_path": "/pelican-bay-renewal/renewal-option-notice.md",
       "email_ids": [],
       "public_slack_ts": [
-        "8777700.002928"
+        "1781216100.000000"
       ],
       "version_id": "LEGAL!25.2"
     },
@@ -482,7 +482,7 @@
       "document_path": "/lumen-licensing/support-services-sow.md",
       "email_ids": [],
       "public_slack_ts": [
-        "4620600.001669"
+        "1777059000.000000"
       ],
       "version_id": "LEGAL!26.2"
     },
@@ -502,7 +502,7 @@
       "document_path": "/lumen-licensing/support-services-sow.md",
       "email_ids": [],
       "public_slack_ts": [
-        "8525700.002823"
+        "1780964100.000000"
       ],
       "version_id": "LEGAL!26.4"
     },
@@ -522,7 +522,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-archway.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9370800.003114"
+        "1781809200.000000"
       ],
       "version_id": "LEGAL!27.3"
     },
@@ -533,7 +533,7 @@
       "document_path": "/arroyo-lien-action/stop-notice-service-list.md",
       "email_ids": [],
       "public_slack_ts": [
-        "8262600.002788"
+        "1780701000.000000"
       ],
       "version_id": "LEGAL!28.2"
     },
@@ -544,7 +544,7 @@
       "document_path": "/goldleaf-franchise/scheduling-conference-report.md",
       "email_ids": [],
       "public_slack_ts": [
-        "7573800.002564"
+        "1780012200.000000"
       ],
       "version_id": "LEGAL!29.2"
     },
@@ -555,7 +555,7 @@
       "document_path": "/goldleaf-franchise/scheduling-conference-report.md",
       "email_ids": [],
       "public_slack_ts": [
-        "10062300.003317"
+        "1782500700.000000"
       ],
       "version_id": "LEGAL!29.3"
     },
@@ -566,7 +566,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-harborlight.md",
       "email_ids": [],
       "public_slack_ts": [
-        "5676000.002013"
+        "1778114400.000000"
       ],
       "version_id": "LEGAL!30.2"
     },
@@ -588,7 +588,7 @@
       "document_path": "/pelican-bay-renewal/cam-reconciliation-analysis.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9200400.003047"
+        "1781638800.000000"
       ],
       "version_id": "LEGAL!31.2"
     },
@@ -610,7 +610,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-brightwater.md",
       "email_ids": [],
       "public_slack_ts": [
-        "8007000.002678"
+        "1780445400.000000"
       ],
       "version_id": "LEGAL!33.2"
     },
@@ -621,7 +621,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-brightwater.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9905400.003264"
+        "1782343800.000000"
       ],
       "version_id": "LEGAL!33.3"
     },
@@ -634,7 +634,7 @@
         "msg-000582"
       ],
       "public_slack_ts": [
-        "8674800.002884"
+        "1781113200.000000"
       ],
       "version_id": "LEGAL!34.2"
     },
@@ -645,7 +645,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-summit.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9731700.003194"
+        "1782170100.000000"
       ],
       "version_id": "LEGAL!36.2"
     },
@@ -656,7 +656,7 @@
       "document_path": "/firm/vendor-ndas/mutual-nda-summit.md",
       "email_ids": [],
       "public_slack_ts": [
-        "9975000.003278"
+        "1782413400.000000"
       ],
       "version_id": "LEGAL!36.3"
     }

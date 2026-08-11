@@ -1,6 +1,7 @@
 """Project chat events into the slack database."""
 
 import sqlite3
+from collections import Counter
 from collections.abc import Sequence
 
 from workbench.core.events import Event
@@ -9,6 +10,7 @@ from workbench.core.events.chat import (
     ChatMessagePayload,
     ChatReactionAddedPayload,
 )
+from workbench.tools.framework import read_epoch
 from workbench.tools.slack.tables import (
     CONVERSATIONS,
     MEMBERS,
@@ -26,6 +28,8 @@ def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
     members: list[Member] = []
     messages: list[ChatMessage] = []
     reactions: list[Reaction] = []
+    epoch_seconds = int(read_epoch(connection).timestamp())
+    messages_per_second: Counter[int] = Counter()
     for event in events:
         payload = event.payload
         if isinstance(payload, ChatConversationCreatedPayload):
@@ -43,9 +47,9 @@ def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
                 for person in payload.members
             )
         elif isinstance(payload, ChatMessagePayload):
-            # Slack ts identity "SECONDS.MICROSECONDS": seconds are the event
-            # clock; microseconds are a projection-order counter so messages
-            # sharing a second keep unique, ordered timestamps.
+            relative_seconds = int(event.time)
+            microseconds = messages_per_second[relative_seconds]
+            messages_per_second[relative_seconds] += 1
             messages.append(
                 ChatMessage(
                     chat_message_id=payload.chat_message_id,
@@ -53,8 +57,8 @@ def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
                     reply_to=payload.reply_to,
                     sender=payload.sender,
                     body=payload.body,
-                    time=int(event.time),
-                    ts=f"{int(event.time)}.{len(messages):06d}",
+                    time=relative_seconds,
+                    ts=f"{epoch_seconds + relative_seconds}.{microseconds:06d}",
                 )
             )
         elif isinstance(payload, ChatReactionAddedPayload):

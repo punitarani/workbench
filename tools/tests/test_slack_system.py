@@ -28,6 +28,11 @@ U_DANIEL, U_JESS, U_MEREDITH, U_TOM = (
     "U00000003",
     "U00000004",
 )
+TS_PARENT = "1773299300.000000"
+TS_REPLY = "1773299700.000000"
+TS_DEALS = "1773299700.000001"
+TS_DM = "1773299800.000000"
+TS_LATE = "1773388800.000000"
 
 
 def slack_events() -> list[Event]:
@@ -204,17 +209,17 @@ def test_projection_folds_topic_purpose_members_and_reactions(db_path: Path) -> 
     assert (LEGAL, "chm-000001", "per-jess-alvarez", "eyes") in reactions
 
 
-def test_ts_is_derived_unique_and_projection_ordered(db_path: Path) -> None:
+def test_ts_is_real_unix_time_unique_and_projection_ordered(db_path: Path) -> None:
     with sqlite3.connect(db_path) as connection:
         ts_by_id = dict(
             connection.execute("SELECT chat_message_id, ts FROM messages").fetchall()
         )
     assert ts_by_id == {
-        "chm-000001": "500.000000",
-        "chm-000002": "900.000001",
-        "chm-000003": "900.000002",
-        "chm-000004": "1000.000003",
-        "chm-000005": "90000.000004",
+        "chm-000001": "1773299300.000000",
+        "chm-000002": "1773299700.000000",
+        "chm-000003": "1773299700.000001",
+        "chm-000004": "1773299800.000000",
+        "chm-000005": "1773388800.000000",
     }
     assert len(set(ts_by_id.values())) == len(ts_by_id)
     assert all(re.fullmatch(r"\d+\.\d{6}", ts) for ts in ts_by_id.values())
@@ -278,7 +283,7 @@ async def test_read_channel_newest_first_threads_reactions(server: MCPServer) ->
     assert set(payload) == {"ok", "messages", "has_more"}
     assert payload["ok"] is True and payload["has_more"] is False
     reply, parent = payload["messages"]
-    assert [m["ts"] for m in (reply, parent)] == ["900.000001", "500.000000"]
+    assert [m["ts"] for m in (reply, parent)] == [TS_REPLY, TS_PARENT]
     assert set(parent) == {
         "type",
         "user",
@@ -291,34 +296,34 @@ async def test_read_channel_newest_first_threads_reactions(server: MCPServer) ->
     assert parent["type"] == "message"
     assert parent["user"] == U_DANIEL
     assert parent["text"] == "Taking the NDA review."
-    assert parent["thread_ts"] == "500.000000"
+    assert parent["thread_ts"] == TS_PARENT
     assert parent["reply_count"] == 1
     assert parent["reactions"] == [
         {"name": "thumbsup", "users": [U_TOM, U_MEREDITH], "count": 2},
         {"name": "eyes", "users": [U_JESS], "count": 1},
     ]
     assert set(reply) == {"type", "user", "text", "ts", "thread_ts"}
-    assert reply["thread_ts"] == "500.000000"
+    assert reply["thread_ts"] == TS_PARENT
 
 
 async def test_read_channel_accepts_internal_id_window_limit(
     server: MCPServer,
 ) -> None:
     internal = await call(server, "slack_read_channel", {"channel_id": LEGAL})
-    assert [m["ts"] for m in internal["messages"]] == ["900.000001", "500.000000"]
+    assert [m["ts"] for m in internal["messages"]] == [TS_REPLY, TS_PARENT]
     limited = await call(
         server, "slack_read_channel", {"channel_id": C_LEGAL, "limit": 1}
     )
-    assert [m["ts"] for m in limited["messages"]] == ["900.000001"]
+    assert [m["ts"] for m in limited["messages"]] == [TS_REPLY]
     assert limited["has_more"] is True
     older = await call(
-        server, "slack_read_channel", {"channel_id": C_LEGAL, "latest": "600"}
+        server, "slack_read_channel", {"channel_id": C_LEGAL, "latest": TS_PARENT}
     )
-    assert [m["ts"] for m in older["messages"]] == ["500.000000"]
+    assert [m["ts"] for m in older["messages"]] == [TS_PARENT]
     newer = await call(
-        server, "slack_read_channel", {"channel_id": C_LEGAL, "oldest": "600"}
+        server, "slack_read_channel", {"channel_id": C_LEGAL, "oldest": TS_REPLY}
     )
-    assert [m["ts"] for m in newer["messages"]] == ["900.000001"]
+    assert [m["ts"] for m in newer["messages"]] == [TS_REPLY]
 
 
 async def test_read_channel_caps_the_page_size(tmp_path: Path) -> None:
@@ -357,16 +362,16 @@ async def test_read_thread_parent_first(server: MCPServer) -> None:
     payload = await call(
         server,
         "slack_read_thread",
-        {"channel_id": C_LEGAL, "message_ts": "500.000000"},
+        {"channel_id": C_LEGAL, "message_ts": TS_PARENT},
     )
     assert set(payload) == {"ok", "messages"}
-    assert [m["ts"] for m in payload["messages"]] == ["500.000000", "900.000001"]
+    assert [m["ts"] for m in payload["messages"]] == [TS_PARENT, TS_REPLY]
     from_reply = await call(
         server,
         "slack_read_thread",
-        {"channel_id": C_LEGAL, "message_ts": "900.000001"},
+        {"channel_id": C_LEGAL, "message_ts": TS_REPLY},
     )
-    assert [m["ts"] for m in from_reply["messages"]] == ["500.000000", "900.000001"]
+    assert [m["ts"] for m in from_reply["messages"]] == [TS_PARENT, TS_REPLY]
 
 
 async def test_search_public_terms_phrases_and_channel_scope(
@@ -377,10 +382,10 @@ async def test_search_public_terms_phrases_and_channel_scope(
     assert set(acme["messages"]) == {"matches", "total"}
     assert acme["messages"]["total"] == 2, "the dm Acme message must not surface"
     matches = acme["messages"]["matches"]
-    assert [m["ts"] for m in matches] == ["90000.000004", "900.000002"]
+    assert [m["ts"] for m in matches] == [TS_LATE, TS_DEALS]
     assert matches[0]["channel"] == {"id": C_DEALS, "name": "deal-desk"}
     both_terms = await call(server, "slack_search_public", {"query": "Acme kickoff"})
-    assert [m["ts"] for m in both_terms["messages"]["matches"]] == ["900.000002"]
+    assert [m["ts"] for m in both_terms["messages"]["matches"]] == [TS_DEALS]
     phrase = await call(server, "slack_search_public", {"query": '"kickoff notes"'})
     assert phrase["messages"]["total"] == 1
     scrambled = await call(server, "slack_search_public", {"query": '"notes kickoff"'})
@@ -399,14 +404,14 @@ async def test_search_public_caps_the_page_size(server: MCPServer) -> None:
     paged = await call(
         server, "slack_search_public", {"query": "Acme", "limit": 1, "cursor": "1"}
     )
-    assert [m["ts"] for m in paged["messages"]["matches"]] == ["900.000002"]
+    assert [m["ts"] for m in paged["messages"]["matches"]] == [TS_DEALS]
 
 
 async def test_search_public_returns_its_pagination_cursor(server: MCPServer) -> None:
     """The docstring promises paging; the cursor must reach the caller."""
     first = await call(server, "slack_search_public", {"query": "Acme", "limit": 1})
     assert first["response_metadata"] == {"next_cursor": "1"}
-    assert [m["ts"] for m in first["messages"]["matches"]] == ["90000.000004"]
+    assert [m["ts"] for m in first["messages"]["matches"]] == [TS_LATE]
     rest = await call(
         server,
         "slack_search_public",
@@ -416,7 +421,7 @@ async def test_search_public_returns_its_pagination_cursor(server: MCPServer) ->
             "cursor": first["response_metadata"]["next_cursor"],
         },
     )
-    assert [m["ts"] for m in rest["messages"]["matches"]] == ["900.000002"]
+    assert [m["ts"] for m in rest["messages"]["matches"]] == [TS_DEALS]
     assert rest["response_metadata"] == {"next_cursor": ""}
 
 
@@ -429,7 +434,7 @@ async def test_search_public_and_private_covers_dms(server: MCPServer) -> None:
     assert set(both) == {"ok", "messages", "response_metadata"}
     assert both["messages"]["total"] == 3
     matches = both["messages"]["matches"]
-    assert [m["ts"] for m in matches] == ["90000.000004", "1000.000003", "900.000002"]
+    assert [m["ts"] for m in matches] == [TS_LATE, TS_DM, TS_DEALS]
     dm_hit = matches[1]
     assert dm_hit["text"] == "Acme NDA status?"
     assert dm_hit["channel"] == {"id": C_DM, "name": None}
@@ -441,7 +446,7 @@ async def test_search_public_and_private_shares_the_query_grammar(
     phrase = await call(
         server, "slack_search_public_and_private", {"query": '"NDA status"'}
     )
-    assert [m["ts"] for m in phrase["messages"]["matches"]] == ["1000.000003"]
+    assert [m["ts"] for m in phrase["messages"]["matches"]] == [TS_DM]
     by_sender = await call(
         server, "slack_search_public_and_private", {"query": "from:Jess Acme"}
     )
@@ -450,8 +455,8 @@ async def test_search_public_and_private_shares_the_query_grammar(
         server, "slack_search_public_and_private", {"query": "Acme before:2026-03-13"}
     )
     assert [m["ts"] for m in early["messages"]["matches"]] == [
-        "1000.000003",
-        "900.000002",
+        TS_DM,
+        TS_DEALS,
     ]
     paged = await call(
         server, "slack_search_public_and_private", {"query": "Acme", "limit": 2}
@@ -477,7 +482,7 @@ async def test_seat_scopes_conversations_to_membership(
 
     both = await call(server, "slack_search_public_and_private", {"query": "Acme"})
     assert both["messages"]["total"] == 1, "only tom's own dm is searchable"
-    assert both["messages"]["matches"][0]["ts"] == "1000.000003"
+    assert both["messages"]["matches"][0]["ts"] == TS_DM
     public = await call(server, "slack_search_public", {"query": "Acme"})
     assert public["messages"]["total"] == 0, "tom is not in #deal-desk"
 
@@ -496,13 +501,13 @@ async def test_search_public_from_and_date_filters(server: MCPServer) -> None:
     )
     assert [m["user"] for m in by_uid["messages"]["matches"]] == [U_DANIEL]
     by_name = await call(server, "slack_search_public", {"query": "from:Meredith Acme"})
-    assert [m["ts"] for m in by_name["messages"]["matches"]] == ["900.000002"]
+    assert [m["ts"] for m in by_name["messages"]["matches"]] == [TS_DEALS]
     early = await call(
         server, "slack_search_public", {"query": "Acme before:2026-03-13"}
     )
-    assert [m["ts"] for m in early["messages"]["matches"]] == ["900.000002"]
+    assert [m["ts"] for m in early["messages"]["matches"]] == [TS_DEALS]
     late = await call(server, "slack_search_public", {"query": "Acme after:2026-03-12"})
-    assert [m["ts"] for m in late["messages"]["matches"]] == ["90000.000004"]
+    assert [m["ts"] for m in late["messages"]["matches"]] == [TS_LATE]
 
 
 async def test_search_users_shape_and_matching(server: MCPServer) -> None:
@@ -550,10 +555,10 @@ async def test_get_reactions(server: MCPServer) -> None:
     payload = await call(
         server,
         "slack_get_reactions",
-        {"channel_id": C_LEGAL, "message_ts": "500.000000"},
+        {"channel_id": C_LEGAL, "message_ts": TS_PARENT},
     )
     assert set(payload) == {"ok", "message"}
-    assert payload["message"]["ts"] == "500.000000"
+    assert payload["message"]["ts"] == TS_PARENT
     assert payload["message"]["reactions"] == [
         {"name": "thumbsup", "users": [U_TOM, U_MEREDITH], "count": 2},
         {"name": "eyes", "users": [U_JESS], "count": 1},
@@ -561,7 +566,7 @@ async def test_get_reactions(server: MCPServer) -> None:
     bare = await call(
         server,
         "slack_get_reactions",
-        {"channel_id": C_LEGAL, "message_ts": "900.000001"},
+        {"channel_id": C_LEGAL, "message_ts": TS_REPLY},
     )
     assert bare["message"]["reactions"] == []
 
@@ -609,13 +614,13 @@ async def test_leakage_audit_no_offstage_markers(server: MCPServer) -> None:
     arguments = {
         "slack_search_channels": {"query": ""},
         "slack_read_channel": {"channel_id": C_LEGAL},
-        "slack_read_thread": {"channel_id": C_LEGAL, "message_ts": "500.000000"},
+        "slack_read_thread": {"channel_id": C_LEGAL, "message_ts": TS_PARENT},
         "slack_search_public": {"query": "Acme"},
         "slack_search_public_and_private": {"query": "Acme"},
         "slack_search_users": {"query": ""},
         "slack_read_user_profile": {"user_id": U_MEREDITH},
         "slack_list_channel_members": {"channel_id": C_LEGAL},
-        "slack_get_reactions": {"channel_id": C_LEGAL, "message_ts": "500.000000"},
+        "slack_get_reactions": {"channel_id": C_LEGAL, "message_ts": TS_PARENT},
     }
     for tool in await server.list_tools():
         result = await server.call_tool(tool.name, arguments[tool.name])
