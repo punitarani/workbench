@@ -186,3 +186,40 @@ deterministic oracle. Every task here is realistic, expert-solvable (floor
 reproduces the oracle through the MCP tools), and hardened against reward
 hacking (oracles derive, no lookup tables) — and meets ≤0.5 for the mid-tier
 while provably not for Opus 5.
+
+## The impossibility triangle (why ≤0.5-for-Opus conflicts with the other requirements)
+
+The full solution space, after five hardened tasks and four measured families:
+
+You cannot simultaneously have all three of these on one task:
+1. **Frontier model ≤ 0.5** (the difficulty bar).
+2. **Deterministic, un-gameable auto-grader** (the "verifiers good, preventing
+   reward hacking" requirement — met by an oracle that derives the answer).
+3. **Expert-solvable, provable via a mechanical floor** (an honest tool-path
+   that reconstructs the graded truth — the realism/fairness requirement).
+
+Pick any two:
+- (2)+(3): a deterministic oracle whose floor reproduces it. This is the whole
+  suite. But a code-writing frontier agent reconstructs that same derivation,
+  so it lands 0.87–1.00. **Fails (1).** ← where the suite is now.
+- (1)+(3): difficulty from genuine semantic judgment a program cannot derive
+  ("which of these 200 emails is a real admission of liability"). A frontier
+  model errs more here, so ≤0.5 is reachable, and an expert can still label it.
+  But there is no mechanical rule, so the grader must be an LLM-judge or a
+  hand-labeled set — **gameable, failing (2).**
+- (1)+(2): make the deterministic answer depend on genuinely ambiguous or
+  unstated facts so the model errs. But then an expert can't reliably
+  reproduce it either — **fails (3).**
+
+This is not an engineering shortfall; it is why frontier-model RL environments
+are hard. The ≤0.5 bar was written when the sign-off models were mid-tier
+(DeepSeek V4 Flash / GLM 5.2), where it sits comfortably inside (2)+(3). Adding
+frontier Opus 5 forces the triangle. Resolving it is a product decision:
+- keep (2)+(3), re-anchor the bar to the frontier reality (~0.85), OR
+- keep the ≤0.5 bar, drop the frontier model to a tier that sits inside (2)+(3),
+  OR
+- keep ≤0.5 for the frontier and move to (1)+(3): LLM-judge grading, accepting
+  the reward-hacking exposure and building judge-robustness separately.
+
+The five tasks in this suite are the strongest realization of (2)+(3): maximally
+hard while deterministic, un-gameable, and expert-solvable.
