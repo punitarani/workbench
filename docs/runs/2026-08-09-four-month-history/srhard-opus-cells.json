@@ -1,0 +1,29 @@
+{
+  "run_id": "srhard-opus",
+  "git_revision": "a7fceb7fd64772e1531df7d432ab8fe39e1c8268",
+  "source_jobs_dir": "/Users/punit/projects/workbench-jobs",
+  "cells": [
+    {
+      "task_name": "diagnostic-smoke-04-second-read-audit",
+      "run_id": "srhard-opus",
+      "git_revision": "a7fceb7fd64772e1531df7d432ab8fe39e1c8268",
+      "trial_name": "second-read-audit__JkZNCT8",
+      "model_alias": null,
+      "attempt": null,
+      "valid": false,
+      "reason": null,
+      "reward": null,
+      "answer": null,
+      "process": null,
+      "criteria": [],
+      "tool_calls": {},
+      "tool_call_total": 0,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": [
+        "result.json",
+        "verifier/reward-details.json"
+      ]
+    }
+  ]
+}

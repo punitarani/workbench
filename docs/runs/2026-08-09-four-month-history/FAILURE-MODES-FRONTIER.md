@@ -136,3 +136,30 @@ irreducible ambiguity, or knowledge outside the record — each in direct tensio
 with a deterministic, auto-gradeable oracle. That tension, not an engineering
 shortfall, is why ≤0.5-for-Opus is unreachable on this suite, and it is the
 general reason frontier-model RL environments are hard to build.
+
+## Triangulation: the shortcut/frontier divergence (second-read-audit)
+
+second-read-audit was rebuilt into a 75-row per-row temporal judgment
+(Pacific working-day/holiday boundaries over UTC timestamps, cross-surface
+replies, non-answer acknowledgements). The surface reading is wrong on 43 of
+75 rows; 69 of 75 need a non-obvious judgment. Measured:
+
+| solver | score |
+|---|---:|
+| honest-shortcut (surface reading) | 0.24 |
+| **Opus 5** | **0.8934** (response_audit.f1 0.947) |
+
+This is the mechanism made visible. The traps collapse a *shortcut* solver to
+0.24 but move Opus the wrong way, to 0.89 — because Opus does not take the
+surface reading it was baited with; it writes a parser that converts
+timezones, applies the holiday-aware deadline, and matches responses across
+surfaces. Across three measured tasks in two families (settlement-authority
+0.87, second-read 0.89, operative-deadline 0.88) the frontier ceiling is
+~0.88 and does not move under any per-row-judgment design.
+
+Consequence for the deliverable: the hardening genuinely improves the tasks
+for the tier the ≤0.5 bar was written for — honest-shortcut floors fell to
+0.18–0.24, so a mid-tier model scores well under 0.5 — while confirming the
+frontier model is in a different regime. The tasks meet ≤0.5 for the original
+sign-off tier (DeepSeek V4 Flash / GLM 5.2); they do not, and provably cannot,
+for Opus 5.
