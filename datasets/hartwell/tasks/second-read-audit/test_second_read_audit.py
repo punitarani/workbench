@@ -275,3 +275,28 @@ def test_grading_is_deterministic(tmp_path: Path) -> None:
     first = run_grader(tmp_path / "a", TASK / "solution" / "solve.sh")
     second = run_grader(tmp_path / "b", TASK / "solution" / "solve.sh")
     assert first == second
+
+
+def test_the_honest_shortcut_nearly_reproduces_the_ledger(tmp_path: Path) -> None:
+    """The 0.90 oracle-to-naive gap is not a difficulty measurement.
+
+    ``naive.sh`` emits ``"response_audit": []``. That is not a shortcut an
+    agent would take -- it is the baseline declining to build the work
+    product -- and it is why this task appears to discriminate far better
+    than it does. ``honest-shortcut.sh`` applies exactly the same
+    assumptions (Slack only, clock stopped at close of business) all the
+    way through the ledger, and lands 66 of 75 rows exactly right for
+    0.6742, in the same range as fee-dispute's 0.6763.
+
+    Only nine rows turn on the overnight window or the mail surface, so
+    the two traps this task is built around touch 12% of its evidence.
+    The task's own ``naive < solve - 0.4`` requirement fails against this
+    baseline; that assertion is left untouched and pointed at naive.sh,
+    because the fix is to make the traps bite, not to lower the bar.
+    """
+
+    scored = run_grader(tmp_path, TASK / "baseline" / "honest-shortcut.sh")
+
+    assert 0.65 < scored["answer"] < 0.70, (
+        f"the honest shortcut is worth 0.6742, measured {scored['answer']}"
+    )
