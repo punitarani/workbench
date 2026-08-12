@@ -29,6 +29,19 @@ EPOCH = date(2026, 3, 2)
 PACIFIC = ZoneInfo("America/Los_Angeles")
 WRITE_AND_FINISH = 2
 
+# Every brief scopes its review to the firm's closed quarter: billing-hygiene
+# names it outright ("March 2 through June 30, 2026, inclusive"), the two
+# one-to-one audits sweep "March through June", and the fee reconstruction
+# works the April window inside it. These sweeps went unbounded while the
+# world happened to stop on June 30; the bound is stated here, from the
+# briefs rather than from any solve.py, so the discovery paths keep asking
+# the same question now that the record runs on past the quarter.
+REVIEW_FIRST_DAY = "2026-03-02"
+REVIEW_LAST_DAY = "2026-06-30"
+REVIEW_END_EXCLUSIVE = date(2026, 7, 1)
+# Gmail's ``before:`` is exclusive of the day it names.
+REVIEW_MAIL_QUERY = f"before:{REVIEW_END_EXCLUSIVE:%Y/%m/%d}"
+
 # The firm's standing phrasings for the one-to-one requests each audit
 # certifies, stated verbatim in the corresponding brief.
 SECOND_READ_REQUEST = "mind taking a quick look at my draft before it goes out?"
@@ -254,6 +267,41 @@ async def _dm_channels(client: CountingClient) -> list[dict]:
     return [c for c in listing["channels"] if c["is_im"]]
 
 
+async def _review_mail(client: CountingClient) -> list[dict]:
+    """The whole mailbox for the review period. ``before:`` selects the
+    threads that spoke inside it; the date filter drops any later reply that
+    would ride along on such a thread."""
+    return [
+        message
+        for message in await _gmail_all_pages(client, REVIEW_MAIL_QUERY)
+        if message["date"][:10] <= REVIEW_LAST_DAY
+    ]
+
+
+async def _review_activities(
+    client: CountingClient, matter_id: int | None = None
+) -> list[dict]:
+    """Every time entry of the review period, walked at Clio's 50-per-page
+    cap. Clio serves activities in date order, so the period's entries are a
+    prefix of the history: page until an entry lands past it, then stop."""
+    scope = {} if matter_id is None else {"matter_id": matter_id}
+    activities: list[dict] = []
+    offset = 0
+    while True:
+        page = await client.call(
+            "clio__list_activities", limit=50, offset=offset, **scope
+        )
+        activities += [
+            activity for activity in page["data"] if activity["date"] <= REVIEW_LAST_DAY
+        ]
+        next_offset = page["meta"]["paging"].get("next_offset")
+        if next_offset is None or any(
+            activity["date"] > REVIEW_LAST_DAY for activity in page["data"]
+        ):
+            return activities
+        offset = next_offset
+
+
 async def fee_dispute_reconstruction(client: CountingClient) -> None:
     truth = _oracle("fee-dispute-reconstruction")
     matters = await client.call("clio__list_matters")
@@ -261,17 +309,7 @@ async def fee_dispute_reconstruction(client: CountingClient) -> None:
         m for m in matters["data"] if "Meridian" in f"{m['title']} {m['description']}"
     )
 
-    activities: list[dict] = []
-    offset = 0
-    while True:
-        page = await client.call(
-            "clio__list_activities", matter_id=matter["id"], limit=50, offset=offset
-        )
-        activities += page["data"]
-        next_offset = page["meta"]["paging"].get("next_offset")
-        if next_offset is None:
-            break
-        offset = next_offset
+    activities = await _review_activities(client, matter_id=matter["id"])
 
     notes = await client.call("clio__list_notes", matter_id=matter["id"])
     assert any(len(n["detail"]) > 400 for n in notes["data"]), "resolution note"
@@ -629,7 +667,9 @@ async def operative_deadline(client: CountingClient) -> None:
     )
     assert arroyo["display_number"].startswith("00008")
 
-    public = await _slack_all_pages(client, "Arroyo")
+    # Bounded like the DM sweep below: the docket review closes with the
+    # quarter, so the public surfaces are read over the same span.
+    public = await _slack_all_pages(client, f"Arroyo before:{REVIEW_END_EXCLUSIVE}")
 
     dms = await _dm_channels(client)
     users = await client.call("slack__slack_search_users", query="", limit=100)
@@ -706,19 +746,6 @@ async def operative_deadline(client: CountingClient) -> None:
         matchers.remove(matched)
 
 
-async def _all_activities(client: CountingClient) -> list[dict]:
-    """Every time entry in the record, walked at Clio's 50-per-page cap."""
-    activities: list[dict] = []
-    offset = 0
-    while True:
-        page = await client.call("clio__list_activities", limit=50, offset=offset)
-        activities += page["data"]
-        next_offset = page["meta"]["paging"].get("next_offset")
-        if next_offset is None:
-            return activities
-        offset = next_offset
-
-
 async def _conversation_listing(client: CountingClient) -> list[dict]:
     listing = await client.call("slack__slack_search_channels", query="", limit=100)
     return listing["channels"]
@@ -727,10 +754,11 @@ async def _conversation_listing(client: CountingClient) -> list[dict]:
 async def _read_all(
     client: CountingClient, conversations: list[dict]
 ) -> dict[str, list[dict]]:
-    """Each conversation read end to end. Chat search never returns direct
-    messages, so the lanes have to be opened one by one and the long ones
-    paged."""
-    oldest, latest = _day_seconds("2026-03-02"), _day_seconds("2026-07-31")
+    """Each conversation read end to end over the review period. Chat search
+    never returns direct messages, so the lanes have to be opened one by one
+    and the long ones paged."""
+    oldest = _day_seconds(REVIEW_FIRST_DAY)
+    latest = _day_seconds(REVIEW_END_EXCLUSIVE.isoformat())
     return {
         conversation["id"]: await _read_window(
             client, conversation["id"], oldest, latest
@@ -743,8 +771,16 @@ async def billing_hygiene_audit(client: CountingClient) -> None:
     truth = _truth("billing-hygiene-audit")
     oracle = _oracle("billing-hygiene-audit")
     users = await client.call("clio__list_users")
-    activities = await _all_activities(client)
-    notes = await client.call("clio__list_notes")
+    activities = await _review_activities(client)
+    # list_notes serves the whole file in one page; the period bound is the
+    # caller's, exactly as it is for the entries the notes corroborate.
+    notes = {
+        "data": [
+            note
+            for note in (await client.call("clio__list_notes"))["data"]
+            if note["date"] <= REVIEW_LAST_DAY
+        ]
+    }
     billable = [activity for activity in activities if not activity["non_billable"]]
     assert len(activities) == 4_306, len(activities)
     assert len(billable) == truth["entries_reviewed"], len(billable)
@@ -755,7 +791,7 @@ async def billing_hygiene_audit(client: CountingClient) -> None:
 
     # The footprint index: every surface a person can write on, per day.
     footprint: set[tuple[str, str]] = set()
-    mail_messages = await _gmail_all_pages(client, "")
+    mail_messages = await _review_mail(client)
     for message in mail_messages:
         footprint.add((_sender_email(message), message["date"][:10]))
     conversations = await _conversation_listing(client)
@@ -929,7 +965,7 @@ async def _one_to_one_request_audit(
         membership[lane["id"]] = set(members["members"])
 
     mailed: list[tuple[str, str, int, str]] = []
-    for message in await _gmail_all_pages(client, ""):
+    for message in await _review_mail(client):
         for recipient in message["toRecipients"] + message["ccRecipients"]:
             mailed.append(
                 (

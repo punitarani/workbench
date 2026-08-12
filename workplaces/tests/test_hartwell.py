@@ -61,10 +61,11 @@ def test_genesis_is_deterministic() -> None:
 def test_cast_counts_and_roles() -> None:
     assert len(EMPLOYEES) == 12
     assert len(CLIENT_ORGS) == 12
-    assert len(EXTERNALS) == 14
+    # 15 since the September continuation added Goldleaf's opposing counsel.
+    assert len(EXTERNALS) == 15
 
-    assert len({person.person_id for person in (*EMPLOYEES, *EXTERNALS)}) == 26
-    assert len({person.name for person in (*EMPLOYEES, *EXTERNALS)}) == 26
+    assert len({person.person_id for person in (*EMPLOYEES, *EXTERNALS)}) == 27
+    assert len({person.name for person in (*EMPLOYEES, *EXTERNALS)}) == 27
     assert all(person.affiliation == "internal" for person in EMPLOYEES)
     assert all(person.affiliation == "external" for person in EXTERNALS)
     assert all(org.category == "client" for org in CLIENT_ORGS)
@@ -194,7 +195,8 @@ def test_day_profile_covers_the_whole_calendar() -> None:
     profiles = [day_profile(seed, index) for index in range(WINDOW.day_count)]
     kinds = Counter(profile.kind for profile in profiles)
     # 87 weekdays, of which Memorial Day and Juneteenth are observed.
-    assert kinds == {"workday": 85, "weekend": 34, "holiday": 2}
+    # March 2 - September 30: the continuation doubled the horizon.
+    assert kinds == {"workday": 149, "weekend": 60, "holiday": 4}
     assert all(profile.intensity > 0 for profile in profiles), (
         "no day is completely silent"
     )
@@ -207,7 +209,8 @@ def test_day_profile_covers_the_whole_calendar() -> None:
         for day, _, _ in FEDERAL_HOLIDAYS_2026
         if WINDOW.start_date <= day <= WINDOW.end_date
     }
-    assert in_window == {"2026-05-25", "2026-06-19"}
+    # Independence Day observed and Labor Day fall inside the continuation.
+    assert in_window == {"2026-05-25", "2026-06-19", "2026-07-03", "2026-09-07"}
 
 
 def test_day_profile_is_deterministic() -> None:

@@ -4,7 +4,7 @@ import json
 import shutil
 import subprocess
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -27,9 +27,7 @@ def _grade(
     if raw is not None:
         (workspace / "authority.json").write_text(raw)
     elif answer is not None:
-        (workspace / "authority.json").write_text(
-            json.dumps(answer, allow_nan=True)
-        )
+        (workspace / "authority.json").write_text(json.dumps(answer, allow_nan=True))
     output = tmp_path / "reward.json"
     subprocess.run(
         [REWARDKIT, str(TESTS), "--workspace", str(workspace), "--output", str(output)],
@@ -47,9 +45,7 @@ def test_exact_answer_has_only_answer_and_process(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     "field", ["breach_message_ids", "authority_timeline", "proposal_audit"]
 )
-def test_near_miss_shotgun_duplicate_and_reorder(
-    tmp_path: Path, field: str
-) -> None:
+def test_near_miss_shotgun_duplicate_and_reorder(tmp_path: Path, field: str) -> None:
     near = _perfect()
     near[field].pop()
     shotgun = _perfect()
@@ -79,9 +75,9 @@ def test_equivalent_utc_timestamps_receive_full_credit(tmp_path: Path) -> None:
             for field in ("effective_at", "expires_at", "sent_at"):
                 value = record.get(field)
                 if value:
-                    record[field] = datetime.fromisoformat(value).astimezone(
-                        timezone.utc
-                    ).isoformat()
+                    record[field] = (
+                        datetime.fromisoformat(value).astimezone(UTC).isoformat()
+                    )
     assert _grade(tmp_path, answer)["answer"] == 1.0
 
 

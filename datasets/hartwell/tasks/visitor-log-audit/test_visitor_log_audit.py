@@ -20,6 +20,11 @@ TASK = Path(__file__).parent
 BUNDLE = TASK / "bundle"
 TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
+
+# instruction.md: "Every instance in every Slack direct-message conversation
+# from March through June is in scope." Derived here rather than imported
+# from solve.py so this re-derivation stays independent of the oracle.
+REVIEW_SCOPE_SECONDS = (date(2026, 7, 1) - date(2026, 3, 2)).days * 86_400
 PUBLIC_FIELDS = {
     "requests_reviewed",
     "conversations_reviewed",
@@ -316,7 +321,9 @@ def test_reference_custody_audit_matches_fresh_bundle() -> None:
     }
     history: dict[str, list[tuple[str, str, int, str]]] = {}
     for conversation_id, sender, body, timestamp, timestamp_id in connection.execute(
-        "SELECT conversation_id, sender, body, time, ts FROM messages ORDER BY time"
+        "SELECT conversation_id, sender, body, time, ts FROM messages "
+        "WHERE time < ? ORDER BY time",
+        (REVIEW_SCOPE_SECONDS,),
     ):
         if conversation_id in dm_ids:
             history.setdefault(conversation_id, []).append(
@@ -330,7 +337,8 @@ def test_reference_custody_audit_matches_fresh_bundle() -> None:
     mail = [
         (sender, recipient, timestamp, message_id)
         for message_id, sender, timestamp in connection.execute(
-            "SELECT message_id, sender, time FROM gmail.messages"
+            "SELECT message_id, sender, time FROM gmail.messages WHERE time < ?",
+            (REVIEW_SCOPE_SECONDS,),
         )
         for recipient in recipients.get(message_id, ())
     ]
@@ -402,7 +410,7 @@ def test_independent_sql_rederives_requests_and_first_response_outcomes() -> Non
     state = BUNDLE / "state"
     connection = sqlite3.connect(f"file:{state / 'slack.db'}?mode=ro", uri=True)
     connection.execute("ATTACH DATABASE ? AS gmail", (str(state / "gmail.db"),))
-    query = """
+    query = f"""
         WITH requests AS (
           SELECT message.chat_message_id, message.conversation_id,
                  message.sender AS asker, member.person_id AS asked_of,
@@ -417,6 +425,7 @@ def test_independent_sql_rederives_requests_and_first_response_outcomes() -> Non
            AND member.person_id != message.sender
           WHERE lower(trim(message.body)) =
                 'do you still have the sign-in sheet from yesterday?'
+            AND message.time < {REVIEW_SCOPE_SECONDS}
         ),
         responses AS (
           SELECT request.chat_message_id, message.time
@@ -425,12 +434,14 @@ def test_independent_sql_rederives_requests_and_first_response_outcomes() -> Non
             ON message.conversation_id = request.conversation_id
            AND message.sender = request.asked_of
            AND message.time > request.request_time
+           AND message.time < {REVIEW_SCOPE_SECONDS}
           UNION ALL
           SELECT request.chat_message_id, message.time
           FROM requests AS request
           JOIN gmail.messages AS message
             ON message.sender = request.asked_of
            AND message.time > request.request_time
+           AND message.time < {REVIEW_SCOPE_SECONDS}
           JOIN gmail.recipients AS recipient
             ON recipient.message_id = message.message_id
            AND recipient.person_id = request.asker

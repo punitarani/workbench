@@ -10,12 +10,16 @@ from datetime import date, datetime, timedelta, timezone
 
 EPOCH = date(2026, 3, 2)
 REQUEST = "do you still have the sign-in sheet from yesterday?"
+# instruction.md scopes the sweep to March through June; a plausible
+# shortcut still respects the stated period and errs on the follow-up
+# window and the mail surface instead.
+SCOPE_SECONDS = (date(2026, 7, 1) - EPOCH).days * 86_400
 STATE = os.environ.get("WORKBENCH_STATE", "../state")
 
 
-def rows(sql):
+def rows(sql, *params):
     with sqlite3.connect(f"file:{STATE}/slack.db?mode=ro", uri=True) as connection:
-        return connection.execute(sql).fetchall()
+        return connection.execute(sql, params).fetchall()
 
 
 def day_of(timestamp):
@@ -37,7 +41,9 @@ for lane, person in rows("SELECT conversation_id, person_id FROM members"):
     members.setdefault(lane, set()).add(person)
 history = {}
 for lane, sender, body, timestamp, ts in rows(
-    "SELECT conversation_id, sender, body, time, ts FROM messages ORDER BY time"
+    "SELECT conversation_id, sender, body, time, ts FROM messages "
+    "WHERE time < ? ORDER BY time",
+    SCOPE_SECONDS,
 ):
     if lane in lanes:
         history.setdefault(lane, []).append((sender, body, timestamp, ts))

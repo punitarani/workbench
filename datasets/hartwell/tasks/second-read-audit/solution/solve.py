@@ -69,7 +69,9 @@ for message_id, person in rows(
 mailed = [
     (sender, recipient, time, message_id)
     for message_id, sender, time in rows(
-        "gmail.db", "SELECT message_id, sender, time FROM messages WHERE time < ?", CUTOFF
+        "gmail.db",
+        "SELECT message_id, sender, time FROM messages WHERE time < ?",
+        CUTOFF,
     )
     for recipient in recipients.get(message_id, ())
 ]

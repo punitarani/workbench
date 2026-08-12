@@ -90,6 +90,7 @@ S4_CLOSED_DATE = "2026-06-04"
 def _at(hour: int, minute: int = 0) -> int:
     return hour * 3600 + minute * 60
 
+
 # S6: the Goldleaf settlement-authority file. The client and counsel use the
 # ordinary internal code name "Project Marigold" in much of the negotiation;
 # the Clio note below is the evidence that resolves it to the Goldleaf matter.
@@ -5708,7 +5709,7 @@ class StorylineDirector:
                 _DEREK,
                 "Marigold — final response",
                 "Alder Grove's final proposal is $260,000 inclusive, mutual "
-                "release, and confidential terms. It expires tomorrow."
+                "release, and confidential terms. It expires tomorrow.",
             ),
         )
         for index, (day, clock, sender, subject, body) in enumerate(opponent_offers):

@@ -12,6 +12,10 @@ from datetime import date, timedelta
 
 EPOCH = date(2026, 3, 2)
 REQUEST = "mind taking a quick look at my draft before it goes out?"
+# instruction.md scopes the sweep to March through June; a plausible
+# shortcut still respects the stated period and errs on the deadline and
+# the mail surface instead.
+SCOPE_SECONDS = (date(2026, 7, 1) - EPOCH).days * 86_400
 
 STATE = os.environ.get("WORKBENCH_STATE", "../state")
 
@@ -40,7 +44,9 @@ for conversation_id, person in rows(
 chat = {}
 for conversation_id, sender, body, time, ts in rows(
     "slack.db",
-    "SELECT conversation_id, sender, body, time, ts FROM messages ORDER BY time",
+    "SELECT conversation_id, sender, body, time, ts FROM messages "
+    "WHERE time < ? ORDER BY time",
+    SCOPE_SECONDS,
 ):
     if conversation_id in pairs:
         chat.setdefault(conversation_id, []).append((sender, body, time, ts))

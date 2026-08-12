@@ -302,9 +302,7 @@ answer = {
     )[0][0],
     "negotiation_alias": "Project Marigold",
     "client_decision_maker": names["per-olivia-chen"],
-    "opposing_counsel": sorted(
-        (names["per-derek-strauss"], names["per-mia-denning"])
-    ),
+    "opposing_counsel": sorted((names["per-derek-strauss"], names["per-mia-denning"])),
     "proposal_count": len(proposal_audit),
     "authorized_count": len(proposal_audit) - len(breaches),
     "breach_count": len(breaches),

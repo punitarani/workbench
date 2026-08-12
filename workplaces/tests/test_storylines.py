@@ -139,9 +139,7 @@ def test_s6_settlement_authority_is_a_chronological_cross_surface_audit(
     assert people["per-olivia-chen"].organization == "org-000010"
 
     messages = [
-        event
-        for event in full_log
-        if isinstance(event.payload, EmailMessagePayload)
+        event for event in full_log if isinstance(event.payload, EmailMessagePayload)
     ]
     authority = [
         event
@@ -158,11 +156,10 @@ def test_s6_settlement_authority_is_a_chronological_cross_surface_audit(
     assert len(authority) == len(S6_AUTHORITY_SUBJECTS) == 7
     assert len(outbound) == len(S6_OUTBOUND_SUBJECTS) == 14
     assert len({event.payload.subject for event in outbound}) == 14
-    assert {
-        recipient
-        for event in outbound
-        for recipient in event.payload.to
-    } <= {"per-derek-strauss", "per-mia-denning"}
+    assert {recipient for event in outbound for recipient in event.payload.to} <= {
+        "per-derek-strauss",
+        "per-mia-denning",
+    }
     assert all(_event_date(event) >= "2026-07-01" for event in authority + outbound)
 
     call_notes = [

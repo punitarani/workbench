@@ -9,12 +9,18 @@ import sqlite3
 import subprocess
 import sys
 import tomllib
+from datetime import date
 from pathlib import Path
 
 import pytest
 
 TASK = Path(__file__).parent
 BUNDLE = TASK / "bundle"
+
+# instruction.md: "The certification period is March 2 through June 30,
+# 2026, inclusive." Derived here rather than imported from solve.py so
+# this re-derivation stays independent of the oracle.
+CERTIFICATION_SCOPE_SECONDS = (date(2026, 7, 1) - date(2026, 3, 2)).days * 86_400
 TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
 PUBLIC_FIELDS = {
@@ -337,10 +343,12 @@ def test_reference_daily_review_matches_fresh_bundle() -> None:
     )
     activities = connection.execute(
         "SELECT ROW_NUMBER() OVER (ORDER BY time), ticket_id, person, time, "
-        "billable FROM activities ORDER BY time"
+        "billable FROM activities WHERE time < ? ORDER BY time",
+        (CERTIFICATION_SCOPE_SECONDS,),
     ).fetchall()
     notes = connection.execute(
-        "SELECT ticket_id, author, time FROM notes ORDER BY time"
+        "SELECT ticket_id, author, time FROM notes WHERE time < ? ORDER BY time",
+        (CERTIFICATION_SCOPE_SECONDS,),
     ).fetchall()
 
     def day(timestamp: int) -> str:
@@ -351,12 +359,15 @@ def test_reference_daily_review_matches_fresh_bundle() -> None:
 
     sent_gmail: dict[tuple[str, str], list[str]] = {}
     for message_id, sender, timestamp in connection.execute(
-        "SELECT message_id, sender, time FROM gmail.messages ORDER BY time, message_id"
+        "SELECT message_id, sender, time FROM gmail.messages WHERE time < ? "
+        "ORDER BY time, message_id",
+        (CERTIFICATION_SCOPE_SECONDS,),
     ):
         sent_gmail.setdefault((sender, day(timestamp)), []).append(message_id)
     sent_slack: dict[tuple[str, str], list[str]] = {}
     for ts, sender, timestamp in connection.execute(
-        "SELECT ts, sender, time FROM slack.messages ORDER BY time, ts"
+        "SELECT ts, sender, time FROM slack.messages WHERE time < ? ORDER BY time, ts",
+        (CERTIFICATION_SCOPE_SECONDS,),
     ):
         sent_slack.setdefault((sender, day(timestamp)), []).append(ts)
 
@@ -425,29 +436,29 @@ def test_independent_sql_asserts_corroborated_entry_and_note_sets() -> None:
     connection = sqlite3.connect(f"file:{state / 'clio.db'}?mode=ro", uri=True)
     connection.execute("ATTACH DATABASE ? AS gmail", (str(state / "gmail.db"),))
     connection.execute("ATTACH DATABASE ? AS slack", (str(state / "slack.db"),))
-    query = """
+    query = f"""
         WITH indexed AS (
           SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, activities.*,
                  date('2026-03-02', printf('+%d days', time / 86400)) AS day
-          FROM activities
+          FROM activities WHERE time < {CERTIFICATION_SCOPE_SECONDS}
         ),
         messages AS (
           SELECT sender AS person,
                  date('2026-03-02', printf('+%d days', time / 86400)) AS day
-          FROM gmail.messages
+          FROM gmail.messages WHERE time < {CERTIFICATION_SCOPE_SECONDS}
           UNION
           SELECT sender,
                  date('2026-03-02', printf('+%d days', time / 86400))
-          FROM slack.messages
+          FROM slack.messages WHERE time < {CERTIFICATION_SCOPE_SECONDS}
         ),
         events AS (
           SELECT ticket_id, person,
                  date('2026-03-02', printf('+%d days', time / 86400)) AS day
-          FROM activities
+          FROM activities WHERE time < {CERTIFICATION_SCOPE_SECONDS}
           UNION ALL
           SELECT ticket_id, author,
                  date('2026-03-02', printf('+%d days', time / 86400))
-          FROM notes
+          FROM notes WHERE time < {CERTIFICATION_SCOPE_SECONDS}
         )
         SELECT indexed.id
         FROM indexed
@@ -466,29 +477,29 @@ def test_independent_sql_asserts_corroborated_entry_and_note_sets() -> None:
         ORDER BY indexed.id
     """
     activity_ids = [row[0] for row in connection.execute(query)]
-    note_query = """
+    note_query = f"""
         WITH indexed AS (
           SELECT ROW_NUMBER() OVER (ORDER BY time) AS id, notes.*,
                  date('2026-03-02', printf('+%d days', time / 86400)) AS day
-          FROM notes
+          FROM notes WHERE time < {CERTIFICATION_SCOPE_SECONDS}
         ),
         messages AS (
           SELECT sender AS person,
                  date('2026-03-02', printf('+%d days', time / 86400)) AS day
-          FROM gmail.messages
+          FROM gmail.messages WHERE time < {CERTIFICATION_SCOPE_SECONDS}
           UNION
           SELECT sender,
                  date('2026-03-02', printf('+%d days', time / 86400))
-          FROM slack.messages
+          FROM slack.messages WHERE time < {CERTIFICATION_SCOPE_SECONDS}
         ),
         events AS (
           SELECT ticket_id, person,
                  date('2026-03-02', printf('+%d days', time / 86400)) AS day
-          FROM activities
+          FROM activities WHERE time < {CERTIFICATION_SCOPE_SECONDS}
           UNION ALL
           SELECT ticket_id, author,
                  date('2026-03-02', printf('+%d days', time / 86400))
-          FROM notes
+          FROM notes WHERE time < {CERTIFICATION_SCOPE_SECONDS}
         )
         SELECT indexed.id
         FROM indexed

@@ -57,9 +57,7 @@ def test_harbor_layout_and_evidence_contract() -> None:
     assert config["task"]["name"] == "workbench/settlement-authority-audit"
     assert config["environment"]["docker_image"] == "workbench:dev"
     assert "harness" not in config
-    assert config["metadata"]["agent_data_scope"].startswith(
-        "Intentionally seatless"
-    )
+    assert config["metadata"]["agent_data_scope"].startswith("Intentionally seatless")
     evidence = config["metadata"]["evidence"]
     assert evidence == {
         "primary_field": "proposal_audit",

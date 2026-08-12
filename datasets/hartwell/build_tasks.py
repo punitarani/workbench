@@ -375,9 +375,7 @@ def main() -> int:
             "uv run python datasets/hartwell/build_history.py --days all"
         )
     available = {
-        path.name: path
-        for path in TASKS.iterdir()
-        if (path / "task.toml").exists()
+        path.name: path for path in TASKS.iterdir() if (path / "task.toml").exists()
     }
     selected = sorted(available) if not arguments.tasks else arguments.tasks
     unknown = sorted(set(selected) - set(available))

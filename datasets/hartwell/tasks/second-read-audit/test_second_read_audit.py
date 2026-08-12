@@ -24,6 +24,11 @@ EPOCH = date(2026, 3, 2)
 REQUEST = "mind taking a quick look at my draft before it goes out?"
 PACIFIC = ZoneInfo("America/Los_Angeles")
 
+# instruction.md: "Sweep every one-to-one conversation from March through
+# June." Derived here rather than imported from solve.py so this
+# re-derivation stays independent of the oracle.
+REVIEW_SCOPE_SECONDS = (date(2026, 7, 1) - EPOCH).days * 86_400
+
 pytestmark = pytest.mark.skipif(
     not BUNDLE.exists(),
     reason="task bundle not built; run datasets/hartwell/build_tasks.py",
@@ -63,9 +68,9 @@ def test_harbor_rewardkit_layout_replaces_legacy_grader() -> None:
     }
 
 
-def _rows(database: str, sql: str) -> list[tuple]:
+def _rows(database: str, sql: str, *params: object) -> list[tuple]:
     with sqlite3.connect(BUNDLE / "state" / database) as connection:
-        return connection.execute(sql).fetchall()
+        return connection.execute(sql, params).fetchall()
 
 
 def _day(timestamp: int) -> date:
@@ -113,7 +118,9 @@ def test_reference_response_audit_matches_fresh_bundle() -> None:
     messages: dict[str, list[tuple[str, str, int, str]]] = {}
     for conversation_id, sender, body, timestamp, timestamp_id in _rows(
         "slack.db",
-        "SELECT conversation_id, sender, body, time, ts FROM messages ORDER BY time",
+        "SELECT conversation_id, sender, body, time, ts FROM messages "
+        "WHERE time < ? ORDER BY time",
+        REVIEW_SCOPE_SECONDS,
     ):
         if conversation_id in dm_ids:
             messages.setdefault(conversation_id, []).append(
@@ -127,7 +134,9 @@ def test_reference_response_audit_matches_fresh_bundle() -> None:
     mail = [
         (sender, recipient, timestamp, message_id)
         for message_id, sender, timestamp in _rows(
-            "gmail.db", "SELECT message_id, sender, time FROM messages"
+            "gmail.db",
+            "SELECT message_id, sender, time FROM messages WHERE time < ?",
+            REVIEW_SCOPE_SECONDS,
         )
         for recipient in recipients.get(message_id, ())
     ]

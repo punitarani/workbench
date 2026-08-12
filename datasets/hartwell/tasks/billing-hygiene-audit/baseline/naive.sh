@@ -9,6 +9,9 @@ import sqlite3
 from datetime import date, timedelta
 
 EPOCH = date(2026, 3, 2)
+# instruction.md states the certification period; a plausible shortcut
+# still respects it and errs on the corroboration join instead.
+SCOPE_SECONDS = (date(2026, 7, 1) - EPOCH).days * 86_400
 STATE = os.environ.get("WORKBENCH_STATE", "../state")
 
 
@@ -29,16 +32,17 @@ def billed_cents(seconds, rate_cents, billable):
 
 sent = {
     (sender, day_of(timestamp))
-    for sender, timestamp in rows("gmail.db", "SELECT sender, time FROM messages")
+    for sender, timestamp in rows("gmail.db", f"SELECT sender, time FROM messages WHERE time < {SCOPE_SECONDS}")
 }
 sent.update(
     (sender, day_of(timestamp))
-    for sender, timestamp in rows("slack.db", "SELECT sender, time FROM messages")
+    for sender, timestamp in rows("slack.db", f"SELECT sender, time FROM messages WHERE time < {SCOPE_SECONDS}")
 )
 activities = rows(
     "clio.db",
     "SELECT ROW_NUMBER() OVER (ORDER BY time), ticket_id, person, "
-    "quantity_seconds, time, rate_cents, billable FROM activities",
+    f"quantity_seconds, time, rate_cents, billable FROM activities "
+    f"WHERE time < {SCOPE_SECONDS}",
 )
 billable = [entry for entry in activities if entry[6]]
 person_days = {(day_of(entry[4]), entry[2]) for entry in billable}
