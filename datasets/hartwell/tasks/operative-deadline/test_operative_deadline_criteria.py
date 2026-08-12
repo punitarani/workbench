@@ -12,6 +12,7 @@ TASK = Path(__file__).parent
 TESTS = TASK / "tests"
 REWARDKIT = shutil.which("rewardkit")
 T = json.loads((TESTS / "ground_truth.json").read_text())
+ORACLE = json.loads((TESTS / "oracle.json").read_text())
 pytestmark = pytest.mark.skipif(REWARDKIT is None, reason="rewardkit not installed")
 
 
@@ -33,6 +34,7 @@ def _perfect() -> dict[str, object]:
             record["id"] if record["kind"] == "email" else record["ts_prefix"] + ".001"
             for record in T["stale_calendar_refs"]
         ],
+        "notice_audit": deepcopy(ORACLE["notice_audit"]),
     }
 
 
@@ -178,3 +180,54 @@ def test_process_detects_native_and_unified_calls_not_mentions(
     )
     details = json.loads((tmp_path / "reward-details.json").read_text())
     assert details["process"]["criteria"][0]["value"] == expected
+
+
+def test_listing_only_the_stale_rows_no_longer_pays_like_the_answer(
+    tmp_path: Path,
+) -> None:
+    """The pre-hardening deliverable, graded against the work product.
+
+    Before ``notice_audit`` existed, this task asked for a conclusion:
+    every scalar plus one five-item list. Nine of nine measured cells
+    were precision-1.0 -- none ever submitted a false positive -- so
+    under-claiming was the dominant strategy and the ceiling sat near the
+    top. An agent that still stops at the stale references now files
+    five rows of a thirteen-row schedule.
+
+    Pinned to the measured figure rather than a comfortable threshold:
+    0.6856 is what perfect work on the old task is worth once the audit
+    carries the score, and a rebalance that moves it should have to say
+    so out loud.
+    """
+
+    answer = _perfect()
+    answer["notice_audit"] = [
+        row for row in ORACLE["notice_audit"] if row["classification"] == "stale"
+    ]
+
+    scored = _grade(tmp_path, answer)["answer"]
+
+    assert 0.67 < scored < 0.70, f"stale-only is worth 0.6856, measured {scored}"
+
+
+def test_an_audit_that_contradicts_its_own_stale_list_earns_no_coherence(
+    tmp_path: Path,
+) -> None:
+    """``stale_calendar_refs`` is a partition of the audit, not a rumour."""
+
+    answer = _perfect()
+    answer["stale_calendar_refs"] = answer["stale_calendar_refs"][:2]
+
+    assert _grade(tmp_path, answer)["answer"] < 1.0
+
+
+def test_a_current_row_cannot_name_a_superseded_date(tmp_path: Path) -> None:
+    """Classification and the two dates on the row have to agree."""
+
+    answer = _perfect()
+    for row in answer["notice_audit"]:
+        if row["classification"] == "stale":
+            row["classification"] = "current"
+            break
+
+    assert _grade(tmp_path, answer)["answer"] < 1.0

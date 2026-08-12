@@ -19,9 +19,20 @@ PUBLIC_FIELDS = frozenset(
         "superseded_dates",
         "supersessions",
         "stale_calendar_refs",
+        "notice_audit",
     }
 )
 SUPERSESSION_FIELDS = frozenset({"invalidated", "by"})
+NOTICE_FIELDS = frozenset(
+    {
+        "message_id",
+        "surface",
+        "cites_date",
+        "operative_when_sent",
+        "classification",
+    }
+)
+CLASSIFICATIONS = frozenset({"current", "stale", "correction"})
 
 
 def _finite_json(value: object) -> bool:
@@ -54,12 +65,20 @@ def _valid_contract(document: dict[str, object]) -> bool:
         isinstance(value, str) for value in stale
     ):
         return False
-    return isinstance(supersessions, list) and all(
+    if not isinstance(supersessions, list) or not all(
         isinstance(record, dict)
         and set(record) == SUPERSESSION_FIELDS
         and isinstance(record.get("invalidated"), str)
         and isinstance(record.get("by"), str)
         for record in supersessions
+    ):
+        return False
+    audit = document.get("notice_audit")
+    return isinstance(audit, list) and all(
+        isinstance(row, dict)
+        and set(row) == NOTICE_FIELDS
+        and all(isinstance(row.get(key), str) for key in NOTICE_FIELDS)
+        for row in audit
     )
 
 
@@ -200,6 +219,84 @@ def reference_exact(workspace: Path, path: str, expected: list[dict[str, str]]) 
     return _reference_counter(
         _submitted(workspace, path).get("stale_calendar_refs")
     ) == _truth_references(expected)
+
+
+def _notice_counter(values: object) -> Counter[str]:
+    """One key per (message, date named, judgement) the audit records.
+
+    Identities are normalized the same way ``stale_calendar_refs`` are, so
+    a Slack ts written with or without its fractional part is the same
+    row rather than a free extra.
+    """
+
+    if not isinstance(values, list):
+        return Counter()
+    return Counter(
+        "\0".join(
+            (
+                _reference(row["message_id"]),
+                str(row["surface"]).strip().lower(),
+                str(row["cites_date"]).strip(),
+                str(row["operative_when_sent"]).strip(),
+                str(row["classification"]).strip().lower(),
+            )
+        )
+        for row in values
+        if isinstance(row, dict) and set(row) == NOTICE_FIELDS
+    )
+
+
+@criterion(description="notice audit F1", shared=True)
+def notice_audit_f1(workspace: Path, path: str, expected: list[object]) -> float:
+    return _f1(
+        _notice_counter(_submitted(workspace, path).get("notice_audit")),
+        _notice_counter(expected),
+    )
+
+
+@criterion(description="notice audit exact", shared=True)
+def notice_audit_exact(workspace: Path, path: str, expected: list[object]) -> bool:
+    return _notice_counter(
+        _submitted(workspace, path).get("notice_audit")
+    ) == _notice_counter(expected)
+
+
+@criterion(description="notice audit is internally consistent", shared=True)
+def notice_audit_reconciles(workspace: Path, path: str) -> bool:
+    """Does the audit agree with the rest of the deliverable?
+
+    Checked against the submission's own claims, never the oracle, so
+    this pays for coherence rather than for a second copy of the answer.
+    A non-empty ledger is required: over an empty one every quantifier
+    below is vacuously true, which would pay most for doing least.
+    """
+
+    document = _submitted(workspace, path)
+    audit = document.get("notice_audit")
+    if not isinstance(audit, list) or not audit:
+        return False
+    known = {str(value) for value in document.get("superseded_dates") or ()}
+    known.add(str(document.get("operative_date")))
+    for row in audit:
+        if row["classification"] not in CLASSIFICATIONS:
+            return False
+        if row["cites_date"] not in known:
+            return False
+        if row["surface"] not in {"gmail", "slack"}:
+            return False
+        # A citation is current exactly when it names the date that was
+        # operative as it was sent; stale is the strict complement.
+        same = row["cites_date"] == row["operative_when_sent"]
+        if row["classification"] == "current" and not same:
+            return False
+        if row["classification"] == "stale" and same:
+            return False
+    stale_rows = Counter(
+        _reference(row["message_id"])
+        for row in audit
+        if row["classification"] == "stale"
+    )
+    return stale_rows == _reference_counter(document.get("stale_calendar_refs"))
 
 
 @criterion(description="exact public schema and types", shared=True)

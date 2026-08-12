@@ -767,6 +767,37 @@ establish how much of the observed spread was the timestamp artifact.
 
 ---
 
+## 7. Implementation status
+
+| Rec | State | Landed as | Note |
+|---|---|---|---|
+| R1 | done | `notice_audit` work product | 13-row schedule; the whole pre-hardening deliverable, filed perfectly, is now worth **0.6856** |
+| R2 | not started | — | needs new world events (oral report → written confirmation) |
+| R3 | not started | — | needs sign-off traffic in Gmail/Slack |
+| R4 | done | decoy enumerations deleted | rules kept; no oracle change |
+| R5 | done | `also_satisfied_by` on `tool_invoked` | diagnostic only, reward untouched |
+| R6 | done | `DisposableJobsDirError` + `docs/runs/<run>/*-cells.json` | derived worktree jobs_dir refused |
+| R7 | **open** | — | blocking; needs paid re-measurement |
+
+R1's own measurements, taken against the rebuilt task:
+
+| Submission | `answer` |
+|---|---:|
+| certified | 1.0000 |
+| every row but the corrections | 0.7990 |
+| the old task, answered perfectly | 0.6856 |
+| schema-valid, empty audit | 0.2900 |
+
+The 0.6856 row is the one that matters and it is not a success: an agent
+that does exactly what the nine measured cells did still clears 0.5. What
+R1 buys is that the ceiling is no longer reachable without the audit, and
+that under-claiming — precision 1.0 on two or three items, which every
+measured cell did — now forfeits recall it used to be handed. Whether
+that is enough to hold three models at or below 0.5 is **not knowable
+from this document**; it is exactly the question R7 is blocking.
+
+---
+
 ## Appendix: figures that could not be recovered
 
 - Per-cell `started_at` / `finished_at` for every trial (wall times above are

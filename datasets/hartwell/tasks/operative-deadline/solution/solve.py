@@ -133,12 +133,26 @@ supersessions = [
 ]
 supersessions.append({"invalidated": noticed[-1].isoformat(), "by": operative[2]})
 
-# Stale references: every communication citing a superseded date as the
-# hearing's setting strictly after that date's supersession record. A
-# message negating the date ("not the 18th") is a correction; a message
-# with no case context (another matter's date) is not a citation.
+# The notice audit: every communication in the matter that names a
+# hearing date, classified against the date that was operative when it
+# was sent. One row per (message, date named) -- the notice that moves
+# the hearing names both the date it retires and the date it sets, and
+# the audit records each judgement separately.
 MONTH_NAMES = {index: name for name, index in MONTHS.items()}
-TOKENS = ("arroyo", "dept. 511", "fruitvale")
+# The correction never spells the case name; it cites the matter by its
+# Clio number, so the number is as much a handle on this file as the
+# caption is.
+TOKENS = ("arroyo", "dept. 511", "fruitvale", number.lower())
+# A superseding instrument speaks for itself: it is operative from its own
+# timestamp, so the notice announcing a move reports the new date rather
+# than citing a stale one.
+timeline = [
+    (notices[0][2], noticed[0]),
+    (notices[1][2], noticed[1]),
+    (notices[2][2], noticed[2]),
+    (operative[3], operative[0]),
+]
+instruments = {notices[1][0], notices[2][0], operative[2]}
 cutovers = {
     noticed[0]: notices[1][2],
     noticed[1]: notices[2][2],
@@ -153,31 +167,71 @@ def forms_of(day):
     return (f"{MONTH_NAMES[day.month]} {day.day}".lower(), f"the {day.day}{suffix}")
 
 
+def operative_when(time):
+    settled = None
+    for when, day in timeline:
+        if time >= when:
+            settled = day
+    return settled
+
+
 surfaces = [
-    (message_id, (subject + " " + body).lower(), time)
+    (message_id, "gmail", (subject + " " + body).lower(), time)
     for message_id, subject, body, time in rows(
         "gmail.db", "SELECT message_id, subject, body, time FROM messages"
     )
 ] + [
-    (ts, body.lower(), time)
+    (ts, "slack", body.lower(), time)
     for ts, body, time in rows("slack.db", "SELECT ts, body, time FROM messages")
 ]
-stale = []
-for identity, text, time in surfaces:
+hearing_dates = [*noticed, operative[0]]
+audit = []
+for identity, surface, text, time in surfaces:
     if not any(token in text for token in TOKENS):
         continue
-    for superseded, cutover in cutovers.items():
-        hit_forms = [form for form in forms_of(superseded) if form in text]
-        if not hit_forms or time <= cutover:
+    if time < timeline[0][0]:
+        # Before the first notice the hearing had no setting, so no
+        # message can cite one.
+        continue
+    for day in hearing_dates:
+        hit_forms = [form for form in forms_of(day) if form in text]
+        if not hit_forms:
             continue
-        if any(f"not {form}" in text for form in hit_forms):
-            continue
-        stale.append((time, identity, superseded))
-stale.sort()
+        settled = operative_when(time)
+        if identity in instruments or any(f"not {form}" in text for form in hit_forms):
+            verdict = "correction"
+        elif day == settled:
+            verdict = "current"
+        elif day in cutovers and time > cutovers[day]:
+            verdict = "stale"
+        else:
+            sys.exit(
+                f"{identity} cites {day} before it was ever set; the audit "
+                "has no honest classification for that"
+            )
+        audit.append(
+            {
+                "time": time,
+                "message_id": identity,
+                "surface": surface,
+                "cites_date": day.isoformat(),
+                "operative_when_sent": settled.isoformat(),
+                "classification": verdict,
+            }
+        )
+audit.sort(key=lambda row: (row["time"], row["message_id"], row["cites_date"]))
+for row in audit:
+    del row["time"]
+
+stale = [row["message_id"] for row in audit if row["classification"] == "stale"]
 if len(stale) != 5:
     sys.exit(f"expected exactly five stale citations, found {stale}")
-if {superseded for _, _, superseded in stale} != set(noticed):
+if {row["cites_date"] for row in audit if row["classification"] == "stale"} != {
+    day.isoformat() for day in noticed
+}:
     sys.exit("every superseded date must have at least one stale citation")
+if not any(row["classification"] == "current" for row in audit):
+    sys.exit("an audit with no current citation has lost the timeline")
 
 deadline = {
     "operative_date": operative[0].isoformat(),
@@ -185,7 +239,8 @@ deadline = {
     "correction_ts": operative[2],
     "superseded_dates": [d.isoformat() for d in noticed],
     "supersessions": supersessions,
-    "stale_calendar_refs": [identity for _, identity, _ in stale],
+    "stale_calendar_refs": stale,
+    "notice_audit": audit,
 }
 json.dump(deadline, sys.stdout, indent=2)
 sys.stdout.write("\n")

@@ -12,8 +12,10 @@ skills = ["retrieval", "reconciliation", "temporal-reasoning"]
 reference_tool_path_calls = 40
 agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and Clio records."
 [metadata.evidence]
-primary_field = "stale_calendar_refs"
-records = 5
+primary_field = "notice_audit"
+records = 13
+item_fields = ["classification", "operative_when_sent"]
+items = 13
 source_surfaces = ["gmail", "slack", "clio"]
 [environment]
 docker_image = "workbench:dev"
