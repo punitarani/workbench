@@ -6,6 +6,7 @@ Needs the built environment bundle (data, local-only):
 """
 
 import json
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -29,7 +30,10 @@ pytestmark = pytest.mark.skipif(
 def test_harbor_rewardkit_layout_replaces_legacy_grader() -> None:
     config = tomllib.loads((TASK / "task.toml").read_text())
     assert config["schema_version"] == "1.3"
-    assert config["metadata"]["reference_tool_path_calls"] == 48
+    # Rule 5 added the chat directory and two document-number searches per
+    # NDA to the reference path; measure_floors.py is the source of this
+    # number and test_measure_floors.py pins it against a live measurement.
+    assert config["metadata"]["reference_tool_path_calls"] == 76
     assert "harness" not in config
     assert {
         path.name
@@ -113,6 +117,55 @@ def test_reference_version_audit_matches_fresh_bundle() -> None:
     ):
         histories.setdefault(path, []).append((version, content, timestamp, number))
 
+    # Rule 5 authority, re-derived here rather than imported from solve.py:
+    # a partner's written approval naming the redline, by vendor or by
+    # iManage number. Of Counsel is not a partner, so Diane's note on
+    # LEGAL!11 approves nothing however plainly it is worded.
+    partners = {
+        person_id
+        for person_id, title in _rows("gmail.db", "SELECT person_id, title FROM people")
+        if "partner" in title.lower()
+    }
+    approvals = [
+        (message_id, timestamp, f"{subject} {body}".lower())
+        for message_id, subject, body, timestamp, sender in _rows(
+            "gmail.db", "SELECT message_id, subject, body, time, sender FROM messages"
+        )
+        if sender in partners
+    ] + [
+        (ts, timestamp, body.lower())
+        for ts, body, timestamp, sender in _rows(
+            "slack.db",
+            "SELECT m.ts, m.body, m.time, m.sender FROM messages m JOIN "
+            "conversations c ON c.conversation_id = m.conversation_id "
+            "WHERE c.kind != 'dm'",
+        )
+        if sender in partners
+    ]
+    approvals = [
+        entry
+        for entry in approvals
+        if any(
+            marker in entry[2]
+            for marker in ("approved", "approval", "signed off", "sign-off", "go ahead")
+        )
+    ]
+
+    def authority(vendor: str, number: int, filed: int) -> tuple[str, str, str]:
+        pattern = re.compile(rf"legal!{number}(?!\d)")
+        hits = sorted(
+            (when, identity)
+            for identity, when, text in approvals
+            if vendor in text or pattern.search(text)
+        )
+        earlier = [hit for hit in hits if hit[0] < filed]
+        if earlier:
+            return "present", earlier[-1][1], _day(earlier[-1][0])
+        later = [hit for hit in hits if hit[0] >= filed]
+        if later:
+            return "after_the_fact", later[0][1], _day(later[0][0])
+        return "absent", "", ""
+
     expected = []
     for path, history in histories.items():
         vendor = path.rsplit("/", 1)[-1].removeprefix("mutual-nda-").removesuffix(".md")
@@ -135,6 +188,10 @@ def test_reference_version_audit_matches_fresh_bundle() -> None:
                 for message_id, sent, text in emails
                 if sent == saved and vendor in text
             )
+            if change_class == "substantive":
+                status, reference, signed = authority(vendor, number, timestamp)
+            else:
+                status, reference, signed = "not_required", "", ""
             expected.append(
                 {
                     "version_id": f"LEGAL!{number}.{version}",
@@ -142,6 +199,9 @@ def test_reference_version_audit_matches_fresh_bundle() -> None:
                     "date": saved,
                     "change_class": change_class,
                     "email_ids": email_ids,
+                    "sign_off": status,
+                    "sign_off_ref": reference,
+                    "sign_off_date": signed,
                 }
             )
     expected.sort(key=lambda row: (row["document_path"], row["version_id"]))
@@ -151,6 +211,11 @@ def test_reference_version_audit_matches_fresh_bundle() -> None:
     assert sum(row["change_class"] == "notices_only" for row in expected) == 1
     assert sum(row["change_class"] == "unchanged" for row in expected) == 7
     assert sum(len(row["email_ids"]) for row in expected) == 4
+    # All three authority outcomes must be represented, or the column is
+    # decorative and a constant guess would score it.
+    assert sum(row["sign_off"] == "present" for row in expected) == 3
+    assert sum(row["sign_off"] == "absent" for row in expected) == 4
+    assert sum(row["sign_off"] == "after_the_fact" for row in expected) == 1
     assert answer["version_audit"] == expected
     assert answer["versions_reviewed"] == 16
     assert answer["substantive_versions"] == 8

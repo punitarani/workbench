@@ -403,6 +403,18 @@ async def standard_drift(client: CountingClient) -> None:
     )
     assert "three (3) years" in playbook_head["content"]
 
+    # Playbook rule 5 authority. Titles come from the chat directory --
+    # Clio's user record only says Attorney or NonAttorney, which cannot
+    # tell a partner from Of Counsel, so the reference path reads the one
+    # surface that carries the title.
+    users = await client.call("slack__slack_search_users", query="partner", limit=100)
+    partners = [
+        u for u in users["members"] if "partner" in u["profile"]["title"].lower()
+    ]
+    partner_names = {u["real_name"] for u in partners}
+    partner_ids = {u["id"] for u in partners}
+    assert partner_names, "no partner titles in the directory"
+
     silent: list[str] = []
     version_audit: list[dict[str, object]] = []
     for document in ndas:
@@ -426,6 +438,30 @@ async def standard_drift(client: CountingClient) -> None:
             )
         mail = await _gmail_all_pages(client, vendor)
         qualifying_mail = [m for m in mail if vendor in _mail_text(m)]
+        # Some sign-offs never name the vendor, citing the redline only by
+        # its iManage number, so the number is its own search key on both
+        # written surfaces.
+        by_number = await _gmail_all_pages(client, f"LEGAL!{number}")
+        chat = await _slack_all_pages(client, vendor)
+        chat_by_number = await _slack_all_pages(client, f"LEGAL!{number}")
+        approvals = [
+            (m["id"], m["date"][:10], _mail_text(m))
+            for m in mail + by_number
+            if any(name in m["sender"] for name in partner_names)
+        ] + [
+            (m["ts"], _ts_day(m["ts"]), m["text"].lower())
+            for m in chat + chat_by_number
+            if m["user"] in partner_ids
+        ]
+        approvals = [
+            entry
+            for entry in approvals
+            if any(
+                marker in entry[2]
+                for marker in ("approved", "approval", "signed off", "go ahead")
+            )
+            and (vendor in entry[2] or f"legal!{number}" in entry[2])
+        ]
         contents.sort()
         for (_, previous, _), (version, current, day) in zip(
             contents, contents[1:], strict=False
@@ -440,6 +476,25 @@ async def standard_drift(client: CountingClient) -> None:
                 m["id"] for m in qualifying_mail if m["date"][:10] == day
             )
             version_id = f"LEGAL!{number}.{version}"
+            if change_class == "substantive":
+                earlier = sorted(a for a in approvals if a[1] < day)
+                later = sorted(a for a in approvals if a[1] >= day)
+                if earlier:
+                    sign_off, reference, signed = (
+                        "present",
+                        earlier[-1][0],
+                        earlier[-1][1],
+                    )
+                elif later:
+                    sign_off, reference, signed = (
+                        "after_the_fact",
+                        later[0][0],
+                        later[0][1],
+                    )
+                else:
+                    sign_off, reference, signed = "absent", "", ""
+            else:
+                sign_off, reference, signed = "not_required", "", ""
             version_audit.append(
                 {
                     "version_id": version_id,
@@ -447,6 +502,9 @@ async def standard_drift(client: CountingClient) -> None:
                     "date": day,
                     "change_class": change_class,
                     "email_ids": email_ids,
+                    "sign_off": sign_off,
+                    "sign_off_ref": reference,
+                    "sign_off_date": signed,
                 }
             )
             if change_class == "substantive" and not email_ids:

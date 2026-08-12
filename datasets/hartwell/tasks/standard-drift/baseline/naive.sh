@@ -50,6 +50,11 @@ drift = {
     "covered_substantive_versions": 0,
     "silent_substantive_versions": 0,
     "covering_email_count": 0,
+    # The mail-driven read never opens the redline histories, so it has no
+    # version schedule to attach authority to either.
+    "authorized_substantive_versions": 0,
+    "unauthorized_substantive_versions": 0,
+    "late_authorized_substantive_versions": 0,
     "version_audit": [],
 }
 with open("drift.json", "w") as handle:

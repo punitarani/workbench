@@ -46,13 +46,19 @@ Save **`drift.json`** in your workspace:
   "covered_substantive_versions": <substantive versions with same-day email>,
   "silent_substantive_versions": <substantive versions without same-day email>,
   "covering_email_count": <total exact emails cited in the audit>,
+  "authorized_substantive_versions": <substantive versions signed off before filing>,
+  "unauthorized_substantive_versions": <substantive versions never signed off>,
+  "late_authorized_substantive_versions": <substantive versions signed off after filing>,
   "version_audit": [
     {
       "version_id": "LEGAL!<document number>.<version>",
       "document_path": "<exact iManage path>",
       "date": "<YYYY-MM-DD save date>",
       "change_class": "<substantive, notices_only, or unchanged>",
-      "email_ids": ["<exact same-day covering Gmail message id>", "..."]
+      "email_ids": ["<exact same-day covering Gmail message id>", "..."],
+      "sign_off": "<present, after_the_fact, absent, or not_required>",
+      "sign_off_ref": "<Gmail message id or Slack ts of the approval, else \"\">",
+      "sign_off_date": "<YYYY-MM-DD the approval was given, else \"\">"
     }
   ]
 }
@@ -96,6 +102,22 @@ prior version, `notices_only` when removing the Notices section makes the two
 versions identical, and `substantive` otherwise. Cite every email that meets
 the covering rule above and nothing else, identified by its exact Gmail
 message ID.
-The seven aggregate fields must reconcile with the schedule, and
+The aggregate fields must reconcile with the schedule, and
 `silent_versions` must be exactly the `version_id` partition of substantive
 rows with an empty `email_ids` list.
+
+The review also has to answer who authorized each departure from the form.
+The playbook states the rule; apply it as written, including who is
+entitled to give the sign-off — a title in the firm directory is part of
+the record, and an approval from someone the playbook does not name as
+authority is not a sign-off. For every `substantive` row record
+`sign_off`: `present` when the required approval was given in writing
+before the version was refiled, `after_the_fact` when it came only
+afterward, and `absent` when it was never given. Cite the approval in
+`sign_off_ref` by its exact Gmail message ID or Slack ts and give its
+date in `sign_off_date`; leave both empty when there is none. Rows that
+are not substantive need no authority — mark them `not_required` with
+both fields empty. Approvals are not transmittals: they are a separate
+act, they can be days apart from the filing, and some of them identify
+the redline only by its iManage document number rather than by the
+vendor's name.

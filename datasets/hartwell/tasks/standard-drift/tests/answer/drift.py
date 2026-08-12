@@ -84,10 +84,13 @@ for field in (
     "covered_substantive_versions",
     "silent_substantive_versions",
     "covering_email_count",
+    "authorized_substantive_versions",
+    "unauthorized_substantive_versions",
+    "late_authorized_substantive_versions",
 ):
     rk.field_equals(DELIVERABLE, field, ORACLE[field], name=field, weight=1.0)
 rk.version_audit_f1(
-    DELIVERABLE, ORACLE["version_audit"], name="version_audit.f1", weight=52.2
+    DELIVERABLE, ORACLE["version_audit"], name="version_audit.f1", weight=49.2
 )
 rk.version_audit_exact(
     DELIVERABLE,

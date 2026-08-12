@@ -2893,6 +2893,13 @@ def _playbook(texts: Mapping[str, str], *, revision: int) -> str:
         "carve-out; either party may seek injunctive relief without "
         "posting bond.",
         "4. **Governing law.** California, venue in Alameda County.",
+        "5. **Authority to change operative terms.** A revision that "
+        "alters an operative clause — one stating a party's rights or "
+        "obligations — requires written sign-off from a partner before "
+        "the draft is refiled. Sign-off may be given by email or in the "
+        "firm's chat, but it must be in writing and it must precede the "
+        "filing; a sign-off obtained after the fact is recorded as such "
+        "and reported at the quarterly review.",
     ]
     if revision >= 2:
         parts += ["", "## Escalation", "", texts["s1.playbook.escalation"]]
@@ -3802,6 +3809,113 @@ class StorylineDirector:
             )
 
         self._on("2026-06-23", _at(11, 45), harborlight_v3_cover)
+
+        # Playbook rule 5 sign-offs. A covering email transmits a draft; a
+        # sign-off authorizes the change. Different act, different person,
+        # and — because the rule requires authority before filing — a
+        # different day, which is also what keeps a sign-off from doubling
+        # as its version's covering email.
+        #
+        # None of these name a clause. The Ironclad concession is designed
+        # to be invisible to keyword search so the audit has to be read out
+        # of the redline history; a waiver that said "residuals" would hand
+        # it to anyone who greps the mail. LexiPoint's and Trueline's go
+        # further and never name the vendor either, citing the redline only
+        # by its iManage number, so they join only through the document.
+        def lexipoint_term_signoff(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(16, 20),
+                sender=_EH,
+                to=(_PN,),
+                subject="Re: LEGAL!32 — the point you raised",
+                text=(
+                    "Peter,\n\nApproved, on this one file only. It is longer "
+                    "than our form runs, but it buys the mutual carve-out and "
+                    "the counterparty has moved on everything else. Take "
+                    "LEGAL!32 back out as drafted.\n\nEleanor"
+                ),
+                thread="s1.lexipoint-authority",
+                reply=False,
+            )
+
+        self._on("2026-05-12", _at(16, 20), lexipoint_term_signoff)
+
+        def ironclad_late_waiver(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            # Two days after the draft was already refiled: real authority,
+            # in writing, but it did not precede the filing.
+            self._email(
+                minter,
+                drafts,
+                at=_at(9, 40),
+                sender=_EH,
+                to=(_NF,),
+                cc=(_DO,),
+                subject="Re: LEGAL!34",
+                text=(
+                    "Noah,\n\nI see LEGAL!34 went back out on Wednesday with "
+                    "the concession still in it. Treat it as approved rather "
+                    "than reopen the file, but authority was supposed to come "
+                    "first — log it for the quarterly review.\n\nEleanor"
+                ),
+                thread="s1.ironclad-authority",
+                reply=False,
+            )
+
+        self._on("2026-06-12", _at(9, 40), ironclad_late_waiver)
+
+        # Diane is Of Counsel, not a partner, so rule 5 is not satisfied by
+        # her note however plainly it approves the change. An approval that
+        # reads like authority but is not is the point: the audit has to
+        # check the directory, not the wording.
+        def trueline_rider_signoff(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(10, 5),
+                sender=_DO,
+                body=(
+                    "Read the returns language on LEGAL!11 — that one is fine "
+                    "to add. Approved, go ahead and refile."
+                ),
+            )
+
+        self._on("2026-06-12", _at(10, 5), trueline_rider_signoff)
+
+        def baymark_rider_signoff(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(14, 50),
+                sender=_SM,
+                body=(
+                    "Peter — approved to put the returns rider into the "
+                    "BayMark draft. Refile when you have it."
+                ),
+            )
+
+        self._on("2026-06-17", _at(14, 50), baymark_rider_signoff)
+
+        def harborlight_rider_signoff(
+            minter: IdMinter, drafts: list[TimedDraft]
+        ) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(9, 30),
+                sender=_EH,
+                to=(_PN,),
+                subject="Harborlight NDA — returns rider",
+                text=(
+                    "Peter,\n\nApproved — add the returns rider to the "
+                    "Harborlight draft and refile it.\n\nEleanor"
+                ),
+                thread="s1.harborlight-authority",
+                reply=False,
+            )
+
+        self._on("2026-06-22", _at(9, 30), harborlight_rider_signoff)
 
         def summit_rider_trap(minter: IdMinter, drafts: list[TimedDraft]) -> None:
             # The day-after email: it names Summit, but the rider landed

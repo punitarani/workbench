@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import sqlite3
 import sys
 from datetime import date, timedelta
@@ -148,6 +149,60 @@ mail_texts = [
 ]
 
 
+# Playbook rule 5: a substantive revision needs written sign-off from a
+# partner before it is refiled. Authority is a directory fact, not a
+# wording one -- Of Counsel approving in so many words does not satisfy
+# the rule, and a sign-off that names only the iManage number joins to
+# its redline through the document rather than the vendor.
+APPROVAL_MARKERS = ("approved", "approval", "signed off", "sign-off", "go ahead")
+partners = {
+    person_id
+    for person_id, title in rows("gmail.db", "SELECT person_id, title FROM people")
+    if "partner" in title.lower()
+}
+if not partners:
+    sys.exit("no partners in the directory; rule 5 cannot be evaluated")
+authority = [
+    (message_id, time, (subject + " " + body).lower())
+    for message_id, subject, body, time, sender in rows(
+        "gmail.db", "SELECT message_id, subject, body, time, sender FROM messages"
+    )
+    if sender in partners
+] + [
+    (ts, time, body.lower())
+    for ts, body, time, sender in rows(
+        "slack.db",
+        "SELECT m.ts, m.body, m.time, m.sender FROM messages m JOIN "
+        "conversations c ON c.conversation_id = m.conversation_id "
+        "WHERE c.kind != 'dm'",
+    )
+    if sender in partners
+]
+authority = [
+    (identity, time, text)
+    for identity, time, text in authority
+    if any(marker in text for marker in APPROVAL_MARKERS)
+]
+
+
+def signed_off(vendor, number, filed_at):
+    """Earliest partner approval naming this redline, and when it landed."""
+
+    pattern = re.compile(rf"legal!{number}(?!\d)")
+    hits = sorted(
+        (time, identity)
+        for identity, time, text in authority
+        if vendor in text or pattern.search(text)
+    )
+    before = [hit for hit in hits if hit[0] < filed_at]
+    if before:
+        return "present", before[-1][1], iso(before[-1][0])
+    after = [hit for hit in hits if hit[0] >= filed_at]
+    if after:
+        return "after_the_fact", after[0][1], iso(after[0][0])
+    return "absent", "", ""
+
+
 def strip_notices(content):
     sections = content.split("\n## ")
     kept = [sections[0]] + [s for s in sections[1:] if not s.startswith("Notices")]
@@ -181,6 +236,10 @@ for path in nda_paths:
                 covered += 1
             else:
                 silent_versions.append(f"LEGAL!{numbers[path]}.{version}")
+        if change_class == "substantive":
+            status, reference, signed = signed_off(vendor, numbers[path], time)
+        else:
+            status, reference, signed = "not_required", "", ""
         version_audit.append(
             {
                 "version_id": f"LEGAL!{numbers[path]}.{version}",
@@ -188,6 +247,9 @@ for path in nda_paths:
                 "date": day,
                 "change_class": change_class,
                 "email_ids": email_ids,
+                "sign_off": status,
+                "sign_off_ref": reference,
+                "sign_off_date": signed,
             }
         )
 if len(silent_versions) != 4:
@@ -198,6 +260,14 @@ if nonsubstantive != 1:
     sys.exit(
         "expected one real-but-nonsubstantive diff as near-miss noise, "
         f"found {nonsubstantive}"
+    )
+authorized = sum(item["sign_off"] == "present" for item in version_audit)
+unauthorized = sum(item["sign_off"] == "absent" for item in version_audit)
+late = sum(item["sign_off"] == "after_the_fact" for item in version_audit)
+if not (authorized and unauthorized and late):
+    sys.exit(
+        "rule 5 needs all three authority outcomes represented: "
+        f"{authorized} present, {unauthorized} absent, {late} after the fact"
     )
 
 drift = {
@@ -214,6 +284,9 @@ drift = {
     "unchanged_versions": sum(
         item["change_class"] == "unchanged" for item in version_audit
     ),
+    "authorized_substantive_versions": authorized,
+    "unauthorized_substantive_versions": unauthorized,
+    "late_authorized_substantive_versions": late,
     "covered_substantive_versions": covered,
     "silent_substantive_versions": len(silent_versions),
     "covering_email_count": sum(len(item["email_ids"]) for item in version_audit),

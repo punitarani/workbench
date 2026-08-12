@@ -191,8 +191,8 @@ def test_standard_floor_metadata_matches_the_measured_reference_path() -> None:
     )
     manifest = tomllib.loads((TASKS / "standard-drift" / "task.toml").read_text())
 
-    assert completed.stdout.strip() == "standard-drift: floor=48"
-    assert manifest["metadata"]["reference_tool_path_calls"] == 48
+    assert completed.stdout.strip() == "standard-drift: floor=76"
+    assert manifest["metadata"]["reference_tool_path_calls"] == 76
 
 
 def test_second_read_floor_certifies_the_full_first_response_audit() -> None:

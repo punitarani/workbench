@@ -10,7 +10,7 @@ keywords = ["legal", "documents", "version-diff", "reconciliation", "mcp"]
 dataset = "hartwell"
 difficulty = "hard"
 skills = ["retrieval", "reconciliation", "version-diff", "anti-join"]
-reference_tool_path_calls = 48
+reference_tool_path_calls = 76
 agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and Clio records."
 
 [metadata.evidence]

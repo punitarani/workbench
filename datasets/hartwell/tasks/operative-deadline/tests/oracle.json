@@ -46,7 +46,7 @@
     {
       "cites_date": "2026-06-18",
       "classification": "correction",
-      "message_id": "msg-000430",
+      "message_id": "msg-000431",
       "operative_when_sent": "2026-06-18",
       "surface": "gmail"
     },
@@ -74,7 +74,7 @@
     {
       "cites_date": "2026-06-18",
       "classification": "stale",
-      "message_id": "msg-000600",
+      "message_id": "msg-000602",
       "operative_when_sent": "2026-06-25",
       "surface": "gmail"
     },
@@ -88,7 +88,7 @@
     {
       "cites_date": "2026-06-18",
       "classification": "stale",
-      "message_id": "msg-000617",
+      "message_id": "msg-000619",
       "operative_when_sent": "2026-06-25",
       "surface": "gmail"
     }
@@ -98,9 +98,9 @@
   "stale_calendar_refs": [
     "msg-000289",
     "1778865900.000000",
-    "msg-000600",
+    "msg-000602",
     "1781541900.000000",
-    "msg-000617"
+    "msg-000619"
   ],
   "superseded_dates": [
     "2026-04-28",
@@ -113,7 +113,7 @@
       "invalidated": "2026-04-28"
     },
     {
-      "by": "msg-000430",
+      "by": "msg-000431",
       "invalidated": "2026-05-20"
     },
     {

@@ -1,6 +1,8 @@
 {
+  "authorized_substantive_versions": 3,
   "covered_substantive_versions": 4,
   "covering_email_count": 4,
+  "late_authorized_substantive_versions": 1,
   "ndas": {
     "/firm/vendor-ndas/mutual-nda-archway.md": "conforms",
     "/firm/vendor-ndas/mutual-nda-baymark.md": "conforms",
@@ -36,6 +38,7 @@
     "practice": "Agreed to the vendor's five (5) year confidentiality term to keep the renewal on schedule.",
     "version": 2
   },
+  "unauthorized_substantive_versions": 4,
   "unchanged_versions": 7,
   "version_audit": [
     {
@@ -43,6 +46,9 @@
       "date": "2026-04-14",
       "document_path": "/firm/vendor-ndas/mutual-nda-archway.md",
       "email_ids": [],
+      "sign_off": "not_required",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!27.2"
     },
     {
@@ -50,6 +56,9 @@
       "date": "2026-06-18",
       "document_path": "/firm/vendor-ndas/mutual-nda-archway.md",
       "email_ids": [],
+      "sign_off": "absent",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!27.3"
     },
     {
@@ -57,6 +66,9 @@
       "date": "2026-03-26",
       "document_path": "/firm/vendor-ndas/mutual-nda-baymark.md",
       "email_ids": [],
+      "sign_off": "not_required",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!16.2"
     },
     {
@@ -64,8 +76,11 @@
       "date": "2026-06-18",
       "document_path": "/firm/vendor-ndas/mutual-nda-baymark.md",
       "email_ids": [
-        "msg-000630"
+        "msg-000632"
       ],
+      "sign_off": "present",
+      "sign_off_date": "2026-06-17",
+      "sign_off_ref": "1781733000.000000",
       "version_id": "LEGAL!16.3"
     },
     {
@@ -73,6 +88,9 @@
       "date": "2026-06-02",
       "document_path": "/firm/vendor-ndas/mutual-nda-brightwater.md",
       "email_ids": [],
+      "sign_off": "not_required",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!33.2"
     },
     {
@@ -80,6 +98,9 @@
       "date": "2026-06-24",
       "document_path": "/firm/vendor-ndas/mutual-nda-brightwater.md",
       "email_ids": [],
+      "sign_off": "not_required",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!33.3"
     },
     {
@@ -87,6 +108,9 @@
       "date": "2026-04-21",
       "document_path": "/firm/vendor-ndas/mutual-nda-cobalt.md",
       "email_ids": [],
+      "sign_off": "not_required",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!23.2"
     },
     {
@@ -94,6 +118,9 @@
       "date": "2026-06-16",
       "document_path": "/firm/vendor-ndas/mutual-nda-cobalt.md",
       "email_ids": [],
+      "sign_off": "absent",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!23.3"
     },
     {
@@ -101,6 +128,9 @@
       "date": "2026-05-06",
       "document_path": "/firm/vendor-ndas/mutual-nda-harborlight.md",
       "email_ids": [],
+      "sign_off": "not_required",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!30.2"
     },
     {
@@ -108,8 +138,11 @@
       "date": "2026-06-23",
       "document_path": "/firm/vendor-ndas/mutual-nda-harborlight.md",
       "email_ids": [
-        "msg-000653"
+        "msg-000656"
       ],
+      "sign_off": "present",
+      "sign_off_date": "2026-06-22",
+      "sign_off_ref": "msg-000649",
       "version_id": "LEGAL!30.3"
     },
     {
@@ -117,8 +150,11 @@
       "date": "2026-06-10",
       "document_path": "/firm/vendor-ndas/mutual-nda-ironclad.md",
       "email_ids": [
-        "msg-000582"
+        "msg-000583"
       ],
+      "sign_off": "after_the_fact",
+      "sign_off_date": "2026-06-12",
+      "sign_off_ref": "msg-000601",
       "version_id": "LEGAL!34.2"
     },
     {
@@ -126,8 +162,11 @@
       "date": "2026-05-13",
       "document_path": "/firm/vendor-ndas/mutual-nda-lexipoint.md",
       "email_ids": [
-        "msg-000429"
+        "msg-000430"
       ],
+      "sign_off": "present",
+      "sign_off_date": "2026-05-12",
+      "sign_off_ref": "msg-000420",
       "version_id": "LEGAL!32.2"
     },
     {
@@ -135,6 +174,9 @@
       "date": "2026-06-22",
       "document_path": "/firm/vendor-ndas/mutual-nda-summit.md",
       "email_ids": [],
+      "sign_off": "not_required",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!36.2"
     },
     {
@@ -142,6 +184,9 @@
       "date": "2026-06-25",
       "document_path": "/firm/vendor-ndas/mutual-nda-summit.md",
       "email_ids": [],
+      "sign_off": "absent",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!36.3"
     },
     {
@@ -149,6 +194,9 @@
       "date": "2026-03-24",
       "document_path": "/firm/vendor-ndas/mutual-nda-trueline.md",
       "email_ids": [],
+      "sign_off": "not_required",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!11.2"
     },
     {
@@ -156,6 +204,9 @@
       "date": "2026-06-15",
       "document_path": "/firm/vendor-ndas/mutual-nda-trueline.md",
       "email_ids": [],
+      "sign_off": "absent",
+      "sign_off_date": "",
+      "sign_off_ref": "",
       "version_id": "LEGAL!11.3"
     }
   ],

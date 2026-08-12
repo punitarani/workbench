@@ -25,6 +25,9 @@ PUBLIC_FIELDS = frozenset(
         "covered_substantive_versions",
         "silent_substantive_versions",
         "covering_email_count",
+        "authorized_substantive_versions",
+        "unauthorized_substantive_versions",
+        "late_authorized_substantive_versions",
         "version_audit",
     }
 )
@@ -32,8 +35,29 @@ CLAUSE_FIELDS = frozenset(
     {"playbook_standard", "practice", "document_path", "version", "date"}
 )
 VERSION_AUDIT_FIELDS = frozenset(
-    {"version_id", "document_path", "date", "change_class", "email_ids"}
+    {
+        "version_id",
+        "document_path",
+        "date",
+        "change_class",
+        "email_ids",
+        "sign_off",
+        "sign_off_ref",
+        "sign_off_date",
+    }
 )
+SIGN_OFF_STATES = frozenset({"present", "after_the_fact", "absent", "not_required"})
+
+
+def _reference(value: object) -> str:
+    """Normalize a sign-off id so a Slack ts is one row, not several.
+
+    Gmail ids are already canonical; a Slack ts may be written with or
+    without its fractional part, and both name the same message.
+    """
+
+    text = str(value).strip().lower()
+    return text if text.startswith("msg-") else text.split(".")[0]
 
 
 def _integer(value: object) -> bool:
@@ -64,6 +88,11 @@ def _valid_version_audit_row(value: object) -> bool:
         and value.get("change_class") in {"substantive", "notices_only", "unchanged"}
         and isinstance(email_ids, list)
         and all(isinstance(item, str) for item in email_ids)
+        and all(
+            isinstance(value.get(key), str)
+            for key in ("sign_off", "sign_off_ref", "sign_off_date")
+        )
+        and value.get("sign_off") in SIGN_OFF_STATES
     )
 
 
@@ -249,6 +278,12 @@ def _version_audit_counter(values: object) -> Counter[object]:
             item["date"],
             item["change_class"],
             tuple(sorted(item["email_ids"])),
+            item["sign_off"],
+            # A reference is only meaningful next to its status: an
+            # absent sign-off carries no id, so an invented one must not
+            # look like a different-but-valid row.
+            _reference(item["sign_off_ref"]),
+            item["sign_off_date"],
         )
         for item in values
         if _valid_version_audit_row(item)
@@ -295,6 +330,18 @@ def version_audit_reconciles(workspace: Path, path: str) -> bool:
         item["change_class"] == "substantive" and bool(item["email_ids"])
         for item in version_audit
     )
+    authority = Counter(item["sign_off"] for item in version_audit)
+    # Rule 5 applies to substantive revisions and only to those, so the
+    # authority column has to line up with the classification column: a
+    # row cannot be unauthorized if nothing needed authorizing, and a
+    # status that names no message cannot cite one.
+    for item in version_audit:
+        required = item["change_class"] == "substantive"
+        if required == (item["sign_off"] == "not_required"):
+            return False
+        cited = bool(item["sign_off_ref"]) or bool(item["sign_off_date"])
+        if cited != (item["sign_off"] in {"present", "after_the_fact"}):
+            return False
     return (
         document.get("versions_reviewed") == len(version_audit)
         and document.get("substantive_versions") == classes["substantive"]
@@ -305,6 +352,10 @@ def version_audit_reconciles(workspace: Path, path: str) -> bool:
         and document.get("covering_email_count")
         == sum(len(item["email_ids"]) for item in version_audit)
         and _counter(document.get("silent_versions")) == _counter(silent)
+        and document.get("authorized_substantive_versions") == authority["present"]
+        and document.get("unauthorized_substantive_versions") == authority["absent"]
+        and document.get("late_authorized_substantive_versions")
+        == authority["after_the_fact"]
     )
 
 
