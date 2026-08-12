@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import logging
 import math
 import os
 import re
@@ -34,8 +35,16 @@ from workbench.adapters.harbor_matrix.gateway import (
 from workbench.adapters.harbor_matrix.gateway import (
     MODEL_ALIASES as ALIAS_TO_MODEL,
 )
+from workbench.adapters.harbor_matrix.provenance import (
+    collect_run_provenance,
+    write_run_provenance,
+)
 from workbench.adapters.harness.openrouter_client import MODEL_PROVIDERS
 
+LOGGER = logging.getLogger(__name__)
+# Where the tracked per-cell summaries land; jobs/ is gitignored and may be
+# disposable, so the evidence a paid batch bought lives here instead.
+DOCS_RUN_NAME = "2026-08-09-four-month-history"
 HARBOR_VERSION = "0.18.0"
 CODEX_VERSION = "0.147.0"
 HARTWELL_CODEX_IMPORT_PATH = (
@@ -78,10 +87,19 @@ IGNORED_TASK_SOURCE_PARTS = {
 }
 
 
+class DisposableJobsDirError(ValueError):
+    """A batch would write paid trial artifacts into a removable worktree."""
+
+
 class MatrixConfig(BaseModel):
     repository: Path
     tasks_root: Path
     jobs_dir: Path
+    # True when jobs_dir was derived from ``repository`` rather than passed
+    # explicitly. A derived directory inside a worktree is refused: every
+    # trial artifact lives under jobs_dir, removing the worktree destroys
+    # them, and a settled batch cannot be re-run to recover what it paid for.
+    jobs_dir_is_derived: bool = False
     run_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
     tasks: tuple[TaskName, ...] = Field(default=TASK_ORDER, min_length=1)
     attempts: Literal[3] = 3
@@ -93,6 +111,28 @@ class MatrixConfig(BaseModel):
     project_cap_usd: FiniteFloat = Field(default=25.0, gt=0)
     credit_poll_interval_sec: FiniteFloat = Field(default=30.0, gt=0)
     gateway_bind_host: str = "0.0.0.0"
+
+    @model_validator(mode="after")
+    def durable_jobs_dir(self) -> MatrixConfig:
+        """Refuse a *derived* jobs_dir that resolves under a worktree.
+
+        Deriving it from ``repository`` once put roughly $34 of settled
+        diagnostics — 47 cells of result.json, reward-details.json, and
+        trajectory.json — inside a git worktree that was later removed,
+        destroying all of it. An explicit ``--jobs-dir`` is an informed
+        choice and is always honoured; a derived one must be durable.
+        """
+
+        if not self.jobs_dir_is_derived:
+            return self
+        parts = {part.lower() for part in self.jobs_dir.resolve().parts}
+        if parts & {"worktrees", ".git"}:
+            raise DisposableJobsDirError(
+                f"refusing to derive jobs_dir from a disposable path: "
+                f"{self.jobs_dir}. Trial artifacts would be destroyed with the "
+                f"worktree; pass --jobs-dir explicitly to a durable location."
+            )
+        return self
 
     @field_validator("tasks")
     @classmethod
@@ -795,6 +835,7 @@ class MatrixRunner:
         gateway_transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.config = config
+        self._git_revision: str | None = None
         self._openrouter_api_key = SecretStr(openrouter_api_key)
         self._gateway_token = SecretStr(gateway_token)
         self._commands = commands or SubprocessCommandRunner()
@@ -1168,6 +1209,9 @@ class MatrixRunner:
         self, task_name: str
     ) -> tuple[TrialFingerprint, ...]:
         git_revision = await self._capture(("git", "rev-parse", "HEAD"), "git revision")
+        # Remembered so the durable per-cell summary can stamp the revision
+        # the batch actually ran, without re-shelling at report time.
+        self._git_revision = git_revision
         image_id = await self._capture(
             ("docker", "image", "inspect", "--format", "{{.Id}}", "workbench:dev"),
             "workbench:dev image ID",
@@ -1333,6 +1377,27 @@ class MatrixRunner:
         self._report_path().write_text(
             report.model_dump_json(indent=2), encoding="utf-8"
         )
+        self._write_provenance()
+
+    def _write_provenance(self) -> None:
+        """Persist per-cell criteria and tool histograms where git keeps them.
+
+        Best effort by design: a batch that produced real scores must not be
+        reported as failed because a summary could not be written.
+        """
+
+        try:
+            provenance = collect_run_provenance(
+                self.config.jobs_dir,
+                run_id=self.config.run_id,
+                git_revision=self._git_revision,
+            )
+            write_run_provenance(provenance, self._docs_run_dir())
+        except OSError as error:  # pragma: no cover - filesystem edge
+            LOGGER.warning("could not write run provenance: %s", error)
+
+    def _docs_run_dir(self) -> Path:
+        return self.config.repository / "docs/runs" / DOCS_RUN_NAME
 
     def _report_path(self) -> Path:
         return self.config.jobs_dir / f"{self.config.run_id}-matrix.json"

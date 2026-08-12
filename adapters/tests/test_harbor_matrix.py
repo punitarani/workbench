@@ -11,6 +11,7 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
+from workbench.adapters.harbor_matrix import provenance as matrix_provenance
 from workbench.adapters.harbor_matrix import runner as matrix_runner
 from workbench.adapters.harbor_matrix.cli import parse_args
 from workbench.adapters.harbor_matrix.gateway import (
@@ -885,7 +886,11 @@ async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
     assert all(
         trial.outcome.valid for batch in report.batches for trial in batch.trials
     )
-    assert [launch.sequence for launch in report.launches] == list(range(1, 10))
+    # One launch per task, plus the extra fee-dispute smoke that precedes them.
+    launch_count = len(TASK_ORDER) + 1
+    assert [launch.sequence for launch in report.launches] == list(
+        range(1, launch_count + 1)
+    )
     assert [launch.phase for launch in report.launches[:2]] == [
         "smoke",
         "additional",
@@ -908,7 +913,7 @@ async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
             launch.gateway_sequences.end_inclusive,
         )
         for launch in report.launches
-    ] == [(index * 3, (index + 1) * 3) for index in range(9)]
+    ] == [(index * 3, (index + 1) * 3) for index in range(launch_count)]
     assert all(record.actual_provider is None for record in report.gateway_provenance)
     assert all(
         trial.fingerprint.model == ALIAS_TO_MODEL_FOR_TEST[trial.outcome.model_alias]
@@ -924,7 +929,7 @@ async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
     persisted = json.loads(
         (config.jobs_dir / "offline-matrix-matrix.json").read_text(encoding="utf-8")
     )
-    assert len(persisted["batches"]) == 8
+    assert len(persisted["batches"]) == len(TASK_ORDER)
     assert persisted["smoke"]["valid"] is True
     assert persisted["failure"] is None
     assert commands.gateway_env_files
@@ -1384,3 +1389,151 @@ def test_fingerprint_is_content_sensitive_and_smoke_requires_exact_match(
     changed_timeout = fingerprint.model_copy(update={"agent_timeout_multiplier": 1.0})
     assert not smoke_is_reusable(fingerprint, changed_timeout, smoke_valid=True)
     assert not smoke_is_reusable(fingerprint, fingerprint, smoke_valid=False)
+
+
+def test_derived_jobs_dir_under_a_worktree_is_refused() -> None:
+    """A removable worktree must not silently receive paid trial artifacts.
+
+    Deriving jobs_dir from the repository once destroyed ~$34 of settled
+    diagnostics when the worktree was removed: every result.json,
+    reward-details.json, and trajectory.json went with it.
+    """
+
+    base = dict(
+        repository=Path("/tmp/repo"),
+        tasks_root=Path("/tmp/repo/datasets/hartwell/tasks"),
+        run_id="run-1",
+        projected_worst_case_batch_usd=1.0,
+    )
+    worktree_jobs = Path("/home/u/.config/superpowers/worktrees/wb/branch/jobs")
+
+    with pytest.raises(ValidationError):
+        MatrixConfig(jobs_dir=worktree_jobs, jobs_dir_is_derived=True, **base)
+
+    # An explicit --jobs-dir is an informed choice and is always honoured.
+    explicit = MatrixConfig(jobs_dir=worktree_jobs, jobs_dir_is_derived=False, **base)
+    assert explicit.jobs_dir == worktree_jobs
+
+    durable = MatrixConfig(
+        jobs_dir=Path("/tmp/repo/jobs"), jobs_dir_is_derived=True, **base
+    )
+    assert durable.jobs_dir == Path("/tmp/repo/jobs")
+
+
+def test_run_provenance_preserves_criteria_and_tool_histogram(tmp_path: Path) -> None:
+    """The scalars survived in *-matrix.json; these two did not.
+
+    Reconstructing why a cell scored what it did needs the per-criterion
+    table and the MCP tool histogram, so both are written somewhere git
+    tracks rather than only into a gitignored jobs/ tree.
+    """
+
+    trial = tmp_path / "jobs" / "run-9-standard-drift" / "trial-1"
+    (trial / "verifier").mkdir(parents=True)
+    (trial / "agent").mkdir()
+    (trial / "result.json").write_text(
+        json.dumps(
+            {
+                "exception_info": None,
+                "trial_name": "trial-1",
+                "attempt": 2,
+                "wall_time_sec": 812.5,
+                "stop_reason": "finish",
+                "config": {"agent": {"model_name": "luna"}},
+                "verifier_result": {
+                    "rewards": {"reward": 0.9094, "answer": 0.9094, "process": 0.5}
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (trial / "verifier" / "reward-details.json").write_text(
+        json.dumps(
+            {
+                "answer": {
+                    "score": 0.9094,
+                    "kind": "programmatic",
+                    "criteria": [
+                        {"name": "version_audit", "value": 0.9375, "weight": 0.522},
+                        {"name": "covering_emails", "value": 1.0, "weight": 0.2},
+                    ],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    (trial / "agent" / "codex.txt").write_text(
+        "tools.mcp__imanage__get_document_versions({})\n"
+        "tools.mcp__imanage__get_document_versions({})\n"
+        'call mcp__gmail__search_threads {"query": "x"}\n',
+        encoding="utf-8",
+    )
+
+    provenance = matrix_provenance.collect_run_provenance(
+        tmp_path / "jobs", run_id="run-9", git_revision="abc1234"
+    )
+    (cell,) = provenance.cells
+    assert cell.task_name == "standard-drift"
+    assert (cell.model_alias, cell.attempt, cell.answer) == ("luna", 2, 0.9094)
+    assert cell.wall_time_sec == 812.5 and cell.stop_reason == "finish"
+    assert cell.git_revision == "abc1234"
+    assert {(c.name, c.value, c.weight) for c in cell.criteria} == {
+        ("version_audit", 0.9375, 0.522),
+        ("covering_emails", 1.0, 0.2),
+    }
+    assert cell.tool_calls == {
+        "gmail.search_threads": 1,
+        "imanage.get_document_versions": 2,
+    }
+    assert cell.tool_call_total == 3
+    assert cell.artifacts_missing == ()
+
+    docs_dir = tmp_path / "docs" / "runs" / "a-run"
+    written = matrix_provenance.write_run_provenance(provenance, docs_dir)
+    assert json.loads(written.read_text())["cells"][0]["tool_call_total"] == 3
+
+
+def test_run_provenance_records_missing_artifacts_without_raising(
+    tmp_path: Path,
+) -> None:
+    trial = tmp_path / "jobs" / "run-9-standard-drift" / "trial-1"
+    trial.mkdir(parents=True)
+
+    provenance = matrix_provenance.collect_run_provenance(
+        tmp_path / "jobs", run_id="run-9"
+    )
+    (cell,) = provenance.cells
+    assert cell.valid is False
+    assert set(cell.artifacts_missing) == {
+        "result.json",
+        "verifier/reward-details.json",
+        "agent/codex.txt",
+    }
+
+
+def test_cli_marks_a_defaulted_jobs_dir_as_derived() -> None:
+    derived = parse_args(
+        [
+            "--run-id",
+            "derived-run",
+            "--repository",
+            "/tmp/repo",
+            "--projected-worst-case-batch-usd",
+            "1.0",
+        ]
+    )
+    assert derived.jobs_dir_is_derived is True
+
+    explicit = parse_args(
+        [
+            "--run-id",
+            "explicit-run",
+            "--repository",
+            "/tmp/repo",
+            "--jobs-dir",
+            "/var/harbor-jobs",
+            "--projected-worst-case-batch-usd",
+            "1.0",
+        ]
+    )
+    assert explicit.jobs_dir_is_derived is False

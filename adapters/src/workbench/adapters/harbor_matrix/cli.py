@@ -58,6 +58,7 @@ def parse_args(argv: list[str] | None = None) -> MatrixConfig:
         repository=repository,
         tasks_root=tasks_root,
         jobs_dir=jobs_dir,
+        jobs_dir_is_derived=args.jobs_dir is None,
         run_id=args.run_id,
         tasks=tuple(task for task in TASK_ORDER if task in selected),
         attempts=args.attempts,
