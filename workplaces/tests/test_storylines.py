@@ -154,8 +154,12 @@ def test_s6_settlement_authority_is_a_chronological_cross_surface_audit(
         and event.payload.sender in {"per-samuel-marsh", "per-sofia-ramirez"}
     ]
     assert len(authority) == len(S6_AUTHORITY_SUBJECTS) == 7
-    assert len(outbound) == len(S6_OUTBOUND_SUBJECTS) == 14
-    assert len({event.payload.subject for event in outbound}) == 14
+    # 30 outbound proposals: the negotiation was amplified so each
+    # disposition turns on which authority was operative at that instant,
+    # its expiry, any supersession, and the term match -- a per-row
+    # judgment stack rather than a phrase count.
+    assert len(outbound) == len(S6_OUTBOUND_SUBJECTS) == 30
+    assert len({event.payload.subject for event in outbound}) == 30
     assert {recipient for event in outbound for recipient in event.payload.to} <= {
         "per-derek-strauss",
         "per-mia-denning",

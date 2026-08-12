@@ -1,0 +1,323 @@
+{
+  "run_id": "ocprobe2-client-departure",
+  "git_revision": "f92d33acf5b857f4796a3561b79b467feba5dcdb",
+  "source_jobs_dir": "/Users/punit/projects/workbench-jobs",
+  "cells": [
+    {
+      "task_name": "diagnostic-smoke-02-client-departure-postmortem",
+      "run_id": "ocprobe2-client-departure",
+      "git_revision": "f92d33acf5b857f4796a3561b79b467feba5dcdb",
+      "trial_name": "client-departure-postmortem__7BadEsP",
+      "model_alias": "openai/gpt-5.6-sol",
+      "attempt": null,
+      "valid": false,
+      "reason": "{'exception_type': 'NonZeroAgentExitCodeError', 'exception_message': 'Command failed (exit 1): . ~/.nvm/nvm.sh; opencode run --model=openai/gpt-5.6-sol --format=json -- \\'# Postmortem: how the Cascadia relationship was lost\\n\\nYou are **Eleanor Hartwell**, managing partner of Hartwell & Marsh LLP.\\nCascadia Outfitters terminated the firm in mid-2026 and you promised the\\npartners a lessons-learned discussion. You want the souring pinned to\\nwhat the firm actually wrote down, not to anyone\\'\"\\'\"\\",
+      "reward": 0.0,
+      "answer": 0.0,
+      "process": 0.0,
+      "criteria": [
+        {
+          "dimension": "answer",
+          "name": "first_negative_signal_date",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "first_negative_signal_ts",
+          "value": 0.0,
+          "weight": 7.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "happy_update_ts",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "happy_update_reactions",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "first_negative_signal_reactions",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "reaction_trajectory",
+          "value": 0.0,
+          "weight": 8.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "matter_closed_date",
+          "value": 0.0,
+          "weight": 6.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "termination_email_date",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "disengagement_letter_path",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unanswered_client_emails.f1",
+          "value": 0.0,
+          "weight": 50.4,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unanswered_client_emails.certified",
+          "value": 0.0,
+          "weight": 5.6,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "deliverable_format",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "searched_internal_arc",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "walked_client_mail",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "checked_matter",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "found_letter",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "turn_efficiency",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        }
+      ],
+      "tool_calls": {},
+      "tool_call_total": 0,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": [
+        "agent/codex.txt"
+      ]
+    },
+    {
+      "task_name": "diagnostic-smoke-02-client-departure-postmortem",
+      "run_id": "ocprobe2-client-departure",
+      "git_revision": "f92d33acf5b857f4796a3561b79b467feba5dcdb",
+      "trial_name": "client-departure-postmortem__ePT6rpF",
+      "model_alias": "openai/opus-5",
+      "attempt": null,
+      "valid": false,
+      "reason": "{'exception_type': 'NonZeroAgentExitCodeError', 'exception_message': 'Command failed (exit 1): . ~/.nvm/nvm.sh; opencode run --model=openai/opus-5 --format=json -- \\'# Postmortem: how the Cascadia relationship was lost\\n\\nYou are **Eleanor Hartwell**, managing partner of Hartwell & Marsh LLP.\\nCascadia Outfitters terminated the firm in mid-2026 and you promised the\\npartners a lessons-learned discussion. You want the souring pinned to\\nwhat the firm actually wrote down, not to anyone\\'\"\\'\"\\'s me",
+      "reward": 0.0,
+      "answer": 0.0,
+      "process": 0.0,
+      "criteria": [
+        {
+          "dimension": "answer",
+          "name": "first_negative_signal_date",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "first_negative_signal_ts",
+          "value": 0.0,
+          "weight": 7.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "happy_update_ts",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "happy_update_reactions",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "first_negative_signal_reactions",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "reaction_trajectory",
+          "value": 0.0,
+          "weight": 8.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "matter_closed_date",
+          "value": 0.0,
+          "weight": 6.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "termination_email_date",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "disengagement_letter_path",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unanswered_client_emails.f1",
+          "value": 0.0,
+          "weight": 50.4,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unanswered_client_emails.certified",
+          "value": 0.0,
+          "weight": 5.6,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "deliverable_format",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "searched_internal_arc",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "walked_client_mail",
+          "value": 0.0,
+          "weight": 4.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "checked_matter",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "found_letter",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "turn_efficiency",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        }
+      ],
+      "tool_calls": {},
+      "tool_call_total": 0,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": [
+        "agent/codex.txt"
+      ]
+    }
+  ]
+}

@@ -66,7 +66,7 @@ for message_id, sender, timestamp, body in messages:
             "terms": sorted(terms),
             "authority_source_ids": [latest[0]],
             "disposition": (
-                "authorized" if amount == 27_500_000 else "amount_outside_authority"
+                "authorized" if amount == 26_000_000 else "amount_outside_authority"
             ),
         }
     )
@@ -87,12 +87,12 @@ answer = {
             "surface": "gmail",
             "source_ids": [latest[0]],
             "status": "grant",
-            "amount_cents": 27_500_000,
+            "amount_cents": 26_000_000,
             "amount_rule": "exact",
             "economic_basis": "inclusive",
-            "required_terms": ["mutual_release", "no_confidentiality"],
-            "prohibited_terms": ["confidentiality"],
-            "expires_at": "2026-09-04T12:00:00-07:00",
+            "required_terms": ["confidentiality", "mutual_release"],
+            "prohibited_terms": ["release_unknown_claims"],
+            "expires_at": "2026-09-11T17:00:00-07:00",
         }
     ],
     "proposal_audit": audit,

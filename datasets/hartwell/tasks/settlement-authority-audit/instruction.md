@@ -59,13 +59,37 @@ proposal for this dispute. Do not count the opponent's offers, internal drafts,
 status mail, or client instructions. Review every qualifying outbound message,
 including repeated numbers.
 
-Build the authority state chronologically. A later client instruction replaces
-an earlier one. A hold or revocation takes effect immediately. A proposal sent
-after a stated expiry is outside authority; a proposal at the exact expiry
-moment remains inside it. The client sometimes gives authority by telephone;
-a contemporaneous partner DM is accepted as documented authority for this
-audit, and a clarification in that same DM is part of the source record. Do
-not treat ordinary internal discussion as client authority.
+Build the authority state chronologically, ordered by the moment each
+instruction becomes **operative** — which is not always the moment it is
+written. A later instruction replaces an earlier one once it is operative. A
+hold or revocation takes effect immediately. `amount_rule` is `minimum` when
+any amount at or above the number is within authority, and `exact` when only
+that number is. A proposal sent after a stated expiry is outside authority; a
+proposal at the exact expiry moment remains inside it.
+
+Three things can move an instruction's operative moment away from the instant
+it was written, and you must resolve each before deciding which authority was
+in force when a proposal went out:
+
+- **Stated future effect.** Some authority is written to take effect only at a
+  later stated moment ("takes effect Monday at 9:00 a.m."). Until that moment
+  the prior authority still governs, even though the newer instruction already
+  exists in the record.
+- **Conditional (contingent) authority.** A grant may be operative only once a
+  stated condition is met, where whether it was met at a given instant turns on
+  a fact recorded on another surface — an opposing-counsel confirmation, an
+  executed document. Until the condition is satisfied the prior authority
+  remains in force; the contingent grant is operative from the moment the
+  confirming fact lands, and that confirming item is part of its source record.
+- **Docketing from the first reliable report.** When new authority is first
+  relayed into the file by a reliable internal report — the client gives
+  authority by telephone and a partner relays it in a contemporaneous DM —
+  before the client's written instruction lands, it is operative from that
+  first reliable report, not from the later written confirmation. A proposal
+  sent in the gap is governed by the reported authority. The partner's relay
+  and a clarification in that same DM are part of the source record; the later
+  written email confirms the same authority rather than starting a new one. Do
+  not treat ordinary internal discussion as client authority.
 
 Test each proposal against all documented dimensions: the amount rule, whether
 fees and costs are inclusive, exclusive, or separately payable, required

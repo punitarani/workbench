@@ -61,19 +61,19 @@ def test_harbor_layout_and_evidence_contract() -> None:
     evidence = config["metadata"]["evidence"]
     assert evidence == {
         "primary_field": "proposal_audit",
-        "records": 14,
+        "records": 30,
         "item_fields": ["authority_source_ids"],
-        "items": 15,
+        "items": 42,
         "source_surfaces": ["gmail", "slack", "clio"],
         "unique_by": ["message_id"],
         "classification_field": "disposition",
         "classification_counts": {
-            "authorized": 7,
-            "amount_outside_authority": 1,
-            "economic_terms_mismatch": 1,
-            "authority_revoked": 2,
-            "authority_expired": 2,
-            "nonmonetary_terms_mismatch": 1,
+            "authorized": 11,
+            "amount_outside_authority": 4,
+            "economic_terms_mismatch": 3,
+            "authority_revoked": 4,
+            "authority_expired": 4,
+            "nonmonetary_terms_mismatch": 4,
         },
         "nonempty_fields": ["message_id", "authority_source_ids"],
     }
@@ -107,8 +107,9 @@ def test_oracle_is_grounded_in_the_fresh_projected_record() -> None:
     }
     assert {row[0] for row in client_authority} <= authority_sources
     assert {row[0] for row in partner_notes} <= authority_sources
-    assert truth["proposal_count"] == 14
-    assert truth["authorized_count"] == truth["breach_count"] == 7
+    assert truth["proposal_count"] == 30
+    assert truth["authorized_count"] == 11
+    assert truth["breach_count"] == 19
 
 
 def test_solve_emits_json_without_writing_workspace(tmp_path: Path) -> None:

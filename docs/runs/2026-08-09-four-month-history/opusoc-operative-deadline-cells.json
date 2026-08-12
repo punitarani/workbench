@@ -1,0 +1,30 @@
+{
+  "run_id": "opusoc-operative-deadline",
+  "git_revision": "4e60bc6f8bbb325398f14518d52ee8fa629b9826",
+  "source_jobs_dir": "/Users/punit/projects/workbench-jobs",
+  "cells": [
+    {
+      "task_name": "diagnostic-smoke-06-operative-deadline",
+      "run_id": "opusoc-operative-deadline",
+      "git_revision": "4e60bc6f8bbb325398f14518d52ee8fa629b9826",
+      "trial_name": "operative-deadline__93GdHiA",
+      "model_alias": null,
+      "attempt": null,
+      "valid": false,
+      "reason": null,
+      "reward": null,
+      "answer": null,
+      "process": null,
+      "criteria": [],
+      "tool_calls": {},
+      "tool_call_total": 0,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": [
+        "result.json",
+        "verifier/reward-details.json",
+        "agent/codex.txt"
+      ]
+    }
+  ]
+}

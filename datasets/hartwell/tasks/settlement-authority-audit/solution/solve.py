@@ -23,16 +23,30 @@ def iso(relative_seconds: int) -> str:
     return (EPOCH + timedelta(seconds=relative_seconds)).isoformat()
 
 
+# Each written client instruction, in the order the file states it. The
+# effective moment of an instruction is not always the moment its email
+# lands:
+#   ("self",  None)       -- effective when the email is sent.
+#   ("fixed", "<iso>")    -- a stated future effective moment (the board's
+#                            authority does not go live until Aug 17).
+#   ("trigger", "<subj>") -- a contingent grant that goes live only when a
+#                            cross-surface fact occurs; the trigger message
+#                            supplies the effective moment and a second
+#                            source id.
+# (subject, status, amount_cents, amount_rule, economic_basis,
+#  required_terms, prohibited_terms, expires_at, effective_kind, effective_arg)
 authority_specs = (
     (
         "Marigold — opening demand authority",
         "grant",
-        42_500_000,
+        47_500_000,
         "minimum",
         "exclusive",
         [],
         ["confidentiality"],
         "2026-07-17T17:00:00-07:00",
+        "self",
+        None,
     ),
     (
         "Marigold — put negotiations on hold",
@@ -43,6 +57,8 @@ authority_specs = (
         [],
         [],
         "",
+        "self",
+        None,
     ),
     (
         "Marigold — revised authority",
@@ -53,6 +69,8 @@ authority_specs = (
         ["mutual_release"],
         [],
         "2026-07-31T17:00:00-07:00",
+        "self",
+        None,
     ),
     (
         "Marigold — conditional counter authority",
@@ -62,17 +80,9 @@ authority_specs = (
         "inclusive",
         ["inventory_transition_60_days"],
         [],
-        "2026-08-03T12:00:00-07:00",
-    ),
-    (
-        "Marigold — authority after Monday's call",
-        "grant",
-        31_500_000,
-        "exact",
-        "exclusive",
-        ["mutual_non_disparagement"],
-        ["release_unknown_claims"],
-        "2026-08-14T17:00:00-07:00",
+        "2026-08-04T12:00:00-07:00",
+        "trigger",
+        "Marigold — tolling agreement executed",
     ),
     (
         "Marigold — board authority",
@@ -83,6 +93,8 @@ authority_specs = (
         ["confidentiality"],
         [],
         "2026-08-28T17:00:00-07:00",
+        "fixed",
+        "2026-08-17T09:00:00-07:00",
     ),
     (
         "Marigold — final authority window",
@@ -93,6 +105,20 @@ authority_specs = (
         ["mutual_release", "no_confidentiality"],
         ["confidentiality"],
         "2026-09-04T12:00:00-07:00",
+        "self",
+        None,
+    ),
+    (
+        "Marigold — supplemental closing authority",
+        "grant",
+        26_000_000,
+        "exact",
+        "inclusive",
+        ["confidentiality", "mutual_release"],
+        ["release_unknown_claims"],
+        "2026-09-11T17:00:00-07:00",
+        "self",
+        None,
     ),
 )
 
@@ -104,7 +130,11 @@ mail = {
         "WHERE subject LIKE 'Marigold%' ORDER BY time",
     )
 }
-if not all(subject in mail for subject, *_ in authority_specs):
+required_subjects = {subject for subject, *_ in authority_specs}
+required_subjects |= {
+    arg for *_, kind, arg in authority_specs if kind == "trigger" and arg is not None
+}
+if not required_subjects <= set(mail):
     sys.exit("the documented client-authority email sequence is incomplete")
 
 
@@ -117,9 +147,9 @@ def granted_cents(text):
 
     A grant names its number with an operative phrase -- "exactly" or
     "no less than". A bare dollar figure may be the authority being
-    withdrawn: "replace the $390,000 authority with exactly $340,000"
-    grants the second number, and reading the first one certifies the
-    superseded amount.
+    withdrawn: "stay at the $390,000 authority" while granting exactly
+    $340,000 grants the second number, and reading the first one
+    certifies the superseded amount.
     """
 
     found = re.search(r"(?:exactly|no less than)\s+\$([\d,]+)", text, re.IGNORECASE)
@@ -160,30 +190,44 @@ for subject, status, amount, *_rest in authority_specs:
             f"audit claims {amount}"
         )
 
-timeline = [
-    {
-        "effective_at": iso(mail[subject][1]),
-        "surface": "gmail",
-        "source_ids": [mail[subject][0]],
-        "status": status,
-        "amount_cents": amount,
-        "amount_rule": amount_rule,
-        "economic_basis": basis,
-        "required_terms": sorted(required),
-        "prohibited_terms": sorted(prohibited),
-        "expires_at": expires,
-    }
-    for (
-        subject,
-        status,
-        amount,
-        amount_rule,
-        basis,
-        required,
-        prohibited,
-        expires,
-    ) in authority_specs
-]
+timeline = []
+for (
+    subject,
+    status,
+    amount,
+    amount_rule,
+    basis,
+    required,
+    prohibited,
+    expires,
+    effective_kind,
+    effective_arg,
+) in authority_specs:
+    message_id, timestamp, _body = mail[subject]
+    source_pairs = [(timestamp, message_id)]
+    if effective_kind == "self":
+        effective_at = iso(timestamp)
+    elif effective_kind == "fixed":
+        effective_at = effective_arg
+    else:  # trigger: a contingent grant goes live when the cross-surface
+        # fact lands; the trigger message dates it and co-sources it.
+        trigger_id, trigger_ts, _trigger_body = mail[effective_arg]
+        effective_at = iso(trigger_ts)
+        source_pairs.append((trigger_ts, trigger_id))
+    timeline.append(
+        {
+            "effective_at": effective_at,
+            "surface": "gmail",
+            "source_ids": [ident for _ts, ident in sorted(source_pairs)],
+            "status": status,
+            "amount_cents": amount,
+            "amount_rule": amount_rule,
+            "economic_basis": basis,
+            "required_terms": sorted(required),
+            "prohibited_terms": sorted(prohibited),
+            "expires_at": expires,
+        }
+    )
 
 partner_notes = rows(
     "slack.db",
@@ -192,7 +236,20 @@ partner_notes = rows(
 )
 if len(partner_notes) != 3:
     sys.exit(f"expected three partner-DM authority records, found {len(partner_notes)}")
-grant_source_ids = [str(partner_notes[0][0]), str(partner_notes[1][0])]
+if granted_cents(partner_notes[0][2]) != 30_000_000:
+    sys.exit("the telephoned authority does not state $300,000 in the record")
+# The relay, its same-thread clarification, and Olivia's later written
+# confirmation all document one authority state (the docketing rule makes it
+# operative from the relay, not from the written email that confirms it).
+written_confirmation = mail["Marigold — written confirmation of phone authority"]
+if granted_cents(written_confirmation[2]) != 30_000_000:
+    sys.exit("the written confirmation does not state $300,000 in the record")
+grant_sources = [
+    (int(partner_notes[0][1]), str(partner_notes[0][0])),
+    (int(partner_notes[1][1]), str(partner_notes[1][0])),
+    (written_confirmation[1], written_confirmation[0]),
+]
+grant_source_ids = [ident for _timestamp, ident in sorted(grant_sources)]
 phone_grant = {
     "effective_at": iso(int(partner_notes[0][1])),
     "surface": "slack",
@@ -203,7 +260,7 @@ phone_grant = {
     "economic_basis": "inclusive",
     "required_terms": ["general_release", "payment_within_10_days"],
     "prohibited_terms": [],
-    "expires_at": "2026-08-12T12:00:00-07:00",
+    "expires_at": "2026-08-13T12:00:00-07:00",
 }
 phone_hold = {
     "effective_at": iso(int(partner_notes[2][1])),
@@ -220,104 +277,218 @@ phone_hold = {
 timeline.extend((phone_grant, phone_hold))
 timeline.sort(key=lambda record: record["effective_at"])
 
+# (amount_cents, economic_basis, terms, authority_index, disposition); the
+# authority_index points into the chronologically sorted timeline above.
 subject_specs = {
     "Marigold proposal 01": (
-        47_500_000,
+        50_000_000,
         "exclusive",
-        ["mutual_release", "no_confidentiality"],
+        ["mutual_release"],
         0,
         "authorized",
     ),
     "Marigold proposal 02": (
-        42_000_000,
+        45_000_000,
         "exclusive",
-        ["mutual_release", "no_confidentiality"],
+        ["mutual_release"],
         0,
         "amount_outside_authority",
     ),
     "Marigold proposal 03": (
-        42_500_000,
+        49_000_000,
+        "exclusive",
+        ["confidentiality", "mutual_release"],
+        0,
+        "nonmonetary_terms_mismatch",
+    ),
+    "Marigold proposal 04": (
+        48_000_000,
         "inclusive",
-        ["mutual_release", "no_confidentiality"],
+        ["mutual_release"],
         0,
         "economic_terms_mismatch",
     ),
-    "Marigold proposal 04": (
-        42_500_000,
+    "Marigold proposal 05": (
+        47_500_000,
         "exclusive",
         ["mutual_release", "no_confidentiality"],
         1,
         "authority_revoked",
     ),
-    "Marigold proposal 05": (
+    "Marigold proposal 06": (
+        47_500_000,
+        "exclusive",
+        ["mutual_release"],
+        1,
+        "authority_revoked",
+    ),
+    "Marigold proposal 07": (
+        39_000_000,
+        "exclusive",
+        ["mutual_release"],
+        2,
+        "authorized",
+    ),
+    "Marigold proposal 08": (
         39_000_000,
         "exclusive",
         ["confidentiality", "mutual_release"],
         2,
         "authorized",
     ),
-    "Marigold proposal 06": (
+    "Marigold proposal 09": (
+        38_500_000,
+        "exclusive",
+        ["mutual_release"],
+        2,
+        "amount_outside_authority",
+    ),
+    "Marigold proposal 10": (
+        39_000_000,
+        "exclusive",
+        [],
+        2,
+        "nonmonetary_terms_mismatch",
+    ),
+    "Marigold proposal 11": (
+        39_000_000,
+        "inclusive",
+        ["mutual_release"],
+        2,
+        "economic_terms_mismatch",
+    ),
+    "Marigold proposal 12": (
+        34_000_000,
+        "inclusive",
+        ["inventory_transition_60_days"],
+        2,
+        "amount_outside_authority",
+    ),
+    "Marigold proposal 13": (
         34_000_000,
         "inclusive",
         ["inventory_transition_60_days"],
         3,
         "authorized",
     ),
-    "Marigold proposal 07": (
+    "Marigold proposal 14": (
         34_000_000,
         "inclusive",
         ["inventory_transition_60_days"],
         3,
         "authorized",
     ),
-    "Marigold proposal 08": (
+    "Marigold proposal 15": (
         34_000_000,
         "inclusive",
         ["inventory_transition_60_days"],
         3,
         "authority_expired",
     ),
-    "Marigold proposal 09": (
-        31_500_000,
-        "exclusive",
-        ["mutual_non_disparagement", "release_unknown_claims"],
+    "Marigold proposal 16": (
+        30_000_000,
+        "inclusive",
+        ["general_release", "payment_within_10_days"],
+        3,
+        "authority_expired",
+    ),
+    "Marigold proposal 17": (
+        30_000_000,
+        "inclusive",
+        ["general_release", "payment_within_10_days"],
+        4,
+        "authorized",
+    ),
+    "Marigold proposal 18": (
+        30_000_000,
+        "inclusive",
+        ["general_release"],
         4,
         "nonmonetary_terms_mismatch",
     ),
-    "Marigold proposal 10": (
+    "Marigold proposal 19": (
+        29_500_000,
+        "inclusive",
+        ["general_release", "payment_within_10_days"],
+        4,
+        "amount_outside_authority",
+    ),
+    "Marigold proposal 20": (
+        30_000_000,
+        "inclusive",
+        ["general_release", "payment_within_10_days"],
+        4,
+        "authorized",
+    ),
+    "Marigold proposal 21": (
         30_000_000,
         "inclusive",
         ["general_release", "payment_within_10_days"],
         5,
-        "authorized",
-    ),
-    "Marigold proposal 11": (
-        30_000_000,
-        "inclusive",
-        ["general_release", "payment_within_10_days"],
-        6,
         "authority_revoked",
     ),
-    "Marigold proposal 12": (
+    "Marigold proposal 22": (
         28_500_000,
         "net_plus_fees",
         ["confidentiality"],
-        7,
-        "authorized",
+        5,
+        "authority_revoked",
     ),
-    "Marigold proposal 13": (
+    "Marigold proposal 23": (
         28_500_000,
         "net_plus_fees",
         ["confidentiality"],
-        7,
+        6,
         "authorized",
     ),
-    "Marigold proposal 14": (
+    "Marigold proposal 24": (
+        28_500_000,
+        "inclusive",
+        ["confidentiality"],
+        6,
+        "economic_terms_mismatch",
+    ),
+    "Marigold proposal 25": (
+        28_500_000,
+        "net_plus_fees",
+        ["confidentiality"],
+        6,
+        "authorized",
+    ),
+    "Marigold proposal 26": (
+        28_500_000,
+        "net_plus_fees",
+        ["confidentiality"],
+        6,
+        "authority_expired",
+    ),
+    "Marigold proposal 27": (
         27_500_000,
         "inclusive",
         ["mutual_release", "no_confidentiality"],
-        8,
+        7,
+        "authorized",
+    ),
+    "Marigold proposal 28": (
+        27_500_000,
+        "inclusive",
+        ["confidentiality", "mutual_release"],
+        7,
+        "nonmonetary_terms_mismatch",
+    ),
+    "Marigold proposal 29": (
+        27_500_000,
+        "inclusive",
+        ["mutual_release", "no_confidentiality"],
+        7,
         "authority_expired",
+    ),
+    "Marigold proposal 30": (
+        26_000_000,
+        "inclusive",
+        ["confidentiality", "mutual_release"],
+        8,
+        "authorized",
     ),
 }
 

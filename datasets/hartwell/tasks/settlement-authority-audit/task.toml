@@ -15,13 +15,13 @@ agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and 
 
 [metadata.evidence]
 primary_field = "proposal_audit"
-records = 14
+records = 30
 item_fields = ["authority_source_ids"]
-items = 15
+items = 42
 source_surfaces = ["gmail", "slack", "clio"]
 unique_by = ["message_id"]
 classification_field = "disposition"
-classification_counts = { authorized = 7, amount_outside_authority = 1, economic_terms_mismatch = 1, authority_revoked = 2, authority_expired = 2, nonmonetary_terms_mismatch = 1 }
+classification_counts = { authorized = 11, amount_outside_authority = 4, economic_terms_mismatch = 3, authority_revoked = 4, authority_expired = 4, nonmonetary_terms_mismatch = 4 }
 nonempty_fields = ["message_id", "authority_source_ids"]
 
 [environment]
