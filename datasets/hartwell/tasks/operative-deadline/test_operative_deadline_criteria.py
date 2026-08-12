@@ -194,10 +194,13 @@ def test_listing_only_the_stale_rows_no_longer_pays_like_the_answer(
     top. An agent that still stops at the stale references now files
     five rows of a thirteen-row schedule.
 
-    Pinned to the measured figure rather than a comfortable threshold:
-    0.6856 is what perfect work on the old task is worth once the audit
-    carries the score, and a rebalance that moves it should have to say
-    so out loud.
+    Pinned to the measured figure rather than a comfortable threshold.
+    It rose 0.6856 -> 0.7320 when the contested supersession landed,
+    because the stale partition grew from 5 of 13 rows to 8 of 17. That
+    is not a regression: after the docketing rule, naming the stale
+    references correctly means having already resolved the contested
+    interval, which is the task's hardest step. The probe that measures
+    the cheap path now is the written-notice reading below.
     """
 
     answer = _perfect()
@@ -207,7 +210,42 @@ def test_listing_only_the_stale_rows_no_longer_pays_like_the_answer(
 
     scored = _grade(tmp_path, answer)["answer"]
 
-    assert 0.67 < scored < 0.70, f"stale-only is worth 0.6856, measured {scored}"
+    assert 0.71 < scored < 0.75, f"stale-only is worth 0.7320, measured {scored}"
+
+
+def test_docketing_from_the_written_notice_costs_a_fifth_of_the_task(
+    tmp_path: Path,
+) -> None:
+    """The wrong-but-reasonable reading, priced.
+
+    The clerk phoned one reset through five days before the notice
+    arrived. An agent that dockets from the paper instead of the first
+    reliable report gets everything else right and still calls three
+    mentions current -- one of them the firm's own stipulation mail,
+    drafted against a setting that had already been vacated.
+    """
+
+    # Compared by prefix: _perfect() writes a chat reference as
+    # "<ts>.001" while the oracle carries the full microsecond form, and
+    # both name the same message.
+    contested = ("msg-000407", "1778523600", "msg-000419")
+    answer = _perfect()
+    for row in answer["notice_audit"]:
+        if row["message_id"].startswith(contested):
+            row["classification"] = "current"
+            row["operative_when_sent"] = "2026-05-20"
+    answer["stale_calendar_refs"] = [
+        reference
+        for reference in answer["stale_calendar_refs"]
+        if not reference.startswith(contested)
+    ]
+    for record in answer["supersessions"]:
+        if record["invalidated"] == "2026-05-20":
+            record["by"] = "msg-000432"
+
+    scored = _grade(tmp_path, answer)["answer"]
+
+    assert 0.77 < scored < 0.81, f"the written-notice reading is 0.7894, got {scored}"
 
 
 def test_an_audit_that_contradicts_its_own_stale_list_earns_no_coherence(

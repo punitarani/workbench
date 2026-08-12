@@ -43,7 +43,17 @@ Save **`deadline.json`** in your workspace:
 order they were set. `supersessions` names, for **each** superseded date,
 the specific item that invalidated it — the Gmail message id of the
 notice that moved the hearing off that date, or the Slack ts if the move
-was never noticed in writing. Do not stop at the court's written notices,
+reached the firm some other way first.
+
+**The firm dockets from the first reliable report, not the written
+confirmation.** When the court tells us a setting is gone — a clerk's
+call relayed into the file counts — that date is off the calendar from
+the moment we are told, not from the day the paper arrives. The
+instrument that invalidated a date is therefore the first reliable report
+of the move, and anything written afterward that still treats the old
+date as the setting was already wrong when it was sent, however
+reasonable it looked at the time. Some of our own filings sit in that
+gap. Do not stop at the court's written notices,
 and do not assume the most recent internal mail is current: check
 everything the firm wrote afterward, and cite (via `correction_ts`) the
 message that makes your operative date the operative one.

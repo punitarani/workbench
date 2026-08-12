@@ -1152,6 +1152,18 @@ def audit(log_path: Path, state_dir: Path) -> int:
             and _event_date(event) == "2026-05-13"
         ):
             supersession_times["2026-05-20"] = int(event.time)
+    # The firm dockets from the first reliable report, so the clerk's
+    # relayed call retires May 20 five days before the written notice
+    # lands. Auditing against the notice would stop guarding the rule the
+    # task actually grades and would call three real stale mentions clean.
+    for event in events:
+        payload = event.payload
+        if not isinstance(payload, ChatMessagePayload):
+            continue
+        text = payload.body.lower()
+        if "vacated" in text and "the 20th" in text and "arroyo" in text:
+            supersession_times["2026-05-20"] = int(event.time)
+            break
     if corrections:
         supersession_times["2026-06-18"] = int(corrections[0].time)
     arroyo_tokens = ("arroyo", "dept. 511", "fruitvale")
@@ -1187,9 +1199,16 @@ def audit(log_path: Path, state_dir: Path) -> int:
         f"stale citations of superseded hearing dates are exactly {sorted(stale)}",
         sorted(stale)
         == [
+            # The three inside the contested interval: the clerk's call on
+            # 05-08 retired May 20, and these were written against it
+            # before the notice arrived on 05-13. The 05-12 email is the
+            # firm's own stipulation, drafted on a vacated setting.
+            ("chat", "2026-05-11"),
             ("chat", "2026-05-15"),
             ("chat", "2026-06-15"),
             ("email", "2026-04-21"),
+            ("email", "2026-05-11"),
+            ("email", "2026-05-12"),
             ("email", "2026-06-12"),
             ("email", "2026-06-16"),
         ],

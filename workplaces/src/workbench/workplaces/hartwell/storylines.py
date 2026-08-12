@@ -5544,6 +5544,71 @@ class StorylineDirector:
 
         self._on("2026-05-13", _at(14, 15), reset2)
 
+        # R2: the one supersession that is reported before it is effective.
+        # Dawn phones the reset through on the 8th and the written notice
+        # follows on the 13th, so for five days the file has a reliable
+        # report and no paper. Whether the two mentions in between are
+        # stale turns on which the firm dockets from -- the rule is stated
+        # in the brief, but it has to be applied to a contested interval
+        # rather than read off a timestamp sort.
+        def clerk_calls_the_reset(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(9, 15),
+                sender=_GA,
+                body=(
+                    "Dawn from Dept. 511 just called on Arroyo: the 20th is "
+                    "vacated, they are resetting the motion hearing to June "
+                    "18 at 10:00. Written notice to follow once the "
+                    "stipulated order is entered."
+                ),
+                ref="s5.oral-reset",
+            )
+
+        self._on("2026-05-08", _at(9, 15), clerk_calls_the_reset)
+
+        # Sent inside the contested window: both name May 20 as the setting
+        # after the reset was reported and before it was confirmed.
+        def outline_on_the_old_setting(
+            minter: IdMinter, drafts: list[TimedDraft]
+        ) -> None:
+            self._chat(
+                minter,
+                drafts,
+                at=_at(11, 20),
+                sender=_SR,
+                body=(
+                    "Starting the Arroyo argument outline — working back "
+                    "from the May 20 hearing so the courtesy copies go out "
+                    "in time."
+                ),
+            )
+
+        self._on("2026-05-11", _at(11, 20), outline_on_the_old_setting)
+
+        def binder_on_the_old_setting(
+            minter: IdMinter, drafts: list[TimedDraft]
+        ) -> None:
+            self._email(
+                minter,
+                drafts,
+                at=_at(10, 40),
+                sender=_ML,
+                to=(_GA,),
+                cc=(_SR,),
+                subject="Arroyo — binder for the May 20 hearing",
+                text=(
+                    "Grace,\n\nI have the Arroyo binder building against the "
+                    "May 20 setting in Dept. 511. Flag me if anything on the "
+                    "calendar shifts.\n\nMarcus"
+                ),
+                thread="s5.binder",
+                reply=False,
+            )
+
+        self._on("2026-05-11", _at(10, 40), binder_on_the_old_setting)
+
         # The week of the correction: unrelated deadline chatter in
         # #matters so date-and-deadline keyword searches surface noise.
         def goldleaf_moved(minter: IdMinter, drafts: list[TimedDraft]) -> None:

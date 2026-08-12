@@ -1,16 +1,50 @@
 {
   "_evidence": {
-    "emails": "Clerk notices in Gmail set the hearing three times: msg-000087 (2026-03-16) -> April 28, msg-000274 (2026-04-17) -> May 20, msg-000431 (2026-05-13) -> June 18, all at 10:00 a.m. Every email states a date that was later superseded, and msg-000619 (2026-06-16, Peter Novak's docket recap) formally restates the stale June 18 setting five days AFTER the correction — while carrying the fair pointer: Grace was chasing the clerk's office the week before she went out, 'we'll confirm ... when she is back on'.",
-    "slack": "chm-002937 (ts 1781202300.000000, 2026-06-11, Grace Adeyemi) in the Grace<->Samuel DM cnv-000005: 'clerk just called about 00008 — moved again, the 25th at 9, not the 18th'. slack_search_public excludes DMs by construction; the message carries no case name and no docket vocabulary, only the Clio display-number prefix 00008. The operative date (2026-06-25, 9:00 a.m.) exists nowhere else in the record.",
-    "fabric": "Rounds 4-5 grew the DM fabric so discovery is costly-but-possible: cnv-000005 runs 407 messages with the correction at position 345 (200+ before it, 40+ after it), eleven other DM pairs carry the rest of 2,157 DM messages (round 5 added two standing pairs plus April sprint lanes: the Marcus<->Peter data-room thread, the Anita<->Carl prebill thread, and the Grace<->Peter records thread each exceed 100 April messages), and slack_read_channel caps at 100 messages per call — an end-to-end skim of every DM costs ~25+ calls, while windowing oldest/latest around the clerk-call week (inferable from the recap breadcrumb and Grace being out) finds it in a handful.",
-    "stale_calendar_refs": "Round 6: a communication is stale when, strictly after a hearing date's supersession record, it still cites that date as the Arroyo setting (messages announcing or negating a move are corrections, not citations). Exactly five exist: msg-000289 (2026-04-21, Sofia's argument outline 'for the April 28 hearing' - four days after the reset notice she was never cc'd on), chat ts 1778865900.x (2026-05-15, Sofia asks about courtesy copies 'ahead of the May 20 motion hearing' - Grace corrects her in the reply, which cites June 18 pre-supersession and is NOT stale), msg-000602 (2026-06-12, opposing counsel confirms 'the June 18 hearing' logistics the day after the clerk's call; nobody replies because an email correction would leak the operative date), chat ts 1781541900.x (2026-06-15, Sofia's binder note 'hearing on the 18th'), and msg-000619 (2026-06-16, the stale docket recap). Near misses: every pre-supersession citation (the notices, the stipulation thread, Samuel's April 21 reply citing May 20), the correction DM itself ('not the 18th'), and the other matters' June dates in the recap. Graded all-or-nothing at 0.56; the non-reconciliation subset caps at 0.44."
+    "emails": "Clerk notices in Gmail set the hearing three times: msg-000087 (2026-03-16) -> April 28, msg-000274 (2026-04-17) -> May 20, msg-000432 (2026-05-13) -> June 18, all at 10:00 a.m. Every email states a date that was later superseded, and msg-000620 (2026-06-16, Peter Novak's docket recap) formally restates the stale June 18 setting five days AFTER the correction \u2014 while carrying the fair pointer: Grace was chasing the clerk's office the week before she went out, 'we'll confirm ... when she is back on'.",
+    "fabric": "Rounds 4-5 grew the DM fabric so discovery is costly-but-possible: cnv-000005 runs 407 messages with the correction at position 345 (200+ before it, 40+ after it), eleven other DM pairs carry the rest of 2,157 DM messages (round 5 added two standing pairs plus April sprint lanes: the Marcus<->Peter data-room thread, the Anita<->Carl prebill thread, and the Grace<->Peter records thread each exceed 100 April messages), and slack_read_channel caps at 100 messages per call \u2014 an end-to-end skim of every DM costs ~25+ calls, while windowing oldest/latest around the clerk-call week (inferable from the recap breadcrumb and Grace being out) finds it in a handful.",
+    "slack": "chm-002937 (ts 1781202300.000000, 2026-06-11, Grace Adeyemi) in the Grace<->Samuel DM cnv-000005: 'clerk just called about 00008 \u2014 moved again, the 25th at 9, not the 18th'. slack_search_public excludes DMs by construction; the message carries no case name and no docket vocabulary, only the Clio display-number prefix 00008. The operative date (2026-06-25, 9:00 a.m.) exists nowhere else in the record.",
+    "stale_calendar_refs": "Round 6: a communication is stale when, strictly after a hearing date's supersession record, it still cites that date as the Arroyo setting (messages announcing or negating a move are corrections, not citations). Exactly five exist: msg-000289 (2026-04-21, Sofia's argument outline 'for the April 28 hearing' - four days after the reset notice she was never cc'd on), chat ts 1778865900.x (2026-05-15, Sofia asks about courtesy copies 'ahead of the May 20 motion hearing' - Grace corrects her in the reply, which cites June 18 pre-supersession and is NOT stale), msg-000603 (2026-06-12, opposing counsel confirms 'the June 18 hearing' logistics the day after the clerk's call; nobody replies because an email correction would leak the operative date), chat ts 1781541900.x (2026-06-15, Sofia's binder note 'hearing on the 18th'), and msg-000620 (2026-06-16, the stale docket recap). Near misses: every pre-supersession citation (the notices, the stipulation thread, Samuel's April 21 reply citing May 20), the correction DM itself ('not the 18th'), and the other matters' June dates in the recap. Graded all-or-nothing at 0.56; the non-reconciliation subset caps at 0.44."
   },
+  "correction_ts_prefix": "1781202300",
   "operative_date": "2026-06-25",
   "operative_time_prefixes": [
     "9:00",
     "09:00"
   ],
-  "correction_ts_prefix": "1781202300",
+  "stale_calendar_refs": [
+    {
+      "id": "msg-000289",
+      "kind": "email"
+    },
+    {
+      "kind": "chat",
+      "ts_prefix": "1778523600"
+    },
+    {
+      "id": "msg-000407",
+      "kind": "email"
+    },
+    {
+      "id": "msg-000419",
+      "kind": "email"
+    },
+    {
+      "kind": "chat",
+      "ts_prefix": "1778865900"
+    },
+    {
+      "id": "msg-000603",
+      "kind": "email"
+    },
+    {
+      "kind": "chat",
+      "ts_prefix": "1781541900"
+    },
+    {
+      "id": "msg-000620",
+      "kind": "email"
+    }
+  ],
   "superseded_dates": [
     "2026-04-28",
     "2026-05-20",
@@ -18,47 +52,25 @@
   ],
   "supersessions": [
     {
-      "invalidated": "2026-04-28",
-      "by_prefix": "msg-000274"
+      "by_prefix": "msg-000274",
+      "invalidated": "2026-04-28"
     },
     {
-      "invalidated": "2026-05-20",
-      "by_prefix": "msg-000431"
+      "by_prefix": "1778256900",
+      "invalidated": "2026-05-20"
     },
     {
-      "invalidated": "2026-06-18",
-      "by_prefix": "1781202300"
+      "by_prefix": "1781202300",
+      "invalidated": "2026-06-18"
     }
   ],
   "weights": {
+    "correction_ts": 0.07,
+    "format": 0.05,
     "operative_date": 0.1,
     "operative_time": 0.04,
-    "correction_ts": 0.07,
-    "superseded_dates": 0.08,
-    "supersessions": 0.1,
     "stale_calendar_refs": 0.56,
-    "format": 0.05
-  },
-  "stale_calendar_refs": [
-    {
-      "kind": "email",
-      "id": "msg-000289"
-    },
-    {
-      "kind": "chat",
-      "ts_prefix": "1778865900"
-    },
-    {
-      "kind": "email",
-      "id": "msg-000602"
-    },
-    {
-      "kind": "chat",
-      "ts_prefix": "1781541900"
-    },
-    {
-      "kind": "email",
-      "id": "msg-000619"
-    }
-  ]
+    "superseded_dates": 0.08,
+    "supersessions": 0.1
+  }
 }

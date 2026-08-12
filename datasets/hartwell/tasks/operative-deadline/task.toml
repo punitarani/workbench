@@ -13,12 +13,12 @@ reference_tool_path_calls = 40
 agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and Clio records."
 [metadata.evidence]
 primary_field = "notice_audit"
-records = 13
+records = 17
 source_surfaces = ["gmail", "slack", "clio"]
 classification_field = "classification"
-classification_counts = { current = 3, stale = 5, correction = 5 }
+classification_counts = { current = 3, stale = 8, correction = 6 }
 source_field = "surface"
-source_counts = { gmail = 9, slack = 4 }
+source_counts = { gmail = 10, slack = 7 }
 nonempty_fields = ["message_id", "cites_date", "operative_when_sent"]
 [environment]
 docker_image = "workbench:dev"

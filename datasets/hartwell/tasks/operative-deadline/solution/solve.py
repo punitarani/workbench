@@ -31,6 +31,8 @@ MONTHS = {
     )
 }
 
+MONTH_NAMES = {index: name for name, index in MONTHS.items()}
+
 STATE = os.environ.get("WORKBENCH_STATE", "../state")
 
 
@@ -127,10 +129,43 @@ if operative is None:
 if operative[0] <= noticed[-1]:
     sys.exit("the correction does not move the hearing past the last notice")
 
-supersessions = [
-    {"invalidated": noticed[index].isoformat(), "by": notices[index + 1][0]}
-    for index in range(len(noticed) - 1)
-]
+# The firm dockets from the first reliable report, not the written
+# confirmation. One reset was phoned through by the clerk and relayed in
+# chat days before the notice arrived; that relay is the instrument, and
+# it moves the date's cutover earlier -- which is what makes the mentions
+# in between stale rather than current.
+reported = {}
+for body, ts, time, _kind in rows(
+    "slack.db",
+    "SELECT m.body, m.ts, m.time, c.kind FROM messages m JOIN conversations c "
+    "ON c.conversation_id = m.conversation_id ORDER BY m.time",
+):
+    text = body.lower()
+    if not any(token in text for token in ("arroyo", "dept. 511", "fruitvale")):
+        continue
+    if "vacated" not in text and "resetting" not in text:
+        continue
+    for index, day in enumerate(noticed[:-1]):
+        # The relay has to retire a date the court had already noticed and
+        # name the one that replaces it, and it only counts while that
+        # date is still the operative setting.
+        retires = any(form in text for form in (f"the {day.day}th", f"the {day.day}"))
+        sets_next = any(
+            form in text
+            for form in (
+                f"{MONTH_NAMES[noticed[index + 1].month]} {noticed[index + 1].day}",
+                f"the {noticed[index + 1].day}th",
+            )
+        )
+        if retires and sets_next and notices[index][2] < time < notices[index + 1][2]:
+            reported.setdefault(day, (notices[index + 1][0], time))
+            reported[day] = (ts, time)
+
+supersessions = []
+for index in range(len(noticed) - 1):
+    day = noticed[index]
+    instrument = reported.get(day, (notices[index + 1][0], notices[index + 1][2]))[0]
+    supersessions.append({"invalidated": day.isoformat(), "by": instrument})
 supersessions.append({"invalidated": noticed[-1].isoformat(), "by": operative[2]})
 
 # The notice audit: every communication in the matter that names a
@@ -138,26 +173,35 @@ supersessions.append({"invalidated": noticed[-1].isoformat(), "by": operative[2]
 # was sent. One row per (message, date named) -- the notice that moves
 # the hearing names both the date it retires and the date it sets, and
 # the audit records each judgement separately.
-MONTH_NAMES = {index: name for name, index in MONTHS.items()}
 # The correction never spells the case name; it cites the matter by its
 # Clio number, so the number is as much a handle on this file as the
 # caption is.
 TOKENS = ("arroyo", "dept. 511", "fruitvale", number.lower())
+
+
+def settled_at(index):
+    """When noticed[index] stopped being the setting.
+
+    The written notice unless the reset was phoned through first, in
+    which case the relay controls and the date died days earlier.
+    """
+
+    if index + 1 >= len(noticed):
+        return operative[3]
+    return reported.get(noticed[index], (None, notices[index + 1][2]))[1]
+
+
 # A superseding instrument speaks for itself: it is operative from its own
 # timestamp, so the notice announcing a move reports the new date rather
 # than citing a stale one.
 timeline = [
     (notices[0][2], noticed[0]),
-    (notices[1][2], noticed[1]),
-    (notices[2][2], noticed[2]),
+    (settled_at(0), noticed[1]),
+    (settled_at(1), noticed[2]),
     (operative[3], operative[0]),
 ]
-instruments = {notices[1][0], notices[2][0], operative[2]}
-cutovers = {
-    noticed[0]: notices[1][2],
-    noticed[1]: notices[2][2],
-    noticed[2]: operative[3],
-}
+instruments = {record["by"] for record in supersessions}
+cutovers = {noticed[index]: settled_at(index) for index in range(len(noticed))}
 
 
 def forms_of(day):
@@ -224,8 +268,18 @@ for row in audit:
     del row["time"]
 
 stale = [row["message_id"] for row in audit if row["classification"] == "stale"]
-if len(stale) != 5:
-    sys.exit(f"expected exactly five stale citations, found {stale}")
+# Eight, not the five the written-notice reading finds: the clerk phoned
+# one reset through five days before the notice, and three mentions fall
+# in the interval between the report and the paper. One of the three is
+# the firm's own stipulation mail, which was drafted against a setting
+# that had already been vacated by telephone.
+if len(stale) != 8:
+    sys.exit(f"expected exactly eight stale citations, found {stale}")
+if not reported:
+    sys.exit(
+        "no reset was reported before it was confirmed; the docketing rule "
+        "has nothing to bite on and the audit is a timestamp sort again"
+    )
 if {row["cites_date"] for row in audit if row["classification"] == "stale"} != {
     day.isoformat() for day in noticed
 }:
