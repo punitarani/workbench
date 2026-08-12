@@ -34,12 +34,27 @@ MODEL_ALIASES: dict[str, str] = {
 }
 
 
+# Codex speaks the Responses API; opencode's openai provider speaks Chat
+# Completions. Both accept the same `model` and `provider` fields, so one
+# gateway pins and forwards either -- routed by the inbound path to the
+# matching OpenRouter endpoint.
+_UPSTREAM_SUFFIX = {
+    "/v1/responses": "/responses",
+    "/v1/chat/completions": "/chat/completions",
+}
+
+
 class GatewayConfig(BaseModel):
     openrouter_api_key: SecretStr
     gateway_token: SecretStr
     bind_host: str = Field(min_length=1)
     port: int = Field(default=0, ge=0, le=65535)
     upstream_url: str = "https://openrouter.ai/api/v1/responses"
+
+    @property
+    def upstream_base(self) -> str:
+        # Everything up to the endpoint suffix, e.g. https://openrouter.ai/api/v1.
+        return self.upstream_url.rsplit("/", 1)[0]
 
 
 class GatewayProvenance(BaseModel):
@@ -154,10 +169,11 @@ class ProviderGateway:
     ) -> None:
         try:
             method, target, headers, body = await self._read_request(reader)
-            if method != "POST" or target.split("?", maxsplit=1)[0] != "/v1/responses":
+            path = target.split("?", maxsplit=1)[0]
+            if method != "POST" or path not in _UPSTREAM_SUFFIX:
                 raise GatewayProtocolError(404, "not found")
             self._authorize(headers)
-            await self._proxy(headers, body, writer)
+            await self._proxy(headers, body, writer, path)
         except GatewayProtocolError as error:
             await self._write_json_error(writer, error.status, str(error))
         except asyncio.IncompleteReadError, asyncio.LimitOverrunError, ValueError:
@@ -208,6 +224,7 @@ class ProviderGateway:
         inbound_headers: dict[str, str],
         body: bytes,
         writer: asyncio.StreamWriter,
+        path: str,
     ) -> None:
         try:
             raw_payload = json.loads(body)
@@ -238,7 +255,7 @@ class ProviderGateway:
             raise RuntimeError("provider gateway is not running")
         upstream_request = client.build_request(
             "POST",
-            self.config.upstream_url,
+            self.config.upstream_base + _UPSTREAM_SUFFIX[path],
             headers=outbound_headers,
             content=json.dumps(raw_payload, separators=(",", ":")).encode(),
         )

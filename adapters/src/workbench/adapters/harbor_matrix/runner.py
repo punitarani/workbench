@@ -47,10 +47,24 @@ LOGGER = logging.getLogger(__name__)
 DOCS_RUN_NAME = "2026-08-09-four-month-history"
 HARBOR_VERSION = "0.18.0"
 CODEX_VERSION = "0.147.0"
+# opencode-ai the container installs. ``--ak version=`` binds Harbor's agent
+# kwarg to BaseInstalledAgent.__init__(version=...) -- the same base parameter
+# Codex pins through (neither agent declares a ``version`` CliFlag), so this
+# pins ``npm i -g opencode-ai@<version>`` instead of falling back to @latest.
+# Determined from the installed CLI: ``opencode --version`` -> 1.1.8.
+OPENCODE_VERSION = "1.1.8"
 HARTWELL_CODEX_IMPORT_PATH = (
     "workbench.adapters.harbor_matrix.codex_agent:HartwellCodex"
 )
+# Kept as a literal (not imported from opencode_agent) so importing this module
+# never pulls in ``harbor``, which is unavailable in the adapter's test env.
+HARTWELL_OPENCODE_IMPORT_PATH = (
+    "workbench.adapters.harbor_matrix.opencode_agent:HartwellOpencode"
+)
 CODEX_COMPACTION_MODE: Literal["custom-provider-local"] = "custom-provider-local"
+# opencode's openai provider is pointed at the gateway; the segment after
+# ``openai/`` is the gateway alias the gateway already restores and pins.
+OPENCODE_MODEL_PREFIX = "openai/"
 AGENT_TIMEOUT_MULTIPLIER = 2.0
 # Per-key, not org-wide. /credits reports the whole account, so on a pooled
 # key another team's traffic lands in this run's metered cost: a nine-task
@@ -105,6 +119,10 @@ class MatrixConfig(BaseModel):
     # them, and a settled batch cannot be re-run to recover what it paid for.
     jobs_dir_is_derived: bool = False
     run_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+    # Which installed Harbor agent drives the containers. Codex remains the
+    # default; opencode runs both models through opencode's openai provider
+    # pointed at the same gateway.
+    harness: Literal["codex", "opencode"] = "codex"
     tasks: tuple[TaskName, ...] = Field(default=TASK_ORDER, min_length=1)
     attempts: Literal[3] = 3
     diagnostic_smoke: bool = False
@@ -593,18 +611,36 @@ def build_harbor_command(
     task_number = TASK_ORDER.index(task_name) + 1
     label = f"-{job_label}" if job_label is not None else ""
     job_name = f"{config.run_id}{label}-{task_number:02d}-{task_name}"
+    if config.harness == "opencode":
+        import_path = HARTWELL_OPENCODE_IMPORT_PATH
+        model_prefix = OPENCODE_MODEL_PREFIX
+        # opencode has no compaction hack; keep the base ``version`` pin.
+        agent_kwargs: tuple[str, ...] = ("--ak", f"version={OPENCODE_VERSION}")
+    else:
+        import_path = HARTWELL_CODEX_IMPORT_PATH
+        model_prefix = ""
+        agent_kwargs = (
+            "--ak",
+            f"version={CODEX_VERSION}",
+            "--ak",
+            f"compaction_mode={CODEX_COMPACTION_MODE}",
+        )
     command = [
         "harbor",
         "run",
         "-p",
         str(config.tasks_root / task_name),
         "-a",
-        HARTWELL_CODEX_IMPORT_PATH,
+        import_path,
     ]
     for alias in model_aliases:
-        if alias not in ALIAS_TO_MODEL:
+        # Validate the bare gateway alias, tolerating an ``openai/`` prefix, then
+        # re-emit it in the form the selected harness expects: bare for Codex,
+        # ``openai/<alias>`` for opencode's gateway-backed openai provider.
+        bare_alias = alias.removeprefix(OPENCODE_MODEL_PREFIX)
+        if bare_alias not in ALIAS_TO_MODEL:
             raise ValueError(f"unsupported Harbor model alias: {alias}")
-        command.extend(("-m", alias))
+        command.extend(("-m", f"{model_prefix}{bare_alias}"))
     command.extend(
         (
             "-k",
@@ -615,10 +651,7 @@ def build_harbor_command(
             str(config.concurrency),
             "--agent-timeout-multiplier",
             str(AGENT_TIMEOUT_MULTIPLIER),
-            "--ak",
-            f"version={CODEX_VERSION}",
-            "--ak",
-            f"compaction_mode={CODEX_COMPACTION_MODE}",
+            *agent_kwargs,
             "--ae",
             f"OPENAI_BASE_URL=http://host.docker.internal:{gateway_port}/v1",
             "--env-file",

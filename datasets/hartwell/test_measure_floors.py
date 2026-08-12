@@ -259,3 +259,46 @@ def test_visitor_floor_certifies_the_full_custody_audit() -> None:
         else:
             leaves.append(exception)
     assert any(isinstance(exception, AssertionError) for exception in leaves)
+
+
+def test_settlement_floor_certifies_the_full_authority_and_proposal_audit() -> None:
+    namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
+    measure = namespace["measure"]
+    oracle = json.loads(
+        (TASKS / "settlement-authority-audit" / "tests" / "oracle.json").read_text()
+    )
+    assert asyncio.run(measure("settlement-authority-audit")) == 6
+    oracle["proposal_audit"][0]["message_id"] = "invented-message"
+    measure.__globals__["_oracle"] = lambda task: oracle
+
+    with pytest.raises(BaseExceptionGroup) as caught:
+        asyncio.run(measure("settlement-authority-audit"))
+    pending = list(caught.value.exceptions)
+    leaves: list[BaseException] = []
+    while pending:
+        exception = pending.pop()
+        if isinstance(exception, BaseExceptionGroup):
+            pending.extend(exception.exceptions)
+        else:
+            leaves.append(exception)
+    assert any(isinstance(exception, AssertionError) for exception in leaves)
+
+
+def test_settlement_floor_metadata_matches_the_measured_reference_path() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(HARTWELL / "measure_floors.py"),
+            "settlement-authority-audit",
+        ],
+        cwd=HARTWELL.parents[1],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    manifest = tomllib.loads(
+        (TASKS / "settlement-authority-audit" / "task.toml").read_text()
+    )
+
+    assert completed.stdout.strip() == "settlement-authority-audit: floor=6"
+    assert manifest["metadata"]["reference_tool_path_calls"] == 6

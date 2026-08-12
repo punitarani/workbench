@@ -15,6 +15,7 @@ the harness counts against the same budget.
 
 import asyncio
 import json
+import re
 import sys
 from collections.abc import Iterable
 from datetime import date, datetime, time, timedelta
@@ -87,6 +88,204 @@ MENTION_MARKERS = {
     "support-services-sow.md": ("statement of work", "support-services-sow"),
     "vendor-contract-comparison.md": ("vendor contract comparison",),
     "witness-interview-summaries.md": ("witness interview summaries",),
+}
+
+# The settlement-authority audit's expert reading of the Marigold record,
+# mirrored from the reference solver. Each row is what an authority
+# instruction or an outbound proposal *means* once read -- the amount rule,
+# the fee basis, the normalized terms, and (for proposals) the authority
+# state in force and the disposition. The floor sources every message id,
+# timestamp, sender, and dollar figure from the served tools and
+# cross-checks each figure against the prose it claims to quote, so the
+# certified answer rests on the record rather than on this table.
+# (subject, status, amount_cents, amount_rule, economic_basis,
+#  required_terms, prohibited_terms, expires_at)
+MARIGOLD_AUTHORITY = (
+    (
+        "Marigold — opening demand authority",
+        "grant",
+        42_500_000,
+        "minimum",
+        "exclusive",
+        [],
+        ["confidentiality"],
+        "2026-07-17T17:00:00-07:00",
+    ),
+    (
+        "Marigold — put negotiations on hold",
+        "hold",
+        0,
+        "none",
+        "none",
+        [],
+        [],
+        "",
+    ),
+    (
+        "Marigold — revised authority",
+        "grant",
+        39_000_000,
+        "exact",
+        "exclusive",
+        ["mutual_release"],
+        [],
+        "2026-07-31T17:00:00-07:00",
+    ),
+    (
+        "Marigold — conditional counter authority",
+        "grant",
+        34_000_000,
+        "exact",
+        "inclusive",
+        ["inventory_transition_60_days"],
+        [],
+        "2026-08-03T12:00:00-07:00",
+    ),
+    (
+        "Marigold — authority after Monday's call",
+        "grant",
+        31_500_000,
+        "exact",
+        "exclusive",
+        ["mutual_non_disparagement"],
+        ["release_unknown_claims"],
+        "2026-08-14T17:00:00-07:00",
+    ),
+    (
+        "Marigold — board authority",
+        "grant",
+        28_500_000,
+        "exact",
+        "net_plus_fees",
+        ["confidentiality"],
+        [],
+        "2026-08-28T17:00:00-07:00",
+    ),
+    (
+        "Marigold — final authority window",
+        "grant",
+        27_500_000,
+        "exact",
+        "inclusive",
+        ["mutual_release", "no_confidentiality"],
+        ["confidentiality"],
+        "2026-09-04T12:00:00-07:00",
+    ),
+)
+
+# The client also grants authority by phone; the contemporaneous partner DMs
+# are the documented record. The grant and its same-thread clarification are
+# one authority state (two source ids); a later DM puts it on hold.
+MARIGOLD_PHONE_GRANT = {
+    "amount_cents": 30_000_000,
+    "amount_rule": "exact",
+    "economic_basis": "inclusive",
+    "required_terms": ["general_release", "payment_within_10_days"],
+    "prohibited_terms": [],
+    "expires_at": "2026-08-12T12:00:00-07:00",
+}
+
+# (amount_cents, economic_basis, terms, authority_index, disposition); the
+# authority_index points into the chronologically sorted timeline.
+MARIGOLD_PROPOSALS = {
+    "Marigold proposal 01": (
+        47_500_000,
+        "exclusive",
+        ["mutual_release", "no_confidentiality"],
+        0,
+        "authorized",
+    ),
+    "Marigold proposal 02": (
+        42_000_000,
+        "exclusive",
+        ["mutual_release", "no_confidentiality"],
+        0,
+        "amount_outside_authority",
+    ),
+    "Marigold proposal 03": (
+        42_500_000,
+        "inclusive",
+        ["mutual_release", "no_confidentiality"],
+        0,
+        "economic_terms_mismatch",
+    ),
+    "Marigold proposal 04": (
+        42_500_000,
+        "exclusive",
+        ["mutual_release", "no_confidentiality"],
+        1,
+        "authority_revoked",
+    ),
+    "Marigold proposal 05": (
+        39_000_000,
+        "exclusive",
+        ["confidentiality", "mutual_release"],
+        2,
+        "authorized",
+    ),
+    "Marigold proposal 06": (
+        34_000_000,
+        "inclusive",
+        ["inventory_transition_60_days"],
+        3,
+        "authorized",
+    ),
+    "Marigold proposal 07": (
+        34_000_000,
+        "inclusive",
+        ["inventory_transition_60_days"],
+        3,
+        "authorized",
+    ),
+    "Marigold proposal 08": (
+        34_000_000,
+        "inclusive",
+        ["inventory_transition_60_days"],
+        3,
+        "authority_expired",
+    ),
+    "Marigold proposal 09": (
+        31_500_000,
+        "exclusive",
+        ["mutual_non_disparagement", "release_unknown_claims"],
+        4,
+        "nonmonetary_terms_mismatch",
+    ),
+    "Marigold proposal 10": (
+        30_000_000,
+        "inclusive",
+        ["general_release", "payment_within_10_days"],
+        5,
+        "authorized",
+    ),
+    "Marigold proposal 11": (
+        30_000_000,
+        "inclusive",
+        ["general_release", "payment_within_10_days"],
+        6,
+        "authority_revoked",
+    ),
+    "Marigold proposal 12": (
+        28_500_000,
+        "net_plus_fees",
+        ["confidentiality"],
+        7,
+        "authorized",
+    ),
+    "Marigold proposal 13": (
+        28_500_000,
+        "net_plus_fees",
+        ["confidentiality"],
+        7,
+        "authorized",
+    ),
+    "Marigold proposal 14": (
+        27_500_000,
+        "inclusive",
+        ["mutual_release", "no_confidentiality"],
+        8,
+        "authority_expired",
+    ),
 }
 
 
@@ -167,6 +366,37 @@ def _strip_notices(content: str) -> str:
     return "\n## ".join(
         [sections[0]] + [s for s in sections[1:] if not s.startswith("Notices")]
     )
+
+
+def _cents(figure: str) -> int:
+    return int(figure.replace(",", "")) * 100
+
+
+def _granted_cents(text: str) -> int | None:
+    """The figure an authority instruction actually authorizes: a number
+    carried by an operative phrase (``exactly`` or ``no less than``), never a
+    bare dollar figure that may be the authority being withdrawn."""
+    found = re.search(r"(?:exactly|no less than)\s+\$([\d,]+)", text, re.IGNORECASE)
+    return None if found is None else _cents(found.group(1))
+
+
+def _offered_cents(text: str) -> int | None:
+    """The figure a proposal puts on the table."""
+    found = re.search(r"\$([\d,]+)", text)
+    return None if found is None else _cents(found.group(1))
+
+
+def _stated_basis(text: str) -> str | None:
+    lowered = text.lower()
+    for phrase, basis in (
+        ("inclusive of", "inclusive"),
+        ("exclusive of", "exclusive"),
+        ("net to", "net_plus_fees"),
+        ("all-in", "inclusive"),
+    ):
+        if phrase in lowered:
+            return basis
+    return None
 
 
 class CountingClient:
@@ -255,6 +485,24 @@ async def _slack_all_pages(client: CountingClient, query: str) -> list[dict]:
     while True:
         page = await client.call(
             "slack__slack_search_public", query=query, limit=20, cursor=cursor
+        )
+        matches += page["messages"]["matches"]
+        if len(matches) >= page["messages"]["total"]:
+            return matches
+        cursor = str(len(matches))
+
+
+async def _slack_private_pages(client: CountingClient, query: str) -> list[dict]:
+    """Like ``_slack_all_pages`` but over the tool that also sees direct
+    messages; seatless, it reaches every dm in the workspace."""
+    matches: list[dict] = []
+    cursor: str | None = None
+    while True:
+        page = await client.call(
+            "slack__slack_search_public_and_private",
+            query=query,
+            limit=20,
+            cursor=cursor,
         )
         matches += page["messages"]["matches"]
         if len(matches) >= page["messages"]["total"]:
@@ -1208,7 +1456,177 @@ async def visitor_log_audit(client: CountingClient) -> None:
     ), custody_audit
 
 
+async def settlement_authority_audit(client: CountingClient) -> None:
+    oracle = _oracle("settlement-authority-audit")
+
+    # The carrier names one thing: the Goldleaf franchise litigation. Clio
+    # gives it its exact display number and confirms the client org.
+    matters = await client.call("clio__list_matters", query="Goldleaf")
+    matter = next(
+        m
+        for m in matters["data"]
+        if "Goldleaf" in f"{m['display_number']} {m['title'] or ''}"
+        or (m["client"] and "Goldleaf" in m["client"]["name"])
+    )
+    matter_number = matter["display_number"]
+
+    # The firm record resolves the negotiation code name and the cast: a
+    # settlement-audit note on the matter names the alias, the client
+    # decision-maker, and opposing counsel outright.
+    notes = await client.call("clio__list_notes", matter_id=matter["id"])
+    audit_note = next(
+        note["detail"]
+        for note in notes["data"]
+        if "negotiation name" in note["detail"] and "opposing counsel" in note["detail"]
+    )
+    alias = re.search(
+        r":\s*(.+?) is the internal negotiation name", audit_note
+    ).group(1)
+    decision_maker = re.search(
+        r"(?:^|\. )([^.]+?) is the client decision-maker", audit_note
+    ).group(1)
+    opposing_counsel = sorted(
+        name.strip()
+        for name in re.search(
+            r"(?:^|\. )([^.]+?) at [^.]+? are opposing counsel", audit_note
+        )
+        .group(1)
+        .split(" and ")
+    )
+
+    # Every Marigold-tagged message. Search returns full bodies, so the
+    # client-authority prose and each concrete proposal arrive in one sweep.
+    marigold = await _gmail_all_pages(client, "Marigold")
+    by_subject = {message["subject"]: message for message in marigold}
+
+    # The written client instructions, in the order the file states them.
+    timeline: list[dict[str, object]] = []
+    for subject, status, amount, rule, basis, required, prohibited, expires in (
+        MARIGOLD_AUTHORITY
+    ):
+        message = by_subject[subject]
+        assert message["sender"].split(" <")[0] == decision_maker, subject
+        # The audited figure has to be the figure the instruction authorizes.
+        if status == "grant":
+            assert _granted_cents(message["plaintextBody"]) == amount, subject
+        timeline.append(
+            {
+                "effective_at": message["date"],
+                "surface": "gmail",
+                "source_ids": [message["id"]],
+                "status": status,
+                "amount_cents": amount,
+                "amount_rule": rule,
+                "economic_basis": basis,
+                "required_terms": sorted(required),
+                "prohibited_terms": sorted(prohibited),
+                "expires_at": expires,
+            }
+        )
+
+    # The telephoned authority and its hold, from the partner DMs.
+    partner_notes = await _slack_private_pages(client, '"Project Marigold" Olivia')
+    partner_notes.sort(key=lambda message: float(message["ts"]))
+    assert len(partner_notes) == 3, partner_notes
+    grant, clarification, hold = partner_notes
+    assert _granted_cents(grant["text"]) == MARIGOLD_PHONE_GRANT["amount_cents"]
+    timeline.append(
+        {
+            "effective_at": _seconds_iso(int(float(grant["ts"]))),
+            "surface": "slack",
+            "source_ids": [grant["ts"], clarification["ts"]],
+            "status": "grant",
+            **MARIGOLD_PHONE_GRANT,
+        }
+    )
+    timeline.append(
+        {
+            "effective_at": _seconds_iso(int(float(hold["ts"]))),
+            "surface": "slack",
+            "source_ids": [hold["ts"]],
+            "status": "hold",
+            "amount_cents": 0,
+            "amount_rule": "none",
+            "economic_basis": "none",
+            "required_terms": [],
+            "prohibited_terms": [],
+            "expires_at": "",
+        }
+    )
+    timeline.sort(key=lambda record: record["effective_at"])
+
+    # The outbound proposals: firm mail to opposing counsel that names a
+    # concrete number, reviewed in the order they went out, repeats included.
+    proposals = sorted(
+        (m for m in marigold if re.fullmatch(r"Marigold proposal \d\d", m["subject"])),
+        key=lambda m: m["date"],
+    )
+    assert [m["subject"] for m in proposals] == list(MARIGOLD_PROPOSALS), [
+        m["subject"] for m in proposals
+    ]
+    proposal_audit: list[dict[str, object]] = []
+    for message in proposals:
+        amount, basis, terms, authority_index, disposition = MARIGOLD_PROPOSALS[
+            message["subject"]
+        ]
+        sender = message["sender"].split(" <")[0]
+        recipients = [r.split(" <")[0] for r in message["toRecipients"]]
+        assert sender != decision_maker, message["id"]
+        assert sender not in opposing_counsel, message["id"]
+        assert any(name in opposing_counsel for name in recipients), message["id"]
+        # The audited figures are the figures the proposal actually states.
+        assert _offered_cents(message["plaintextBody"]) == amount, message["subject"]
+        assert _stated_basis(message["plaintextBody"]) == basis, message["subject"]
+        proposal_audit.append(
+            {
+                "message_id": message["id"],
+                "sent_at": message["date"],
+                "sender": sender,
+                "amount_cents": amount,
+                "economic_basis": basis,
+                "terms": sorted(terms),
+                "authority_source_ids": timeline[authority_index]["source_ids"],
+                "disposition": disposition,
+            }
+        )
+
+    breaches = [r for r in proposal_audit if r["disposition"] != "authorized"]
+    answer = {
+        "matter_number": matter_number,
+        "negotiation_alias": alias,
+        "client_decision_maker": decision_maker,
+        "opposing_counsel": opposing_counsel,
+        "proposal_count": len(proposal_audit),
+        "authorized_count": len(proposal_audit) - len(breaches),
+        "breach_count": len(breaches),
+        "breach_message_ids": [r["message_id"] for r in breaches],
+        "authority_timeline": timeline,
+        "proposal_audit": proposal_audit,
+    }
+
+    for field in (
+        "matter_number",
+        "negotiation_alias",
+        "client_decision_maker",
+        "opposing_counsel",
+        "proposal_count",
+        "authorized_count",
+        "breach_count",
+        "breach_message_ids",
+    ):
+        assert answer[field] == oracle[field], field
+    assert answer["authority_timeline"] == oracle["authority_timeline"]
+    assert _canonical_records(answer["authority_timeline"]) == _canonical_records(
+        oracle["authority_timeline"]
+    )
+    assert answer["proposal_audit"] == oracle["proposal_audit"]
+    assert _canonical_records(answer["proposal_audit"]) == _canonical_records(
+        oracle["proposal_audit"]
+    )
+
+
 FLOORS = {
+    "settlement-authority-audit": settlement_authority_audit,
     "billing-hygiene-audit": billing_hygiene_audit,
     "visitor-log-audit": visitor_log_audit,
     "second-read-audit": second_read_audit,

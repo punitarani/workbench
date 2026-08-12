@@ -39,6 +39,12 @@ def _parser() -> argparse.ArgumentParser:
         choices=MODEL_ALIASES,
         help="Limit a diagnostic smoke to this model alias; may be repeated.",
     )
+    parser.add_argument(
+        "--harness",
+        choices=("codex", "opencode"),
+        default="codex",
+        help="Installed Harbor agent that drives the containers.",
+    )
     parser.add_argument("--concurrency", type=int, default=8)
     parser.add_argument("--task", action="append", choices=TASK_ORDER)
     parser.add_argument("--budget-baseline-usage", type=float, default=32.2139)
@@ -60,6 +66,7 @@ def parse_args(argv: list[str] | None = None) -> MatrixConfig:
         jobs_dir=jobs_dir,
         jobs_dir_is_derived=args.jobs_dir is None,
         run_id=args.run_id,
+        harness=args.harness,
         tasks=tuple(task for task in TASK_ORDER if task in selected),
         attempts=args.attempts,
         diagnostic_smoke=args.diagnostic_smoke,

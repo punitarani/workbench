@@ -25,7 +25,10 @@ from workbench.adapters.harbor_matrix.runner import (
     AGENT_TIMEOUT_MULTIPLIER,
     CODEX_VERSION,
     HARBOR_VERSION,
+    HARTWELL_CODEX_IMPORT_PATH,
+    HARTWELL_OPENCODE_IMPORT_PATH,
     MODEL_ALIASES,
+    OPENCODE_VERSION,
     TASK_ORDER,
     BudgetExceededError,
     CompletedCommand,
@@ -57,6 +60,50 @@ def gateway_config() -> GatewayConfig:
         port=0,
         upstream_url="https://openrouter.test/api/v1/responses",
     )
+
+
+async def test_gateway_pins_chat_completions_for_opencode(
+    gateway_config: GatewayConfig,
+) -> None:
+    """opencode's openai provider speaks Chat Completions, not Responses.
+
+    The gateway pins and forwards either endpoint, routed by inbound path
+    to the matching OpenRouter URL, so one gateway serves both harnesses.
+    """
+
+    seen: dict[str, object] = {}
+
+    async def upstream(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        seen["body"] = json.loads((await request.aread()).decode())
+        return httpx.Response(
+            200,
+            headers={"content-type": "application/json"},
+            json={"id": "chatcmpl-1", "choices": []},
+        )
+
+    gateway = ProviderGateway(
+        gateway_config, upstream_transport=httpx.MockTransport(upstream)
+    )
+    async with gateway:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{gateway.local_url}/v1/chat/completions",
+                headers={"Authorization": "Bearer ephemeral-container-secret"},
+                json={
+                    "model": "opus-5",
+                    "messages": [{"role": "user", "content": "hi"}],
+                    "stream": False,
+                },
+            )
+
+    assert response.status_code == 200
+    assert seen["url"] == "https://openrouter.test/api/v1/chat/completions"
+    assert seen["body"]["model"] == "anthropic/claude-opus-5"
+    assert seen["body"]["provider"] == {
+        "order": ["amazon-bedrock"],
+        "allow_fallbacks": False,
+    }
 
 
 async def test_gateway_restores_alias_and_injects_provider_pin(
@@ -283,6 +330,150 @@ def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -
     assert validate_harbor_version("harbor 0.18.0\n") == HARBOR_VERSION
     with pytest.raises(ValueError, match="0.18.0"):
         validate_harbor_version("harbor 0.19.0")
+
+
+def test_harbor_command_selects_opencode_harness(tmp_path: Path) -> None:
+    config = MatrixConfig(
+        repository=tmp_path,
+        tasks_root=tmp_path / "tasks",
+        jobs_dir=tmp_path / "jobs",
+        run_id="opencode-matrix",
+        harness="opencode",
+        attempts=3,
+        concurrency=8,
+        projected_worst_case_batch_usd=2.5,
+    )
+    command = build_harbor_command(
+        config,
+        "fee-dispute-reconstruction",
+        gateway_port=43121,
+        gateway_env_file=tmp_path / "gateway.env",
+    )
+
+    # The opencode import path replaces the codex one.
+    assert command[command.index("-a") + 1] == HARTWELL_OPENCODE_IMPORT_PATH
+    # Both models run through opencode's gateway-backed openai provider, so the
+    # alias is prefixed with ``openai/`` -- the segment the gateway restores.
+    model_args = [command[i + 1] for i, value in enumerate(command) if value == "-m"]
+    assert model_args == [f"openai/{alias}" for alias in MODEL_ALIASES]
+    assert model_args == ["openai/opus-5", "openai/gpt-5.6-sol"]
+    # The version pin survives (base __init__ param); the codex-only compaction
+    # kwarg is dropped, leaving exactly one --ak pair.
+    assert command.count("--ak") == 1
+    assert ("--ak", f"version={OPENCODE_VERSION}") == (
+        command[command.index("--ak")],
+        command[command.index("--ak") + 1],
+    )
+    assert not any(argument.startswith("compaction_mode=") for argument in command)
+    # Every other flag is identical to the codex path.
+    assert "OPENAI_BASE_URL=http://host.docker.internal:43121/v1" in command
+    assert command[command.index("--env-file") + 1] == str(tmp_path / "gateway.env")
+    assert command[command.index("--allow-agent-host") + 1] == "host.docker.internal"
+    assert command[command.index("--max-retries") + 1] == "0"
+    assert command[command.index("--job-name") + 1] == (
+        "opencode-matrix-01-fee-dispute-reconstruction"
+    )
+
+
+def test_harbor_command_defaults_to_codex_and_leaves_it_unchanged(
+    tmp_path: Path,
+) -> None:
+    base = dict(
+        repository=tmp_path,
+        tasks_root=tmp_path / "tasks",
+        jobs_dir=tmp_path / "jobs",
+        run_id="default-matrix",
+        attempts=3,
+        concurrency=8,
+        projected_worst_case_batch_usd=2.5,
+    )
+    defaulted = MatrixConfig(**base)
+    explicit = MatrixConfig(harness="codex", **base)
+    assert defaulted.harness == "codex"
+
+    kwargs = dict(gateway_port=43121, gateway_env_file=tmp_path / "gateway.env")
+    default_command = build_harbor_command(
+        defaulted, "fee-dispute-reconstruction", **kwargs
+    )
+    explicit_command = build_harbor_command(
+        explicit, "fee-dispute-reconstruction", **kwargs
+    )
+    opencode_command = build_harbor_command(
+        MatrixConfig(harness="opencode", **base),
+        "fee-dispute-reconstruction",
+        **kwargs,
+    )
+
+    # Omitting --harness is byte-for-byte identical to selecting codex, and both
+    # keep the codex markers the opencode path drops or rewrites.
+    assert default_command == explicit_command
+    assert (
+        default_command[default_command.index("-a") + 1] == HARTWELL_CODEX_IMPORT_PATH
+    )
+    model_args = [
+        default_command[i + 1]
+        for i, value in enumerate(default_command)
+        if value == "-m"
+    ]
+    assert model_args == list(MODEL_ALIASES)
+    assert not any(argument.startswith("openai/") for argument in default_command)
+    assert "compaction_mode=custom-provider-local" in default_command
+    assert default_command != opencode_command
+
+
+def test_hartwell_opencode_routes_openai_key_through_gateway_token(
+    tmp_path: Path,
+) -> None:
+    """opencode's openai provider reads OPENAI_API_KEY; feed it the gateway token.
+
+    Runs under Harbor's own interpreter via the launcher shebang because the
+    ``harbor`` package is not importable from the adapter's test env, mirroring
+    ``test_hartwell_codex_uses_local_compaction``.
+    """
+
+    harbor = shutil.which("harbor")
+    if harbor is None:
+        pytest.skip("Harbor is not installed")
+    shebang = Path(harbor).resolve().read_text(encoding="utf-8").splitlines()[0]
+    if not shebang.startswith("#!"):
+        pytest.skip("Harbor launcher has no Python shebang")
+    adapter_root = Path(matrix_runner.__file__).resolve().parents[3]
+    environment = os.environ.copy()
+    environment["PYTHONPATH"] = os.pathsep.join(
+        filter(None, (str(adapter_root), environment.get("PYTHONPATH")))
+    )
+    script = "\n".join(
+        (
+            "from pathlib import Path",
+            "from workbench.adapters.harbor_matrix.opencode_agent import (",
+            "    HartwellOpencode,",
+            ")",
+            "agent = HartwellOpencode(",
+            f"    logs_dir=Path({str(tmp_path)!r}),",
+            "    model_name='openai/opus-5',",
+            f"    version={OPENCODE_VERSION!r},",
+            "    extra_env={",
+            "        'OPENAI_BASE_URL': 'http://host.docker.internal:43121/v1',",
+            "        'HARTWELL_GATEWAY_TOKEN': 'ephemeral-test',",
+            "    },",
+            ")",
+            "print(agent._get_env('OPENAI_API_KEY') == 'ephemeral-test')",
+            "print(agent._get_env('OPENAI_BASE_URL'))",
+        )
+    )
+    completed = subprocess.run(
+        [shebang[2:], "-c", script],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    lines = completed.stdout.splitlines()
+    # The gateway token is surfaced as OPENAI_API_KEY; the base URL is untouched.
+    assert lines[0] == "True"
+    assert lines[-1] == "http://host.docker.internal:43121/v1"
 
 
 def test_hartwell_codex_uses_local_compaction(tmp_path: Path) -> None:

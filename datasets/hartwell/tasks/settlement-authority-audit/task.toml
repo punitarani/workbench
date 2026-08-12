@@ -10,7 +10,7 @@ keywords = ["legal", "litigation", "settlement-authority", "professional-respons
 dataset = "hartwell"
 difficulty = "hard"
 skills = ["retrieval", "chronology", "legal-operations", "evidence-reconciliation"]
-reference_tool_path_calls = 28
+reference_tool_path_calls = 6
 agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, iManage, and Clio records."
 
 [metadata.evidence]
