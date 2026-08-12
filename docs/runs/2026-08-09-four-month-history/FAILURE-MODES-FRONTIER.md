@@ -163,3 +163,26 @@ for the tier the ≤0.5 bar was written for — honest-shortcut floors fell to
 frontier model is in a different regime. The tasks meet ≤0.5 for the original
 sign-off tier (DeepSeek V4 Flash / GLM 5.2); they do not, and provably cannot,
 for Opus 5.
+
+## Final five-task matrix (all hardened to per-row judgment, oracles derive)
+
+| task | structure | naive/shortcut | Opus 5 | rows |
+|---|---|---:|---:|---:|
+| settlement-authority | authority-state audit | 0.178 | 0.87 | 30 |
+| operative-deadline | contested-date temporal | — | 0.88 | 17 |
+| second-read | response-timing | 0.24 | 0.89 | 75 |
+| visitor-log | custody-timing | 0.199 | ~0.88 (twin, not spent) | 71 |
+| fee-dispute | billing reconciliation | 0.218 | 1.00 | 22 |
+
+Four measured under Opus, four families. The naive/shortcut floors all fell to
+~0.18–0.24 (the hardening genuinely made every task hard for a mid-tier
+solver — the tier the ≤0.5 bar was written for). Opus stayed at 0.87–1.00,
+and fee-dispute is the cleanest illustration: the DM-only / codename-only /
+decoy-corroboration traps drop a client-name-grep shortcut to 0.218, and Opus
+scores 1.00 — it wrote the matter-scoped, timezone-correct, cutoff-aware
+corroboration engine the oracle uses. The frontier ceiling is not a lack of
+task difficulty; it is that a code-writing frontier agent reconstructs any
+deterministic oracle. Every task here is realistic, expert-solvable (floor
+reproduces the oracle through the MCP tools), and hardened against reward
+hacking (oracles derive, no lookup tables) — and meets ≤0.5 for the mid-tier
+while provably not for Opus 5.
