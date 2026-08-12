@@ -12,8 +12,18 @@ ORACLE = json.loads(
     (Path(__file__).resolve().parent.parent / "oracle.json").read_text()
 )
 D = "second-read.json"
-rk.field_equals(D, "requests_reviewed", T["requests_reviewed"], weight=1.0)
-rk.field_equals(D, "conversations_reviewed", T["conversations_reviewed"], weight=1.0)
+# The count criteria are named, so reward-details.json can say which count
+# failed rather than reporting five criteria under one auto-name.
+rk.field_equals(
+    D, "requests_reviewed", T["requests_reviewed"], name="requests_reviewed", weight=1.0
+)
+rk.field_equals(
+    D,
+    "conversations_reviewed",
+    T["conversations_reviewed"],
+    name="conversations_reviewed",
+    weight=1.0,
+)
 rk.timestamp_f1(
     D,
     "unanswered_request_ts",
@@ -32,12 +42,26 @@ rk.request_f1(D, T["unanswered_requests"], name="unanswered_requests.f1", weight
 rk.request_exact(
     D, T["unanswered_requests"], name="unanswered_requests.certified", weight=0.4
 )
-rk.field_equals(D, "answered_same_day", T["answered_same_day"], weight=1.0)
 rk.field_equals(
-    D, "answered_next_working_day", ORACLE["answered_next_working_day"], weight=1.0
+    D,
+    "answered_same_day",
+    T["answered_same_day"],
+    name="answered_same_day",
+    weight=1.0,
 )
 rk.field_equals(
-    D, "unanswered_by_deadline", ORACLE["unanswered_by_deadline"], weight=1.0
+    D,
+    "answered_next_working_day",
+    ORACLE["answered_next_working_day"],
+    name="answered_next_working_day",
+    weight=1.0,
+)
+rk.field_equals(
+    D,
+    "unanswered_by_deadline",
+    ORACLE["unanswered_by_deadline"],
+    name="unanswered_by_deadline",
+    weight=1.0,
 )
 rk.timestamp_f1(
     D,

@@ -247,7 +247,11 @@ def test_naive_baseline_earns_strictly_less(tmp_path: Path) -> None:
     assert naive["answer"] < solved["answer"] - 0.4, (
         f"the version diff must discriminate: naive={naive['answer']}"
     )
-    assert naive["answer"] > 0.1
+    # Was 0.1, when ledger_reconciles was vacuously true over the empty
+    # ledger this baseline submits and paid it 3.0 for reconciling nothing.
+    # The floor still has to sit above what a hollow file earns (0.03), so
+    # that the baseline is credited for the retrieval it does do.
+    assert naive["answer"] > 0.08
 
 
 @needs_bundle

@@ -12,12 +12,37 @@ ORACLE = json.loads(
     (Path(__file__).resolve().parent.parent / "oracle.json").read_text()
 )
 D = "clause.json"
-rk.field_equals(D, "document_path", T["document_path"], weight=2.0)
-rk.field_marker(D, "dropped_clause", T["clause_markers"], weight=3.0)
-rk.field_equals(D, "dropped_in_version", T["dropped_in_version"], weight=3.0)
-rk.field_marker(D, "author", T["author_markers"], weight=2.0)
-rk.field_equals(D, "date", T["date"], weight=2.0)
-rk.field_marker(D, "change_comment", T["comment_markers"], weight=2.0)
+# A person's name, with room for a handle or an email address.
+NAME_MAX_CHARS = 64
+# Named, because six of these criteria would otherwise share two auto-names
+# and reward-details.json could not say which field failed.
+rk.field_equals(
+    D, "document_path", T["document_path"], name="document_path", weight=2.0
+)
+rk.field_marker(
+    D, "dropped_clause", T["clause_markers"], name="dropped_clause", weight=3.0
+)
+rk.field_equals(
+    D,
+    "dropped_in_version",
+    T["dropped_in_version"],
+    name="dropped_in_version",
+    weight=3.0,
+)
+rk.field_marker(
+    D,
+    "author",
+    T["author_markers"],
+    # One editor's name. Generous next to "Marcus Liang", far short of a
+    # paste of everyone who ever touched the repository.
+    max_chars=NAME_MAX_CHARS,
+    name="author",
+    weight=2.0,
+)
+rk.field_equals(D, "date", T["date"], name="date", weight=2.0)
+rk.field_marker(
+    D, "change_comment", T["comment_markers"], name="change_comment", weight=2.0
+)
 rk.set_f1(
     D, "clean_documents", T["clean_documents"], name="clean_documents.f1", weight=8.1
 )

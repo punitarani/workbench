@@ -275,7 +275,10 @@ def exact_schema(workspace: Path, path: str) -> bool:
 def custody_audit_reconciles(workspace: Path, path: str) -> bool:
     submitted = _submitted(workspace, path)
     audit = submitted.get("custody_audit")
-    if not isinstance(audit, list):
+    # An empty ledger reconciles with itself vacuously: every count is zero,
+    # every partition is empty, and every equality below holds. That is not a
+    # reconciliation, it is the absence of one, so it earns nothing.
+    if not isinstance(audit, list) or not audit:
         return False
     request_ts = [record["request_ts"] for record in audit]
     if len(request_ts) != len(set(request_ts)):

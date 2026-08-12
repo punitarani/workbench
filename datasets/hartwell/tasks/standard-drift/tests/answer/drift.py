@@ -31,11 +31,15 @@ rk.version_exact(
     weight=0.6,
 )
 for clause_name, clause in TRUTH["clauses"].items():
+    # Each half rejects the other half's markers: the certified standard and
+    # the certified practice contradict each other, so a value carrying both
+    # is a hedge rather than a finding.
     rk.clause_marker(
         DELIVERABLE,
         clause_name,
         "playbook_standard",
         clause["standard_markers"],
+        rejects=clause["practice_markers"],
         name=f"{clause_name}.standard",
         weight=0.5,
     )
@@ -44,6 +48,7 @@ for clause_name, clause in TRUTH["clauses"].items():
         clause_name,
         "practice",
         clause["practice_markers"],
+        rejects=clause["standard_markers"],
         name=f"{clause_name}.practice",
         weight=1.5,
     )

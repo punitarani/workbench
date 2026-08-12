@@ -10,6 +10,10 @@ TRUTH = json.loads((TESTS / "oracle.json").read_text())
 MARKERS = json.loads((TESTS / "ground_truth.json").read_text())
 
 DELIVERABLE = "dispute.json"
+# A person's name, with room for a title, an email address, or a company
+# suffix. Substring matching cannot otherwise separate the challenger from a
+# directory dump that happens to contain her.
+NAME_MAX_CHARS = 64
 ENTRY_FIELDS = ("id", "date", "minutes")
 UNSUPPORTED_DAY_FIELDS = (
     "date",
@@ -110,6 +114,9 @@ rk.field_names_any(
     DELIVERABLE,
     "challenged_by",
     MARKERS["challenged_by_markers"],
+    # One person's name, however written. Generous next to "Priya Raman",
+    # far short of a paste of everyone who touched the invoice.
+    max_chars=NAME_MAX_CHARS,
     name="challenged_by",
     weight=1.0,
 )

@@ -19,7 +19,5 @@ rk.timeline_exact(
     D, T["authority_timeline"], name="authority_timeline.certified", weight=2.2
 )
 rk.proposal_f1(D, T["proposal_audit"], name="proposal_audit.f1", weight=50.4)
-rk.proposal_exact(
-    D, T["proposal_audit"], name="proposal_audit.certified", weight=5.6
-)
+rk.proposal_exact(D, T["proposal_audit"], name="proposal_audit.certified", weight=5.6)
 rk.exact_schema(D, name="deliverable_format", weight=4.0)

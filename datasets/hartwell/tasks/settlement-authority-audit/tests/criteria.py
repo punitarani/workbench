@@ -177,8 +177,9 @@ def _valid_contract(document: dict[str, object]) -> bool:
             return False
     if not _string_list(document.get("breach_message_ids")):
         return False
-    timeline, proposals = document.get("authority_timeline"), document.get(
-        "proposal_audit"
+    timeline, proposals = (
+        document.get("authority_timeline"),
+        document.get("proposal_audit"),
     )
     return (
         isinstance(timeline, list)
@@ -288,22 +289,17 @@ def identity_fields(workspace: Path, path: str, expected: dict[str, object]) -> 
 @criterion(description="client and opposing roles match", shared=True)
 def role_fields(workspace: Path, path: str, expected: dict[str, object]) -> bool:
     got = _submitted(workspace, path)
-    return (
-        str(got.get("client_decision_maker", "")).strip().casefold()
-        == str(expected["client_decision_maker"]).strip().casefold()
-        and Counter(
-            str(value).strip().casefold() for value in got.get("opposing_counsel", [])
-        )
-        == Counter(
-            str(value).strip().casefold() for value in expected["opposing_counsel"]
-        )
+    return str(got.get("client_decision_maker", "")).strip().casefold() == str(
+        expected["client_decision_maker"]
+    ).strip().casefold() and Counter(
+        str(value).strip().casefold() for value in got.get("opposing_counsel", [])
+    ) == Counter(
+        str(value).strip().casefold() for value in expected["opposing_counsel"]
     )
 
 
 @criterion(description="{key} equals the certified value", shared=True)
-def field_equals(
-    workspace: Path, path: str, key: str, expected: object
-) -> bool:
+def field_equals(workspace: Path, path: str, key: str, expected: object) -> bool:
     return _submitted(workspace, path).get(key) == expected
 
 
@@ -331,9 +327,7 @@ def breach_exact(workspace: Path, path: str, expected: list[str]) -> bool:
 
 
 @criterion(description="authority timeline record F1", shared=True)
-def timeline_f1(
-    workspace: Path, path: str, expected: list[dict[str, object]]
-) -> float:
+def timeline_f1(workspace: Path, path: str, expected: list[dict[str, object]]) -> float:
     got = _submitted(workspace, path).get("authority_timeline")
     return _f1(
         _counter(got, _timeline_key) if isinstance(got, list) else Counter(),
@@ -352,9 +346,7 @@ def timeline_exact(
 
 
 @criterion(description="proposal audit record F1", shared=True)
-def proposal_f1(
-    workspace: Path, path: str, expected: list[dict[str, object]]
-) -> float:
+def proposal_f1(workspace: Path, path: str, expected: list[dict[str, object]]) -> float:
     got = _submitted(workspace, path).get("proposal_audit")
     return _f1(
         _counter(got, _proposal_key) if isinstance(got, list) else Counter(),
@@ -425,7 +417,16 @@ def _starts_regex_literal(source: str, index: int) -> bool:
     while cursor >= 0 and (source[cursor].isalnum() or source[cursor] in "_$"):
         cursor -= 1
     return source[cursor + 1 : end] in {
-        "await", "case", "delete", "do", "else", "return", "throw", "typeof", "void", "yield"
+        "await",
+        "case",
+        "delete",
+        "do",
+        "else",
+        "return",
+        "throw",
+        "typeof",
+        "void",
+        "yield",
     }
 
 

@@ -299,8 +299,13 @@ def response_audit_exact(workspace: Path, path: str, expected: list[object]) -> 
 def response_audit_reconciles(workspace: Path, path: str) -> bool:
     document = _submitted(workspace, path)
     response_audit = document.get("response_audit")
-    if not isinstance(response_audit, list) or not all(
-        _valid_response(record) for record in response_audit
+    # An empty audit reconciles with itself vacuously: every count is zero,
+    # every exception set is empty, and every equality below holds. That is
+    # not a reconciliation, it is the absence of one, so it earns nothing.
+    if (
+        not isinstance(response_audit, list)
+        or not response_audit
+        or not all(_valid_response(record) for record in response_audit)
     ):
         return False
     outcomes = Counter(record["outcome"] for record in response_audit)

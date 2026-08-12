@@ -282,7 +282,10 @@ def exact_schema(workspace: Path, path: str) -> bool:
 def daily_review_reconciles(workspace: Path, path: str) -> bool:
     submitted = _submitted(workspace, path)
     review = submitted.get("daily_review")
-    if not isinstance(review, list):
+    # An empty workpaper reconciles with itself vacuously: every count is
+    # zero, every partition is empty, and every equality below holds. That is
+    # not a reconciliation, it is the absence of one, so it earns nothing.
+    if not isinstance(review, list) or not review:
         return False
     identities = [(record["date"], record["timekeeper"]) for record in review]
     billable_ids = [

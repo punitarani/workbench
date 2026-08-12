@@ -172,12 +172,29 @@ def field_equals(workspace: Path, path: str, key: str, expected: object) -> bool
 
 @criterion(description="{key}.{field} contains a certified marker", shared=True)
 def clause_marker(
-    workspace: Path, path: str, key: str, field: str, markers: list[str]
+    workspace: Path,
+    path: str,
+    key: str,
+    field: str,
+    markers: list[str],
+    rejects: list[str] | None = None,
 ) -> bool:
+    """A certified marker, and none of the contrasting side's markers.
+
+    The standard and the practice are the two halves of a drift finding, and
+    they contradict each other: three years against five, refuse residuals
+    against accept them. Marker matching alone cannot tell a finding from a
+    hedge that recites both, and a hedge is what an agent writes when it did
+    not read the redline. ``rejects`` carries the other half's markers, so a
+    value answering both questions answers neither.
+    """
+
     clause = _submitted(workspace, path).get(key)
     if not isinstance(clause, dict):
         return False
     value = str(clause.get(field, "")).lower()
+    if any(marker.lower() in value for marker in rejects or ()):
+        return False
     return any(marker.lower() in value for marker in markers)
 
 
@@ -259,7 +276,10 @@ def version_audit_exact(workspace: Path, path: str, expected: list[object]) -> b
 def version_audit_reconciles(workspace: Path, path: str) -> bool:
     document = _submitted(workspace, path)
     version_audit = document.get("version_audit")
-    if not isinstance(version_audit, list):
+    # An empty audit reconciles with itself vacuously: every count is zero,
+    # the silent partition is empty, and every equality below holds. That is
+    # not a reconciliation, it is the absence of one, so it earns nothing.
+    if not isinstance(version_audit, list) or not version_audit:
         return False
     classes = Counter(
         item["change_class"] for item in version_audit if _valid_version_audit_row(item)

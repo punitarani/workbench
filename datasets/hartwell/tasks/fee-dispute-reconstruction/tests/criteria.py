@@ -324,11 +324,22 @@ def field_equals(workspace: Path, path: str, key: str, expected: str) -> bool:
 
 
 @criterion(description="{key} names one of {markers}", shared=True)
-def field_names_any(workspace: Path, path: str, key: str, markers: list[str]) -> bool:
-    """A person named however the agent chose to name them."""
+def field_names_any(
+    workspace: Path, path: str, key: str, markers: list[str], max_chars: int = 0
+) -> bool:
+    """A person named however the agent chose to name them.
 
-    value = str(_submitted(workspace, path).get(key, "")).lower()
-    return any(marker in value for marker in markers)
+    ``max_chars`` bounds the answer to the length of a name. Substring
+    matching cannot otherwise tell "Priya Raman" from a paste of the firm
+    directory, and a field that identifies one person has to identify one
+    person; naming everyone is not an answer.
+    """
+
+    value = str(_submitted(workspace, path).get(key, "")).strip()
+    if max_chars and len(value) > max_chars:
+        return False
+    lowered = value.lower()
+    return any(marker in lowered for marker in markers)
 
 
 def _maximum_matches(candidates: list[set[int]]) -> int:
@@ -360,13 +371,28 @@ def _normalized_f1(hits: int, submitted: int, expected: int) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
+def _unambiguous(matches: set[int]) -> set[int]:
+    """A submission that answers two certified identities answers neither.
+
+    Marker matching is deliberately forgiving about how a person is named,
+    which a roster blob can abuse: one string carrying every name in the firm
+    satisfies every marker set, and the bipartite matching below then happily
+    pairs one blob per expected identity, certifying a list that names nobody.
+    A real name matches at most one identity, so a multi-match is a blob.
+    """
+
+    return matches if len(matches) == 1 else set()
+
+
 def _name_candidates(names: list[str], marker_sets: list[list[str]]) -> list[set[int]]:
     return [
-        {
-            index
-            for index, markers in enumerate(marker_sets)
-            if all(marker.lower() in name.lower() for marker in markers)
-        }
+        _unambiguous(
+            {
+                index
+                for index, markers in enumerate(marker_sets)
+                if all(marker.lower() in name.lower() for marker in markers)
+            }
+        )
         for name in names
     ]
 
@@ -376,16 +402,21 @@ def _map_candidates(
 ) -> list[set[int]]:
     candidates: list[set[int]] = []
     for name, submitted_value in mapping.items():
-        matches: set[int] = set()
+        named: set[int] = set()
+        valued: set[int] = set()
         for index, pair in enumerate(expected):
             markers, expected_value = pair
             if not isinstance(markers, list):
                 continue
-            if submitted_value == expected_value and all(
-                str(marker).lower() in name.lower() for marker in markers
-            ):
-                matches.add(index)
-        candidates.append(matches)
+            if all(str(marker).lower() in name.lower() for marker in markers):
+                named.add(index)
+                if submitted_value == expected_value:
+                    valued.add(index)
+        # The key has to name one timekeeper before its minutes mean
+        # anything. A key naming two of them is a roster blob, and differing
+        # values are no defence: two blob keys carrying the two right totals
+        # would otherwise certify a breakdown that attributes nothing.
+        candidates.append(valued if len(named) == 1 else set())
     return candidates
 
 

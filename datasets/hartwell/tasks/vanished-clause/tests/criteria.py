@@ -189,11 +189,23 @@ def field_equals(workspace: Path, path: str, key: str, expected: object) -> bool
 
 
 @criterion(description="{key} contains a certified marker", shared=True)
-def field_marker(workspace: Path, path: str, key: str, markers: list[str]) -> bool:
+def field_marker(
+    workspace: Path, path: str, key: str, markers: list[str], max_chars: int = 0
+) -> bool:
+    """A certified marker, in a value short enough to be an answer.
+
+    ``max_chars`` is what stops a blob. Substring matching cannot tell
+    "Marcus Liang" from a paste of every editor in the repository, and a
+    field that identifies one author has to identify one author.
+    """
+
     value = _submitted(workspace, path).get(key)
-    return isinstance(value, str) and any(
-        marker.lower() in value.lower() for marker in markers
-    )
+    if not isinstance(value, str):
+        return False
+    value = value.strip()
+    if max_chars and len(value) > max_chars:
+        return False
+    return any(marker.lower() in value.lower() for marker in markers)
 
 
 @criterion(description="{key} multiset F1", shared=True)
@@ -236,7 +248,10 @@ def exact_revision_audit(workspace: Path, path: str, expected: list[object]) -> 
 def ledger_reconciles(workspace: Path, path: str) -> bool:
     document = _submitted(workspace, path)
     revision_audit = document.get("revision_audit")
-    if not isinstance(revision_audit, list):
+    # An empty ledger reconciles with itself vacuously: every count is zero,
+    # the unreviewed partition is empty, and every equality below holds. That
+    # is not a reconciliation, it is the absence of one, so it earns nothing.
+    if not isinstance(revision_audit, list) or not revision_audit:
         return False
     covered = 0
     unreviewed: list[str] = []
