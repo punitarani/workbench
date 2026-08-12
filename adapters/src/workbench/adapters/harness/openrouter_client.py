@@ -21,6 +21,14 @@ class OpenRouterError(RuntimeError):
 # always a valid slug (deepseek's own is not served on this account), so
 # these are recorded per model rather than derived.
 MODEL_PROVIDERS: dict[str, tuple[str, ...]] = {
+    # The sign-off models, pinned to the only first-party-grade endpoints this
+    # key's provider guardrail permits. The direct "anthropic" and "openai"
+    # tags are blocked for this account -- pinning to them returns 404 "no
+    # endpoints found" rather than falling back, which would fail a paid batch
+    # nine tasks deep. Bedrock and Azure serve the same weights, so the scores
+    # stay reproducible; a quantized community replica would not.
+    "anthropic/claude-opus-5": ("amazon-bedrock",),
+    "openai/gpt-5.6-sol": ("azure",),
     "openai/gpt-5.6-luna": ("openai",),
     "z-ai/glm-5.2": (
         "baidu/fp8",

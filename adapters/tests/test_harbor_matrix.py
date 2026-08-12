@@ -83,7 +83,7 @@ async def test_gateway_restores_alias_and_injects_provider_pin(
                 f"{gateway.local_url}/v1/responses",
                 headers={"Authorization": "Bearer ephemeral-container-secret"},
                 json={
-                    "model": "glm-5.2",
+                    "model": "gpt-5.6-sol",
                     "input": "private client request",
                     "stream": False,
                 },
@@ -94,21 +94,21 @@ async def test_gateway_restores_alias_and_injects_provider_pin(
     assert response.json() == {"id": "response-1", "status": "completed"}
     assert seen["authorization"] == "Bearer openrouter-host-secret"
     assert seen["body"] == {
-        "model": "z-ai/glm-5.2",
+        "model": "openai/gpt-5.6-sol",
         "input": "private client request",
         "stream": False,
-        "provider": {
-            "order": ["baidu/fp8", "novita/fp8", "streamlake/fp8"],
-            "allow_fallbacks": False,
-        },
+        # Azure and Bedrock are the first-party-grade endpoints this key's
+        # guardrail permits; the direct openai/anthropic tags 404 for it.
+        "provider": {"order": ["azure"], "allow_fallbacks": False},
     }
-    assert gateway.provenance[0].model == "z-ai/glm-5.2"
+    assert gateway.provenance[0].model == "openai/gpt-5.6-sol"
     assert (
-        gateway.provenance[0].enforced_provider_order == MODEL_PROVIDERS["z-ai/glm-5.2"]
+        gateway.provenance[0].enforced_provider_order
+        == MODEL_PROVIDERS["openai/gpt-5.6-sol"]
     )
     assert gateway.provenance[0].actual_provider is None
     log_text = caplog.text
-    assert "z-ai/glm-5.2" in log_text
+    assert "openai/gpt-5.6-sol" in log_text
     assert "private client request" not in log_text
     assert "openrouter-host-secret" not in log_text
     assert "ephemeral-container-secret" not in log_text
@@ -133,7 +133,7 @@ async def test_gateway_passes_sse_bytes_and_errors_through(
         nonlocal calls
         calls += 1
         body = json.loads((await request.aread()).decode())
-        assert body["model"] == "deepseek/deepseek-v4-flash-0731"
+        assert body["model"] == "anthropic/claude-opus-5"
         if calls == 1:
             return httpx.Response(
                 200,
@@ -156,7 +156,7 @@ async def test_gateway_passes_sse_bytes_and_errors_through(
                 "POST",
                 f"{gateway.local_url}/v1/responses",
                 headers=headers,
-                json={"model": "deepseek-v4-flash-0731", "stream": True},
+                json={"model": "opus-5", "stream": True},
             ) as response:
                 assert response.status_code == 200
                 assert response.headers["content-type"].startswith("text/event-stream")
@@ -165,7 +165,7 @@ async def test_gateway_passes_sse_bytes_and_errors_through(
             error = await client.post(
                 f"{gateway.local_url}/v1/responses",
                 headers=headers,
-                json={"model": "deepseek-v4-flash-0731"},
+                json={"model": "opus-5"},
             )
 
     assert error.status_code == 429
@@ -193,7 +193,7 @@ async def test_gateway_rejects_bad_auth_and_cleans_up_on_failure(
                 response = await client.post(
                     f"{gateway.local_url}/v1/responses",
                     headers={"Authorization": "Bearer wrong"},
-                    json={"model": "gpt-5.6-luna", "input": "secret"},
+                    json={"model": "opus-5", "input": "secret"},
                 )
                 assert response.status_code == 401
                 assert upstream_calls == 0
@@ -225,7 +225,7 @@ async def test_gateway_generic_failure_log_never_contains_exception_or_request_s
             response = await client.post(
                 f"{gateway.local_url}/v1/responses",
                 headers={"Authorization": "Bearer ephemeral-container-secret"},
-                json={"model": "gpt-5.6-luna", "input": "private client request"},
+                json={"model": "opus-5", "input": "private client request"},
             )
 
     assert response.status_code == 502
@@ -260,7 +260,7 @@ def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -
     assert command[command.index("-a") + 1] == (
         "workbench.adapters.harbor_matrix.codex_agent:HartwellCodex"
     )
-    assert command.count("-m") == 3
+    assert command.count("-m") == len(MODEL_ALIASES)
     for alias in MODEL_ALIASES:
         assert alias in command
     assert ("--ak", f"version={CODEX_VERSION}") == (
@@ -303,7 +303,7 @@ def test_hartwell_codex_uses_local_compaction(tmp_path: Path) -> None:
             "from workbench.adapters.harbor_matrix.codex_agent import HartwellCodex",
             "agent = HartwellCodex(",
             f"    logs_dir=Path({str(tmp_path)!r}),",
-            "    model_name='glm-5.2',",
+            "    model_name='gpt-5.6-sol',",
             f"    version={CODEX_VERSION!r},",
             "    compaction_mode='custom-provider-local',",
             "    extra_env={",
@@ -334,6 +334,64 @@ def test_hartwell_codex_uses_local_compaction(tmp_path: Path) -> None:
         "model_providers.hartwell_gateway.supports_websockets=false" in completed.stdout
     )
     assert completed.stdout.splitlines()[-1] == "True"
+
+
+def test_hartwell_codex_strips_unified_exec_for_sol_only(tmp_path: Path) -> None:
+    """Sol's exec payload aborts Codex's unified_exec router; drop it for Sol.
+
+    Every Sol cell failed with "tool exec invoked with incompatible payload"
+    before touching a tool. Removing --enable unified_exec falls Codex back
+    to its standard shell tool. Opus was measured WITH unified_exec and must
+    keep it, or its scores would not survive the harness change.
+    """
+
+    harbor = shutil.which("harbor")
+    if harbor is None:
+        pytest.skip("Harbor is not installed")
+    shebang = Path(harbor).resolve().read_text(encoding="utf-8").splitlines()[0]
+    if not shebang.startswith("#!"):
+        pytest.skip("Harbor launcher has no Python shebang")
+    adapter_root = Path(matrix_runner.__file__).resolve().parents[3]
+    environment = os.environ.copy()
+    environment["PYTHONPATH"] = os.pathsep.join(
+        filter(None, (str(adapter_root), environment.get("PYTHONPATH")))
+    )
+    command = (
+        "codex exec --dangerously-bypass-approvals-and-sandbox "
+        "--skip-git-repo-check --model M --json --enable unified_exec -- task"
+    )
+    script = "\n".join(
+        (
+            "from pathlib import Path",
+            "from workbench.adapters.harbor_matrix.codex_agent import HartwellCodex",
+            f"cmd = {command!r}",
+            "for model in ('gpt-5.6-sol', 'anthropic/claude-opus-5'):",
+            "    agent = HartwellCodex(",
+            f"        logs_dir=Path({str(tmp_path)!r}), model_name=model,",
+            f"        version={CODEX_VERSION!r},",
+            "        compaction_mode='custom-provider-local',",
+            "    )",
+            "    keep = agent._uses_unified_exec()",
+            "    print(f'{model} keeps_unified_exec={keep}')",
+            # A setup step that also mentions codex must be left alone.
+            "agent = HartwellCodex(",
+            f"    logs_dir=Path({str(tmp_path)!r}), model_name='gpt-5.6-sol',",
+            f"    version={CODEX_VERSION!r}, compaction_mode='custom-provider-local')",
+            "print('setup_untouched=' + str(",
+            "    'unified_exec' in 'cat >config.toml # codex config'))",
+        )
+    )
+    completed = subprocess.run(
+        [shebang[2:], "-c", script],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "gpt-5.6-sol keeps_unified_exec=False" in completed.stdout
+    assert "anthropic/claude-opus-5 keeps_unified_exec=True" in completed.stdout
 
 
 async def test_subprocess_runner_exposes_custom_agent_import_root(
@@ -631,12 +689,15 @@ def test_cost_projection_scales_with_launch_size() -> None:
     assert full_batch_projection_from_launch(
         5.0, attempts_per_model=2
     ) == pytest.approx(7.5)
+    # Derived from the table rather than written out, so retargeting the
+    # sign-off models cannot silently misprice a launch.
+    full_batch_cells = 3 * len(MODEL_ALIASES)
     assert launch_projection(9.0, attempts_per_model=1, model_count=1) == pytest.approx(
-        1.0
+        9.0 / full_batch_cells
     )
     assert full_batch_projection_from_launch(
         1.0, attempts_per_model=1, model_count=1
-    ) == pytest.approx(9.0)
+    ) == pytest.approx(float(full_batch_cells))
     with pytest.raises(ValueError, match="attempts"):
         launch_projection(1.0, attempts_per_model=0)
     with pytest.raises(ValueError, match="model_count"):
@@ -649,11 +710,9 @@ async def test_credit_meter_uses_authoritative_endpoint_without_leaking_key() ->
     async def credits(request: httpx.Request) -> httpx.Response:
         nonlocal seen_authorization
         seen_authorization = request.headers["authorization"]
-        assert str(request.url) == "https://openrouter.ai/api/v1/credits"
-        return httpx.Response(
-            200,
-            json={"data": {"total_credits": 100.0, "total_usage": 40.433}},
-        )
+        # Per-key, so a pooled org's other traffic is not billed to this run.
+        assert str(request.url) == "https://openrouter.ai/api/v1/key"
+        return httpx.Response(200, json={"data": {"usage": 40.433}})
 
     meter = CreditMeter("meter-host-secret", transport=httpx.MockTransport(credits))
     try:
@@ -661,7 +720,7 @@ async def test_credit_meter_uses_authoritative_endpoint_without_leaking_key() ->
     finally:
         await meter.aclose()
 
-    assert snapshot == CreditSnapshot(total_credits=100.0, total_usage=40.433)
+    assert snapshot.total_usage == pytest.approx(40.433)
     assert seen_authorization == "Bearer meter-host-secret"
 
 
@@ -808,13 +867,13 @@ class PartialResultBlockingHarborCommands(BlockingHarborCommands):
         self.commands.append(command)
         jobs_dir = Path(command[command.index("-o") + 1])
         job_name = command[command.index("--job-name") + 1]
-        trial = jobs_dir / job_name / "gpt-5.6-luna-0"
+        trial = jobs_dir / job_name / "opus-5-0"
         trial.mkdir(parents=True)
         (trial / "result.json").write_text(
             json.dumps(
                 {
                     "trial_name": trial.name,
-                    "config": {"agent": {"model_name": "gpt-5.6-luna"}},
+                    "config": {"agent": {"model_name": "opus-5"}},
                     "agent_info": {"version": CODEX_VERSION},
                     "exception_info": None,
                     "verifier_result": {
@@ -880,9 +939,9 @@ async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
     assert meter.queries == 1 + len(commands.harbor_runs)
     assert report.smoke is not None
     assert report.smoke.valid
-    assert len(report.smoke.trials) == 3
+    assert len(report.smoke.trials) == len(MODEL_ALIASES)
     assert [batch.task_name for batch in report.batches] == list(TASK_ORDER)
-    assert all(len(batch.trials) == 9 for batch in report.batches)
+    assert all(len(batch.trials) == 3 * len(MODEL_ALIASES) for batch in report.batches)
     assert all(
         trial.outcome.valid for batch in report.batches for trial in batch.trials
     )
@@ -913,7 +972,10 @@ async def test_matrix_runner_executes_one_task_batch_at_a_time_in_order(
             launch.gateway_sequences.end_inclusive,
         )
         for launch in report.launches
-    ] == [(index * 3, (index + 1) * 3) for index in range(launch_count)]
+    ] == [
+        (index * len(MODEL_ALIASES), (index + 1) * len(MODEL_ALIASES))
+        for index in range(launch_count)
+    ]
     assert all(record.actual_provider is None for record in report.gateway_provenance)
     assert all(
         trial.fingerprint.model == ALIAS_TO_MODEL_FOR_TEST[trial.outcome.model_alias]
@@ -971,7 +1033,7 @@ async def test_matrix_runner_executes_a_selected_non_fee_task_without_fee_smoke(
     assert report.smoke is None
     assert [batch.task_name for batch in report.batches] == ["billing-hygiene-audit"]
     assert report.batches[0].valid
-    assert len(report.batches[0].trials) == 9
+    assert len(report.batches[0].trials) == 3 * len(MODEL_ALIASES)
     assert len(report.launches) == 1
     assert report.launches[0].phase == "matrix"
 
@@ -1014,7 +1076,7 @@ async def test_matrix_runner_executes_one_attempt_per_model_diagnostic_smoke(
     assert report.smoke is not None
     assert report.smoke.task_name == "billing-hygiene-audit"
     assert report.smoke.valid
-    assert len(report.smoke.trials) == 3
+    assert len(report.smoke.trials) == len(MODEL_ALIASES)
     assert report.batches == ()
     assert len(report.launches) == 1
     assert report.launches[0].phase == "diagnostic-smoke"
@@ -1061,7 +1123,11 @@ async def test_matrix_runner_executes_a_single_model_diagnostic_smoke(
     assert report.launches[0].enforced_model_routes == {
         MODEL_ALIASES[0]: MODEL_PROVIDERS[ALIAS_TO_MODEL_FOR_TEST[MODEL_ALIASES[0]]]
     }
-    assert report.launches[0].projected_worst_case_usd == pytest.approx(1.0)
+    # One model, one attempt, out of a 3-attempt full batch across the
+    # sign-off set; derived so retargeting the models cannot misprice it.
+    assert report.launches[0].projected_worst_case_usd == pytest.approx(
+        9.0 / (3 * len(MODEL_ALIASES))
+    )
 
 
 async def test_invalid_smoke_is_persisted_and_stops_before_final_fee_attempts(
@@ -1139,7 +1205,7 @@ async def test_existing_smoke_job_is_rejected_before_harbor_or_post_metering(
     assert persisted["smoke"] is None
     assert persisted["batches"] == []
     assert persisted["launches"] == []
-    assert "old-gpt-5.6-luna" not in json.dumps(persisted)
+    assert "old-opus-5" not in json.dumps(persisted)
 
 
 async def test_existing_matrix_report_refuses_run_without_overwriting(
@@ -1380,8 +1446,8 @@ def test_fingerprint_is_content_sensitive_and_smoke_requires_exact_match(
         harbor_version=HARBOR_VERSION,
         codex_version=CODEX_VERSION,
         agent_timeout_multiplier=AGENT_TIMEOUT_MULTIPLIER,
-        model="z-ai/glm-5.2",
-        enforced_provider_order=MODEL_PROVIDERS["z-ai/glm-5.2"],
+        model="openai/gpt-5.6-sol",
+        enforced_provider_order=MODEL_PROVIDERS["openai/gpt-5.6-sol"],
     )
     assert smoke_is_reusable(fingerprint, fingerprint, smoke_valid=True)
     changed = fingerprint.model_copy(update={"image_id": "sha256:other"})

@@ -25,10 +25,12 @@ HOP_BY_HOP_HEADERS = {
     "transfer-encoding",
     "upgrade",
 }
+# The sign-off set: a task ships only if both of these clear the bar. The
+# earlier trio (Luna, GLM, DeepSeek) is retired -- every score they produced
+# predates the timezone fixes and none of it may be carried forward.
 MODEL_ALIASES: dict[str, str] = {
-    "gpt-5.6-luna": "openai/gpt-5.6-luna",
-    "glm-5.2": "z-ai/glm-5.2",
-    "deepseek-v4-flash-0731": "deepseek/deepseek-v4-flash-0731",
+    "opus-5": "anthropic/claude-opus-5",
+    "gpt-5.6-sol": "openai/gpt-5.6-sol",
 }
 
 

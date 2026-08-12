@@ -52,7 +52,11 @@ HARTWELL_CODEX_IMPORT_PATH = (
 )
 CODEX_COMPACTION_MODE: Literal["custom-provider-local"] = "custom-provider-local"
 AGENT_TIMEOUT_MULTIPLIER = 2.0
-OPENROUTER_CREDITS_URL = "https://openrouter.ai/api/v1/credits"
+# Per-key, not org-wide. /credits reports the whole account, so on a pooled
+# key another team's traffic lands in this run's metered cost: a nine-task
+# batch aborted on every task with "$26.10 observed versus $20.00 authorized"
+# while its own spend was $1.23 a task. /key bills only this credential.
+OPENROUTER_CREDITS_URL = "https://openrouter.ai/api/v1/key"
 MODEL_ALIASES = tuple(ALIAS_TO_MODEL)
 TASK_ORDER = (
     "fee-dispute-reconstruction",
@@ -171,8 +175,13 @@ class MatrixConfig(BaseModel):
 
 
 class CreditSnapshot(BaseModel):
-    total_credits: FiniteFloat = Field(ge=0)
-    total_usage: FiniteFloat = Field(ge=0)
+    # /key reports this credential's lifetime spend as "usage" and states no
+    # grant total; a pooled key's org grant is not a budget this run owns, so
+    # total_credits carries no meaning here and only the delta is used.
+    total_usage: FiniteFloat = Field(ge=0, alias="usage")
+    total_credits: FiniteFloat = Field(default=0.0, ge=0)
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class CreditsEnvelope(BaseModel):
@@ -249,7 +258,7 @@ def launch_projection(
     if not 1 <= attempts_per_model <= 3:
         raise ValueError("attempts_per_model must be between 1 and 3")
     if not 1 <= model_count <= len(MODEL_ALIASES):
-        raise ValueError("model_count must be between 1 and 3")
+        raise ValueError(f"model_count must be between 1 and {len(MODEL_ALIASES)}")
     return (
         full_batch_projection_usd
         * attempts_per_model
@@ -267,7 +276,7 @@ def full_batch_projection_from_launch(
     if not 1 <= attempts_per_model <= 3:
         raise ValueError("attempts_per_model must be between 1 and 3")
     if not 1 <= model_count <= len(MODEL_ALIASES):
-        raise ValueError("model_count must be between 1 and 3")
+        raise ValueError(f"model_count must be between 1 and {len(MODEL_ALIASES)}")
     return launch_cost_usd * 3 * len(MODEL_ALIASES) / (attempts_per_model * model_count)
 
 
