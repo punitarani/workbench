@@ -495,3 +495,88 @@ def test_tool_invoked_rejects_malformed_trajectory_shapes(
     assert all(
         criterion["value"] == 0.0 for criterion in details["process"]["criteria"]
     )
+
+
+def _run_process(tests: Path, workspace: Path, output: Path) -> dict[str, float]:
+    """Grade a prepared tests/ tree and return its process criteria by name."""
+
+    completed = subprocess.run(
+        [REWARDKIT, str(tests), "--workspace", str(workspace), "--output", str(output)],
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+    details = json.loads((output.parent / "reward-details.json").read_text())
+    return {
+        criterion["name"]: criterion["value"]
+        for criterion in details["process"]["criteria"]
+    }
+
+
+def _trajectory(tmp_path: Path, *tool_names: str) -> Path:
+    path = tmp_path / "trajectory.json"
+    calls = [{"function_name": name} for name in tool_names]
+    path.write_text(json.dumps({"steps": [{"tool_calls": calls}]}))
+    return path
+
+
+def test_a_superset_slack_search_satisfies_only_where_declared(tmp_path: Path) -> None:
+    """``tool_invoked`` stays exact unless a registration names a superset.
+
+    ``slack_search_public_and_private`` searches everything
+    ``slack_search_public`` does, so an agent that called it did check
+    public chat. The narrow criterion must still answer "was this tool
+    called" honestly; only a registration that opts in accepts the wider
+    tool.
+    """
+
+    trajectory = _trajectory(tmp_path, "slack__slack_search_public_and_private")
+    tests = tmp_path / "tests"
+    (tests / "process").mkdir(parents=True)
+    shutil.copyfile(
+        TASKS / "operative-deadline" / "tests" / "criteria.py", tests / "criteria.py"
+    )
+    (tests / "process" / "method.py").write_text(
+        "import rewardkit as rk\n"
+        f"rk.tool_invoked('slack_search_public', path={str(trajectory)!r},"
+        " name='strict')\n"
+        f"rk.tool_invoked('slack_search_public', path={str(trajectory)!r},"
+        " name='widened',"
+        " also_satisfied_by=('slack_search_public_and_private',))\n"
+    )
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+
+    scores = _run_process(tests, workspace, tmp_path / "reward.json")
+
+    assert scores == {"strict": 0.0, "widened": 1.0}
+
+
+def test_operative_deadline_credits_the_wider_slack_search(tmp_path: Path) -> None:
+    """The real registration, not a copy: 9/9 paid cells lost this unfairly.
+
+    Every measured cell reached Slack through
+    ``slack_search_public_and_private`` and still read
+    ``checked_stale_chat`` as missed, so the process dimension reported
+    0.875 for a reason unrelated to process quality.
+    """
+
+    process = TASKS / "operative-deadline" / "tests" / "process" / "method.py"
+    trajectory = _trajectory(tmp_path, "slack__slack_search_public_and_private")
+    tests = tmp_path / "tests"
+    (tests / "process").mkdir(parents=True)
+    shutil.copyfile(
+        TASKS / "operative-deadline" / "tests" / "criteria.py", tests / "criteria.py"
+    )
+    (tests / "process" / "method.py").write_text(
+        process.read_text().replace(
+            '"/logs/agent/trajectory.json"', repr(str(trajectory))
+        )
+    )
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+
+    scores = _run_process(tests, workspace, tmp_path / "reward.json")
+
+    assert scores["checked_stale_chat"] == 1.0
+    assert scores["checked_private_correction"] == 1.0

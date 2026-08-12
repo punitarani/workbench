@@ -385,8 +385,21 @@ def _unified_exec_source(name: str, arguments: object) -> str | None:
 
 @criterion(description="agent invoked {tool}", shared=True)
 def tool_invoked(
-    workspace: Path, tool: str, path: str = "/logs/agent/trajectory.json"
+    workspace: Path,
+    tool: str,
+    path: str = "/logs/agent/trajectory.json",
+    also_satisfied_by: tuple[str, ...] = (),
 ) -> bool:
+    """Did the trajectory reach ``tool`` -- or a tool that subsumes it?
+
+    Matching is exact by default, because "was this tool called" is the
+    honest reading. ``also_satisfied_by`` names tools whose contract
+    already covers this one, so a registration can accept them without
+    every criterion silently going fuzzy: ``slack_search_public_and_private``
+    searches everything ``slack_search_public`` does, and an agent that
+    called it did check public chat.
+    """
+
     del workspace
     try:
         data = json.loads(Path(path).read_text())
@@ -394,7 +407,11 @@ def tool_invoked(
         return False
     if not isinstance(data, dict) or not isinstance(data.get("steps"), list):
         return False
-    expression = re.compile(rf"\btools\.(?:[A-Za-z_]\w*__)*{re.escape(tool)}\s*\(")
+    accepted = (tool, *also_satisfied_by)
+    expressions = [
+        re.compile(rf"\btools\.(?:[A-Za-z_]\w*__)*{re.escape(name)}\s*\(")
+        for name in accepted
+    ]
     for step in data["steps"]:
         if not isinstance(step, dict):
             continue
@@ -406,8 +423,14 @@ def tool_invoked(
                 continue
             name = str(call.get("function_name", ""))
             source = _unified_exec_source(name, call.get("arguments", {}))
-            if name == tool or name.endswith(f"__{tool}"):
+            if any(
+                name == candidate or name.endswith(f"__{candidate}")
+                for candidate in accepted
+            ):
                 return True
-            if source is not None and expression.search(_executable_javascript(source)):
+            if source is None:
+                continue
+            javascript = _executable_javascript(source)
+            if any(expression.search(javascript) for expression in expressions):
                 return True
     return False
