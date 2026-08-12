@@ -105,3 +105,34 @@ drops reasoning-model tool threading; also fails Opus with flat-token non-
 threading) runs it end-to-end. A minimal Responses-API agent that exposes MCP
 tools as native function tools would run both models; that is the path for the
 two-model certification once the bar is settled.
+
+## The mechanism, from Opus's own winning transcript (added after row-level analysis)
+
+Reading the 0.87 trajectory settles *why* difficulty doesn't move the score.
+Opus does not reason row-by-row in context — it **writes a program that parses
+the record and derives every disposition**, then runs it. Its transcript builds
+a generator (`with open("authority.json","w") ...` over a computed `timeline`),
+engages the trap rules directly (49 references to expiry, 38 to the tolling
+condition), and closes "authority.json is saved and reconciles ... the
+generator is build_...". It reconstructed the oracle's own four-check engine,
+scored 0.933 on disposition F1, and the two misses are edge-case bugs in *its*
+reimplementation — not reasoning failures.
+
+That is the crux. The oracle is, by construction, a **deterministic function of
+the retrievable record** — which is exactly what makes the task expert-solvable
+and auto-gradeable. A code-writing frontier agent can therefore reconstruct that
+function. Volume fails because a program handles any number of rows; depth fails
+because a program handles any number of deterministic rules. The `0.85^k`
+intuition was wrong for this reason: the sub-judgments are not independent
+coin-flips resolved in the model's head — they are branches in a script it
+writes once. The measured ~0.87 is the agent's *reimplementation accuracy*, and
+it trends toward 1.0 as the rules are stated more precisely (which
+"expert-solvable" pushes toward).
+
+**Corollary — the actionable finding.** For a code-capable frontier model, task
+difficulty cannot come from deterministic complexity of any kind. It must come
+from something a program cannot derive from the record: genuine judgment,
+irreducible ambiguity, or knowledge outside the record — each in direct tension
+with a deterministic, auto-gradeable oracle. That tension, not an engineering
+shortfall, is why ≤0.5-for-Opus is unreachable on this suite, and it is the
+general reason frontier-model RL environments are hard to build.
