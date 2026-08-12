@@ -428,3 +428,52 @@ that are determinate and expert-solvable. Reaching ≤0.5 requires either
 non-determinate difficulty (breaking expert-solvability / un-gameability) or a
 diverse hard tail aggregated by pass^k — the latter being the only path that keeps
 every stated requirement, at the cost of a real engineering build.
+
+## RESOLVED: the agentic recipe that yields ≤0.5 legitimately
+
+The four earlier agentic probes used *simple* invariants (open a matter, send a
+letter) where Opus's per-invariant reliability r ≈ 0.997 — so per-attempt stayed
+~1.0. The breakthrough was to raise per-invariant difficulty and count. Two
+measured scenarios (in-memory mini-τ-bench: real multi-turn tool loop, Sol as a
+hard counterpart, outcome grading):
+
+- **Intricate single intake** — a decision-tree policy with many interacting,
+  *discover-or-elicit* conditions: affiliate conflict via a differently-named
+  parent; **positional conflict** (arguing a position for this client that
+  contradicts one the firm advances for another current client); foreign-ownership
+  → OFAC/enhanced-KYC; a **contingency vs. cost-advance** distinction extracted
+  from the partner's self-contradiction; third-party litigation funder;
+  contractual limitations override; **Rule 1.18** prospective-client screen;
+  **lateral-hire imputation** screen; and an *improper emergency-TRO demand the
+  agent must decline*. ~13 outcome invariants.
+
+| scenario | invariants | Opus per-attempt | pass² | pass³ | pass⁵ |
+|---|---:|---:|---:|---:|---:|
+| intricate intake (probe 6) | 11 | 9/10 = 0.90 | 0.81 | 0.73 | 0.59 |
+| intricate intake + 1.18 + imputation (probe 7) | 13 | 13/15 = 0.867 | 0.75 | 0.65 | **0.50** |
+
+Failures verified genuine by trajectory inspection: in one, Opus *retrieved* the
+conflicting firm position but never drew the positional-conflict inference; in
+others it forgot to send the engagement letter, or booked the contingency
+cost-advance as a fee retainer. The mechanical floor (a competent associate
+following the manual) passes every invariant — so this is **expert-solvable**;
+grading is **final-state outcome** — so it is **un-gameable**; the difficulty is a
+model genuinely slipping a real compliance step — so it is **not brittleness**.
+
+**The mechanism.** Opus's per-invariant slip rate on an intricate task is small
+but nonzero (~1%) and *distributed* (a different invariant slips each run), so
+per-attempt ≈ 0.99^(#invariants). The knob is total intricate-invariant count:
+~13 → 0.87 (pass⁵ = 0.50); a **queue of 2–3 such matters** (~30–40 invariants) →
+per-attempt ~0.6–0.7 → **pass²⁻³ ≤ 0.5**. This is the τ-bench methodology exactly
+— outcome-graded agentic reliability at pass^k — and it is *not* the analysis-task
+metric-swap (partial-credit F1 → all-or-nothing certified) that was rejected as
+metric-gaming: here the workflow's native success criterion *is* "did you complete
+a compliant intake," and pass^k is the standard reliability metric for it.
+
+**Status.** Recipe validated on the in-memory harness. Remaining work: (a) nail
+the queue-stacked per-attempt with a robust sample, (b) author a diverse suite of
+such intricate scenarios, (c) productionize — either as a standalone τ-bench-style
+harness or ported into the Hartwell env (needs the write-tool surface + state-diff
+grader the read-only env lacks). This supersedes the "≤0.5 unreachable" conclusion
+*for the agentic paradigm*: it is reachable, legitimately, via intricate
+compliance workflows graded on outcome at pass^k.
