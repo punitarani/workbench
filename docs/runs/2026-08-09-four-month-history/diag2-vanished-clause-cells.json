@@ -1,0 +1,250 @@
+{
+  "run_id": "diag2-vanished-clause",
+  "git_revision": "d8e3a10a21e6bd5805b2d8183270338728385b1b",
+  "source_jobs_dir": "/Users/punit/projects/workbench-jobs",
+  "cells": [
+    {
+      "task_name": "diagnostic-smoke-08-vanished-clause",
+      "run_id": "diag2-vanished-clause",
+      "git_revision": "d8e3a10a21e6bd5805b2d8183270338728385b1b",
+      "trial_name": "vanished-clause__Ditjm2s",
+      "model_alias": null,
+      "attempt": null,
+      "valid": false,
+      "reason": null,
+      "reward": null,
+      "answer": null,
+      "process": null,
+      "criteria": [],
+      "tool_calls": {
+        "gmail.get_thread": 2,
+        "gmail.list_labels": 2,
+        "gmail.search_threads": 2,
+        "imanage.download_document": 6,
+        "imanage.get_document_versions": 6,
+        "slack.slack_read_channel": 2,
+        "slack.slack_read_thread": 2,
+        "slack.slack_search_channels": 2
+      },
+      "tool_call_total": 24,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": [
+        "result.json",
+        "verifier/reward-details.json"
+      ]
+    },
+    {
+      "task_name": "diagnostic-smoke-08-vanished-clause",
+      "run_id": "diag2-vanished-clause",
+      "git_revision": "d8e3a10a21e6bd5805b2d8183270338728385b1b",
+      "trial_name": "vanished-clause__KUb2d89",
+      "model_alias": "gpt-5.6-sol",
+      "attempt": null,
+      "valid": true,
+      "reason": null,
+      "reward": 0.0,
+      "answer": 0.0,
+      "process": 0.1667,
+      "criteria": [
+        {
+          "dimension": "answer",
+          "name": "document_path",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "dropped_clause",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "dropped_in_version",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "author",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "date",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "change_comment",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "clean_documents.f1",
+          "value": 0.0,
+          "weight": 8.1,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "clean_documents.certified",
+          "value": 0.0,
+          "weight": 0.9,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unreviewed_revisions.f1",
+          "value": 0.0,
+          "weight": 5.4,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unreviewed_revisions.certified",
+          "value": 0.0,
+          "weight": 0.6,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "revisions_reviewed",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "covered_revisions",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unreviewed_revision_count",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "covering_communications",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "revision_audit.f1",
+          "value": 0.0,
+          "weight": 54.9,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "revision_audit.certified",
+          "value": 0.0,
+          "weight": 6.1,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "ledger_reconciles",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "deliverable_format",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "enumerated_workspaces",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "enumerated_documents",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "walked_all_versions",
+          "value": 0.0,
+          "weight": 6.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "checked_mail_mentions",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "checked_public_mentions",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "turn_efficiency",
+          "value": 1.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        }
+      ],
+      "tool_calls": {},
+      "tool_call_total": 0,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": []
+    }
+  ]
+}

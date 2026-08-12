@@ -1,0 +1,225 @@
+{
+  "run_id": "diag2-visitor-log-audit",
+  "git_revision": "d8e3a10a21e6bd5805b2d8183270338728385b1b",
+  "source_jobs_dir": "/Users/punit/projects/workbench-jobs",
+  "cells": [
+    {
+      "task_name": "diagnostic-smoke-05-visitor-log-audit",
+      "run_id": "diag2-visitor-log-audit",
+      "git_revision": "d8e3a10a21e6bd5805b2d8183270338728385b1b",
+      "trial_name": "visitor-log-audit__dgH3ujs",
+      "model_alias": "gpt-5.6-sol",
+      "attempt": null,
+      "valid": true,
+      "reason": null,
+      "reward": 0.0,
+      "answer": 0.0,
+      "process": 0.2143,
+      "criteria": [
+        {
+          "dimension": "answer",
+          "name": "requests_reviewed",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "conversations_reviewed",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "returned_same_day",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "returned_next_working_day",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unresolved_by_followup",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "breach_ts.f1",
+          "value": 0.0,
+          "weight": 3.6,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "breach_ts.certified",
+          "value": 0.0,
+          "weight": 0.4,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "breaches.f1",
+          "value": 0.0,
+          "weight": 3.6,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "breaches.certified",
+          "value": 0.0,
+          "weight": 0.4,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "next_working_day.f1",
+          "value": 0.0,
+          "weight": 2.7,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "next_working_day.certified",
+          "value": 0.0,
+          "weight": 0.30000000000000004,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unresolved.f1",
+          "value": 0.0,
+          "weight": 1.8,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unresolved.certified",
+          "value": 0.0,
+          "weight": 0.2,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "custody_audit.f1",
+          "value": 0.0,
+          "weight": 65.7,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "custody_audit.certified",
+          "value": 0.0,
+          "weight": 7.3,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "custody_audit_reconciles",
+          "value": 0.0,
+          "weight": 6.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "deliverable_format",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "listed_dm_lanes",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "opened_dm_lanes",
+          "value": 0.0,
+          "weight": 5.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "resolved_people",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "checked_directed_mail",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "turn_efficiency",
+          "value": 1.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        }
+      ],
+      "tool_calls": {},
+      "tool_call_total": 0,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": []
+    },
+    {
+      "task_name": "diagnostic-smoke-05-visitor-log-audit",
+      "run_id": "diag2-visitor-log-audit",
+      "git_revision": "d8e3a10a21e6bd5805b2d8183270338728385b1b",
+      "trial_name": "visitor-log-audit__j4PoXZs",
+      "model_alias": null,
+      "attempt": null,
+      "valid": false,
+      "reason": null,
+      "reward": null,
+      "answer": null,
+      "process": null,
+      "criteria": [],
+      "tool_calls": {},
+      "tool_call_total": 0,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": [
+        "result.json",
+        "verifier/reward-details.json"
+      ]
+    }
+  ]
+}

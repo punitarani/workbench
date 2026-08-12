@@ -1,0 +1,321 @@
+{
+  "run_id": "diag2-standard-drift",
+  "git_revision": "d8e3a10a21e6bd5805b2d8183270338728385b1b",
+  "source_jobs_dir": "/Users/punit/projects/workbench-jobs",
+  "cells": [
+    {
+      "task_name": "diagnostic-smoke-07-standard-drift",
+      "run_id": "diag2-standard-drift",
+      "git_revision": "d8e3a10a21e6bd5805b2d8183270338728385b1b",
+      "trial_name": "standard-drift__FKu26Df",
+      "model_alias": null,
+      "attempt": null,
+      "valid": false,
+      "reason": null,
+      "reward": null,
+      "answer": null,
+      "process": null,
+      "criteria": [],
+      "tool_calls": {},
+      "tool_call_total": 0,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": [
+        "result.json",
+        "verifier/reward-details.json"
+      ]
+    },
+    {
+      "task_name": "diagnostic-smoke-07-standard-drift",
+      "run_id": "diag2-standard-drift",
+      "git_revision": "d8e3a10a21e6bd5805b2d8183270338728385b1b",
+      "trial_name": "standard-drift__mBQdmxN",
+      "model_alias": "gpt-5.6-sol",
+      "attempt": null,
+      "valid": true,
+      "reason": null,
+      "reward": 0.0,
+      "answer": 0.0,
+      "process": 0.2,
+      "criteria": [
+        {
+          "dimension": "answer",
+          "name": "field_equals:drift.json",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "ndas.f1",
+          "value": 0.0,
+          "weight": 8.1,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "ndas.certified",
+          "value": 0.0,
+          "weight": 0.9,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "silent_versions.f1",
+          "value": 0.0,
+          "weight": 5.4,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "silent_versions.certified",
+          "value": 0.0,
+          "weight": 0.6,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "term.standard",
+          "value": 0.0,
+          "weight": 0.5,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "term.practice",
+          "value": 0.0,
+          "weight": 1.5,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "term.document",
+          "value": 0.0,
+          "weight": 1.5,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "term.version",
+          "value": 0.0,
+          "weight": 1.5,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "term.date",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "residuals.standard",
+          "value": 0.0,
+          "weight": 0.5,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "residuals.practice",
+          "value": 0.0,
+          "weight": 1.5,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "residuals.document",
+          "value": 0.0,
+          "weight": 1.5,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "residuals.version",
+          "value": 0.0,
+          "weight": 1.5,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "residuals.date",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "versions_reviewed",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "substantive_versions",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "notices_only_versions",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unchanged_versions",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "covered_substantive_versions",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "silent_substantive_versions",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "covering_email_count",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "authorized_substantive_versions",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "unauthorized_substantive_versions",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "late_authorized_substantive_versions",
+          "value": 0.0,
+          "weight": 1.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "version_audit.f1",
+          "value": 0.0,
+          "weight": 49.2,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "version_audit.certified",
+          "value": 0.0,
+          "weight": 5.8,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "version_audit_reconciles",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "answer",
+          "name": "deliverable_format",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "found_firm_workspace",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "enumerated_documents",
+          "value": 0.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "walked_versions",
+          "value": 0.0,
+          "weight": 5.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "checked_covering_mail",
+          "value": 0.0,
+          "weight": 2.0,
+          "reasoning": null,
+          "error": null
+        },
+        {
+          "dimension": "process",
+          "name": "turn_efficiency",
+          "value": 1.0,
+          "weight": 3.0,
+          "reasoning": null,
+          "error": null
+        }
+      ],
+      "tool_calls": {},
+      "tool_call_total": 0,
+      "wall_time_sec": null,
+      "stop_reason": null,
+      "artifacts_missing": []
+    }
+  ]
+}
