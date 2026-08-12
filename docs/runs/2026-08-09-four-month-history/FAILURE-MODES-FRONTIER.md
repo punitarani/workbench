@@ -203,10 +203,14 @@ Pick any two:
   suite. But a code-writing frontier agent reconstructs that same derivation,
   so it lands 0.87–1.00. **Fails (1).** ← where the suite is now.
 - (1)+(3): difficulty from genuine semantic judgment a program cannot derive
-  ("which of these 200 emails is a real admission of liability"). A frontier
-  model errs more here, so ≤0.5 is reachable, and an expert can still label it.
-  But there is no mechanical rule, so the grader must be an LLM-judge or a
-  hand-labeled set — **gameable, failing (2).**
+  ("which of these 200 emails is a real admission of liability"). The intuition
+  is that a frontier model errs more here so ≤0.5 is reachable while an expert
+  still labels it — but this was *measured false* for any cleanly-labelable
+  criterion (see the semantic-probe section below: Opus F1=1.0 twice, including
+  an adversarial tone-vs-meaning set). It reaches ≤0.5 only under genuine
+  ambiguity or missing knowledge, and there the grader must be an LLM-judge or a
+  hand-labeled set with no reproducible rule — **gameable, failing (2)** — or the
+  expert can't reliably reproduce it either — **failing (3).**
 - (1)+(2): make the deterministic answer depend on genuinely ambiguous or
   unstated facts so the model errs. But then an expert can't reliably
   reproduce it either — **fails (3).**
@@ -223,3 +227,46 @@ frontier Opus 5 forces the triangle. Resolving it is a product decision:
 
 The five tasks in this suite are the strongest realization of (2)+(3): maximally
 hard while deterministic, un-gameable, and expert-solvable.
+
+## Probing the (1)+(3) corner directly (semantic judgment, author-controlled labels)
+
+The (1)+(3) bullet above — "a frontier model errs more" on genuine semantic
+judgment — was, until now, the one branch argued rather than measured. It is the
+only branch that could reach ≤0.5 *and* keep an honest label set, so it deserved
+a real test, not a claim. Two direct pass@1 probes were run against Opus 5
+(amazon-bedrock, raw Responses API, no tools — pure in-context semantic
+classification). Both hold the (2)+(3) determinacy property by construction: the
+labels are author-controlled, the criterion is a rule a competent reader applies
+consistently, and grading is exact-set F1 — so if Opus reproduces the labels the
+grader is un-gameable and the "expert" (me) demonstrably can label it.
+
+Criterion (both probes): *does this case-status note concede a weakness in our
+own side's case* — an admission of a fact, risk, gap, or legal vulnerability that
+hurts us. Semantic, not lexical: no keyword marks a concession.
+
+| probe | items | design | Opus F1 |
+|---|---:|---|---:|
+| clean | 24 | subtle concessions vs. worried-toned non-concessions, opponent-weakness decoys | **1.0000** |
+| adversarial | 30 | tone deliberately fights meaning: confident-toned real concessions, anxious non-concessions, concessions attributed to the *opponent*, past worries already resolved | **1.0000** |
+
+Both perfect — zero false positives, zero misses, including on the adversarial
+set built specifically to pit surface sentiment against actual meaning. This is
+the (1)+(3) corner failing to open: **any criterion clean enough for me to grade
+determinately is clean enough for Opus to apply.** The model does not "err more"
+on semantic judgment per se; it errs more only under genuine ambiguity or
+missing knowledge — which is exactly what removes the clean label set and drops
+the branch back onto (1)+(2), failing (3).
+
+Limits, stated honestly: n=24/30, single pass@1, and criteria a capable
+generalist can author. That last clause is not a weakness of the probe — it *is*
+the finding. The tasks that would drop a frontier model below 0.5 are precisely
+the ones a generalist cannot cleanly label (contested among experts, or
+knowledge-dependent), and those are the ones whose grader cannot be made
+deterministic. The corollary from the deterministic corner ("if I can author a
+clean determinate label, a frontier model reproduces the judgment") now has
+matching evidence on the semantic corner.
+
+Net: all three corners of the triangle are now measured, not just two. The ≤0.5
+bar for Opus 5 is unreachable on any task that is simultaneously un-gameable and
+expert-solvable — deterministic *or* semantic. The resolution remains the product
+decision above.
