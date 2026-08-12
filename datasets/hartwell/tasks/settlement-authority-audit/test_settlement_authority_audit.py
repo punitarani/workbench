@@ -63,17 +63,19 @@ def test_harbor_layout_and_evidence_contract() -> None:
         "primary_field": "proposal_audit",
         "records": 30,
         "item_fields": ["authority_source_ids"],
-        "items": 42,
+        "items": 61,
         "source_surfaces": ["gmail", "slack", "clio"],
         "unique_by": ["message_id"],
         "classification_field": "disposition",
         "classification_counts": {
-            "authorized": 11,
-            "amount_outside_authority": 4,
+            "authorized": 9,
+            "amount_outside_authority": 3,
             "economic_terms_mismatch": 3,
             "authority_revoked": 4,
-            "authority_expired": 4,
+            "authority_expired": 3,
             "nonmonetary_terms_mismatch": 4,
+            "condition_unmet": 2,
+            "authority_not_yet_effective": 2,
         },
         "nonempty_fields": ["message_id", "authority_source_ids"],
     }
@@ -108,8 +110,8 @@ def test_oracle_is_grounded_in_the_fresh_projected_record() -> None:
     assert {row[0] for row in client_authority} <= authority_sources
     assert {row[0] for row in partner_notes} <= authority_sources
     assert truth["proposal_count"] == 30
-    assert truth["authorized_count"] == 11
-    assert truth["breach_count"] == 19
+    assert truth["authorized_count"] == 9
+    assert truth["breach_count"] == 21
 
 
 def test_solve_emits_json_without_writing_workspace(tmp_path: Path) -> None:
@@ -175,14 +177,15 @@ def test_reward_wrapper_maps_reward_to_answer(tmp_path: Path) -> None:
 def test_the_oracle_refuses_an_amount_the_record_does_not_state(
     tmp_path: Path,
 ) -> None:
-    """The certified figures must be the ones the correspondence states.
+    """The oracle derives every figure from the prose, so cross-surface
+    drift must break it rather than pass silently.
 
-    Amounts, terms and dispositions are declared in tables keyed on
-    message subjects. Without a cross-check those tables would keep
-    certifying an answer the prose no longer supports: regenerate the
-    world with a different number in the authority mail and the oracle
-    would emit the stale figure while every test still passed. Rewrite
-    one grant and the oracle must refuse to certify.
+    The written authority and its contemporaneous partner relay are two
+    records of the same grant; the oracle pairs them by the amount each
+    states and refuses when they no longer agree. Rewrite the revised-
+    authority amount in the email but not in the relay and the oracle must
+    refuse to certify -- it cannot invent a matching relay for a figure
+    nobody relayed.
     """
 
     bundle = tmp_path / "bundle"
@@ -205,5 +208,5 @@ def test_the_oracle_refuses_an_amount_the_record_does_not_state(
         text=True,
     )
 
-    assert completed.returncode != 0, "the oracle certified a figure nobody wrote"
-    assert "99900000" in completed.stderr
+    assert completed.returncode != 0, "the oracle certified a figure nobody relayed"
+    assert completed.stdout == "", "the oracle emitted an answer despite the drift"

@@ -70,9 +70,11 @@ DISPOSITIONS = frozenset(
         "authorized",
         "amount_outside_authority",
         "economic_terms_mismatch",
+        "nonmonetary_terms_mismatch",
         "authority_revoked",
         "authority_expired",
-        "nonmonetary_terms_mismatch",
+        "authority_not_yet_effective",
+        "condition_unmet",
     }
 )
 

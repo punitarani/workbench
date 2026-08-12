@@ -182,7 +182,10 @@ def test_s6_settlement_authority_is_a_chronological_cross_surface_audit(
             == {"per-eleanor-hartwell", "per-samuel-marsh"}
         )
     ]
-    assert len(call_notes) == 3, "phone authority and revocation live in the partner DM"
+    assert len(call_notes) == 7, (
+        "the reported-before-effective spine and the phone grant/revocation "
+        "all live in the partner DM"
+    )
 
     goldleaf_notes = [
         event

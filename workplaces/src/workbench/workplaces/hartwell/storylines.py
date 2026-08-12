@@ -113,67 +113,69 @@ S6_AUTHORITY_EMAILS: tuple[tuple[str, int, str, str], ...] = (
         "Samuel and Sofia — for Project Marigold you may open with a demand "
         "of no less than $475,000, exclusive of statutory fees and "
         "recoverable costs. A standard mutual release is fine, but do not "
-        "offer confidentiality. This authority is good through 5:00 p.m. "
-        "Pacific on July 17 unless I withdraw it sooner. — Olivia",
+        "offer confidentiality. This authority expires at 5:00 p.m. Pacific "
+        "on July 17 unless I withdraw it sooner. — Olivia",
     ),
     (
-        "2026-07-14",
-        _at(15, 5),
+        "2026-07-16",
+        _at(9, 0),
         S6_AUTHORITY_SUBJECTS[1],
-        "Stop on Marigold. The operations review changes the board's view. "
-        "Do not send another number or term after this message until I give "
-        "fresh authority, regardless of the July 17 window in my earlier "
-        "email. — Olivia",
+        "Confirming in writing what I told Samuel on Tuesday and he relayed "
+        "to you: stand down on Project Marigold. Do not send another number "
+        "or term until I give fresh authority, regardless of the July 17 "
+        "window in my earlier email. — Olivia",
     ),
     (
-        "2026-07-21",
+        "2026-07-22",
         _at(9, 15),
         S6_AUTHORITY_SUBJECTS[2],
-        "The board has reset Project Marigold authority. You may propose "
-        "exactly $390,000, exclusive of fees and costs, with a mutual "
-        "release. Confidentiality is permitted but not required. This "
-        "replaces my earlier instructions and is good through 5:00 p.m. "
-        "Pacific on July 31. — Olivia",
+        "Confirming in writing the revised Project Marigold authority I gave "
+        "Samuel by phone on Monday: you may propose exactly $390,000, "
+        "exclusive of fees and costs, with a mutual release. Confidentiality "
+        "is permitted but not required. This replaces the $475,000 authority "
+        "and expires at 5:00 p.m. Pacific on July 31. — Olivia",
     ),
     (
-        "2026-07-28",
+        "2026-07-29",
         _at(13, 10),
         S6_AUTHORITY_SUBJECTS[3],
-        "For Marigold you may drop to exactly $340,000, inclusive of all "
-        "fees and costs, with the full 60-day inventory transition — but "
-        "this authority is contingent and does not go live until Alder Grove "
-        "has executed the tolling agreement. Strauss Denning will confirm "
-        "execution to us. Until that confirmation lands, stay at the "
-        "$390,000 authority. Once live, this authority expires at noon "
-        "Pacific on August 4. — Olivia",
+        "Confirming the conditional Project Marigold counter I described to "
+        "Samuel on Monday: you may drop to exactly $340,000, inclusive of "
+        "all fees and costs, with the full 60-day inventory transition. This "
+        "authority is contingent and does not go live until Alder Grove "
+        "executes the tolling agreement; Strauss Denning will confirm "
+        "execution to us. Once live it expires at noon Pacific on August 4. "
+        "— Olivia",
     ),
     (
-        "2026-08-14",
+        "2026-08-20",
         _at(10, 0),
         S6_AUTHORITY_SUBJECTS[4],
-        "The Goldleaf board authorizes a Marigold proposal of exactly "
-        "$285,000 net to Goldleaf, with Alder Grove paying statutory fees "
-        "and costs separately. Confidentiality is required. This authority "
-        "takes effect Monday, August 17 at 9:00 a.m. Pacific — not before — "
-        "and expires at 5:00 p.m. Pacific on August 28. — Olivia",
+        "Confirming the board's net Project Marigold authority I relayed to "
+        "Samuel on Tuesday: exactly $285,000 net to Goldleaf, with Alder "
+        "Grove paying statutory fees and costs separately. Confidentiality "
+        "is required. This authority expires at 5:00 p.m. Pacific on "
+        "August 28. — Olivia",
     ),
     (
-        "2026-09-01",
+        "2026-08-31",
         _at(9, 20),
         S6_AUTHORITY_SUBJECTS[5],
-        "Final Marigold window: exactly $275,000, inclusive of every fee and "
-        "cost, with a standard mutual release and no confidentiality clause. "
-        "This supersedes all earlier numbers and expires at noon Pacific on "
-        "September 4. — Olivia",
+        "Final Project Marigold window: exactly $275,000, inclusive of every "
+        "fee and cost, with a standard mutual release and no confidentiality "
+        "clause. This supersedes all earlier numbers, takes effect at "
+        "9:00 a.m. Pacific on Wednesday, September 2 — not before — and "
+        "expires at noon Pacific on September 4. — Olivia",
     ),
     (
-        "2026-09-09",
-        _at(10, 30),
+        "2026-09-11",
+        _at(9, 0),
         S6_AUTHORITY_SUBJECTS[6],
-        "One last Marigold number: you may propose exactly $260,000, "
-        "inclusive of all fees and costs, with a mutual release and "
-        "confidentiality. Do not offer any release of unknown claims. This "
-        "authority expires at 5:00 p.m. Pacific on September 11. — Olivia",
+        "Confirming the last Project Marigold number I gave Samuel on "
+        "Wednesday: exactly $260,000, inclusive of all fees and costs, with "
+        "a mutual release and confidentiality is required. Do not offer any "
+        "release of unknown claims. This authority expires at 5:00 p.m. "
+        "Pacific on September 11. — Olivia",
     ),
 )
 
@@ -206,6 +208,73 @@ S6_CONTEXT_EMAILS: tuple[tuple[str, int, str, str, str], ...] = (
         "inclusive of statutory fees and costs, general release conditioned "
         "on payment within ten calendar days. Nothing here changes what was "
         "already in force from the phone call. — Olivia",
+    ),
+)
+
+# The reported-before-effective spine: most new client authority reaches the
+# file first as a contemporaneous partner relay in the Eleanor<->Samuel DM,
+# a day or two before Olivia's written email lands. Under the first-reliable-
+# report docketing rule each grant is operative from its relay, not from the
+# later confirming email. A grant relay carries an operative amount ("exactly
+# $X"); a hold relay carries a hold instruction and no operative figure. Two
+# of these are telephone events with no matching Olivia email at all: the
+# $300,000 phone grant (confirmed later by the written-confirmation context
+# email) and the standalone $300,000 revocation. (day, clock, body)
+S6_RELAYS: tuple[tuple[str, int, str], ...] = (
+    (
+        "2026-07-14",
+        _at(15, 5),
+        "Project Marigold — Olivia just called: stand down and put "
+        "everything on hold. Nothing further goes out until she gives fresh "
+        "authority. Written note to follow, but treat this as live now.",
+    ),
+    (
+        "2026-07-20",
+        _at(15, 40),
+        "Project Marigold — Olivia just authorized by phone: exactly "
+        "$390,000, exclusive of fees and costs, with a mutual release. "
+        "Written note to follow, but treat this as live now.",
+    ),
+    (
+        "2026-07-27",
+        _at(16, 20),
+        "Project Marigold — Olivia's conditional counter, by phone: exactly "
+        "$340,000, inclusive of all fees and costs, with the full 60-day "
+        "inventory transition, contingent on the tolling agreement. Treat "
+        "this as live now; written note to follow.",
+    ),
+    (
+        "2026-08-05",
+        _at(9, 10),
+        "Project Marigold — Olivia just authorized by phone: exactly "
+        "$300,000 all-in, inclusive of statutory fees and costs, with a "
+        "general release conditioned on payment within ten calendar days. "
+        "This replaces the conditional counter and expires at noon Pacific "
+        "on August 13. Written confirmation to follow, but treat this as "
+        "live now.",
+    ),
+    (
+        "2026-08-12",
+        _at(9, 35),
+        "Project Marigold — Olivia called: put the $300,000 authority on "
+        "hold immediately. Nothing further goes out until the board circles "
+        "back.",
+    ),
+    (
+        "2026-08-18",
+        _at(15, 30),
+        "Project Marigold — Olivia relayed the board's net authority by "
+        "phone: exactly $285,000 net to Goldleaf, fees and costs paid "
+        "separately, with confidentiality required. Written note to follow, "
+        "but treat this as live now.",
+    ),
+    (
+        "2026-09-09",
+        _at(10, 30),
+        "Project Marigold — Olivia's last number, by phone: exactly "
+        "$260,000, inclusive of all fees and costs, with a mutual release "
+        "and confidentiality required. Do not offer any release of unknown "
+        "claims. Written note to follow, but treat this as live now.",
     ),
 )
 
@@ -243,11 +312,11 @@ S6_OUTBOUND_EMAILS: tuple[tuple[str, int, str, str], ...] = (
         "standard mutual release.",
     ),
     (
-        "2026-07-14",
-        _at(16, 40),
+        "2026-07-15",
+        _at(14, 0),
         S6_OUTBOUND_SUBJECTS[4],
         "Goldleaf renews at $475,000 exclusive of fees and costs, with a "
-        "mutual release and no confidentiality provision.",
+        "standard mutual release.",
     ),
     (
         "2026-07-17",
@@ -264,8 +333,8 @@ S6_OUTBOUND_EMAILS: tuple[tuple[str, int, str, str], ...] = (
         "mutual release.",
     ),
     (
-        "2026-07-22",
-        _at(15, 12),
+        "2026-07-21",
+        _at(15, 0),
         S6_OUTBOUND_SUBJECTS[7],
         "Goldleaf proposes $390,000 exclusive of fees and costs, with a "
         "mutual release and a bilateral confidentiality clause.",
@@ -292,133 +361,131 @@ S6_OUTBOUND_EMAILS: tuple[tuple[str, int, str, str], ...] = (
         "mutual release.",
     ),
     (
-        "2026-07-29",
+        "2026-07-28",
         _at(11, 20),
         S6_OUTBOUND_SUBJECTS[11],
-        "Goldleaf proposes $340,000 inclusive of all fees and costs, "
-        "conditioned on Alder Grove providing the full 60-day inventory "
-        "transition.",
+        "Goldleaf proposes $340,000 inclusive of all fees and costs, with "
+        "the full 60-day inventory transition.",
     ),
     (
         "2026-07-30",
-        _at(10, 30),
+        _at(9, 0),
         S6_OUTBOUND_SUBJECTS[12],
         "Goldleaf proposes $340,000 inclusive of all fees and costs, with "
         "the full 60-day inventory transition.",
     ),
     (
-        "2026-08-04",
-        _at(12, 0),
+        "2026-07-30",
+        _at(11, 0),
         S6_OUTBOUND_SUBJECTS[13],
+        "Goldleaf proposes $340,000 inclusive of all fees and costs, with "
+        "the full 60-day inventory transition.",
+    ),
+    (
+        "2026-08-03",
+        _at(10, 0),
+        S6_OUTBOUND_SUBJECTS[14],
+        "Goldleaf proposes $340,000 inclusive of all fees and costs, with "
+        "no transition commitment.",
+    ),
+    (
+        "2026-08-04",
+        _at(11, 52),
+        S6_OUTBOUND_SUBJECTS[15],
+        "Goldleaf proposes $340,000 inclusive of all fees and costs, with "
+        "the full 60-day inventory transition.",
+    ),
+    (
+        "2026-08-04",
+        _at(12, 18),
+        S6_OUTBOUND_SUBJECTS[16],
+        "Goldleaf renews $340,000 inclusive of all fees and costs, with the "
+        "full 60-day inventory transition.",
+    ),
+    (
+        "2026-08-05",
+        _at(8, 30),
+        S6_OUTBOUND_SUBJECTS[17],
         "Goldleaf again proposes $340,000 inclusive of all fees and costs, "
         "with the full 60-day inventory transition.",
     ),
     (
-        "2026-08-04",
-        _at(12, 5),
-        S6_OUTBOUND_SUBJECTS[14],
-        "Goldleaf renews its $340,000 proposal, inclusive of all fees and "
-        "costs, with the full 60-day inventory transition.",
-    ),
-    (
         "2026-08-05",
-        _at(9, 0),
-        S6_OUTBOUND_SUBJECTS[15],
+        _at(10, 0),
+        S6_OUTBOUND_SUBJECTS[18],
         "Goldleaf proposes $300,000 all-in, inclusive of fees and costs, "
         "with a general release and payment within ten calendar days.",
     ),
     (
         "2026-08-06",
         _at(15, 20),
-        S6_OUTBOUND_SUBJECTS[16],
+        S6_OUTBOUND_SUBJECTS[19],
         "Goldleaf proposes $300,000 all-in, inclusive of fees and costs, "
-        "with a general release and payment within ten calendar days.",
+        "with a general release.",
     ),
     (
         "2026-08-07",
         _at(10, 0),
-        S6_OUTBOUND_SUBJECTS[17],
-        "Goldleaf proposes $300,000 inclusive of all fees and costs, with a "
-        "general release.",
-    ),
-    (
-        "2026-08-11",
-        _at(14, 0),
-        S6_OUTBOUND_SUBJECTS[18],
+        S6_OUTBOUND_SUBJECTS[20],
         "Goldleaf proposes $295,000 all-in, inclusive of fees and costs, "
         "with a general release and payment within ten calendar days.",
     ),
     (
         "2026-08-12",
-        _at(9, 20),
-        S6_OUTBOUND_SUBJECTS[19],
+        _at(10, 15),
+        S6_OUTBOUND_SUBJECTS[21],
         "Goldleaf proposes $300,000 all-in, inclusive of fees and costs, "
         "with a general release and payment within ten calendar days.",
     ),
     (
-        "2026-08-12",
-        _at(10, 15),
-        S6_OUTBOUND_SUBJECTS[20],
-        "Goldleaf again proposes $300,000 all-in, inclusive of fees and "
-        "costs, with a general release and payment within ten calendar days.",
-    ),
-    (
-        "2026-08-14",
-        _at(14, 0),
-        S6_OUTBOUND_SUBJECTS[21],
-        "Goldleaf proposes $285,000 net to Goldleaf, statutory fees and "
-        "costs paid separately by Alder Grove, with bilateral "
-        "confidentiality.",
+        "2026-08-13",
+        _at(11, 0),
+        S6_OUTBOUND_SUBJECTS[22],
+        "Goldleaf renews $300,000 all-in, inclusive of fees and costs, with "
+        "a general release and payment within ten calendar days.",
     ),
     (
         "2026-08-18",
-        _at(11, 30),
-        S6_OUTBOUND_SUBJECTS[22],
+        _at(16, 0),
+        S6_OUTBOUND_SUBJECTS[23],
         "Goldleaf proposes $285,000 net to Goldleaf, statutory fees and "
         "costs paid separately by Alder Grove, with bilateral "
         "confidentiality.",
     ),
     (
-        "2026-08-20",
-        _at(16, 0),
-        S6_OUTBOUND_SUBJECTS[23],
+        "2026-08-19",
+        _at(11, 30),
+        S6_OUTBOUND_SUBJECTS[24],
         "Goldleaf proposes $285,000 all-in, inclusive of all fees and "
         "costs, with bilateral confidentiality.",
     ),
     (
         "2026-08-28",
-        _at(16, 59),
-        S6_OUTBOUND_SUBJECTS[24],
+        _at(16, 52),
+        S6_OUTBOUND_SUBJECTS[25],
+        "Goldleaf proposes $285,000 net to Goldleaf, statutory fees and "
+        "costs separate, with bilateral confidentiality.",
+    ),
+    (
+        "2026-08-28",
+        _at(17, 18),
+        S6_OUTBOUND_SUBJECTS[26],
         "Goldleaf renews $285,000 net to Goldleaf, statutory fees and costs "
         "separate, with bilateral confidentiality.",
     ),
     (
-        "2026-08-31",
+        "2026-09-01",
         _at(10, 0),
-        S6_OUTBOUND_SUBJECTS[25],
-        "Goldleaf again proposes $285,000 net to Goldleaf, statutory fees "
-        "and costs separate, with bilateral confidentiality.",
-    ),
-    (
-        "2026-09-02",
-        _at(10, 0),
-        S6_OUTBOUND_SUBJECTS[26],
-        "Goldleaf proposes $275,000 inclusive of all fees and costs, with a "
-        "standard mutual release and no confidentiality provision.",
-    ),
-    (
-        "2026-09-03",
-        _at(15, 30),
         S6_OUTBOUND_SUBJECTS[27],
         "Goldleaf proposes $275,000 inclusive of all fees and costs, with a "
-        "mutual release and a bilateral confidentiality clause.",
+        "standard mutual release and no confidentiality provision.",
     ),
     (
-        "2026-09-04",
-        _at(12, 1),
+        "2026-09-01",
+        _at(15, 0),
         S6_OUTBOUND_SUBJECTS[28],
-        "Goldleaf renews $275,000 inclusive of all fees and costs, with a "
-        "standard mutual release and no confidentiality provision.",
+        "Goldleaf again proposes $275,000 inclusive of all fees and costs, "
+        "with a standard mutual release and no confidentiality provision.",
     ),
     (
         "2026-09-10",
@@ -5970,56 +6037,32 @@ class StorylineDirector:
 
             self._on(day, clock, context)
 
-        # The telephoned authority: the partner relays it (and Eleanor
-        # clarifies it) two days before Olivia's written confirmation lands.
-        # Under the docketing rule it is live from this relay, not the email.
-        def phone_authority(minter: IdMinter, drafts: list[TimedDraft]) -> None:
-            self._chat(
-                minter,
-                drafts,
-                at=_at(9, 10),
-                sender=_SM,
-                body=(
-                    "Project Marigold — Olivia just authorized by phone: "
-                    "exactly $300,000 all-in, inclusive of statutory fees and "
-                    "costs. A general release is okay only if Alder Grove pays "
-                    "within ten calendar days. This replaces the July 28 "
-                    "conditional authority and is good through noon Pacific on "
-                    "August 13. Written confirmation to follow, but treat this "
-                    "as live now."
-                ),
-                conversation=self._eleanor_samuel_dm,
-            )
-            self._chat(
-                minter,
-                drafts,
-                at=_at(9, 16),
-                sender=_EH,
-                body=(
-                    "Confirming Project Marigold: Olivia's 'all-in' means "
-                    "inclusive of statutory fees and costs, and the ten-day "
-                    "payment term is mandatory. Please put both in the offer."
-                ),
-                conversation=self._eleanor_samuel_dm,
-            )
+        # The reported-before-effective spine: contemporaneous partner relays
+        # in the Eleanor<->Samuel DM. Each new client authority reaches the
+        # file here first, a day or two before Olivia's written email; under
+        # the docketing rule it is operative from the relay. Two are pure
+        # telephone events with no matching Olivia email at all — the $300,000
+        # phone grant (confirmed later by the written-confirmation context
+        # email) and the standalone $300,000 revocation.
+        for index, (day, clock, body) in enumerate(S6_RELAYS):
 
-        self._on("2026-08-05", _at(9, 10), phone_authority)
+            def relay(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                index: int = index,
+                clock: int = clock,
+                body: str = body,
+            ) -> None:
+                self._chat(
+                    minter,
+                    drafts,
+                    at=clock,
+                    sender=_SM,
+                    body=body,
+                    conversation=self._eleanor_samuel_dm,
+                )
 
-        def phone_revocation(minter: IdMinter, drafts: list[TimedDraft]) -> None:
-            self._chat(
-                minter,
-                drafts,
-                at=_at(9, 35),
-                sender=_SM,
-                body=(
-                    "Project Marigold — Olivia called at 9:31. Put the "
-                    "$300,000 authority on hold immediately; nothing further "
-                    "may go out until the board circles back."
-                ),
-                conversation=self._eleanor_samuel_dm,
-            )
-
-        self._on("2026-08-12", _at(9, 35), phone_revocation)
+            self._on(day, clock, relay)
 
         for index, (day, clock, subject, body) in enumerate(S6_OUTBOUND_EMAILS):
 

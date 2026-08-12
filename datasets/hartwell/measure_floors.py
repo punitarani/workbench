@@ -90,335 +90,178 @@ MENTION_MARKERS = {
     "witness-interview-summaries.md": ("witness interview summaries",),
 }
 
-# The settlement-authority audit's expert reading of the Marigold record,
-# mirrored from the reference solver. Each row is what an authority
-# instruction or an outbound proposal *means* once read -- the amount rule,
-# the fee basis, the normalized terms, and (for proposals) the authority
-# state in force and the disposition. The floor sources every message id,
-# timestamp, sender, and dollar figure from the served tools and
-# cross-checks each figure against the prose it claims to quote, so the
-# certified answer rests on the record rather than on this table.
-# (subject, status, amount_cents, amount_rule, economic_basis,
-#  required_terms, prohibited_terms, expires_at, effective_kind, effective_arg)
-# effective_kind is "self" (effective when the email lands), "fixed" (a stated
-# future effective moment), or "trigger" (a contingent grant that goes live
-# only when the named cross-surface confirmation lands, which also co-sources
-# the state).
-MARIGOLD_AUTHORITY = (
-    (
-        "Marigold — opening demand authority",
-        "grant",
-        47_500_000,
-        "minimum",
-        "exclusive",
-        [],
-        ["confidentiality"],
-        "2026-07-17T17:00:00-07:00",
-        "self",
-        None,
-    ),
-    (
-        "Marigold — put negotiations on hold",
-        "hold",
-        0,
-        "none",
-        "none",
-        [],
-        [],
-        "",
-        "self",
-        None,
-    ),
-    (
-        "Marigold — revised authority",
-        "grant",
-        39_000_000,
-        "exact",
-        "exclusive",
-        ["mutual_release"],
-        [],
-        "2026-07-31T17:00:00-07:00",
-        "self",
-        None,
-    ),
-    (
-        "Marigold — conditional counter authority",
-        "grant",
-        34_000_000,
-        "exact",
-        "inclusive",
-        ["inventory_transition_60_days"],
-        [],
-        "2026-08-04T12:00:00-07:00",
-        "trigger",
-        "Marigold — tolling agreement executed",
-    ),
-    (
-        "Marigold — board authority",
-        "grant",
-        28_500_000,
-        "exact",
-        "net_plus_fees",
-        ["confidentiality"],
-        [],
-        "2026-08-28T17:00:00-07:00",
-        "fixed",
-        "2026-08-17T09:00:00-07:00",
-    ),
-    (
-        "Marigold — final authority window",
-        "grant",
-        27_500_000,
-        "exact",
-        "inclusive",
-        ["mutual_release", "no_confidentiality"],
-        ["confidentiality"],
-        "2026-09-04T12:00:00-07:00",
-        "self",
-        None,
-    ),
-    (
-        "Marigold — supplemental closing authority",
-        "grant",
-        26_000_000,
-        "exact",
-        "inclusive",
-        ["confidentiality", "mutual_release"],
-        ["release_unknown_claims"],
-        "2026-09-11T17:00:00-07:00",
-        "self",
-        None,
-    ),
+# The settlement-authority audit derives every disposition from the record it
+# reads through the MCP tools -- no table of answers. The parsers below read
+# one settlement fact off a message's prose; the floor builds the operative-
+# authority timeline and computes each proposal's disposition by the same four
+# checks the reference oracle applies. The only declared facts are the seven
+# documented client-authority subjects and two named context subjects -- what a
+# professional reads off the file.
+SETTLEMENT_AUTHORITY_SUBJECTS = (
+    "Marigold — opening demand authority",
+    "Marigold — put negotiations on hold",
+    "Marigold — revised authority",
+    "Marigold — conditional counter authority",
+    "Marigold — board authority",
+    "Marigold — final authority window",
+    "Marigold — supplemental closing authority",
 )
-
-# The client also grants authority by phone; the contemporaneous partner DMs
-# are the documented record. The grant and its same-thread clarification are
-# one authority state (two source ids); a later DM puts it on hold. Under the
-# docketing rule it is effective from the moment the partner relays it, two
-# days before Olivia's written confirmation lands.
-MARIGOLD_PHONE_GRANT = {
-    "amount_cents": 30_000_000,
-    "amount_rule": "exact",
-    "economic_basis": "inclusive",
-    "required_terms": ["general_release", "payment_within_10_days"],
-    "prohibited_terms": [],
-    "expires_at": "2026-08-13T12:00:00-07:00",
+SETTLEMENT_TOLLING_SUBJECT = "Marigold — tolling agreement executed"
+SETTLEMENT_PHONE_CONFIRMATION_SUBJECT = (
+    "Marigold — written confirmation of phone authority"
+)
+MONTHS = {
+    name: index
+    for index, name in enumerate(
+        [
+            "",
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ]
+    )
 }
 
-# (amount_cents, economic_basis, terms, authority_index, disposition); the
-# authority_index points into the chronologically sorted timeline.
-MARIGOLD_PROPOSALS = {
-    "Marigold proposal 01": (
-        50_000_000,
-        "exclusive",
-        ["mutual_release"],
-        0,
-        "authorized",
-    ),
-    "Marigold proposal 02": (
-        45_000_000,
-        "exclusive",
-        ["mutual_release"],
-        0,
-        "amount_outside_authority",
-    ),
-    "Marigold proposal 03": (
-        49_000_000,
-        "exclusive",
-        ["confidentiality", "mutual_release"],
-        0,
-        "nonmonetary_terms_mismatch",
-    ),
-    "Marigold proposal 04": (
-        48_000_000,
-        "inclusive",
-        ["mutual_release"],
-        0,
-        "economic_terms_mismatch",
-    ),
-    "Marigold proposal 05": (
-        47_500_000,
-        "exclusive",
-        ["mutual_release", "no_confidentiality"],
-        1,
-        "authority_revoked",
-    ),
-    "Marigold proposal 06": (
-        47_500_000,
-        "exclusive",
-        ["mutual_release"],
-        1,
-        "authority_revoked",
-    ),
-    "Marigold proposal 07": (
-        39_000_000,
-        "exclusive",
-        ["mutual_release"],
-        2,
-        "authorized",
-    ),
-    "Marigold proposal 08": (
-        39_000_000,
-        "exclusive",
-        ["confidentiality", "mutual_release"],
-        2,
-        "authorized",
-    ),
-    "Marigold proposal 09": (
-        38_500_000,
-        "exclusive",
-        ["mutual_release"],
-        2,
-        "amount_outside_authority",
-    ),
-    "Marigold proposal 10": (
-        39_000_000,
-        "exclusive",
-        [],
-        2,
-        "nonmonetary_terms_mismatch",
-    ),
-    "Marigold proposal 11": (
-        39_000_000,
-        "inclusive",
-        ["mutual_release"],
-        2,
-        "economic_terms_mismatch",
-    ),
-    "Marigold proposal 12": (
-        34_000_000,
-        "inclusive",
-        ["inventory_transition_60_days"],
-        2,
-        "amount_outside_authority",
-    ),
-    "Marigold proposal 13": (
-        34_000_000,
-        "inclusive",
-        ["inventory_transition_60_days"],
-        3,
-        "authorized",
-    ),
-    "Marigold proposal 14": (
-        34_000_000,
-        "inclusive",
-        ["inventory_transition_60_days"],
-        3,
-        "authorized",
-    ),
-    "Marigold proposal 15": (
-        34_000_000,
-        "inclusive",
-        ["inventory_transition_60_days"],
-        3,
-        "authority_expired",
-    ),
-    "Marigold proposal 16": (
-        30_000_000,
-        "inclusive",
-        ["general_release", "payment_within_10_days"],
-        3,
-        "authority_expired",
-    ),
-    "Marigold proposal 17": (
-        30_000_000,
-        "inclusive",
-        ["general_release", "payment_within_10_days"],
-        4,
-        "authorized",
-    ),
-    "Marigold proposal 18": (
-        30_000_000,
-        "inclusive",
-        ["general_release"],
-        4,
-        "nonmonetary_terms_mismatch",
-    ),
-    "Marigold proposal 19": (
-        29_500_000,
-        "inclusive",
-        ["general_release", "payment_within_10_days"],
-        4,
-        "amount_outside_authority",
-    ),
-    "Marigold proposal 20": (
-        30_000_000,
-        "inclusive",
-        ["general_release", "payment_within_10_days"],
-        4,
-        "authorized",
-    ),
-    "Marigold proposal 21": (
-        30_000_000,
-        "inclusive",
-        ["general_release", "payment_within_10_days"],
-        5,
-        "authority_revoked",
-    ),
-    "Marigold proposal 22": (
-        28_500_000,
-        "net_plus_fees",
-        ["confidentiality"],
-        5,
-        "authority_revoked",
-    ),
-    "Marigold proposal 23": (
-        28_500_000,
-        "net_plus_fees",
-        ["confidentiality"],
-        6,
-        "authorized",
-    ),
-    "Marigold proposal 24": (
-        28_500_000,
-        "inclusive",
-        ["confidentiality"],
-        6,
-        "economic_terms_mismatch",
-    ),
-    "Marigold proposal 25": (
-        28_500_000,
-        "net_plus_fees",
-        ["confidentiality"],
-        6,
-        "authorized",
-    ),
-    "Marigold proposal 26": (
-        28_500_000,
-        "net_plus_fees",
-        ["confidentiality"],
-        6,
-        "authority_expired",
-    ),
-    "Marigold proposal 27": (
-        27_500_000,
-        "inclusive",
-        ["mutual_release", "no_confidentiality"],
-        7,
-        "authorized",
-    ),
-    "Marigold proposal 28": (
-        27_500_000,
-        "inclusive",
-        ["confidentiality", "mutual_release"],
-        7,
-        "nonmonetary_terms_mismatch",
-    ),
-    "Marigold proposal 29": (
-        27_500_000,
-        "inclusive",
-        ["mutual_release", "no_confidentiality"],
-        7,
-        "authority_expired",
-    ),
-    "Marigold proposal 30": (
-        26_000_000,
-        "inclusive",
-        ["confidentiality", "mutual_release"],
-        8,
-        "authorized",
-    ),
-}
+
+def _cents(figure: str) -> int:
+    return int(figure.replace(",", "")) * 100
+
+
+def granted(text: str) -> tuple[int | None, str | None]:
+    """(amount_cents, rule) an authority statement grants, or (None, None).
+
+    The number is the one an operative phrase carries -- ``exactly`` (an exact
+    grant) or ``no less than`` (a floor). A bare dollar figure is never a
+    grant; it may be the authority being withdrawn."""
+    found = re.search(r"(exactly|no less than)\s+\$([\d,]+)", text, re.IGNORECASE)
+    if found is None:
+        return None, None
+    rule = "minimum" if found.group(1).lower() == "no less than" else "exact"
+    return _cents(found.group(2)), rule
+
+
+def offered(text: str) -> int | None:
+    """The figure a proposal puts on the table."""
+    found = re.search(r"\$([\d,]+)", text)
+    return None if found is None else _cents(found.group(1))
+
+
+def basis_of(text: str) -> str | None:
+    lowered = text.lower()
+    if "net to goldleaf" in lowered:
+        return "net_plus_fees"
+    if "inclusive of" in lowered or "all-in" in lowered:
+        return "inclusive"
+    if "exclusive of" in lowered:
+        return "exclusive"
+    return None
+
+
+def _clock(token: str) -> tuple[int, int]:
+    token = token.strip().lower()
+    if token == "noon":
+        return 12, 0
+    match = re.match(r"(\d{1,2}):(\d{2})\s*([ap])\.m\.", token)
+    hour, minute, meridiem = int(match.group(1)), int(match.group(2)), match.group(3)
+    if meridiem == "p" and hour != 12:
+        hour += 12
+    if meridiem == "a" and hour == 12:
+        hour = 0
+    return hour, minute
+
+
+def _instant(clock_token: str, date_token: str) -> datetime:
+    hour, minute = _clock(clock_token)
+    name, day = date_token.split()
+    return datetime(2026, MONTHS[name], int(day), hour, minute, tzinfo=PACIFIC)
+
+
+def expiry_of(text: str) -> datetime | None:
+    found = re.search(
+        r"expires at (noon|\d{1,2}:\d{2}\s*[ap]\.m\.) Pacific on "
+        r"([A-Z][a-z]+ \d{1,2})",
+        text,
+    )
+    return None if found is None else _instant(found.group(1), found.group(2))
+
+
+def fixed_effect_of(text: str) -> datetime | None:
+    """A stated future effective instant ("takes effect at ... — not before")."""
+    found = re.search(
+        r"takes effect at (noon|\d{1,2}:\d{2}\s*[ap]\.m\.) Pacific on "
+        r"(?:[A-Z][a-z]+, )?([A-Z][a-z]+ \d{1,2}) ?[-—]+ ?not before",
+        text,
+    )
+    return None if found is None else _instant(found.group(1), found.group(2))
+
+
+def _is_hold(text: str) -> bool:
+    lowered = text.lower()
+    return any(
+        marker in lowered for marker in ("on hold", "stand down", "do not send another")
+    )
+
+
+def _is_conditional(text: str) -> bool:
+    return "does not go live until" in text.lower()
+
+
+def authority_terms(text: str) -> tuple[list[str], list[str]]:
+    """(required, prohibited) normalized terms an authority statement sets."""
+    lowered = text.lower()
+    required: set[str] = set()
+    prohibited: set[str] = set()
+    if "do not offer confidentiality" in lowered:
+        prohibited.add("confidentiality")
+    if "do not offer any release of unknown claims" in lowered:
+        prohibited.add("release_unknown_claims")
+    if "mutual release" in lowered:
+        required.add("mutual_release")
+    if "general release" in lowered:
+        required.add("general_release")
+    if "60-day inventory transition" in lowered:
+        required.add("inventory_transition_60_days")
+    if "payment within ten calendar days" in lowered:
+        required.add("payment_within_10_days")
+    if "non-disparagement" in lowered:
+        required.add("mutual_non_disparagement")
+    if "no confidentiality clause" in lowered:
+        required.add("no_confidentiality")
+    elif "confidentiality is required" in lowered:
+        required.add("confidentiality")
+    return sorted(required), sorted(prohibited)
+
+
+def offered_terms(text: str) -> set[str]:
+    """The normalized terms a proposal puts on the table."""
+    lowered = text.lower()
+    terms: set[str] = set()
+    if "mutual release" in lowered:
+        terms.add("mutual_release")
+    if "general release" in lowered:
+        terms.add("general_release")
+    if "release of unknown claims" in lowered:
+        terms.add("release_unknown_claims")
+    if "60-day inventory transition" in lowered:
+        terms.add("inventory_transition_60_days")
+    if "payment within ten calendar days" in lowered:
+        terms.add("payment_within_10_days")
+    if "non-disparagement" in lowered:
+        terms.add("mutual_non_disparagement")
+    if "no confidentiality" in lowered:
+        terms.add("no_confidentiality")
+    elif "confidentiality" in lowered:
+        terms.add("confidentiality")
+    return terms
 
 
 def _day_seconds(iso: str) -> int:
@@ -498,37 +341,6 @@ def _strip_notices(content: str) -> str:
     return "\n## ".join(
         [sections[0]] + [s for s in sections[1:] if not s.startswith("Notices")]
     )
-
-
-def _cents(figure: str) -> int:
-    return int(figure.replace(",", "")) * 100
-
-
-def _granted_cents(text: str) -> int | None:
-    """The figure an authority instruction actually authorizes: a number
-    carried by an operative phrase (``exactly`` or ``no less than``), never a
-    bare dollar figure that may be the authority being withdrawn."""
-    found = re.search(r"(?:exactly|no less than)\s+\$([\d,]+)", text, re.IGNORECASE)
-    return None if found is None else _cents(found.group(1))
-
-
-def _offered_cents(text: str) -> int | None:
-    """The figure a proposal puts on the table."""
-    found = re.search(r"\$([\d,]+)", text)
-    return None if found is None else _cents(found.group(1))
-
-
-def _stated_basis(text: str) -> str | None:
-    lowered = text.lower()
-    for phrase, basis in (
-        ("inclusive of", "inclusive"),
-        ("exclusive of", "exclusive"),
-        ("net to", "net_plus_fees"),
-        ("all-in", "inclusive"),
-    ):
-        if phrase in lowered:
-            return basis
-    return None
 
 
 class CountingClient:
@@ -1631,93 +1443,217 @@ async def settlement_authority_audit(client: CountingClient) -> None:
     marigold = await _gmail_all_pages(client, "Marigold")
     by_subject = {message["subject"]: message for message in marigold}
 
-    # The written client instructions, in the order the file states them.
-    # An instruction is effective when its email lands ("self"), at a stated
-    # future moment ("fixed"), or when a cross-surface confirmation trips a
-    # contingent grant live ("trigger"), which also co-sources the state.
+    def gmail_instant(message: dict) -> datetime:
+        return datetime.fromisoformat(message["date"])
+
+    def slack_instant(match: dict) -> datetime:
+        return datetime.fromtimestamp(float(match["ts"]), tz=PACIFIC)
+
+    def chrono(pairs: list[tuple[datetime, str]]) -> list[str]:
+        return [token for _instant, token in sorted(pairs)]
+
+    # The partner DM: every relayed client instruction. A grant relay carries
+    # an operative amount ("exactly $X"); a hold relay carries a stand-down and
+    # none. Two are pure phone events with no matching Olivia email.
+    relays = await _slack_private_pages(client, '"Project Marigold" Olivia')
+    relays.sort(key=lambda match: float(match["ts"]))
+    grant_relays = [
+        (slack_instant(match), match["ts"], match["text"], granted(match["text"])[0])
+        for match in relays
+        if not _is_hold(match["text"]) and granted(match["text"])[0] is not None
+    ]
+    hold_relays = [
+        (slack_instant(match), match["ts"], match["text"])
+        for match in relays
+        if _is_hold(match["text"])
+    ]
+
+    tolling = by_subject[SETTLEMENT_TOLLING_SUBJECT]
+    confirmation = by_subject[SETTLEMENT_PHONE_CONFIRMATION_SUBJECT]
+    tolling_instant = gmail_instant(tolling)
+    confirmation_instant = gmail_instant(confirmation)
+
+    # Build the operative-authority timeline by parsing each instruction and
+    # honoring the docketing rule, the stated-future effect, and the condition.
     timeline: list[dict[str, object]] = []
-    for (
-        subject,
-        status,
-        amount,
-        rule,
-        basis,
-        required,
-        prohibited,
-        expires,
-        effective_kind,
-        effective_arg,
-    ) in MARIGOLD_AUTHORITY:
+    used_grant_relays: set[str] = set()
+    used_hold_relays: set[str] = set()
+    for subject in SETTLEMENT_AUTHORITY_SUBJECTS:
         message = by_subject[subject]
         assert message["sender"].split(" <")[0] == decision_maker, subject
-        # The audited figure has to be the figure the instruction authorizes.
-        if status == "grant":
-            assert _granted_cents(message["plaintextBody"]) == amount, subject
-        source_pairs = [(message["date"], message["id"])]
-        if effective_kind == "self":
-            effective_at = message["date"]
-        elif effective_kind == "fixed":
-            effective_at = effective_arg
-        else:  # trigger
-            trigger = by_subject[effective_arg]
-            effective_at = trigger["date"]
-            source_pairs.append((trigger["date"], trigger["id"]))
+        body = message["plaintextBody"]
+        message_instant = gmail_instant(message)
+        if _is_hold(body):
+            candidates = [
+                (instant, ts)
+                for instant, ts, _text in hold_relays
+                if instant < message_instant
+            ]
+            relay_instant, relay_ts = max(candidates)
+            used_hold_relays.add(relay_ts)
+            effective = min(relay_instant, message_instant)
+            timeline.append(
+                {
+                    "effective_at": effective.isoformat(),
+                    "_effective": effective,
+                    "_announced": effective,
+                    "surface": "slack",
+                    "source_ids": chrono(
+                        [(relay_instant, relay_ts), (message_instant, message["id"])]
+                    ),
+                    "status": "hold",
+                    "amount_cents": 0,
+                    "amount_rule": "none",
+                    "economic_basis": "none",
+                    "required_terms": [],
+                    "prohibited_terms": [],
+                    "expires_at": "",
+                    "_expiry": None,
+                    "_condition": None,
+                }
+            )
+            continue
+        amount, rule = granted(body)
+        assert amount is not None, subject
+        basis = basis_of(body)
+        required, prohibited = authority_terms(body)
+        expiry = expiry_of(body)
+        fixed = fixed_effect_of(body)
+        condition = tolling_instant if _is_conditional(body) else None
+        source_pairs = [(message_instant, message["id"])]
+        if fixed is not None:
+            effective, announced, surface = fixed, message_instant, "gmail"
+        else:
+            matched = [
+                (instant, ts, text)
+                for instant, ts, text, relay_amount in grant_relays
+                if relay_amount == amount and instant < message_instant
+            ]
+            if matched:
+                relay_instant, relay_ts, relay_text = min(matched)
+                assert basis_of(relay_text) == basis, subject
+                used_grant_relays.add(relay_ts)
+                effective = announced = relay_instant
+                surface = "slack"
+                source_pairs.append((relay_instant, relay_ts))
+            else:
+                effective = announced = message_instant
+                surface = "gmail"
+        if condition is not None:
+            source_pairs.append((tolling_instant, tolling["id"]))
         timeline.append(
             {
-                "effective_at": effective_at,
-                "surface": "gmail",
-                "source_ids": [ident for _at, ident in sorted(source_pairs)],
-                "status": status,
+                "effective_at": effective.isoformat(),
+                "_effective": effective,
+                "_announced": announced,
+                "surface": surface,
+                "source_ids": chrono(source_pairs),
+                "status": "grant",
                 "amount_cents": amount,
                 "amount_rule": rule,
                 "economic_basis": basis,
-                "required_terms": sorted(required),
-                "prohibited_terms": sorted(prohibited),
-                "expires_at": expires,
+                "required_terms": required,
+                "prohibited_terms": prohibited,
+                "expires_at": expiry.isoformat() if expiry else "",
+                "_expiry": expiry,
+                "_condition": condition,
             }
         )
 
-    # The telephoned authority and its hold, from the partner DMs. The relay,
-    # its clarification, and Olivia's later written confirmation document one
-    # state (docketed from the relay, not from the written email).
-    partner_notes = await _slack_private_pages(client, '"Project Marigold" Olivia')
-    partner_notes.sort(key=lambda message: float(message["ts"]))
-    assert len(partner_notes) == 3, partner_notes
-    grant, clarification, hold = partner_notes
-    assert _granted_cents(grant["text"]) == MARIGOLD_PHONE_GRANT["amount_cents"]
-    written = by_subject["Marigold — written confirmation of phone authority"]
-    assert (
-        _granted_cents(written["plaintextBody"]) == MARIGOLD_PHONE_GRANT["amount_cents"]
-    )
-    grant_sources = [
-        (float(grant["ts"]), grant["ts"]),
-        (float(clarification["ts"]), clarification["ts"]),
-        (datetime.fromisoformat(written["date"]).timestamp(), written["id"]),
+    # The telephone grant: the one grant relay matching no written Olivia
+    # authority; the written confirmation co-sources it.
+    orphan_grants = [
+        (instant, ts, text, amount)
+        for instant, ts, text, amount in grant_relays
+        if ts not in used_grant_relays
     ]
+    assert len(orphan_grants) == 1, orphan_grants
+    phone_instant, phone_ts, phone_text, phone_amount = orphan_grants[0]
+    assert granted(confirmation["plaintextBody"])[0] == phone_amount
+    assert basis_of(confirmation["plaintextBody"]) == basis_of(phone_text)
+    phone_required, phone_prohibited = authority_terms(phone_text)
     timeline.append(
         {
-            "effective_at": _seconds_iso(int(float(grant["ts"]))),
+            "effective_at": phone_instant.isoformat(),
+            "_effective": phone_instant,
+            "_announced": phone_instant,
             "surface": "slack",
-            "source_ids": [ident for _ts, ident in sorted(grant_sources)],
+            "source_ids": chrono(
+                [(phone_instant, phone_ts), (confirmation_instant, confirmation["id"])]
+            ),
             "status": "grant",
-            **MARIGOLD_PHONE_GRANT,
+            "amount_cents": phone_amount,
+            "amount_rule": granted(phone_text)[1],
+            "economic_basis": basis_of(phone_text),
+            "required_terms": phone_required,
+            "prohibited_terms": phone_prohibited,
+            "expires_at": expiry_of(phone_text).isoformat(),
+            "_expiry": expiry_of(phone_text),
+            "_condition": None,
         }
     )
-    timeline.append(
-        {
-            "effective_at": _seconds_iso(int(float(hold["ts"]))),
-            "surface": "slack",
-            "source_ids": [hold["ts"]],
-            "status": "hold",
-            "amount_cents": 0,
-            "amount_rule": "none",
-            "economic_basis": "none",
-            "required_terms": [],
-            "prohibited_terms": [],
-            "expires_at": "",
-        }
-    )
-    timeline.sort(key=lambda record: record["effective_at"])
+
+    # Standalone revocations: any hold relay not paired with a written hold.
+    for relay_instant, relay_ts, _text in hold_relays:
+        if relay_ts in used_hold_relays:
+            continue
+        timeline.append(
+            {
+                "effective_at": relay_instant.isoformat(),
+                "_effective": relay_instant,
+                "_announced": relay_instant,
+                "surface": "slack",
+                "source_ids": [relay_ts],
+                "status": "hold",
+                "amount_cents": 0,
+                "amount_rule": "none",
+                "economic_basis": "none",
+                "required_terms": [],
+                "prohibited_terms": [],
+                "expires_at": "",
+                "_expiry": None,
+                "_condition": None,
+            }
+        )
+    timeline.sort(key=lambda record: record["_effective"])
+
+    def amount_ok(amount: int, state: dict) -> bool:
+        if state["amount_rule"] == "minimum":
+            return amount >= state["amount_cents"]
+        return amount == state["amount_cents"]
+
+    def disposition(instant: datetime, amount: int, basis: str, terms: set[str]):
+        known = [state for state in timeline if state["_announced"] <= instant]
+        operative = None
+        for state in known:
+            if state["_effective"] <= instant and (
+                operative is None or state["_effective"] >= operative["_effective"]
+            ):
+                operative = state
+        pending_newer = any(
+            state["_effective"] > instant
+            and (operative is None or state["_effective"] > operative["_effective"])
+            for state in known
+        )
+        if operative is None:
+            return "authority_not_yet_effective", operative
+        if operative["status"] == "hold":
+            return "authority_revoked", operative
+        if operative["_expiry"] is not None and instant > operative["_expiry"]:
+            return (
+                "authority_not_yet_effective" if pending_newer else "authority_expired"
+            ), operative
+        if operative["_condition"] is not None and instant < operative["_condition"]:
+            return "condition_unmet", operative
+        if not amount_ok(amount, operative):
+            return "amount_outside_authority", operative
+        if basis != operative["economic_basis"]:
+            return "economic_terms_mismatch", operative
+        if set(operative["required_terms"]) - terms or (
+            set(operative["prohibited_terms"]) & terms
+        ):
+            return "nonmonetary_terms_mismatch", operative
+        return "authorized", operative
 
     # The outbound proposals: firm mail to opposing counsel that names a
     # concrete number, reviewed in the order they went out, repeats included.
@@ -1725,22 +1661,19 @@ async def settlement_authority_audit(client: CountingClient) -> None:
         (m for m in marigold if re.fullmatch(r"Marigold proposal \d\d", m["subject"])),
         key=lambda m: m["date"],
     )
-    assert [m["subject"] for m in proposals] == list(MARIGOLD_PROPOSALS), [
-        m["subject"] for m in proposals
-    ]
     proposal_audit: list[dict[str, object]] = []
     for message in proposals:
-        amount, basis, terms, authority_index, disposition = MARIGOLD_PROPOSALS[
-            message["subject"]
-        ]
+        body = message["plaintextBody"]
+        amount = offered(body)
+        basis = basis_of(body)
+        assert amount is not None and basis is not None, message["subject"]
+        terms = offered_terms(body)
         sender = message["sender"].split(" <")[0]
         recipients = [r.split(" <")[0] for r in message["toRecipients"]]
         assert sender != decision_maker, message["id"]
         assert sender not in opposing_counsel, message["id"]
         assert any(name in opposing_counsel for name in recipients), message["id"]
-        # The audited figures are the figures the proposal actually states.
-        assert _offered_cents(message["plaintextBody"]) == amount, message["subject"]
-        assert _stated_basis(message["plaintextBody"]) == basis, message["subject"]
+        verdict, operative = disposition(gmail_instant(message), amount, basis, terms)
         proposal_audit.append(
             {
                 "message_id": message["id"],
@@ -1749,11 +1682,15 @@ async def settlement_authority_audit(client: CountingClient) -> None:
                 "amount_cents": amount,
                 "economic_basis": basis,
                 "terms": sorted(terms),
-                "authority_source_ids": timeline[authority_index]["source_ids"],
-                "disposition": disposition,
+                "authority_source_ids": operative["source_ids"] if operative else [],
+                "disposition": verdict,
             }
         )
 
+    timeline = [
+        {key: value for key, value in state.items() if not key.startswith("_")}
+        for state in timeline
+    ]
     breaches = [r for r in proposal_audit if r["disposition"] != "authorized"]
     answer = {
         "matter_number": matter_number,

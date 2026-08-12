@@ -47,7 +47,7 @@ Save **`authority.json`** with exactly this public structure:
       "economic_basis": "exclusive, inclusive, or net_plus_fees",
       "terms": ["<normalized term>", "..."],
       "authority_source_ids": ["<source ids for the authority state applied>", "..."],
-      "disposition": "authorized, amount_outside_authority, economic_terms_mismatch, authority_revoked, authority_expired, or nonmonetary_terms_mismatch"
+      "disposition": "authorized, amount_outside_authority, economic_terms_mismatch, nonmonetary_terms_mismatch, authority_revoked, authority_expired, authority_not_yet_effective, or condition_unmet"
     }
   ]
 }
@@ -64,32 +64,44 @@ instruction becomes **operative** — which is not always the moment it is
 written. A later instruction replaces an earlier one once it is operative. A
 hold or revocation takes effect immediately. `amount_rule` is `minimum` when
 any amount at or above the number is within authority, and `exact` when only
-that number is. A proposal sent after a stated expiry is outside authority; a
-proposal at the exact expiry moment remains inside it.
+that number is.
 
-Three things can move an instruction's operative moment away from the instant
-it was written, and you must resolve each before deciding which authority was
-in force when a proposal went out:
+Four independent rules govern which authority is in force, and each proposal's
+disposition turns on getting all of them right. Resolve them in order:
 
-- **Stated future effect.** Some authority is written to take effect only at a
-  later stated moment ("takes effect Monday at 9:00 a.m."). Until that moment
-  the prior authority still governs, even though the newer instruction already
-  exists in the record.
-- **Conditional (contingent) authority.** A grant may be operative only once a
-  stated condition is met, where whether it was met at a given instant turns on
-  a fact recorded on another surface — an opposing-counsel confirmation, an
-  executed document. Until the condition is satisfied the prior authority
-  remains in force; the contingent grant is operative from the moment the
-  confirming fact lands, and that confirming item is part of its source record.
-- **Docketing from the first reliable report.** When new authority is first
-  relayed into the file by a reliable internal report — the client gives
-  authority by telephone and a partner relays it in a contemporaneous DM —
-  before the client's written instruction lands, it is operative from that
-  first reliable report, not from the later written confirmation. A proposal
-  sent in the gap is governed by the reported authority. The partner's relay
-  and a clarification in that same DM are part of the source record; the later
-  written email confirms the same authority rather than starting a new one. Do
-  not treat ordinary internal discussion as client authority.
+1. **First-reliable-report docketing.** Most new client authority reaches the
+   file first as a contemporaneous partner relay in the internal DM — the
+   client grants authority by telephone and the partner relays it the same
+   day — a day or two before the client's written email lands. Under firm
+   policy that authority is **operative from the first reliable report (the
+   relay), not from the later written email**. A proposal sent in the gap
+   between the relay and the written email is governed by the newly reported
+   authority, not by the authority the written record alone would suggest. The
+   relay and the confirming email are both part of the state's source record.
+   A grant relay states an operative amount ("exactly $X"); a bare dollar
+   figure ("put the $300,000 authority on hold") is not a grant. Do not treat
+   ordinary internal discussion as client authority.
+
+2. **Expiry by time of day, in Pacific.** Each grant expires at a specific
+   clock time ("5:00 p.m. Pacific on August 28", "noon Pacific on August 4").
+   Timestamps are served in machine time — convert each to Pacific and compare
+   the proposal's actual send **instant** to the expiry instant, to the
+   minute, not to the calendar day. A proposal at or before the expiry instant
+   is inside the window; one minute after is `authority_expired`.
+
+3. **Conditional (contingent) authority.** A grant may be contingent on a fact
+   recorded on another surface (an opposing-counsel confirmation that a
+   document was executed). The grant is operative from its report, but a
+   proposal sent **before** the confirming fact lands is `condition_unmet`,
+   even if its amount and terms otherwise match; once the confirmation lands,
+   the same proposal is authorized. The confirming item is part of the state's
+   source record.
+
+4. **Stated future effect.** Some authority is written to take effect only at a
+   later stated moment ("takes effect at 9:00 a.m. Pacific on Wednesday — not
+   before"). It is known when the email lands but is not operative until that
+   moment. A proposal sent after the prior grant has lapsed but before the new
+   grant takes effect is `authority_not_yet_effective`.
 
 Test each proposal against all documented dimensions: the amount rule, whether
 fees and costs are inclusive, exclusive, or separately payable, required
@@ -97,12 +109,26 @@ non-monetary terms, prohibited terms, and the time window. Use these normalized
 term labels when they apply: `mutual_release`, `general_release`,
 `release_unknown_claims`, `mutual_non_disparagement`, `confidentiality`,
 `no_confidentiality`, `inventory_transition_60_days`, and
-`payment_within_10_days`. Sort terms and names alphabetically. Keep source ids
-in chronological order, and order both audit arrays chronologically.
+`payment_within_10_days`. A `no_confidentiality` requirement means the proposal
+must carry an explicit no-confidentiality term; a prohibited `confidentiality`
+means it must not offer one. Sort terms and names alphabetically. Keep source
+ids in chronological order, and order both audit arrays chronologically.
 
-For a noncompliant proposal, apply one disposition using this priority:
-`authority_revoked`, then `authority_expired`, then
-`amount_outside_authority`, then `economic_terms_mismatch`, then
-`nonmonetary_terms_mismatch`. The counts and breach list must reconcile to the
-proposal schedule exactly. This is the carrier's retained workpaper; a summary
-without the underlying chronology is not a certification.
+Determine the authority operative at the proposal's send instant, then assign
+exactly one disposition using this priority:
+
+1. A hold or revocation is operative → `authority_revoked`.
+2. The operative grant's expiry has passed → `authority_not_yet_effective` if a
+   newer grant has been issued but has not yet taken effect, otherwise
+   `authority_expired`. (If no grant is yet effective because the only one
+   issued has a future effect, that too is `authority_not_yet_effective`.)
+3. The operative grant is contingent and its condition was not yet confirmed at
+   the send instant → `condition_unmet`.
+4. The amount is outside the operative authority → `amount_outside_authority`.
+5. The economic basis differs → `economic_terms_mismatch`.
+6. A required term is missing or a prohibited term is present →
+   `nonmonetary_terms_mismatch`.
+
+Otherwise the proposal is `authorized`. The counts and breach list must
+reconcile to the proposal schedule exactly. This is the carrier's retained
+workpaper; a summary without the underlying chronology is not a certification.
