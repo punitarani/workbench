@@ -350,3 +350,81 @@ LLM-judge regimes alike. The only levers that reach ≤0.5 — genuine ambiguity
 missing knowledge, or a rigged judge — each break one of the other stated
 requirements (expert-solvability or no-reward-hacking). The product decision above
 stands, now on four measured paradigms rather than a triangle argued from three.
+
+## The agentic-workflow paradigm, measured (long-horizon, outcome-graded)
+
+The four paradigms above all grade **single-shot analysis with partial credit** —
+read the record, emit an answer, F1 over independent items. That is the exact
+shape a parser-writing frontier model aces. The literature on where frontier
+models *do* fail points elsewhere: **long-horizon agentic workflows graded on
+final world-state**. τ-bench (customer-service agents, tool use, policy) puts
+2024-25 frontier models at 42-56% pass¹ on its airline domain; current frontier
+(Opus 4.5, GPT-5.2) reaches ~63-70%. The documented difficulty sources: gating
+preconditions, process-completeness / "false finishes," stateful cascades, long
+horizons, information withholding by a dynamic counterpart, and pass^k reliability
+(pass¹→pass^8 roughly halves scores). Outcome-based grading (final DB state ∧
+trajectory policy-compliance) is un-gameable *and* principled — the opposite of a
+rigged rubric. This is the most promising escape and was probed directly.
+
+**Env note.** The Hartwell tool surface is deliberately read-only (every server
+uses `connect_readonly`; the container asserts the agent cannot write state). A
+write-workflow-graded-on-end-state task is a *moderate* extension (the writable
+data layer, mutation vocabulary, deterministic rebuildable state, and verifier DB
+access all exist; missing are write-tools, a state-diff criterion, and a relaxed
+aperture). Before building that, the core hypothesis — *does a frontier model drop
+≤0.5 on this workflow shape?* — was validated cheaply with an in-memory
+mini-τ-bench: a real multi-turn tool-calling loop, mutable firm state, and
+conjunctive final-state + trajectory-policy grading. A legal new-matter intake
+workflow (conflict-gating, trust accounting, contractual-limitations discovery,
+hidden completeness substeps: ethical wall, engagement letter, conflict notice).
+
+| probe | design (all expert-solvable, un-gameable, outcome-graded) | Opus 5 |
+|---|---|---:|
+| single intake | policy enumerates the steps (checklist) | 6/6 |
+| harder intake | indirect conflict (discover parent via entity_lookup) + contractual 2-yr limitations overriding statutory 4-yr (discover in the contract doc) | 8/8 |
+| 10-intake queue | all-or-nothing over the whole queue; diverse dispositions incl. 3 mandatory declines, a cross-queue mutual-adversity pair (tracks the agent's own prior actions) | 4/4 |
+| dynamic counterpart | facts held by a *separate model* (Sol) playing a busy partner who withholds detail, downplays the conflict ("we're clear"), misstates the statute ("the usual four years"), and pressures for speed | 5/5 valid¹ |
+
+¹ one of six rollouts died on a transient API error (no `choices` in the
+response), not a model failure; trajectory inspection confirms Sol genuinely
+withheld/pressured and Opus overrode it — ran the parent-entity lookup, found the
+Meridian conflict, read the 2-year clause, opened `conflict_pending` *contradicting
+the partner*, and set every hidden substep.
+
+**Finding.** Opus 5's *per-attempt reliability* on realistic, determinate,
+expert-solvable legal workflows is ~1.0. Long horizon, all-or-nothing grading,
+cross-item reasoning, information-withholding, and authority pressure — none of
+the documented agentic difficulty levers moved it. This *falsifies* the
+"difficulty = compounding over a long horizon" hypothesis for Opus 5: compounding
+only bites when per-step reliability is meaningfully below 100%, and here it is
+not. It also shows the model does unprompted professional diligence and resists a
+counterpart pushing it toward the policy-violating shortcut.
+
+**The one remaining research-backed path, and its blocker.** The field reaches
+sub-0.5 on current frontier models via **pass^k** (success on *all* k independent
+attempts — a principled reliability metric, not reward-hacking; one botched intake
+is malpractice). The math needs per-attempt reliability ≲0.87 for pass^5, ≲0.92
+for pass^8. That is the blocker: across five probes and four grading paradigms, no
+*single* realistic, determinate, expert-solvable legal scenario was found where
+Opus 5's per-attempt reliability drops below ~1.0. τ-bench reaches ~65% only by
+*averaging a large, diverse hard tail* of 165 tasks; ≤0.5 there comes from pass^k
+on that tail. So the honest path to a ≤0.5 headline for Opus 5 is a **diverse
+suite of genuinely-hard agentic legal tasks scored at pass^k** — a substantial
+build (env write-infrastructure + many scenarios) whose payoff depends on locating
+the hard tail that this round of probing did not find in single scenarios.
+
+## Five paradigms, one result
+
+| grading paradigm | Opus 5 |
+|---|---:|
+| deterministic oracle (5-task suite) | 0.87–1.00 |
+| semantic classification (clean / adversarial) | 1.00 / 1.00 |
+| open-ended synthesis, robust LLM-judge | 0.94 |
+| **agentic workflow, outcome-graded (4 probes incl. dynamic counterpart)** | **~1.00 per attempt** |
+
+The result is consistent across every legitimately-gradeable paradigm, analysis
+*and* agentic: frontier Opus 5 performs at expert level on realistic legal tasks
+that are determinate and expert-solvable. Reaching ≤0.5 requires either
+non-determinate difficulty (breaking expert-solvability / un-gameability) or a
+diverse hard tail aggregated by pass^k — the latter being the only path that keeps
+every stated requirement, at the cost of a real engineering build.
