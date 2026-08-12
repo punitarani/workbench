@@ -1,22 +1,27 @@
 #!/bin/sh
-# The same shortcut as naive.sh, filed rather than discarded. naive.sh
-# builds the whole custody ledger into `audit` and then emits
-# "custody_audit": [], which is not a shortcut an agent would take --
-# it is the baseline declining to hand in work it already did, and it
-# is what makes this task's 0.89 gap look like difficulty.
+# The plausible surface reading, carried all the way through the work product:
+# count the first reply back from the person asked (acknowledgements included,
+# so "still have it up here" is read as if the sheet were returned), read Slack
+# only, date timestamps by the stored Pacific clock, and skip weekends but not
+# holidays when computing the follow-up deadline. That is exactly the reading
+# the arc is built to punish -- the acknowledgement-then-return gap, the
+# cross-surface mail returns, the holiday-skipped deadlines, and the re-sent
+# request now cost it most of its credit (~0.24, far below the certified 1.0),
+# which this file exists to measure rather than assume. See
+# test_the_honest_shortcut_loses_most_of_the_ledger.
 exec python3 - <<'PY'
 import json
 import os
 import sqlite3
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
-from datetime import date, datetime, timedelta, timezone
 
 EPOCH = date(2026, 3, 2)
 PACIFIC = ZoneInfo("America/Los_Angeles")
 REQUEST = "do you still have the sign-in sheet from yesterday?"
-# instruction.md scopes the sweep to March through June; a plausible
-# shortcut still respects the stated period and errs on the follow-up
-# window and the mail surface instead.
+# instruction.md scopes the sweep to March through June; a plausible shortcut
+# still respects the stated period and errs on the acknowledgement gap, the
+# mail surface, and the holiday-skipped deadline instead.
 SCOPE_SECONDS = (date(2026, 7, 1) - EPOCH).days * 86_400
 STATE = os.environ.get("WORKBENCH_STATE", "../state")
 
@@ -30,13 +35,16 @@ def day_of(timestamp):
     return EPOCH + timedelta(days=timestamp // 86400)
 
 
+def next_working_day(day):
+    # Weekends only -- the shortcut never learned the federal holidays.
+    day += timedelta(days=1)
+    while day.weekday() >= 5:
+        day += timedelta(days=1)
+    return day
+
+
 def iso(timestamp):
-    # `timestamp` is simulated seconds from day zero, so the wall clock
-    # is EPOCH + timestamp; the zone then supplies the offset for that
-    # date. A fixed -08:00 is right until March 8 and an hour wrong
-    # after it, which silently misstates every later return.
-    moment = datetime(2026, 3, 2) + timedelta(seconds=int(timestamp))
-    return moment.replace(tzinfo=PACIFIC).isoformat()
+    return (datetime(2026, 3, 2, tzinfo=PACIFIC) + timedelta(seconds=timestamp)).isoformat()
 
 
 names = dict(rows("SELECT person_id, name FROM people"))
@@ -50,7 +58,7 @@ for lane, person in rows("SELECT conversation_id, person_id FROM members"):
 history = {}
 for lane, sender, body, timestamp, ts in rows(
     "SELECT conversation_id, sender, body, time, ts FROM messages "
-    "WHERE time < ? ORDER BY time",
+    "WHERE time < ? ORDER BY time, ts",
     SCOPE_SECONDS,
 ):
     if lane in lanes:
@@ -63,13 +71,25 @@ for lane, messages in history.items():
             continue
         (asked_of,) = members[lane] - {asker}
         asked_on = day_of(timestamp)
-        responses = [
-            (reply_time, reply_ts)
-            for sender, _, reply_time, reply_ts in messages[position + 1 :]
-            if sender == asked_of and reply_time > timestamp
-        ]
-        first = min(responses, default=None)
-        same_day = first is not None and day_of(first[0]) == asked_on
+        # The first reply back from the person asked, acknowledgements included.
+        first = next(
+            (
+                (reply_time, reply_ts)
+                for reply_sender, _, reply_time, reply_ts in messages[position + 1 :]
+                if reply_sender == asked_of and reply_time > timestamp
+            ),
+            None,
+        )
+        if first is None:
+            outcome = "unresolved"
+        else:
+            return_day = day_of(first[0])
+            if return_day == asked_on:
+                outcome = "same_day"
+            elif return_day <= next_working_day(asked_on):
+                outcome = "next_working_day"
+            else:
+                outcome = "unresolved"
         audit.append(
             {
                 "request_ts": ts,
@@ -79,32 +99,34 @@ for lane, messages in history.items():
                 "first_return_surface": "slack" if first else "none",
                 "first_return_id": first[1] if first else "",
                 "first_return_at": iso(first[0]) if first else "",
-                "outcome": "same_day" if same_day else "unresolved",
+                "outcome": outcome,
             }
         )
 
 audit.sort(key=lambda record: float(record["request_ts"]))
-breach_audit = [record for record in audit if record["outcome"] == "unresolved"]
+breach_audit = [record for record in audit if record["outcome"] != "same_day"]
 breaches = [
     {
         "ts": record["request_ts"],
         "date": record["request_date"],
         "asked_by": record["asked_by"],
         "asked_of": record["asked_of"],
-        "resolution": "unresolved",
+        "resolution": record["outcome"],
     }
     for record in breach_audit
 ]
+returned_next = [r["ts"] for r in breaches if r["resolution"] == "next_working_day"]
+unresolved = [r["ts"] for r in breaches if r["resolution"] == "unresolved"]
 review = {
     "requests_reviewed": len(audit),
     "conversations_reviewed": len(history),
     "same_day_breach_ts": [request["ts"] for request in breaches],
     "same_day_breaches": breaches,
-    "returned_same_day": len(audit) - len(breaches),
-    "returned_next_working_day": 0,
-    "unresolved_by_followup": len(breaches),
-    "returned_next_working_day_ts": [],
-    "unresolved_ts": [request["ts"] for request in breaches],
+    "returned_same_day": len(audit) - len(breach_audit),
+    "returned_next_working_day": len(returned_next),
+    "unresolved_by_followup": len(unresolved),
+    "returned_next_working_day_ts": returned_next,
+    "unresolved_ts": unresolved,
     "custody_audit": audit,
 }
 with open("visitor-log.json", "w") as handle:

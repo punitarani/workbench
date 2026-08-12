@@ -25,6 +25,22 @@ REWARDKIT = shutil.which("rewardkit")
 # from March through June is in scope." Derived here rather than imported
 # from solve.py so this re-derivation stays independent of the oracle.
 REVIEW_SCOPE_SECONDS = (date(2026, 7, 1) - date(2026, 3, 2)).days * 86_400
+REQUEST = "do you still have the sign-in sheet from yesterday?"
+# A holder reply is the *return* only if it confirms the sheet is physically
+# back at the front desk (a marker in chat, or a "Sign-in sheet returned"
+# email); a bare acknowledgement that the holder still has it is not.
+RETURN_MARKERS = (
+    "back at reception",
+    "back on the reception desk",
+    "back on the front desk",
+    "back in the reception binder",
+    "back on the sign-in clipboard",
+    "back downstairs at reception",
+    "returned it to the front desk",
+    "back on the desk out front",
+)
+EMAIL_MARKER = "sign-in sheet returned"
+HOLIDAYS = frozenset({date(2026, 5, 25), date(2026, 6, 19)})
 PUBLIC_FIELDS = {
     "requests_reviewed",
     "conversations_reviewed",
@@ -293,14 +309,31 @@ def test_ground_truth_matches_fresh_bundle_invariants() -> None:
     assert len(breaches) == 12
     assert len(truth["returned_next_working_day_ts"]) == 10
     assert truth["unresolved_ts"] == [
-        "1779891114.000000",
-        "1780004618.000000",
+        "1775493180.000000",
+        "1778262060.000000",
     ]
     assert truth["same_day_breach_ts"] == [record["ts"] for record in breaches]
     assert all(set(record) == BREACH_FIELDS for record in breaches)
 
 
+def _is_return(body: str) -> bool:
+    lowered = body.lower()
+    return any(marker in lowered for marker in RETURN_MARKERS)
+
+
+def _next_working_day(value: date) -> date:
+    value += timedelta(days=1)
+    while value.weekday() >= 5 or value in HOLIDAYS:
+        value += timedelta(days=1)
+    return value
+
+
 def test_reference_custody_audit_matches_fresh_bundle() -> None:
+    """Re-derive the ledger independently of solve.py with the same rules:
+    the return is a marker-bearing message (a reception marker in chat, or a
+    'Sign-in sheet returned' email, never a bare acknowledgement), matched to
+    the request instance it answers by timing across surfaces, then classified
+    against a holiday-aware Pacific next-working-day custody deadline."""
     state = BUNDLE / "state"
     document = _solve_with_state(state, BUNDLE / "workspace")
     epoch = date(2026, 3, 2)
@@ -319,38 +352,60 @@ def test_reference_custody_audit_matches_fresh_bundle() -> None:
             "SELECT conversation_id FROM conversations WHERE kind = 'dm'"
         )
     }
-    history: dict[str, list[tuple[str, str, int, str]]] = {}
+    requests: list[dict] = []
+    returns: list[tuple[int, str, str, str, str]] = []
     for conversation_id, sender, body, timestamp, timestamp_id in connection.execute(
         "SELECT conversation_id, sender, body, time, ts FROM messages "
-        "WHERE time < ? ORDER BY time",
+        "WHERE time < ? ORDER BY time, ts",
         (REVIEW_SCOPE_SECONDS,),
     ):
-        if conversation_id in dm_ids:
-            history.setdefault(conversation_id, []).append(
-                (sender, body, timestamp, timestamp_id)
+        if conversation_id not in dm_ids or len(members[conversation_id]) != 2:
+            continue
+        (other,) = members[conversation_id] - {sender}
+        if body.strip().lower() == REQUEST:
+            requests.append(
+                {
+                    "ts": timestamp_id,
+                    "time": timestamp,
+                    "asked_by": sender,
+                    "asked_of": other,
+                }
             )
+        if _is_return(body):
+            returns.append((timestamp, "slack", timestamp_id, other, sender))
     recipients: dict[str, set[str]] = {}
     for message_id, person_id in connection.execute(
         "SELECT message_id, person_id FROM gmail.recipients"
     ):
         recipients.setdefault(message_id, set()).add(person_id)
-    mail = [
-        (sender, recipient, timestamp, message_id)
-        for message_id, sender, timestamp in connection.execute(
-            "SELECT message_id, sender, time FROM gmail.messages WHERE time < ?",
-            (REVIEW_SCOPE_SECONDS,),
-        )
-        for recipient in recipients.get(message_id, ())
-    ]
+    for message_id, sender, subject, timestamp in connection.execute(
+        "SELECT message_id, sender, subject, time FROM gmail.messages WHERE time < ?",
+        (REVIEW_SCOPE_SECONDS,),
+    ):
+        if EMAIL_MARKER in subject.lower():
+            for recipient in recipients.get(message_id, ()):
+                returns.append((timestamp, "gmail", message_id, recipient, sender))
+
+    by_pair: dict[tuple[str, str], list[int]] = {}
+    for index, request in enumerate(requests):
+        by_pair.setdefault((request["asked_by"], request["asked_of"]), []).append(index)
+    for indices in by_pair.values():
+        indices.sort(key=lambda index: requests[index]["time"])
+    for request in requests:
+        request["return"] = None
+    for timestamp, surface, identifier, asker, holder in sorted(returns):
+        owner = None
+        for index in by_pair.get((asker, holder), ()):
+            if requests[index]["time"] < timestamp:
+                owner = index
+        if owner is None:
+            continue
+        current = requests[owner]["return"]
+        if current is None or timestamp < current[0]:
+            requests[owner]["return"] = (timestamp, surface, identifier)
 
     def request_day(timestamp: int) -> date:
         return epoch + timedelta(days=timestamp // 86_400)
-
-    def next_working_day(value: date) -> date:
-        value += timedelta(days=1)
-        while value.weekday() >= 5:
-            value += timedelta(days=1)
-        return value
 
     def iso(timestamp: int) -> str:
         return (
@@ -358,116 +413,97 @@ def test_reference_custody_audit_matches_fresh_bundle() -> None:
         ).isoformat()
 
     expected = []
-    for conversation_id, messages in history.items():
-        for position, (asker, body, asked_at, request_ts) in enumerate(messages):
-            if body.strip().lower() != (
-                "do you still have the sign-in sheet from yesterday?"
-            ):
-                continue
-            (asked_of,) = members[conversation_id] - {asker}
-            candidates = [
-                (timestamp, "slack", timestamp_id)
-                for sender, _, timestamp, timestamp_id in messages[position + 1 :]
-                if sender == asked_of and timestamp > asked_at
-            ]
-            candidates.extend(
-                (timestamp, "gmail", message_id)
-                for sender, recipient, timestamp, message_id in mail
-                if sender == asked_of and recipient == asker and timestamp > asked_at
-            )
-            first = min(candidates, default=None)
-            asked_on = request_day(asked_at)
-            deadline = next_working_day(asked_on)
-            if first is None:
-                outcome = "unresolved"
-            elif request_day(first[0]) == asked_on:
+    for request in requests:
+        asked_on = request_day(request["time"])
+        deadline = _next_working_day(asked_on)
+        returned = request["return"]
+        if returned is None:
+            surface, identifier, at, outcome = "none", "", "", "unresolved"
+        else:
+            when, surface, identifier = returned
+            at = iso(when)
+            return_day = request_day(when)
+            if return_day == asked_on:
                 outcome = "same_day"
-            elif request_day(first[0]) <= deadline:
+            elif return_day <= deadline:
                 outcome = "next_working_day"
             else:
                 outcome = "unresolved"
-            expected.append(
-                {
-                    "request_ts": request_ts,
-                    "request_date": asked_on.isoformat(),
-                    "asked_by": names[asker],
-                    "asked_of": names[asked_of],
-                    "first_return_surface": first[1] if first else "none",
-                    "first_return_id": first[2] if first else "",
-                    "first_return_at": iso(first[0]) if first else "",
-                    "outcome": outcome,
-                }
-            )
+        expected.append(
+            {
+                "request_ts": request["ts"],
+                "request_date": asked_on.isoformat(),
+                "asked_by": names[request["asked_by"]],
+                "asked_of": names[request["asked_of"]],
+                "first_return_surface": surface,
+                "first_return_id": identifier,
+                "first_return_at": at,
+                "outcome": outcome,
+            }
+        )
     expected.sort(key=lambda record: float(record["request_ts"]))
     outcomes = Counter(record["outcome"] for record in expected)
+    surfaces = Counter(record["first_return_surface"] for record in expected)
 
     assert len(expected) == 71
     assert outcomes == {"same_day": 59, "next_working_day": 10, "unresolved": 2}
+    assert surfaces == {"slack": 66, "gmail": 4, "none": 1}
     assert document["custody_audit"] == expected
 
 
-def test_independent_sql_rederives_requests_and_first_response_outcomes() -> None:
+def test_independent_sql_rederives_the_request_and_return_population() -> None:
+    """An independent SQL cross-check of the fabric population the oracle reads:
+    exactly 71 standing-form requests in the DM lanes, and the marker-bearing
+    returns split 66 in-lane chat and 4 directed 'Sign-in sheet returned'
+    emails -- the counts the certified oracle's surface split rests on."""
     state = BUNDLE / "state"
     connection = sqlite3.connect(f"file:{state / 'slack.db'}?mode=ro", uri=True)
     connection.execute("ATTACH DATABASE ? AS gmail", (str(state / "gmail.db"),))
-    query = f"""
-        WITH requests AS (
-          SELECT message.chat_message_id, message.conversation_id,
-                 message.sender AS asker, member.person_id AS asked_of,
-                 message.time AS request_time, message.ts,
-                 date('2026-03-02', printf('+%d days', message.time / 86400)) AS day
+    (request_count,) = connection.execute(
+        f"""
+        SELECT count(*)
           FROM messages AS message
           JOIN conversations AS conversation
             ON conversation.conversation_id = message.conversation_id
            AND conversation.kind = 'dm'
-          JOIN members AS member
-            ON member.conversation_id = message.conversation_id
-           AND member.person_id != message.sender
-          WHERE lower(trim(message.body)) =
-                'do you still have the sign-in sheet from yesterday?'
-            AND message.time < {REVIEW_SCOPE_SECONDS}
-        ),
-        responses AS (
-          SELECT request.chat_message_id, message.time
-          FROM requests AS request
-          JOIN messages AS message
-            ON message.conversation_id = request.conversation_id
-           AND message.sender = request.asked_of
-           AND message.time > request.request_time
+         WHERE lower(trim(message.body)) = ?
            AND message.time < {REVIEW_SCOPE_SECONDS}
-          UNION ALL
-          SELECT request.chat_message_id, message.time
-          FROM requests AS request
-          JOIN gmail.messages AS message
-            ON message.sender = request.asked_of
-           AND message.time > request.request_time
-           AND message.time < {REVIEW_SCOPE_SECONDS}
-          JOIN gmail.recipients AS recipient
-            ON recipient.message_id = message.message_id
-           AND recipient.person_id = request.asker
-        ),
-        first_response AS (
-          SELECT chat_message_id, min(time) AS response_time
-          FROM responses GROUP BY chat_message_id
-        )
-        SELECT request.ts, request.day,
-               date('2026-03-02', printf('+%d days', response.response_time / 86400))
-          FROM requests AS request
-          LEFT JOIN first_response AS response USING (chat_message_id)
-         ORDER BY request.request_time
-    """
-    rows = connection.execute(query).fetchall()
+        """,
+        (REQUEST,),
+    ).fetchone()
+    assert request_count == 71
 
-    assert len(rows) == 71
-    response_day = {ts: day for ts, _, day in rows}
+    marker_clause = " OR ".join("instr(lower(message.body), ?)" for _ in RETURN_MARKERS)
+    (chat_returns,) = connection.execute(
+        f"""
+        SELECT count(*)
+          FROM messages AS message
+          JOIN conversations AS conversation
+            ON conversation.conversation_id = message.conversation_id
+           AND conversation.kind = 'dm'
+         WHERE ({marker_clause})
+           AND message.time < {REVIEW_SCOPE_SECONDS}
+        """,
+        RETURN_MARKERS,
+    ).fetchone()
+    assert chat_returns == 66
+
+    (mail_returns,) = connection.execute(
+        f"""
+        SELECT count(*)
+          FROM gmail.messages AS message
+         WHERE instr(lower(message.subject), ?)
+           AND message.time < {REVIEW_SCOPE_SECONDS}
+        """,
+        (EMAIL_MARKER,),
+    ).fetchone()
+    assert mail_returns == 4
+
     truth = _truth()
-    assert sum(day == asked_on for _, asked_on, day in rows) == 59
-    assert response_day["1779891114.000000"] == "2026-06-01"
-    assert response_day["1780004618.000000"] == "2026-06-05"
-    assert truth["unresolved_ts"] == [
-        "1779891114.000000",
-        "1780004618.000000",
-    ]
+    surfaces = Counter(
+        record["first_return_surface"] for record in truth["custody_audit"]
+    )
+    assert surfaces == {"slack": 66, "gmail": 4, "none": 1}
 
 
 def test_unresolved_means_not_returned_by_next_working_day_not_never_answered() -> None:
@@ -481,29 +517,41 @@ def test_unresolved_means_not_returned_by_next_working_day_not_never_answered() 
 def test_pre_request_or_wrong_direction_mail_cannot_close_custody(
     tmp_path: Path,
 ) -> None:
+    # The LATE breach: Peter Novak asked Noah Feldstein, who returned the sheet
+    # two working days later -- past the deadline, so unresolved. A marked
+    # "Sign-in sheet returned" email that either predates the request or runs
+    # the wrong direction (asker -> holder) must not close it.
+    target_ts = "1778262060.000000"
+    holder, asker = "per-noah-feldstein", "per-peter-novak"
     bundle = tmp_path / "bundle"
     shutil.copytree(BUNDLE, bundle)
+    slack = sqlite3.connect(f"file:{bundle / 'state' / 'slack.db'}?mode=ro", uri=True)
+    (request_time,) = slack.execute(
+        "SELECT time FROM messages WHERE ts = ?", (target_ts,)
+    ).fetchone()
+    slack.close()
+
     gmail = sqlite3.connect(bundle / "state" / "gmail.db")
     messages = [
         (
             "pre-request-decoy",
             "pre-request-decoy-thread",
             None,
-            "per-diane-okonkwo",
-            "sheet",
-            "Here it is",
-            7_456_314 - 60,
-            "Here it is",
+            holder,
+            "Sign-in sheet returned",
+            "Brought it down.",
+            request_time - 60,
+            "Brought it down.",
         ),
         (
             "wrong-direction-decoy",
             "wrong-direction-decoy-thread",
             None,
-            "per-noah-feldstein",
-            "sheet",
-            "Following up",
-            7_456_314 + 60,
-            "Following up",
+            asker,
+            "Sign-in sheet returned",
+            "Any update on the sheet?",
+            request_time + 60,
+            "Any update on the sheet?",
         ),
     ]
     gmail.executemany(
@@ -514,37 +562,36 @@ def test_pre_request_or_wrong_direction_mail_cannot_close_custody(
     gmail.executemany(
         "INSERT INTO recipients(message_id, person_id, kind) VALUES (?, ?, 'to')",
         [
-            ("pre-request-decoy", "per-noah-feldstein"),
-            ("wrong-direction-decoy", "per-diane-okonkwo"),
+            ("pre-request-decoy", asker),
+            ("wrong-direction-decoy", holder),
         ],
     )
     gmail.commit()
     gmail.close()
 
     document = _solve_with_state(bundle / "state", bundle / "workspace")
-    assert "1779891114.000000" in document["unresolved_ts"]
+    assert target_ts in document["unresolved_ts"]
 
 
-def test_the_honest_shortcut_nearly_reproduces_the_ledger(tmp_path: Path) -> None:
-    """This task's 0.89 gap is an artifact, like its twin's.
+def test_the_honest_shortcut_loses_most_of_the_ledger(tmp_path: Path) -> None:
+    """The surface reading now fails the majority of the ledger.
 
-    ``naive.sh`` builds the whole custody ledger into a local and then
-    emits ``"custody_audit": []``. Filing that same ledger scores 0.7356:
-    61 of 71 rows are exactly right, because everything except the
-    outcome -- who asked, who was asked, when the sheet came back, on
-    which surface -- falls out of finding the reply. Only the nine
-    next-working-day returns and the one mailed return need the judgment
-    the task is built around.
-
-    A first attempt measured 0.1896 here. That was a fixed -08:00 offset
-    in the baseline's own ``iso`` helper, which is right until March 8
-    and an hour wrong after it; the shortcut looked brilliant because it
-    was misstating 59 timestamps. The number below is the corrected one.
+    ``honest-shortcut.sh`` carries the plausible surface reading all the way
+    through the work product: it counts the first reply back from the person
+    asked (acknowledgements included, so "still have it up here" reads as a
+    return), reads Slack only, dates timestamps by the stored Pacific clock,
+    and skips weekends but not holidays. That is exactly the reading the arc is
+    built to punish. Where the old fabric let it land ~0.74, the per-row traps
+    -- the acknowledgement-then-return gap, the cross-surface mail returns, the
+    holiday-skipped deadlines, and the re-sent request -- now cost it most of
+    its credit. It lands well below half, far from the certified 1.0, which is
+    the point: the traps bite.
     """
 
     workspace = _produce(tmp_path, TASK / "baseline" / "honest-shortcut.sh")
     scored, _ = _score(workspace, tmp_path / "logs")
 
-    assert 0.71 < scored["answer"] < 0.76, (
-        f"the honest shortcut is worth 0.7356, measured {scored['answer']}"
+    assert scored["answer"] < 0.4, (
+        f"the surface reading must lose the majority of the ledger, "
+        f"measured {scored['answer']}"
     )

@@ -1,4 +1,17 @@
-"""Reference solution for the end-of-request-day visitor-log audit.
+"""Reference oracle for visitor-log-audit; emits the certified deliverable.
+
+Nothing here is a table of answers. Every row's outcome is DERIVED from the
+record: the request instants are read from the one-to-one DMs, the holder's
+*return* of the sign-in sheet is located by parsing the reply prose (a message
+counts as the return only when it says the sheet is physically back at the
+front desk -- one of RETURN_MARKERS in chat, or a directed "Sign-in sheet
+returned" email -- never a bare acknowledgement that the holder still has it),
+each return is matched to the request instance it answers by timing across
+surfaces, and the outcome (same_day / next_working_day / unresolved) falls out
+of the Pacific calendar date of that first return against a holiday-aware
+next-working-day custody deadline. Timestamps are stored as machine seconds;
+the day boundaries are Pacific, so an evening return is still the same working
+day even though its UTC date is already the next one.
 
 The module reads the offstage projections and emits the public document to
 stdout. Harbor's restricted oracle runs it as the environment user; the shell
@@ -18,8 +31,30 @@ type DatabaseRow = tuple[DatabaseValue, ...]
 type SlackMessage = tuple[str, str, int, str]
 
 EPOCH = date(2026, 3, 2)
+PACIFIC = ZoneInfo("America/Los_Angeles")
 REQUEST = "do you still have the sign-in sheet from yesterday?"
 CUTOFF = (date(2026, 7, 1) - EPOCH).days * 86_400
+
+# A holder message is the *return* only if it says the sheet is physically back
+# at the front desk. In chat the return carries one of these verbatim markers;
+# ordinary acknowledgements ("still have it up here, I'll run it down later")
+# and chatter carry none and are not the return.
+RETURN_MARKERS = (
+    "back at reception",
+    "back on the reception desk",
+    "back on the front desk",
+    "back in the reception binder",
+    "back on the sign-in clipboard",
+    "back downstairs at reception",
+    "returned it to the front desk",
+    "back on the desk out front",
+)
+# A directed email is a cross-surface return iff its subject carries this marker.
+EMAIL_MARKER = "sign-in sheet returned"
+
+# Federal holidays that fall on a weekday inside the March-June review window;
+# the firm treats them as non-working days when computing the custody deadline.
+HOLIDAYS = frozenset({date(2026, 5, 25), date(2026, 6, 19)})
 
 
 def rows(
@@ -34,18 +69,26 @@ def day_of(timestamp: int) -> date:
     return EPOCH + timedelta(days=timestamp // 86_400)
 
 
+def is_workday(moment: date) -> bool:
+    return moment.weekday() < 5 and moment not in HOLIDAYS
+
+
 def next_working_day(moment: date) -> date:
     candidate = moment + timedelta(days=1)
-    while candidate.weekday() >= 5:
+    while not is_workday(candidate):
         candidate += timedelta(days=1)
     return candidate
 
 
 def iso_datetime(timestamp: int) -> str:
-    pacific = ZoneInfo("America/Los_Angeles")
     return (
-        datetime(2026, 3, 2, tzinfo=pacific) + timedelta(seconds=timestamp)
+        datetime(2026, 3, 2, tzinfo=PACIFIC) + timedelta(seconds=timestamp)
     ).isoformat()
+
+
+def is_return(body: str) -> bool:
+    lowered = body.lower()
+    return any(marker in lowered for marker in RETURN_MARKERS)
 
 
 def build_visitor_log(state: Path) -> dict[str, object]:
@@ -83,107 +126,149 @@ def build_visitor_log(state: Path) -> dict[str, object]:
                 (str(sender), str(body), int(timestamp), str(ts))
             )
 
+    # Directed mail: sender, recipients, time, message_id, and subject, so a
+    # "Sign-in sheet returned" return can be recognized and matched to its asker.
     recipients: dict[str, set[str]] = {}
     for message_id, person_id in rows(
         state, "gmail.db", "SELECT message_id, person_id FROM recipients"
     ):
         recipients.setdefault(str(message_id), set()).add(str(person_id))
-    directed_mail: list[tuple[str, set[str], int, str]] = [
+    directed_mail: list[tuple[str, set[str], int, str, str]] = [
         (
             str(sender),
             recipients.get(str(message_id), set()),
             int(timestamp),
             str(message_id),
+            str(subject),
         )
-        for message_id, sender, timestamp in rows(
+        for message_id, sender, subject, timestamp in rows(
             state,
             "gmail.db",
-            "SELECT message_id, sender, time FROM messages WHERE time < ?",
+            "SELECT message_id, sender, subject, time FROM messages WHERE time < ?",
             CUTOFF,
         )
     ]
 
+    # Every sheet request, with its asker, holder, and instant.
     requests: list[dict[str, object]] = []
     for conversation_id, messages in history.items():
         lane_members = membership[conversation_id]
         if len(lane_members) != 2:
-            raise RuntimeError(
-                f"expected two members in DM {conversation_id}, found "
-                f"{len(lane_members)}"
-            )
-        for position, (asker, body, request_time, ts) in enumerate(messages):
+            continue
+        for sender, body, request_time, ts in messages:
             if body.strip().lower() != REQUEST:
                 continue
-            (asked_of,) = lane_members - {asker}
-            candidates = [
-                (timestamp, "slack", response_ts)
-                for sender, _, timestamp, response_ts in messages[position + 1 :]
-                if sender == asked_of and timestamp > request_time
-            ]
-            candidates.extend(
-                (timestamp, "gmail", message_id)
-                for sender, to_people, timestamp, message_id in directed_mail
-                if sender == asked_of
-                and asker in to_people
-                and timestamp > request_time
-            )
-            first_response = min(candidates, default=None)
-            request_day = day_of(request_time)
-            response_day = None if first_response is None else day_of(first_response[0])
-            if response_day == request_day:
-                outcome = "same_day"
-            elif response_day is not None and response_day <= next_working_day(
-                request_day
-            ):
-                outcome = "next_working_day"
-            else:
-                outcome = "unresolved"
+            (asked_of,) = lane_members - {sender}
             requests.append(
                 {
-                    "request_ts": ts,
-                    "request_date": request_day.isoformat(),
-                    "asked_by": names[asker],
-                    "asked_of": names[asked_of],
-                    "first_return_surface": (
-                        first_response[1] if first_response else "none"
-                    ),
-                    "first_return_id": first_response[2] if first_response else "",
-                    "first_return_at": (
-                        iso_datetime(first_response[0]) if first_response else ""
-                    ),
-                    "outcome": outcome,
+                    "ts": ts,
+                    "time": request_time,
+                    "asked_by": sender,
+                    "asked_of": asked_of,
                 }
             )
 
-    requests.sort(key=lambda request: float(str(request["request_ts"])))
-    breach_audit = [request for request in requests if request["outcome"] != "same_day"]
+    # Every holder return, as (time, surface, id, asker, holder). A chat return
+    # is a marker-bearing DM; its asker is the other lane member. An email return
+    # is a "Sign-in sheet returned" directed message; its asker is the recipient.
+    returns: list[tuple[int, str, str, str, str]] = []
+    for conversation_id, messages in history.items():
+        lane_members = membership[conversation_id]
+        if len(lane_members) != 2:
+            continue
+        for sender, body, timestamp, ts in messages:
+            if is_return(body):
+                (asker,) = lane_members - {sender}
+                returns.append((timestamp, "slack", ts, asker, sender))
+    for sender, to_people, timestamp, message_id, subject in directed_mail:
+        if EMAIL_MARKER in subject.lower():
+            for asker in to_people:
+                returns.append((timestamp, "gmail", message_id, asker, sender))
+
+    # Match each return to the request instance it answers: the latest request
+    # from the same asker to the same holder that precedes it. A return whose
+    # asker re-sent the request answers the re-sent instance, leaving the
+    # original with only its acknowledgement.
+    by_pair: dict[tuple[str, str], list[int]] = {}
+    for index, request in enumerate(requests):
+        by_pair.setdefault(
+            (str(request["asked_by"]), str(request["asked_of"])), []
+        ).append(index)
+    for indices in by_pair.values():
+        indices.sort(key=lambda index: int(requests[index]["time"]))
+    for request in requests:
+        request["return"] = None
+    for timestamp, surface, identifier, asker, holder in sorted(returns):
+        owner = None
+        for index in by_pair.get((asker, holder), ()):
+            if int(requests[index]["time"]) < timestamp:
+                owner = index
+        if owner is None:
+            continue
+        current = requests[owner]["return"]
+        if current is None or timestamp < current[0]:
+            requests[owner]["return"] = (timestamp, surface, identifier)
+
+    # Classify each request against the holiday-aware custody deadline.
+    records: list[dict[str, object]] = []
+    for request in requests:
+        request_day = day_of(int(request["time"]))
+        deadline = next_working_day(request_day)
+        returned = request["return"]
+        if returned is None:
+            surface, identifier, at, outcome = "none", "", "", "unresolved"
+        else:
+            when, surface, identifier = returned
+            at = iso_datetime(when)
+            return_day = day_of(when)
+            if return_day == request_day:
+                outcome = "same_day"
+            elif return_day <= deadline:
+                outcome = "next_working_day"
+            else:
+                outcome = "unresolved"
+        records.append(
+            {
+                "request_ts": request["ts"],
+                "request_date": request_day.isoformat(),
+                "asked_by": names[str(request["asked_by"])],
+                "asked_of": names[str(request["asked_of"])],
+                "first_return_surface": surface,
+                "first_return_id": identifier,
+                "first_return_at": at,
+                "outcome": outcome,
+            }
+        )
+
+    records.sort(key=lambda record: float(str(record["request_ts"])))
+    breach_audit = [record for record in records if record["outcome"] != "same_day"]
     breaches = [
         {
-            "ts": request["request_ts"],
-            "date": request["request_date"],
-            "asked_by": request["asked_by"],
-            "asked_of": request["asked_of"],
-            "resolution": request["outcome"],
+            "ts": record["request_ts"],
+            "date": record["request_date"],
+            "asked_by": record["asked_by"],
+            "asked_of": record["asked_of"],
+            "resolution": record["outcome"],
         }
-        for request in breach_audit
+        for record in breach_audit
     ]
     returned_next = [
-        str(request["request_ts"])
-        for request in breach_audit
-        if request["outcome"] == "next_working_day"
+        str(record["request_ts"])
+        for record in breach_audit
+        if record["outcome"] == "next_working_day"
     ]
     unresolved = [
-        str(request["request_ts"])
-        for request in breach_audit
-        if request["outcome"] == "unresolved"
+        str(record["request_ts"])
+        for record in breach_audit
+        if record["outcome"] == "unresolved"
     ]
 
-    if len(requests) != 71 or len(history) != 12:
+    if len(records) != 71 or len(history) != 12:
         raise RuntimeError(
-            f"expected 71 requests in 12 DM lanes, found {len(requests)} in "
+            f"expected 71 requests in 12 DM lanes, found {len(records)} in "
             f"{len(history)}"
         )
-    returned_same_day = len(requests) - len(breach_audit)
+    returned_same_day = len(records) - len(breach_audit)
     if (returned_same_day, len(returned_next), len(unresolved)) != (59, 10, 2):
         raise RuntimeError(
             "expected 59 same-day returns, 10 next-working-day returns, and "
@@ -192,16 +277,16 @@ def build_visitor_log(state: Path) -> dict[str, object]:
         )
 
     return {
-        "requests_reviewed": len(requests),
+        "requests_reviewed": len(records),
         "conversations_reviewed": len(history),
-        "same_day_breach_ts": [str(request["ts"]) for request in breaches],
+        "same_day_breach_ts": [str(record["ts"]) for record in breaches],
         "same_day_breaches": breaches,
         "returned_same_day": returned_same_day,
         "returned_next_working_day": len(returned_next),
         "unresolved_by_followup": len(unresolved),
         "returned_next_working_day_ts": returned_next,
         "unresolved_ts": unresolved,
-        "custody_audit": requests,
+        "custody_audit": records,
     }
 
 

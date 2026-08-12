@@ -218,24 +218,17 @@ def test_second_read_floor_certifies_the_full_first_response_audit() -> None:
     assert any(isinstance(exception, AssertionError) for exception in leaves)
 
 
-def test_visitor_custody_uses_the_first_qualifying_return() -> None:
+def test_visitor_custody_deadline_is_holiday_aware() -> None:
     namespace = runpy.run_path(str(HARTWELL / "measure_floors.py"))
-    outcome = namespace["_custody_outcome"]
-    assert callable(outcome)
+    next_working_day = namespace["_second_read_next_working_day"]
+    assert callable(next_working_day)
 
-    friday = date(2026, 4, 17)
-    day_seconds = namespace["_day_seconds"]
-    asked_at = day_seconds(friday.isoformat()) + 12 * 3_600
-    sunday = day_seconds("2026-04-19") + 12 * 3_600
-    monday = day_seconds("2026-04-20") + 12 * 3_600
-
-    assert outcome(friday, asked_at, [sunday, monday]) == (False, True, True)
-    assert outcome(friday, asked_at, [monday]) == (False, True, True)
-    assert outcome(friday, asked_at, [asked_at - 60, monday]) == (
-        False,
-        True,
-        True,
-    )
+    # A Friday request is due the following Monday.
+    assert next_working_day(date(2026, 4, 17)) == date(2026, 4, 20)
+    # A request the working day before Memorial Day (Mon 5/25) is due Tue 5/26.
+    assert next_working_day(date(2026, 5, 22)) == date(2026, 5, 26)
+    # A request the working day before Juneteenth (Fri 6/19) is due Mon 6/22.
+    assert next_working_day(date(2026, 6, 18)) == date(2026, 6, 22)
 
 
 def test_visitor_floor_certifies_the_full_custody_audit() -> None:

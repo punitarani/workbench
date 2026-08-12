@@ -31,15 +31,13 @@ unique_by = ["request_ts"]
 classification_field = "outcome"
 classification_counts = { same_day = 59, next_working_day = 10, unresolved = 2 }
 source_field = "first_return_surface"
-source_counts = { gmail = 1, slack = 70 }
+source_counts = { gmail = 4, slack = 66, none = 1 }
 nonempty_fields = [
     "request_ts",
     "request_date",
     "asked_by",
     "asked_of",
     "first_return_surface",
-    "first_return_id",
-    "first_return_at",
     "outcome",
 ]
 

@@ -66,6 +66,23 @@ SECOND_READ_EMAIL_MARKER = "draft read"
 # does when computing the second-read next-working-day deadline.
 SECOND_READ_HOLIDAYS = frozenset({date(2026, 5, 25), date(2026, 6, 19)})
 
+# A holder reply is the visitor-log *return* only if it says the sheet is
+# physically back at the front desk: one of these markers in chat, or a
+# "Sign-in sheet returned" directed email. These mirror the oracle and are
+# absent from all other traffic (build_history audits it). The custody deadline
+# is holiday-aware over the same federal holidays.
+SHEET_RETURN_MARKERS = (
+    "back at reception",
+    "back on the reception desk",
+    "back on the front desk",
+    "back in the reception binder",
+    "back on the sign-in clipboard",
+    "back downstairs at reception",
+    "returned it to the front desk",
+    "back on the desk out front",
+)
+SHEET_EMAIL_MARKER = "sign-in sheet returned"
+
 S2_MARKERS = ("meridian", "diagnostics", "00001")
 ARROYO_TOKENS = ("arroyo", "dept. 511", "fruitvale")
 
@@ -296,34 +313,13 @@ def _ts_prefix(ts: str) -> str:
     return ts.split(".")[0]
 
 
-def _next_working_day(day: date) -> date:
-    moment = day + timedelta(days=1)
-    while moment.weekday() >= 5:
-        moment += timedelta(days=1)
-    return moment
-
-
 def _second_read_next_working_day(day: date) -> date:
-    """Next Monday-Friday day that is not a federal holiday (second-read rule)."""
+    """Next Monday-Friday day that is not a federal holiday (holiday-aware rule
+    shared by the second-read and visitor-log custody deadlines)."""
     moment = day + timedelta(days=1)
     while moment.weekday() >= 5 or moment in SECOND_READ_HOLIDAYS:
         moment += timedelta(days=1)
     return moment
-
-
-def _custody_outcome(
-    asked_on: date, asked_at: int, response_times: Iterable[int]
-) -> tuple[bool, bool, bool]:
-    first_response = min(
-        (timestamp for timestamp in response_times if timestamp > asked_at),
-        default=None,
-    )
-    if first_response is None:
-        return False, False, False
-    response_day = date.fromisoformat(_ts_day(str(first_response)))
-    same_day = response_day == asked_on
-    next_working_day = asked_on < response_day <= _next_working_day(asked_on)
-    return same_day, next_working_day, same_day or next_working_day
 
 
 def _working_days(start: date, end: date) -> int:
@@ -1217,22 +1213,21 @@ async def billing_hygiene_audit(client: CountingClient) -> None:
     ), daily_review
 
 
-async def _one_to_one_request_audit(
-    client: CountingClient,
-    request: str,
-    *,
-    custody_deadline: bool = False,
-) -> list[dict]:
-    """The shared discovery path for the one-to-one request audits: every
-    lane opened and paged, its two members resolved, and the mailbox swept
-    because coming back can be mail rather than chat."""
+async def _visitor_log_ledger(client: CountingClient) -> tuple[list[dict], int]:
+    """Derive every visitor-log custody row over the MCP record, mirroring the
+    oracle: open every one-to-one lane and the whole mailbox, read the
+    standing-phrase requests, locate the holder's *returns* of the sign-in
+    sheet (a return marker in chat or a 'Sign-in sheet returned' email — never a
+    bare acknowledgement that the holder still has it), match each return to the
+    request instance it answers, and classify against a holiday-aware
+    next-working-day custody deadline in Pacific time."""
     chat_users = await client.call("slack__slack_search_users", query="", limit=100)
     names = {user["id"]: user["real_name"] for user in chat_users["members"]}
     emails = {user["id"]: user["profile"]["email"] for user in chat_users["members"]}
+    user_of_email = {email: user for user, email in emails.items()}
 
     lanes = [c for c in await _conversation_listing(client) if c["is_im"]]
     history = await _read_all(client, lanes)
-
     membership: dict[str, set[str]] = {}
     for lane in lanes:
         members = await client.call(
@@ -1240,79 +1235,92 @@ async def _one_to_one_request_audit(
         )
         membership[lane["id"]] = set(members["members"])
 
-    mailed: list[tuple[str, str, int, str]] = []
-    for message in await _review_mail(client):
-        for recipient in message["toRecipients"] + message["ccRecipients"]:
-            mailed.append(
-                (
-                    _sender_email(message),
-                    recipient.split("<")[-1].rstrip(">"),
-                    _mail_seconds(message["date"]),
-                    message["id"],
-                )
-            )
-
     requests: list[dict] = []
+    returns: list[tuple[int, str, str, str, str]] = []
     for lane in lanes:
-        messages = sorted(history[lane["id"]], key=lambda m: float(m["ts"]))
-        for position, message in enumerate(messages):
-            if message["text"].strip().lower() != request:
+        members = membership[lane["id"]]
+        if len(members) != 2:
+            continue
+        for message in history[lane["id"]]:
+            sender = message["user"]
+            counterpart = members - {sender}
+            if len(counterpart) != 1:
                 continue
-            (asked_of,) = membership[lane["id"]] - {message["user"]}
-            asked_on = date.fromisoformat(_ts_day(message["ts"]))
-            asked_at = int(float(message["ts"]))
-            next_day = _next_working_day(asked_on).isoformat()
-            chat_candidates = {
-                (int(float(later["ts"])), "slack", later["ts"])
-                for later in messages[position + 1 :]
-                if later["user"] == asked_of and int(float(later["ts"])) > asked_at
-            }
-            mail_candidates = {
-                (timestamp, "gmail", message_id)
-                for sender, recipient, timestamp, message_id in mailed
-                if sender == emails[asked_of]
-                and recipient == emails[message["user"]]
-                and timestamp > asked_at
-            }
-            candidates = chat_candidates | mail_candidates
-            first_response = min(candidates, default=None)
-            if custody_deadline:
-                same_day, next_working_day, in_window = _custody_outcome(
-                    asked_on,
-                    asked_at,
-                    {timestamp for timestamp, _, _ in candidates},
+            (other,) = counterpart
+            when = int(float(message["ts"]))
+            text = message["text"]
+            if text.strip().lower() == SHEET_REQUEST:
+                requests.append(
+                    {
+                        "ts": message["ts"],
+                        "time": when,
+                        "asked_by": sender,
+                        "asked_of": other,
+                    }
                 )
+            if any(marker in text.lower() for marker in SHEET_RETURN_MARKERS):
+                returns.append((when, "slack", message["ts"], other, sender))
+
+    for message in await _review_mail(client):
+        if SHEET_EMAIL_MARKER not in message["subject"].lower():
+            continue
+        holder = user_of_email.get(_sender_email(message))
+        if holder is None:
+            continue
+        when = _mail_seconds(message["date"])
+        for recipient in message["toRecipients"] + message["ccRecipients"]:
+            asker = user_of_email.get(recipient.split("<")[-1].rstrip(">"))
+            if asker is not None:
+                returns.append((when, "gmail", message["id"], asker, holder))
+
+    by_pair: dict[tuple[str, str], list[int]] = {}
+    for index, request in enumerate(requests):
+        by_pair.setdefault((request["asked_by"], request["asked_of"]), []).append(index)
+    for indices in by_pair.values():
+        indices.sort(key=lambda index: requests[index]["time"])
+    for request in requests:
+        request["return"] = None
+    for when, surface, identifier, asker, holder in sorted(returns):
+        owner = None
+        for index in by_pair.get((asker, holder), ()):
+            if requests[index]["time"] < when:
+                owner = index
+        if owner is None:
+            continue
+        current = requests[owner]["return"]
+        if current is None or when < current[0]:
+            requests[owner]["return"] = (when, surface, identifier)
+
+    records: list[dict] = []
+    for request in requests:
+        asked_on = date.fromisoformat(_ts_day(request["ts"]))
+        deadline = _second_read_next_working_day(asked_on)
+        returned = request["return"]
+        if returned is None:
+            surface, identifier, at, outcome = "none", "", "", "unresolved"
+        else:
+            when, surface, identifier = returned
+            at = _seconds_iso(when)
+            return_day = date.fromisoformat(_ts_day(str(when)))
+            if return_day == asked_on:
+                outcome = "same_day"
+            elif return_day <= deadline:
+                outcome = "next_working_day"
             else:
-                first_day = (
-                    date.fromisoformat(_ts_day(str(first_response[0])))
-                    if first_response
-                    else None
-                )
-                same_day = first_day == asked_on
-                in_window = first_day is not None and first_day <= date.fromisoformat(
-                    next_day
-                )
-                next_working_day = in_window and not same_day
-            requests.append(
-                {
-                    "ts": message["ts"],
-                    "date": asked_on.isoformat(),
-                    "asked_by": names[message["user"]],
-                    "asked_of": names[asked_of],
-                    "lanes": len(lanes),
-                    "same_day": same_day,
-                    "next_working_day": next_working_day,
-                    "in_window": in_window,
-                    "first_response_surface": (
-                        first_response[1] if first_response else "none"
-                    ),
-                    "first_response_id": first_response[2] if first_response else "",
-                    "first_response_at": (
-                        _seconds_iso(first_response[0]) if first_response else ""
-                    ),
-                }
-            )
-    return requests
+                outcome = "unresolved"
+        records.append(
+            {
+                "request_ts": request["ts"],
+                "request_date": asked_on.isoformat(),
+                "asked_by": names[request["asked_by"]],
+                "asked_of": names[request["asked_of"]],
+                "first_return_surface": surface,
+                "first_return_id": identifier,
+                "first_return_at": at,
+                "outcome": outcome,
+            }
+        )
+    return records, len(lanes)
 
 
 async def _second_read_ledger(client: CountingClient) -> tuple[list[dict], int]:
@@ -1461,27 +1469,21 @@ async def second_read_audit(client: CountingClient) -> None:
 async def visitor_log_audit(client: CountingClient) -> None:
     truth = _truth("visitor-log-audit")
     oracle = _oracle("visitor-log-audit")
-    requests = await _one_to_one_request_audit(
-        client, SHEET_REQUEST, custody_deadline=True
-    )
-    assert len(requests) == truth["requests_reviewed"], len(requests)
-    assert requests[0]["lanes"] == truth["conversations_reviewed"]
-    breaches = sorted(
-        (
-            {
-                "ts": request["ts"],
-                "date": request["date"],
-                "asked_by": request["asked_by"],
-                "asked_of": request["asked_of"],
-                "resolution": (
-                    "next_working_day" if request["next_working_day"] else "unresolved"
-                ),
-            }
-            for request in requests
-            if not request["same_day"]
-        ),
-        key=lambda record: float(record["ts"]),
-    )
+    records, lanes = await _visitor_log_ledger(client)
+    assert len(records) == truth["requests_reviewed"], len(records)
+    assert lanes == truth["conversations_reviewed"], lanes
+    custody_audit = sorted(records, key=lambda item: float(item["request_ts"]))
+    breaches = [
+        {
+            "ts": record["request_ts"],
+            "date": record["request_date"],
+            "asked_by": record["asked_by"],
+            "asked_of": record["asked_of"],
+            "resolution": record["outcome"],
+        }
+        for record in custody_audit
+        if record["outcome"] != "same_day"
+    ]
     assert breaches == truth["same_day_breaches"], breaches
     assert [record["ts"] for record in breaches] == truth["same_day_breach_ts"]
     next_day = [
@@ -1495,30 +1497,11 @@ async def visitor_log_audit(client: CountingClient) -> None:
     ]
     assert unresolved == truth["unresolved_ts"], unresolved
     assert (
-        sum(1 for request in requests if request["same_day"])
+        sum(1 for record in records if record["outcome"] == "same_day")
         == truth["returned_same_day"]
     )
     assert len(next_day) == truth["returned_next_working_day"]
     assert len(unresolved) == truth["unresolved_by_followup"]
-    custody_audit = [
-        {
-            "request_ts": request["ts"],
-            "request_date": request["date"],
-            "asked_by": request["asked_by"],
-            "asked_of": request["asked_of"],
-            "first_return_surface": request["first_response_surface"],
-            "first_return_id": request["first_response_id"],
-            "first_return_at": request["first_response_at"],
-            "outcome": (
-                "same_day"
-                if request["same_day"]
-                else "next_working_day"
-                if request["next_working_day"]
-                else "unresolved"
-            ),
-        }
-        for request in sorted(requests, key=lambda item: float(item["ts"]))
-    ]
     assert _canonical_records(custody_audit) == _canonical_records(
         oracle["custody_audit"]
     ), custody_audit

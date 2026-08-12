@@ -86,6 +86,9 @@ from workbench.workplaces.hartwell.storylines import (
     SECOND_READ_EMAIL_MARKER,
     SECOND_READ_REQUEST,
     SECOND_READ_REVIEW_MARKERS,
+    SHEET_EMAIL_MARKER,
+    SHEET_REQUEST,
+    SHEET_RETURN_MARKERS,
     StorylineDirector,
     author_content,
     missing_content,
@@ -937,6 +940,91 @@ def audit(log_path: Path, state_dir: Path) -> int:
     check(
         f"the standing request phrase stays inside the DMs ({request_leaks})",
         not request_leaks,
+    )
+
+    print("S8 visitor-log custody fabric:")
+    sheet_requests = [
+        event
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.conversation_id in dm_conversation_ids
+        and event.payload.body.strip().lower() == SHEET_REQUEST
+        and _event_date(event) < review_before_cutoff
+    ]
+    check(
+        f"the sheet-request fabric is exactly 71 authored one-to-one asks "
+        f"({len(sheet_requests)})",
+        len(sheet_requests) == 71,
+    )
+
+    def has_sheet_marker(text: str) -> bool:
+        lowered = text.lower()
+        return any(marker in lowered for marker in SHEET_RETURN_MARKERS)
+
+    # The return markers must live ONLY in the arc's chat returns (DM messages).
+    # Any leak into procedural chatter, a public channel, an acknowledgement, or
+    # any email (the cross-surface returns carry the subject marker, never a
+    # body marker) would make the oracle count a phantom return, so it fails the
+    # build rather than shipping.
+    sheet_return_chats = 0
+    sheet_marker_leaks = []
+    sheet_return_mail = 0
+    for event in events:
+        payload = event.payload
+        if isinstance(payload, ChatMessagePayload):
+            if has_sheet_marker(payload.body):
+                if payload.conversation_id in dm_conversation_ids:
+                    sheet_return_chats += 1
+                else:
+                    sheet_marker_leaks.append(("public-chat", _event_date(event)))
+        elif isinstance(payload, EmailMessagePayload):
+            if SHEET_EMAIL_MARKER in payload.subject.lower():
+                sheet_return_mail += 1
+            if has_sheet_marker(f"{payload.subject} {payload.body}"):
+                sheet_marker_leaks.append(("mail", _event_date(event)))
+    check(
+        f"the sheet return markers never leak outside DM returns "
+        f"({sheet_marker_leaks})",
+        not sheet_marker_leaks,
+    )
+    check(
+        f"the in-lane sheet returns are exactly 66 marker-bearing DMs "
+        f"({sheet_return_chats})",
+        sheet_return_chats == 66,
+    )
+    check(
+        f"the cross-surface sheet returns are exactly 4 'Sign-in sheet "
+        f"returned' emails ({sheet_return_mail})",
+        sheet_return_mail == 4,
+    )
+    # The verdict markers of the two arcs stay disjoint: no second-read read
+    # doubles as a sheet return or vice versa, so the shared lanes never
+    # cross-contaminate.
+    marker_overlap = [
+        marker
+        for marker in SECOND_READ_REVIEW_MARKERS
+        if any(marker in sheet_marker for sheet_marker in SHEET_RETURN_MARKERS)
+        or any(sheet_marker in marker for sheet_marker in SHEET_RETURN_MARKERS)
+    ]
+    check(
+        f"the second-read and sheet return markers are disjoint ({marker_overlap})",
+        not marker_overlap,
+    )
+    # The sheet request phrase must not appear on any non-DM surface, or a
+    # keyword sweep would shortcut the seatless DM walk the task charges for.
+    sheet_request_leaks = [
+        _event_date(event)
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload | EmailMessagePayload)
+        and SHEET_REQUEST in getattr(event.payload, "body", "").strip().lower()
+        and not (
+            isinstance(event.payload, ChatMessagePayload)
+            and event.payload.conversation_id in dm_conversation_ids
+        )
+    ]
+    check(
+        f"the sheet request phrase stays inside the DMs ({sheet_request_leaks})",
+        not sheet_request_leaks,
     )
 
     print("Fabric realism:")

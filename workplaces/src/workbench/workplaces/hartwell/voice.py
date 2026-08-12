@@ -137,15 +137,18 @@ REACTIONS: tuple[str, ...] = (
 )
 
 # Two standing forms of words seed the one-to-one custody/second-read audits.
-# Index 0 is ordinary DM filler: the *second-read* request fabric is authored
-# deterministically by the S7 storyline (StorylineDirector._register_s7), not
-# left to procedural chance, so that every "quick look at my draft" request
-# carries a designed contested response timing. Keeping this slot a two-tuple
-# preserves the visitor-log sheet-request draws (index 1) and the RNG stream
-# byte-for-byte; only the index-0 body changes.
+# Both slots are ordinary DM filler now: BOTH standing-request fabrics are
+# authored deterministically by the storylines, not left to procedural chance,
+# so that every graded request carries a designed contested response timing --
+# the *second-read* "quick look at my draft" asks come from S7
+# (StorylineDirector._register_s7) and the *visitor-log* "sign-in sheet" asks
+# come from S8 (StorylineDirector._register_s8). Keeping this a two-tuple with
+# the same standing_request_rate preserves the RNG draw sequence byte-for-byte;
+# only the body strings change, so procedural draws now emit neutral filler
+# that neither audit's derivation ever matches.
 STANDING_REQUESTS: tuple[str, ...] = (
     "you around for a quick question when you get a sec?",
-    "do you still have the sign-in sheet from yesterday?",
+    "any chance you're free for a quick sync later today?",
 )
 
 STANDUP: tuple[str, ...] = (

@@ -1,54 +1,129 @@
 {
   "_evidence": {
-    "population": "The fresh seatless Slack projection has 12 DM lanes. Opening every lane yields 71 exact standing-form requests.",
-    "rule": "A same-day return is a later message from the person asked in the same DM or a later directed email from that person to the asker. The end of request day is the custody deadline. A breach is next_working_day when the first qualifying return arrives after the request date but no later than the immediately next Mon-Fri deadline; otherwise it is unresolved at that follow-up deadline.",
-    "outcomes": "59 requests returned the same day. Ten breaches returned the next working day, including request 1772498699 by directed email. Requests 1779891114 and 1780004618 did not return until after their next-working-day window and are unresolved for this audit.",
+    "population": "The fresh seatless Slack projection has 12 one-to-one DM lanes. Opening every lane yields 71 authored standing-form requests -- do you still have the sign-in sheet from yesterday? Slack search never reaches DMs, so every lane must be opened.",
+    "rule": "A return is a message from the person asked that says yesterday's sheet is physically back at the front desk -- it carries one of the reception return markers (back at reception / back on the reception desk / back on the front desk / back in the reception binder / back on the sign-in clipboard / back downstairs at reception / returned it to the front desk / back on the desk out front) -- or a directed \"Sign-in sheet returned\" email from that person to the asker. A bare acknowledgement that the holder still has the sheet (\"still have it up here, I'll run it down later\") is NOT a return. Machine timestamps are converted to Pacific before taking the calendar date. same_day is a return by the end of the Pacific day the sheet was asked for. A breach is next_working_day when the first return lands after the request date but no later than the end of the immediately next working day, where the firm works Monday-Friday and skips the federal holidays 2026-05-25 (Memorial Day) and 2026-06-19 (Juneteenth); otherwise it is unresolved. When the same asker re-sends the request before any return, the single return answers the most recent preceding request, leaving the earlier instance unresolved.",
+    "outcomes": "Fifty-nine requests were returned the same Pacific day, including same-day returns whose UTC clock rolls past midnight and three returned by directed email. Ten breaches were returned the next working day (one of them, request 1782403620, by directed email across the Juneteenth-and-weekend gap, and two -- 1779466020 and 1781800380 -- only after a federal holiday). Two requests are unresolved: 1775493180 was orphaned when its asker re-sent the next working day, so the holder's single return answered the re-sent instance and the original never drew one; 1778262060 did not return until after its next-working-day window, two working days later.",
     "grading": "The certified oracle also records all 71 requests with their earliest cross-surface return identity, time, and outcome. Every set-valued field assigns 90% of its weight to normalized multiset F1 and 10% to exact certification. Ledger reconciliation and exact public schema carry the remaining weight. Missing, malformed, non-finite, oversized, or schema-expanded deliverables cannot certify the answer."
   },
   "requests_reviewed": 71,
   "conversations_reviewed": 12,
   "same_day_breach_ts": [
-    "1772498699.000000",
-    "1772688077.000000",
-    "1773075798.000000",
-    "1774909763.000000",
-    "1775496810.000000",
-    "1776463350.000000",
-    "1776725916.000000",
-    "1777499891.000000",
-    "1778266580.000000",
-    "1779891114.000000",
-    "1780004618.000000",
-    "1781206602.000000"
+    "1773166320.000000",
+    "1773421560.000000",
+    "1775062320.000000",
+    "1775493180.000000",
+    "1776447660.000000",
+    "1777483440.000000",
+    "1778262060.000000",
+    "1778868720.000000",
+    "1779466020.000000",
+    "1780509780.000000",
+    "1781800380.000000",
+    "1782403620.000000"
   ],
   "same_day_breaches": [
-    {"ts": "1772498699.000000", "date": "2026-03-02", "asked_by": "Omar Haddad", "asked_of": "Tessa Nguyen", "resolution": "next_working_day"},
-    {"ts": "1772688077.000000", "date": "2026-03-04", "asked_by": "Peter Novak", "asked_of": "Grace Adeyemi", "resolution": "next_working_day"},
-    {"ts": "1773075798.000000", "date": "2026-03-09", "asked_by": "Omar Haddad", "asked_of": "Tessa Nguyen", "resolution": "next_working_day"},
-    {"ts": "1774909763.000000", "date": "2026-03-30", "asked_by": "Grace Adeyemi", "asked_of": "Peter Novak", "resolution": "next_working_day"},
-    {"ts": "1775496810.000000", "date": "2026-04-06", "asked_by": "Diane Okonkwo", "asked_of": "Noah Feldstein", "resolution": "next_working_day"},
-    {"ts": "1776463350.000000", "date": "2026-04-17", "asked_by": "Samuel Marsh", "asked_of": "Grace Adeyemi", "resolution": "next_working_day"},
-    {"ts": "1776725916.000000", "date": "2026-04-20", "asked_by": "Grace Adeyemi", "asked_of": "Sofia Ramirez", "resolution": "next_working_day"},
-    {"ts": "1777499891.000000", "date": "2026-04-29", "asked_by": "Marcus Liang", "asked_of": "Peter Novak", "resolution": "next_working_day"},
-    {"ts": "1778266580.000000", "date": "2026-05-08", "asked_by": "Grace Adeyemi", "asked_of": "Peter Novak", "resolution": "next_working_day"},
-    {"ts": "1779891114.000000", "date": "2026-05-27", "asked_by": "Noah Feldstein", "asked_of": "Diane Okonkwo", "resolution": "unresolved"},
-    {"ts": "1780004618.000000", "date": "2026-05-28", "asked_by": "Peter Novak", "asked_of": "Noah Feldstein", "resolution": "unresolved"},
-    {"ts": "1781206602.000000", "date": "2026-06-11", "asked_by": "Eleanor Hartwell", "asked_of": "Anita Bailey", "resolution": "next_working_day"}
+    {
+      "asked_by": "Grace Adeyemi",
+      "asked_of": "Peter Novak",
+      "date": "2026-03-10",
+      "resolution": "next_working_day",
+      "ts": "1773166320.000000"
+    },
+    {
+      "asked_by": "Marcus Liang",
+      "asked_of": "Peter Novak",
+      "date": "2026-03-13",
+      "resolution": "next_working_day",
+      "ts": "1773421560.000000"
+    },
+    {
+      "asked_by": "Sofia Ramirez",
+      "asked_of": "Marcus Liang",
+      "date": "2026-04-01",
+      "resolution": "next_working_day",
+      "ts": "1775062320.000000"
+    },
+    {
+      "asked_by": "Anita Bailey",
+      "asked_of": "Carl Jensen",
+      "date": "2026-04-06",
+      "resolution": "unresolved",
+      "ts": "1775493180.000000"
+    },
+    {
+      "asked_by": "Grace Adeyemi",
+      "asked_of": "Sofia Ramirez",
+      "date": "2026-04-17",
+      "resolution": "next_working_day",
+      "ts": "1776447660.000000"
+    },
+    {
+      "asked_by": "Grace Adeyemi",
+      "asked_of": "Samuel Marsh",
+      "date": "2026-04-29",
+      "resolution": "next_working_day",
+      "ts": "1777483440.000000"
+    },
+    {
+      "asked_by": "Peter Novak",
+      "asked_of": "Noah Feldstein",
+      "date": "2026-05-08",
+      "resolution": "unresolved",
+      "ts": "1778262060.000000"
+    },
+    {
+      "asked_by": "Diane Okonkwo",
+      "asked_of": "Noah Feldstein",
+      "date": "2026-05-15",
+      "resolution": "next_working_day",
+      "ts": "1778868720.000000"
+    },
+    {
+      "asked_by": "Grace Adeyemi",
+      "asked_of": "Samuel Marsh",
+      "date": "2026-05-22",
+      "resolution": "next_working_day",
+      "ts": "1779466020.000000"
+    },
+    {
+      "asked_by": "Samuel Marsh",
+      "asked_of": "Eleanor Hartwell",
+      "date": "2026-06-03",
+      "resolution": "next_working_day",
+      "ts": "1780509780.000000"
+    },
+    {
+      "asked_by": "Samuel Marsh",
+      "asked_of": "Eleanor Hartwell",
+      "date": "2026-06-18",
+      "resolution": "next_working_day",
+      "ts": "1781800380.000000"
+    },
+    {
+      "asked_by": "Samuel Marsh",
+      "asked_of": "Sofia Ramirez",
+      "date": "2026-06-25",
+      "resolution": "next_working_day",
+      "ts": "1782403620.000000"
+    }
   ],
   "returned_same_day": 59,
   "returned_next_working_day": 10,
   "unresolved_by_followup": 2,
   "returned_next_working_day_ts": [
-    "1772498699.000000",
-    "1772688077.000000",
-    "1773075798.000000",
-    "1774909763.000000",
-    "1775496810.000000",
-    "1776463350.000000",
-    "1776725916.000000",
-    "1777499891.000000",
-    "1778266580.000000",
-    "1781206602.000000"
+    "1773166320.000000",
+    "1773421560.000000",
+    "1775062320.000000",
+    "1776447660.000000",
+    "1777483440.000000",
+    "1778868720.000000",
+    "1779466020.000000",
+    "1780509780.000000",
+    "1781800380.000000",
+    "1782403620.000000"
   ],
-  "unresolved_ts": ["1779891114.000000", "1780004618.000000"]
+  "unresolved_ts": [
+    "1775493180.000000",
+    "1778262060.000000"
+  ]
 }

@@ -697,6 +697,172 @@ S7_REQUESTS: tuple[tuple[int, str, tuple[int, int], str, int], ...] = (
     (2, "2026-06-29", (13, 54), "SIMPLE", 1),
 )
 
+# ---------------------------------------------------------------------------
+# S8: the visitor-log custody fabric. Omar's records review asks, for every
+# "do you still have the sign-in sheet from yesterday?" request in the firm's
+# one-to-one DMs, whether the person holding yesterday's reception sign-in
+# sheet actually brought it back by the custody deadline. Procedural chance no
+# longer seeds these requests (voice.STANDING_REQUESTS index 1 is now ordinary
+# filler); the whole request fabric is authored here so every row carries a
+# designed, contested return timing that punishes the surface reading.
+#
+# The load-bearing facts are the request instants and the holder's *return*
+# instants. A message counts as the *return* only if it says the sheet is
+# physically back at the front desk -- it carries one of SHEET_RETURN_MARKERS,
+# or is a directed "Sign-in sheet returned" email. A holding acknowledgement
+# ("still have it up here, I'll run it down later") carries no marker and so is
+# NOT the return, exactly as a careful reader would judge. The outcome of each
+# row (same_day / next_working_day / unresolved) then falls out of the Pacific
+# calendar date of the first real return against a holiday-aware
+# next-working-day custody deadline. These markers are disjoint from S7's
+# second-read verdict markers, so the two arcs never cross-contaminate even
+# though they share the same twelve one-to-one lanes.
+SHEET_REQUEST = "do you still have the sign-in sheet from yesterday?"
+
+# A holder message is the *return* iff its lowercased body contains one of
+# these verbatim markers (the sheet is physically back at reception). They are
+# absent from all other traffic -- procedural chatter, acknowledgements, the
+# second-read arc -- by construction; build_history audits it.
+SHEET_RETURN_MARKERS: tuple[str, ...] = (
+    "back at reception",
+    "back on the reception desk",
+    "back on the front desk",
+    "back in the reception binder",
+    "back on the sign-in clipboard",
+    "back downstairs at reception",
+    "returned it to the front desk",
+    "back on the desk out front",
+)
+# A directed email is a cross-surface return iff its subject carries this
+# marker. The email body deliberately avoids the chat return markers so the
+# body-marker audit stays clean (markers live only in DM returns).
+SHEET_EMAIL_SUBJECT = "Sign-in sheet returned"
+SHEET_EMAIL_MARKER = "sign-in sheet returned"
+
+# Return prose (the sheet is physically back; each contains exactly one
+# marker) and holding acknowledgements (no marker, no return). Cycled by row so
+# no single body dominates the DM fabric.
+_S8_RETURNS: tuple[str, ...] = (
+    "all done — it's back at reception.",
+    "ran it down, it's back on the reception desk.",
+    "finished with it, put it back on the front desk.",
+    "conflicts check done, it's back in the reception binder.",
+    "here you go — it's back on the sign-in clipboard.",
+    "sorted, it's back downstairs at reception.",
+    "done with yesterday's page, returned it to the front desk.",
+    "all yours — it's back on the desk out front.",
+    "wrapped up the check, it's back at reception now.",
+    "handed it over, it's back on the reception desk.",
+)
+_S8_ACKS: tuple[str, ...] = (
+    "yeah, still have yesterday's page up here.",
+    "it's on my desk for the conflicts check, i'll run it down after this.",
+    "got it up here, give me a bit.",
+    "haven't sent it down yet, still need it for a billing note.",
+    "it's in my office, i'll bring it down later.",
+    "hang on, i think it's still up here somewhere.",
+    "yep, i've got it — will drop it at the desk after lunch.",
+    "still working from it, i'll send it down shortly.",
+)
+_S8_EMAIL_BODIES: tuple[str, ...] = (
+    "Ran yesterday's sign-in sheet down to the desk just now — all set.",
+    "Finished the conflicts check; left yesterday's sign-in sheet with the front desk.",
+    "Dropped yesterday's sign-in sheet at the desk on my way out. Thanks "
+    "for the nudge.",
+    "Yesterday's sign-in sheet is down at the desk again — sorry for the "
+    "delay getting it there.",
+)
+
+# The request calendar: (lane_index, day, (hour, minute), trap, asker_index).
+# lane_index 0..11 maps to the twelve one-to-one DMs in _S7_LANES order (the
+# same lanes the second-read arc uses); the asker is that lane's
+# member[asker_index], the holder the other member.
+# Traps: SIMPLE (return within minutes, same day), ACKSD (holding ack same day,
+# real return later the same day), TZ (same-day evening return whose UTC date
+# rolls to the next day), TZACK (ack plus an evening same-day return), CROSSSD
+# (ack in chat, real return by "Sign-in sheet returned" email that same day),
+# ACKNWD (ack same day, real return the next working day), WEEKEND (Friday ask,
+# ack Friday, return the following Monday), HOLIDAY (ask the working day before
+# a federal holiday, return the first working day after it), CROSSNWD (ack in
+# chat, real return by email the next working day), LATE (ack same day, real
+# return two working days later -- past the deadline, so unresolved),
+# RESENDORPHAN / RESENDSD (the same asker re-sends the next working day; the
+# holder's single return answers the re-sent instance, leaving the original
+# with only its acknowledgement and no return).
+S8_REQUESTS: tuple[tuple[int, str, tuple[int, int], str, int], ...] = (
+    (2, "2026-03-02", (9, 7), "ACKSD", 0),
+    (3, "2026-03-03", (9, 33), "TZ", 1),
+    (4, "2026-03-04", (10, 6), "TZACK", 0),
+    (5, "2026-03-05", (10, 41), "ACKSD", 1),
+    (6, "2026-03-06", (11, 12), "SIMPLE", 0),
+    (7, "2026-03-09", (9, 52), "ACKSD", 1),
+    (8, "2026-03-10", (10, 24), "TZACK", 0),
+    (10, "2026-03-10", (11, 12), "ACKNWD", 0),
+    (9, "2026-03-11", (11, 3), "TZ", 1),
+    (10, "2026-03-12", (9, 7), "ACKSD", 0),
+    (11, "2026-03-13", (9, 33), "ACKSD", 1),
+    (2, "2026-03-13", (10, 6), "WEEKEND", 0),
+    (0, "2026-03-16", (10, 6), "TZ", 0),
+    (1, "2026-03-17", (10, 41), "TZACK", 1),
+    (2, "2026-03-18", (11, 12), "ACKSD", 0),
+    (3, "2026-03-19", (9, 52), "SIMPLE", 1),
+    (4, "2026-03-20", (10, 24), "ACKSD", 0),
+    (5, "2026-03-23", (11, 3), "TZACK", 1),
+    (6, "2026-03-24", (9, 7), "TZ", 0),
+    (7, "2026-03-25", (9, 33), "ACKSD", 1),
+    (8, "2026-03-26", (10, 6), "ACKSD", 0),
+    (9, "2026-03-27", (10, 41), "TZ", 1),
+    (10, "2026-03-30", (11, 12), "TZACK", 0),
+    (11, "2026-03-31", (9, 52), "ACKSD", 1),
+    (11, "2026-04-01", (9, 52), "ACKNWD", 1),
+    (0, "2026-04-01", (10, 24), "SIMPLE", 0),
+    (1, "2026-04-02", (11, 3), "ACKSD", 1),
+    (2, "2026-04-03", (9, 7), "TZACK", 0),
+    (5, "2026-04-06", (9, 33), "RESENDORPHAN", 0),
+    (3, "2026-04-06", (9, 33), "TZ", 1),
+    (5, "2026-04-07", (10, 6), "RESENDSD", 0),
+    (4, "2026-04-07", (10, 6), "ACKSD", 0),
+    (5, "2026-04-08", (10, 41), "ACKSD", 1),
+    (6, "2026-04-09", (11, 12), "TZ", 0),
+    (7, "2026-04-10", (9, 52), "TZACK", 1),
+    (8, "2026-04-13", (10, 24), "ACKSD", 0),
+    (9, "2026-04-14", (11, 3), "SIMPLE", 1),
+    (10, "2026-04-15", (9, 7), "ACKSD", 0),
+    (11, "2026-04-16", (9, 33), "TZACK", 1),
+    (0, "2026-04-17", (10, 6), "TZ", 0),
+    (3, "2026-04-17", (10, 41), "WEEKEND", 1),
+    (1, "2026-04-20", (10, 41), "ACKSD", 1),
+    (2, "2026-04-21", (11, 12), "ACKSD", 0),
+    (3, "2026-04-22", (9, 52), "TZ", 1),
+    (4, "2026-04-23", (10, 24), "TZACK", 0),
+    (5, "2026-04-24", (11, 3), "ACKSD", 1),
+    (6, "2026-04-27", (9, 7), "SIMPLE", 0),
+    (7, "2026-04-28", (9, 33), "ACKSD", 1),
+    (8, "2026-04-29", (10, 6), "TZACK", 0),
+    (0, "2026-04-29", (10, 24), "ACKNWD", 0),
+    (9, "2026-04-30", (10, 41), "TZ", 1),
+    (10, "2026-05-01", (11, 12), "ACKSD", 0),
+    (11, "2026-05-04", (9, 52), "ACKSD", 1),
+    (0, "2026-05-05", (10, 24), "ACKSD", 0),
+    (1, "2026-05-06", (11, 3), "SIMPLE", 1),
+    (2, "2026-05-07", (9, 7), "ACKSD", 0),
+    (3, "2026-05-08", (9, 33), "ACKSD", 1),
+    (9, "2026-05-08", (10, 41), "LATE", 1),
+    (4, "2026-05-11", (10, 6), "ACKSD", 0),
+    (5, "2026-05-12", (10, 41), "ACKSD", 1),
+    (6, "2026-05-13", (11, 12), "ACKSD", 0),
+    (7, "2026-05-14", (9, 52), "ACKSD", 1),
+    (8, "2026-05-15", (10, 24), "ACKSD", 0),
+    (4, "2026-05-15", (11, 12), "WEEKEND", 0),
+    (0, "2026-05-22", (9, 7), "HOLIDAY", 0),
+    (1, "2026-06-03", (11, 3), "ACKNWD", 1),
+    (1, "2026-06-18", (9, 33), "HOLIDAY", 1),
+    (5, "2026-06-22", (9, 52), "CROSSSD", 1),
+    (6, "2026-06-24", (10, 24), "CROSSSD", 0),
+    (8, "2026-06-25", (9, 7), "CROSSNWD", 0),
+    (7, "2026-06-29", (11, 3), "CROSSSD", 1),
+)
+
 # Load-bearing clause text. These exact strings are the evidence the
 # storylines hinge on; audits assert their presence and absence.
 PLAYBOOK_TERM_STANDARD = (
@@ -3495,6 +3661,7 @@ class StorylineDirector:
         self._register_s5()
         self._register_s6()
         self._register_s7()
+        self._register_s8()
         self._register_fabric(genesis)
         self._register_matter_documents()
         self._register_matter_history()
@@ -6469,6 +6636,120 @@ class StorylineDirector:
                 chat_on(day, ack_clock + 25 * 60, reviewer, ack_body(), lane)
             elif trap == "RESEND2":
                 chat_on(day, request_clock + 300 * 60, reviewer, review_body(), lane)
+
+    def _register_s8(self) -> None:
+        """The visitor-log custody fabric: 71 authored one-to-one sheet
+        requests with designed, contested return timings. A request is the
+        standing phrase in a DM; the holder's *return* is a marker-bearing
+        message (a SHEET_RETURN_MARKER in chat, or a "Sign-in sheet returned"
+        email), while a holding acknowledgement carries no marker and so is not
+        the return."""
+        return_n = ack_n = email_n = 0
+
+        def return_body() -> str:
+            nonlocal return_n
+            body = _S8_RETURNS[return_n % len(_S8_RETURNS)]
+            return_n += 1
+            return body
+
+        def ack_body() -> str:
+            nonlocal ack_n
+            body = _S8_ACKS[ack_n % len(_S8_ACKS)]
+            ack_n += 1
+            return body
+
+        def email_body() -> str:
+            nonlocal email_n
+            body = _S8_EMAIL_BODIES[email_n % len(_S8_EMAIL_BODIES)]
+            email_n += 1
+            return body
+
+        def chat_on(day: str, clock: int, sender: str, body: str, lane: str) -> None:
+            def beat(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+                self._chat(
+                    minter,
+                    drafts,
+                    at=clock,
+                    sender=sender,
+                    body=body,
+                    conversation=lane,
+                )
+
+            self._on(day, clock, beat)
+
+        def email_on(
+            day: str, clock: int, sender: str, recipient: str, body: str, tag: str
+        ) -> None:
+            def beat(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+                self._email(
+                    minter,
+                    drafts,
+                    at=clock,
+                    sender=sender,
+                    to=(recipient,),
+                    subject=SHEET_EMAIL_SUBJECT,
+                    text=body,
+                    thread=tag,
+                    reply=False,
+                )
+
+            self._on(day, clock, beat)
+
+        for index, (lane_index, day, (hour, minute), trap, ask) in enumerate(
+            S8_REQUESTS
+        ):
+            lane = self._s7_lanes[lane_index]
+            members = _S7_LANES[lane_index]
+            asker, holder = members[ask], members[1 - ask]
+            request_clock = _at(hour, minute)
+            request_day = date.fromisoformat(day)
+            next_day = _s7_next_working_day(request_day).isoformat()
+            second_day = _s7_next_working_day(
+                _s7_next_working_day(request_day)
+            ).isoformat()
+            chat_on(day, request_clock, asker, SHEET_REQUEST, lane)
+            ack_clock = request_clock
+
+            if trap == "SIMPLE":
+                chat_on(day, request_clock + 8 * 60, holder, return_body(), lane)
+            elif trap == "ACKSD":
+                chat_on(day, ack_clock + 15 * 60, holder, ack_body(), lane)
+                chat_on(day, request_clock + 4 * 3600, holder, return_body(), lane)
+            elif trap == "TZ":
+                chat_on(day, _at(17, 40), holder, return_body(), lane)
+            elif trap == "TZACK":
+                chat_on(day, ack_clock + 15 * 60, holder, ack_body(), lane)
+                chat_on(day, _at(17, 45), holder, return_body(), lane)
+            elif trap == "CROSSSD":
+                chat_on(day, ack_clock + 15 * 60, holder, ack_body(), lane)
+                email_on(
+                    day, _at(15, 20), holder, asker, email_body(), f"s8.mail.{index}"
+                )
+            elif trap == "ACKNWD":
+                chat_on(day, ack_clock + 15 * 60, holder, ack_body(), lane)
+                chat_on(next_day, _at(9, 40), holder, return_body(), lane)
+            elif trap == "WEEKEND":
+                chat_on(day, ack_clock + 12 * 60, holder, ack_body(), lane)
+                chat_on(next_day, _at(9, 25), holder, return_body(), lane)
+            elif trap == "HOLIDAY":
+                chat_on(next_day, _at(9, 45), holder, return_body(), lane)
+            elif trap == "CROSSNWD":
+                chat_on(day, ack_clock + 15 * 60, holder, ack_body(), lane)
+                email_on(
+                    next_day,
+                    _at(10, 10),
+                    holder,
+                    asker,
+                    email_body(),
+                    f"s8.mail.{index}",
+                )
+            elif trap == "LATE":
+                chat_on(day, ack_clock + 18 * 60, holder, ack_body(), lane)
+                chat_on(second_day, _at(11, 0), holder, return_body(), lane)
+            elif trap == "RESENDORPHAN":
+                chat_on(day, ack_clock + 18 * 60, holder, ack_body(), lane)
+            elif trap == "RESENDSD":
+                chat_on(day, request_clock + 3 * 3600, holder, return_body(), lane)
 
     def _register_fabric(self, genesis: HartwellGenesis) -> None:
         texts = self._texts
