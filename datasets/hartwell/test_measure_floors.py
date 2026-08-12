@@ -86,7 +86,7 @@ def test_fee_floor_discovers_meridian_through_current_clio_fields() -> None:
         text=True,
     )
 
-    assert completed.stdout.strip() == "fee-dispute-reconstruction: floor=49"
+    assert completed.stdout.strip() == "fee-dispute-reconstruction: floor=48"
 
 
 def test_fee_floor_metadata_matches_the_measured_reference_path() -> None:
@@ -94,7 +94,7 @@ def test_fee_floor_metadata_matches_the_measured_reference_path() -> None:
         (TASKS / "fee-dispute-reconstruction" / "task.toml").read_text()
     )
 
-    assert manifest["metadata"]["reference_tool_path_calls"] == 49
+    assert manifest["metadata"]["reference_tool_path_calls"] == 48
 
 
 def test_fee_floor_certifies_the_complete_support_workpaper() -> None:

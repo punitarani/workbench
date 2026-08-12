@@ -1346,18 +1346,48 @@ MENTION_FABRIC: tuple[tuple[str, int, int, str, str, str], ...] = (
 
 # S2: the only place in the record that states the dispute's cutoff date.
 S2_CUTOFF_CHAT = (
-    "Meridian April split is done. Cutoff per Eleanor is the April 3 "
-    "budget call: diligence and data-room entries dated after April 3 are "
-    "the disputed bucket; the tranche-1 work before the call stays as "
-    "originally scoped. Export is in the billing folder."
+    "Meridian / Project Skylark April split is done. Cutoff per Eleanor is "
+    "the April 3 budget call: diligence and data-room entries dated after "
+    "April 3 are the disputed bucket; the tranche-1 work before the call "
+    "stays as originally scoped. Export is in the billing folder."
 )
 
-# S2 support audit: an April entry on the Meridian matter is "supported"
-# when a same-day email or chat message names the engagement — the client
-# (Meridian), the deal (the diagnostics acquisition), or the matter
-# number (00001). These markers are the whole rule; the audit, the
-# grader, and the reference solution all apply exactly this list.
-S2_SUPPORT_MARKERS = ("meridian", "diagnostics", "00001")
+# S2 support audit: a same-day message supports a Meridian window entry only
+# under a two-tier rule that a bare client-name grep gets wrong. The firm runs
+# the diligence file under the deal code name "Project Skylark", so the client
+# name almost never rides the day-to-day traffic.
+#   - a MATTER reference always qualifies: the code name ("skylark") or the
+#     Clio matter number ("00001").
+#   - the CLIENT name ("meridian") qualifies only alongside a diligence work
+#     token, so a social note or a cross-matter aside that merely drops the
+#     client name is NOT support.
+# The audit, the grader's ground truth, and the reference solution all apply
+# exactly this rule (see ``s2_supported``); the whole point is that the obvious
+# single-surface client-name read is systematically wrong.
+S2_MATTER_MARKERS = ("skylark", "00001")
+S2_CLIENT_MARKER = "meridian"
+S2_WORK_TOKENS = (
+    "data room",
+    "data-room",
+    "diligence",
+    "tranche",
+    "privilege",
+    "index",
+    "manifest",
+    "qc",
+    "vdr",
+)
+
+
+def s2_supported(text: str) -> bool:
+    """Whether ``text`` names the Meridian diligence engagement under the rule."""
+    lowered = text.lower()
+    if any(marker in lowered for marker in S2_MATTER_MARKERS):
+        return True
+    return S2_CLIENT_MARKER in lowered and any(
+        token in lowered for token in S2_WORK_TOKENS
+    )
+
 
 # The deal team's April data-room sprint runs through the Marcus<->Peter
 # DM. The rotation lines are deliberately matter-blind — the Solstice
@@ -1406,19 +1436,26 @@ S2_SPRINT_LINES = (
     "closing the log for today; summary sheet is in the shared drive.",
 )
 
-# S2 support-audit coverage exceptions. The DM texts name the client on
-# days whose only reference lives in the DM (search excludes DMs); the
-# oblique emails name only the deal — never the client — on days whose
-# only reference is that email, so a client-name grep calls those days
-# unsupported and lists entries that have support.
-S2_DM_COVERAGE_TEXTS = {
+# S2 support-audit coverage. Under the code-name rule the deal team's DM
+# coverage names the client with a work token on days whose only qualifying
+# reference lives in the DM (channel search never returns it); the oblique
+# emails name the deal only by its code name — never the client — on the day
+# whose only reference is that email. A client-name grep over the public
+# surfaces calls every one of these days unsupported. One DM message sits late
+# in the Pacific evening, so its UTC calendar date is the next day: same-day
+# support flips on the timezone conversion. Each entry is (hour, minute, body).
+S2_DM_COVERAGE = {
     "2026-04-07": (
+        11,
+        20,
         "meridian folder counts jumped again overnight — hold the index "
-        "until i re-run it against the seller's manifest."
+        "until i re-run it against the seller's manifest.",
     ),
     "2026-04-15": (
-        "meridian qc log is clean through this week's uploads; posting "
-        "the refreshed index tonight."
+        23,
+        35,
+        "meridian qc log is clean through this week's uploads; i'll post "
+        "the refreshed index before i sign off tonight.",
     ),
 }
 S2_OBLIQUE_EMAILS = (
@@ -1427,24 +1464,70 @@ S2_OBLIQUE_EMAILS = (
         (16, 35),
         _PN,
         _ML,
-        "Data room index — diagnostics acquisition",
-        "Marcus,\n\nRebuilt the tranche index for the diagnostics "
-        "acquisition after today's uploads and reconciled it against the "
-        "seller's manifest. Three folders are flagged for privilege "
-        "review before they go to the client team; the rest are staged "
-        "for tomorrow's pass.\n\nPeter",
+        "Data room index — Project Skylark",
+        "Marcus,\n\nRebuilt the tranche index for Project Skylark after "
+        "today's uploads and reconciled it against the seller's manifest. "
+        "Three folders are flagged for privilege review before they go to "
+        "the client team; the rest are staged for tomorrow's pass.\n\nPeter",
     ),
     (
         "2026-04-21",
         (10, 10),
         _CJ,
         _AB,
-        "Prebill watch — diagnostics acquisition",
-        "Anita,\n\nFlagging early: this month's time on the diagnostics "
-        "acquisition is pacing well ahead of the estimate we gave the "
-        "client, mostly review hours out of the expanded document set. "
-        "Nothing to action yet — I want it on your radar before the "
-        "prebill run.\n\nCarl",
+        "Prebill watch — Project Skylark",
+        "Anita,\n\nFlagging early: this month's time on Project Skylark is "
+        "pacing well ahead of the estimate we gave the client, mostly "
+        "review hours out of the expanded document set. Nothing to action "
+        "yet — I want it on your radar before the prebill run.\n\nCarl",
+    ),
+)
+
+# Decoy corroboration that does not count: same-day public messages that drop
+# the client name with no work token (a social note, a cross-matter aside).
+# A keyword match on the client name wrongly marks these window days
+# supported; under the rule they qualify as nothing, so the days stay orphans.
+S2_DECOY_MENTIONS = (
+    (
+        "2026-04-13",
+        (10, 25),
+        _PN,
+        "anyone have a contact at meridian biolabs facilities? their front "
+        "desk is holding a courier package for one of the partners.",
+    ),
+    (
+        "2026-04-20",
+        (13, 40),
+        _ML,
+        "fyi the meridian folks moved their all-hands to thursday; the "
+        "client dinner is still on for the 30th.",
+    ),
+    (
+        "2026-04-22",
+        (15, 10),
+        _EH,
+        "reminder: meridian's ceo keynote at the biotech summit is being "
+        "recorded — i'll share the link once it's posted.",
+    ),
+)
+
+# Control coverage: same-day public messages that name the client WITH a work
+# token, so they qualify and a client-name grep is right about these days —
+# the audit is a genuine mix, not a blanket inversion of the obvious read.
+S2_CLIENT_MENTIONS = (
+    (
+        "2026-04-08",
+        (9, 50),
+        _ML,
+        "meridian data room review wrapped for the morning batch — posting "
+        "the tranche notes to the file now.",
+    ),
+    (
+        "2026-04-27",
+        (14, 20),
+        _PN,
+        "meridian diligence memo is with review — expect the privilege log "
+        "back by eod.",
     ),
 )
 
@@ -5011,17 +5094,15 @@ class StorylineDirector:
             self._on(day, clock, decoy_entry)
 
         # The April data-room sprint: a heavy, matter-blind DM lane
-        # between the deal associate and the deal paralegal. Two dated
-        # texts name the client (the only support their days have); every
-        # other line stays ambiguous between the Meridian and Solstice
-        # data rooms, so it supports nothing under the marker rule.
+        # between the deal associate and the deal paralegal. Every line
+        # stays ambiguous between the Meridian and Solstice data rooms, so
+        # it supports nothing under the rule; the dated DM coverage below
+        # is what actually carries the days it names.
         for day_index, sprint_day in enumerate(S2_SPRINT_DAYS):
             for slot, (hour, minute) in enumerate(S2_SPRINT_CLOCKS):
                 body = S2_SPRINT_LINES[
                     (day_index * len(S2_SPRINT_CLOCKS) + slot) % len(S2_SPRINT_LINES)
                 ]
-                if slot == 2 and sprint_day in S2_DM_COVERAGE_TEXTS:
-                    body = S2_DM_COVERAGE_TEXTS[sprint_day]
                 sender = _PN if slot % 2 == 0 else _ML
 
                 def sprint_beat(
@@ -5041,6 +5122,53 @@ class StorylineDirector:
                     )
 
                 self._on(sprint_day, _at(hour, minute), sprint_beat)
+
+        # DM coverage: the qualifying client-plus-work-token message a day's
+        # support turns on, carried inside the Marcus<->Peter DM. One sits late
+        # in the Pacific evening (its UTC date is the next day).
+        for day, (hour, minute, body) in S2_DM_COVERAGE.items():
+
+            def coverage_beat(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                clock: int = _at(hour, minute),
+                body: str = body,
+            ) -> None:
+                self._chat(
+                    minter,
+                    drafts,
+                    at=clock,
+                    sender=_PN,
+                    body=body,
+                    conversation=self._marcus_peter_dm,
+                )
+
+            self._on(day, _at(hour, minute), coverage_beat)
+
+        # Decoy client-name mentions (no work token) and control mentions (with
+        # a work token) on the public #matters channel.
+        for day, (hour, minute), sender, body in (
+            *S2_DECOY_MENTIONS,
+            *S2_CLIENT_MENTIONS,
+        ):
+
+            def public_mention(
+                minter: IdMinter,
+                drafts: list[TimedDraft],
+                clock: int = _at(hour, minute),
+                sender: str = sender,
+                body: str = body,
+            ) -> None:
+                self._chat(
+                    minter,
+                    drafts,
+                    at=clock,
+                    sender=sender,
+                    body=body,
+                    conversation=self._matters_channel,
+                )
+
+            self._on(day, _at(hour, minute), public_mention)
 
         for day, clock, sender, recipient, subject, body in S2_OBLIQUE_EMAILS:
 

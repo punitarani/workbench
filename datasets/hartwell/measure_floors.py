@@ -83,7 +83,36 @@ SHEET_RETURN_MARKERS = (
 )
 SHEET_EMAIL_MARKER = "sign-in sheet returned"
 
-S2_MARKERS = ("meridian", "diagnostics", "00001")
+# S2 support-audit rule: a matter reference (the deal code name "skylark" or
+# the Clio matter number "00001") always qualifies; the client name "meridian"
+# qualifies only alongside a diligence work token. The three search terms below
+# are the ones a qualifying message can carry; the ``_s2_supported`` filter then
+# applies the two-tier rule, mirroring the reference oracle.
+S2_MATTER_MARKERS = ("skylark", "00001")
+S2_CLIENT_MARKER = "meridian"
+S2_WORK_TOKENS = (
+    "data room",
+    "data-room",
+    "diligence",
+    "tranche",
+    "privilege",
+    "index",
+    "manifest",
+    "qc",
+    "vdr",
+)
+S2_SEARCH_TERMS = ("skylark", "00001", "meridian")
+
+
+def _s2_supported(text: str) -> bool:
+    lowered = text.lower()
+    if any(marker in lowered for marker in S2_MATTER_MARKERS):
+        return True
+    return S2_CLIENT_MARKER in lowered and any(
+        token in lowered for token in S2_WORK_TOKENS
+    )
+
+
 ARROYO_TOKENS = ("arroyo", "dept. 511", "fruitvale")
 
 # The vanished-clause mention rule, keyed by path basename (NDAs derive
@@ -537,18 +566,19 @@ async def fee_dispute_reconstruction(client: CountingClient) -> None:
 
     coverage: set[str] = set()
     gmail_support: dict[str, set[str]] = {}
-    for marker in S2_MARKERS:
-        query = f"{marker} after:2026/04/04 before:2026/05/01"
+    for term in S2_SEARCH_TERMS:
+        query = f"{term} after:2026/04/04 before:2026/05/01"
         for message in await _gmail_all_pages(client, query):
-            if marker in f"{message['subject']} {message['plaintextBody']}".lower():
+            text = f"{message['subject']} {message['plaintextBody']}"
+            if _s2_supported(text):
                 message_day = message["date"][:10]
                 coverage.add(message_day)
                 gmail_support.setdefault(message_day, set()).add(message["id"])
     slack_support: dict[str, set[str]] = {}
-    for marker in S2_MARKERS:
-        query = f"{marker} after:2026-04-03 before:2026-05-01"
+    for term in S2_SEARCH_TERMS:
+        query = f"{term} after:2026-04-03 before:2026-05-01"
         for message in await _slack_all_pages(client, query):
-            if marker in message["text"].lower():
+            if _s2_supported(message["text"]):
                 message_day = _ts_day(message["ts"])
                 coverage.add(message_day)
                 slack_support.setdefault(message_day, set()).add(message["ts"])
@@ -556,8 +586,7 @@ async def fee_dispute_reconstruction(client: CountingClient) -> None:
     oldest, latest = _day_seconds("2026-04-04"), _day_seconds("2026-05-01")
     for dm in await _dm_channels(client):
         for message in await _read_window(client, dm["id"], oldest, latest):
-            lowered = message["text"].lower()
-            if any(marker in lowered for marker in S2_MARKERS):
+            if _s2_supported(message["text"]):
                 message_day = _ts_day(message["ts"])
                 coverage.add(message_day)
                 slack_support.setdefault(message_day, set()).add(message["ts"])

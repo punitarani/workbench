@@ -25,7 +25,7 @@ skills = ["retrieval", "reconciliation", "arithmetic", "anti-join"]
 # Measured by datasets/hartwell/measure_floors.py against the reference tool
 # path. Recorded, not enforced: Harbor has no per-task call budget, so the
 # process dimension grades efficiency by trajectory turn count instead.
-reference_tool_path_calls = 49
+reference_tool_path_calls = 48
 
 [metadata.evidence]
 primary_field = "support_audit"

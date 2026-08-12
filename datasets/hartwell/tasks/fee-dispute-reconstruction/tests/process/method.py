@@ -10,7 +10,7 @@ queried, and how many turns it took.
 The turn budget replaces the old hard call cap. That cap was a cliff — one
 call over and the episode scored as if it had never tried — and Harbor has no
 equivalent anyway. ``trajectory_turn_count`` decays linearly instead, so
-inefficiency costs something proportionate. The reference tool path is 49
+inefficiency costs something proportionate. The reference tool path is 48
 calls; 60 turns is a generous ceiling over that, reaching zero at 120.
 
 The four surface criteria use ``tool_invoked`` from tests/criteria.py rather

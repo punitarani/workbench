@@ -71,16 +71,28 @@ The resolution also ordered a **complete daily support audit** over the
 disputed window. `support_audit` has one chronological row for every date with
 a Meridian time entry strictly after the budget-call cutoff through the end of
 April. Each row must account for every entry on that date and every qualifying
-same-day email or Slack message. A message qualifies when its subject or body
-text names the engagement — the client (Meridian), the deal (the diagnostics
-acquisition), or the matter number (00001). Search Gmail, public Slack channels,
-and every Slack DM; use Gmail message ids and Slack `ts` values as the evidence
-identities. Vague
-references do not count: a data room, a tranche, a privilege screen, or
-a diligence call could belong to any matter (the Solstice closing
-staged a seller data room the same month), so a message supports an
-entry only when it names the engagement in one of those three forms. A row is
-`supported` exactly when at least one of its two evidence lists is nonempty.
+same-day message. The firm runs the diligence file under the deal **code name
+"Project Skylark"**, so the client's own name almost never rides the day-to-day
+traffic. A message qualifies as same-day support under a two-tier rule:
+
+- a **matter reference** always qualifies — the code name **Skylark** or the
+  Clio matter number **00001**;
+- the **client name "Meridian"** qualifies only when the same message also
+  carries a **diligence work token**: a *data room*, *diligence*, a *tranche*,
+  a *privilege* screen or log, an *index*, a *manifest*, a *QC* pass, or a
+  *VDR*. A message that merely drops the client's name with no such work — a
+  social note, a cross-matter aside — is **not** support.
+
+Everything else is noise: a bare "data room" or "privilege screen" with no
+matter reference could belong to any matter (the Solstice closing staged a
+seller data room the same month), and a client-name mention with no diligence
+work behind it is a distraction. Search Gmail, public Slack channels, and every
+Slack DM; use Gmail message ids and Slack `ts` values as the evidence
+identities. Slack `ts` and Gmail timestamps are UTC-sourced — take each
+message's **Pacific** calendar date before matching it to a day, so an evening
+message whose UTC date has already rolled to the next day still lands on the day
+it was written. A row is `supported` exactly when at least one of its two
+evidence lists is nonempty.
 
 `unsupported_days` is the exception view of that complete workpaper. It must
 cover every window entry — diligence-worded or not — with no qualifying message
@@ -91,7 +103,9 @@ minutes, and billed cents. `billed_cents` is the sum of the Clio `total` for eac
 billable entry, with each entry rounded to cents as Clio displays it;
 non-billable entries contribute zero. Check every surface before calling a day
 silent: on some days the only qualifying message sits in a DM that
-channel search never returns, on others it never uses the client's
-name, and on others the day is full of deal-flavored traffic that never
-names the engagement at all. The complete workpaper and its exception view go
+channel search never returns, on others it names the deal only by its code
+name and never the client, on others its one qualifying message lands late in
+the Pacific evening, and on others the day carries client-name traffic with no
+diligence work behind it — a keyword match on the client's name marks that day
+supported when it is not. The complete workpaper and its exception view go
 back to the client together, so they must reconcile exactly.

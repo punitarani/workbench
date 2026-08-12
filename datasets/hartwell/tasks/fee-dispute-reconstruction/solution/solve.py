@@ -200,10 +200,27 @@ if not note or "cap" not in note[0][0].lower():
 if cutoff.isoformat() in note[0][0] or "April 3" in note[0][0]:
     sys.exit("the note states the cutoff date; the record shape changed")
 
-# Support audit: a window entry is supported when a same-day email or
-# chat message names the engagement — the client (meridian), the deal
-# (diagnostics), or the matter number (00001). One pass per surface.
-MARKERS: tuple[str, ...] = ("meridian", "diagnostics", "00001")
+# Support audit: a same-day message supports a window entry only under the
+# firm's two-tier code-name rule. A MATTER reference always qualifies — the
+# deal code name "Project Skylark" (token "skylark") or the Clio matter number
+# "00001". The CLIENT name "meridian" qualifies only alongside a diligence work
+# token; a bare client-name mention (a social note, a cross-matter aside) is
+# not support. The stored ``time`` is Pacific-anchored, so ``day_of`` already
+# reads the firm calendar date — an evening message whose UTC date is the next
+# day still lands on the day it was written. One pass per surface.
+MATTER_MARKERS: tuple[str, ...] = ("skylark", "00001")
+CLIENT_MARKER = "meridian"
+WORK_TOKENS: tuple[str, ...] = (
+    "data room",
+    "data-room",
+    "diligence",
+    "tranche",
+    "privilege",
+    "index",
+    "manifest",
+    "qc",
+    "vdr",
+)
 window_end = date(2026, 4, 30)
 window: list[WindowEntry] = [
     (activity_id, time, seconds, rate_cents, billable)
@@ -216,7 +233,9 @@ if len(window) < 30:
 
 def referenced(text: str) -> bool:
     lowered = text.lower()
-    return any(marker in lowered for marker in MARKERS)
+    if any(marker in lowered for marker in MATTER_MARKERS):
+        return True
+    return CLIENT_MARKER in lowered and any(token in lowered for token in WORK_TOKENS)
 
 
 coverage: dict[date, set[str]] = {}

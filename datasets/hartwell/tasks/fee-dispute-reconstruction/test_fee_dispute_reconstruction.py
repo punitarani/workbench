@@ -250,7 +250,7 @@ def test_complete_support_audit_covers_the_whole_disputed_window() -> None:
         for day in audit
     )
     assert sum(not day["supported"] for day in audit) == 5
-    assert len(communications) == len(set(communications)) == 28
+    assert len(communications) == len(set(communications)) == 30
     assert [day["date"] for day in audit if not day["supported"]] == [
         day["date"] for day in TRUTH["unsupported_days"]
     ]

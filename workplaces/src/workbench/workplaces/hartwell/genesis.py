@@ -244,6 +244,16 @@ _DOCUMENTS: tuple[tuple[str, str, str, str], ...] = (
     ),
 )
 
+# The internal handle the firm uses for a matter in background chatter and time
+# narratives, when it differs from the Clio title. The Meridian diligence file
+# runs under the deal code name "Project Skylark": the client name stays on the
+# Clio matter (title and client org) but never rides the firm's day-to-day
+# traffic, which is what makes the S2 fee-dispute support audit turn on the code
+# name rather than a client-name grep. Keyed by Clio title.
+PROCEDURAL_MATTER_LABELS: dict[str, str] = {
+    "Meridian diagnostics acquisition": "Project Skylark",
+}
+
 # title, description, client org, actor, requester, assignee, type, priority
 _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str], ...] = (
     (
@@ -539,7 +549,7 @@ def procedural_cast(genesis: HartwellGenesis) -> ProceduralCast:
     matters = tuple(
         OpenMatter(
             ticket_id=payload.ticket_id,
-            label=payload.title,
+            label=PROCEDURAL_MATTER_LABELS.get(payload.title, payload.title),
             assignee=payload.assignee,
             weight=weight,
             staff=staff,

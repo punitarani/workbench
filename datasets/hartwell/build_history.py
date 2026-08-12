@@ -76,7 +76,6 @@ from workbench.workplaces.hartwell.storylines import (
     PLAYBOOK_TITLE,
     S1_IRONCLAD_THREAD_REPLY,
     S2_CUTOFF_CHAT,
-    S2_SUPPORT_MARKERS,
     S2_TICKET,
     S3_TICKET,
     S4_CLOSED_DATE,
@@ -92,6 +91,7 @@ from workbench.workplaces.hartwell.storylines import (
     StorylineDirector,
     author_content,
     missing_content,
+    s2_supported,
 )
 
 PILOT_DAYS = 5
@@ -601,19 +601,15 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and event.payload.conversation_type == "dm"
     }
 
-    def referenced(text: str) -> bool:
-        lowered = text.lower()
-        return any(marker in lowered for marker in S2_SUPPORT_MARKERS)
-
     coverage: dict[str, set[str]] = {}
     for event in events:
         payload = event.payload
         if isinstance(payload, EmailMessagePayload):
             text = f"{payload.subject} {payload.body}"
-            if referenced(text):
+            if s2_supported(text):
                 kind = "email-name" if "meridian" in text.lower() else "email-oblique"
                 coverage.setdefault(_event_date(event), set()).add(kind)
-        elif isinstance(payload, ChatMessagePayload) and referenced(payload.body):
+        elif isinstance(payload, ChatMessagePayload) and s2_supported(payload.body):
             kind = (
                 "chat-dm"
                 if payload.conversation_id in dm_conversations

@@ -1,6 +1,17 @@
 {
+  "_evidence": {
+    "activities": "Clio tkt-000001 (00001-MeridianBioLabs): 7 diligence/data-room entries dated strictly after 2026-04-03 (Apr 6 x2, 8, 10 x2, 14, 16), 890 minutes across Marcus Liang (675) and Peter Novak (215). Activity ids are the server's positional ids: 1374, 1378, 1481, 1575, 1577, 1666, 1756. Unchanged from the prior round; the acquisition matter's time entries were not touched.",
+    "challenge": "Gmail (2026-05-08, Priya Raman) disputes the April invoice; the challenger's identity exists only in Gmail.",
+    "cutoff": "The Apr 3 cutoff is stated only in Carl Jensen's #billing message ('Meridian / Project Skylark April split... Cutoff per Eleanor is the April 3 budget call'); the emails and Eleanor's long matter note carry no dates or figures.",
+    "decoys": "Near misses on every side of the fee join: 5 diligence/data-room entries on or before the cutoff (incl. the cutoff day), post-cutoff diligence-worded entries on other matters (Lumen, Solstice), and a post-cutoff Meridian entry that describes the expanded scope without the diligence wording.",
+    "support_audit": "The firm runs the diligence file under the deal code name 'Project Skylark', so the client's name almost never rides the day-to-day traffic. A window day is supported when a same-day message carries a MATTER reference (code name 'skylark' or matter number '00001') OR the client name 'meridian' alongside a diligence work token (data room, diligence, tranche, privilege, index, manifest, qc, vdr). A bare client-name mention (social or cross-matter) does NOT qualify. Dates are Pacific over UTC-sourced timestamps: one DM coverage message (Apr 15) sits at 23:35 Pacific, so its UTC date is the next day. Of 22 window days, 17 are supported and 5 are silent orphans (Apr 4, 13, 20, 22, 25 \u2014 47 entries); Apr 13/20/22 also carry decoy client-name chatter that a keyword grep would wrongly count. The audit cites 30 qualifying communications. The obvious single-surface client-name grep misses the code-name public days, the DM, and the oblique emails, and is fooled by the decoys."
+  },
   "challenge_date": "2026-05-08",
   "challenged_by": "Priya Raman",
+  "challenged_by_markers": [
+    "priya",
+    "raman"
+  ],
   "cutoff_date": "2026-04-03",
   "entries": [
     {
@@ -44,6 +55,22 @@
     "Marcus Liang": 675,
     "Peter Novak": 215
   },
+  "minutes_by_timekeeper_markers": [
+    [
+      [
+        "marcus",
+        "liang"
+      ],
+      675
+    ],
+    [
+      [
+        "peter",
+        "novak"
+      ],
+      215
+    ]
+  ],
   "support_audit": [
     {
       "billed_cents": 195400,
@@ -87,8 +114,8 @@
       "gmail_message_ids": [],
       "minutes": 1011,
       "slack_message_ts": [
-        "3056930.000950",
-        "3057474.000958"
+        "1775491730.000000",
+        "1775492274.000000"
       ],
       "supported": true
     },
@@ -112,9 +139,9 @@
       "gmail_message_ids": [],
       "minutes": 708,
       "slack_message_ts": [
-        "3143566.001007",
-        "3144594.001015",
-        "3151200.001021"
+        "1775578366.000000",
+        "1775579394.000000",
+        "1775586000.000001"
       ],
       "supported": true
     },
@@ -144,7 +171,8 @@
       "gmail_message_ids": [],
       "minutes": 1093,
       "slack_message_ts": [
-        "3229458.001058"
+        "1775664258.000000",
+        "1775667000.000000"
       ],
       "supported": true
     },
@@ -171,7 +199,7 @@
       ],
       "minutes": 558,
       "slack_message_ts": [
-        "3317369.001118"
+        "1775752169.000000"
       ],
       "supported": true
     },
@@ -199,8 +227,8 @@
       "gmail_message_ids": [],
       "minutes": 712,
       "slack_message_ts": [
-        "3403780.001176",
-        "3416539.001185"
+        "1775838580.000000",
+        "1775851339.000000"
       ],
       "supported": true
     },
@@ -217,7 +245,7 @@
       "gmail_message_ids": [],
       "minutes": 156,
       "slack_message_ts": [
-        "3486188.001214"
+        "1775920988.000000"
       ],
       "supported": true
     },
@@ -264,8 +292,8 @@
       "gmail_message_ids": [],
       "minutes": 744,
       "slack_message_ts": [
-        "3748427.001279",
-        "3749078.001282"
+        "1776183227.000000",
+        "1776183878.000000"
       ],
       "supported": true
     },
@@ -290,7 +318,7 @@
       "gmail_message_ids": [],
       "minutes": 720,
       "slack_message_ts": [
-        "3842400.001338"
+        "1776321300.000000"
       ],
       "supported": true
     },
@@ -311,8 +339,8 @@
       "gmail_message_ids": [],
       "minutes": 600,
       "slack_message_ts": [
-        "3920626.001365",
-        "3921443.001369"
+        "1776355426.000000",
+        "1776356243.000000"
       ],
       "supported": true
     },
@@ -342,7 +370,7 @@
       "gmail_message_ids": [],
       "minutes": 841,
       "slack_message_ts": [
-        "4008188.001423"
+        "1776442988.000000"
       ],
       "supported": true
     },
@@ -443,7 +471,7 @@
       "gmail_message_ids": [],
       "minutes": 1122,
       "slack_message_ts": [
-        "4525310.001607"
+        "1776960110.000000"
       ],
       "supported": true
     },
@@ -465,7 +493,7 @@
       "gmail_message_ids": [],
       "minutes": 684,
       "slack_message_ts": [
-        "4612443.001658"
+        "1777047243.000000"
       ],
       "supported": true
     },
@@ -501,9 +529,10 @@
       "gmail_message_ids": [],
       "minutes": 522,
       "slack_message_ts": [
-        "4871372.001704",
-        "4871879.001711",
-        "4873425.001716"
+        "1777306172.000000",
+        "1777306679.000000",
+        "1777308225.000000",
+        "1777324800.000000"
       ],
       "supported": true
     },
@@ -532,7 +561,7 @@
       "gmail_message_ids": [],
       "minutes": 770,
       "slack_message_ts": [
-        "4958248.001754"
+        "1777393048.000000"
       ],
       "supported": true
     },
@@ -560,7 +589,7 @@
       "gmail_message_ids": [],
       "minutes": 876,
       "slack_message_ts": [
-        "5044061.001794"
+        "1777478861.000000"
       ],
       "supported": true
     },
@@ -581,12 +610,22 @@
       "gmail_message_ids": [],
       "minutes": 450,
       "slack_message_ts": [
-        "5130391.001827",
-        "5131108.001836",
-        "5152146.001865"
+        "1777565191.000000",
+        "1777565908.000000",
+        "1777586946.000000"
       ],
       "supported": true
     }
+  ],
+  "timekeeper_markers": [
+    [
+      "marcus",
+      "liang"
+    ],
+    [
+      "peter",
+      "novak"
+    ]
   ],
   "timekeepers": [
     "Marcus Liang",
@@ -682,54 +721,17 @@
       "minutes": 120
     }
   ],
-  "challenged_by_markers": [
-    "priya",
-    "raman"
-  ],
-  "timekeeper_markers": [
-    [
-      "marcus",
-      "liang"
-    ],
-    [
-      "peter",
-      "novak"
-    ]
-  ],
-  "minutes_by_timekeeper_markers": [
-    [
-      [
-        "marcus",
-        "liang"
-      ],
-      675
-    ],
-    [
-      [
-        "peter",
-        "novak"
-      ],
-      215
-    ]
-  ],
-  "_evidence": {
-    "activities": "Fresh bundle: Clio tkt-000001 (00001-MeridianBioLabs) has 7 diligence/data-room entries dated strictly after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16), totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). Clio activity ids are the server's positional ids (1-based, time-ordered across all matters): 1374, 1378, 1481, 1575, 1577, 1666, 1756.",
-    "decoys": "Near misses on every side of the join: 5 diligence/data-room entries on or before the cutoff (Mar 31, Apr 1, Apr 2, and two on Apr 3 itself — the call-prep entry and a data-room coordination entry), post-cutoff diligence-worded entries on OTHER matters (Lumen licensing Apr 8, Solstice asset purchase Apr 14), and post-cutoff Meridian entries describing the scope expansion without the diligence wording (Apr 22). A whole-April keyword sum, an on-or-after sum, and a cross-matter keyword sum are all wrong.",
-    "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio, and since round 4 the instruction no longer states it either: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-002223 (ts 6185100.002105, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
-    "challenge": "Gmail msg-000396 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her.",
-    "support_audit": "Fresh bundle: 254 Meridian entries fall after the 2026-04-03 cutoff through April 30. A window day is supported when a same-day Gmail or Slack message names the engagement ('meridian', 'diagnostics', or '00001'). Exactly 47 entries across five silent days are unsupported: Apr 4 (4 entries, 300 minutes, 195400 billed cents), Apr 13 (9, 660, 492400), Apr 20 (15, 786, 565750), Apr 22 (16, 1021, 715142), and Apr 25 (3, 120, 89000). Billed cents sum each billable entry's public Clio total after its own cents rounding. The audit groups those entries by day; normalized F1 carries 90% of the preserved 0.56 component weight and exact certification carries 10%."
-  },
   "weights": {
-    "cutoff_date": 0.02,
-    "total_minutes": 0.02,
-    "entry_count": 0.01,
-    "entries": 0.08,
-    "minutes_by_timekeeper": 0.03,
-    "timekeepers": 0.01,
-    "challenged_by": 0.01,
     "challenge_date": 0.02,
+    "challenged_by": 0.01,
+    "cutoff_date": 0.02,
+    "entries": 0.08,
+    "entry_count": 0.01,
+    "format": 0.06,
+    "minutes_by_timekeeper": 0.03,
     "support_audit": 0.54,
-    "unsupported_days": 0.20,
-    "format": 0.06
+    "timekeepers": 0.01,
+    "total_minutes": 0.02,
+    "unsupported_days": 0.2
   }
 }
