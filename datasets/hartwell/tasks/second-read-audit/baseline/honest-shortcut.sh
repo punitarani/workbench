@@ -1,11 +1,10 @@
 #!/bin/sh
-# The same shortcut as naive.sh, carried through to the work product
-# instead of stopping at the headline counts. naive.sh emits an empty
-# response_audit, which is not a shortcut an agent would take -- it is
-# the baseline declining to compete, and it makes this task look far
-# more discriminating than it is. This file exists so the difference is
-# measured rather than assumed. See test_the_honest_shortcut_nearly
-# _reproduces_the_ledger.
+# The plausible surface reading, carried all the way through the work
+# product: count the first reply back (acknowledgements included), read
+# Slack only, date by the stored clock, skip weekends but not holidays.
+# The per-row traps now cost it most of its credit (~0.24, far below the
+# certified 1.0), which this file exists to measure rather than assume.
+# See test_the_honest_shortcut_loses_most_of_the_ledger.
 exec python3 - << 'EOF'
 import json
 import os

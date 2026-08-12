@@ -23,9 +23,9 @@ def _perfect() -> dict[str, object]:
 
 def test_committed_oracle_has_complete_response_audit() -> None:
     assert len(ORACLE["response_audit"]) == ORACLE["requests_reviewed"] == 75
-    assert ORACLE["answered_same_day"] == 67
-    assert ORACLE["answered_next_working_day"] == 5
-    assert ORACLE["unanswered_by_deadline"] == 3
+    assert ORACLE["answered_same_day"] == 32
+    assert ORACLE["answered_next_working_day"] == 34
+    assert ORACLE["unanswered_by_deadline"] == 9
 
 
 def _grade(

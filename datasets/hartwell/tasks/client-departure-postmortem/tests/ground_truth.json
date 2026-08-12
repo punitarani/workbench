@@ -1,10 +1,10 @@
 {
   "_evidence": {
-    "slack": "#matters arc: chm-000636 (ts 1774395600.000000, 2026-03-24, 'Cascadia is happy', 3 reactions) -> chm-001399 (ts 1776356100.000000, 2026-04-16, 'Cascadia is getting antsy', 2 reactions) -> chm-001738 (2026-04-27, partner takes the calls himself, 1) -> chm-002057 (2026-05-07, status memo went out, 0) -> chm-002206 (2026-05-13, client declined the call, 0). First negative internal signal is the Apr 16 message; Tom's first email nudge was Apr 15, so an email-only answer is off by a day and the wrong surface. Slack ids are source-native Unix timestamps in America/Los_Angeles.",
+    "slack": "#matters arc: chm-000671 (ts 1774395600.000000, 2026-03-24, 'Cascadia is happy', 3 reactions) -> chm-001464 (ts 1776356100.000000, 2026-04-16, 'Cascadia is getting antsy', 2 reactions) -> chm-001820 (2026-04-27, partner takes the calls himself, 1) -> chm-002156 (2026-05-07, status memo went out, 0) -> chm-002312 (2026-05-13, client declined the call, 0). First negative internal signal is the Apr 16 message; Tom's first email nudge was Apr 15, so an email-only answer is off by a day and the wrong surface. Slack ids are source-native Unix timestamps in America/Los_Angeles.",
     "clio": "tkt-000002 matter_history: status open -> closed by Samuel Marsh on 2026-06-04 (the termination's effective date, 2026-06-05, is the plausible wrong answer).",
-    "gmail": "msg-000503 (2026-05-27, Tom Hollis) terminates the engagement (ids re-minted by the round-7 world regeneration).",
+    "gmail": "msg-000511 (2026-05-27, Tom Hollis) terminates the engagement (ids re-minted by the round-7 world regeneration).",
     "imanage": "iManage document 35, /cascadia-supplier-dispute/disengagement-letter.md; the iManage tools serve the repository path directly.",
-    "unanswered_client_emails": "Round 6: an email from the client's side (Tom Hollis, subject naming Cascadia) is answered when a firm-side message appears later in the SAME Gmail thread. Eleven client emails exist; exactly four were never answered: msg-000311 (2026-04-24, second status nudge), msg-000375 (2026-05-06, third nudge - the status memorandum went out that evening but in a NEW thread, so under the thread rule it answers nothing), msg-000470 (2026-05-20, the cold reply), and msg-000567 (2026-06-08, post-termination file-transfer question). Traps: the 03-31 follow-up was answered the NEXT day (in-thread - answered), the 05-11 double-send drew one reply after both (both answered), and the termination email itself was acknowledged. Graded all-or-nothing at 0.56; the non-reconciliation subset caps at 0.44."
+    "unanswered_client_emails": "Round 6: an email from the client's side (Tom Hollis, subject naming Cascadia) is answered when a firm-side message appears later in the SAME Gmail thread. Eleven client emails exist; exactly four were never answered: msg-000317 (2026-04-24, second status nudge), msg-000381 (2026-05-06, third nudge - the status memorandum went out that evening but in a NEW thread, so under the thread rule it answers nothing), msg-000477 (2026-05-20, the cold reply), and msg-000576 (2026-06-08, post-termination file-transfer question). Traps: the 03-31 follow-up was answered the NEXT day (in-thread - answered), the 05-11 double-send drew one reply after both (both answered), and the termination email itself was acknowledged. Graded all-or-nothing at 0.56; the non-reconciliation subset caps at 0.44."
   },
   "first_negative_signal_date": "2026-04-16",
   "first_negative_signal_ts_prefix": "1776356100.",
@@ -35,9 +35,9 @@
     "format": 0.03
   },
   "unanswered_client_emails": [
-    "msg-000311",
-    "msg-000375",
-    "msg-000470",
-    "msg-000567"
+    "msg-000317",
+    "msg-000381",
+    "msg-000477",
+    "msg-000576"
   ]
 }

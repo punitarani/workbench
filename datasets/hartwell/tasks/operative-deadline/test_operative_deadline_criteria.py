@@ -228,7 +228,7 @@ def test_docketing_from_the_written_notice_costs_a_fifth_of_the_task(
     # Compared by prefix: _perfect() writes a chat reference as
     # "<ts>.001" while the oracle carries the full microsecond form, and
     # both name the same message.
-    contested = ("msg-000407", "1778523600", "msg-000419")
+    contested = ("msg-000414", "1778523600", "msg-000426")
     answer = _perfect()
     for row in answer["notice_audit"]:
         if row["message_id"].startswith(contested):
@@ -241,7 +241,7 @@ def test_docketing_from_the_written_notice_costs_a_fifth_of_the_task(
     ]
     for record in answer["supersessions"]:
         if record["invalidated"] == "2026-05-20":
-            record["by"] = "msg-000432"
+            record["by"] = "msg-000439"
 
     scored = _grade(tmp_path, answer)["answer"]
 

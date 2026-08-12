@@ -38,8 +38,8 @@ def test_second_read_and_visitor_floors_keep_independent_semantics() -> None:
     )
 
     assert completed.stdout.splitlines() == [
-        "second-read-audit: floor=54",
-        "visitor-log-audit: floor=54",
+        "second-read-audit: floor=57",
+        "visitor-log-audit: floor=57",
     ]
 
 
@@ -56,7 +56,7 @@ def test_billing_floor_certifies_the_complete_daily_review() -> None:
     oracle = json.loads(
         (TASKS / "billing-hygiene-audit" / "tests" / "oracle.json").read_text()
     )
-    assert asyncio.run(measure("billing-hygiene-audit")) == 146
+    assert asyncio.run(measure("billing-hygiene-audit")) == 149
     oracle["daily_review"][0]["sent_slack_ts"][0] = "invented-message"
     measure.__globals__["_oracle"] = lambda task: oracle
 
@@ -201,7 +201,7 @@ def test_second_read_floor_certifies_the_full_first_response_audit() -> None:
     oracle = json.loads(
         (TASKS / "second-read-audit" / "tests" / "oracle.json").read_text()
     )
-    assert asyncio.run(measure("second-read-audit")) == 54
+    assert asyncio.run(measure("second-read-audit")) == 57
     oracle["response_audit"][0]["first_response_id"] = "invented-response"
     measure.__globals__["_oracle"] = lambda task: oracle
 
@@ -244,7 +244,7 @@ def test_visitor_floor_certifies_the_full_custody_audit() -> None:
     oracle = json.loads(
         (TASKS / "visitor-log-audit" / "tests" / "oracle.json").read_text()
     )
-    assert asyncio.run(measure("visitor-log-audit")) == 54
+    assert asyncio.run(measure("visitor-log-audit")) == 57
     oracle["custody_audit"][0]["first_return_id"] = "invented-return"
     measure.__globals__["_oracle"] = lambda task: oracle
 

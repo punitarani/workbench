@@ -21,7 +21,7 @@ difficulty = "hard"
 skills = ["retrieval", "reconciliation", "temporal-reasoning", "anti-join"]
 # Measured by datasets/hartwell/measure_floors.py against the real public MCP
 # path. Recorded for calibration only; Harbor has no per-task hard call cap.
-reference_tool_path_calls = 54
+reference_tool_path_calls = 57
 
 [metadata.evidence]
 primary_field = "custody_audit"

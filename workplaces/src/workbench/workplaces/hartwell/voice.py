@@ -136,8 +136,15 @@ REACTIONS: tuple[str, ...] = (
     "sweat_smile",
 )
 
+# Two standing forms of words seed the one-to-one custody/second-read audits.
+# Index 0 is ordinary DM filler: the *second-read* request fabric is authored
+# deterministically by the S7 storyline (StorylineDirector._register_s7), not
+# left to procedural chance, so that every "quick look at my draft" request
+# carries a designed contested response timing. Keeping this slot a two-tuple
+# preserves the visitor-log sheet-request draws (index 1) and the RNG stream
+# byte-for-byte; only the index-0 body changes.
 STANDING_REQUESTS: tuple[str, ...] = (
-    "mind taking a quick look at my draft before it goes out?",
+    "you around for a quick question when you get a sec?",
     "do you still have the sign-in sheet from yesterday?",
 )
 

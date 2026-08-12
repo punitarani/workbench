@@ -48,6 +48,24 @@ REVIEW_MAIL_QUERY = f"before:{REVIEW_END_EXCLUSIVE:%Y/%m/%d}"
 SECOND_READ_REQUEST = "mind taking a quick look at my draft before it goes out?"
 SHEET_REQUEST = "do you still have the sign-in sheet from yesterday?"
 
+# A reviewer reply is the *read* only if it delivers a verdict on the draft:
+# one of these markers in chat, or a "Draft read" directed email. These mirror
+# the oracle and are absent from all other traffic (build_history audits it).
+SECOND_READ_REVIEW_MARKERS = (
+    "send it out",
+    "good to go",
+    "one redline",
+    "ready to go out",
+    "no changes from me",
+    "ship it",
+    "clear to file",
+    "signed off on the draft",
+)
+SECOND_READ_EMAIL_MARKER = "draft read"
+# Federal holidays on a weekday inside the review window; skipped as the firm
+# does when computing the second-read next-working-day deadline.
+SECOND_READ_HOLIDAYS = frozenset({date(2026, 5, 25), date(2026, 6, 19)})
+
 S2_MARKERS = ("meridian", "diagnostics", "00001")
 ARROYO_TOKENS = ("arroyo", "dept. 511", "fruitvale")
 
@@ -281,6 +299,14 @@ def _ts_prefix(ts: str) -> str:
 def _next_working_day(day: date) -> date:
     moment = day + timedelta(days=1)
     while moment.weekday() >= 5:
+        moment += timedelta(days=1)
+    return moment
+
+
+def _second_read_next_working_day(day: date) -> date:
+    """Next Monday-Friday day that is not a federal holiday (second-read rule)."""
+    moment = day + timedelta(days=1)
+    while moment.weekday() >= 5 or moment in SECOND_READ_HOLIDAYS:
         moment += timedelta(days=1)
     return moment
 
@@ -1289,46 +1315,144 @@ async def _one_to_one_request_audit(
     return requests
 
 
+async def _second_read_ledger(client: CountingClient) -> tuple[list[dict], int]:
+    """Derive every second-read row over the MCP record, mirroring the oracle:
+    open every one-to-one lane and the whole mailbox, read the standing-phrase
+    requests, locate the reviewer's verdict-bearing *reads* (a review marker in
+    chat or a 'Draft read' email — never a bare acknowledgement), match each
+    read to the request instance it answers, and classify against a
+    holiday-aware next-working-day deadline in Pacific time."""
+    chat_users = await client.call("slack__slack_search_users", query="", limit=100)
+    names = {user["id"]: user["real_name"] for user in chat_users["members"]}
+    emails = {user["id"]: user["profile"]["email"] for user in chat_users["members"]}
+    user_of_email = {email: user for user, email in emails.items()}
+
+    lanes = [c for c in await _conversation_listing(client) if c["is_im"]]
+    history = await _read_all(client, lanes)
+    membership: dict[str, set[str]] = {}
+    for lane in lanes:
+        members = await client.call(
+            "slack__slack_list_channel_members", channel_id=lane["id"]
+        )
+        membership[lane["id"]] = set(members["members"])
+
+    requests: list[dict] = []
+    reads: list[tuple[int, str, str, str, str]] = []
+    for lane in lanes:
+        members = membership[lane["id"]]
+        if len(members) != 2:
+            continue
+        for message in history[lane["id"]]:
+            sender = message["user"]
+            counterpart = members - {sender}
+            if len(counterpart) != 1:
+                continue
+            (other,) = counterpart
+            when = int(float(message["ts"]))
+            text = message["text"]
+            if text.strip().lower() == SECOND_READ_REQUEST:
+                requests.append(
+                    {
+                        "ts": message["ts"],
+                        "time": when,
+                        "asked_by": sender,
+                        "asked_of": other,
+                    }
+                )
+            if any(marker in text.lower() for marker in SECOND_READ_REVIEW_MARKERS):
+                reads.append((when, "slack", message["ts"], other, sender))
+
+    for message in await _review_mail(client):
+        if SECOND_READ_EMAIL_MARKER not in message["subject"].lower():
+            continue
+        reviewer = user_of_email.get(_sender_email(message))
+        if reviewer is None:
+            continue
+        when = _mail_seconds(message["date"])
+        for recipient in message["toRecipients"] + message["ccRecipients"]:
+            asker = user_of_email.get(recipient.split("<")[-1].rstrip(">"))
+            if asker is not None:
+                reads.append((when, "gmail", message["id"], asker, reviewer))
+
+    by_pair: dict[tuple[str, str], list[int]] = {}
+    for index, request in enumerate(requests):
+        by_pair.setdefault((request["asked_by"], request["asked_of"]), []).append(index)
+    for indices in by_pair.values():
+        indices.sort(key=lambda index: requests[index]["time"])
+    for request in requests:
+        request["read"] = None
+    for when, surface, identifier, asker, reviewer in sorted(reads):
+        owner = None
+        for index in by_pair.get((asker, reviewer), ()):
+            if requests[index]["time"] < when:
+                owner = index
+        if owner is None:
+            continue
+        current = requests[owner]["read"]
+        if current is None or when < current[0]:
+            requests[owner]["read"] = (when, surface, identifier)
+
+    records: list[dict] = []
+    for request in requests:
+        asked_on = date.fromisoformat(_ts_day(request["ts"]))
+        deadline = _second_read_next_working_day(asked_on)
+        read = request["read"]
+        if read is None:
+            surface, identifier, at, outcome = "none", "", "", "unanswered"
+        else:
+            when, surface, identifier = read
+            at = _seconds_iso(when)
+            read_day = date.fromisoformat(_ts_day(str(when)))
+            if read_day == asked_on:
+                outcome = "same_day"
+            elif read_day <= deadline:
+                outcome = "next_working_day"
+            else:
+                outcome = "unanswered"
+        records.append(
+            {
+                "request_ts": request["ts"],
+                "request_date": asked_on.isoformat(),
+                "asked_by": names[request["asked_by"]],
+                "asked_of": names[request["asked_of"]],
+                "first_response_surface": surface,
+                "first_response_id": identifier,
+                "first_response_at": at,
+                "outcome": outcome,
+            }
+        )
+    return records, len(lanes)
+
+
 async def second_read_audit(client: CountingClient) -> None:
     truth = _truth("second-read-audit")
     oracle = _oracle("second-read-audit")
-    requests = await _one_to_one_request_audit(client, SECOND_READ_REQUEST)
-    assert len(requests) == truth["requests_reviewed"], len(requests)
-    assert requests[0]["lanes"] == truth["conversations_reviewed"]
-    unanswered = sorted(_ts_prefix(r["ts"]) for r in requests if not r["in_window"])
+    records, lanes = await _second_read_ledger(client)
+    assert len(records) == truth["requests_reviewed"], len(records)
+    assert lanes == truth["conversations_reviewed"], lanes
+    unanswered = sorted(
+        _ts_prefix(r["request_ts"]) for r in records if r["outcome"] == "unanswered"
+    )
     assert unanswered == truth["unanswered_request_ts_prefixes"], unanswered
     later_pickups = sorted(
-        _ts_prefix(r["ts"]) for r in requests if r["in_window"] and not r["same_day"]
+        _ts_prefix(r["request_ts"])
+        for r in records
+        if r["outcome"] == "next_working_day"
     )
     assert later_pickups == truth["came_back_later_prefixes"], later_pickups
-    assert sum(1 for r in requests if r["same_day"]) == truth["answered_same_day"]
     assert (
-        sum(1 for r in requests if r["next_working_day"])
+        sum(1 for r in records if r["outcome"] == "same_day")
+        == truth["answered_same_day"]
+    )
+    assert (
+        sum(1 for r in records if r["outcome"] == "next_working_day")
         == oracle["answered_next_working_day"]
     )
     assert (
-        sum(1 for r in requests if not r["in_window"])
+        sum(1 for r in records if r["outcome"] == "unanswered")
         == oracle["unanswered_by_deadline"]
     )
-    response_audit = [
-        {
-            "request_ts": request["ts"],
-            "request_date": request["date"],
-            "asked_by": request["asked_by"],
-            "asked_of": request["asked_of"],
-            "first_response_surface": request["first_response_surface"],
-            "first_response_id": request["first_response_id"],
-            "first_response_at": request["first_response_at"],
-            "outcome": (
-                "same_day"
-                if request["same_day"]
-                else "next_working_day"
-                if request["next_working_day"]
-                else "unanswered"
-            ),
-        }
-        for request in sorted(requests, key=lambda item: float(item["ts"]))
-    ]
+    response_audit = sorted(records, key=lambda item: float(item["request_ts"]))
     assert _canonical_records(response_audit) == _canonical_records(
         oracle["response_audit"]
     ), response_audit

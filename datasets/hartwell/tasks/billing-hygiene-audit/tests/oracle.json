@@ -172,7 +172,8 @@
         "1772483188.000000",
         "1772483192.000000",
         "1772483778.000000",
-        "1772492884.000000"
+        "1772492884.000000",
+        "1772500320.000000"
       ],
       "timekeeper": "Grace Adeyemi"
     },
@@ -1057,6 +1058,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1772817387.000000",
+        "1772824500.000000",
         "1772832301.000000",
         "1772838104.000000"
       ],
@@ -1421,6 +1423,7 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
+        "1773073200.000000",
         "1773076250.000000",
         "1773078945.000000",
         "1773084061.000000",
@@ -1458,10 +1461,12 @@
       "date": "2026-03-09",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
+        "msg-000048",
         "msg-000045"
       ],
       "sent_slack_ts": [
         "1773072997.000000",
+        "1773076440.000000",
         "1773078624.000000",
         "1773083732.000000",
         "1773084611.000000"
@@ -1639,7 +1644,7 @@
       "date": "2026-03-10",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000050"
+        "msg-000051"
       ],
       "sent_slack_ts": [
         "1773158570.000000",
@@ -1705,6 +1710,7 @@
       "sent_slack_ts": [
         "1773159602.000000",
         "1773175623.000000",
+        "1773177600.000000",
         "1773202420.000000"
       ],
       "timekeeper": "Samuel Marsh"
@@ -1734,13 +1740,14 @@
       "date": "2026-03-10",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000049",
-        "msg-000055"
+        "msg-000050",
+        "msg-000056"
       ],
       "sent_slack_ts": [
         "1773158462.000000",
         "1773161707.000000",
         "1773177649.000000",
+        "1773178080.000000",
         "1773178453.000000",
         "1773202127.000000",
         "1773202678.000000"
@@ -1770,7 +1777,7 @@
       "date": "2026-03-11",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000059"
+        "msg-000060"
       ],
       "sent_slack_ts": [
         "1773245263.000000",
@@ -1841,12 +1848,13 @@
       "date": "2026-03-11",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000056"
+        "msg-000057"
       ],
       "sent_slack_ts": [
         "1773246107.000000",
         "1773251009.000000",
-        "1773251671.000000"
+        "1773251671.000000",
+        "1773274320.000000"
       ],
       "timekeeper": "Grace Adeyemi"
     },
@@ -1954,13 +1962,14 @@
       "date": "2026-03-11",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000058"
+        "msg-000059"
       ],
       "sent_slack_ts": [
         "1773244994.000000",
         "1773259399.000000",
         "1773259593.000000",
         "1773260279.000000",
+        "1773260820.000000",
         "1773265131.000000"
       ],
       "timekeeper": "Peter Novak"
@@ -1996,8 +2005,8 @@
       "date": "2026-03-11",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000062",
-        "msg-000060"
+        "msg-000063",
+        "msg-000061"
       ],
       "sent_slack_ts": [
         "1773245345.000000",
@@ -2055,6 +2064,7 @@
       "sent_slack_ts": [
         "1773332401.000000",
         "1773353400.000000",
+        "1773356340.000000",
         "1773356580.000000"
       ],
       "timekeeper": "Diane Okonkwo"
@@ -2123,7 +2133,7 @@
       "date": "2026-03-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000070"
+        "msg-000071"
       ],
       "sent_slack_ts": [
         "1773332741.000000",
@@ -2185,7 +2195,7 @@
       "date": "2026-03-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000067"
+        "msg-000068"
       ],
       "sent_slack_ts": [
         "1773332210.000000",
@@ -2193,6 +2203,7 @@
         "1773336376.000000",
         "1773353817.000000",
         "1773353969.000000",
+        "1773355260.000000",
         "1773356273.000000",
         "1773356843.000000"
       ],
@@ -2230,7 +2241,7 @@
       "date": "2026-03-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000065"
+        "msg-000066"
       ],
       "sent_slack_ts": [
         "1773331759.000000",
@@ -2308,7 +2319,7 @@
       "date": "2026-03-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000068"
+        "msg-000069"
       ],
       "sent_slack_ts": [
         "1773332451.000000",
@@ -2338,6 +2349,7 @@
       "sent_slack_ts": [
         "1773417814.000000",
         "1773419215.000000",
+        "1773419700.000000",
         "1773419798.000000",
         "1773427577.000000",
         "1773431889.000000"
@@ -2399,8 +2411,8 @@
       "date": "2026-03-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000076",
-        "msg-000072"
+        "msg-000077",
+        "msg-000073"
       ],
       "sent_slack_ts": [
         "1773417875.000000",
@@ -2465,10 +2477,11 @@
       "date": "2026-03-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000073"
+        "msg-000074"
       ],
       "sent_slack_ts": [
         "1773419626.000000",
+        "1773423720.000000",
         "1773428222.000000",
         "1773441876.000000"
       ],
@@ -2500,6 +2513,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1773418671.000000",
+        "1773423000.000000",
         "1773424717.000000",
         "1773441586.000000"
       ],
@@ -2575,8 +2589,8 @@
       "date": "2026-03-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000074",
-        "msg-000079"
+        "msg-000075",
+        "msg-000080"
       ],
       "sent_slack_ts": [
         "1773419346.000000",
@@ -2661,7 +2675,7 @@
       "date": "2026-03-16",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000081"
+        "msg-000082"
       ],
       "sent_slack_ts": [
         "1773677747.000000",
@@ -2729,6 +2743,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1773684439.000000",
+        "1773689220.000000",
         "1773689241.000000"
       ],
       "timekeeper": "Marcus Liang"
@@ -2767,9 +2782,10 @@
       "date": "2026-03-16",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000080"
+        "msg-000081"
       ],
       "sent_slack_ts": [
+        "1773678000.000000",
         "1773678531.000000",
         "1773679536.000000",
         "1773690624.000000"
@@ -2796,8 +2812,8 @@
       "date": "2026-03-16",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000082",
-        "msg-000084"
+        "msg-000083",
+        "msg-000085"
       ],
       "sent_slack_ts": [
         "1773677221.000000",
@@ -2857,7 +2873,7 @@
       "date": "2026-03-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000095"
+        "msg-000096"
       ],
       "sent_slack_ts": [
         "1773764936.000000",
@@ -2887,7 +2903,7 @@
       "date": "2026-03-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000090"
+        "msg-000091"
       ],
       "sent_slack_ts": [
         "1773775601.000000",
@@ -2926,7 +2942,8 @@
         "1773767844.000000",
         "1773768000.000000",
         "1773770356.000000",
-        "1773783240.000000"
+        "1773783240.000000",
+        "1773783720.000000"
       ],
       "timekeeper": "Grace Adeyemi"
     },
@@ -3034,7 +3051,7 @@
       "date": "2026-03-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000089"
+        "msg-000090"
       ],
       "sent_slack_ts": [
         "1773764391.000000",
@@ -3063,12 +3080,13 @@
       "date": "2026-03-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000093"
+        "msg-000094"
       ],
       "sent_slack_ts": [
         "1773764078.000000",
         "1773770612.000000",
         "1773779918.000000",
+        "1773782820.000000",
         "1773782838.000000",
         "1773783734.000000",
         "1773805361.000000"
@@ -3201,7 +3219,9 @@
       ],
       "date": "2026-03-18",
       "disposition": "cleared_by_communication",
-      "sent_gmail_ids": [],
+      "sent_gmail_ids": [
+        "msg-000105"
+      ],
       "sent_slack_ts": [
         "1773851124.000000",
         "1773858090.000000",
@@ -3294,7 +3314,7 @@
       "date": "2026-03-18",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000096"
+        "msg-000097"
       ],
       "sent_slack_ts": [
         "1773850112.000000",
@@ -3331,7 +3351,7 @@
       "date": "2026-03-18",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000097"
+        "msg-000098"
       ],
       "sent_slack_ts": [
         "1773850863.000000",
@@ -3373,7 +3393,7 @@
       "date": "2026-03-18",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000100"
+        "msg-000101"
       ],
       "sent_slack_ts": [
         "1773851320.000000",
@@ -3402,7 +3422,7 @@
       "date": "2026-03-19",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000105"
+        "msg-000107"
       ],
       "sent_slack_ts": [
         "1773936774.000000",
@@ -3440,7 +3460,8 @@
       "sent_slack_ts": [
         "1773937393.000000",
         "1773943300.000000",
-        "1773945940.000000"
+        "1773945940.000000",
+        "1773950220.000000"
       ],
       "timekeeper": "Eleanor Hartwell"
     },
@@ -3475,9 +3496,9 @@
       "date": "2026-03-19",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000106",
-        "msg-000107",
-        "msg-000104"
+        "msg-000108",
+        "msg-000109",
+        "msg-000106"
       ],
       "sent_slack_ts": [
         "1773937597.000000",
@@ -3714,10 +3735,11 @@
       "date": "2026-03-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000113"
+        "msg-000115"
       ],
       "sent_slack_ts": [
         "1774023436.000000",
+        "1774024500.000000",
         "1774030207.000000",
         "1774040087.000000"
       ],
@@ -3781,7 +3803,7 @@
       "date": "2026-03-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000110"
+        "msg-000112"
       ],
       "sent_slack_ts": [
         "1774022494.000000",
@@ -3814,7 +3836,7 @@
       "date": "2026-03-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000111"
+        "msg-000113"
       ],
       "sent_slack_ts": [
         "1774024157.000000",
@@ -3879,11 +3901,12 @@
       "date": "2026-03-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000117"
+        "msg-000119"
       ],
       "sent_slack_ts": [
         "1774023392.000000",
         "1774027344.000000",
+        "1774029600.000000",
         "1774040881.000000",
         "1774048428.000000",
         "1774049674.000000",
@@ -4078,7 +4101,7 @@
       "date": "2026-03-23",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000121"
+        "msg-000123"
       ],
       "sent_slack_ts": [
         "1774282947.000000",
@@ -4144,12 +4167,13 @@
       "date": "2026-03-23",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000124"
+        "msg-000126"
       ],
       "sent_slack_ts": [
         "1774282803.000000",
         "1774302583.000000",
         "1774303139.000000",
+        "1774306620.000000",
         "1774306652.000000",
         "1774308341.000000",
         "1774316894.000000"
@@ -4177,13 +4201,15 @@
       "date": "2026-03-23",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
+        "msg-000124",
         "msg-000122",
-        "msg-000120",
-        "msg-000123"
+        "msg-000125",
+        "msg-000129"
       ],
       "sent_slack_ts": [
         "1774282270.000000",
-        "1774296786.000000"
+        "1774296786.000000",
+        "1774307520.000000"
       ],
       "timekeeper": "Sofia Ramirez"
     },
@@ -4261,7 +4287,7 @@
       "date": "2026-03-24",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000129"
+        "msg-000132"
       ],
       "sent_slack_ts": [
         "1774382964.000000",
@@ -4354,7 +4380,7 @@
       "date": "2026-03-24",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000131"
+        "msg-000134"
       ],
       "sent_slack_ts": [
         "1774369738.000000",
@@ -4390,7 +4416,7 @@
       "date": "2026-03-24",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000130"
+        "msg-000133"
       ],
       "sent_slack_ts": [
         "1774369280.000000",
@@ -4424,8 +4450,8 @@
       "date": "2026-03-25",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000137",
-        "msg-000136"
+        "msg-000140",
+        "msg-000139"
       ],
       "sent_slack_ts": [],
       "timekeeper": "Diane Okonkwo"
@@ -4646,7 +4672,7 @@
       "date": "2026-03-25",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000135"
+        "msg-000138"
       ],
       "sent_slack_ts": [
         "1774455878.000000",
@@ -4701,6 +4727,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1774541013.000000",
+        "1774545240.000000",
         "1774546459.000000",
         "1774547343.000000",
         "1774557919.000000"
@@ -4773,8 +4800,8 @@
       "date": "2026-03-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000142",
-        "msg-000144"
+        "msg-000145",
+        "msg-000147"
       ],
       "sent_slack_ts": [
         "1774555960.000000",
@@ -4811,7 +4838,7 @@
       "date": "2026-03-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000146"
+        "msg-000149"
       ],
       "sent_slack_ts": [
         "1774542402.000000"
@@ -4851,7 +4878,7 @@
       "date": "2026-03-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000140"
+        "msg-000143"
       ],
       "sent_slack_ts": [
         "1774542473.000000",
@@ -4888,6 +4915,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1774540989.000000",
+        "1774544760.000000",
         "1774547548.000000",
         "1774552997.000000",
         "1774556798.000000",
@@ -5027,14 +5055,15 @@
       "date": "2026-03-27",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000155",
-        "msg-000153"
+        "msg-000158",
+        "msg-000156"
       ],
       "sent_slack_ts": [
         "1774636442.000000",
         "1774636534.000000",
         "1774637293.000000",
         "1774642377.000000",
+        "1774643400.000000",
         "1774643682.000000"
       ],
       "timekeeper": "Grace Adeyemi"
@@ -5132,7 +5161,8 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
-        "1774627879.000000"
+        "1774627879.000000",
+        "1774644600.000000"
       ],
       "timekeeper": "Peter Novak"
     },
@@ -5161,7 +5191,7 @@
       "date": "2026-03-27",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000149"
+        "msg-000152"
       ],
       "sent_slack_ts": [
         "1774627548.000000",
@@ -5292,10 +5322,10 @@
       "date": "2026-03-30",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
+        "msg-000162",
+        "msg-000164",
         "msg-000159",
-        "msg-000161",
-        "msg-000156",
-        "msg-000158"
+        "msg-000161"
       ],
       "sent_slack_ts": [
         "1774879852.000000",
@@ -5520,7 +5550,7 @@
       "date": "2026-03-31",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000165"
+        "msg-000168"
       ],
       "sent_slack_ts": [
         "1774978029.000000",
@@ -5554,8 +5584,8 @@
       "date": "2026-03-31",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000173",
-        "msg-000167"
+        "msg-000176",
+        "msg-000170"
       ],
       "sent_slack_ts": [
         "1774972997.000000",
@@ -5658,9 +5688,9 @@
       "date": "2026-03-31",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000168",
         "msg-000171",
-        "msg-000164"
+        "msg-000174",
+        "msg-000167"
       ],
       "sent_slack_ts": [
         "1774973302.000000",
@@ -5759,7 +5789,7 @@
       "date": "2026-04-01",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000174"
+        "msg-000177"
       ],
       "sent_slack_ts": [
         "1775059528.000000",
@@ -5788,7 +5818,7 @@
       "date": "2026-04-01",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000180"
+        "msg-000183"
       ],
       "sent_slack_ts": [
         "1775058900.000000",
@@ -5826,7 +5856,8 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
-        "1775060407.000000"
+        "1775060407.000000",
+        "1775088720.000000"
       ],
       "timekeeper": "Marcus Liang"
     },
@@ -5968,12 +5999,13 @@
       "date": "2026-04-01",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000181",
-        "msg-000176",
-        "msg-000175"
+        "msg-000184",
+        "msg-000179",
+        "msg-000178"
       ],
       "sent_slack_ts": [
         "1775059570.000000",
+        "1775080260.000000",
         "1775098045.000000"
       ],
       "timekeeper": "Sofia Ramirez"
@@ -5998,7 +6030,7 @@
       "date": "2026-04-02",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000183"
+        "msg-000186"
       ],
       "sent_slack_ts": [
         "1775148446.000000",
@@ -6090,11 +6122,12 @@
       "date": "2026-04-02",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000185"
+        "msg-000188"
       ],
       "sent_slack_ts": [
         "1775147251.000000",
         "1775148520.000000",
+        "1775162520.000000",
         "1775172822.000000"
       ],
       "timekeeper": "Marcus Liang"
@@ -6166,6 +6199,7 @@
       "sent_slack_ts": [
         "1775146869.000000",
         "1775151600.000000",
+        "1775163600.000000",
         "1775166600.000000",
         "1775173300.000000",
         "1775173536.000000"
@@ -6198,7 +6232,7 @@
       "date": "2026-04-02",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000189"
+        "msg-000192"
       ],
       "sent_slack_ts": [
         "1775145798.000000",
@@ -6263,7 +6297,8 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
-        "1775232317.000000"
+        "1775232317.000000",
+        "1775246400.000000"
       ],
       "timekeeper": "Diane Okonkwo"
     },
@@ -6379,7 +6414,7 @@
       "date": "2026-04-03",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000190"
+        "msg-000193"
       ],
       "sent_slack_ts": [
         "1775233042.000000",
@@ -6418,11 +6453,12 @@
       "date": "2026-04-03",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000191"
+        "msg-000194"
       ],
       "sent_slack_ts": [
         "1775232105.000000",
-        "1775235645.000000"
+        "1775235645.000000",
+        "1775247120.000000"
       ],
       "timekeeper": "Noah Feldstein"
     },
@@ -6456,6 +6492,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1775232414.000000",
+        "1775234100.000000",
         "1775235510.000000",
         "1775238000.000000",
         "1775238004.000000",
@@ -6660,8 +6697,8 @@
       "date": "2026-04-06",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000201",
-        "msg-000198"
+        "msg-000204",
+        "msg-000201"
       ],
       "sent_slack_ts": [
         "1775490900.000000",
@@ -6670,6 +6707,7 @@
         "1775501100.000000",
         "1775506507.000000",
         "1775507295.000000",
+        "1775508120.000000",
         "1775514108.000000",
         "1775515421.000000",
         "1775521500.000000"
@@ -6752,7 +6790,8 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
-        "1775492149.000000"
+        "1775492149.000000",
+        "1775492400.000000"
       ],
       "timekeeper": "Noah Feldstein"
     },
@@ -6829,7 +6868,8 @@
         "1775499719.000000",
         "1775500628.000000",
         "1775501166.000000",
-        "1775506832.000000"
+        "1775506832.000000",
+        "1775509020.000000"
       ],
       "timekeeper": "Samuel Marsh"
     },
@@ -6855,7 +6895,7 @@
       "date": "2026-04-06",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000197"
+        "msg-000200"
       ],
       "sent_slack_ts": [
         "1775491730.000000",
@@ -6950,7 +6990,7 @@
       "date": "2026-04-07",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000205"
+        "msg-000208"
       ],
       "sent_slack_ts": [
         "1775574807.000000",
@@ -7021,7 +7061,7 @@
       "date": "2026-04-07",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000204"
+        "msg-000207"
       ],
       "sent_slack_ts": [
         "1775578366.000000",
@@ -7095,7 +7135,8 @@
       "date": "2026-04-07",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000206"
+        "msg-000213",
+        "msg-000209"
       ],
       "sent_slack_ts": [
         "1775582770.000000",
@@ -7137,7 +7178,7 @@
       "date": "2026-04-07",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000207"
+        "msg-000210"
       ],
       "sent_slack_ts": [
         "1775579270.000000",
@@ -7303,7 +7344,7 @@
       "date": "2026-04-08",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000214"
+        "msg-000218"
       ],
       "sent_slack_ts": [
         "1775664119.000000",
@@ -7380,7 +7421,7 @@
       "date": "2026-04-08",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000215"
+        "msg-000219"
       ],
       "sent_slack_ts": [
         "1775664405.000000",
@@ -7417,7 +7458,7 @@
       "date": "2026-04-08",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000213"
+        "msg-000217"
       ],
       "sent_slack_ts": [
         "1775664288.000000",
@@ -7504,6 +7545,7 @@
       "sent_slack_ts": [
         "1775750100.000000",
         "1775750885.000000",
+        "1775759160.000000",
         "1775760300.000000",
         "1775764129.000000",
         "1775772115.000000",
@@ -7540,8 +7582,8 @@
       "date": "2026-04-09",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000223",
-        "msg-000221"
+        "msg-000227",
+        "msg-000225"
       ],
       "sent_slack_ts": [
         "1775750820.000000",
@@ -7618,8 +7660,8 @@
       "date": "2026-04-09",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000227",
-        "msg-000220"
+        "msg-000231",
+        "msg-000224"
       ],
       "sent_slack_ts": [
         "1775749200.000000",
@@ -7656,6 +7698,7 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
+        "1775758080.000000",
         "1775758105.000000",
         "1775771845.000000",
         "1775777700.000000"
@@ -7749,6 +7792,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1775836500.000000",
+        "1775838900.000001",
         "1775846700.000000",
         "1775853333.000000",
         "1775853528.000000",
@@ -7794,7 +7838,7 @@
       "date": "2026-04-10",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000229"
+        "msg-000233"
       ],
       "sent_slack_ts": [
         "1775833095.000000",
@@ -7832,8 +7876,8 @@
       "date": "2026-04-10",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000231",
-        "msg-000233"
+        "msg-000235",
+        "msg-000237"
       ],
       "sent_slack_ts": [
         "1775835600.000000",
@@ -7882,7 +7926,8 @@
       "sent_slack_ts": [
         "1775833831.000000",
         "1775837399.000000",
-        "1775837747.000000"
+        "1775837747.000000",
+        "1775863860.000000"
       ],
       "timekeeper": "Sofia Ramirez"
     },
@@ -7989,7 +8034,7 @@
       "date": "2026-04-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000239"
+        "msg-000243"
       ],
       "sent_slack_ts": [
         "1776095700.000000",
@@ -8021,7 +8066,7 @@
       "date": "2026-04-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000238"
+        "msg-000242"
       ],
       "sent_slack_ts": [
         "1776096047.000000",
@@ -8059,7 +8104,7 @@
       "date": "2026-04-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000244"
+        "msg-000248"
       ],
       "sent_slack_ts": [
         "1776094800.000000",
@@ -8108,7 +8153,7 @@
       "date": "2026-04-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000240"
+        "msg-000244"
       ],
       "sent_slack_ts": [
         "1776096804.000000",
@@ -8275,8 +8320,8 @@
       "date": "2026-04-14",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000248",
-        "msg-000245"
+        "msg-000252",
+        "msg-000249"
       ],
       "sent_slack_ts": [
         "1776174959.000000",
@@ -8370,7 +8415,7 @@
       "date": "2026-04-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000256"
+        "msg-000260"
       ],
       "sent_slack_ts": [
         "1776264557.000000"
@@ -8395,7 +8440,8 @@
       "sent_slack_ts": [
         "1776269265.000000",
         "1776284019.000000",
-        "1776286737.000000"
+        "1776286737.000000",
+        "1776287040.000000"
       ],
       "timekeeper": "Eleanor Hartwell"
     },
@@ -8501,7 +8547,7 @@
       "date": "2026-04-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000253"
+        "msg-000257"
       ],
       "sent_slack_ts": [
         "1776267600.000000",
@@ -8576,7 +8622,7 @@
       "date": "2026-04-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000259"
+        "msg-000263"
       ],
       "sent_slack_ts": [
         "1776289698.000000",
@@ -8602,8 +8648,8 @@
       "date": "2026-04-16",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000260",
-        "msg-000263"
+        "msg-000265",
+        "msg-000268"
       ],
       "sent_slack_ts": [
         "1776356679.000000",
@@ -8669,6 +8715,7 @@
         "1776356662.000001",
         "1776362997.000000",
         "1776365100.000000",
+        "1776377940.000000",
         "1776382374.000000",
         "1776385500.000000",
         "1776394760.000000"
@@ -8700,7 +8747,7 @@
       "date": "2026-04-16",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000261"
+        "msg-000266"
       ],
       "sent_slack_ts": [
         "1776357300.000000",
@@ -8740,7 +8787,7 @@
       "date": "2026-04-16",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000262"
+        "msg-000267"
       ],
       "sent_slack_ts": [
         "1776354000.000000",
@@ -8750,6 +8797,7 @@
         "1776371483.000000",
         "1776374100.000000",
         "1776376200.000000",
+        "1776376860.000000",
         "1776376987.000000",
         "1776383700.000000"
       ],
@@ -8922,10 +8970,11 @@
       "date": "2026-04-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000270"
+        "msg-000275"
       ],
       "sent_slack_ts": [
         "1776441300.000000",
+        "1776443700.000001",
         "1776451500.000000",
         "1776452475.000000",
         "1776453340.000000",
@@ -8978,6 +9027,7 @@
         "1776462516.000000",
         "1776463147.000000",
         "1776465600.000000",
+        "1776467880.000000",
         "1776474300.000000"
       ],
       "timekeeper": "Marcus Liang"
@@ -9013,8 +9063,8 @@
       "date": "2026-04-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000272",
-        "msg-000269"
+        "msg-000277",
+        "msg-000274"
       ],
       "sent_slack_ts": [
         "1776440400.000000",
@@ -9027,6 +9077,7 @@
         "1776460500.000000",
         "1776462600.000000",
         "1776462938.000000",
+        "1776467160.000000",
         "1776470100.000000"
       ],
       "timekeeper": "Peter Novak"
@@ -9136,7 +9187,7 @@
       "date": "2026-04-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000278"
+        "msg-000283"
       ],
       "sent_slack_ts": [
         "1776700917.000000",
@@ -9240,12 +9291,14 @@
       "date": "2026-04-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000276"
+        "msg-000281"
       ],
       "sent_slack_ts": [
         "1776701222.000000",
+        "1776702000.000000",
         "1776702543.000000",
         "1776715110.000000",
+        "1776725340.000000",
         "1776725775.000000"
       ],
       "timekeeper": "Marcus Liang"
@@ -9305,7 +9358,7 @@
       "date": "2026-04-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000277"
+        "msg-000282"
       ],
       "sent_slack_ts": [
         "1776701671.000000",
@@ -9345,7 +9398,7 @@
       "date": "2026-04-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000275"
+        "msg-000280"
       ],
       "sent_slack_ts": [
         "1776701594.000000",
@@ -9396,7 +9449,8 @@
         "1776715473.000000",
         "1776716601.000000",
         "1776725169.000000",
-        "1776726028.000000"
+        "1776726028.000000",
+        "1776726540.000000"
       ],
       "timekeeper": "Sofia Ramirez"
     },
@@ -9499,6 +9553,7 @@
       "sent_slack_ts": [
         "1776786900.000000",
         "1776787571.000000",
+        "1776787980.000000",
         "1776794714.000000",
         "1776797100.000000",
         "1776797675.000000",
@@ -9530,8 +9585,8 @@
       "date": "2026-04-21",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000288",
-        "msg-000282"
+        "msg-000293",
+        "msg-000287"
       ],
       "sent_slack_ts": [
         "1776787277.000000",
@@ -9564,7 +9619,7 @@
       "date": "2026-04-21",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000284"
+        "msg-000289"
       ],
       "sent_slack_ts": [
         "1776788766.000000",
@@ -9627,12 +9682,13 @@
       "date": "2026-04-21",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000290"
+        "msg-000295"
       ],
       "sent_slack_ts": [
         "1776787668.000000",
         "1776793957.000000",
-        "1776798263.000000"
+        "1776798263.000000",
+        "1776816720.000000"
       ],
       "timekeeper": "Samuel Marsh"
     },
@@ -9662,7 +9718,7 @@
       "date": "2026-04-21",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000289"
+        "msg-000294"
       ],
       "sent_slack_ts": [
         "1776788972.000000",
@@ -9695,10 +9751,11 @@
       "date": "2026-04-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000293"
+        "msg-000298"
       ],
       "sent_slack_ts": [
         "1776875307.000000",
+        "1776883320.000000",
         "1776884233.000000",
         "1776885073.000000"
       ],
@@ -9758,7 +9815,7 @@
       "date": "2026-04-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000294"
+        "msg-000299"
       ],
       "sent_slack_ts": [
         "1776873300.000000",
@@ -9833,6 +9890,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1776873601.000000",
+        "1776881820.000000",
         "1776884604.000000"
       ],
       "timekeeper": "Noah Feldstein"
@@ -9860,7 +9918,7 @@
       "date": "2026-04-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000295"
+        "msg-000300"
       ],
       "sent_slack_ts": [
         "1776874680.000000",
@@ -9905,7 +9963,7 @@
       "date": "2026-04-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000291"
+        "msg-000296"
       ],
       "sent_slack_ts": [
         "1776866337.000000",
@@ -9943,11 +10001,12 @@
       "date": "2026-04-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000297"
+        "msg-000302"
       ],
       "sent_slack_ts": [
         "1776866030.000000",
         "1776880800.000000",
+        "1776880800.000001",
         "1776886751.000000",
         "1776894254.000000"
       ],
@@ -10075,7 +10134,7 @@
       "date": "2026-04-23",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000301"
+        "msg-000306"
       ],
       "sent_slack_ts": [
         "1776960061.000000",
@@ -10148,7 +10207,7 @@
       "date": "2026-04-23",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000300"
+        "msg-000305"
       ],
       "sent_slack_ts": [
         "1776960877.000000",
@@ -10250,7 +10309,8 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1777047755.000000",
-        "1777064023.000000"
+        "1777064023.000000",
+        "1777068000.000000"
       ],
       "timekeeper": "Diane Okonkwo"
     },
@@ -10350,7 +10410,7 @@
       "date": "2026-04-24",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000306"
+        "msg-000311"
       ],
       "sent_slack_ts": [
         "1777046631.000000",
@@ -10378,6 +10438,7 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
+        "1777050000.000000",
         "1777066931.000000"
       ],
       "timekeeper": "Noah Feldstein"
@@ -10441,7 +10502,7 @@
       "date": "2026-04-24",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000310"
+        "msg-000315"
       ],
       "sent_slack_ts": [
         "1777046454.000000",
@@ -10682,7 +10743,7 @@
       "date": "2026-04-27",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000312"
+        "msg-000318"
       ],
       "sent_slack_ts": [
         "1777306586.000000",
@@ -10720,7 +10781,7 @@
       "date": "2026-04-27",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000316"
+        "msg-000322"
       ],
       "sent_slack_ts": [
         "1777307282.000000",
@@ -10762,7 +10823,7 @@
       "date": "2026-04-27",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000314"
+        "msg-000320"
       ],
       "sent_slack_ts": [
         "1777305900.000000",
@@ -10771,7 +10832,8 @@
         "1777319883.000000",
         "1777323450.000000",
         "1777323546.000000",
-        "1777323773.000000"
+        "1777323773.000000",
+        "1777335120.000000"
       ],
       "timekeeper": "Samuel Marsh"
     },
@@ -10805,6 +10867,7 @@
         "1777306584.000000",
         "1777307238.000000",
         "1777324231.000000",
+        "1777326720.000000",
         "1777331208.000000"
       ],
       "timekeeper": "Sofia Ramirez"
@@ -10826,7 +10889,7 @@
       "date": "2026-04-28",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000327"
+        "msg-000333"
       ],
       "sent_slack_ts": [
         "1777392846.000000"
@@ -10910,6 +10973,7 @@
         "1777399457.000000",
         "1777400035.000000",
         "1777401900.000000",
+        "1777410120.000000",
         "1777414310.000000",
         "1777418084.000000",
         "1777422300.000000"
@@ -10940,8 +11004,8 @@
       "date": "2026-04-28",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000321",
-        "msg-000319"
+        "msg-000327",
+        "msg-000325"
       ],
       "sent_slack_ts": [
         "1777392973.000000",
@@ -11013,9 +11077,9 @@
       "date": "2026-04-28",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000325",
-        "msg-000322",
-        "msg-000328"
+        "msg-000331",
+        "msg-000328",
+        "msg-000334"
       ],
       "sent_slack_ts": [
         "1777393087.000000",
@@ -11085,11 +11149,12 @@
       "date": "2026-04-28",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000323",
-        "msg-000320"
+        "msg-000329",
+        "msg-000326"
       ],
       "sent_slack_ts": [
         "1777393008.000000",
+        "1777408920.000000",
         "1777414575.000000",
         "1777421100.000000"
       ],
@@ -11119,7 +11184,7 @@
       "date": "2026-04-29",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000332"
+        "msg-000338"
       ],
       "sent_slack_ts": [
         "1777479731.000000",
@@ -11151,7 +11216,7 @@
       "date": "2026-04-29",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000330"
+        "msg-000336"
       ],
       "sent_slack_ts": [
         "1777478917.000000",
@@ -11235,7 +11300,7 @@
       "date": "2026-04-29",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000333"
+        "msg-000339"
       ],
       "sent_slack_ts": [
         "1777479449.000000",
@@ -11275,7 +11340,8 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1777478525.000000",
-        "1777497858.000000"
+        "1777497858.000000",
+        "1777499520.000000"
       ],
       "timekeeper": "Noah Feldstein"
     },
@@ -11303,7 +11369,8 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1777484400.000000",
-        "1777499400.000000"
+        "1777499400.000000",
+        "1777500600.000000"
       ],
       "timekeeper": "Peter Novak"
     },
@@ -11419,9 +11486,9 @@
       "date": "2026-04-30",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000337",
-        "msg-000336",
-        "msg-000340"
+        "msg-000343",
+        "msg-000342",
+        "msg-000346"
       ],
       "sent_slack_ts": [
         "1777566410.000000",
@@ -11554,6 +11621,7 @@
       "sent_slack_ts": [
         "1777565803.000000",
         "1777565908.000000",
+        "1777566900.000000",
         "1777570800.000000",
         "1777583398.000000",
         "1777583895.000000",
@@ -11665,6 +11733,7 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
+        "1777651980.000000",
         "1777652292.000000"
       ],
       "timekeeper": "Eleanor Hartwell"
@@ -11697,7 +11766,7 @@
       "date": "2026-05-01",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000342"
+        "msg-000348"
       ],
       "sent_slack_ts": [
         "1777652455.000000",
@@ -11766,8 +11835,8 @@
       "date": "2026-05-01",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000343",
-        "msg-000344"
+        "msg-000349",
+        "msg-000350"
       ],
       "sent_slack_ts": [
         "1777651540.000000",
@@ -11808,7 +11877,7 @@
       "date": "2026-05-01",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000345"
+        "msg-000351"
       ],
       "sent_slack_ts": [
         "1777651828.000000",
@@ -11841,6 +11910,7 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
+        "1777652700.000000",
         "1777652948.000000",
         "1777658825.000000",
         "1777660770.000000",
@@ -11983,7 +12053,7 @@
       "date": "2026-05-04",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000350"
+        "msg-000356"
       ],
       "sent_slack_ts": [
         "1777912094.000000",
@@ -12020,6 +12090,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1777912070.000000",
+        "1777924800.000000",
         "1777939267.000000"
       ],
       "timekeeper": "Marcus Liang"
@@ -12048,9 +12119,9 @@
       "date": "2026-05-04",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000354",
-        "msg-000357",
-        "msg-000351"
+        "msg-000360",
+        "msg-000363",
+        "msg-000357"
       ],
       "sent_slack_ts": [
         "1777910980.000000",
@@ -12086,7 +12157,8 @@
         "1777921681.000000",
         "1777922589.000000",
         "1777938648.000000",
-        "1777939423.000000"
+        "1777939423.000000",
+        "1777939920.000000"
       ],
       "timekeeper": "Peter Novak"
     },
@@ -12115,6 +12187,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1777910974.000000",
+        "1777911600.000000",
         "1777912709.000000",
         "1777918500.000000",
         "1777925746.000000",
@@ -12194,7 +12267,8 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1777998397.000000",
-        "1778007777.000000"
+        "1778007777.000000",
+        "1778019000.000000"
       ],
       "timekeeper": "Eleanor Hartwell"
     },
@@ -12250,7 +12324,7 @@
       "date": "2026-05-05",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000361"
+        "msg-000367"
       ],
       "sent_slack_ts": [
         "1777997014.000000",
@@ -12372,7 +12446,7 @@
       "date": "2026-05-06",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000368"
+        "msg-000374"
       ],
       "sent_slack_ts": [
         "1778089370.000000",
@@ -12397,6 +12471,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1778084671.000000",
+        "1778085300.000000",
         "1778107061.000000",
         "1778111309.000000"
       ],
@@ -12416,7 +12491,7 @@
       "date": "2026-05-06",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000369"
+        "msg-000375"
       ],
       "sent_slack_ts": [
         "1778085588.000000",
@@ -12451,13 +12526,15 @@
       "date": "2026-05-06",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000374",
-        "msg-000370"
+        "msg-000380",
+        "msg-000376",
+        "msg-000382"
       ],
       "sent_slack_ts": [
         "1778083782.000000",
         "1778084212.000000",
         "1778084810.000000",
+        "1778101020.000000",
         "1778110800.000000",
         "1778111915.000000"
       ],
@@ -12507,7 +12584,7 @@
       "date": "2026-05-06",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000376"
+        "msg-000383"
       ],
       "sent_slack_ts": [
         "1778085129.000000",
@@ -12596,8 +12673,8 @@
       "date": "2026-05-07",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000381",
-        "msg-000380"
+        "msg-000388",
+        "msg-000387"
       ],
       "sent_slack_ts": [
         "1778170073.000000",
@@ -12639,12 +12716,13 @@
       "date": "2026-05-07",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000379"
+        "msg-000386"
       ],
       "sent_slack_ts": [
         "1778170735.000000",
         "1778175639.000000",
         "1778178357.000000",
+        "1778186520.000000",
         "1778193894.000000"
       ],
       "timekeeper": "Samuel Marsh"
@@ -12798,7 +12876,7 @@
       "date": "2026-05-08",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000394"
+        "msg-000401"
       ],
       "sent_slack_ts": [
         "1778263830.000000",
@@ -12834,7 +12912,7 @@
       "date": "2026-05-08",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000391"
+        "msg-000398"
       ],
       "sent_slack_ts": [
         "1778256574.000000",
@@ -12881,7 +12959,7 @@
       "date": "2026-05-08",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000388"
+        "msg-000395"
       ],
       "sent_slack_ts": [
         "1778257314.000000",
@@ -12963,7 +13041,7 @@
       "date": "2026-05-11",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000401"
+        "msg-000408"
       ],
       "sent_slack_ts": [
         "1778516993.000000",
@@ -12989,8 +13067,8 @@
       "date": "2026-05-11",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000407",
-        "msg-000400"
+        "msg-000414",
+        "msg-000407"
       ],
       "sent_slack_ts": [
         "1778516624.000000",
@@ -13055,8 +13133,8 @@
       "date": "2026-05-11",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000406",
-        "msg-000410"
+        "msg-000413",
+        "msg-000417"
       ],
       "sent_slack_ts": [
         "1778515536.000000",
@@ -13149,10 +13227,10 @@
       "date": "2026-05-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000418",
-        "msg-000414",
-        "msg-000413",
-        "msg-000421"
+        "msg-000425",
+        "msg-000421",
+        "msg-000420",
+        "msg-000428"
       ],
       "sent_slack_ts": [
         "1778603283.000000",
@@ -13185,12 +13263,13 @@
       "date": "2026-05-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000412"
+        "msg-000419"
       ],
       "sent_slack_ts": [
         "1778597375.000000",
         "1778603334.000000",
         "1778610951.000000",
+        "1778614680.000000",
         "1778616345.000000",
         "1778622672.000000"
       ],
@@ -13226,7 +13305,7 @@
       "date": "2026-05-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000411"
+        "msg-000418"
       ],
       "sent_slack_ts": [
         "1778602731.000000",
@@ -13298,7 +13377,7 @@
       "date": "2026-05-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000422"
+        "msg-000429"
       ],
       "sent_slack_ts": [
         "1778596722.000000",
@@ -13347,6 +13426,7 @@
         "1778607549.000000",
         "1778610567.000000",
         "1778611355.000000",
+        "1778615760.000000",
         "1778628141.000000"
       ],
       "timekeeper": "Sofia Ramirez"
@@ -13395,8 +13475,8 @@
       "date": "2026-05-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000424",
-        "msg-000423"
+        "msg-000431",
+        "msg-000430"
       ],
       "sent_slack_ts": [
         "1778689406.000000",
@@ -13435,7 +13515,7 @@
       "date": "2026-05-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000425"
+        "msg-000432"
       ],
       "sent_slack_ts": [
         "1778688909.000000",
@@ -13469,7 +13549,7 @@
       "date": "2026-05-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000426"
+        "msg-000433"
       ],
       "sent_slack_ts": [
         "1778689359.000000",
@@ -13499,8 +13579,8 @@
       "date": "2026-05-13",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000431",
-        "msg-000430"
+        "msg-000438",
+        "msg-000437"
       ],
       "sent_slack_ts": [
         "1778688905.000000",
@@ -13538,6 +13618,7 @@
       "sent_slack_ts": [
         "1778688169.000000",
         "1778692139.000000",
+        "1778693940.000000",
         "1778694377.000000",
         "1778697371.000000",
         "1778698644.000000",
@@ -13581,10 +13662,12 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1778688705.000000",
+        "1778690100.000000",
         "1778696291.000000",
         "1778698953.000000",
         "1778715596.000000",
-        "1778716155.000000"
+        "1778716155.000000",
+        "1778717520.000000"
       ],
       "timekeeper": "Sofia Ramirez"
     },
@@ -13610,7 +13693,8 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1778775281.000000",
-        "1778776498.000000"
+        "1778776498.000000",
+        "1778782380.000000"
       ],
       "timekeeper": "Diane Okonkwo"
     },
@@ -13638,8 +13722,8 @@
       "date": "2026-05-14",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000439",
-        "msg-000433"
+        "msg-000446",
+        "msg-000440"
       ],
       "sent_slack_ts": [
         "1778775338.000000",
@@ -13747,6 +13831,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1778777221.000000",
+        "1778783580.000000",
         "1778783589.000000",
         "1778783915.000000"
       ],
@@ -13776,7 +13861,7 @@
       "date": "2026-05-14",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000436"
+        "msg-000443"
       ],
       "sent_slack_ts": [
         "1778769140.000000",
@@ -13808,7 +13893,7 @@
       "date": "2026-05-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000443"
+        "msg-000450"
       ],
       "sent_slack_ts": [
         "1778860985.000000"
@@ -13956,8 +14041,8 @@
       "date": "2026-05-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000442",
-        "msg-000441"
+        "msg-000449",
+        "msg-000448"
       ],
       "sent_slack_ts": [
         "1778860989.000000",
@@ -13989,7 +14074,7 @@
       "date": "2026-05-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000440"
+        "msg-000447"
       ],
       "sent_slack_ts": [
         "1778862219.000000",
@@ -14123,7 +14208,7 @@
       "date": "2026-05-18",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000451"
+        "msg-000458"
       ],
       "sent_slack_ts": [
         "1779120560.000000",
@@ -14161,7 +14246,9 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1779121651.000000",
-        "1779135961.000000"
+        "1779127200.000000",
+        "1779135961.000000",
+        "1779149520.000000"
       ],
       "timekeeper": "Noah Feldstein"
     },
@@ -14191,11 +14278,12 @@
       "date": "2026-05-18",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000450"
+        "msg-000457"
       ],
       "sent_slack_ts": [
         "1779120535.000000",
         "1779121133.000000",
+        "1779140160.000000",
         "1779160015.000000"
       ],
       "timekeeper": "Peter Novak"
@@ -14253,7 +14341,7 @@
       "date": "2026-05-19",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000457"
+        "msg-000464"
       ],
       "sent_slack_ts": [
         "1779206502.000000",
@@ -14283,7 +14371,7 @@
       "date": "2026-05-19",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000458"
+        "msg-000465"
       ],
       "sent_slack_ts": [
         "1779206961.000000",
@@ -14312,7 +14400,7 @@
       "date": "2026-05-19",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000459"
+        "msg-000466"
       ],
       "sent_slack_ts": [
         "1779207278.000000",
@@ -14358,6 +14446,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1779207102.000000",
+        "1779209280.000000",
         "1779231484.000000"
       ],
       "timekeeper": "Marcus Liang"
@@ -14429,6 +14518,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1779207722.000000",
+        "1779208380.000000",
         "1779230904.000000"
       ],
       "timekeeper": "Peter Novak"
@@ -14547,8 +14637,8 @@
       "date": "2026-05-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000466",
-        "msg-000465"
+        "msg-000473",
+        "msg-000472"
       ],
       "sent_slack_ts": [
         "1779293211.000000",
@@ -14614,7 +14704,8 @@
       "date": "2026-05-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000463"
+        "msg-000479",
+        "msg-000470"
       ],
       "sent_slack_ts": [
         "1779294302.000000",
@@ -14737,7 +14828,7 @@
       "date": "2026-05-20",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000468"
+        "msg-000475"
       ],
       "sent_slack_ts": [
         "1779285746.000000",
@@ -14801,7 +14892,7 @@
       "date": "2026-05-21",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000474"
+        "msg-000482"
       ],
       "sent_slack_ts": [
         "1779407604.000000",
@@ -14841,7 +14932,8 @@
         "1779383015.000000",
         "1779392939.000000",
         "1779396156.000000",
-        "1779400013.000000"
+        "1779400013.000000",
+        "1779403620.000000"
       ],
       "timekeeper": "Grace Adeyemi"
     },
@@ -14869,7 +14961,7 @@
       "date": "2026-05-21",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000473"
+        "msg-000481"
       ],
       "sent_slack_ts": [
         "1779379350.000000",
@@ -14935,7 +15027,7 @@
       "date": "2026-05-21",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000472"
+        "msg-000480"
       ],
       "sent_slack_ts": [
         "1779380792.000000",
@@ -14981,7 +15073,8 @@
         "1779399904.000000",
         "1779400499.000000",
         "1779402485.000000",
-        "1779408326.000000"
+        "1779408326.000000",
+        "1779408720.000000"
       ],
       "timekeeper": "Samuel Marsh"
     },
@@ -15038,7 +15131,7 @@
       "date": "2026-05-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000480"
+        "msg-000488"
       ],
       "sent_slack_ts": [
         "1779467297.000000",
@@ -15064,12 +15157,13 @@
       "date": "2026-05-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000479"
+        "msg-000487"
       ],
       "sent_slack_ts": [
         "1779467298.000000",
         "1779486263.000000",
-        "1779488920.000000"
+        "1779488920.000000",
+        "1779493380.000000"
       ],
       "timekeeper": "Eleanor Hartwell"
     },
@@ -15134,7 +15228,7 @@
       "date": "2026-05-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000482"
+        "msg-000490"
       ],
       "sent_slack_ts": [
         "1779459575.000000",
@@ -15256,7 +15350,7 @@
       "date": "2026-05-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000477"
+        "msg-000485"
       ],
       "sent_slack_ts": [
         "1779471677.000000"
@@ -15410,12 +15504,13 @@
       "date": "2026-05-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000492"
+        "msg-000500"
       ],
       "sent_slack_ts": [
         "1779811399.000000",
         "1779816803.000000",
         "1779821562.000000",
+        "1779824760.000000",
         "1779838354.000000"
       ],
       "timekeeper": "Grace Adeyemi"
@@ -15448,9 +15543,9 @@
       "date": "2026-05-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000488",
-        "msg-000491",
-        "msg-000489"
+        "msg-000496",
+        "msg-000499",
+        "msg-000497"
       ],
       "sent_slack_ts": [
         "1779811327.000000",
@@ -15482,7 +15577,7 @@
       "date": "2026-05-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000494"
+        "msg-000502"
       ],
       "sent_slack_ts": [
         "1779811218.000000",
@@ -15521,6 +15616,7 @@
       "sent_slack_ts": [
         "1779811512.000000",
         "1779822037.000000",
+        "1779825840.000000",
         "1779826135.000000"
       ],
       "timekeeper": "Peter Novak"
@@ -15546,7 +15642,7 @@
       "date": "2026-05-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000490"
+        "msg-000498"
       ],
       "sent_slack_ts": [
         "1779812425.000000",
@@ -15618,8 +15714,8 @@
       "date": "2026-05-27",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000497",
-        "msg-000498"
+        "msg-000505",
+        "msg-000506"
       ],
       "sent_slack_ts": [
         "1779898140.000000"
@@ -15683,7 +15779,7 @@
       "date": "2026-05-27",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000496"
+        "msg-000504"
       ],
       "sent_slack_ts": [
         "1779897796.000000",
@@ -15717,7 +15813,8 @@
       "sent_slack_ts": [
         "1779898907.000000",
         "1779913717.000000",
-        "1779918600.000000"
+        "1779918600.000000",
+        "1779927120.000000"
       ],
       "timekeeper": "Marcus Liang"
     },
@@ -15776,9 +15873,10 @@
       "date": "2026-05-27",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000500"
+        "msg-000508"
       ],
       "sent_slack_ts": [
+        "1779899700.000000",
         "1779906355.000000",
         "1779906847.000000",
         "1779912903.000000",
@@ -15842,10 +15940,11 @@
       "date": "2026-05-27",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000499"
+        "msg-000507"
       ],
       "sent_slack_ts": [
-        "1779898771.000000"
+        "1779898771.000000",
+        "1779914820.000000"
       ],
       "timekeeper": "Sofia Ramirez"
     },
@@ -15896,9 +15995,9 @@
       "date": "2026-05-28",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000511",
-        "msg-000512",
-        "msg-000509"
+        "msg-000519",
+        "msg-000520",
+        "msg-000517"
       ],
       "sent_slack_ts": [
         "1779985384.000000",
@@ -15936,11 +16035,14 @@
       ],
       "date": "2026-05-28",
       "disposition": "cleared_by_communication",
-      "sent_gmail_ids": [],
+      "sent_gmail_ids": [
+        "msg-000521"
+      ],
       "sent_slack_ts": [
         "1779977036.000000",
         "1779985539.000000",
         "1779986679.000000",
+        "1779991860.000000",
         "1779995287.000000",
         "1780010845.000000"
       ],
@@ -16045,7 +16147,7 @@
       "date": "2026-05-28",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000507"
+        "msg-000515"
       ],
       "sent_slack_ts": [
         "1779976224.000000",
@@ -16081,12 +16183,13 @@
       "date": "2026-05-28",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000504"
+        "msg-000512"
       ],
       "sent_slack_ts": [
         "1779985484.000000",
         "1779985833.000000",
         "1779986994.000000",
+        "1779990960.000000",
         "1780003666.000000",
         "1780003976.000000",
         "1780008600.000000"
@@ -16230,7 +16333,7 @@
       "date": "2026-05-29",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000515"
+        "msg-000524"
       ],
       "sent_slack_ts": [
         "1780071598.000000",
@@ -16274,6 +16377,7 @@
         "1780072381.000000",
         "1780084871.000000",
         "1780085733.000000",
+        "1780088040.000000",
         "1780091529.000000",
         "1780097489.000000"
       ],
@@ -16308,6 +16412,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1780071719.000000",
+        "1780089240.000000",
         "1780090560.000000",
         "1780091060.000000"
       ],
@@ -16352,7 +16457,8 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
-        "1780340952.000000"
+        "1780340952.000000",
+        "1780359120.000000"
       ],
       "timekeeper": "Diane Okonkwo"
     },
@@ -16464,6 +16570,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1780329690.000000",
+        "1780331580.000000",
         "1780340130.000000"
       ],
       "timekeeper": "Noah Feldstein"
@@ -16499,7 +16606,7 @@
       "date": "2026-06-01",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000526"
+        "msg-000535"
       ],
       "sent_slack_ts": [
         "1780329828.000000",
@@ -16673,8 +16780,8 @@
       "date": "2026-06-02",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000530",
-        "msg-000535"
+        "msg-000539",
+        "msg-000544"
       ],
       "sent_slack_ts": [
         "1780422000.000000",
@@ -16827,7 +16934,7 @@
       "date": "2026-06-02",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000533"
+        "msg-000542"
       ],
       "sent_slack_ts": [
         "1780416239.000000",
@@ -16947,13 +17054,14 @@
       "date": "2026-06-03",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000538",
-        "msg-000539"
+        "msg-000547",
+        "msg-000548"
       ],
       "sent_slack_ts": [
         "1780503354.000000",
         "1780506727.000000",
-        "1780513200.000000"
+        "1780513200.000000",
+        "1780525860.000000"
       ],
       "timekeeper": "Marcus Liang"
     },
@@ -17026,7 +17134,8 @@
         "1780503278.000000",
         "1780505933.000000",
         "1780508307.000000",
-        "1780509653.000000"
+        "1780509653.000000",
+        "1780526340.000000"
       ],
       "timekeeper": "Peter Novak"
     },
@@ -17089,7 +17198,7 @@
       "date": "2026-06-03",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000537"
+        "msg-000546"
       ],
       "sent_slack_ts": [
         "1780503960.000000",
@@ -17117,7 +17226,7 @@
       "date": "2026-06-04",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000544"
+        "msg-000553"
       ],
       "sent_slack_ts": [
         "1780589291.000000",
@@ -17149,7 +17258,8 @@
         "1780611798.000000",
         "1780611799.000000",
         "1780613033.000000",
-        "1780615051.000000"
+        "1780615051.000000",
+        "1780618320.000000"
       ],
       "timekeeper": "Grace Adeyemi"
     },
@@ -17175,7 +17285,7 @@
       "date": "2026-06-04",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000548"
+        "msg-000557"
       ],
       "sent_slack_ts": [
         "1780588885.000000",
@@ -17280,7 +17390,7 @@
       "date": "2026-06-04",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000545"
+        "msg-000554"
       ],
       "sent_slack_ts": [
         "1780588844.000000",
@@ -17290,6 +17400,7 @@
         "1780604788.000000",
         "1780605760.000000",
         "1780612091.000000",
+        "1780614600.000000",
         "1780614958.000000"
       ],
       "timekeeper": "Samuel Marsh"
@@ -17422,8 +17533,8 @@
       "date": "2026-06-05",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000555",
-        "msg-000551"
+        "msg-000564",
+        "msg-000560"
       ],
       "sent_slack_ts": [
         "1780676120.000000",
@@ -17460,6 +17571,7 @@
       "sent_slack_ts": [
         "1780676396.000000",
         "1780677396.000000",
+        "1780683420.000000",
         "1780704229.000000"
       ],
       "timekeeper": "Noah Feldstein"
@@ -17493,6 +17605,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1780675336.000000",
+        "1780684140.000000",
         "1780688326.000000",
         "1780692696.000000",
         "1780696572.000000",
@@ -17569,8 +17682,8 @@
       "date": "2026-06-05",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000553",
-        "msg-000552"
+        "msg-000562",
+        "msg-000561"
       ],
       "sent_slack_ts": [
         "1780676403.000000",
@@ -17617,8 +17730,8 @@
       "date": "2026-06-08",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000566",
-        "msg-000560"
+        "msg-000575",
+        "msg-000569"
       ],
       "sent_slack_ts": [
         "1780936165.000000"
@@ -17645,8 +17758,8 @@
       "date": "2026-06-08",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000562",
-        "msg-000564"
+        "msg-000571",
+        "msg-000573"
       ],
       "sent_slack_ts": [
         "1780935666.000000",
@@ -17772,11 +17885,12 @@
       "date": "2026-06-08",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000559"
+        "msg-000568"
       ],
       "sent_slack_ts": [
         "1780929612.000000",
         "1780934901.000000",
+        "1780935600.000000",
         "1780950610.000000",
         "1780957800.000000",
         "1780960500.000000"
@@ -17870,7 +17984,7 @@
       "date": "2026-06-09",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000569"
+        "msg-000578"
       ],
       "sent_slack_ts": [
         "1781031026.000000"
@@ -17896,6 +18010,7 @@
         "1781022088.000000",
         "1781022214.000000",
         "1781038023.000000",
+        "1781038920.000000",
         "1781055462.000000"
       ],
       "timekeeper": "Eleanor Hartwell"
@@ -17921,7 +18036,7 @@
       "date": "2026-06-09",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000572"
+        "msg-000581"
       ],
       "sent_slack_ts": [
         "1781021340.000000",
@@ -17958,8 +18073,8 @@
       "date": "2026-06-09",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000571",
-        "msg-000577"
+        "msg-000580",
+        "msg-000586"
       ],
       "sent_slack_ts": [
         "1781021462.000000",
@@ -17991,7 +18106,7 @@
       "date": "2026-06-09",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000570"
+        "msg-000579"
       ],
       "sent_slack_ts": [
         "1781022422.000000",
@@ -18019,7 +18134,7 @@
       "date": "2026-06-09",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000568"
+        "msg-000577"
       ],
       "sent_slack_ts": [
         "1781022149.000000",
@@ -18053,6 +18168,7 @@
         "1781021905.000000",
         "1781037134.000000",
         "1781037322.000000",
+        "1781039820.000000",
         "1781040218.000000",
         "1781048039.000000"
       ],
@@ -18241,7 +18357,7 @@
       "date": "2026-06-10",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000584"
+        "msg-000594"
       ],
       "sent_slack_ts": [
         "1781109600.000000",
@@ -18318,7 +18434,9 @@
       ],
       "date": "2026-06-10",
       "disposition": "cleared_by_communication",
-      "sent_gmail_ids": [],
+      "sent_gmail_ids": [
+        "msg-000593"
+      ],
       "sent_slack_ts": [
         "1781107265.000000",
         "1781109468.000000",
@@ -18385,7 +18503,7 @@
       "date": "2026-06-11",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000589"
+        "msg-000599"
       ],
       "sent_slack_ts": [
         "1781194860.000000",
@@ -18418,7 +18536,7 @@
       "date": "2026-06-11",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000591"
+        "msg-000601"
       ],
       "sent_slack_ts": [
         "1781194697.000000",
@@ -18450,7 +18568,8 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
-        "1781194238.000000"
+        "1781194238.000000",
+        "1781211000.000000"
       ],
       "timekeeper": "Marcus Liang"
     },
@@ -18587,11 +18706,12 @@
       "date": "2026-06-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000602"
+        "msg-000612"
       ],
       "sent_slack_ts": [
         "1781281108.000000",
         "1781290985.000000",
+        "1781291880.000000",
         "1781292442.000000",
         "1781303285.000000",
         "1781303469.000000"
@@ -18648,7 +18768,7 @@
       "date": "2026-06-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000593"
+        "msg-000603"
       ],
       "sent_slack_ts": [
         "1781280522.000000",
@@ -18715,8 +18835,8 @@
       "date": "2026-06-12",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000597",
-        "msg-000601"
+        "msg-000607",
+        "msg-000611"
       ],
       "sent_slack_ts": [
         "1781281443.000000",
@@ -18827,7 +18947,7 @@
       "date": "2026-06-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000605"
+        "msg-000615"
       ],
       "sent_slack_ts": [
         "1781552985.000000"
@@ -18855,9 +18975,10 @@
       "date": "2026-06-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000611"
+        "msg-000621"
       ],
       "sent_slack_ts": [
+        "1781539620.000000",
         "1781547537.000000",
         "1781557938.000000",
         "1781557948.000000",
@@ -18921,7 +19042,7 @@
       "date": "2026-06-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000608"
+        "msg-000618"
       ],
       "sent_slack_ts": [
         "1781540236.000000",
@@ -18983,7 +19104,7 @@
       "date": "2026-06-15",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000607"
+        "msg-000617"
       ],
       "sent_slack_ts": [
         "1781541900.000001",
@@ -19162,8 +19283,8 @@
       "date": "2026-06-16",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000616",
-        "msg-000615"
+        "msg-000626",
+        "msg-000625"
       ],
       "sent_slack_ts": [
         "1781626786.000000",
@@ -19192,8 +19313,8 @@
       "date": "2026-06-16",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000620",
-        "msg-000618"
+        "msg-000630",
+        "msg-000628"
       ],
       "sent_slack_ts": [
         "1781626057.000000",
@@ -19229,7 +19350,7 @@
       "date": "2026-06-16",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000613"
+        "msg-000623"
       ],
       "sent_slack_ts": [
         "1781626206.000000",
@@ -19237,7 +19358,8 @@
         "1781632998.000000",
         "1781650040.000000",
         "1781650148.000000",
-        "1781650764.000000"
+        "1781650764.000000",
+        "1781655120.000000"
       ],
       "timekeeper": "Samuel Marsh"
     },
@@ -19266,7 +19388,7 @@
       "date": "2026-06-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000624"
+        "msg-000634"
       ],
       "sent_slack_ts": [
         "1781712968.000000"
@@ -19294,7 +19416,7 @@
       "date": "2026-06-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000625"
+        "msg-000635"
       ],
       "sent_slack_ts": [
         "1781712428.000000",
@@ -19324,7 +19446,7 @@
       "date": "2026-06-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000622"
+        "msg-000632"
       ],
       "sent_slack_ts": [
         "1781712779.000000",
@@ -19368,7 +19490,7 @@
       "date": "2026-06-17",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000621"
+        "msg-000631"
       ],
       "sent_slack_ts": [
         "1781713030.000000",
@@ -19549,6 +19671,7 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1781799470.000000",
+        "1781804400.000000",
         "1781804451.000000",
         "1781805186.000000",
         "1781816741.000000"
@@ -19585,7 +19708,7 @@
       "date": "2026-06-18",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000629"
+        "msg-000639"
       ],
       "sent_slack_ts": [
         "1781799091.000000",
@@ -19617,13 +19740,14 @@
       "date": "2026-06-18",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000630",
-        "msg-000628",
-        "msg-000633"
+        "msg-000640",
+        "msg-000638",
+        "msg-000643"
       ],
       "sent_slack_ts": [
         "1781799496.000000",
         "1781804821.000000",
+        "1781805120.000000",
         "1781807859.000000"
       ],
       "timekeeper": "Peter Novak"
@@ -19767,7 +19891,7 @@
       "date": "2026-06-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000647"
+        "msg-000657"
       ],
       "sent_slack_ts": [
         "1782144094.000000",
@@ -19792,7 +19916,7 @@
       "date": "2026-06-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000650"
+        "msg-000660"
       ],
       "sent_slack_ts": [
         "1782144000.000000",
@@ -19837,6 +19961,7 @@
         "1782144215.000000",
         "1782147569.000000",
         "1782156403.000000",
+        "1782157560.000000",
         "1782166671.000000",
         "1782191344.000000"
       ],
@@ -19905,10 +20030,11 @@
       "date": "2026-06-22",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000646"
+        "msg-000656"
       ],
       "sent_slack_ts": [
         "1782144903.000000",
+        "1782146400.000000",
         "1782160354.000000",
         "1782166106.000000",
         "1782166500.000000",
@@ -19948,7 +20074,8 @@
         "1782156804.000000",
         "1782156824.000000",
         "1782157614.000000",
-        "1782163769.000000"
+        "1782163769.000000",
+        "1782173520.000000"
       ],
       "timekeeper": "Samuel Marsh"
     },
@@ -20129,13 +20256,14 @@
       "date": "2026-06-23",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000657"
+        "msg-000667"
       ],
       "sent_slack_ts": [
         "1782230502.000000",
         "1782242869.000000",
         "1782243406.000000",
-        "1782244315.000000"
+        "1782244315.000000",
+        "1782258600.000000"
       ],
       "timekeeper": "Peter Novak"
     },
@@ -20242,7 +20370,7 @@
       "date": "2026-06-24",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000665"
+        "msg-000675"
       ],
       "sent_slack_ts": [
         "1782316949.000000",
@@ -20273,7 +20401,7 @@
       "date": "2026-06-24",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000658"
+        "msg-000668"
       ],
       "sent_slack_ts": [
         "1782318121.000000",
@@ -20384,7 +20512,8 @@
       "sent_gmail_ids": [],
       "sent_slack_ts": [
         "1782317652.000000",
-        "1782319680.000000"
+        "1782319680.000000",
+        "1782329520.000000"
       ],
       "timekeeper": "Noah Feldstein"
     },
@@ -20411,10 +20540,11 @@
       "date": "2026-06-24",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000664",
-        "msg-000661"
+        "msg-000674",
+        "msg-000671"
       ],
       "sent_slack_ts": [
+        "1782328440.000000",
         "1782328476.000000",
         "1782329118.000000",
         "1782340200.000000"
@@ -20489,7 +20619,7 @@
       "date": "2026-06-24",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000659"
+        "msg-000669"
       ],
       "sent_slack_ts": [
         "1782317004.000000"
@@ -20514,7 +20644,7 @@
       "date": "2026-06-25",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000667"
+        "msg-000677"
       ],
       "sent_slack_ts": [
         "1782430987.000000"
@@ -20579,7 +20709,7 @@
       "date": "2026-06-25",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000669"
+        "msg-000679"
       ],
       "sent_slack_ts": [
         "1782403970.000000",
@@ -20618,10 +20748,12 @@
       "date": "2026-06-25",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000668"
+        "msg-000678"
       ],
       "sent_slack_ts": [
         "1782404054.000000",
+        "1782410400.000000",
+        "1782411060.000000",
         "1782412868.000000"
       ],
       "timekeeper": "Marcus Liang"
@@ -20639,10 +20771,11 @@
       "date": "2026-06-25",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000670"
+        "msg-000680"
       ],
       "sent_slack_ts": [
         "1782404493.000000",
+        "1782405300.000000",
         "1782407127.000000",
         "1782408219.000000",
         "1782409800.000000",
@@ -20743,6 +20876,7 @@
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [],
       "sent_slack_ts": [
+        "1782410160.000000",
         "1782425622.000000"
       ],
       "timekeeper": "Sofia Ramirez"
@@ -20794,8 +20928,8 @@
       "date": "2026-06-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000673",
-        "msg-000676"
+        "msg-000683",
+        "msg-000686"
       ],
       "sent_slack_ts": [
         "1782487233.000000",
@@ -20869,7 +21003,8 @@
       "date": "2026-06-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000675"
+        "msg-000690",
+        "msg-000685"
       ],
       "sent_slack_ts": [
         "1782491218.000000",
@@ -20905,7 +21040,7 @@
       "date": "2026-06-26",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000679"
+        "msg-000689"
       ],
       "sent_slack_ts": [
         "1782499182.000000",
@@ -21085,7 +21220,7 @@
       "date": "2026-06-29",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000687"
+        "msg-000698"
       ],
       "sent_slack_ts": [
         "1782749894.000000",
@@ -21131,7 +21266,7 @@
       "date": "2026-06-29",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000682"
+        "msg-000693"
       ],
       "sent_slack_ts": [
         "1782750342.000000",
@@ -21165,10 +21300,11 @@
       "date": "2026-06-29",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000685"
+        "msg-000696"
       ],
       "sent_slack_ts": [
-        "1782750401.000000"
+        "1782750401.000000",
+        "1782766920.000000"
       ],
       "timekeeper": "Marcus Liang"
     },
@@ -21199,7 +21335,7 @@
       "date": "2026-06-29",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000689"
+        "msg-000700"
       ],
       "sent_slack_ts": [
         "1782761105.000000",
@@ -21224,12 +21360,13 @@
       "date": "2026-06-29",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000683"
+        "msg-000694"
       ],
       "sent_slack_ts": [
         "1782749615.000000",
         "1782760679.000000",
         "1782761590.000000",
+        "1782766440.000000",
         "1782766459.000000"
       ],
       "timekeeper": "Peter Novak"
@@ -21326,8 +21463,8 @@
       "date": "2026-06-30",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000696",
-        "msg-000690"
+        "msg-000707",
+        "msg-000701"
       ],
       "sent_slack_ts": [
         "1782836733.000000"
@@ -21357,7 +21494,7 @@
       "date": "2026-06-30",
       "disposition": "cleared_by_communication",
       "sent_gmail_ids": [
-        "msg-000691"
+        "msg-000702"
       ],
       "sent_slack_ts": [
         "1782835673.000000",

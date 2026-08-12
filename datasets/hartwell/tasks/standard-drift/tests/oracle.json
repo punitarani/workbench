@@ -76,7 +76,7 @@
       "date": "2026-06-18",
       "document_path": "/firm/vendor-ndas/mutual-nda-baymark.md",
       "email_ids": [
-        "msg-000633"
+        "msg-000643"
       ],
       "sign_off": "present",
       "sign_off_date": "2026-06-17",
@@ -138,11 +138,11 @@
       "date": "2026-06-23",
       "document_path": "/firm/vendor-ndas/mutual-nda-harborlight.md",
       "email_ids": [
-        "msg-000657"
+        "msg-000667"
       ],
       "sign_off": "present",
       "sign_off_date": "2026-06-22",
-      "sign_off_ref": "msg-000650",
+      "sign_off_ref": "msg-000660",
       "version_id": "LEGAL!30.3"
     },
     {
@@ -150,11 +150,11 @@
       "date": "2026-06-10",
       "document_path": "/firm/vendor-ndas/mutual-nda-ironclad.md",
       "email_ids": [
-        "msg-000584"
+        "msg-000594"
       ],
       "sign_off": "after_the_fact",
       "sign_off_date": "2026-06-12",
-      "sign_off_ref": "msg-000602",
+      "sign_off_ref": "msg-000612",
       "version_id": "LEGAL!34.2"
     },
     {
@@ -162,11 +162,11 @@
       "date": "2026-05-13",
       "document_path": "/firm/vendor-ndas/mutual-nda-lexipoint.md",
       "email_ids": [
-        "msg-000431"
+        "msg-000438"
       ],
       "sign_off": "present",
       "sign_off_date": "2026-05-12",
-      "sign_off_ref": "msg-000421",
+      "sign_off_ref": "msg-000428",
       "version_id": "LEGAL!32.2"
     },
     {

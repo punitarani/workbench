@@ -167,7 +167,7 @@
         1539
       ],
       "gmail_message_ids": [
-        "msg-000227"
+        "msg-000231"
       ],
       "minutes": 558,
       "slack_message_ts": [
@@ -388,7 +388,7 @@
         1929
       ],
       "gmail_message_ids": [
-        "msg-000287"
+        "msg-000292"
       ],
       "minutes": 762,
       "slack_message_ts": [],
@@ -715,8 +715,8 @@
   "_evidence": {
     "activities": "Fresh bundle: Clio tkt-000001 (00001-MeridianBioLabs) has 7 diligence/data-room entries dated strictly after 2026-04-03 (Apr 6 x2, Apr 8, Apr 10 x2, Apr 14, Apr 16), totalling 890 minutes across Marcus Liang (675) and Peter Novak (215). Clio activity ids are the server's positional ids (1-based, time-ordered across all matters): 1374, 1378, 1481, 1575, 1577, 1666, 1756.",
     "decoys": "Near misses on every side of the join: 5 diligence/data-room entries on or before the cutoff (Mar 31, Apr 1, Apr 2, and two on Apr 3 itself — the call-prep entry and a data-room coordination entry), post-cutoff diligence-worded entries on OTHER matters (Lumen licensing Apr 8, Solstice asset purchase Apr 14), and post-cutoff Meridian entries describing the scope expansion without the diligence wording (Apr 22). A whole-April keyword sum, an on-or-after sum, and a cross-matter keyword sum are all wrong.",
-    "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio, and since round 4 the instruction no longer states it either: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-002120 (ts 6185100.002105, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
-    "challenge": "Gmail msg-000389 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her.",
+    "cutoff": "The Apr 3 cutoff is stated nowhere in Gmail or Clio, and since round 4 the instruction no longer states it either: the emails and Eleanor's long matter note (2026-05-15) describe the split with no dates or figures. The only record of the date is Carl Jensen's #billing message chm-002223 (ts 6185100.002105, 2026-05-12): 'Cutoff per Eleanor is the April 3 budget call...'.",
+    "challenge": "Gmail msg-000396 (2026-05-08, Priya Raman) disputes the April invoice. The challenger's identity exists only in Gmail; the note and Slack never name her.",
     "support_audit": "Fresh bundle: 254 Meridian entries fall after the 2026-04-03 cutoff through April 30. A window day is supported when a same-day Gmail or Slack message names the engagement ('meridian', 'diagnostics', or '00001'). Exactly 47 entries across five silent days are unsupported: Apr 4 (4 entries, 300 minutes, 195400 billed cents), Apr 13 (9, 660, 492400), Apr 20 (15, 786, 565750), Apr 22 (16, 1021, 715142), and Apr 25 (3, 120, 89000). Billed cents sum each billable entry's public Clio total after its own cents rounding. The audit groups those entries by day; normalized F1 carries 90% of the preserved 0.56 component weight and exact certification carries 10%."
   },
   "weights": {

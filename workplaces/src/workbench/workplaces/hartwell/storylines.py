@@ -15,7 +15,7 @@ Arcs (PLAN-phase2.md):
 """
 
 from collections.abc import Callable, Mapping
-from datetime import date
+from datetime import date, timedelta
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -46,6 +46,7 @@ from workbench.simulation.chronicle.content import ContentStore
 from workbench.simulation.errors import ConfigError
 from workbench.simulation.lm.protocol import LanguageModel
 from workbench.workplaces.hartwell.genesis import (
+    FEDERAL_HOLIDAYS_2026,
     TIMEKEEPER_RATES,
     WINDOW,
     HartwellGenesis,
@@ -62,6 +63,8 @@ _GA = "per-grace-adeyemi"
 _PN = "per-peter-novak"
 _AB = "per-anita-bailey"
 _CJ = "per-carl-jensen"
+_OM = "per-omar-haddad"
+_TN = "per-tessa-nguyen"
 
 # Externals.
 _PRIYA = "per-priya-raman"  # Meridian BioLabs COO
@@ -494,6 +497,204 @@ S6_OUTBOUND_EMAILS: tuple[tuple[str, int, str, str], ...] = (
         "Goldleaf proposes $260,000 inclusive of all fees and costs, with a "
         "mutual release and confidentiality.",
     ),
+)
+
+# ---------------------------------------------------------------------------
+# S7: the second-read supervision fabric. Grace's quarterly audit asks, for
+# every "quick look at my draft" request in the firm's one-to-one DMs, whether
+# the reviewer came back with their read by the end of the next working day.
+# Procedural chance no longer seeds these requests (voice.STANDING_REQUESTS
+# index 0 is now ordinary filler); the whole request fabric is authored here so
+# every row carries a designed, contested response timing.
+#
+# The load-bearing facts are the request instants and the reviewer's response
+# instants. A response counts as the *read* only if it delivers a verdict on
+# the draft (it carries one of SECOND_READ_REVIEW_MARKERS, or is a directed
+# "Draft read" email). A holding acknowledgement ("got it, I'll look tonight")
+# is NOT the read — it carries no verdict marker, so the derivation skips it,
+# exactly as a careful human reader would. Ordinary DM chatter carries no
+# marker either, so it never counts. The outcome of each row (same_day /
+# next_working_day / unanswered) then falls out of the Pacific calendar date of
+# the first real read against a holiday-aware next-working-day deadline.
+SECOND_READ_REQUEST = "mind taking a quick look at my draft before it goes out?"
+
+# A reviewer message is the *read* iff its lowercased body contains one of
+# these verbatim verdict markers. They are absent from all other traffic
+# (procedural chatter, other arcs) by construction — build_history audits it —
+# so the marker test cleanly separates the read from acknowledgements and noise.
+SECOND_READ_REVIEW_MARKERS: tuple[str, ...] = (
+    "send it out",
+    "good to go",
+    "one redline",
+    "ready to go out",
+    "no changes from me",
+    "ship it",
+    "clear to file",
+    "signed off on the draft",
+)
+# A directed email is a cross-surface read iff its subject carries this marker.
+SECOND_READ_EMAIL_MARKER = "Draft read"
+
+# Response prose pools. Reviews each contain >= 1 verdict marker; holding
+# acknowledgements contain none. Cycled by row for variety so no single body
+# dominates the DM fabric.
+_S7_REVIEWS: tuple[str, ...] = (
+    "read it end to end — clean, send it out.",
+    "looks good to me, you're good to go.",
+    "one redline on the indemnity paragraph, otherwise it's fine.",
+    "gave it a full pass, a couple of edits and it's ready to go out.",
+    "no changes from me, ship it.",
+    "fixed a stray citation; you're clear to file.",
+    "tightened the recitals and signed off on the draft.",
+    "read the whole thing top to bottom — send it out.",
+    "swapped one defined term, otherwise good to go.",
+    "looks clean to me, ready to go out.",
+    "two small edits in track changes, then send it out.",
+    "all yours, no changes from me — ship it.",
+    "checked the exhibits against the index, you're clear to file.",
+    "done — signed off on the draft, good to go.",
+)
+_S7_ACKS: tuple[str, ...] = (
+    "got it — I'll get to it later today.",
+    "seen it, swamped right now, give me an hour.",
+    "on it right after this call.",
+    "noted, I'll take a pass this afternoon.",
+    "can't just yet, I'll circle back before I leave.",
+    "thanks — I'll look once I'm out of the deposition.",
+    "in my queue, I'll come back to you.",
+    "will do, give me a little bit.",
+)
+_S7_EMAIL_SUBJECT = "Draft read — the draft you flagged"
+_S7_EMAIL_BODIES: tuple[str, ...] = (
+    "Read the draft you flagged in chat. It's clean — send it out.",
+    "Went through your draft. One redline on the recitals, otherwise good to go.",
+    "Read it here rather than in chat so I could mark it up in the margin. "
+    "A couple of edits and it's ready to go out.",
+    "Pulled the draft up on the train home and read the whole thing. No "
+    "changes from me, ship it.",
+    "Read your draft against the file. Fixed a cross-reference in section 4; "
+    "you're clear to file.",
+    "Finished the read at my desk. Two typos in the signature block aside, "
+    "send it out.",
+    "Took the draft home and gave it a careful read. Tightened one sentence "
+    "in the recitals — good to go.",
+    "Read it over lunch. The defined terms line up now; ready to go out.",
+    "Marked up the draft in email so you'd have the tracked changes. One "
+    "redline in the indemnity, otherwise fine.",
+    "Read the version you attached earlier. Nothing further from me — no "
+    "changes from me, ship it.",
+    "Went through the exhibits and the body. Renumbered exhibit C; you're "
+    "clear to file.",
+    "Gave the draft a full read on the flight. Cleaned up the cross-refs and "
+    "signed off on the draft.",
+)
+
+# The twelve one-to-one DM lanes, by index. Each is resolved to its
+# conversation id at realize time; the pair is order-independent (dm_between
+# matches on the member set), so asker_index selects which member asks.
+_S7_LANES: tuple[tuple[str, str], ...] = (
+    (_GA, _SM),
+    (_EH, _SM),
+    (_ML, _PN),
+    (_SR, _GA),
+    (_DO, _NF),
+    (_AB, _CJ),
+    (_TN, _OM),
+    (_EH, _AB),
+    (_SM, _SR),
+    (_NF, _PN),
+    (_GA, _PN),
+    (_ML, _SR),
+)
+
+# The request calendar: (lane_index, day, (hour, minute), trap, asker_index).
+# lane_index 0..11 maps to the twelve one-to-one DMs in _S7_LANES order; the
+# asker is that lane's member[asker_index], the reviewer the other member.
+# Traps: SIMPLE (in-lane read within minutes, same day), TZ (same-day evening
+# read whose UTC date is the next day), ACK (holding ack same day, real read
+# next working day), CROSSSD/CROSSNWD (ack in chat, real read by email that
+# same day / the next working day), WEEKEND (Friday ask, Monday read),
+# HOLIDAY (Friday/Thursday ask before a federal holiday, read the first
+# working day after it), LATE (a read that lands past the deadline — recorded
+# but not timely), NONE (only a holding ack, never a read), RESEND1/RESEND2
+# (the same asker re-sends; the reviewer's read answers the re-sent instance,
+# leaving the original with only its acknowledgement).
+S7_REQUESTS: tuple[tuple[int, str, tuple[int, int], str, int], ...] = (
+    (0, "2026-03-02", (9, 20), "TZ", 1),
+    (6, "2026-03-04", (13, 40), "ACK", 0),
+    (5, "2026-03-05", (10, 6), "TZ", 1),
+    (1, "2026-03-06", (11, 15), "WEEKEND", 0),
+    (3, "2026-03-09", (9, 59), "CROSSSD", 1),
+    (8, "2026-03-10", (14, 20), "SIMPLE", 0),
+    (10, "2026-03-11", (13, 27), "TZ", 1),
+    (4, "2026-03-12", (15, 41), "ACK", 1),
+    (9, "2026-03-13", (10, 30), "WEEKEND", 1),
+    (11, "2026-03-16", (12, 27), "TZ", 0),
+    (0, "2026-03-17", (14, 27), "CROSSNWD", 1),
+    (7, "2026-03-19", (12, 39), "ACK", 1),
+    (3, "2026-03-20", (11, 0), "WEEKEND", 0),
+    (8, "2026-03-23", (15, 57), "CROSSSD", 0),
+    (5, "2026-03-24", (9, 9), "TZ", 0),
+    (6, "2026-03-25", (14, 58), "LATE", 1),
+    (1, "2026-03-26", (10, 6), "SIMPLE", 1),
+    (10, "2026-03-27", (13, 30), "NONE", 0),
+    (11, "2026-04-01", (14, 51), "TZ", 1),
+    (2, "2026-04-02", (13, 42), "ACK", 0),
+    (4, "2026-04-03", (13, 0), "WEEKEND", 0),
+    (0, "2026-04-06", (13, 42), "CROSSNWD", 0),
+    (5, "2026-04-08", (9, 42), "TZ", 1),
+    (3, "2026-04-09", (11, 8), "ACK", 0),
+    (8, "2026-04-10", (16, 31), "WEEKEND", 1),
+    (6, "2026-04-13", (12, 33), "TZ", 0),
+    (7, "2026-04-15", (14, 4), "CROSSSD", 0),
+    (10, "2026-04-16", (15, 1), "ACK", 1),
+    (2, "2026-04-17", (16, 6), "WEEKEND", 1),
+    (11, "2026-04-20", (15, 49), "LATE", 0),
+    (0, "2026-04-21", (9, 13), "TZ", 0),
+    (4, "2026-04-22", (11, 17), "RESEND1", 1),
+    (5, "2026-04-23", (13, 0), "CROSSNWD", 0),
+    (4, "2026-04-24", (10, 0), "RESEND2", 1),
+    (8, "2026-04-27", (14, 52), "TZ", 1),
+    (3, "2026-04-28", (13, 42), "NONE", 0),
+    (9, "2026-04-29", (14, 52), "ACK", 0),
+    (1, "2026-05-01", (9, 13), "WEEKEND", 0),
+    (2, "2026-05-04", (13, 0), "TZ", 0),
+    (7, "2026-05-05", (14, 52), "ACK", 1),
+    (10, "2026-05-06", (13, 42), "CROSSSD", 0),
+    (0, "2026-05-07", (13, 42), "TZ", 1),
+    (5, "2026-05-08", (11, 49), "WEEKEND", 0),
+    (3, "2026-05-12", (12, 38), "ACK", 1),
+    (8, "2026-05-13", (10, 39), "TZ", 0),
+    (4, "2026-05-14", (11, 13), "LATE", 0),
+    (6, "2026-05-15", (13, 18), "WEEKEND", 1),
+    (9, "2026-05-18", (14, 36), "TZ", 1),
+    (2, "2026-05-19", (9, 33), "CROSSNWD", 1),
+    (0, "2026-05-21", (15, 47), "TZ", 0),
+    (5, "2026-05-22", (12, 14), "HOLIDAY", 1),
+    (7, "2026-05-22", (16, 43), "HOLIDAY", 0),
+    (10, "2026-05-26", (12, 46), "ACK", 0),
+    (11, "2026-05-27", (13, 47), "TZ", 1),
+    (3, "2026-05-28", (10, 56), "CROSSSD", 0),
+    (8, "2026-05-29", (13, 54), "NONE", 0),
+    (4, "2026-06-01", (9, 33), "TZ", 1),
+    (6, "2026-06-02", (10, 45), "ACK", 0),
+    (2, "2026-06-03", (15, 31), "SIMPLE", 0),
+    (0, "2026-06-04", (16, 10), "TZ", 1),
+    (9, "2026-06-05", (11, 17), "WEEKEND", 0),
+    (5, "2026-06-08", (13, 23), "RESEND1", 0),
+    (1, "2026-06-09", (14, 2), "CROSSNWD", 0),
+    (5, "2026-06-10", (9, 9), "RESEND2", 0),
+    (11, "2026-06-11", (13, 50), "TZ", 0),
+    (7, "2026-06-12", (12, 18), "WEEKEND", 0),
+    (3, "2026-06-15", (9, 7), "ACK", 1),
+    (8, "2026-06-16", (12, 57), "TZ", 1),
+    (2, "2026-06-18", (10, 40), "HOLIDAY", 0),
+    (6, "2026-06-18", (14, 40), "HOLIDAY", 1),
+    (0, "2026-06-22", (12, 46), "TZ", 0),
+    (2, "2026-06-23", (16, 50), "LATE", 1),
+    (9, "2026-06-24", (12, 14), "ACK", 1),
+    (11, "2026-06-25", (10, 56), "CROSSNWD", 1),
+    (2, "2026-06-29", (13, 54), "SIMPLE", 1),
 )
 
 # Load-bearing clause text. These exact strings are the evidence the
@@ -3095,6 +3296,21 @@ def _day_start(day: str) -> int:
     return (date.fromisoformat(day) - WINDOW.date_of(0)).days * 86_400
 
 
+_S7_HOLIDAYS = frozenset(date.fromisoformat(day) for day, _, _ in FEDERAL_HOLIDAYS_2026)
+
+
+def _s7_is_workday(moment: date) -> bool:
+    return moment.weekday() < 5 and moment not in _S7_HOLIDAYS
+
+
+def _s7_next_working_day(moment: date) -> date:
+    """The next Monday-Friday day that is not a federal holiday."""
+    following = moment + timedelta(days=1)
+    while not _s7_is_workday(following):
+        following += timedelta(days=1)
+    return following
+
+
 def _playbook(texts: Mapping[str, str], *, revision: int) -> str:
     parts = [
         f"# {PLAYBOOK_TITLE}",
@@ -3269,6 +3485,7 @@ class StorylineDirector:
         self._anita_carl_dm = dm_between(_AB, _CJ)
         self._grace_peter_dm = dm_between(_GA, _PN)
         self._eleanor_samuel_dm = dm_between(_EH, _SM)
+        self._s7_lanes = tuple(dm_between(first, second) for first, second in _S7_LANES)
         self._refs: dict[str, str] = {}
         self._beats: dict[str, list[tuple[int, _Beat]]] = {}
         self._register_s1()
@@ -3277,6 +3494,7 @@ class StorylineDirector:
         self._register_s4()
         self._register_s5()
         self._register_s6()
+        self._register_s7()
         self._register_fabric(genesis)
         self._register_matter_documents()
         self._register_matter_history()
@@ -6141,6 +6359,116 @@ class StorylineDirector:
                 )
 
             self._on(day, clock, opponent_offer)
+
+    def _register_s7(self) -> None:
+        """The second-read supervision fabric: 75 authored one-to-one requests
+        with designed, contested response timings. A request is the standing
+        phrase in a DM; the reviewer's *read* is a verdict-bearing reply (a
+        SECOND_READ_REVIEW_MARKER in chat, or a "Draft read" email), while a
+        holding acknowledgement carries no marker and so is not the read."""
+        review_n = ack_n = email_n = 0
+
+        def review_body() -> str:
+            nonlocal review_n
+            body = _S7_REVIEWS[review_n % len(_S7_REVIEWS)]
+            review_n += 1
+            return body
+
+        def ack_body() -> str:
+            nonlocal ack_n
+            body = _S7_ACKS[ack_n % len(_S7_ACKS)]
+            ack_n += 1
+            return body
+
+        def email_body() -> str:
+            nonlocal email_n
+            body = _S7_EMAIL_BODIES[email_n % len(_S7_EMAIL_BODIES)]
+            email_n += 1
+            return body
+
+        def chat_on(day: str, clock: int, sender: str, body: str, lane: str) -> None:
+            def beat(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+                self._chat(
+                    minter,
+                    drafts,
+                    at=clock,
+                    sender=sender,
+                    body=body,
+                    conversation=lane,
+                )
+
+            self._on(day, clock, beat)
+
+        def email_on(
+            day: str, clock: int, sender: str, recipient: str, body: str, tag: str
+        ) -> None:
+            def beat(minter: IdMinter, drafts: list[TimedDraft]) -> None:
+                self._email(
+                    minter,
+                    drafts,
+                    at=clock,
+                    sender=sender,
+                    to=(recipient,),
+                    subject=_S7_EMAIL_SUBJECT,
+                    text=body,
+                    thread=tag,
+                    reply=False,
+                )
+
+            self._on(day, clock, beat)
+
+        for index, (lane_index, day, (hour, minute), trap, ask) in enumerate(
+            S7_REQUESTS
+        ):
+            lane = self._s7_lanes[lane_index]
+            members = _S7_LANES[lane_index]
+            asker, reviewer = members[ask], members[1 - ask]
+            request_clock = _at(hour, minute)
+            request_day = date.fromisoformat(day)
+            next_day = _s7_next_working_day(request_day).isoformat()
+            second_day = _s7_next_working_day(
+                _s7_next_working_day(request_day)
+            ).isoformat()
+            chat_on(day, request_clock, asker, SECOND_READ_REQUEST, lane)
+            ack_clock = request_clock
+
+            if trap == "SIMPLE":
+                chat_on(day, request_clock + 8 * 60, reviewer, review_body(), lane)
+            elif trap == "TZ":
+                chat_on(day, _at(17, 12), reviewer, review_body(), lane)
+            elif trap == "ACK":
+                chat_on(day, ack_clock + 18 * 60, reviewer, ack_body(), lane)
+                chat_on(next_day, _at(9, 35), reviewer, review_body(), lane)
+            elif trap == "CROSSSD":
+                chat_on(day, ack_clock + 15 * 60, reviewer, ack_body(), lane)
+                email_on(
+                    day, _at(16, 22), reviewer, asker, email_body(), f"s7.mail.{index}"
+                )
+            elif trap == "CROSSNWD":
+                chat_on(day, ack_clock + 15 * 60, reviewer, ack_body(), lane)
+                email_on(
+                    next_day,
+                    _at(10, 5),
+                    reviewer,
+                    asker,
+                    email_body(),
+                    f"s7.mail.{index}",
+                )
+            elif trap == "WEEKEND":
+                chat_on(day, ack_clock + 12 * 60, reviewer, ack_body(), lane)
+                chat_on(next_day, _at(9, 20), reviewer, review_body(), lane)
+            elif trap == "HOLIDAY":
+                chat_on(day, ack_clock + 12 * 60, reviewer, ack_body(), lane)
+                chat_on(next_day, _at(9, 40), reviewer, review_body(), lane)
+            elif trap == "LATE":
+                chat_on(day, ack_clock + 20 * 60, reviewer, ack_body(), lane)
+                chat_on(second_day, _at(11, 0), reviewer, review_body(), lane)
+            elif trap == "NONE":
+                chat_on(day, ack_clock + 20 * 60, reviewer, ack_body(), lane)
+            elif trap == "RESEND1":
+                chat_on(day, ack_clock + 25 * 60, reviewer, ack_body(), lane)
+            elif trap == "RESEND2":
+                chat_on(day, request_clock + 300 * 60, reviewer, review_body(), lane)
 
     def _register_fabric(self, genesis: HartwellGenesis) -> None:
         texts = self._texts

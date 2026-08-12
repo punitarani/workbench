@@ -83,6 +83,9 @@ from workbench.workplaces.hartwell.storylines import (
     S4_TICKET,
     S5_DM_CORRECTION,
     S5_RECAP_SUBJECT,
+    SECOND_READ_EMAIL_MARKER,
+    SECOND_READ_REQUEST,
+    SECOND_READ_REVIEW_MARKERS,
     StorylineDirector,
     author_content,
     missing_content,
@@ -863,6 +866,77 @@ def audit(log_path: Path, state_dir: Path) -> int:
         and int(recaps[0].time) > int(corrections[0].time)
         and "clerk" in recaps[0].payload.body
         and "we'll confirm" in recaps[0].payload.body,
+    )
+
+    print("S7 second-read supervision fabric:")
+    dm_conversation_ids = {
+        event.payload.conversation_id
+        for event in events
+        if event.payload.kind == "chat.conversation.created"
+        and event.payload.conversation_type == "dm"
+    }
+    review_before_cutoff = "2026-07-01"
+    second_read_requests = [
+        event
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload)
+        and event.payload.conversation_id in dm_conversation_ids
+        and event.payload.body.strip().lower() == SECOND_READ_REQUEST
+        and _event_date(event) < review_before_cutoff
+    ]
+    check(
+        f"the second-read request fabric is exactly 75 authored one-to-one "
+        f"asks ({len(second_read_requests)})",
+        len(second_read_requests) == 75,
+    )
+
+    def has_review_marker(text: str) -> bool:
+        lowered = text.lower()
+        return any(marker in lowered for marker in SECOND_READ_REVIEW_MARKERS)
+
+    # The verdict markers must live ONLY in the arc's reads: DM messages and
+    # "Draft read" emails. Any leak into procedural chatter, a public channel,
+    # or ordinary mail would make the oracle count a phantom read, so it fails
+    # the build rather than shipping.
+    marker_leaks = []
+    draft_read_mail = 0
+    for event in events:
+        payload = event.payload
+        if isinstance(payload, ChatMessagePayload):
+            if has_review_marker(payload.body) and (
+                payload.conversation_id not in dm_conversation_ids
+            ):
+                marker_leaks.append(("public-chat", _event_date(event)))
+        elif isinstance(payload, EmailMessagePayload):
+            is_draft_read = SECOND_READ_EMAIL_MARKER.lower() in payload.subject.lower()
+            if is_draft_read:
+                draft_read_mail += 1
+            elif has_review_marker(f"{payload.subject} {payload.body}"):
+                marker_leaks.append(("mail", _event_date(event)))
+    check(
+        f"verdict markers never leak outside the arc's reads ({marker_leaks})",
+        not marker_leaks,
+    )
+    check(
+        f"the cross-surface reads are exactly 11 'Draft read' emails "
+        f"({draft_read_mail})",
+        draft_read_mail == 11,
+    )
+    # The standing request phrase must not appear on any non-DM surface, or a
+    # keyword sweep would shortcut the seatless DM walk the task charges for.
+    request_leaks = [
+        _event_date(event)
+        for event in events
+        if isinstance(event.payload, ChatMessagePayload | EmailMessagePayload)
+        and SECOND_READ_REQUEST in getattr(event.payload, "body", "").strip().lower()
+        and not (
+            isinstance(event.payload, ChatMessagePayload)
+            and event.payload.conversation_id in dm_conversation_ids
+        )
+    ]
+    check(
+        f"the standing request phrase stays inside the DMs ({request_leaks})",
+        not request_leaks,
     )
 
     print("Fabric realism:")

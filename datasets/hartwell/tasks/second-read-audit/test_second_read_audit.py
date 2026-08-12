@@ -28,6 +28,20 @@ PACIFIC = ZoneInfo("America/Los_Angeles")
 # June." Derived here rather than imported from solve.py so this
 # re-derivation stays independent of the oracle.
 REVIEW_SCOPE_SECONDS = (date(2026, 7, 1) - EPOCH).days * 86_400
+# A reply is the *read* only if it delivers a verdict on the draft (a marker
+# in chat, or a "Draft read" email); a bare acknowledgement is not.
+REVIEW_MARKERS = (
+    "send it out",
+    "good to go",
+    "one redline",
+    "ready to go out",
+    "no changes from me",
+    "ship it",
+    "clear to file",
+    "signed off on the draft",
+)
+EMAIL_MARKER = "draft read"
+HOLIDAYS = frozenset({date(2026, 5, 25), date(2026, 6, 19)})
 
 pytestmark = pytest.mark.skipif(
     not BUNDLE.exists(),
@@ -38,7 +52,7 @@ pytestmark = pytest.mark.skipif(
 def test_harbor_rewardkit_layout_replaces_legacy_grader() -> None:
     config = tomllib.loads((TASK / "task.toml").read_text())
     assert config["schema_version"] == "1.3"
-    assert config["metadata"]["reference_tool_path_calls"] == 54
+    assert config["metadata"]["reference_tool_path_calls"] == 57
     assert "harness" not in config
     assert {
         path.name
@@ -85,12 +99,22 @@ def _iso(timestamp: int) -> str:
 
 def _next_working_day(value: date) -> date:
     value += timedelta(days=1)
-    while value.weekday() >= 5:
+    while value.weekday() >= 5 or value in HOLIDAYS:
         value += timedelta(days=1)
     return value
 
 
+def _is_read(body: str) -> bool:
+    lowered = body.lower()
+    return any(marker in lowered for marker in REVIEW_MARKERS)
+
+
 def test_reference_response_audit_matches_fresh_bundle() -> None:
+    """Re-derive the ledger independently of solve.py with the same rules:
+    the read is a verdict-bearing reply (a marker in chat or a 'Draft read'
+    email, never a bare acknowledgement), matched to the request instance it
+    answers by timing across surfaces, then classified against a holiday-aware
+    Pacific next-working-day deadline."""
     completed = subprocess.run(
         [sys.executable, str(TASK / "solution" / "solve.py")],
         cwd=BUNDLE / "workspace",
@@ -115,85 +139,101 @@ def test_reference_response_audit_matches_fresh_bundle() -> None:
             "slack.db", "SELECT conversation_id FROM conversations WHERE kind = 'dm'"
         )
     }
-    messages: dict[str, list[tuple[str, str, int, str]]] = {}
+    requests = []
+    reads: list[tuple[int, str, str, str, str]] = []
     for conversation_id, sender, body, timestamp, timestamp_id in _rows(
         "slack.db",
         "SELECT conversation_id, sender, body, time, ts FROM messages "
         "WHERE time < ? ORDER BY time",
         REVIEW_SCOPE_SECONDS,
     ):
-        if conversation_id in dm_ids:
-            messages.setdefault(conversation_id, []).append(
-                (sender, body, timestamp, timestamp_id)
+        if conversation_id not in dm_ids or len(members[conversation_id]) != 2:
+            continue
+        (other,) = members[conversation_id] - {sender}
+        if body.strip().lower() == REQUEST:
+            requests.append(
+                {
+                    "ts": timestamp_id,
+                    "time": timestamp,
+                    "asked_by": sender,
+                    "asked_of": other,
+                }
             )
+        if _is_read(body):
+            reads.append((timestamp, "slack", timestamp_id, other, sender))
     recipients: dict[str, set[str]] = {}
     for message_id, person_id in _rows(
         "gmail.db", "SELECT message_id, person_id FROM recipients"
     ):
         recipients.setdefault(message_id, set()).add(person_id)
-    mail = [
-        (sender, recipient, timestamp, message_id)
-        for message_id, sender, timestamp in _rows(
-            "gmail.db",
-            "SELECT message_id, sender, time FROM messages WHERE time < ?",
-            REVIEW_SCOPE_SECONDS,
-        )
-        for recipient in recipients.get(message_id, ())
-    ]
+    for message_id, sender, subject, timestamp in _rows(
+        "gmail.db",
+        "SELECT message_id, sender, subject, time FROM messages WHERE time < ?",
+        REVIEW_SCOPE_SECONDS,
+    ):
+        if EMAIL_MARKER in subject.lower():
+            for recipient in recipients.get(message_id, ()):
+                reads.append((timestamp, "gmail", message_id, recipient, sender))
+
+    by_pair: dict[tuple[str, str], list[int]] = {}
+    for index, request in enumerate(requests):
+        by_pair.setdefault((request["asked_by"], request["asked_of"]), []).append(index)
+    for indices in by_pair.values():
+        indices.sort(key=lambda index: requests[index]["time"])
+    for request in requests:
+        request["read"] = None
+    for timestamp, surface, identifier, asker, reviewer in sorted(reads):
+        owner = None
+        for index in by_pair.get((asker, reviewer), ()):
+            if requests[index]["time"] < timestamp:
+                owner = index
+        if owner is None:
+            continue
+        current = requests[owner]["read"]
+        if current is None or timestamp < current[0]:
+            requests[owner]["read"] = (timestamp, surface, identifier)
 
     expected = []
-    for conversation_id, lane in messages.items():
-        for position, (sender, body, asked_at, request_ts) in enumerate(lane):
-            if body.strip().lower() != REQUEST:
-                continue
-            (asked_of,) = members[conversation_id] - {sender}
-            candidates = [
-                (timestamp, "slack", timestamp_id)
-                for reply_sender, _, timestamp, timestamp_id in lane[position + 1 :]
-                if reply_sender == asked_of and timestamp > asked_at
-            ]
-            candidates.extend(
-                (timestamp, "gmail", message_id)
-                for mail_sender, recipient, timestamp, message_id in mail
-                if mail_sender == asked_of
-                and recipient == sender
-                and timestamp > asked_at
-            )
-            first = min(candidates, default=None)
-            asked_on = _day(asked_at)
-            deadline = _next_working_day(asked_on)
-            if first is None:
-                outcome = "unanswered"
-            elif _day(first[0]) == asked_on:
+    for request in requests:
+        asked_on = _day(request["time"])
+        deadline = _next_working_day(asked_on)
+        read = request["read"]
+        if read is None:
+            surface, identifier, at, outcome = "none", "", "", "unanswered"
+        else:
+            when, surface, identifier = read
+            at = _iso(when)
+            read_day = _day(when)
+            if read_day == asked_on:
                 outcome = "same_day"
-            elif _day(first[0]) <= deadline:
+            elif read_day <= deadline:
                 outcome = "next_working_day"
             else:
                 outcome = "unanswered"
-            expected.append(
-                {
-                    "request_ts": request_ts,
-                    "request_date": asked_on.isoformat(),
-                    "asked_by": names[sender],
-                    "asked_of": names[asked_of],
-                    "first_response_surface": first[1] if first else "none",
-                    "first_response_id": first[2] if first else "",
-                    "first_response_at": _iso(first[0]) if first else "",
-                    "outcome": outcome,
-                }
-            )
+        expected.append(
+            {
+                "request_ts": request["ts"],
+                "request_date": asked_on.isoformat(),
+                "asked_by": names[request["asked_by"]],
+                "asked_of": names[request["asked_of"]],
+                "first_response_surface": surface,
+                "first_response_id": identifier,
+                "first_response_at": at,
+                "outcome": outcome,
+            }
+        )
     expected.sort(key=lambda row: float(row["request_ts"]))
     outcomes = Counter(row["outcome"] for row in expected)
     surfaces = Counter(row["first_response_surface"] for row in expected)
 
     assert len(expected) == 75
-    assert outcomes == {"same_day": 67, "next_working_day": 5, "unanswered": 3}
-    assert surfaces == {"slack": 74, "gmail": 1}
+    assert outcomes == {"same_day": 32, "next_working_day": 34, "unanswered": 9}
+    assert surfaces == {"slack": 59, "gmail": 11, "none": 5}
     assert answer["response_audit"] == expected
     assert answer["requests_reviewed"] == 75
-    assert answer["answered_same_day"] == 67
-    assert answer["answered_next_working_day"] == 5
-    assert answer["unanswered_by_deadline"] == 3
+    assert answer["answered_same_day"] == 32
+    assert answer["answered_next_working_day"] == 34
+    assert answer["unanswered_by_deadline"] == 9
 
 
 def run_grader(tmp_path: Path, produce: Path) -> dict[str, float]:
@@ -259,9 +299,9 @@ def test_naive_baseline_earns_strictly_less(tmp_path: Path) -> None:
     solved = run_grader(tmp_path / "a", TASK / "solution" / "solve.sh")
     naive = run_grader(tmp_path / "b", TASK / "baseline" / "naive.sh")
     assert naive["answer"] < solved["answer"] - 0.4, (
-        f"the window and the mail surface must discriminate: naive={naive['answer']}"
+        f"the traps must discriminate: naive={naive['answer']}"
     )
-    assert naive["answer"] > 0.1
+    assert naive["answer"] > 0.01
 
 
 def test_missing_deliverable_scores_zero(tmp_path: Path) -> None:
@@ -277,26 +317,23 @@ def test_grading_is_deterministic(tmp_path: Path) -> None:
     assert first == second
 
 
-def test_the_honest_shortcut_nearly_reproduces_the_ledger(tmp_path: Path) -> None:
-    """The 0.90 oracle-to-naive gap is not a difficulty measurement.
+def test_the_honest_shortcut_loses_most_of_the_ledger(tmp_path: Path) -> None:
+    """The surface reading now fails the majority of rows.
 
-    ``naive.sh`` emits ``"response_audit": []``. That is not a shortcut an
-    agent would take -- it is the baseline declining to build the work
-    product -- and it is why this task appears to discriminate far better
-    than it does. ``honest-shortcut.sh`` applies exactly the same
-    assumptions (Slack only, clock stopped at close of business) all the
-    way through the ledger, and lands 66 of 75 rows exactly right for
-    0.6742, in the same range as fee-dispute's 0.6763.
-
-    Only nine rows turn on the overnight window or the mail surface, so
-    the two traps this task is built around touch 12% of its evidence.
-    The task's own ``naive < solve - 0.4`` requirement fails against this
-    baseline; that assertion is left untouched and pointed at naive.sh,
-    because the fix is to make the traps bite, not to lower the bar.
+    ``honest-shortcut.sh`` carries the plausible surface reading all the way
+    through the ledger: it counts the first reply back (acknowledgements and
+    chatter included), reads Slack only, dates timestamps by the stored clock,
+    and skips weekends but not holidays. That is exactly the reading the arc is
+    built to punish. Where the old fabric let it land ~0.67, the per-row traps
+    -- the acknowledgement-then-read gap, the cross-surface mail reads, the
+    evening reads whose UTC date rolls over, the holiday-skipped deadlines, and
+    the re-sent requests -- now cost it most of its credit. It lands ~0.24, far
+    below the certified 1.0, which is the point: the traps bite.
     """
 
     scored = run_grader(tmp_path, TASK / "baseline" / "honest-shortcut.sh")
 
-    assert 0.65 < scored["answer"] < 0.70, (
-        f"the honest shortcut is worth 0.6742, measured {scored['answer']}"
+    assert scored["answer"] < 0.35, (
+        f"the surface reading must lose the majority of the ledger, "
+        f"measured {scored['answer']}"
     )

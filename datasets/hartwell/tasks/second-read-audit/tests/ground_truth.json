@@ -1,45 +1,124 @@
 {
   "_evidence": {
-    "join": "Directed first-response audit over every one-to-one conversation (12 lanes; chat search never returns them). Seventy-five second-read requests carry the firm's standing phrasing. A request is timely when the person asked first comes back to the asker — later in that same lane or by directed email — by the end of the next working day. Exactly three miss that deadline: 1780688553 (2026-06-05 Fri, Sofia Ramirez -> Grace Adeyemi), 1781021340 (2026-06-09 Tue, Grace Adeyemi -> Peter Novak), and 1782258638 (2026-06-23 Tue, Marcus Liang -> Sofia Ramirez). All three eventually receive late Slack replies, which the retained ledger cites without reclassifying them as timely.",
-    "decoys": "Sixty-seven requests drew their first qualifying answer the same day, including request 1774306652's same-day directed Gmail response. Five first came back after the request day but by the next-working-day deadline. One Friday request first gets a Saturday Slack response; it is timely because Saturday precedes Monday's deadline. A Slack-only or calendar-day reading misclassifies these cross-surface and weekend records.",
-    "grading": "The primary 75-row response ledger carries 0.72 with normalized multiset F1 plus exact certification. The exception summaries, aggregates, and ledger reconciliation are separately graded; a headline-only answer cannot reach half credit."
+    "join": "Directed second-read audit over every one-to-one DM (12 lanes; chat search never reaches them). Seventy-five authored 'quick look at my draft' requests each carry a designed, contested response timing. A request is timely when the reviewer comes back to the asker with the *read itself* \u2014 a verdict on the draft, in the same DM or by a directed 'Draft read' email \u2014 by the end of the next working day, holidays skipped. A holding acknowledgement ('got it, I'll look tonight') is not the read.",
+    "traps": "Most rows punish the surface reading. Same-day evening reads land on the next UTC calendar day, so a machine-time reader over-counts next_working_day. Many reviewers post a same-day acknowledgement and deliver the actual read only the next working day, so counting the first reply back mis-classifies them. Eleven reads arrive by email, invisible to a chat-only sweep. Friday and pre-holiday asks answered the next working day are timely only if weekends and the federal holidays (05-25 Memorial Day, 06-19 Juneteenth) are skipped. Two re-sent requests are answered on their re-sent instance, leaving the original unanswered.",
+    "grading": "The 75-row response ledger carries the bulk weight under normalized multiset F1 plus exact certification; the exception summaries, aggregates, and ledger reconciliation are graded separately, so a headline-only answer cannot reach half credit."
   },
   "requests_reviewed": 75,
   "conversations_reviewed": 12,
   "unanswered_request_ts_prefixes": [
-    "1780688553",
-    "1781021340",
-    "1782258638"
+    "1774475880",
+    "1774643400",
+    "1776725340",
+    "1776881820",
+    "1777408920",
+    "1778782380",
+    "1780088040",
+    "1780950180",
+    "1782258600"
   ],
   "unanswered_requests": [
     {
-      "ts_prefix": "1780688553",
-      "date": "2026-06-05",
-      "asked_by": "Sofia Ramirez",
-      "asked_of": "Grace Adeyemi"
+      "ts_prefix": "1774475880",
+      "date": "2026-03-25",
+      "asked_by": "Omar Haddad",
+      "asked_of": "Tessa Nguyen"
     },
     {
-      "ts_prefix": "1781021340",
-      "date": "2026-06-09",
+      "ts_prefix": "1774643400",
+      "date": "2026-03-27",
       "asked_by": "Grace Adeyemi",
       "asked_of": "Peter Novak"
     },
     {
-      "ts_prefix": "1782258638",
-      "date": "2026-06-23",
+      "ts_prefix": "1776725340",
+      "date": "2026-04-20",
       "asked_by": "Marcus Liang",
       "asked_of": "Sofia Ramirez"
+    },
+    {
+      "ts_prefix": "1776881820",
+      "date": "2026-04-22",
+      "asked_by": "Noah Feldstein",
+      "asked_of": "Diane Okonkwo"
+    },
+    {
+      "ts_prefix": "1777408920",
+      "date": "2026-04-28",
+      "asked_by": "Sofia Ramirez",
+      "asked_of": "Grace Adeyemi"
+    },
+    {
+      "ts_prefix": "1778782380",
+      "date": "2026-05-14",
+      "asked_by": "Diane Okonkwo",
+      "asked_of": "Noah Feldstein"
+    },
+    {
+      "ts_prefix": "1780088040",
+      "date": "2026-05-29",
+      "asked_by": "Samuel Marsh",
+      "asked_of": "Sofia Ramirez"
+    },
+    {
+      "ts_prefix": "1780950180",
+      "date": "2026-06-08",
+      "asked_by": "Anita Bailey",
+      "asked_of": "Carl Jensen"
+    },
+    {
+      "ts_prefix": "1782258600",
+      "date": "2026-06-23",
+      "asked_by": "Peter Novak",
+      "asked_of": "Marcus Liang"
     }
   ],
-  "answered_same_day": 67,
+  "answered_same_day": 32,
   "came_back_later_prefixes": [
-    "1773437079",
-    "1778266154",
-    "1781923922",
-    "1782410206",
-    "1782766459"
+    "1772660400",
+    "1772824500",
+    "1773355260",
+    "1773423000",
+    "1773782820",
+    "1773949140",
+    "1774029600",
+    "1775162520",
+    "1775246400",
+    "1775508120",
+    "1775758080",
+    "1775863860",
+    "1776376860",
+    "1776467160",
+    "1776974400",
+    "1777499520",
+    "1777651980",
+    "1778017920",
+    "1778266140",
+    "1778614680",
+    "1778876280",
+    "1779208380",
+    "1779477240",
+    "1779493380",
+    "1779824760",
+    "1780422300",
+    "1780683420",
+    "1781038920",
+    "1781291880",
+    "1781539620",
+    "1781804400",
+    "1781818800",
+    "1782328440",
+    "1782410160"
   ],
   "asker_markers": [
+    [
+      "anita",
+      "bailey"
+    ],
+    [
+      "diane",
+      "okonkwo"
+    ],
     [
       "grace",
       "adeyemi"
@@ -47,6 +126,22 @@
     [
       "marcus",
       "liang"
+    ],
+    [
+      "noah",
+      "feldstein"
+    ],
+    [
+      "omar",
+      "haddad"
+    ],
+    [
+      "peter",
+      "novak"
+    ],
+    [
+      "samuel",
+      "marsh"
     ],
     [
       "sofia",
