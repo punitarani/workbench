@@ -10,7 +10,9 @@ import pytest
 
 HARTWELL = Path(__file__).parent
 FEE_TASK = HARTWELL / "tasks" / "fee-dispute-reconstruction"
-TASKS = tuple(sorted((HARTWELL / "tasks").iterdir()))
+# Directories only: a stray .DS_Store or editor swap file beside the tasks
+# would otherwise be treated as one and fail on its missing solution/.
+TASKS = tuple(sorted(path for path in (HARTWELL / "tasks").iterdir() if path.is_dir()))
 STAGE_MODULE: dict[str, object] = runpy.run_path(str(HARTWELL / "harbor_stage.py"))
 INSTALL_SH: str = str(STAGE_MODULE["INSTALL_SH"])
 ORACLE_EXECUTABLE: str = "/usr/local/libexec/workbench/oracle"

@@ -169,3 +169,40 @@ def test_reward_wrapper_maps_reward_to_answer(tmp_path: Path) -> None:
         "answer": 1.0,
         "process": 0.0,
     }
+
+
+def test_the_oracle_refuses_an_amount_the_record_does_not_state(
+    tmp_path: Path,
+) -> None:
+    """The certified figures must be the ones the correspondence states.
+
+    Amounts, terms and dispositions are declared in tables keyed on
+    message subjects. Without a cross-check those tables would keep
+    certifying an answer the prose no longer supports: regenerate the
+    world with a different number in the authority mail and the oracle
+    would emit the stale figure while every test still passed. Rewrite
+    one grant and the oracle must refuse to certify.
+    """
+
+    bundle = tmp_path / "bundle"
+    shutil.copytree(BUNDLE, bundle)
+    with sqlite3.connect(bundle / "state" / "gmail.db") as connection:
+        changed = connection.execute(
+            "UPDATE messages SET body = replace(body, 'exactly $390,000', "
+            "'exactly $999,000') WHERE subject = 'Marigold — revised authority'"
+        ).rowcount
+    assert changed == 1, "the revised-authority mail was not found to rewrite"
+
+    completed = subprocess.run(
+        [sys.executable, str(TASK / "solution" / "solve.py")],
+        cwd=bundle / "workspace",
+        env={
+            "WORKBENCH_STATE": str(bundle / "state"),
+            "PATH": f"{Path(sys.executable).parent}:/usr/bin:/bin",
+        },
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode != 0, "the oracle certified a figure nobody wrote"
+    assert "99900000" in completed.stderr

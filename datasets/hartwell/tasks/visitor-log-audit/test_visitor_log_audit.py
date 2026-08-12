@@ -523,3 +523,28 @@ def test_pre_request_or_wrong_direction_mail_cannot_close_custody(
 
     document = _solve_with_state(bundle / "state", bundle / "workspace")
     assert "1779891114.000000" in document["unresolved_ts"]
+
+
+def test_the_honest_shortcut_nearly_reproduces_the_ledger(tmp_path: Path) -> None:
+    """This task's 0.89 gap is an artifact, like its twin's.
+
+    ``naive.sh`` builds the whole custody ledger into a local and then
+    emits ``"custody_audit": []``. Filing that same ledger scores 0.7356:
+    61 of 71 rows are exactly right, because everything except the
+    outcome -- who asked, who was asked, when the sheet came back, on
+    which surface -- falls out of finding the reply. Only the nine
+    next-working-day returns and the one mailed return need the judgment
+    the task is built around.
+
+    A first attempt measured 0.1896 here. That was a fixed -08:00 offset
+    in the baseline's own ``iso`` helper, which is right until March 8
+    and an hour wrong after it; the shortcut looked brilliant because it
+    was misstating 59 timestamps. The number below is the corrected one.
+    """
+
+    workspace = _produce(tmp_path, TASK / "baseline" / "honest-shortcut.sh")
+    scored, _ = _score(workspace, tmp_path / "logs")
+
+    assert 0.71 < scored["answer"] < 0.76, (
+        f"the honest shortcut is worth 0.7356, measured {scored['answer']}"
+    )

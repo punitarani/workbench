@@ -333,3 +333,28 @@ def test_instruction_states_the_covering_rule_without_the_trap_checklist() -> No
     assert "any email sent the same calendar day that names that vendor" in instruction
     assert "do not cite a thread ID, next-day transmittal" not in instruction
     assert "neither does an email sent the day after" not in instruction
+
+
+def test_the_mechanical_walk_alone_is_worth_most_of_the_task(tmp_path: Path) -> None:
+    """Rule 5 authority is worth 0.27, because it touches 4 rows of 16.
+
+    ``naive.sh`` answers from the mail and cannot produce a version
+    schedule at all, so it says nothing about how much the sign-off join
+    adds. ``honest-shortcut.sh`` does the entire mechanical walk -- every
+    history diffed, every change classified, every same-day covering
+    email cited -- and then looks for authority the obvious way, by
+    searching Gmail for the vendor's name. That finds Harborlight's
+    approval and misses the two that cite the redline by iManage number
+    and the one given in chat, for 13 of 16 rows exact and 0.7278.
+
+    The task's own ``naive < solve - 0.4`` requirement does not hold
+    against this baseline. The threshold is left pointed at naive.sh; the
+    fix is to make the authority column load-bearing for more than a
+    quarter of the schedule.
+    """
+
+    scored = run_grader(tmp_path, TASK / "baseline" / "honest-shortcut.sh")
+
+    assert 0.70 < scored["answer"] < 0.75, (
+        f"the mechanical walk is worth 0.7278, measured {scored['answer']}"
+    )

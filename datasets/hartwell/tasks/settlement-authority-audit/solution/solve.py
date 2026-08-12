@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import sqlite3
 import sys
 from datetime import datetime, timedelta
@@ -96,15 +97,68 @@ authority_specs = (
 )
 
 mail = {
-    subject: (message_id, int(timestamp))
-    for message_id, subject, timestamp in rows(
+    subject: (message_id, int(timestamp), body)
+    for message_id, subject, timestamp, body in rows(
         "gmail.db",
-        "SELECT message_id, subject, time FROM messages "
+        "SELECT message_id, subject, time, body FROM messages "
         "WHERE subject LIKE 'Marigold%' ORDER BY time",
     )
 }
 if not all(subject in mail for subject, *_ in authority_specs):
     sys.exit("the documented client-authority email sequence is incomplete")
+
+
+def _cents(figure):
+    return int(figure.replace(",", "")) * 100
+
+
+def granted_cents(text):
+    """The figure an authority instruction actually authorizes.
+
+    A grant names its number with an operative phrase -- "exactly" or
+    "no less than". A bare dollar figure may be the authority being
+    withdrawn: "replace the $390,000 authority with exactly $340,000"
+    grants the second number, and reading the first one certifies the
+    superseded amount.
+    """
+
+    found = re.search(r"(?:exactly|no less than)\s+\$([\d,]+)", text, re.IGNORECASE)
+    return None if found is None else _cents(found.group(1))
+
+
+def offered_cents(text):
+    """The figure a proposal puts on the table."""
+
+    found = re.search(r"\$([\d,]+)", text)
+    return None if found is None else _cents(found.group(1))
+
+
+def stated_basis(text):
+    lowered = text.lower()
+    for phrase, basis in (
+        ("inclusive of", "inclusive"),
+        ("exclusive of", "exclusive"),
+        ("net to", "net_plus_fees"),
+        ("all-in", "inclusive"),
+    ):
+        if phrase in lowered:
+            return basis
+    return None
+
+
+# The tables above declare what the file says; the record is what the
+# agent reads. Cross-check them, because a table keyed on message
+# subjects would otherwise keep certifying an amount the prose no longer
+# states -- the answer would drift silently and every test would pass.
+for subject, status, amount, *_rest in authority_specs:
+    if status != "grant":
+        continue
+    body = mail[subject][2]
+    if granted_cents(body) != amount:
+        sys.exit(
+            f"{subject!r} grants {granted_cents(body)} in the record but the "
+            f"audit claims {amount}"
+        )
 
 timeline = [
     {
@@ -270,15 +324,27 @@ subject_specs = {
 names = dict(rows("gmail.db", "SELECT person_id, name FROM people"))
 proposals = rows(
     "gmail.db",
-    "SELECT message_id, subject, sender, time FROM messages "
+    "SELECT message_id, subject, sender, time, body FROM messages "
     "WHERE subject GLOB 'Marigold proposal [0-9][0-9]' ORDER BY time",
 )
-if [subject for _, subject, _, _ in proposals] != list(subject_specs):
+if [subject for _, subject, _, _, _ in proposals] != list(subject_specs):
     sys.exit("the outbound Marigold proposal sequence drifted")
 
 proposal_audit = []
-for message_id, subject, sender, timestamp in proposals:
+for message_id, subject, sender, timestamp, body in proposals:
     amount, basis, terms, authority_index, disposition = subject_specs[subject]
+    # Same cross-check as the authority grants: the audited figure has to
+    # be the figure the proposal actually put on the table.
+    if offered_cents(body) != amount:
+        sys.exit(
+            f"{subject!r} offers {offered_cents(body)} in the record but the "
+            f"audit claims {amount}"
+        )
+    if stated_basis(body) != basis:
+        sys.exit(
+            f"{subject!r} is {stated_basis(body)} in the record but the "
+            f"audit claims {basis}"
+        )
     proposal_audit.append(
         {
             "message_id": message_id,
