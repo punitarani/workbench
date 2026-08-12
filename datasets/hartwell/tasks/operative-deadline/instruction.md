@@ -46,10 +46,9 @@ message (by ts) — that still cites a superseded date as this hearing's
 setting after the item that superseded it**. A message that reports
 the move, or that names the old date only to deny it, is a correction,
 not a stale reference; a message citing a date while that date was still
-operative is simply current. Other matters moved that season too — a
-different case's hearing date is not this hearing's. Cross-reference
-every mention of every noticed date against the correction timeline
-before you call it clean. Samuel is going to circulate this list as the
+operative is simply current. Cross-reference every mention of every
+noticed date against the correction timeline before you call it clean,
+and satisfy yourself that each one you list is setting *this* hearing. Samuel is going to circulate this list as the
 definitive one, so it has to be exactly right: one message listed that
 was current when sent, or one contaminated message left off, and the
 list is worse than none.

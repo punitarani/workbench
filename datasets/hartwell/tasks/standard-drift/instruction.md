@@ -83,8 +83,7 @@ and the like) — as opposed to versions that only touch notices,
 addresses, signature blocks, exhibits, or nothing at all. A covering
 email is any email sent the same calendar day that names that vendor or
 carries that NDA file as an attachment; email is the firm's transmittal
-record, so a Slack note does not cover a version, and neither does an
-email sent the day after. List each such version by its iManage version
+record. List each such version by its iManage version
 id (`LEGAL!<number>.<version>`). This finding is exact as well — a
 missed version or a padded one and the process point falls apart. The
 mail discusses some of these files and never mentions others, so only
@@ -94,9 +93,9 @@ The review committee needs the certification schedule behind those four
 exceptions. `version_audit` must contain every version 2 and later of all nine
 vendor NDAs. Classify a row `unchanged` when its text is byte-identical to the
 prior version, `notices_only` when removing the Notices section makes the two
-versions identical, and `substantive` otherwise. Cite every same-day covering
-email under the rule above, including its exact Gmail message ID; do not cite a
-thread ID, next-day transmittal, Slack message, or email naming another vendor.
+versions identical, and `substantive` otherwise. Cite every email that meets
+the covering rule above and nothing else, identified by its exact Gmail
+message ID.
 The seven aggregate fields must reconcile with the schedule, and
 `silent_versions` must be exactly the `version_id` partition of substantive
 rows with an empty `email_ids` list.

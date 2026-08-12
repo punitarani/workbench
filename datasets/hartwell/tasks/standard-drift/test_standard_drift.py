@@ -247,3 +247,24 @@ def test_instruction_declares_the_firm_calendar_timezone() -> None:
 
     assert "Pacific" in instruction
     assert "UTC" in instruction
+
+
+def test_instruction_states_the_covering_rule_without_the_trap_checklist() -> None:
+    """Cite-what-qualifies, not don't-cite-these-four-things.
+
+    Enumerating the near misses -- thread ids, next-day transmittals,
+    Slack notes, other vendors' mail -- converts the same-day rule into a
+    checklist and is part of why 9/9 cells got the partition exact. The
+    definition of a covering email stays, which is what determines the
+    answer.
+
+    Phrases are matched against whitespace-normalized text: the source is
+    hard-wrapped, so a raw substring check would pass for the wrong
+    reason on any phrase that happens to straddle a line break.
+    """
+
+    instruction = " ".join((TASK / "instruction.md").read_text().split())
+
+    assert "any email sent the same calendar day that names that vendor" in instruction
+    assert "do not cite a thread ID, next-day transmittal" not in instruction
+    assert "neither does an email sent the day after" not in instruction

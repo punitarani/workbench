@@ -135,3 +135,24 @@ def test_grading_is_deterministic(tmp_path: Path) -> None:
     first = run_grader(tmp_path / "a", TASK / "solution" / "solve.sh")
     second = run_grader(tmp_path / "b", TASK / "solution" / "solve.sh")
     assert first == second
+
+
+def test_instruction_states_the_rule_without_naming_the_decoy() -> None:
+    """The agent must apply the scoping rule, not be handed the exception.
+
+    Nine of nine measured cells partitioned the stale references exactly.
+    The instruction used to warn that another matter moved that season,
+    which turns "find the contaminated messages" into "check the ones I
+    was told about". The rule that resolves it stays, so the answer is
+    still fully derivable.
+
+    Phrases are matched against whitespace-normalized text: the source is
+    hard-wrapped, so a raw substring check would pass for the wrong
+    reason on any phrase that happens to straddle a line break.
+    """
+
+    instruction = " ".join((TASK / "instruction.md").read_text().split())
+
+    assert "as this hearing's setting" in instruction
+    assert "Cross-reference every mention of every noticed date" in instruction
+    assert "a different case's hearing date is not this hearing's" not in instruction
