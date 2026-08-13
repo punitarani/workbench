@@ -43,6 +43,13 @@ class PendingItem(BaseModel):
     age_minutes: int = Field(ge=0)
 
 
+# A long history accumulates unreplied mail without bound; a real person
+# works from the top of the inbox. The persona sees at most this many
+# pending items — the youngest ones, in stable order. Below the cap the
+# view is exactly the old one, which keeps recorded prompts byte-stable.
+PENDING_CAP = 20
+
+
 class WorkingMemoryState(BaseModel):
     event_ids: tuple[str, ...] = ()
     facts: tuple[str, ...] = ()
@@ -98,7 +105,14 @@ class WorkingMemoryComponent(BaseComponent):
             lines.append("Tickets you know of: " + "; ".join(tickets))
         if channels:
             lines.append("Chat channels you can post in: " + "; ".join(channels))
-        lines.append(f"You have {len(self.pending_items())} pending item(s).")
+        total = len(self._pending_all())
+        if total > PENDING_CAP:
+            lines.append(
+                f"You have {PENDING_CAP}+ pending item(s) (showing the "
+                f"{PENDING_CAP} most recent)."
+            )
+        else:
+            lines.append(f"You have {total} pending item(s).")
         return ContextBlock(label="Situation", content="\n".join(lines))
 
     async def post_act(self, action: EntityAction) -> None:
@@ -147,6 +161,17 @@ class WorkingMemoryComponent(BaseComponent):
         return None
 
     def pending_items(self) -> tuple[PendingItem, ...]:
+        """The bounded view every prompt surface consumes."""
+
+        items = self._pending_all()
+        if len(items) <= PENDING_CAP:
+            return items
+        youngest = sorted(
+            range(len(items)), key=lambda index: (items[index].age_minutes, index)
+        )[:PENDING_CAP]
+        return tuple(items[index] for index in sorted(youngest))
+
+    def _pending_all(self) -> tuple[PendingItem, ...]:
         events = self._require_hydrated()
         now = self.last_time()
         items: list[PendingItem] = []

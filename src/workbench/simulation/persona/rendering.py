@@ -75,8 +75,16 @@ def render_thread(events: Iterable[Event], thread_id: str) -> str:
     return "\n\n---\n\n".join(parts)
 
 
+# A conversation with months of history would otherwise ride whole into
+# the draft prompt; a real person reads the recent tail. Below the cap
+# the rendering is byte-identical to the unbounded form.
+CONVERSATION_TAIL = 40
+
+
 def render_conversation(events: Iterable[Event], conversation_id: str) -> str:
     events = list(events)
     names = person_names(events)
     messages = conversation(events, conversation_id)
+    if len(messages) > CONVERSATION_TAIL:
+        messages = messages[-CONVERSATION_TAIL:]
     return "\n".join(f"{names.get(m.sender, m.sender)}: {m.body}" for m in messages)
