@@ -340,6 +340,14 @@ async def resume_workplace(
             )
         snapshot = SimulationSnapshot.model_validate_json(stored.state)
         engine.restore_state(snapshot.engine)
+        # Working memories snapshot event ids only; refill them from the
+        # single copy of every event — the store.
+        events_by_id = {str(e.event_id): e for e in store.read_events()}
+        for entity in runtime.entities:
+            for component in getattr(entity, "components", ()):
+                rehydrate = getattr(component, "rehydrate", None)
+                if rehydrate is not None:
+                    rehydrate(events_by_id)
     else:
         # Interrupted before the first checkpoint: rebuild the start-of-day
         # state exactly as a fresh run does, from the compiled workplace.

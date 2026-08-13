@@ -58,6 +58,10 @@ class ComposedEntity:
     def name(self) -> str:
         return self._name
 
+    @property
+    def components(self) -> tuple[Component, ...]:
+        return self._components
+
     def get_component(self, name: str) -> Component:
         for component in self._components:
             if component.name == name:

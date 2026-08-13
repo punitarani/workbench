@@ -71,6 +71,7 @@ async def test_state_round_trips() -> None:
     state = memory.get_state()
     fresh = WorkingMemoryComponent(person_id="per-daniel-reyes")
     fresh.set_state(state)
+    fresh.rehydrate({str(e.event_id): e for e in observed_events()})
     assert fresh.pending_items() == memory.pending_items()
 
 

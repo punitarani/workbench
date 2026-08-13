@@ -1,10 +1,16 @@
 """The persona's private fold of everything it has observed.
 
-Grounding, not memory: state is the observed events themselves, so every
+Grounding, not memory: the fold is the observed events themselves, so every
 derived view is exactly consistent with the world log — a persona cannot
 drift from the record. The facts ledger accumulates what this persona has
 itself said, and drafts must not contradict it.
+
+Snapshots carry event *ids*, not events: the world log is the single copy of
+every event, and a restored component is rehydrated from it. Until
+rehydration happens, reads fail loud rather than acting on empty memory.
 """
+
+from collections.abc import Mapping
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,6 +31,7 @@ from workbench.core.intents import (
 )
 from workbench.simulation.entity.component import BaseComponent
 from workbench.simulation.entity.context import ContextBlock
+from workbench.simulation.errors import SnapshotError
 
 
 class PendingItem(BaseModel):
@@ -37,7 +44,7 @@ class PendingItem(BaseModel):
 
 
 class WorkingMemoryState(BaseModel):
-    events: tuple[Event, ...] = ()
+    event_ids: tuple[str, ...] = ()
     facts: tuple[str, ...] = ()
 
 
@@ -47,30 +54,40 @@ class WorkingMemoryComponent(BaseComponent):
     def __init__(self, *, person_id: str) -> None:
         super().__init__("working-memory")
         self._person_id = person_id
-        self._state = WorkingMemoryState()
+        self._events: tuple[Event, ...] = ()
+        self._facts: tuple[str, ...] = ()
+        self._awaiting_ids: tuple[str, ...] | None = None
+
+    def _require_hydrated(self) -> tuple[Event, ...]:
+        if self._awaiting_ids is not None:
+            raise SnapshotError(
+                "working memory restored from ids but never rehydrated; "
+                "call rehydrate(events_by_id) with the run's event store"
+            )
+        return self._events
 
     async def pre_observe(self, event: Event) -> None:
-        self._state = self._state.model_copy(
-            update={"events": (*self._state.events, event)}
-        )
+        self._require_hydrated()
+        self._events = (*self._events, event)
         return None
 
     async def pre_act(self, spec: ActionSpec) -> ContextBlock | None:
+        events = self._require_hydrated()
         now = self.last_time()
         clock = f"{now // 3600:02d}:{(now % 3600) // 60:02d}"
         documents = [
             e.payload.path
-            for e in self._state.events
+            for e in events
             if isinstance(e.payload, DocumentCreatedPayload)
         ]
         tickets = [
             f"{e.payload.ticket_id}: {e.payload.title}"
-            for e in self._state.events
+            for e in events
             if isinstance(e.payload, TicketCreatedPayload)
         ]
         channels = [
             e.payload.name or e.payload.conversation_id
-            for e in self._state.events
+            for e in events
             if isinstance(e.payload, ChatConversationCreatedPayload)
             and self._person_id in e.payload.members
         ]
@@ -104,24 +121,23 @@ class WorkingMemoryComponent(BaseComponent):
             elif intent.create is not None:
                 fact = f"Created document: {intent.create.title}"
         if fact is not None:
-            self._state = self._state.model_copy(
-                update={"facts": (*self._state.facts, fact)}
-            )
+            self._facts = (*self._facts, fact)
 
     def events(self) -> tuple[Event, ...]:
-        return self._state.events
+        return self._require_hydrated()
 
     def facts(self) -> tuple[str, ...]:
-        return self._state.facts
+        return self._facts
 
     def last_time(self) -> int:
-        if not self._state.events:
+        events = self._require_hydrated()
+        if not events:
             return 0
-        return int(self._state.events[-1].time)
+        return int(events[-1].time)
 
     def resolve_thread_ref(self, ref: str) -> str | None:
         """Accept a thread id or a message id; return the thread id."""
-        for event in self._state.events:
+        for event in self._require_hydrated():
             payload = event.payload
             if isinstance(payload, EmailMessagePayload):
                 if payload.thread_id == ref:
@@ -131,17 +147,18 @@ class WorkingMemoryComponent(BaseComponent):
         return None
 
     def pending_items(self) -> tuple[PendingItem, ...]:
+        events = self._require_hydrated()
         now = self.last_time()
         items: list[PendingItem] = []
 
         replied_to = {
             e.payload.in_reply_to
-            for e in self._state.events
+            for e in events
             if isinstance(e.payload, EmailMessagePayload)
             and e.payload.sender == self._person_id
             and e.payload.in_reply_to is not None
         }
-        for event in self._state.events:
+        for event in events:
             payload = event.payload
             if (
                 isinstance(payload, EmailMessagePayload)
@@ -159,7 +176,7 @@ class WorkingMemoryComponent(BaseComponent):
 
         my_conversations = {
             e.payload.conversation_id
-            for e in self._state.events
+            for e in events
             if isinstance(e.payload, ChatConversationCreatedPayload)
             and self._person_id in e.payload.members
         }
@@ -167,7 +184,7 @@ class WorkingMemoryComponent(BaseComponent):
             last_message: ChatMessagePayload | None = None
             last_time = 0
             answered = True
-            for event in self._state.events:
+            for event in events:
                 payload = event.payload
                 if (
                     isinstance(payload, ChatMessagePayload)
@@ -191,7 +208,26 @@ class WorkingMemoryComponent(BaseComponent):
         return tuple(items)
 
     def get_state(self) -> WorkingMemoryState:
-        return self._state
+        events = self._require_hydrated()
+        return WorkingMemoryState(
+            event_ids=tuple(str(e.event_id) for e in events),
+            facts=self._facts,
+        )
 
     def set_state(self, state: WorkingMemoryState) -> None:
-        self._state = state
+        self._facts = state.facts
+        self._events = ()
+        # An empty memory needs nothing from the store.
+        self._awaiting_ids = state.event_ids or None
+
+    def rehydrate(self, events_by_id: Mapping[str, Event]) -> None:
+        if self._awaiting_ids is None:
+            return
+        missing = [i for i in self._awaiting_ids if i not in events_by_id]
+        if missing:
+            raise SnapshotError(
+                f"cannot rehydrate working memory: {len(missing)} event id(s) "
+                f"absent from the store, first {missing[0]!r}"
+            )
+        self._events = tuple(events_by_id[i] for i in self._awaiting_ids)
+        self._awaiting_ids = None
