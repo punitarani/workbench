@@ -33,6 +33,16 @@ from workbench.simulation.workplace.spec import PersonSpec, WorkplaceSpec
 # Bumping this invalidates every recorded run built from a workplace spec.
 COMPILER_VERSION = 1
 
+_MEDIA_TYPES = {
+    "markdown": "text/markdown",
+    "spreadsheet": (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ),
+    "formatted": (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ),
+}
+
 
 def config_hash(spec: WorkplaceSpec, seed: Seed) -> str:
     return content_hash(
@@ -180,7 +190,7 @@ def compile_workplace(
                 title=document.title,
                 path=document.path,
                 location="repository",
-                content_format="markdown",
+                content_format=document.content_format,
                 content=document.content,
             )
         )
@@ -232,7 +242,7 @@ def compile_workplace(
                 title=arrival.attachment.title,
                 path=arrival.attachment.path,
                 location="attachment",
-                content_format="markdown",
+                content_format=arrival.attachment.content_format,
                 content=arrival.attachment.content,
             )
             scheduled.append(
@@ -250,7 +260,7 @@ def compile_workplace(
             attachments = (
                 Attachment(
                     filename=arrival.attachment.path.rsplit("/", 1)[-1],
-                    media_type="text/markdown",
+                    media_type=_MEDIA_TYPES[arrival.attachment.content_format],
                     document_id=document_id,
                 ),
             )

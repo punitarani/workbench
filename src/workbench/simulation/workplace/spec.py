@@ -39,6 +39,9 @@ class SeedDocument(_Model):
     author: str
     title: str
     path: str
+    # For spreadsheet/formatted, content is the canonical JSON of the
+    # workbench.core.artifacts models; markdown is the text itself.
+    content_format: Literal["markdown", "spreadsheet", "formatted"] = "markdown"
     content: str
 
 

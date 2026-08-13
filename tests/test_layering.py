@@ -5,7 +5,8 @@ venv — so the import graph is asserted here instead. Rules mirror AGENTS.md:
 
     core         imports no other workbench subpackage
     tools        imports core only
-    environment  imports core and tools
+    environment  imports core, tools, and artifacts (the only consumer
+                 of rendering)
     simulation   imports core only (never tools: offstage must not see
                  the agent-facing surface)
     workplaces   imports core and simulation
@@ -22,7 +23,7 @@ SRC = Path(__file__).resolve().parents[1] / "src" / "workbench"
 ALLOWED: dict[str, frozenset[str]] = {
     "core": frozenset(),
     "tools": frozenset({"core"}),
-    "environment": frozenset({"core", "tools"}),
+    "environment": frozenset({"core", "tools", "artifacts"}),
     "simulation": frozenset({"core"}),
     "workplaces": frozenset({"core", "simulation"}),
     "adapters": frozenset({"core", "tools"}),

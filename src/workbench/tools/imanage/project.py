@@ -18,7 +18,7 @@ from workbench.core.events.documents import (
 )
 from workbench.tools.imanage.tables import DOCUMENTS, VERSIONS, Document, Version
 
-_FORMAT_EXTENSIONS = {"markdown": "md"}
+_FORMAT_EXTENSIONS = {"markdown": "md", "spreadsheet": "xlsx", "formatted": "docx"}
 
 
 def _workspace(path: str) -> str:
