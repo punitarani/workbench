@@ -12,15 +12,17 @@ import argparse
 import asyncio
 import importlib
 import os
+import signal
 import sys
 from pathlib import Path
 
 from workbench.core.seed import Seed
+from workbench.simulation.engine.engine import StopCondition
 from workbench.simulation.lm.budget import BudgetedLM
 from workbench.simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
 from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
 from workbench.simulation.lm.protocol import LanguageModel
-from workbench.simulation.run import run_workplace
+from workbench.simulation.run import resume_workplace, run_workplace
 from workbench.simulation.workplace.spec import WorkplaceSpec
 
 DEFAULT_WORKPLACE = "workbench.workplaces.legal:WORKPLACE"
@@ -46,6 +48,66 @@ def build_lm(mode: str, cassette: Path, model: str, max_calls: int) -> LanguageM
     return BudgetedLM(RecordingLM(backend, store), max_calls=max_calls)
 
 
+def _clock_seconds(clock: str) -> int:
+    hours, _, minutes = clock.partition(":")
+    return int(hours) * 3600 + int(minutes) * 60
+
+
+async def _run(args: argparse.Namespace) -> int:
+    spec = load_workplace(args.workplace)
+    inner = build_lm(args.mode, args.cassette, args.model, args.max_calls)
+
+    interrupted = False
+
+    def request_stop() -> None:
+        nonlocal interrupted
+        if interrupted:
+            raise SystemExit(130)
+        interrupted = True
+        print(
+            "\ninterrupt: finishing the current step, committing, then "
+            "stopping (press again to abort hard)"
+        )
+
+    asyncio.get_running_loop().add_signal_handler(signal.SIGINT, request_stop)
+
+    end_time = _clock_seconds(args.until) if args.until else _clock_seconds(
+        spec.end_of_day
+    )
+    stop = StopCondition(
+        end_time=end_time,
+        max_steps=args.max_steps,
+        stop_requested=lambda: interrupted,
+    )
+
+    if args.resume:
+        result = await resume_workplace(
+            spec,
+            out_dir=args.out,
+            inner_lm=inner,
+            model=args.model,
+            stop=stop,
+        )
+    else:
+        result = await run_workplace(
+            spec,
+            seed=Seed(root=args.seed),
+            out_dir=args.out,
+            inner_lm=inner,
+            model=args.model,
+            stop=stop,
+        )
+    print(
+        f"run finished: {result.steps} steps, reason={result.reason}, "
+        f"final_time={result.final_time}s"
+    )
+    if result.reason == "interrupted":
+        print(f"resume with: --resume --out {args.out}")
+    print(f"world log: {args.out / 'world.jsonl'}")
+    print(f"manifest:  {args.out / 'manifest.json'}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seed", type=int, default=42)
@@ -55,27 +117,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--workplace", default=DEFAULT_WORKPLACE)
     parser.add_argument("--max-calls", type=int, default=800)
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="continue the run in --out from its latest committed step",
+    )
+    parser.add_argument("--max-steps", type=int, default=None)
+    parser.add_argument(
+        "--until", default=None, help='stop at this simulated clock, e.g. "13:00"'
+    )
     args = parser.parse_args(argv)
-
-    spec = load_workplace(args.workplace)
-    inner = build_lm(args.mode, args.cassette, args.model, args.max_calls)
-
-    result = asyncio.run(
-        run_workplace(
-            spec,
-            seed=Seed(root=args.seed),
-            out_dir=args.out,
-            inner_lm=inner,
-            model=args.model,
-        )
-    )
-    print(
-        f"run finished: {result.steps} steps, reason={result.reason}, "
-        f"final_time={result.final_time}s"
-    )
-    print(f"world log: {args.out / 'world.jsonl'}")
-    print(f"manifest:  {args.out / 'manifest.json'}")
-    return 0
+    return asyncio.run(_run(args))
 
 
 if __name__ == "__main__":

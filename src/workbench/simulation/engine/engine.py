@@ -11,6 +11,7 @@ mutated only between gathers, never inside entity tasks.
 """
 
 import asyncio
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
@@ -36,6 +37,9 @@ class StopCondition(BaseModel):
 
     max_steps: int | None = None
     end_time: int | None = None
+    # Cooperative interrupt: checked between steps, so the current step
+    # always finishes and commits before the run stops.
+    stop_requested: Callable[[], bool] | None = None
 
 
 class StepResult(BaseModel):
@@ -53,7 +57,9 @@ class RunResult(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     steps: int = Field(ge=0)
-    reason: Literal["terminated", "quiescent", "max_steps", "end_time"]
+    reason: Literal[
+        "terminated", "quiescent", "max_steps", "end_time", "interrupted"
+    ]
     final_time: int = Field(ge=0)
 
 
@@ -238,9 +244,16 @@ class InterruptEngine:
         self._step += 1
         return result
 
-    async def run(self, stop: StopCondition) -> RunResult:
+    async def run(
+        self,
+        stop: StopCondition,
+        *,
+        on_step: Callable[[StepResult], None] | None = None,
+    ) -> RunResult:
         steps = 0
         while True:
+            if stop.stop_requested is not None and stop.stop_requested():
+                return self._result(steps, "interrupted")
             if stop.max_steps is not None and steps >= stop.max_steps:
                 return self._result(steps, "max_steps")
             if len(self._queue) == 0:
@@ -249,12 +262,16 @@ class InterruptEngine:
                 return self._result(steps, "end_time")
             result = await self.step()
             steps += 1
+            if on_step is not None:
+                on_step(result)
             if result.terminated:
                 return self._result(steps, "terminated")
 
     def _result(
         self,
         steps: int,
-        reason: Literal["terminated", "quiescent", "max_steps", "end_time"],
+        reason: Literal[
+        "terminated", "quiescent", "max_steps", "end_time", "interrupted"
+    ],
     ) -> RunResult:
         return RunResult(steps=steps, reason=reason, final_time=int(self._time.now()))
