@@ -130,10 +130,12 @@ def test_registry_enumerates_named_predictors() -> None:
     names = {name for name, _ in actor.named_predictors()}
     assert names == {
         "decide",
+        "decide_extended",
         "draft_email",
         "draft_chat",
         "draft_ticket",
         "draft_document",
+        "draft_meeting",
     }
 
 
