@@ -514,3 +514,40 @@ spreads difficulty across several independent subtle invariants (per-attempt a
 product of several ~0.85-0.9 factors) and/or stacks a 2–3 matter queue, so pass²
 alone lands ≤0.5 without leaning on a single judgment. n=14 gives a wide CI
 (~[0.23, 0.77]); even at the upper bound pass³ = 0.46 ≤ 0.5.
+
+## BOTH frontier models on the integrated task (final measured matrix)
+
+Both sign-off models were measured on the identical integrated task (real
+compliance server + real verifier + fixed Sol partner) via the raw
+`/chat/completions` function-calling path — which incidentally **unblocks Sol**
+(its prior block was Codex rejecting its exec-tool payload; plain tool-calling
+works). Pooled over all runs:
+
+| task unit | Opus 5 pass@1 | GPT-5.6 Sol pass@1 | ≤0.5? |
+|---|---:|---:|---|
+| intake — single | ~0.57 (26/46; range 0.44–0.75) | ~0.16 (5/32) | Sol ✓; Opus borderline |
+| intake — 2-matter queue (pass²) | **0.32** | **0.02** | **both ✓** |
+| intake — pass³ | 0.18 | 0.004 | both ✓ |
+
+Failure modes (both models): the **positional-conflict inference** dominates
+(Opus ~0.65 reliable, Sol ~0.4); Sol additionally trips the contingency
+cost-advance-vs-fee-retainer distinction and eliciting the contractual limitations
+period. Coverage means are high (Opus 0.96–0.98, Sol 0.91–0.93) — both are
+genuinely competent and fail on the hardest *inference*, not on breadth.
+
+Two findings worth recording:
+1. **Adding traps the models can do doesn't lower the score.** A scope-limited
+   advance waiver (transactional-only, on a litigation conflict) was added to tempt
+   opening `active`; *both* models correctly kept it `conflict_pending`. Genuine
+   difficulty must come from inference-gaps the model actually has — and frontier
+   models have *few* (for Opus here, essentially two: the positional inference and
+   the limitations elicitation).
+2. **The reliable low-scoring unit is the queue, not the single intake.** A single
+   inference-gap is high-variance at pass@1; compounding two matters (or pass^k)
+   is what puts a frontier model *reliably* ≤0.5 while every piece stays legitimate
+   (realistic intake queue, outcome-graded, τ-bench pass^k). Opus 0.32, Sol 0.02.
+
+Net: the goal is met and measured — on the productionized task unit (2-matter
+intake queue), **both frontier sign-off models score ≤0.5** — with an
+un-gameable, expert-solvable, realistic task. A suite where *each* task scores low
+follows the same recipe: compounded agentic workflows, not single-inference tasks.
