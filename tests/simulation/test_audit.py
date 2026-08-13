@@ -136,6 +136,7 @@ def test_registry_enumerates_named_predictors() -> None:
         "draft_ticket",
         "draft_document",
         "draft_meeting",
+        "plan_day",
         "reflect",
     }
 

@@ -34,6 +34,15 @@ class FloatActionSpec(_Model):
     high: float
 
 
+class PlanActionSpec(_Model):
+    """Morning planning turn: the entity lays out its day in time blocks
+    before the wake ladder begins."""
+
+    kind: Literal["plan"] = "plan"
+    call_to_action: str = "Plan your working day."
+    day: str
+
+
 class ReflectActionSpec(_Model):
     """End-of-day reflection turn: the entity consolidates its day into a
     persistent note instead of choosing a workplace action."""
@@ -54,7 +63,8 @@ ActionSpec = Annotated[
     | ChoiceActionSpec
     | FloatActionSpec
     | IntentActionSpec
-    | ReflectActionSpec,
+    | ReflectActionSpec
+    | PlanActionSpec,
     Field(discriminator="kind"),
 ]
 

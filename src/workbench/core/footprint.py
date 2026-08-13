@@ -188,6 +188,7 @@ RULES: dict[str, Callable[[Payload], Footprint]] = {
     "sim.agent.memory": _agent_memory,
     "sim.agent.plan": _agent_plan,
     "sim.reflection": _wake,
+    "sim.planning": _wake,
 }
 
 

@@ -9,7 +9,7 @@ from typing import Literal
 import dspy
 from pydantic import BaseModel, ConfigDict, Field
 
-from workbench.core.events.agent import MemoryBullet
+from workbench.core.events.agent import MemoryBullet, PlanBlock
 from workbench.core.intents import (
     CalendarScheduleSpec,
     ChatDraft,
@@ -210,6 +210,29 @@ class DraftMeeting(dspy.Signature):
     meeting: CalendarScheduleSpec = dspy.OutputField()
 
 
+class DayPlanSpec(BaseModel):
+    """The day in time blocks: what gets focused attention and when."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    blocks: tuple[PlanBlock, ...] = Field(min_length=1, max_length=8)
+
+
+class PlanDay(dspy.Signature):
+    """Lay out your working day in two to six time blocks. Anchor blocks
+    to your real calendar first, then place the work your open items and
+    memories say matters most. Times are seconds since midnight inside
+    working hours; carry the exact world ids (thr-/tkt-/doc-) each block
+    concerns."""
+
+    identity: str = dspy.InputField()
+    day: str = dspy.InputField(desc="the day being planned")
+    calendar_today: str = dspy.InputField(desc="meetings already on your calendar")
+    yesterday: str = dspy.InputField(desc="yesterday's summary and open loops")
+    relevant_memories: str = dspy.InputField()
+    plan: DayPlanSpec = dspy.OutputField()
+
+
 class DailyReflection(BaseModel):
     """What the day distilled to: bullets future-you needs, with the
     world ids they concern and how much they matter."""
@@ -248,3 +271,4 @@ class ProfessionalActor(dspy.Module):
         self.draft_document = dspy.Predict(DraftDocumentEdit)
         self.draft_meeting = dspy.Predict(DraftMeeting)
         self.reflect = dspy.Predict(Reflect)
+        self.plan_day = dspy.Predict(PlanDay)

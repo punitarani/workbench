@@ -161,6 +161,18 @@ class WorkingMemoryComponent(BaseComponent):
 
         self._facts = tuple(facts)
 
+    def current_day(self) -> str | None:
+        """ISO date of the current sim day, when a start date is known."""
+
+        if self._start_date is None:
+            return None
+        from datetime import date, timedelta
+
+        day = date.fromisoformat(self._start_date) + timedelta(
+            days=self.last_time() // 86_400
+        )
+        return day.isoformat()
+
     def last_time(self) -> int:
         events = self._require_hydrated()
         if not events:

@@ -74,6 +74,8 @@ class MemoryStreamComponent(BaseComponent):
         self._records: list[MemoryRecord] = []
         self._by_ref: dict[str, list[int]] = {}
         self._awaiting_ids: tuple[str, ...] | None = None
+        self._latest_plan: SimAgentPlanPayload | None = None
+        self._urgent_since_plan = 0
 
     def _require_hydrated(self) -> None:
         if self._awaiting_ids is not None:
@@ -84,17 +86,48 @@ class MemoryStreamComponent(BaseComponent):
 
     async def pre_observe(self, event: Event) -> None:
         self._require_hydrated()
+        self._ingest(event)
+        return None
+
+    def _ingest(self, event: Event) -> None:
         self._events = (*self._events, event)
+        payload = event.payload
+        if (
+            isinstance(payload, SimAgentPlanPayload)
+            and payload.entity == self._entity_name
+        ):
+            self._latest_plan = payload
+            self._urgent_since_plan = 0
         for record in self._fold(event):
             index = len(self._records)
             self._records.append(record)
             for ref in record.refs:
                 self._by_ref.setdefault(ref, []).append(index)
-        return None
+            if (
+                self._latest_plan is not None
+                and record.importance >= 8
+                and record.kind in ("observation", "rejection")
+            ):
+                plan_refs = {
+                    ref for block in self._latest_plan.blocks for ref in block.refs
+                }
+                if not (record.refs & plan_refs):
+                    self._urgent_since_plan += 1
 
     def records(self) -> tuple[MemoryRecord, ...]:
         self._require_hydrated()
         return tuple(self._records)
+
+    def latest_plan(self) -> SimAgentPlanPayload | None:
+        self._require_hydrated()
+        return self._latest_plan
+
+    def replan_pending(self) -> bool:
+        """Two or more urgent arrivals outside the plan's refs since it
+        was made: the plan is stale and the next wake should replan."""
+
+        self._require_hydrated()
+        return self._latest_plan is not None and self._urgent_since_plan >= 2
 
     def records_touching(self, refs: frozenset[str]) -> tuple[MemoryRecord, ...]:
         """Records whose refs intersect the query, in fold order."""
@@ -128,6 +161,12 @@ class MemoryStreamComponent(BaseComponent):
                     importance = 5
                 else:
                     importance = 3
+                subject = payload.subject.casefold()
+                if any(
+                    marker in subject
+                    for marker in ("urgent", "asap", "immediately", "deadline")
+                ):
+                    importance = min(10, importance + 2)
                 sender = payload.sender
                 return (
                     MemoryRecord(
@@ -267,6 +306,8 @@ class MemoryStreamComponent(BaseComponent):
         self._records = []
         self._by_ref = {}
         self._awaiting_ids = state.event_ids or None
+        self._latest_plan = None
+        self._urgent_since_plan = 0
 
     def rehydrate(self, events_by_id: Mapping[str, Event]) -> None:
         if self._awaiting_ids is None:
@@ -280,10 +321,4 @@ class MemoryStreamComponent(BaseComponent):
         pending = self._awaiting_ids
         self._awaiting_ids = None
         for event_id in pending:
-            event = events_by_id[event_id]
-            self._events = (*self._events, event)
-            for record in self._fold(event):
-                index = len(self._records)
-                self._records.append(record)
-                for ref in record.refs:
-                    self._by_ref.setdefault(ref, []).append(index)
+            self._ingest(events_by_id[event_id])

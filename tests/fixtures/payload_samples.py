@@ -21,6 +21,7 @@ from workbench.core.events.control import (
     SimDayEndedPayload,
     SimDayStartedPayload,
     SimGmNotePayload,
+    SimPlanningPayload,
     SimReflectionPayload,
     SimRunStartedPayload,
     SimWakePayload,
@@ -206,6 +207,11 @@ def sample_payloads() -> dict[str, EventPayload]:
         ),
         SimCheckpointPayload(kind="sim.checkpoint", step=12),
         SimWakePayload(kind="sim.wake", entity="daniel-reyes"),
+        SimPlanningPayload(
+            kind="sim.planning",
+            entity="daniel-reyes",
+            day="2026-03-12",
+        ),
         SimReflectionPayload(
             kind="sim.reflection",
             entity="daniel-reyes",

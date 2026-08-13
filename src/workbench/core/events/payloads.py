@@ -27,6 +27,7 @@ from workbench.core.events.control import (
     SimDayEndedPayload,
     SimDayStartedPayload,
     SimGmNotePayload,
+    SimPlanningPayload,
     SimReflectionPayload,
     SimRunStartedPayload,
     SimWakePayload,
@@ -75,7 +76,8 @@ EventPayload = Annotated[
     | SimWakePayload
     | SimAgentMemoryPayload
     | SimAgentPlanPayload
-    | SimReflectionPayload,
+    | SimReflectionPayload
+    | SimPlanningPayload,
     Field(discriminator="kind"),
 ]
 
@@ -105,4 +107,5 @@ TAG_REGISTRY = {
     "sim.agent.memory": SimAgentMemoryPayload,
     "sim.agent.plan": SimAgentPlanPayload,
     "sim.reflection": SimReflectionPayload,
+    "sim.planning": SimPlanningPayload,
 }

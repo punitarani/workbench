@@ -37,6 +37,15 @@ class SimGmNotePayload(Payload):
     entity: str | None = None
 
 
+class SimPlanningPayload(Payload):
+    """A morning planning turn for one entity, minted by the day chain at
+    the day's first grid tick."""
+
+    kind: Literal["sim.planning"]
+    entity: str
+    day: str
+
+
 class SimReflectionPayload(Payload):
     """A scheduled reflection turn for one entity, minted by the day
     chain near end-of-day; every fifth workday widens to a weekly scope."""

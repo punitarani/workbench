@@ -14,6 +14,7 @@ from workbench.core.actions import (
     IntentAction,
     IntentActionSpec,
     NextActingDecision,
+    PlanActionSpec,
     ReflectActionSpec,
     ResolutionDecision,
     TerminateDecision,
@@ -32,6 +33,7 @@ from workbench.core.events.control import (
     SimDayEndedPayload,
     SimDayStartedPayload,
     SimGmNotePayload,
+    SimPlanningPayload,
     SimReflectionPayload,
     SimWakePayload,
 )
@@ -223,7 +225,7 @@ class GroundedGm:
                 return self._entities_for((payload.author,))
             case SimAgentMemoryPayload() | SimAgentPlanPayload():
                 return (payload.entity,)
-            case SimReflectionPayload():
+            case SimReflectionPayload() | SimPlanningPayload():
                 return (payload.entity,)
             case SimGmNotePayload():
                 return (payload.entity,) if payload.entity is not None else ()
@@ -268,7 +270,7 @@ class GroundedGm:
                     if payload.entity in self._person_for_entity
                     else ()
                 )
-            case SimReflectionPayload():
+            case SimReflectionPayload() | SimPlanningPayload():
                 if payload.entity in self._person_for_entity:
                     return (payload.entity,)
                 return ()
@@ -285,7 +287,7 @@ class GroundedGm:
     async def next_acting(self, event: Event) -> NextActingDecision:
         payload = event.payload
         match payload:
-            case SimReflectionPayload():
+            case SimReflectionPayload() | SimPlanningPayload():
                 if payload.entity in self._person_for_entity:
                     return NextActingDecision(entities=(payload.entity,))
                 return NextActingDecision(entities=())
@@ -337,6 +339,8 @@ class GroundedGm:
     async def action_spec_for(self, entity: str, event: Event) -> ActionSpec:
         if isinstance(event.payload, SimReflectionPayload):
             return ReflectActionSpec(day=event.payload.day, scope=event.payload.scope)
+        if isinstance(event.payload, SimPlanningPayload):
+            return PlanActionSpec(day=event.payload.day)
         return IntentActionSpec(
             call_to_action=(
                 "Something needs your attention. Decide your next workplace "
@@ -379,6 +383,23 @@ class GroundedGm:
                 day = self._day_index(payload.day)
                 drafts: list[EventDraft] = []
                 grid = plan.wake_grid_minutes * 60
+                # Morning planning cohort: everyone lays out the day on the
+                # first tick, before any wake fires.
+                for entity_name, _interval in plan.personas:
+                    planning = SimPlanningPayload(
+                        kind="sim.planning",
+                        entity=entity_name,
+                        day=payload.day,
+                    )
+                    drafts.append(
+                        EventDraft(
+                            tag=planning.kind,
+                            source="gm",
+                            caused_by=event.event_id,
+                            payload=planning,
+                            delay=SimDuration(plan.day_start),
+                        )
+                    )
                 for entity_name, interval in plan.personas:
                     quantum = max(grid, -(-interval * 60 // grid) * grid)
                     slots = quantum // grid

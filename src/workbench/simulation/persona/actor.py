@@ -7,12 +7,14 @@ from workbench.core.actions import (
     ActionSpec,
     EntityAction,
     IntentAction,
+    PlanActionSpec,
     ReflectActionSpec,
 )
-from workbench.core.events.agent import MemoryBullet
+from workbench.core.events.agent import MemoryBullet, PlanBlock
 from workbench.core.intents import (
     ActionIntent,
     AgentNoteIntent,
+    AgentPlanIntent,
     CalendarIntent,
     ChatIntent,
     EmailIntent,
@@ -102,9 +104,65 @@ class ProfessionalActorAct:
         return render_memories(records, now=now)
 
     def _current_plan(self) -> str:
-        # Planning turns arrive in a later phase; the field exists so the
-        # decide surface is stable from here on.
-        return "No plan recorded for today."
+        plan = self._stream.latest_plan() if self._stream is not None else None
+        if plan is None:
+            return "No plan recorded for today."
+        now_clock = self._memory.last_time() % 86_400
+        lines = []
+        for block in plan.blocks:
+            marker = "  <- now" if block.start <= now_clock < block.end else ""
+            refs = f" ({', '.join(block.refs)})" if block.refs else ""
+            lines.append(
+                f"{block.start // 3600:02d}:{(block.start % 3600) // 60:02d}-"
+                f"{block.end // 3600:02d}:{(block.end % 3600) // 60:02d} "
+                f"{block.focus}{refs}{marker}"
+            )
+        return "\n".join(lines)
+
+    async def _plan(self, day: str) -> EntityAction:
+        identity = render_identity(self._params)
+        me = self._params.person_id
+        now = self._memory.last_time()
+        midnight = (now // 86_400) * 86_400
+        calendar = []
+        for event in self._memory.events():
+            payload = event.payload
+            if (
+                payload.kind == "calendar.event.scheduled"
+                and me in payload.attendees
+                and midnight <= int(payload.start) < midnight + 86_400
+            ):
+                start = int(payload.start) % 86_400
+                end = int(payload.end) % 86_400
+                calendar.append(
+                    f"{start // 3600:02d}:{(start % 3600) // 60:02d}-"
+                    f"{end // 3600:02d}:{(end % 3600) // 60:02d} {payload.title}"
+                )
+        records = self._stream.records() if self._stream is not None else ()
+        summaries = [r for r in records if r.kind == "summary"]
+        yesterday = "\n".join(r.gist for r in summaries[-8:]) or "No summary on file."
+        pending = list(self._memory.pending_items())
+        try:
+            with dspy.context(lm=self._deep_lm):
+                prediction = await self._actor.plan_day.acall(
+                    identity=identity,
+                    day=day,
+                    calendar_today="\n".join(calendar) or "Nothing scheduled.",
+                    yesterday=yesterday,
+                    relevant_memories=self._relevant_memories(pending),
+                )
+            blocks = prediction.plan.blocks
+        except CassetteMissError, LMBudgetExceededError:
+            raise
+        except Exception:
+            blocks = (
+                PlanBlock(
+                    start=9 * 3600,
+                    end=17 * 3600,
+                    focus="Work the queue and answer pending items",
+                ),
+            )
+        return IntentAction(intent=AgentPlanIntent(day=day, blocks=blocks))
 
     async def _reflect(self, spec: ReflectActionSpec) -> EntityAction:
         identity = render_identity(self._params)
@@ -160,6 +218,16 @@ class ProfessionalActorAct:
     ) -> EntityAction:
         if isinstance(spec, ReflectActionSpec):
             return await self._reflect(spec)
+        if isinstance(spec, PlanActionSpec):
+            return await self._plan(spec.day)
+        if (
+            self._stream is not None
+            and self._stream.replan_pending()
+            and (today := self._memory.current_day()) is not None
+        ):
+            # Urgent arrivals outside the plan: replanning consumes this
+            # wake; work resumes on the next one.
+            return await self._plan(today)
         identity = render_identity(self._params)
         situation = "\n".join(block.content for block in blocks if not block.debug_only)
         pending = list(self._memory.pending_items())
