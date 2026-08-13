@@ -14,6 +14,7 @@ import argparse
 import asyncio
 import json
 import os
+import random
 import signal
 import sys
 import time
@@ -25,7 +26,7 @@ from workbench.simulation.chronicle.minter import minter_from_events
 from workbench.simulation.engine.engine import StopCondition
 from workbench.simulation.lm.budget import BudgetedLM
 from workbench.simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
-from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
+from workbench.simulation.lm.openrouter import OpenRouterLM
 from workbench.simulation.lm.protocol import LanguageModel
 from workbench.simulation.run import resume_workplace, run_compiled
 from workbench.simulation.workplace.compile import compile_workplace
@@ -34,6 +35,35 @@ from workbench.workplaces.calder.spec import LIVE_DAY_SPEC
 
 DEFAULT_HISTORY = Path("out/calder/world.jsonl")
 DEFAULT_CASSETTE = Path("src/workbench/workplaces/calder/cassettes/live-2026-07-20")
+# The model the cassette is recorded against; cassette keys include the
+# model string, so record and replay must agree. The provider list matters
+# only while recording: OpenRouterLM defaults to an openai-only order,
+# which can never serve a deepseek model, and a single provider's shared
+# pool rate-limits under load — the ordered list is the fallback chain.
+CASSETTE_MODEL = "deepseek/deepseek-v4-flash-0731"
+CASSETTE_PROVIDERS = ("deepinfra", "fireworks", "novita", "deepseek")
+
+
+class RetryLM:
+    """Retry transient transport failures while recording. Replay runs
+    never construct this: a cassette hit involves no network at all."""
+
+    def __init__(self, inner: LanguageModel, *, attempts: int = 6) -> None:
+        self._inner = inner
+        self._attempts = attempts
+
+    async def complete(self, request):
+        from workbench.simulation.errors import LMTransportError
+
+        for attempt in range(self._attempts):
+            try:
+                return await self._inner.complete(request)
+            except LMTransportError:
+                if attempt + 1 == self._attempts:
+                    raise
+                delay = min(2.0 * 2**attempt, 30.0) + random.uniform(0.0, 1.0)
+                await asyncio.sleep(delay)
+        raise AssertionError("unreachable")
 
 
 def build_lm(
@@ -45,8 +75,9 @@ def build_lm(
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise SystemExit("record mode requires OPENROUTER_API_KEY")
-    backend = OpenRouterLM(api_key=api_key)
-    return BudgetedLM(RecordingLM(backend, store), max_calls=max_calls), backend
+    backend = OpenRouterLM(api_key=api_key, providers=CASSETTE_PROVIDERS)
+    lm = BudgetedLM(RecordingLM(RetryLM(backend), store), max_calls=max_calls)
+    return lm, backend
 
 
 async def _run(args: argparse.Namespace) -> int:
@@ -164,7 +195,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=Path("out/calder/live"))
     parser.add_argument("--mode", choices=("record", "replay"), default="replay")
     parser.add_argument("--cassette", type=Path, default=DEFAULT_CASSETTE)
-    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--model", default=CASSETTE_MODEL)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--window", type=int, default=8)
     parser.add_argument("--max-calls", type=int, default=3000)
