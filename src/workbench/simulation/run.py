@@ -143,7 +143,9 @@ def _build_runtime(
     def make_persona_entity(
         entity_name: str, params: ProfessionalWorkerParams
     ) -> tuple[WorkingMemoryComponent, ComposedEntity]:
-        memory = WorkingMemoryComponent(person_id=params.person_id)
+        memory = WorkingMemoryComponent(
+            person_id=params.person_id, start_date=compiled.start_date
+        )
         stream = MemoryStreamComponent(
             person_id=params.person_id, entity_name=entity_name
         )
@@ -162,6 +164,7 @@ def _build_runtime(
                 lm=lm,
                 actor=actor_factory() if actor_factory is not None else None,
                 workplace_norms=workplace_norms,
+                memory_stream=stream,
             ),
         )
         lms[entity_name] = lm

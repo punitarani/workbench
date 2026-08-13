@@ -57,6 +57,13 @@ class DecideNextAction(dspy.Signature):
 
     identity: str = dspy.InputField()
     situation: str = dspy.InputField(desc="current time, schedule, workload")
+    current_plan: str = dspy.InputField(
+        desc="today's plan with the current block marked; follow it "
+        "unless something pending clearly outranks it"
+    )
+    relevant_memories: str = dspy.InputField(
+        desc="what you remember that bears on this moment"
+    )
     pending: list[PendingItem] = dspy.InputField()
     recent_activity: str = dspy.InputField(desc="what you did in the last hour")
     choice: ActionChoice = dspy.OutputField()
@@ -117,6 +124,13 @@ class DecideNextActionExtended(dspy.Signature):
 
     identity: str = dspy.InputField()
     situation: str = dspy.InputField(desc="current time, schedule, workload")
+    current_plan: str = dspy.InputField(
+        desc="today's plan with the current block marked; follow it "
+        "unless something pending clearly outranks it"
+    )
+    relevant_memories: str = dspy.InputField(
+        desc="what you remember that bears on this moment"
+    )
     pending: list[PendingItem] = dspy.InputField()
     recent_activity: str = dspy.InputField(desc="what you did in the last hour")
     enabled_extras: str = dspy.InputField(

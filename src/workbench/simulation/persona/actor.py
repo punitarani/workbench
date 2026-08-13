@@ -17,6 +17,7 @@ from workbench.core.intents import (
 from workbench.core.worldlog.views import email_thread
 from workbench.simulation.entity.context import ContextBlock
 from workbench.simulation.lm.dspy_lm import WorkbenchLM
+from workbench.simulation.persona.memory_stream import MemoryStreamComponent
 from workbench.simulation.persona.params import ProfessionalWorkerParams
 from workbench.simulation.persona.programs import (
     ActionChoice,
@@ -29,6 +30,12 @@ from workbench.simulation.persona.rendering import (
     render_identity,
     render_knowledge,
     render_thread,
+)
+from workbench.simulation.persona.retrieval import (
+    RetrievalQuery,
+    render_memories,
+    retrieve,
+    tokens_of,
 )
 from workbench.simulation.persona.working_memory import WorkingMemoryComponent
 
@@ -53,9 +60,11 @@ class ProfessionalActorAct:
         lm: WorkbenchLM,
         actor: ProfessionalActor | None = None,
         workplace_norms: str = "",
+        memory_stream: MemoryStreamComponent | None = None,
     ) -> None:
         self._params = params
         self._memory = working_memory
+        self._stream = memory_stream
         self._lm = lm
         self._actor = actor if actor is not None else ProfessionalActor()
         self._workplace_norms = workplace_norms
@@ -66,20 +75,42 @@ class ProfessionalActorAct:
     def set_state(self, state: ActorActState) -> None:
         self._lm.set_calls(state.lm_calls)
 
+    def _relevant_memories(self, pending) -> str:
+        if self._stream is None:
+            return "None yet."
+        query = RetrievalQuery(
+            refs=frozenset(item.ref for item in pending),
+            tokens=tokens_of(*(item.summary for item in pending)),
+        )
+        now = self._memory.last_time()
+        records = retrieve(self._stream.records(), query, now=now)
+        return render_memories(records, now=now)
+
+    def _current_plan(self) -> str:
+        # Planning turns arrive in a later phase; the field exists so the
+        # decide surface is stable from here on.
+        return "No plan recorded for today."
+
     async def get_action_attempt(
         self, blocks: tuple[ContextBlock, ...], spec: ActionSpec
     ) -> EntityAction:
         identity = render_identity(self._params)
         situation = "\n".join(block.content for block in blocks if not block.debug_only)
         pending = list(self._memory.pending_items())
-        facts = "\n".join(self._memory.facts()) or "None yet."
+        # The ledger of own actions stays bounded: consolidation owns the
+        # long horizon, the prompt sees only the recent tail.
+        facts = "\n".join(self._memory.facts()[-12:]) or "None yet."
         knowledge = render_knowledge(self._params) or "None."
+        memories = self._relevant_memories(pending)
+        current_plan = self._current_plan()
 
         with dspy.context(lm=self._lm):
             if self._params.extra_verbs:
                 decision = await self._actor.decide_extended.acall(
                     identity=identity,
                     situation=situation,
+                    current_plan=current_plan,
+                    relevant_memories=memories,
                     pending=pending,
                     recent_activity=facts,
                     enabled_extras=", ".join(self._params.extra_verbs),
@@ -88,6 +119,8 @@ class ProfessionalActorAct:
                 decision = await self._actor.decide.acall(
                     identity=identity,
                     situation=situation,
+                    current_plan=current_plan,
+                    relevant_memories=memories,
                     pending=pending,
                     recent_activity=facts,
                 )

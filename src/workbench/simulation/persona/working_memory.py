@@ -58,9 +58,12 @@ class WorkingMemoryState(BaseModel):
 class WorkingMemoryComponent(BaseComponent):
     state_model = WorkingMemoryState
 
-    def __init__(self, *, person_id: str) -> None:
+    def __init__(self, *, person_id: str, start_date: str | None = None) -> None:
         super().__init__("working-memory")
         self._person_id = person_id
+        # ISO date of sim day zero: with it, the situation clock renders a
+        # real calendar day instead of a bare offset.
+        self._start_date = start_date
         self._events: tuple[Event, ...] = ()
         self._facts: tuple[str, ...] = ()
         self._awaiting_ids: tuple[str, ...] | None = None
@@ -81,24 +84,32 @@ class WorkingMemoryComponent(BaseComponent):
     async def pre_act(self, spec: ActionSpec) -> ContextBlock | None:
         events = self._require_hydrated()
         now = self.last_time()
-        clock = f"{now // 3600:02d}:{(now % 3600) // 60:02d}"
+        seconds = now % 86_400
+        clock = f"{seconds // 3600:02d}:{(seconds % 3600) // 60:02d}"
+        # Bounded views: the most recent handful, not a lifetime inventory.
         documents = [
             e.payload.path
             for e in events
             if isinstance(e.payload, DocumentCreatedPayload)
-        ]
+        ][-10:]
         tickets = [
             f"{e.payload.ticket_id}: {e.payload.title}"
             for e in events
             if isinstance(e.payload, TicketCreatedPayload)
-        ]
+        ][-10:]
         channels = [
             e.payload.name or e.payload.conversation_id
             for e in events
             if isinstance(e.payload, ChatConversationCreatedPayload)
             and self._person_id in e.payload.members
         ]
-        lines = [f"Current time: about {clock}."]
+        if self._start_date is not None:
+            from datetime import date, timedelta
+
+            day = date.fromisoformat(self._start_date) + timedelta(days=now // 86_400)
+            lines = [f"Current time: {day:%a} {day.isoformat()}, about {clock}."]
+        else:
+            lines = [f"Current time: about {clock}."]
         if documents:
             lines.append("Documents you know of: " + "; ".join(documents))
         if tickets:
