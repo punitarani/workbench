@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from workbench.core.events.agent import MemoryBullet, PlanBlock
 from workbench.core.events.tickets import FieldChange
 from workbench.core.simtime import SimTime
 
@@ -144,6 +145,27 @@ class FreeformIntent(_Intent):
     text: str
 
 
+class AgentNoteIntent(_Intent):
+    """Persist a reflection or summary as a sim.agent.memory event. The
+    GM drops unknown refs rather than rejecting: cognition must not fail
+    a day over a mistyped id."""
+
+    kind: Literal["agent_note"] = "agent_note"
+    note_kind: Literal["daily_summary", "weekly_summary", "note"] = "note"
+    day: str
+    bullets: tuple[MemoryBullet, ...] = Field(min_length=1)
+    open_loops: tuple[str, ...] = ()
+
+
+class AgentPlanIntent(_Intent):
+    """Persist a day plan as a sim.agent.plan event; the GM clamps blocks
+    to the working day instead of rejecting."""
+
+    kind: Literal["agent_plan"] = "agent_plan"
+    day: str
+    blocks: tuple[PlanBlock, ...] = Field(min_length=1)
+
+
 ActionIntent = Annotated[
     EmailIntent
     | ChatIntent
@@ -153,6 +175,8 @@ ActionIntent = Annotated[
     | ReactionIntent
     | TimeLogIntent
     | IdleIntent
-    | FreeformIntent,
+    | FreeformIntent
+    | AgentNoteIntent
+    | AgentPlanIntent,
     Field(discriminator="kind"),
 ]

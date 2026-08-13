@@ -18,6 +18,10 @@ from workbench.core.actions import (
     TerminateDecision,
 )
 from workbench.core.events import Event, EventDraft
+from workbench.core.events.agent import (
+    SimAgentMemoryPayload,
+    SimAgentPlanPayload,
+)
 from workbench.core.events.calendar import (
     CalendarEventScheduledPayload,
     CalendarResponsePayload,
@@ -44,6 +48,8 @@ from workbench.core.events.work import TimeLoggedPayload
 from workbench.core.ids import IdMinter
 from workbench.core.intents import (
     ActionIntent,
+    AgentNoteIntent,
+    AgentPlanIntent,
     CalendarIntent,
     ChatIntent,
     DocumentEditIntent,
@@ -202,6 +208,10 @@ class GroundedGm:
                 return self._entities_for((payload.actor, values.get("assignee")))
             case DocumentCreatedPayload() | DocumentRevisedPayload():
                 return self._entities_for((payload.author,))
+            case SimAgentMemoryPayload() | SimAgentPlanPayload():
+                return (payload.entity,)
+            case SimGmNotePayload():
+                return (payload.entity,) if payload.entity is not None else ()
             case _:
                 return ()
 
@@ -235,6 +245,21 @@ class GroundedGm:
                 return self._entities_for((payload.actor, values.get("assignee")))
             case DocumentCreatedPayload() | DocumentRevisedPayload():
                 return self._entities_for((payload.author,))
+            # Cognition and correction events go back to their entity —
+            # rejections become memories agents can learn from.
+            case SimAgentMemoryPayload() | SimAgentPlanPayload():
+                return (
+                    (payload.entity,)
+                    if payload.entity in self._person_for_entity
+                    else ()
+                )
+            case SimGmNotePayload():
+                if (
+                    payload.entity is not None
+                    and payload.entity in self._person_for_entity
+                ):
+                    return (payload.entity,)
+                return ()
             case _:
                 return ()
 
@@ -305,6 +330,7 @@ class GroundedGm:
                 kind="sim.gm.note",
                 note=f"Rejected action from {entity}: {rejection.reason}",
                 rejected_intent=_intent_summary(action),
+                entity=entity,
             )
             return ResolutionDecision(
                 drafts=(
@@ -426,8 +452,7 @@ class GroundedGm:
 
     def _mint_person(self, name: str, email: str) -> PersonRecordPayload:
         base = "per-" + "-".join(
-            "".join(c for c in word.lower() if c.isalnum())
-            for word in name.split()
+            "".join(c for c in word.lower() if c.isalnum()) for word in name.split()
         )
         person_id = base
         suffix = 2
@@ -502,6 +527,10 @@ class GroundedGm:
                 return self._ground_reaction(entity, sender, intent, event, delay)
             case TimeLogIntent():
                 return self._ground_time_log(entity, sender, intent, event, delay)
+            case AgentNoteIntent():
+                return self._ground_agent_note(entity, intent, event, delay)
+            case AgentPlanIntent():
+                return self._ground_agent_plan(entity, intent, event, delay)
             case _:
                 raise IntentRejection(f"unsupported intent kind {intent.kind}")
 
@@ -739,9 +768,7 @@ class GroundedGm:
             intent.chat_message_ref
         )
         if conversation_id is None:
-            raise IntentRejection(
-                f"unknown chat message {intent.chat_message_ref!r}"
-            )
+            raise IntentRejection(f"unknown chat message {intent.chat_message_ref!r}")
         members = self._world.conversations.get(conversation_id, ())
         if sender not in members:
             raise IntentRejection(f"{sender} is not in {conversation_id}")
@@ -790,9 +817,7 @@ class GroundedGm:
         self, entity, sender, intent: CalendarIntent, event, delay
     ) -> tuple[EventDraft, ...]:
         if intent.schedule is not None:
-            attendees = self._resolve_people(
-                (sender, *intent.schedule.attendee_refs)
-            )
+            attendees = self._resolve_people((sender, *intent.schedule.attendee_refs))
             payload = CalendarEventScheduledPayload(
                 kind="calendar.event.scheduled",
                 calendar_event_id=self._minter.mint("cal"),
@@ -819,6 +844,73 @@ class GroundedGm:
             calendar_event_id=intent.respond.calendar_event_ref,
             responder=sender,
             response=intent.respond.response,
+        )
+        return (
+            EventDraft(
+                tag=payload.kind,
+                source=entity,
+                caused_by=event.event_id,
+                payload=payload,
+                delay=delay,
+            ),
+        )
+
+    def _ground_agent_note(
+        self, entity, intent: AgentNoteIntent, event, delay
+    ) -> tuple[EventDraft, ...]:
+        bullets = tuple(
+            bullet.model_copy(
+                update={
+                    "refs": tuple(
+                        ref for ref in bullet.refs if self._world.knows_ref(ref)
+                    )
+                }
+            )
+            for bullet in intent.bullets
+        )
+        payload = SimAgentMemoryPayload(
+            kind="sim.agent.memory",
+            note_id=self._minter.mint("mem"),
+            entity=entity,
+            note_kind=intent.note_kind,
+            day=intent.day,
+            bullets=bullets,
+            open_loops=intent.open_loops,
+        )
+        return (
+            EventDraft(
+                tag=payload.kind,
+                source=entity,
+                caused_by=event.event_id,
+                payload=payload,
+                delay=delay,
+            ),
+        )
+
+    def _ground_agent_plan(
+        self, entity, intent: AgentPlanIntent, event, delay
+    ) -> tuple[EventDraft, ...]:
+        end_of_day = self._day_plan.end_of_day if self._day_plan is not None else 86_400
+        clamped = []
+        previous_end = 0
+        for block in sorted(intent.blocks, key=lambda b: (b.start, b.end)):
+            start = max(block.start, previous_end)
+            end = min(block.end, end_of_day)
+            if end <= start:
+                continue
+            clamped.append(block.model_copy(update={"start": start, "end": end}))
+            previous_end = end
+        if not clamped:
+            raise IntentRejection("plan has no blocks inside the working day")
+        key = f"{entity}|{intent.day}"
+        revision = self._world.plan_revisions.get(key, 0) + 1
+        payload = SimAgentPlanPayload(
+            kind="sim.agent.plan",
+            plan_id=self._minter.mint("pln"),
+            entity=entity,
+            day=intent.day,
+            revision=revision,
+            blocks=tuple(clamped),
         )
         return (
             EventDraft(

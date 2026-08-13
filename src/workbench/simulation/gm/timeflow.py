@@ -2,6 +2,8 @@
 
 from workbench.core.intents import (
     ActionIntent,
+    AgentNoteIntent,
+    AgentPlanIntent,
     CalendarIntent,
     ChatIntent,
     DocumentEditIntent,
@@ -34,5 +36,10 @@ def intent_duration(intent: ActionIntent) -> int:
             return 60
         case IdleIntent():
             return intent.until_minutes * 60
+        case AgentNoteIntent():
+            # Writing the day down takes a few quiet minutes.
+            return 300
+        case AgentPlanIntent():
+            return 300
         case FreeformIntent():
             return 60

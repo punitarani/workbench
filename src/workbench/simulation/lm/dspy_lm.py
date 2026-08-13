@@ -67,7 +67,6 @@ class WorkbenchLM(dspy.BaseLM):
         self._max_tokens = max_tokens
         self._calls = 0
 
-
     @property
     def calls(self) -> int:
         return self._calls

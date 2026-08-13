@@ -145,6 +145,22 @@ def _wake(payload) -> Footprint:
     return Footprint(resources=frozenset({f"entity:{payload.entity}"}))
 
 
+def _gm_note(payload) -> Footprint:
+    # A note aimed at an entity serializes against that entity's actions;
+    # an unaddressed note conflicts with nothing.
+    if payload.entity is None:
+        return Footprint()
+    return Footprint(resources=frozenset({f"entity:{payload.entity}"}))
+
+
+def _agent_memory(payload) -> Footprint:
+    return Footprint(resources=frozenset({f"entity:{payload.entity}"}))
+
+
+def _agent_plan(payload) -> Footprint:
+    return Footprint(resources=frozenset({f"entity:{payload.entity}"}))
+
+
 def _free(payload) -> Footprint:
     return Footprint()
 
@@ -167,8 +183,10 @@ RULES: dict[str, Callable[[Payload], Footprint]] = {
     "calendar.event.scheduled": _calendar_scheduled,
     "calendar.event.updated": _calendar_updated,
     "calendar.response": _calendar_response,
-    "sim.gm.note": _free,
+    "sim.gm.note": _gm_note,
     "sim.wake": _wake,
+    "sim.agent.memory": _agent_memory,
+    "sim.agent.plan": _agent_plan,
 }
 
 

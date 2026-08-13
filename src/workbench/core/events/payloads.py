@@ -8,6 +8,10 @@ from typing import Annotated
 
 from pydantic import Field
 
+from workbench.core.events.agent import (
+    SimAgentMemoryPayload,
+    SimAgentPlanPayload,
+)
 from workbench.core.events.calendar import (
     CalendarEventScheduledPayload,
     CalendarEventUpdatedPayload,
@@ -67,7 +71,9 @@ EventPayload = Annotated[
     | SimDayEndedPayload
     | SimGmNotePayload
     | SimCheckpointPayload
-    | SimWakePayload,
+    | SimWakePayload
+    | SimAgentMemoryPayload
+    | SimAgentPlanPayload,
     Field(discriminator="kind"),
 ]
 
@@ -94,4 +100,6 @@ TAG_REGISTRY = {
     "sim.gm.note": SimGmNotePayload,
     "sim.checkpoint": SimCheckpointPayload,
     "sim.wake": SimWakePayload,
+    "sim.agent.memory": SimAgentMemoryPayload,
+    "sim.agent.plan": SimAgentPlanPayload,
 }

@@ -5,6 +5,7 @@ from collections.abc import Iterable
 from pydantic import BaseModel, ConfigDict, Field
 
 from workbench.core.events import Event
+from workbench.core.events.agent import SimAgentPlanPayload
 from workbench.core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
@@ -35,6 +36,8 @@ class WorldStateModel(BaseModel):
     tickets: tuple[tuple[str, tuple[tuple[str, str | None], ...]], ...] = Field(
         default=()
     )
+    # "entity|day" -> latest plan revision, so replans number deterministically.
+    plan_revisions: tuple[tuple[str, int], ...] = ()
 
 
 class WorldState:
@@ -52,6 +55,7 @@ class WorldState:
         self.documents: dict[str, int] = {}  # id -> head revision
         self.document_paths: dict[str, str] = {}  # path -> id
         self.tickets: dict[str, dict[str, str | None]] = {}
+        self.plan_revisions: dict[str, int] = {}
 
     def apply(self, event: Event) -> None:
         payload = event.payload
@@ -100,6 +104,9 @@ class WorldState:
                     for change in payload.changes:
                         if change.field in values:
                             values[change.field] = change.new
+            case SimAgentPlanPayload():
+                key = f"{payload.entity}|{payload.day}"
+                self.plan_revisions[key] = payload.revision
             case _:
                 pass
 
@@ -109,9 +116,7 @@ class WorldState:
 
     def to_model(self) -> WorldStateModel:
         return WorldStateModel(
-            people=tuple(
-                self.people[person_id] for person_id in sorted(self.people)
-            ),
+            people=tuple(self.people[person_id] for person_id in sorted(self.people)),
             threads=tuple(sorted(self.threads.items())),
             message_depth=tuple(sorted(self.message_depth.items())),
             conversations=tuple(sorted(self.conversations.items())),
@@ -126,6 +131,7 @@ class WorldState:
                 (ticket_id, tuple(sorted(values.items())))
                 for ticket_id, values in sorted(self.tickets.items())
             ),
+            plan_revisions=tuple(sorted(self.plan_revisions.items())),
         )
 
     @classmethod
@@ -147,9 +153,8 @@ class WorldState:
         state.chat_message_conversations = dict(model.chat_message_conversations)
         state.documents = dict(model.documents)
         state.document_paths = dict(model.document_paths)
-        state.tickets = {
-            ticket_id: dict(values) for ticket_id, values in model.tickets
-        }
+        state.tickets = {ticket_id: dict(values) for ticket_id, values in model.tickets}
+        state.plan_revisions = dict(model.plan_revisions)
         return state
 
     def resolve_person(self, ref: str) -> str | None:
@@ -179,3 +184,15 @@ class WorldState:
         if ref in self.documents:
             return ref
         return self.document_paths.get(ref)
+
+    def knows_ref(self, ref: str) -> bool:
+        """Does this typed id resolve against the folded world?"""
+        return (
+            ref in self.people
+            or ref in self.thread_ids
+            or ref in self.threads
+            or ref in self.conversations
+            or ref in self.chat_messages
+            or ref in self.documents
+            or ref in self.tickets
+        )

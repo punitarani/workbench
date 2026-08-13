@@ -32,6 +32,9 @@ class SimGmNotePayload(Payload):
     kind: Literal["sim.gm.note"]
     note: str
     rejected_intent: str | None = None
+    # The entity whose action the note concerns; when set, the note routes
+    # back to that entity so agents can correct instead of repeating.
+    entity: str | None = None
 
 
 class SimCheckpointPayload(Payload):

@@ -1,5 +1,11 @@
 """One sample instance per payload kind, shared by event/world-log tests."""
 
+from workbench.core.events.agent import (
+    MemoryBullet,
+    PlanBlock,
+    SimAgentMemoryPayload,
+    SimAgentPlanPayload,
+)
 from workbench.core.events.calendar import (
     CalendarEventScheduledPayload,
     CalendarEventUpdatedPayload,
@@ -199,5 +205,35 @@ def sample_payloads() -> dict[str, EventPayload]:
         ),
         SimCheckpointPayload(kind="sim.checkpoint", step=12),
         SimWakePayload(kind="sim.wake", entity="daniel-reyes"),
+        SimAgentMemoryPayload(
+            kind="sim.agent.memory",
+            note_id="mem-000001",
+            entity="daniel-reyes",
+            note_kind="daily_summary",
+            day="2026-03-12",
+            bullets=(
+                MemoryBullet(
+                    text="Vantage NDA needs the two-year cap",
+                    importance=8,
+                    refs=("thr-000001",),
+                ),
+            ),
+            open_loops=("chase the signature packet",),
+        ),
+        SimAgentPlanPayload(
+            kind="sim.agent.plan",
+            plan_id="pln-000001",
+            entity="daniel-reyes",
+            day="2026-03-12",
+            revision=1,
+            blocks=(
+                PlanBlock(
+                    start=32_400,
+                    end=39_600,
+                    focus="NDA redline",
+                    refs=("tkt-000001",),
+                ),
+            ),
+        ),
     ]
     return {payload.kind: payload for payload in samples}

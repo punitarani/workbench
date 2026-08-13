@@ -71,8 +71,8 @@ async def _run(args: argparse.Namespace) -> int:
 
     asyncio.get_running_loop().add_signal_handler(signal.SIGINT, request_stop)
 
-    end_time = _clock_seconds(args.until) if args.until else _clock_seconds(
-        spec.end_of_day
+    end_time = (
+        _clock_seconds(args.until) if args.until else _clock_seconds(spec.end_of_day)
     )
     stop = StopCondition(
         end_time=end_time,

@@ -32,6 +32,7 @@ from workbench.simulation.gm.grounded import DayPlan, GroundedGm
 from workbench.simulation.lm.dspy_lm import WorkbenchLM
 from workbench.simulation.lm.protocol import LanguageModel
 from workbench.simulation.persona.actor import ProfessionalActorAct
+from workbench.simulation.persona.memory_stream import MemoryStreamComponent
 from workbench.simulation.persona.params import ProfessionalWorkerParams
 from workbench.simulation.persona.programs import ProfessionalActor
 from workbench.simulation.persona.working_memory import WorkingMemoryComponent
@@ -143,6 +144,9 @@ def _build_runtime(
         entity_name: str, params: ProfessionalWorkerParams
     ) -> tuple[WorkingMemoryComponent, ComposedEntity]:
         memory = WorkingMemoryComponent(person_id=params.person_id)
+        stream = MemoryStreamComponent(
+            person_id=params.person_id, entity_name=entity_name
+        )
         lm = WorkbenchLM(
             inner_lm,
             model=model,
@@ -151,7 +155,7 @@ def _build_runtime(
         )
         entity = ComposedEntity(
             name=entity_name,
-            components=(memory,),
+            components=(memory, stream),
             act_component=ProfessionalActorAct(
                 params=params,
                 working_memory=memory,
@@ -230,7 +234,9 @@ async def _deliver_events(runtime: _Runtime, events) -> None:
             if name in runtime.externals:
                 await runtime.externals[name].observe(event)
             else:
-                await runtime.memories[name].pre_observe(event)
+                # Full entity observation: every component (working memory,
+                # memory stream, and whatever arrives later) sees genesis.
+                await runtime.personas[name].observe(event)
 
 
 def _finish(

@@ -222,9 +222,7 @@ def compile_workplace(
         payload = _person_payload(arrival.person)
         scheduled.append(
             ScheduledEvent(
-                time=time_offset
-                + arrival.day * 86_400
-                + _clock_to_seconds(arrival.at),
+                time=time_offset + arrival.day * 86_400 + _clock_to_seconds(arrival.at),
                 order=order,
                 draft=EventDraft(tag=payload.kind, source="gm", payload=payload),
             )

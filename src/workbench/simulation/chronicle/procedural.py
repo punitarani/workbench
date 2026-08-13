@@ -166,8 +166,7 @@ class ProceduralCast(_Model):
     @model_validator(mode="after")
     def _timekeepers_are_internal(self) -> ProceduralCast:
         internal_ids = {
-            member.person_id
-            for member in (*self.internal, *self.channel_silent)
+            member.person_id for member in (*self.internal, *self.channel_silent)
         }
         strangers = [
             keeper.member.person_id
