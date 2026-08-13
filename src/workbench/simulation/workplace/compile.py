@@ -10,7 +10,11 @@ from pydantic import BaseModel, ConfigDict
 from workbench.core.events import Event, EventDraft
 from workbench.core.events.calendar import CalendarEventScheduledPayload
 from workbench.core.events.chat import ChatConversationCreatedPayload
-from workbench.core.events.control import SimRunStartedPayload, SimWakePayload
+from workbench.core.events.control import (
+    SimDayStartedPayload,
+    SimRunStartedPayload,
+    SimWakePayload,
+)
 from workbench.core.events.documents import DocumentCreatedPayload
 from workbench.core.events.email import Attachment, EmailMessagePayload
 from workbench.core.events.people import PersonRecordPayload
@@ -53,6 +57,10 @@ class CompiledWorkplace(BaseModel):
     entity_for_person: tuple[tuple[str, str], ...]
     ticket_vocabulary: TicketVocabulary
     end_time: int
+    days: int = 1
+    start_date: str = ""
+    timezone: str = "UTC"
+    end_of_day_seconds: int = 0
     # Final compile-time counters; the runtime GM starts from these so its
     # minted ids can never collide with scheduled-but-not-yet-occurred ones.
     minter: IdMinter
@@ -224,21 +232,39 @@ def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
 
     # Periodic check-in turns: without these, personas act only when
     # addressed and the day dies with its reply chains.
-    end_time = _clock_to_seconds(spec.end_of_day)
-    day_start = 9 * 3600
-    for index, (entity_name, persona) in enumerate(personas):
-        wake_time = day_start + (index + 1) * 180
-        while wake_time < end_time:
-            payload = SimWakePayload(kind="sim.wake", entity=entity_name)
-            scheduled.append(
-                ScheduledEvent(
-                    time=wake_time,
-                    order=order,
-                    draft=EventDraft(tag=payload.kind, source="gm", payload=payload),
+    end_of_day_seconds = _clock_to_seconds(spec.end_of_day)
+    end_time = (spec.days - 1) * 86_400 + end_of_day_seconds
+    if spec.days == 1:
+        # Byte-compatible with every recorded single-day cassette: the whole
+        # ladder is materialized at compile time, and no day events exist.
+        day_start = 9 * 3600
+        for index, (entity_name, persona) in enumerate(personas):
+            wake_time = day_start + (index + 1) * 180
+            while wake_time < end_time:
+                payload = SimWakePayload(kind="sim.wake", entity=entity_name)
+                scheduled.append(
+                    ScheduledEvent(
+                        time=wake_time,
+                        order=order,
+                        draft=EventDraft(
+                            tag=payload.kind, source="gm", payload=payload
+                        ),
+                    )
                 )
+                order += 1
+                wake_time += persona.check_interval_minutes * 60
+    else:
+        started = SimDayStartedPayload(
+            kind="sim.day.started", day=spec.epoch.date().isoformat()
+        )
+        scheduled.append(
+            ScheduledEvent(
+                time=0,
+                order=order,
+                draft=EventDraft(tag=started.kind, source="gm", payload=started),
             )
-            order += 1
-            wake_time += persona.check_interval_minutes * 60
+        )
+        order += 1
     entity_for_person = tuple(
         (person.person_id, _entity_name(person.person_id))
         for person in spec.people
@@ -254,5 +280,9 @@ def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
         entity_for_person=entity_for_person,
         ticket_vocabulary=spec.ticket_vocabulary,
         end_time=end_time,
+        days=spec.days,
+        start_date=spec.epoch.date().isoformat(),
+        timezone=spec.timezone,
+        end_of_day_seconds=end_of_day_seconds,
         minter=minter,
     )

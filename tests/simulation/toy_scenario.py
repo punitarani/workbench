@@ -139,6 +139,9 @@ class ToyGameMaster:
         )
         return ResolutionDecision(drafts=(draft,))
 
+    async def consequences(self, event: Event) -> tuple[EventDraft, ...]:
+        return ()
+
     async def should_terminate(self) -> TerminateDecision:
         if self._routed_messages >= self._max_messages:
             return TerminateDecision(terminate=True, reason="message quota reached")

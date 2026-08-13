@@ -15,7 +15,7 @@ from workbench.core.actions import (
     ResolutionDecision,
     TerminateDecision,
 )
-from workbench.core.events import Event
+from workbench.core.events import Event, EventDraft
 
 
 class GameMaster(Protocol):
@@ -32,6 +32,10 @@ class GameMaster(Protocol):
     async def resolve(
         self, entity: str, action: EntityAction, spec: ActionSpec, event: Event
     ) -> ResolutionDecision: ...
+
+    async def consequences(self, event: Event) -> tuple[EventDraft, ...]:
+        """World-driven follow-ups for events nobody acts on (day chains)."""
+        ...
 
     async def should_terminate(self) -> TerminateDecision: ...
 

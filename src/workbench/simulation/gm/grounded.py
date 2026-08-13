@@ -20,7 +20,12 @@ from workbench.core.actions import (
 from workbench.core.events import Event, EventDraft
 from workbench.core.events.calendar import CalendarResponsePayload
 from workbench.core.events.chat import ChatMessagePayload
-from workbench.core.events.control import SimGmNotePayload, SimWakePayload
+from workbench.core.events.control import (
+    SimDayEndedPayload,
+    SimDayStartedPayload,
+    SimGmNotePayload,
+    SimWakePayload,
+)
 from workbench.core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
@@ -43,6 +48,7 @@ from workbench.core.intents import (
     TicketIntent,
 )
 from workbench.core.simtime import SimDuration
+from workbench.simulation.chronicle.calendar import SECONDS_PER_DAY, CalendarWindow
 from workbench.simulation.gm.timeflow import intent_duration
 from workbench.simulation.gm.world_state import WorldState, WorldStateModel
 
@@ -57,6 +63,18 @@ class IntentRejection(Exception):
     def __init__(self, reason: str) -> None:
         super().__init__(reason)
         self.reason = reason
+
+
+class DayPlan(BaseModel):
+    """How multi-day runs unfold: each sim.day.started mints that workday's
+    wake ladder and its sim.day.ended; each sim.day.ended chains the next
+    workday's start. Weekends never appear in the log."""
+
+    window: CalendarWindow
+    personas: tuple[tuple[str, int], ...]  # (entity name, check interval minutes)
+    end_of_day: int
+    day_start: int = 9 * 3600
+    stagger: int = 180
 
 
 class GroundedGmState(BaseModel):
@@ -74,6 +92,7 @@ class GroundedGm:
         entity_for_person: dict[str, str],
         ticket_vocabulary: TicketVocabulary,
         response_delay_seconds: int = 120,
+        day_plan: DayPlan | None = None,
     ) -> None:
         self._world = WorldState()
         self._minter = IdMinter()
@@ -83,6 +102,7 @@ class GroundedGm:
         }
         self._vocab = ticket_vocabulary
         self._response_delay = response_delay_seconds
+        self._day_plan = day_plan
 
     @property
     def world(self) -> WorldState:
@@ -239,6 +259,74 @@ class GroundedGm:
                 )
             )
         return ResolutionDecision(drafts=drafts)
+
+    async def consequences(self, event: Event) -> tuple[EventDraft, ...]:
+        plan = self._day_plan
+        if plan is None:
+            return ()
+        payload = event.payload
+        match payload:
+            case SimDayStartedPayload():
+                day = self._day_index(payload.day)
+                drafts: list[EventDraft] = []
+                for index, (entity_name, interval) in enumerate(plan.personas):
+                    wake_delay = plan.day_start + (index + 1) * plan.stagger
+                    while wake_delay < plan.end_of_day:
+                        wake = SimWakePayload(kind="sim.wake", entity=entity_name)
+                        drafts.append(
+                            EventDraft(
+                                tag=wake.kind,
+                                source="gm",
+                                caused_by=event.event_id,
+                                payload=wake,
+                                delay=SimDuration(wake_delay),
+                            )
+                        )
+                        wake_delay += interval * 60
+                ended = SimDayEndedPayload(kind="sim.day.ended", day=payload.day)
+                drafts.append(
+                    EventDraft(
+                        tag=ended.kind,
+                        source="gm",
+                        caused_by=event.event_id,
+                        payload=ended,
+                        delay=SimDuration(plan.end_of_day),
+                    )
+                )
+                return tuple(drafts)
+            case SimDayEndedPayload():
+                day = self._day_index(payload.day)
+                for candidate in range(day + 1, plan.window.day_count):
+                    if plan.window.is_workday(candidate):
+                        started = SimDayStartedPayload(
+                            kind="sim.day.started",
+                            day=plan.window.iso_date(candidate),
+                        )
+                        delay = (
+                            int(plan.window.day_offset(candidate))
+                            - day * SECONDS_PER_DAY
+                            - plan.end_of_day
+                        )
+                        return (
+                            EventDraft(
+                                tag=started.kind,
+                                source="gm",
+                                caused_by=event.event_id,
+                                payload=started,
+                                delay=SimDuration(delay),
+                            ),
+                        )
+                return ()
+            case _:
+                return ()
+
+    def _day_index(self, iso_day: str) -> int:
+        plan = self._day_plan
+        assert plan is not None
+        from datetime import date
+
+        start = date.fromisoformat(plan.window.start_date)
+        return (date.fromisoformat(iso_day) - start).days
 
     async def should_terminate(self) -> TerminateDecision:
         return TerminateDecision(terminate=False, reason="runs until quiescent")

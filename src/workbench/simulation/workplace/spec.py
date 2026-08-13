@@ -75,3 +75,6 @@ class WorkplaceSpec(_Model):
     seed_calendar: tuple[SeedCalendarEvent, ...] = ()
     day_script: tuple[ExogenousEmail, ...] = ()
     end_of_day: str = "17:30"
+    # Simulated window length in calendar days; weekends inside the
+    # window are skipped by the runtime day chain.
+    days: int = Field(default=1, ge=1)

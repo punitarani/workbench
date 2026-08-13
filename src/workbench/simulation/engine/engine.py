@@ -216,6 +216,16 @@ class InterruptEngine:
                 self._queue.push(item)
                 scheduled.append(item)
 
+        for draft in await self._gm.consequences(event):
+            item = ScheduledEvent(
+                time=int(event_time) + int(draft.delay),
+                order=self._next_order,
+                draft=draft,
+            )
+            self._next_order += 1
+            self._queue.push(item)
+            scheduled.append(item)
+
         terminate = await self._gm.should_terminate()
         if self._store is not None:
             # The step becomes durable here, or not at all: a crash anywhere
