@@ -26,6 +26,7 @@ from workbench.core.events.control import SimRunStartedPayload
 from workbench.core.events.people import PersonRecordPayload
 from workbench.core.ids import IdMinter
 from workbench.core.simtime import SimDuration, SimTime
+from workbench.core.store import SqliteRunStore
 from workbench.core.worldlog import WorldLogWriter
 from workbench.simulation.engine.attention import AttentionBook
 from workbench.simulation.engine.engine import InterruptEngine
@@ -250,3 +251,115 @@ def build_engine(
         next_order=1,
     )
     return engine, writer
+
+
+class ExplodingGameMaster(ToyGameMaster):
+    """Raises during resolution of the given step to test commit atomicity."""
+
+    def __init__(self, *, max_messages: int, explode_on_step: int) -> None:
+        super().__init__(max_messages=max_messages)
+        self._explode_on_step = explode_on_step
+        self._resolve_calls = 0
+
+    async def resolve(self, entity, action, spec, event):
+        if self._resolve_calls == self._explode_on_step:
+            raise RuntimeError("boom")
+        self._resolve_calls += 1
+        return await super().resolve(entity, action, spec, event)
+
+
+def _make_toy_gm(max_messages: int, explode_on_step: int | None) -> ToyGameMaster:
+    if explode_on_step is not None:
+        return ExplodingGameMaster(
+            max_messages=max_messages, explode_on_step=explode_on_step
+        )
+    return ToyGameMaster(max_messages=max_messages)
+
+
+def _store_engine(
+    store: SqliteRunStore,
+    gm: ToyGameMaster,
+    entities: tuple[ComposedEntity, ...],
+    queue: EventQueue,
+    *,
+    now: int,
+    next_seq: int,
+    next_order: int,
+    step: int,
+) -> InterruptEngine:
+    return InterruptEngine(
+        entities=entities,
+        game_master=gm,
+        time_model=EventDrivenTimeModel(now=SimTime(now)),
+        queue=queue,
+        attention=AttentionBook(entities=ENTITIES),
+        store=store,
+        next_seq=next_seq,
+        next_order=next_order,
+        step=step,
+    )
+
+
+def build_store_engine(
+    store_path: Path,
+    *,
+    max_messages: int = 4,
+    explode_on_step: int | None = None,
+) -> tuple[InterruptEngine, SqliteRunStore]:
+    store = SqliteRunStore.create(store_path)
+    for event in genesis_events():
+        store.append_event(event)
+    kickoff = ScheduledEvent(time=60, order=0, draft=kickoff_draft())
+    store.queue_add(time=kickoff.time, order=kickoff.order, draft=kickoff.draft)
+    store.set_meta("step", "0")
+    store.set_meta("next_order", "1")
+    store.commit()
+    queue = EventQueue()
+    queue.push(kickoff)
+    engine = _store_engine(
+        store,
+        _make_toy_gm(max_messages, explode_on_step),
+        make_entities(),
+        queue,
+        now=0,
+        next_seq=len(genesis_events()),
+        next_order=1,
+        step=0,
+    )
+    return engine, store
+
+
+async def resume_store_engine(
+    store: SqliteRunStore, *, max_messages: int = 4
+) -> InterruptEngine:
+    """Rebuild runtime state from the store: entity folds by replaying the
+    committed events through a throwaway router, the GM from its committed
+    state, counters and queue from the store."""
+
+    entities = make_entities()
+    router = ToyGameMaster(max_messages=max_messages)
+    by_name = {entity.name: entity for entity in entities}
+    for event in store.read_events():
+        for name in await router.route(event):
+            if name in by_name:
+                await by_name[name].observe(event)
+
+    gm = ToyGameMaster(max_messages=max_messages)
+    gm_state = store.get_meta("gm_state")
+    if gm_state is not None:
+        gm.set_state(gm.state_model.model_validate_json(gm_state))
+
+    queue = EventQueue()
+    for time, order, draft in store.queue_rows():
+        queue.push(ScheduledEvent(time=time, order=order, draft=draft))
+
+    return _store_engine(
+        store,
+        gm,
+        entities,
+        queue,
+        now=store.head()[1],
+        next_seq=store.head()[0],
+        next_order=int(store.get_meta("next_order") or "0"),
+        step=int(store.get_meta("step") or "0"),
+    )

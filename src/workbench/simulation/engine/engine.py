@@ -21,10 +21,12 @@ from pydantic import BaseModel, ConfigDict, Field
 from workbench.core.actions import ActionSpec, EntityAction
 from workbench.core.events import Event
 from workbench.core.simtime import SimTime
+from workbench.core.store import SqliteRunStore
 from workbench.core.worldlog import WorldLogWriter
 from workbench.simulation.engine.attention import AttentionBook
 from workbench.simulation.engine.queue import EventQueue, ScheduledEvent
 from workbench.simulation.entity.entity import Entity
+from workbench.simulation.errors import ConfigError
 from workbench.simulation.gm.game_master import GameMaster
 from workbench.simulation.time_model import TimeModel
 
@@ -64,11 +66,14 @@ class InterruptEngine:
         time_model: TimeModel,
         queue: EventQueue,
         attention: AttentionBook,
-        world_log: WorldLogWriter,
+        world_log: WorldLogWriter | None = None,
+        store: SqliteRunStore | None = None,
         next_seq: int,
         next_order: int,
         step: int = 0,
     ) -> None:
+        if (world_log is None) == (store is None):
+            raise ConfigError("engine needs exactly one of world_log or store")
         self._entities = {entity.name: entity for entity in entities}
         self._entity_order = tuple(entity.name for entity in entities)
         self._gm = game_master
@@ -76,6 +81,7 @@ class InterruptEngine:
         self._queue = queue
         self._attention = attention
         self._log = world_log
+        self._store = store
         self._next_seq = next_seq
         self._next_order = next_order
         self._step = step
@@ -154,13 +160,15 @@ class InterruptEngine:
 
     async def step(self) -> StepResult:
         item = self._queue.pop()
+        popped_order = item.order
         event_time = SimTime(max(item.time, int(self._time.now())))
         await self._time.wait_until(event_time)
         self._time.advance_to(event_time)
 
         event = item.draft.to_event(seq=self._next_seq, time=event_time)
         self._next_seq += 1
-        self._log.append(event)
+        if self._log is not None:
+            self._log.append(event)
 
         await self._flush_expired(event_time)
 
@@ -203,6 +211,22 @@ class InterruptEngine:
                 scheduled.append(item)
 
         terminate = await self._gm.should_terminate()
+        if self._store is not None:
+            # The step becomes durable here, or not at all: a crash anywhere
+            # earlier leaves the queue row in place and the step re-executes
+            # on resume, replaying its LM calls from the cassette.
+            with self._store.transaction():
+                self._store.append_event(event)
+                self._store.queue_remove(order=popped_order)
+                for entry in scheduled:
+                    self._store.queue_add(
+                        time=entry.time, order=entry.order, draft=entry.draft
+                    )
+                self._store.set_meta("step", str(self._step + 1))
+                self._store.set_meta("next_order", str(self._next_order))
+                self._store.set_meta(
+                    "gm_state", self._gm.get_state().model_dump_json()
+                )
         result = StepResult(
             step=self._step,
             event=event,
