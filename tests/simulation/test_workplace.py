@@ -92,23 +92,38 @@ class SequenceLM:
         )
 
 
+class PromptAwareLM:
+    """Serves by prompt shape: planning/reflection turns fall back, the
+    decide that sees the pending email replies, its drafter drafts, and
+    everything else idles. Robust to cohort-schedule changes."""
+
+    def __init__(self) -> None:
+        self._decide_reply = SequenceLM([DECIDE_REPLY])
+        self._draft = SequenceLM([DRAFT_REPLY])
+        self._idle = SequenceLM([DECIDE_IDLE_FALLBACK])
+        self._replied = False
+
+    async def complete(self, request):
+        prompt = request.messages[-1].content
+        if "[[ ## draft ## ]]" in prompt:
+            self._replied = True
+            return await self._draft.complete(request)
+        if (
+            not self._replied
+            and "[[ ## choice ## ]]" in prompt
+            and "Quick question" in prompt
+        ):
+            return await self._decide_reply.complete(request)
+        return await self._idle.complete(request)
+
+
 async def test_end_to_end_mini_run(tmp_path: Path) -> None:
     out_dir = tmp_path / "run"
     result = await run_workplace(
         make_spec(),
         seed=Seed(root=42),
         out_dir=out_dir,
-        # ann wakes at 09:03 and 09:33 (two idle decides) before the 09:40
-        # email grants her the reply turn; later wakes hit the idle fallback.
-        inner_lm=SequenceLM(
-            [
-                DECIDE_IDLE_FALLBACK,
-                DECIDE_IDLE_FALLBACK,
-                DECIDE_REPLY,
-                DRAFT_REPLY,
-                DECIDE_IDLE_FALLBACK,
-            ]
-        ),
+        inner_lm=PromptAwareLM(),
         model="test/model",
     )
     assert result.reason == "quiescent"

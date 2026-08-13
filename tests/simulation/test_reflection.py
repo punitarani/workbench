@@ -12,10 +12,13 @@ from workbench.core.seed import Seed
 from workbench.core.worldlog import read_events, validate_events
 from workbench.simulation.run import run_workplace
 
-REFLECT_COMPLETION = """[[ ## reflection ## ]]
-{"bullets": [{"text": "Kept the inbox clear", "importance": 4, "refs": []}], "open_loops": ["confirm tomorrow's call"]}
-
-[[ ## completed ## ]]"""
+REFLECT_COMPLETION = (
+    "[[ ## reflection ## ]]\n"
+    '{"bullets": [{"text": "Kept the inbox clear", '
+    '"importance": 4, "refs": []}], '
+    '"open_loops": ["confirm tomorrow\'s call"]}\n'
+    "\n[[ ## completed ## ]]"
+)
 
 
 async def test_day_chain_mints_reflection_cohort() -> None:

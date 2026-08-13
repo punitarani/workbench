@@ -19,10 +19,13 @@ from workbench.core.worldlog import read_events, validate_events
 from workbench.simulation.persona.memory_stream import MemoryStreamComponent
 from workbench.simulation.run import run_workplace
 
-PLAN_COMPLETION = """[[ ## plan ## ]]
-{"blocks": [{"start": 32400, "end": 39600, "focus": "Clear the inbox", "refs": []}, {"start": 39600, "end": 61200, "focus": "Deep work", "refs": []}]}
-
-[[ ## completed ## ]]"""
+PLAN_COMPLETION = (
+    "[[ ## plan ## ]]\n"
+    '{"blocks": [{"start": 32400, "end": 39600, '
+    '"focus": "Clear the inbox", "refs": []}, '
+    '{"start": 39600, "end": 61200, "focus": "Deep work", "refs": []}]}\n'
+    "\n[[ ## completed ## ]]"
+)
 
 
 async def test_day_chain_mints_planning_first() -> None:
