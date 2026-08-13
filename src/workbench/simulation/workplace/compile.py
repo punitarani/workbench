@@ -17,7 +17,10 @@ from workbench.core.events.control import (
 )
 from workbench.core.events.documents import DocumentCreatedPayload
 from workbench.core.events.email import Attachment, EmailMessagePayload
-from workbench.core.events.people import PersonRecordPayload
+from workbench.core.events.people import (
+    OrganizationRecordPayload,
+    PersonRecordPayload,
+)
 from workbench.core.hashing import content_hash
 from workbench.core.ids import IdMinter
 from workbench.core.seed import Seed
@@ -25,7 +28,7 @@ from workbench.simulation.engine.queue import ScheduledEvent
 from workbench.simulation.errors import ConfigError
 from workbench.simulation.gm.grounded import TicketVocabulary
 from workbench.simulation.persona.params import ProfessionalWorkerParams
-from workbench.simulation.workplace.spec import WorkplaceSpec
+from workbench.simulation.workplace.spec import PersonSpec, WorkplaceSpec
 
 # Bumping this invalidates every recorded run built from a workplace spec.
 COMPILER_VERSION = 1
@@ -54,6 +57,10 @@ class CompiledWorkplace(BaseModel):
     genesis: tuple[Event, ...]
     scheduled: tuple[ScheduledEvent, ...]
     personas: tuple[tuple[str, ProfessionalWorkerParams], ...]
+    # Persona-bearing scripted arrivals: their entities are built when the
+    # arrival's person.record occurs, never at genesis (so they get no
+    # compile-time wakes and observe nothing before they exist).
+    arrivals: tuple[tuple[str, ProfessionalWorkerParams], ...] = ()
     entity_for_person: tuple[tuple[str, str], ...]
     ticket_vocabulary: TicketVocabulary
     end_time: int
@@ -71,6 +78,20 @@ def _entity_name(person_id: str) -> str:
     return rest or person_id
 
 
+def _person_payload(person: PersonSpec) -> PersonRecordPayload:
+    return PersonRecordPayload(
+        kind="person.record",
+        person_id=person.person_id,
+        name=person.name,
+        email_address=person.email_address,
+        title=person.title,
+        department=person.department,
+        manager=person.manager,
+        affiliation=person.affiliation,
+        timezone=person.timezone,
+    )
+
+
 def compile_workplace(
     spec: WorkplaceSpec,
     seed: Seed,
@@ -85,6 +106,12 @@ def compile_workplace(
     ``include_genesis=False`` skips genesis for a world that already exists."""
 
     people = {person.person_id for person in spec.people}
+    for arrival in spec.arrivals:
+        if arrival.person.person_id in people:
+            raise ConfigError(
+                f"arrival duplicates existing person {arrival.person.person_id!r}"
+            )
+        people.add(arrival.person.person_id)
 
     def require_person(ref: str, where: str) -> None:
         if ref not in people:
@@ -123,20 +150,17 @@ def compile_workplace(
             timezone=spec.timezone,
         )
     ]
-    for person in spec.people:
+    for organization in spec.organizations:
         payloads.append(
-            PersonRecordPayload(
-                kind="person.record",
-                person_id=person.person_id,
-                name=person.name,
-                email_address=person.email_address,
-                title=person.title,
-                department=person.department,
-                manager=person.manager,
-                affiliation=person.affiliation,
-                timezone=person.timezone,
+            OrganizationRecordPayload(
+                kind="org.record",
+                org_id=organization.org_id,
+                name=organization.name,
+                category=organization.category,
             )
         )
+    for person in spec.people:
+        payloads.append(_person_payload(person))
     for channel in spec.channels:
         payloads.append(
             ChatConversationCreatedPayload(
@@ -184,6 +208,18 @@ def compile_workplace(
 
     scheduled: list[ScheduledEvent] = []
     order = 0
+    for arrival in sorted(spec.arrivals, key=lambda a: (a.day, a.at)):
+        payload = _person_payload(arrival.person)
+        scheduled.append(
+            ScheduledEvent(
+                time=time_offset
+                + arrival.day * 86_400
+                + _clock_to_seconds(arrival.at),
+                order=order,
+                draft=EventDraft(tag=payload.kind, source="gm", payload=payload),
+            )
+        )
+        order += 1
     for arrival in sorted(spec.day_script, key=lambda a: a.at):
         arrival_time = time_offset + _clock_to_seconds(arrival.at)
         attachments: tuple[Attachment, ...] = ()
@@ -284,10 +320,23 @@ def compile_workplace(
             )
         )
         order += 1
+    arrival_personas = tuple(
+        (_entity_name(arrival.person.person_id), arrival.person.persona)
+        for arrival in spec.arrivals
+        if arrival.person.persona is not None
+    )
+    # The GM's routing map knows arrivals from the start: routing to an
+    # entity that does not exist yet is harmless (the engine skips it).
     entity_for_person = tuple(
-        (person.person_id, _entity_name(person.person_id))
-        for person in spec.people
-        if person.persona is not None
+        (person_id, _entity_name(person_id))
+        for person_id in (
+            *(p.person_id for p in spec.people if p.persona is not None),
+            *(
+                a.person.person_id
+                for a in spec.arrivals
+                if a.person.persona is not None
+            ),
+        )
     )
 
     return CompiledWorkplace(
@@ -296,6 +345,7 @@ def compile_workplace(
         genesis=genesis,
         scheduled=tuple(scheduled),
         personas=personas,
+        arrivals=arrival_personas,
         entity_for_person=entity_for_person,
         ticket_vocabulary=spec.ticket_vocabulary,
         end_time=end_time,

@@ -107,6 +107,15 @@ class InterruptEngine:
     def queue_length(self) -> int:
         return len(self._queue)
 
+    def add_entity(self, entity: Entity) -> None:
+        """Grow the cast. Only call between steps (an ``on_step`` callback):
+        mid-step the observer/acting gathers already hold the old roster."""
+        if entity.name in self._entities:
+            raise ConfigError(f"engine already has an entity named {entity.name!r}")
+        self._entities[entity.name] = entity
+        self._entity_order = (*self._entity_order, entity.name)
+        self._attention.add_entity(entity.name)
+
     def capture_state(self) -> EngineState:
         # Imported here: snapshot.py imports engine types at module level.
         from workbench.simulation.snapshot import EngineState

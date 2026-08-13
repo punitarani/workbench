@@ -43,6 +43,9 @@ class AttentionBook:
     def _entry(self, entity: str) -> EntityAttention:
         return self._entries[entity]
 
+    def add_entity(self, entity: str) -> None:
+        self._entries.setdefault(entity, EntityAttention())
+
     def should_deliver(self, entity: str, event: Event, *, now: SimTime) -> bool:
         entry = self._entry(entity)
         if entry.heads_down_until is None or int(now) >= entry.heads_down_until:

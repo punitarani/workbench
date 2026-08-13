@@ -31,6 +31,7 @@ from workbench.simulation.gm.grounded import DayPlan, GroundedGm
 from workbench.simulation.lm.dspy_lm import WorkbenchLM
 from workbench.simulation.lm.protocol import LanguageModel
 from workbench.simulation.persona.actor import ProfessionalActorAct
+from workbench.simulation.persona.params import ProfessionalWorkerParams
 from workbench.simulation.persona.programs import ProfessionalActor
 from workbench.simulation.persona.working_memory import WorkingMemoryComponent
 from workbench.simulation.snapshot import SimulationSnapshot
@@ -55,12 +56,21 @@ class _Runtime:
         memories: dict[str, WorkingMemoryComponent],
         externals: dict[str, ExternalEntity],
         person_for_entity: dict[str, str | None],
+        make_persona_entity: Callable[
+            [str, ProfessionalWorkerParams],
+            tuple[WorkingMemoryComponent, ComposedEntity],
+        ],
+        pending_arrivals: dict[str, tuple[str, ProfessionalWorkerParams]],
     ) -> None:
         self.gm = gm
         self.entities = entities
         self.memories = memories
         self.externals = externals
         self.person_for_entity = person_for_entity
+        self.make_persona_entity = make_persona_entity
+        # person_id -> (entity_name, params) for scripted arrivals whose
+        # person.record has not occurred yet.
+        self.pending_arrivals = pending_arrivals
 
 
 def _build_runtime(
@@ -100,7 +110,7 @@ def _build_runtime(
     gm.set_bill_rates(
         {
             params.person_id: params.bill_rate_cents
-            for _, params in compiled.personas
+            for _, params in (*compiled.personas, *compiled.arrivals)
             if params.bill_rate_cents is not None
         }
     )
@@ -119,6 +129,29 @@ def _build_runtime(
             f"external seats name no persona in this workplace: {unknown_seats}"
         )
 
+    def make_persona_entity(
+        entity_name: str, params: ProfessionalWorkerParams
+    ) -> tuple[WorkingMemoryComponent, ComposedEntity]:
+        memory = WorkingMemoryComponent(person_id=params.person_id)
+        lm = WorkbenchLM(
+            inner_lm,
+            model=model,
+            seed=seed,
+            path=("entity", entity_name),
+        )
+        entity = ComposedEntity(
+            name=entity_name,
+            components=(memory,),
+            act_component=ProfessionalActorAct(
+                params=params,
+                working_memory=memory,
+                lm=lm,
+                actor=actor_factory() if actor_factory is not None else None,
+                workplace_norms=workplace_norms,
+            ),
+        )
+        return memory, entity
+
     entities: list[Entity] = []
     memories: dict[str, WorkingMemoryComponent] = {}
     externals: dict[str, ExternalEntity] = {}
@@ -128,26 +161,8 @@ def _build_runtime(
             entities.append(external)
             externals[entity_name] = external
             continue
-        memory = WorkingMemoryComponent(person_id=params.person_id)
-        lm = WorkbenchLM(
-            inner_lm,
-            model=model,
-            seed=seed,
-            path=("entity", entity_name),
-        )
-        entities.append(
-            ComposedEntity(
-                name=entity_name,
-                components=(memory,),
-                act_component=ProfessionalActorAct(
-                    params=params,
-                    working_memory=memory,
-                    lm=lm,
-                    actor=actor_factory() if actor_factory is not None else None,
-                    workplace_norms=workplace_norms,
-                ),
-            )
-        )
+        memory, entity = make_persona_entity(entity_name, params)
+        entities.append(entity)
         memories[entity_name] = memory
 
     person_for_entity = {
@@ -159,6 +174,11 @@ def _build_runtime(
         memories=memories,
         externals=externals,
         person_for_entity=person_for_entity,
+        make_persona_entity=make_persona_entity,
+        pending_arrivals={
+            params.person_id: (entity_name, params)
+            for entity_name, params in compiled.arrivals
+        },
     )
 
 
@@ -202,6 +222,42 @@ def _finish(
     write_manifest(manifest, out_dir / "manifest.json")
     store.close()
     return result
+
+
+def _arrival_admitter(
+    runtime: _Runtime, engine: InterruptEngine
+) -> Callable[[StepResult], None]:
+    """When a pending arrival's person.record hits the log, build their
+    persona entity and grow the cast — between steps, so the engine's
+    in-flight gathers never see a half-admitted roster."""
+
+    def admit(result: StepResult) -> None:
+        if result.event.tag != "person.record":
+            return
+        pending = runtime.pending_arrivals.pop(result.event.payload.person_id, None)
+        if pending is None:
+            return
+        entity_name, params = pending
+        memory, entity = runtime.make_persona_entity(entity_name, params)
+        engine.add_entity(entity)
+        runtime.memories[entity_name] = memory
+
+    return admit
+
+
+def _on_step(
+    runtime: _Runtime, engine: InterruptEngine, store: SqliteRunStore, every: int
+) -> Callable[[StepResult], None]:
+    admit = _arrival_admitter(runtime, engine)
+    checkpoint = _checkpointer(engine, store, every)
+
+    def on_step(result: StepResult) -> None:
+        # Admission precedes the checkpoint so a snapshot taken on the
+        # arrival step already covers the grown cast.
+        admit(result)
+        checkpoint(result)
+
+    return on_step
 
 
 def _checkpointer(
@@ -311,7 +367,7 @@ async def run_compiled(
     )
     result = await engine.run(
         stop if stop is not None else StopCondition(end_time=compiled.end_time),
-        on_step=_checkpointer(engine, store, checkpoint_every),
+        on_step=_on_step(runtime, engine, store, checkpoint_every),
     )
     return _finish(store, out_dir, compiled, seed, result)
 
@@ -372,11 +428,27 @@ async def resume_workplace(
                 "a denser checkpoint cadence"
             )
         snapshot = SimulationSnapshot.model_validate_json(stored.state)
+        stored_events = tuple(store.read_events())
+        # Scripted arrivals that already happened grew the cast; rebuild
+        # those entities (in event order, matching the straight run) before
+        # the restore's roster check.
+        arrived: list[Entity] = []
+        for event in stored_events:
+            if event.tag != "person.record":
+                continue
+            pending = runtime.pending_arrivals.pop(event.payload.person_id, None)
+            if pending is None:
+                continue
+            entity_name, params = pending
+            memory, entity = runtime.make_persona_entity(entity_name, params)
+            engine.add_entity(entity)
+            runtime.memories[entity_name] = memory
+            arrived.append(entity)
         engine.restore_state(snapshot.engine)
         # Working memories snapshot event ids only; refill them from the
         # single copy of every event — the store.
-        events_by_id = {str(e.event_id): e for e in store.read_events()}
-        for entity in runtime.entities:
+        events_by_id = {str(e.event_id): e for e in stored_events}
+        for entity in (*runtime.entities, *arrived):
             for component in getattr(entity, "components", ()):
                 rehydrate = getattr(component, "rehydrate", None)
                 if rehydrate is not None:
@@ -411,6 +483,6 @@ async def resume_workplace(
 
     result = await engine.run(
         stop if stop is not None else StopCondition(end_time=compiled.end_time),
-        on_step=_checkpointer(engine, store, checkpoint_every),
+        on_step=_on_step(runtime, engine, store, checkpoint_every),
     )
     return _finish(store, out_dir, compiled, seed=stored_seed, result=result)

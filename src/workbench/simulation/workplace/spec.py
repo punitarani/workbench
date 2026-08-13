@@ -63,6 +63,23 @@ class ExogenousEmail(_Model):
     attachment: SeedDocument | None = None
 
 
+class OrganizationSpec(_Model):
+    org_id: str
+    name: str
+    category: Literal["client", "vendor", "court", "opposing", "other"]
+
+
+class PersonArrival(_Model):
+    """A scripted cast addition: the person's record enters the world
+    mid-run, and their persona (when given) starts acting from that moment.
+    The day script may already address them — validation counts arrivals
+    as known people."""
+
+    at: str  # "HH:MM" on the arrival day
+    day: int = Field(default=0, ge=0)
+    person: PersonSpec
+
+
 class WorkplaceSpec(_Model):
     workplace_id: str
     display_name: str
@@ -70,6 +87,8 @@ class WorkplaceSpec(_Model):
     epoch: AwareDatetime
     ticket_vocabulary: TicketVocabulary
     people: tuple[PersonSpec, ...] = Field(min_length=1)
+    organizations: tuple[OrganizationSpec, ...] = ()
+    arrivals: tuple[PersonArrival, ...] = ()
     channels: tuple[ChannelSpec, ...] = ()
     seed_documents: tuple[SeedDocument, ...] = ()
     seed_calendar: tuple[SeedCalendarEvent, ...] = ()
