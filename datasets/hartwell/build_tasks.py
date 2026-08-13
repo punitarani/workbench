@@ -362,9 +362,14 @@ def build_compliance_task(task: Path) -> None:
     derived (gitignored) like every task's, so the seed lives under ``tests/`` and
     the compliance ``mcp.json`` is generated here. There are no professional's
     folders, so the agent workspace is empty."""
+    import shutil
+
     from workbench.tools.compliance import build_state
 
     bundle = task / "bundle"
+    # bundle/ is derived; rebuild it wholesale so a compliance-only bundle never
+    # inherits stale read-only databases (e.g. from an interrupted materialize).
+    shutil.rmtree(bundle, ignore_errors=True)
     (bundle / "workspace").mkdir(parents=True, exist_ok=True)
     (bundle / "state").mkdir(parents=True, exist_ok=True)
     db = build_state(
@@ -396,7 +401,7 @@ def build_compliance_task(task: Path) -> None:
 
 
 def build_task(world_log: Path, task: Path, *, refresh: bool) -> None:
-    if (task / "bundle" / "scenario.json").exists():
+    if (task / "tests" / "scenario.json").exists():
         build_compliance_task(task)
         return
     result = materialize(world_log, task / "bundle")

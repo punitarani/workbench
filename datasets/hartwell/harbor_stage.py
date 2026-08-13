@@ -211,11 +211,11 @@ for tool in $TOOLS; do
     test -x "$WRAPPER$tool" || {{ echo "missing $WRAPPER$tool" >&2; exit 1; }}
 done
 test -x "$ORACLE" || {{ echo "missing $ORACLE" >&2; exit 1; }}
-if su -s /bin/sh agent -c "test -r $STATE/clio.db"; then
-    echo "the agent can read $STATE/clio.db" >&2
+if su -s /bin/sh agent -c "test -r $STATE/{tools[0]}.db"; then
+    echo "the agent can read $STATE/{tools[0]}.db" >&2
     exit 1
 fi
-if su -s /bin/sh agent -c "run-as-environment /bin/cat $STATE/clio.db" \
+if su -s /bin/sh agent -c "run-as-environment /bin/cat $STATE/{tools[0]}.db" \
         >/dev/null 2>&1; then
     echo "run-as-environment ran a command outside the allowlist" >&2
     exit 1
@@ -240,7 +240,7 @@ if su -s /bin/sh agent -c "test -r $RUNTIME/mcp"; then
 fi
 # The agent starts a server and it reaches EOF cleanly: proof the aperture
 # opens from the side that will use it, not just from root's.
-su -s /bin/sh agent -c "{MCP_WRAPPER_PREFIX}clio < /dev/null > /dev/null"
+su -s /bin/sh agent -c "{MCP_WRAPPER_PREFIX}{tools[0]} < /dev/null > /dev/null"
 
 rm -rf "$STAGE"
 """
@@ -359,11 +359,16 @@ def stage(
         _copy_tree(repo_root / source, runtime / "workbench")
 
     # The served tool set follows the databases actually staged: the read-only
-    # surfaces always, plus the one write system (compliance) when a task carries
-    # its scenario database. Compliance needs no aperture change — its database is
-    # env-owned 0600 like the rest, so the env-user server opens it read-write
-    # while the agent still reaches it only through the (write) MCP surface.
-    served = TOOLS + (
+    # surfaces a task carries, plus the one write system (compliance) when a task
+    # carries its scenario database. A read-only task stages all four and is
+    # unchanged; a compliance-only task stages just compliance.db and serves only
+    # it. Compliance needs no aperture change — its database is env-owned 0600 like
+    # the rest, so the env-user server opens it read-write while the agent still
+    # reaches it only through the (write) MCP surface.
+    present = tuple(
+        tool for tool in TOOLS if (stage_dir / "state" / f"{tool}.db").exists()
+    )
+    served = present + (
         ("compliance",) if (stage_dir / "state" / "compliance.db").exists() else ()
     )
     install = stage_dir / "install.sh"
