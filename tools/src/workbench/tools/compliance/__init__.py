@@ -20,11 +20,13 @@ from workbench.tools.compliance.tables import (
     ADVANCE_WAIVERS,
     ALL_TABLES,
     ENTITY_OWNERSHIP,
+    EXISTING_REPRESENTATIONS,
     FIRM_POSITIONS,
     LATERALS,
     PROSPECTIVE_CLIENTS,
     AdvanceWaiver,
     EntityOwnership,
+    ExistingRepresentation,
     FirmPosition,
     Lateral,
     ProspectiveClient,
@@ -37,6 +39,7 @@ _SEED_TABLES = {
     "laterals": (LATERALS, Lateral),
     "advance_waivers": (ADVANCE_WAIVERS, AdvanceWaiver),
     "entity_ownership": (ENTITY_OWNERSHIP, EntityOwnership),
+    "existing_representations": (EXISTING_REPRESENTATIONS, ExistingRepresentation),
 }
 
 

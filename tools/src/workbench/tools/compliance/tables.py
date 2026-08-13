@@ -53,11 +53,21 @@ class AdvanceWaiver(BaseModel):
 class EntityOwnership(BaseModel):
     ownership_id: Annotated[str, Id("compliance.ownership")]
     entity: str
+    # ``owner`` doubles as the corporate parent for the conflicts walk: an owner
+    # that is another firm client surfaces an affiliate conflict.
     owner: str
     pct: int
     # ``foreign`` is a SQL reserved word (like calendar's END), so the column is
     # ``foreign_owned``: whether this owner is a foreign person/entity.
     foreign_owned: bool
+
+
+class ExistingRepresentation(BaseModel):
+    rep_id: Annotated[str, Id("compliance.rep")]
+    party: str
+    client: str
+    existing_matter: str
+    waiver_on_file: bool
 
 
 # --- action tables (empty at start; written by the agent's tools) ---
@@ -116,6 +126,9 @@ ADVANCE_WAIVERS = Table("advance_waivers", AdvanceWaiver, primary_key=("waiver_i
 ENTITY_OWNERSHIP = Table(
     "entity_ownership", EntityOwnership, primary_key=("ownership_id",)
 )
+EXISTING_REPRESENTATIONS = Table(
+    "existing_representations", ExistingRepresentation, primary_key=("rep_id",)
+)
 INTAKE_MATTERS = Table(
     "intake_matters", IntakeMatter, primary_key=("intake_matter_id",)
 )
@@ -132,6 +145,7 @@ REFERENCE_TABLES = (
     LATERALS,
     ADVANCE_WAIVERS,
     ENTITY_OWNERSHIP,
+    EXISTING_REPRESENTATIONS,
 )
 ACTION_TABLES = (
     INTAKE_MATTERS,

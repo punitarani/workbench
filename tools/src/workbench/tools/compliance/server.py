@@ -22,6 +22,7 @@ from workbench.tools.compliance.tables import (
     ADVANCE_WAIVERS,
     COMPLIANCE_FLAGS,
     ENTITY_OWNERSHIP,
+    EXISTING_REPRESENTATIONS,
     FIRM_POSITIONS,
     INTAKE_DEADLINES,
     INTAKE_LETTERS,
@@ -100,11 +101,28 @@ def register(server: MCPServer, db_path: Path) -> None:
     @server.tool()
     def entity_ownership(entity: str) -> dict:
         """Ownership of an entity: each owner, percentage, and whether foreign.
-        A client >25% foreign-owned needs OFAC/enhanced-KYC diligence."""
+        An owner is also the corporate parent — run a conflicts search on it. A
+        client >25% foreign-owned needs OFAC/enhanced-KYC diligence."""
         with connect_readonly(db_path) as connection:
             rows = ENTITY_OWNERSHIP.select(connection)
         needle = entity.strip().lower()
         return {"owners": [r.model_dump() for r in rows if needle in r.entity.lower()]}
+
+    @server.tool()
+    def search_conflicts(party: str) -> dict:
+        """Search the firm's current representations for a party — run this on
+        the adverse party AND each parent/affiliate from entity_ownership. A hit
+        with no waiver on file means the matter must open 'conflict_pending'."""
+        with connect_readonly(db_path) as connection:
+            rows = EXISTING_REPRESENTATIONS.select(connection)
+        needle = party.strip().lower()
+        return {
+            "conflicts": [
+                r.model_dump()
+                for r in rows
+                if needle in r.party.lower() or needle in r.client.lower()
+            ]
+        }
 
     # ---- writes to the action tables ----
     @server.tool()
