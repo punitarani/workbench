@@ -1,6 +1,7 @@
 """The acting component: decide, route to one drafter, emit a typed intent."""
 
 import dspy
+from pydantic import BaseModel, ConfigDict
 
 from workbench.core.actions import ActionSpec, EntityAction, IntentAction
 from workbench.core.intents import (
@@ -25,7 +26,18 @@ from workbench.simulation.persona.rendering import (
 from workbench.simulation.persona.working_memory import WorkingMemoryComponent
 
 
+class ActorActState(BaseModel):
+    """What the acting component must carry across a resume: the LM call
+    counter that drives per-call seed derivation and cassette keys."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    lm_calls: int = 0
+
+
 class ProfessionalActorAct:
+    state_model = ActorActState
+
     def __init__(
         self,
         *,
@@ -40,6 +52,12 @@ class ProfessionalActorAct:
         self._lm = lm
         self._actor = actor if actor is not None else ProfessionalActor()
         self._workplace_norms = workplace_norms
+
+    def get_state(self) -> ActorActState:
+        return ActorActState(lm_calls=self._lm.calls)
+
+    def set_state(self, state: ActorActState) -> None:
+        self._lm.set_calls(state.lm_calls)
 
     async def get_action_attempt(
         self, blocks: tuple[ContextBlock, ...], spec: ActionSpec

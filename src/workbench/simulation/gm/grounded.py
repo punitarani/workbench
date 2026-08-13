@@ -44,7 +44,7 @@ from workbench.core.intents import (
 )
 from workbench.core.simtime import SimDuration
 from workbench.simulation.gm.timeflow import intent_duration
-from workbench.simulation.gm.world_state import WorldState
+from workbench.simulation.gm.world_state import WorldState, WorldStateModel
 
 
 class TicketVocabulary(BaseModel):
@@ -61,6 +61,8 @@ class IntentRejection(Exception):
 
 class GroundedGmState(BaseModel):
     minter: IdMinter
+    # Absent in pre-resume snapshots and at run start: an empty world.
+    world: WorldStateModel = WorldStateModel()
 
 
 class GroundedGm:
@@ -107,10 +109,15 @@ class GroundedGm:
                 self._absorb_id(item)
 
     def get_state(self) -> GroundedGmState:
-        return GroundedGmState(minter=self._minter)
+        # Deep-copy the minter: a captured state must not alias live counters.
+        return GroundedGmState(
+            minter=self._minter.model_copy(deep=True),
+            world=self._world.to_model(),
+        )
 
     def set_state(self, state: GroundedGmState) -> None:
-        self._minter = state.minter
+        self._minter = state.minter.model_copy(deep=True)
+        self._world = WorldState.from_model(state.world)
 
     def _entities_for(self, person_ids) -> tuple[str, ...]:
         seen: list[str] = []

@@ -67,6 +67,16 @@ class WorkbenchLM(dspy.BaseLM):
         self._max_tokens = max_tokens
         self._calls = 0
 
+
+    @property
+    def calls(self) -> int:
+        return self._calls
+
+    def set_calls(self, calls: int) -> None:
+        """Restore the per-entity call counter on resume; seeds and
+        therefore cassette keys continue the recorded sequence."""
+        self._calls = calls
+
     def _to_request(self, request: dspy.LMRequest) -> LMRequest:
         messages = tuple(
             ChatMessage(

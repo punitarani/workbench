@@ -97,28 +97,47 @@ class ComposedEntity:
         await asyncio.gather(*(component.update() for component in self._components))
         self._phase = "READY"
 
+    # Acting components are not in _components, but a stateful one (an LM
+    # call counter, for instance) must survive a resume; it snapshots under
+    # this reserved name.
+    _ACT_STATE = "__act__"
+
+    def _act_is_stateful(self) -> bool:
+        act = self._act_component
+        return hasattr(act, "state_model") and hasattr(act, "get_state")
+
     def snapshot(self) -> EntitySnapshot:
-        return EntitySnapshot(
-            entity=self._name,
-            components=tuple(
-                (component.name, component.get_state().model_dump(mode="json"))
-                for component in sorted(self._components, key=lambda c: c.name)
-            ),
-        )
+        entries = [
+            (component.name, component.get_state().model_dump(mode="json"))
+            for component in sorted(self._components, key=lambda c: c.name)
+        ]
+        if self._act_is_stateful():
+            act_state = self._act_component.get_state().model_dump(mode="json")
+            entries.append((self._ACT_STATE, act_state))
+        return EntitySnapshot(entity=self._name, components=tuple(entries))
 
     def restore(self, snap: EntitySnapshot) -> None:
         if snap.entity != self._name:
             raise SnapshotError(
                 f"snapshot is for {snap.entity!r}, entity is {self._name!r}"
             )
+        act_entries = [raw for name, raw in snap.components if name == self._ACT_STATE]
+        component_entries = [
+            (name, raw) for name, raw in snap.components if name != self._ACT_STATE
+        ]
+        if self._act_is_stateful() != bool(act_entries):
+            raise SnapshotError(
+                "acting-component state mismatch: entity and snapshot disagree "
+                "on whether the act component carries state"
+            )
         own_names = {component.name for component in self._components}
-        snap_names = {name for name, _ in snap.components}
+        snap_names = {name for name, _ in component_entries}
         if own_names != snap_names:
             raise SnapshotError(
                 f"component mismatch: entity has {sorted(own_names)}, "
                 f"snapshot has {sorted(snap_names)}"
             )
-        for name, raw_state in snap.components:
+        for name, raw_state in component_entries:
             component = self.get_component(name)
             try:
                 state = component.state_model.model_validate(raw_state)
@@ -127,3 +146,12 @@ class ComposedEntity:
                     f"state for component {name!r} failed validation: {error}"
                 ) from error
             component.set_state(state)
+        for raw_state in act_entries:
+            act = self._act_component
+            try:
+                state = act.state_model.model_validate(raw_state)
+            except ValidationError as error:
+                raise SnapshotError(
+                    f"acting-component state failed validation: {error}"
+                ) from error
+            act.set_state(state)

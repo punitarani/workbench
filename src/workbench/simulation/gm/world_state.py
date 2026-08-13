@@ -2,6 +2,8 @@
 
 from collections.abc import Iterable
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from workbench.core.events import Event
 from workbench.core.events.chat import (
     ChatConversationCreatedPayload,
@@ -14,6 +16,24 @@ from workbench.core.events.documents import (
 from workbench.core.events.email import EmailMessagePayload
 from workbench.core.events.people import PersonRecordPayload
 from workbench.core.events.tickets import TicketCreatedPayload, TicketUpdatedPayload
+
+
+class WorldStateModel(BaseModel):
+    """The fold, serializable: sorted collections so dumps are byte-stable."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    people: tuple[PersonRecordPayload, ...] = ()
+    threads: tuple[tuple[str, str], ...] = ()
+    message_depth: tuple[tuple[str, int], ...] = ()
+    conversations: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    conversation_names: tuple[tuple[str, str], ...] = ()
+    chat_messages: tuple[str, ...] = ()
+    documents: tuple[tuple[str, int], ...] = ()
+    document_paths: tuple[tuple[str, str], ...] = ()
+    tickets: tuple[tuple[str, tuple[tuple[str, str | None], ...]], ...] = Field(
+        default=()
+    )
 
 
 class WorldState:
@@ -81,6 +101,47 @@ class WorldState:
     def rebuild(self, events: Iterable[Event]) -> None:
         for event in events:
             self.apply(event)
+
+    def to_model(self) -> WorldStateModel:
+        return WorldStateModel(
+            people=tuple(
+                self.people[person_id] for person_id in sorted(self.people)
+            ),
+            threads=tuple(sorted(self.threads.items())),
+            message_depth=tuple(sorted(self.message_depth.items())),
+            conversations=tuple(sorted(self.conversations.items())),
+            conversation_names=tuple(sorted(self.conversation_names.items())),
+            chat_messages=tuple(sorted(self.chat_messages)),
+            documents=tuple(sorted(self.documents.items())),
+            document_paths=tuple(sorted(self.document_paths.items())),
+            tickets=tuple(
+                (ticket_id, tuple(sorted(values.items())))
+                for ticket_id, values in sorted(self.tickets.items())
+            ),
+        )
+
+    @classmethod
+    def from_model(cls, model: WorldStateModel) -> WorldState:
+        state = cls()
+        for record in model.people:
+            state.people[record.person_id] = record
+            state.name_to_person[record.name.casefold()] = record.person_id
+            state.email_to_person[record.email_address.casefold()] = record.person_id
+        state.threads = dict(model.threads)
+        state.thread_ids = set(state.threads.values())
+        state.message_depth = dict(model.message_depth)
+        state.conversations = {
+            conversation_id: tuple(members)
+            for conversation_id, members in model.conversations
+        }
+        state.conversation_names = dict(model.conversation_names)
+        state.chat_messages = set(model.chat_messages)
+        state.documents = dict(model.documents)
+        state.document_paths = dict(model.document_paths)
+        state.tickets = {
+            ticket_id: dict(values) for ticket_id, values in model.tickets
+        }
+        return state
 
     def resolve_person(self, ref: str) -> str | None:
         """Resolve a person ref: exact id, exact name, or unambiguous first name."""
