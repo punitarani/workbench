@@ -186,3 +186,16 @@ def connect_readonly(path: Path) -> sqlite3.Connection:
     connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     connection.row_factory = sqlite3.Row
     return connection
+
+
+def connect_readwrite(path: Path) -> sqlite3.Connection:
+    """Open an existing database for reads and writes.
+
+    The read-only surface is the default and the norm; this is the narrow
+    aperture for tools that mutate world state (an agent completing a workflow),
+    graded on the resulting state. ``mode=rw`` requires the file to exist, so a
+    tool cannot silently conjure a fresh database by mistyping a path.
+    """
+    connection = sqlite3.connect(f"file:{path}?mode=rw", uri=True)
+    connection.row_factory = sqlite3.Row
+    return connection
