@@ -144,9 +144,16 @@ class ProceduralVoice(_Model):
 
 
 class ProceduralCast(_Model):
-    """Who generates and receives background traffic, and against what."""
+    """Who generates and receives background traffic, and against what.
+
+    ``channel_silent`` members participate in email, DM, and timekeeping
+    traffic but never post to channels: the world model fixes a
+    conversation's membership at creation, so someone who joins the firm
+    after genesis cannot appear in the genesis channels.
+    """
 
     internal: tuple[CastMember, ...] = Field(min_length=2)
+    channel_silent: tuple[CastMember, ...] = ()
     timekeepers: tuple[Timekeeper, ...] = Field(min_length=1)
     externals: tuple[CastMember, ...] = Field(min_length=1)
     standup_channel: str
@@ -158,7 +165,10 @@ class ProceduralCast(_Model):
 
     @model_validator(mode="after")
     def _timekeepers_are_internal(self) -> ProceduralCast:
-        internal_ids = {member.person_id for member in self.internal}
+        internal_ids = {
+            member.person_id
+            for member in (*self.internal, *self.channel_silent)
+        }
         strangers = [
             keeper.member.person_id
             for keeper in self.timekeepers
@@ -558,7 +568,7 @@ def _internal_emails(
     drafts: list[TimedDraft],
 ) -> None:
     for _ in range(_count(rng, 3.0 * profile.intensity)):
-        sender, recipient = rng.sample(list(cast.internal), 2)
+        sender, recipient = rng.sample([*cast.internal, *cast.channel_silent], 2)
         form = rng.choice(voice.internal_email)
         context = {"first": recipient.first_name, "me": sender.first_name}
         at = _clock(rng, profile, 10 * 3600, 17 * 3600)
