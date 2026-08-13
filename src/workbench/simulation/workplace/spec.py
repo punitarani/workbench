@@ -100,3 +100,8 @@ class WorkplaceSpec(_Model):
     # Simulated window length in calendar days; weekends inside the
     # window are skipped by the runtime day chain.
     days: int = Field(default=1, ge=1)
+    # Cohort scheduling: personas wake on shared grid ticks so the
+    # windowed engine forms real batches; grounded deliveries round up
+    # to the quantum so replies co-land too.
+    wake_grid_minutes: int = Field(default=30, ge=1)
+    delivery_quantum_seconds: int = Field(default=300, ge=1)

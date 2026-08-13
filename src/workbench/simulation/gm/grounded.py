@@ -60,8 +60,9 @@ from workbench.core.intents import (
     TicketIntent,
     TimeLogIntent,
 )
+from workbench.core.seed import Seed, derive_seed
 from workbench.core.simtime import SimDuration
-from workbench.simulation.chronicle.calendar import SECONDS_PER_DAY, CalendarWindow
+from workbench.simulation.calendar import SECONDS_PER_DAY, CalendarWindow
 from workbench.simulation.gm.timeflow import intent_duration
 from workbench.simulation.gm.world_state import WorldState, WorldStateModel
 
@@ -79,15 +80,21 @@ class IntentRejection(Exception):
 
 
 class DayPlan(BaseModel):
-    """How multi-day runs unfold: each sim.day.started mints that workday's
-    wake ladder and its sim.day.ended; each sim.day.ended chains the next
-    workday's start. Weekends never appear in the log."""
+    """How runs unfold: each sim.day.started mints that workday's wake
+    cohorts and its sim.day.ended; each sim.day.ended chains the next
+    workday's start. Weekends never appear in the log.
+
+    Wakes land on a shared tick grid: each persona's interval quantizes
+    up to a grid multiple and a seeded per-(day, persona) phase picks its
+    ticks. Personas co-waking on a tick is what lets the windowed engine
+    batch their LM calls; what they do on the tick still varies."""
 
     window: CalendarWindow
     personas: tuple[tuple[str, int], ...]  # (entity name, check interval minutes)
     end_of_day: int
     day_start: int = 9 * 3600
-    stagger: int = 180
+    wake_grid_minutes: int = 30
+    seed_root: int = 0
 
 
 class GroundedGmState(BaseModel):
@@ -107,6 +114,7 @@ class GroundedGm:
         ticket_vocabulary: TicketVocabulary,
         response_delay_seconds: int = 120,
         day_plan: DayPlan | None = None,
+        delivery_quantum_seconds: int = 1,
     ) -> None:
         self._world = WorldState()
         self._minter = IdMinter()
@@ -117,6 +125,9 @@ class GroundedGm:
         self._vocab = ticket_vocabulary
         self._response_delay = response_delay_seconds
         self._day_plan = day_plan
+        # Grounded deliveries round up to this quantum so disjoint
+        # replies co-land on shared ticks and batch under windowing.
+        self._delivery_quantum = max(1, delivery_quantum_seconds)
         self._bill_rates: dict[str, int] = {}
         self._emergent_cap = 0
         self._emergent_minted = 0
@@ -353,8 +364,20 @@ class GroundedGm:
             case SimDayStartedPayload():
                 day = self._day_index(payload.day)
                 drafts: list[EventDraft] = []
-                for index, (entity_name, interval) in enumerate(plan.personas):
-                    wake_delay = plan.day_start + (index + 1) * plan.stagger
+                grid = plan.wake_grid_minutes * 60
+                for entity_name, interval in plan.personas:
+                    quantum = max(grid, -(-interval * 60 // grid) * grid)
+                    slots = quantum // grid
+                    phase = (
+                        derive_seed(
+                            Seed(root=plan.seed_root),
+                            "wake-phase",
+                            payload.day,
+                            entity_name,
+                        )
+                        % slots
+                    )
+                    wake_delay = plan.day_start + phase * grid
                     while wake_delay < plan.end_of_day:
                         wake = SimWakePayload(kind="sim.wake", entity=entity_name)
                         drafts.append(
@@ -366,7 +389,7 @@ class GroundedGm:
                                 delay=SimDuration(wake_delay),
                             )
                         )
-                        wake_delay += interval * 60
+                        wake_delay += quantum
                 ended = SimDayEndedPayload(kind="sim.day.ended", day=payload.day)
                 drafts.append(
                     EventDraft(
@@ -508,7 +531,9 @@ class GroundedGm:
     def _ground(
         self, entity: str, intent: ActionIntent, event: Event
     ) -> tuple[EventDraft, ...]:
-        delay = SimDuration(intent_duration(intent))
+        quantum = self._delivery_quantum
+        raw = intent_duration(intent)
+        delay = SimDuration(-(-raw // quantum) * quantum)
         sender = self._person_for(entity)
         match intent:
             case IdleIntent():

@@ -35,20 +35,22 @@ def multi_spec(days: int = 4):
     return make_spec(epoch=FRIDAY_EPOCH, days=days)
 
 
-def test_single_day_compile_is_unchanged() -> None:
-    """days=1 must keep the exact compiled schedule the cassette was
-    recorded against: same wake ladder, no day events."""
-    legacy = compile_workplace(make_spec(), Seed(root=42))
-    tags = {item.draft.tag for item in legacy.scheduled}
-    assert "sim.day.started" not in tags
-    wakes = [item for item in legacy.scheduled if item.draft.tag == "sim.wake"]
-    assert wakes[0].time == 9 * 3600 + 180
+def test_single_day_goes_through_the_day_chain() -> None:
+    """COMPILER v2: days=1 unfolds exactly like any other day — one
+    sim.day.started compiled, wake cohorts minted at runtime."""
+    compiled = compile_workplace(make_spec(), Seed(root=42))
+    tags = [item.draft.tag for item in compiled.scheduled]
+    assert tags.count("sim.day.started") == 1
+    assert "sim.wake" not in tags
 
 
 def test_multiday_compile_schedules_only_day_zero_start() -> None:
     compiled = compile_workplace(multi_spec(), Seed(root=42))
-    assert [item.draft.tag for item in compiled.scheduled if
-            item.draft.tag.startswith("sim.day")] == ["sim.day.started"]
+    assert [
+        item.draft.tag
+        for item in compiled.scheduled
+        if item.draft.tag.startswith("sim.day")
+    ] == ["sim.day.started"]
     assert all(item.draft.tag != "sim.wake" for item in compiled.scheduled), (
         "multi-day wakes are minted at runtime by the day chain"
     )
@@ -83,7 +85,12 @@ async def test_day_chain_skips_weekend_and_ladders_workdays(tmp_path: Path) -> N
     monday_wakes = [e for e in wakes if int(e.time) >= 3 * 86400]
     assert len(friday_wakes) == len(monday_wakes) > 0
     assert len(friday_wakes) + len(monday_wakes) == len(wakes)
-    assert int(monday_wakes[0].time) == 3 * 86400 + 9 * 3600 + 180
+    # Cohort grid: every wake lands on a 30-minute tick at or after 09:00.
+    grid = 30 * 60
+    for wake in wakes:
+        clock = int(wake.time) % 86_400
+        assert clock >= 9 * 3600
+        assert (clock - 9 * 3600) % grid == 0, "wakes land on grid ticks"
 
 
 async def test_multiday_is_deterministic(tmp_path: Path) -> None:

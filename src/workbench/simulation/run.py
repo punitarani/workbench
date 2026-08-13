@@ -15,7 +15,7 @@ from workbench.core.events import Event
 from workbench.core.seed import Seed
 from workbench.core.store import SqliteRunStore, export_jsonl
 from workbench.core.worldlog import RunManifest, write_manifest
-from workbench.simulation.chronicle.calendar import CalendarWindow
+from workbench.simulation.calendar import CalendarWindow
 from workbench.simulation.engine.attention import AttentionBook
 from workbench.simulation.engine.engine import (
     InterruptEngine,
@@ -90,29 +90,28 @@ def _build_runtime(
     external_seats: Mapping[str, ActTransport] | None,
     actor_factory: Callable[[], ProfessionalActor] | None,
 ) -> _Runtime:
-    day_plan = None
-    if compiled.days > 1:
-        from datetime import date, timedelta
+    from datetime import date, timedelta
 
-        end = date.fromisoformat(compiled.start_date) + timedelta(
-            days=compiled.days - 1
-        )
-        day_plan = DayPlan(
-            window=CalendarWindow(
-                start_date=compiled.start_date,
-                end_date=end.isoformat(),
-                timezone=compiled.timezone,
-            ),
-            personas=tuple(
-                (entity_name, params.check_interval_minutes)
-                for entity_name, params in compiled.personas
-            ),
-            end_of_day=compiled.end_of_day_seconds,
-        )
+    end = date.fromisoformat(compiled.start_date) + timedelta(days=compiled.days - 1)
+    day_plan = DayPlan(
+        window=CalendarWindow(
+            start_date=compiled.start_date,
+            end_date=end.isoformat(),
+            timezone=compiled.timezone,
+        ),
+        personas=tuple(
+            (entity_name, params.check_interval_minutes)
+            for entity_name, params in compiled.personas
+        ),
+        end_of_day=compiled.end_of_day_seconds,
+        wake_grid_minutes=compiled.wake_grid_minutes,
+        seed_root=seed.root,
+    )
     gm = GroundedGm(
         entity_for_person=dict(compiled.entity_for_person),
         ticket_vocabulary=compiled.ticket_vocabulary,
         day_plan=day_plan,
+        delivery_quantum_seconds=compiled.delivery_quantum_seconds,
     )
     gm.set_state(GroundedGm.state_model(minter=compiled.minter.model_copy(deep=True)))
     gm.set_bill_rates(

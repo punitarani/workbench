@@ -13,7 +13,6 @@ from workbench.core.events.chat import ChatConversationCreatedPayload
 from workbench.core.events.control import (
     SimDayStartedPayload,
     SimRunStartedPayload,
-    SimWakePayload,
 )
 from workbench.core.events.documents import DocumentCreatedPayload
 from workbench.core.events.email import Attachment, EmailMessagePayload
@@ -81,6 +80,8 @@ class CompiledWorkplace(BaseModel):
     # Final compile-time counters; the runtime GM starts from these so its
     # minted ids can never collide with scheduled-but-not-yet-occurred ones.
     minter: IdMinter
+    wake_grid_minutes: int = 30
+    delivery_quantum_seconds: int = 300
 
 
 def _entity_name(person_id: str) -> str:
@@ -297,37 +298,20 @@ def compile_workplace(
     # addressed and the day dies with its reply chains.
     end_of_day_seconds = _clock_to_seconds(spec.end_of_day)
     end_time = time_offset + (spec.days - 1) * 86_400 + end_of_day_seconds
-    if spec.days == 1:
-        # Byte-compatible with every recorded single-day cassette: the whole
-        # ladder is materialized at compile time, and no day events exist.
-        day_start = time_offset + 9 * 3600
-        for index, (entity_name, persona) in enumerate(personas):
-            wake_time = day_start + (index + 1) * 180
-            while wake_time < end_time:
-                payload = SimWakePayload(kind="sim.wake", entity=entity_name)
-                scheduled.append(
-                    ScheduledEvent(
-                        time=wake_time,
-                        order=order,
-                        draft=EventDraft(
-                            tag=payload.kind, source="gm", payload=payload
-                        ),
-                    )
-                )
-                order += 1
-                wake_time += persona.check_interval_minutes * 60
-    else:
-        started = SimDayStartedPayload(
-            kind="sim.day.started", day=spec.epoch.date().isoformat()
+    # Every run — single-day included — unfolds through the day chain:
+    # sim.day.started mints that day's wake cohorts at runtime (COMPILER
+    # v2; the compile-time ladder died with the pre-pivot cassettes).
+    started = SimDayStartedPayload(
+        kind="sim.day.started", day=spec.epoch.date().isoformat()
+    )
+    scheduled.append(
+        ScheduledEvent(
+            time=time_offset,
+            order=order,
+            draft=EventDraft(tag=started.kind, source="gm", payload=started),
         )
-        scheduled.append(
-            ScheduledEvent(
-                time=time_offset,
-                order=order,
-                draft=EventDraft(tag=started.kind, source="gm", payload=started),
-            )
-        )
-        order += 1
+    )
+    order += 1
     arrival_personas = tuple(
         (_entity_name(arrival.person.person_id), arrival.person.persona)
         for arrival in spec.arrivals
@@ -362,4 +346,6 @@ def compile_workplace(
         timezone=spec.timezone,
         end_of_day_seconds=end_of_day_seconds,
         minter=minter,
+        wake_grid_minutes=spec.wake_grid_minutes,
+        delivery_quantum_seconds=spec.delivery_quantum_seconds,
     )

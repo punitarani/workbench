@@ -36,12 +36,16 @@ def test_live_day_compiles_against_history(tmp_path: Path) -> None:
     assert all(item.time >= LIVE_DAY_OFFSET for item in compiled.scheduled)
     assert compiled.end_time == LIVE_DAY_OFFSET + 17 * 3600 + 1800
 
-    wake_entities = {
-        item.draft.payload.entity
+    assert all(item.draft.payload.kind != "sim.wake" for item in compiled.scheduled), (
+        "wake cohorts are minted at runtime by the day chain"
+    )
+    starts = [
+        item
         for item in compiled.scheduled
-        if item.draft.payload.kind == "sim.wake"
-    }
-    assert len(wake_entities) == 17, "every persona is on the wake ladder"
+        if item.draft.payload.kind == "sim.day.started"
+    ]
+    assert len(starts) == 1 and starts[0].time == LIVE_DAY_OFFSET
+    assert len(compiled.personas) == 17, "every persona rides the day chain"
 
     emails = [
         item.draft.payload
