@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from workbench.core.actions import (
     ActionSpec,
+    CueActionSpec,
     EntityAction,
     IntentAction,
     IntentActionSpec,
@@ -31,6 +32,7 @@ from workbench.core.events.calendar import (
 )
 from workbench.core.events.chat import ChatMessagePayload, ChatReactionAddedPayload
 from workbench.core.events.control import (
+    SimCuePayload,
     SimDayEndedPayload,
     SimDayStartedPayload,
     SimGmNotePayload,
@@ -127,6 +129,7 @@ class GroundedGm:
         response_delay_seconds: int = 120,
         day_plan: DayPlan | None = None,
         delivery_quantum_seconds: int = 1,
+        director=None,
     ) -> None:
         self._world = WorldState()
         self._minter = IdMinter()
@@ -137,6 +140,8 @@ class GroundedGm:
         self._vocab = ticket_vocabulary
         self._response_delay = response_delay_seconds
         self._day_plan = day_plan
+        # Seeded outside-world schedule; None means a quiet horizon.
+        self._director = director
         # Grounded deliveries round up to this quantum so disjoint
         # replies co-land on shared ticks and batch under windowing.
         self._delivery_quantum = max(1, delivery_quantum_seconds)
@@ -233,7 +238,7 @@ class GroundedGm:
                 return self._entities_for((payload.author,))
             case SimAgentMemoryPayload() | SimAgentPlanPayload():
                 return (payload.entity,)
-            case SimReflectionPayload() | SimPlanningPayload():
+            case SimReflectionPayload() | SimPlanningPayload() | SimCuePayload():
                 return (payload.entity,)
             case SimGmNotePayload():
                 return (payload.entity,) if payload.entity is not None else ()
@@ -278,7 +283,7 @@ class GroundedGm:
                     if payload.entity in self._person_for_entity
                     else ()
                 )
-            case SimReflectionPayload() | SimPlanningPayload():
+            case SimReflectionPayload() | SimPlanningPayload() | SimCuePayload():
                 if payload.entity in self._person_for_entity:
                     return (payload.entity,)
                 return ()
@@ -295,7 +300,7 @@ class GroundedGm:
     async def next_acting(self, event: Event) -> NextActingDecision:
         payload = event.payload
         match payload:
-            case SimReflectionPayload() | SimPlanningPayload():
+            case SimReflectionPayload() | SimPlanningPayload() | SimCuePayload():
                 if payload.entity in self._person_for_entity:
                     return NextActingDecision(entities=(payload.entity,))
                 return NextActingDecision(entities=())
@@ -373,6 +378,8 @@ class GroundedGm:
             return ReflectActionSpec(day=event.payload.day, scope=event.payload.scope)
         if isinstance(event.payload, SimPlanningPayload):
             return PlanActionSpec(day=event.payload.day)
+        if isinstance(event.payload, SimCuePayload):
+            return CueActionSpec(note=event.payload.note, topic=event.payload.topic)
         if isinstance(event.payload, SimMeetingTurnPayload):
             progress = self._world.meetings.get(event.payload.meeting_id)
             if progress is not None:
@@ -502,6 +509,25 @@ class GroundedGm:
                             delay=SimDuration(reflect_delay),
                         )
                     )
+                if self._director is not None:
+                    for cue in self._director.cues_for(payload.day):
+                        if cue.entity not in self._person_for_entity:
+                            continue
+                        cue_payload = SimCuePayload(
+                            kind="sim.cue",
+                            entity=cue.entity,
+                            note=cue.note,
+                            topic=cue.topic,
+                        )
+                        drafts.append(
+                            EventDraft(
+                                tag=cue_payload.kind,
+                                source="gm",
+                                caused_by=event.event_id,
+                                payload=cue_payload,
+                                delay=SimDuration(cue.at),
+                            )
+                        )
                 ended = SimDayEndedPayload(kind="sim.day.ended", day=payload.day)
                 drafts.append(
                     EventDraft(

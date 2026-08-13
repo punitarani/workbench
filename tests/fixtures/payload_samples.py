@@ -18,6 +18,7 @@ from workbench.core.events.chat import (
 )
 from workbench.core.events.control import (
     SimCheckpointPayload,
+    SimCuePayload,
     SimDayEndedPayload,
     SimDayStartedPayload,
     SimGmNotePayload,
@@ -212,6 +213,12 @@ def sample_payloads() -> dict[str, EventPayload]:
         ),
         SimCheckpointPayload(kind="sim.checkpoint", step=12),
         SimWakePayload(kind="sim.wake", entity="daniel-reyes"),
+        SimCuePayload(
+            kind="sim.cue",
+            entity="ravi-deshmukh",
+            note="Legal turned the NDA around; send the countersigned copy.",
+            topic="nda",
+        ),
         SimMeetingConvenePayload(
             kind="sim.meeting.convene",
             meeting_id="mtg-000001",

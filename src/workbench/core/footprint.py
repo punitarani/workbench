@@ -202,6 +202,7 @@ RULES: dict[str, Callable[[Payload], Footprint]] = {
     "sim.planning": _wake,
     "sim.meeting.convene": _meeting_control,
     "sim.meeting.turn": _meeting_control,
+    "sim.cue": _wake,
 }
 
 

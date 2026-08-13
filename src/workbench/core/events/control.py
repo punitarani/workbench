@@ -37,6 +37,17 @@ class SimGmNotePayload(Payload):
     entity: str | None = None
 
 
+class SimCuePayload(Payload):
+    """A nudge to an external actor: something in their world moved and
+    they are about to bring the firm work. The note is the situation;
+    the actor's model authors the actual message."""
+
+    kind: Literal["sim.cue"]
+    entity: str
+    note: str
+    topic: str = "general"
+
+
 class SimPlanningPayload(Payload):
     """A morning planning turn for one entity, minted by the day chain at
     the day's first grid tick."""

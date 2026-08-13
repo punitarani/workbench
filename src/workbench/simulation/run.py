@@ -15,6 +15,7 @@ from workbench.core.events import Event
 from workbench.core.seed import Seed
 from workbench.core.store import SqliteRunStore, export_jsonl
 from workbench.core.worldlog import RunManifest, write_manifest
+from workbench.simulation.actors.client import ClientActorAct
 from workbench.simulation.calendar import CalendarWindow
 from workbench.simulation.engine.attention import AttentionBook
 from workbench.simulation.engine.engine import (
@@ -92,6 +93,7 @@ def _build_runtime(
     external_seats: Mapping[str, ActTransport] | None,
     actor_factory: Callable[[], ProfessionalActor] | None,
     deep_model: str | None = None,
+    director=None,
 ) -> _Runtime:
     from datetime import date, timedelta
 
@@ -115,6 +117,7 @@ def _build_runtime(
         ticket_vocabulary=compiled.ticket_vocabulary,
         day_plan=day_plan,
         delivery_quantum_seconds=compiled.delivery_quantum_seconds,
+        director=director,
     )
     gm.set_state(GroundedGm.state_model(minter=compiled.minter.model_copy(deep=True)))
     gm.set_bill_rates(
@@ -199,6 +202,30 @@ def _build_runtime(
         memory, entity = make_persona_entity(entity_name, params)
         entities.append(entity)
         memories[entity_name] = memory
+
+    for entity_name, client_params in compiled.clients:
+        client_memory = WorkingMemoryComponent(
+            person_id=client_params.person_id, start_date=compiled.start_date
+        )
+        client_lm = WorkbenchLM(
+            inner_lm,
+            model=model,
+            seed=seed,
+            path=("entity", entity_name),
+        )
+        client_entity = ComposedEntity(
+            name=entity_name,
+            components=(client_memory,),
+            act_component=ClientActorAct(
+                params=client_params,
+                working_memory=client_memory,
+                lm=client_lm,
+            ),
+        )
+        entities.append(client_entity)
+        memories[entity_name] = client_memory
+        lms[entity_name] = client_lm
+        personas[entity_name] = client_entity
 
     person_for_entity = {
         entity: person for person, entity in compiled.entity_for_person
@@ -356,6 +383,7 @@ async def run_workplace(
     inner_lm: LanguageModel,
     model: str,
     deep_model: str | None = None,
+    director=None,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
@@ -370,6 +398,7 @@ async def run_workplace(
         inner_lm=inner_lm,
         model=model,
         deep_model=deep_model,
+        director=director,
         stop=stop,
         external_seats=external_seats,
         actor_factory=actor_factory,
@@ -386,6 +415,7 @@ async def run_compiled(
     inner_lm: LanguageModel,
     model: str,
     deep_model: str | None = None,
+    director=None,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
@@ -402,6 +432,7 @@ async def run_compiled(
         external_seats=external_seats,
         actor_factory=actor_factory,
         deep_model=deep_model,
+        director=director,
     )
 
     store = SqliteRunStore.create(out_dir / "run.db")
@@ -462,6 +493,7 @@ async def resume_workplace(
     inner_lm: LanguageModel,
     model: str,
     deep_model: str | None = None,
+    director=None,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
@@ -489,6 +521,7 @@ async def resume_workplace(
         external_seats=external_seats,
         actor_factory=actor_factory,
         deep_model=deep_model,
+        director=director,
     )
 
     stored = store.latest_snapshot()

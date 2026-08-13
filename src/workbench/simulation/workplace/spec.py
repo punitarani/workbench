@@ -8,6 +8,7 @@ from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
+from workbench.simulation.actors.client import ClientActorParams
 from workbench.simulation.gm.grounded import TicketVocabulary
 from workbench.simulation.persona.params import ProfessionalWorkerParams
 
@@ -28,6 +29,9 @@ class PersonSpec(_Model):
     # None means the person is not simulated: they exist in the directory and
     # act only through the day script (or, later, an externalized seat).
     persona: ProfessionalWorkerParams | None
+    # External people with a client persona become slim LLM actors:
+    # cue-driven inbound, reply turns, no wakes.
+    client_persona: ClientActorParams | None = None
 
 
 class ChannelSpec(_Model):

@@ -43,6 +43,16 @@ class PlanActionSpec(_Model):
     day: str
 
 
+class CueActionSpec(_Model):
+    """An external actor's moment: turn the cue's situation into a real
+    message to the firm."""
+
+    kind: Literal["cue"] = "cue"
+    call_to_action: str = "Something in your world moved; write to the firm."
+    note: str
+    topic: str = "general"
+
+
 class MeetingTurnActionSpec(_Model):
     """Speak in an open meeting: the GM renders the room, the entity
     contributes one utterance with its own knowledge and voice."""
@@ -79,7 +89,8 @@ ActionSpec = Annotated[
     | IntentActionSpec
     | ReflectActionSpec
     | PlanActionSpec
-    | MeetingTurnActionSpec,
+    | MeetingTurnActionSpec
+    | CueActionSpec,
     Field(discriminator="kind"),
 ]
 

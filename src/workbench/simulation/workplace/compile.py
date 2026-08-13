@@ -24,6 +24,7 @@ from workbench.core.events.people import (
 from workbench.core.hashing import content_hash
 from workbench.core.ids import IdMinter
 from workbench.core.seed import Seed
+from workbench.simulation.actors.client import ClientActorParams
 from workbench.simulation.engine.queue import ScheduledEvent
 from workbench.simulation.errors import ConfigError
 from workbench.simulation.gm.grounded import TicketVocabulary
@@ -31,7 +32,8 @@ from workbench.simulation.persona.params import ProfessionalWorkerParams
 from workbench.simulation.workplace.spec import PersonSpec, WorkplaceSpec
 
 # Bumping this invalidates every recorded run built from a workplace spec.
-COMPILER_VERSION = 1
+# v2: the day chain owns wake cohorts; the compile-time ladder is gone.
+COMPILER_VERSION = 2
 
 _MEDIA_TYPES = {
     "markdown": "text/markdown",
@@ -67,6 +69,8 @@ class CompiledWorkplace(BaseModel):
     genesis: tuple[Event, ...]
     scheduled: tuple[ScheduledEvent, ...]
     personas: tuple[tuple[str, ProfessionalWorkerParams], ...]
+    # Slim outside-world actors: cue-driven, reply-granted, never woken.
+    clients: tuple[tuple[str, ClientActorParams], ...] = ()
     # Persona-bearing scripted arrivals: their entities are built when the
     # arrival's person.record occurs, never at genesis (so they get no
     # compile-time wakes and observe nothing before they exist).
@@ -324,6 +328,11 @@ def compile_workplace(
         for person in spec.people
         if person.persona is not None
     )
+    clients = tuple(
+        (_entity_name(person.person_id), person.client_persona)
+        for person in spec.people
+        if person.client_persona is not None and person.persona is None
+    )
 
     # Periodic check-in turns: without these, personas act only when
     # addressed and the day dies with its reply chains.
@@ -364,6 +373,11 @@ def compile_workplace(
         for person_id in (
             *(p.person_id for p in spec.people if p.persona is not None),
             *(
+                p.person_id
+                for p in spec.people
+                if p.client_persona is not None and p.persona is None
+            ),
+            *(
                 a.person.person_id
                 for a in spec.arrivals
                 if a.person.persona is not None
@@ -377,6 +391,7 @@ def compile_workplace(
         genesis=genesis,
         scheduled=tuple(scheduled),
         personas=personas,
+        clients=clients,
         arrivals=arrival_personas,
         entity_for_person=entity_for_person,
         ticket_vocabulary=spec.ticket_vocabulary,

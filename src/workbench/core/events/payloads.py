@@ -24,6 +24,7 @@ from workbench.core.events.chat import (
 )
 from workbench.core.events.control import (
     SimCheckpointPayload,
+    SimCuePayload,
     SimDayEndedPayload,
     SimDayStartedPayload,
     SimGmNotePayload,
@@ -83,7 +84,8 @@ EventPayload = Annotated[
     | SimReflectionPayload
     | SimPlanningPayload
     | SimMeetingConvenePayload
-    | SimMeetingTurnPayload,
+    | SimMeetingTurnPayload
+    | SimCuePayload,
     Field(discriminator="kind"),
 ]
 
@@ -116,4 +118,5 @@ TAG_REGISTRY = {
     "sim.planning": SimPlanningPayload,
     "sim.meeting.convene": SimMeetingConvenePayload,
     "sim.meeting.turn": SimMeetingTurnPayload,
+    "sim.cue": SimCuePayload,
 }
