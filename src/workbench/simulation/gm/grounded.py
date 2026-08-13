@@ -34,6 +34,7 @@ from workbench.core.events.documents import (
     DocumentRevisedPayload,
 )
 from workbench.core.events.email import EmailMessagePayload
+from workbench.core.events.people import PersonRecordPayload
 from workbench.core.events.tickets import (
     TicketCommentedPayload,
     TicketCreatedPayload,
@@ -85,6 +86,7 @@ class DayPlan(BaseModel):
 
 class GroundedGmState(BaseModel):
     minter: IdMinter
+    emergent_minted: int = 0
     # Absent in pre-resume snapshots and at run start: an empty world.
     world: WorldStateModel = WorldStateModel()
 
@@ -110,6 +112,8 @@ class GroundedGm:
         self._response_delay = response_delay_seconds
         self._day_plan = day_plan
         self._bill_rates: dict[str, int] = {}
+        self._emergent_cap = 0
+        self._emergent_minted = 0
 
     @property
     def world(self) -> WorldState:
@@ -135,6 +139,10 @@ class GroundedGm:
             for item in value:
                 self._absorb_id(item)
 
+    def set_emergent_cap(self, cap: int) -> None:
+        """How many unknown-but-plausible people the world may mint per run."""
+        self._emergent_cap = cap
+
     def set_bill_rates(self, rates: dict[str, int]) -> None:
         """Hourly rates in cents by person id; applied at time-log grounding."""
         self._bill_rates = dict(rates)
@@ -144,11 +152,13 @@ class GroundedGm:
         return GroundedGmState(
             minter=self._minter.model_copy(deep=True),
             world=self._world.to_model(),
+            emergent_minted=self._emergent_minted,
         )
 
     def set_state(self, state: GroundedGmState) -> None:
         self._minter = state.minter.model_copy(deep=True)
         self._world = WorldState.from_model(state.world)
+        self._emergent_minted = state.emergent_minted
 
     def _entities_for(self, person_ids) -> tuple[str, ...]:
         seen: list[str] = []
@@ -357,6 +367,72 @@ class GroundedGm:
             raise IntentRejection(f"entity {entity} has no person record")
         return person
 
+    @staticmethod
+    def _plausible_person(ref: str) -> tuple[str, str] | None:
+        """(name, email) for refs that plausibly denote a real new person."""
+        stripped = ref.strip()
+        if "@" in stripped and " " not in stripped:
+            local, _, domain = stripped.partition("@")
+            if local and "." in domain:
+                name = " ".join(
+                    part.capitalize()
+                    for part in local.replace(".", " ").replace("_", " ").split()
+                )
+                if name:
+                    return (name, stripped.lower())
+            return None
+        words = stripped.split()
+        if len(words) >= 2 and all(w[:1].isupper() and w.isalpha() for w in words):
+            slug = "-".join(w.lower() for w in words)
+            return (stripped, f"{slug}@external.example")
+        return None
+
+    def _mint_person(self, name: str, email: str) -> PersonRecordPayload:
+        base = "per-" + "-".join(
+            "".join(c for c in word.lower() if c.isalnum())
+            for word in name.split()
+        )
+        person_id = base
+        suffix = 2
+        while person_id in self._world.people:
+            person_id = f"{base}-{suffix}"
+            suffix += 1
+        record = PersonRecordPayload(
+            kind="person.record",
+            person_id=person_id,
+            name=name,
+            email_address=email,
+            title="External contact",
+            department="External",
+            manager=None,
+            affiliation="external",
+            timezone="UTC",
+        )
+        self._emergent_minted += 1
+        # Apply immediately so later refs in the same intent resolve.
+        self._world.people[person_id] = record
+        self._world.name_to_person[name.casefold()] = person_id
+        self._world.email_to_person[email.casefold()] = person_id
+        return record
+
+    def _resolve_or_mint_people(
+        self, refs, minted: list[PersonRecordPayload]
+    ) -> tuple[str, ...]:
+        resolved: list[str] = []
+        for ref in refs:
+            person = self._world.resolve_person(ref)
+            if person is None and self._emergent_minted < self._emergent_cap:
+                plausible = self._plausible_person(ref)
+                if plausible is not None:
+                    record = self._mint_person(*plausible)
+                    minted.append(record)
+                    person = record.person_id
+            if person is None:
+                raise IntentRejection(f"unknown person {ref!r}")
+            if person not in resolved:
+                resolved.append(person)
+        return tuple(resolved)
+
     def _resolve_people(self, refs) -> tuple[str, ...]:
         resolved: list[str] = []
         for ref in refs:
@@ -395,8 +471,9 @@ class GroundedGm:
     def _ground_email(
         self, entity, sender, intent: EmailIntent, event, delay
     ) -> tuple[EventDraft, ...]:
-        to = self._resolve_people(intent.draft.to)
-        cc = self._resolve_people(intent.draft.cc)
+        minted: list[PersonRecordPayload] = []
+        to = self._resolve_or_mint_people(intent.draft.to, minted)
+        cc = self._resolve_or_mint_people(intent.draft.cc, minted)
         if intent.thread_ref is not None:
             if intent.thread_ref not in self._world.thread_ids:
                 raise IntentRejection(f"unknown thread {intent.thread_ref!r}")
@@ -427,7 +504,18 @@ class GroundedGm:
             body=intent.draft.body,
             attachments=(),
         )
+        record_drafts = tuple(
+            EventDraft(
+                tag=record.kind,
+                source="gm",
+                caused_by=event.event_id,
+                payload=record,
+                delay=delay,
+            )
+            for record in minted
+        )
         return (
+            *record_drafts,
             EventDraft(
                 tag=payload.kind,
                 source=entity,

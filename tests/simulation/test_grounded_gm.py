@@ -455,3 +455,83 @@ async def test_calendar_schedule_grounds_to_scheduled_event() -> None:
         "per-tom-okafor",
     }
     assert payload.calendar_event_id.startswith("cal-")
+
+
+async def test_email_to_plausible_unknown_mints_a_person() -> None:
+    gm = make_gm()
+    gm.set_emergent_cap(5)
+    intent = EmailIntent(
+        thread_ref=None,
+        reply_to_ref=None,
+        draft=EmailDraft(
+            to=("pverma@acmesupplies.example",),
+            subject="Vendor question",
+            body="Quick question about your NDA terms.",
+            summary="Asked Acme a question.",
+        ),
+    )
+    decision = await gm.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    kinds = [d.payload.kind for d in decision.drafts]
+    assert kinds == ["person.record", "email.message"], kinds
+    record = decision.drafts[0].payload
+    email = decision.drafts[1].payload
+    assert record.affiliation == "external"
+    assert record.email_address == "pverma@acmesupplies.example"
+    assert email.to == (record.person_id,)
+    assert decision.drafts[0].delay <= decision.drafts[1].delay
+
+
+async def test_named_unknown_mints_deterministically() -> None:
+    gm_a, gm_b = make_gm(), make_gm()
+    for gm in (gm_a, gm_b):
+        gm.set_emergent_cap(5)
+    intent = EmailIntent(
+        thread_ref=None,
+        reply_to_ref=None,
+        draft=EmailDraft(
+            to=("Priya Verma",),
+            subject="s",
+            body="b",
+            summary="s",
+        ),
+    )
+    first = await gm_a.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    second = await gm_b.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    assert (
+        first.drafts[0].payload.model_dump_json()
+        == second.drafts[0].payload.model_dump_json()
+    )
+    assert first.drafts[0].payload.name == "Priya Verma"
+
+
+async def test_emergent_minting_respects_cap_and_garbage() -> None:
+    gm = make_gm()
+    gm.set_emergent_cap(0)
+    plausible = EmailIntent(
+        thread_ref=None,
+        reply_to_ref=None,
+        draft=EmailDraft(to=("Priya Verma",), subject="s", body="b", summary="s"),
+    )
+    decision = await gm.resolve(
+        "daniel", IntentAction(intent=plausible), spec(), last_event()
+    )
+    assert decision.drafts[0].payload.kind == "sim.gm.note", "cap 0 disables minting"
+
+    gm.set_emergent_cap(5)
+    garbage = EmailIntent(
+        thread_ref=None,
+        reply_to_ref=None,
+        draft=EmailDraft(to=("qwerty",), subject="s", body="b", summary="s"),
+    )
+    decision = await gm.resolve(
+        "daniel", IntentAction(intent=garbage), spec(), last_event()
+    )
+    assert decision.drafts[0].payload.kind == "sim.gm.note", (
+        "a single lowercase token is not a plausible person"
+    )
