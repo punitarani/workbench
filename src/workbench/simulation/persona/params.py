@@ -49,3 +49,6 @@ class ProfessionalWorkerParams(_Model):
     # Hourly billing rate in cents; None for personas whose time is not
     # billed. Applied by the GM when grounding time-log intents.
     bill_rate_cents: int | None = Field(default=None, ge=0)
+    # Opt-in verbs beyond the core set. Empty keeps the exact recorded
+    # decide prompt; any entry switches the persona to the extended decide.
+    extra_verbs: tuple[Literal["react_chat", "log_time", "schedule_meeting"], ...] = ()

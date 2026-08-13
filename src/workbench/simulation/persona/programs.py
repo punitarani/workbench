@@ -10,6 +10,7 @@ import dspy
 from pydantic import BaseModel, ConfigDict
 
 from workbench.core.intents import (
+    CalendarScheduleSpec,
     ChatDraft,
     DocumentEdit,
     EmailDraft,
@@ -59,6 +60,69 @@ class DecideNextAction(dspy.Signature):
     pending: list[PendingItem] = dspy.InputField()
     recent_activity: str = dspy.InputField(desc="what you did in the last hour")
     choice: ActionChoice = dspy.OutputField()
+
+
+class ExtendedActionChoice(BaseModel):
+    """The core vocabulary plus opt-in light-touch verbs. A separate model
+    from ActionChoice on purpose: its schema renders into the decide prompt,
+    and personas without extra verbs must keep the recorded prompt exactly."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    action: Literal[
+        "reply_email",
+        "send_email",
+        "post_chat",
+        "react_chat",
+        "create_ticket",
+        "comment_ticket",
+        "log_time",
+        "revise_document",
+        "schedule_meeting",
+        "idle",
+    ]
+    target_ref: str | None
+    intent: str
+    reason: str
+    # Only meaningful for react_chat / log_time; null otherwise.
+    emoji: str | None = None
+    minutes: int | None = None
+
+
+class DecideNextActionExtended(dspy.Signature):
+    """You are a professional deciding what to do next at work. Choose the
+    single most appropriate next action given who you are, your schedule
+    pressure, and what is pending. Prefer responding to direct requests over
+    housekeeping; respect your role's lane; do not invent work that is not
+    supported by the pending items. Never send a message whose only content
+    is acknowledgment, thanks, or confirmation of receipt — if a thread
+    needs no substantive action from you, idle instead.
+
+    Work the way real professionals do, not everything by email: quick
+    internal coordination and status belong in chat; work that should be
+    tracked becomes a ticket per your role; producing or revising a document
+    is its own action, done in the repository, not described in an email.
+    Follow through on commitments listed in your recent activity — if you
+    said you would open a matter or deliver a redline and have not, that is
+    your next action. Never redo work: if the situation already lists a
+    ticket for a request, or your recent activity shows a revision
+    delivered, do not create or revise it again — move on or idle.
+
+    Light-touch verbs may also be available: react_chat adds an emoji to a
+    chat message when mere acknowledgment is warranted (set emoji);
+    log_time records minutes of completed work against a ticket (set
+    minutes); schedule_meeting puts a working session on calendars when
+    coordination by message is stalling. Use only the verbs listed in
+    enabled_extras."""
+
+    identity: str = dspy.InputField()
+    situation: str = dspy.InputField(desc="current time, schedule, workload")
+    pending: list[PendingItem] = dspy.InputField()
+    recent_activity: str = dspy.InputField(desc="what you did in the last hour")
+    enabled_extras: str = dspy.InputField(
+        desc="the extra verbs this person may use beyond the core set"
+    )
+    choice: ExtendedActionChoice = dspy.OutputField()
 
 
 class DraftEmail(dspy.Signature):
@@ -119,13 +183,27 @@ class DraftDocumentEdit(dspy.Signature):
     edit: DocumentEdit = dspy.OutputField()
 
 
+class DraftMeeting(dspy.Signature):
+    """Schedule a working meeting that accomplishes the intent. Keep it
+    short, invite only the people the situation implicates, and pick a slot
+    inside ordinary working hours near the current time. Times are seconds
+    on the simulation clock."""
+
+    identity: str = dspy.InputField()
+    situation: str = dspy.InputField(desc="who is involved and the current time")
+    intent: str = dspy.InputField()
+    meeting: CalendarScheduleSpec = dspy.OutputField()
+
+
 class ProfessionalActor(dspy.Module):
     """Named predictors; the registry and GEPA address them by attribute."""
 
     def __init__(self) -> None:
         super().__init__()
         self.decide = dspy.Predict(DecideNextAction)
+        self.decide_extended = dspy.Predict(DecideNextActionExtended)
         self.draft_email = dspy.Predict(DraftEmail)
         self.draft_chat = dspy.Predict(DraftChatMessage)
         self.draft_ticket = dspy.Predict(DraftTicket)
         self.draft_document = dspy.Predict(DraftDocumentEdit)
+        self.draft_meeting = dspy.Predict(DraftMeeting)

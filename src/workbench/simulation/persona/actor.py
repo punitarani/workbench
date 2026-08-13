@@ -6,16 +6,23 @@ from pydantic import BaseModel, ConfigDict
 from workbench.core.actions import ActionSpec, EntityAction, IntentAction
 from workbench.core.intents import (
     ActionIntent,
+    CalendarIntent,
     ChatIntent,
     EmailIntent,
     IdleIntent,
+    ReactionIntent,
     TicketIntent,
+    TimeLogIntent,
 )
 from workbench.core.worldlog.views import email_thread
 from workbench.simulation.entity.context import ContextBlock
 from workbench.simulation.lm.dspy_lm import WorkbenchLM
 from workbench.simulation.persona.params import ProfessionalWorkerParams
-from workbench.simulation.persona.programs import ActionChoice, ProfessionalActor
+from workbench.simulation.persona.programs import (
+    ActionChoice,
+    ExtendedActionChoice,
+    ProfessionalActor,
+)
 from workbench.simulation.persona.rendering import (
     person_names,
     render_conversation,
@@ -69,12 +76,21 @@ class ProfessionalActorAct:
         knowledge = render_knowledge(self._params) or "None."
 
         with dspy.context(lm=self._lm):
-            decision = await self._actor.decide.acall(
-                identity=identity,
-                situation=situation,
-                pending=pending,
-                recent_activity=facts,
-            )
+            if self._params.extra_verbs:
+                decision = await self._actor.decide_extended.acall(
+                    identity=identity,
+                    situation=situation,
+                    pending=pending,
+                    recent_activity=facts,
+                    enabled_extras=", ".join(self._params.extra_verbs),
+                )
+            else:
+                decision = await self._actor.decide.acall(
+                    identity=identity,
+                    situation=situation,
+                    pending=pending,
+                    recent_activity=facts,
+                )
             intent = await self._route(
                 decision.choice,
                 identity=identity,
@@ -84,12 +100,37 @@ class ProfessionalActorAct:
         return IntentAction(intent=intent)
 
     async def _route(
-        self, choice: ActionChoice, *, identity: str, facts: str, knowledge: str
+        self,
+        choice: ActionChoice | ExtendedActionChoice,
+        *,
+        identity: str,
+        facts: str,
+        knowledge: str,
     ) -> ActionIntent:
         events = self._memory.events()
         match choice.action:
             case "idle":
                 return IdleIntent(until_minutes=self._params.check_interval_minutes)
+            case "react_chat":
+                return ReactionIntent(
+                    chat_message_ref=choice.target_ref or "",
+                    emoji=choice.emoji or "\U0001f44d",
+                )
+            case "log_time":
+                return TimeLogIntent(
+                    ticket_ref=choice.target_ref or "",
+                    minutes=choice.minutes or 30,
+                    note=choice.intent,
+                )
+            case "schedule_meeting":
+                names = person_names(events)
+                people_line = "People: " + "; ".join(sorted(names.values()))
+                prediction = await self._actor.draft_meeting.acall(
+                    identity=identity,
+                    situation=f"{people_line}\n\n{facts}",
+                    intent=choice.intent,
+                )
+                return CalendarIntent(schedule=prediction.meeting)
             case "reply_email" | "send_email":
                 thread_ref = choice.target_ref
                 if thread_ref is not None:
