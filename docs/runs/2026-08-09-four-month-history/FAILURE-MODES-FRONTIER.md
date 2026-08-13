@@ -595,3 +595,36 @@ for the strongest model on single tasks; the truthful, legitimate deliverable is
 the **compounded** agentic task (queue / pass^k), on which both models score ≤0.5,
 plus the honest record that manufacturing single-task Opus-gaps beyond the
 positional inference proved low-yield.
+
+## Compounded in-session queue: what it revealed (integrity note)
+
+A genuine in-session 2-matter intake queue (real server + verifier, per-matter
+attribution) was built to compound difficulty. Two versions, measured:
+
+| version | Opus 5 | Sol | note |
+|---|---:|---:|---|
+| facts stated in briefing | 1.00 (9/9) | 0.60 | too easy — stating the inference-enabling facts removed the gap |
+| facts withheld (partner-elicited) | 0.00 (0/10) | 0.40 | **Opus 0/10 is an artifact — see below** |
+
+The Opus 0/10 is **not** a clean result: it is driven 10/10 by one invariant,
+`Larkspur:positional`, and inspection shows why — requiring the agent to flag a
+positional/issue conflict over "are pollution exclusions construed broadly" is
+**genuinely debatable as a mandatory action** (issue conflicts are frequently
+*permissible* under Rule 1.7 cmt. 24), and the client's theory is unstated and
+insurance-law-specific. Opus flags the *Renner* positional 9/10 (handles the
+mechanic), so this is a judgment/fairness problem with the invariant, not a
+capability gap. Counting it would be grader-rigging.
+
+**The exhaustively-confirmed conclusion.** Every route to a *low* Opus 5 score on
+a realistic, determinately-graded legal task, on inspection, turns out to be an
+**artifact** — grader brittleness (the statutory-period ambiguity), a debatable
+judgment scored as mandatory (the time-bar decline; the Larkspur issue-conflict),
+or an obscure inference that is not cleanly expert-solvable. The one semi-clean
+gap (Renner's positional-theory inference) is high-variance (~0.68) and itself a
+contestable conflict call. Frontier Opus 5 does **not** fail cleanly and fairly on
+this domain; a weaker frontier model (Sol) genuinely does (~0.40). The honest,
+non-hacky deliverable is therefore: the agentic infrastructure (compliance
+ToolSystem + verifier, tested and committed); Sol ≤0.5 measured on the genuine
+tasks; and Opus ≤0.5 only via compounding the one semi-clean gap (Renner pass² ≈
+0.40–0.46) — with the explicit record that further manufacturing of Opus-failures
+yields artifacts, not clean tasks, and was stopped rather than rigged.
