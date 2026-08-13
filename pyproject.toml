@@ -1,5 +1,27 @@
-[tool.uv.workspace]
-members = ["workbench", "tools", "adapters", "simulation", "workplaces"]
+[project]
+name = "workbench"
+version = "0.1.0"
+description = "Workbench: deterministic professional-work simulation, tools, and eval harness"
+requires-python = ">=3.14"
+dependencies = [
+    "pydantic>=2.10",
+    "mcp>=2.0",
+    "httpx>=0.28",
+]
+
+[project.optional-dependencies]
+# The simulation engine's LM stack. The agent container installs the base
+# project only, which keeps dspy/litellm (~43 MB) out of task images.
+simulation = [
+    "dspy>=3.3,<3.4",
+]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "workbench"
 
 [tool.uv]
 # litellm (via dspy) >=1.95 ships a Rust module with no macOS cp314 wheel and a
@@ -8,21 +30,17 @@ members = ["workbench", "tools", "adapters", "simulation", "workplaces"]
 constraint-dependencies = ["litellm<1.95"]
 
 [dependency-groups]
+# dspy repeats here so a plain `uv sync` gives a working dev environment; the
+# container path installs the base project without this group.
 dev = [
     "pytest>=8.3",
     "pytest-asyncio>=1.0",
     "ruff>=0.12",
+    "dspy>=3.3,<3.4",
 ]
 
 [tool.pytest.ini_options]
-testpaths = [
-    "workbench/tests",
-    "tools/tests",
-    "adapters/tests",
-    "simulation/tests",
-    "workplaces/tests",
-    "datasets",
-]
+testpaths = ["tests", "datasets"]
 asyncio_mode = "auto"
 addopts = "-q -m 'not real_lm'"
 markers = [
@@ -31,7 +49,7 @@ markers = [
 
 [tool.ruff]
 target-version = "py314"
-src = ["workbench/src", "tools/src", "adapters/src", "simulation/src", "workplaces/src"]
+src = ["src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "TID"]
@@ -51,4 +69,5 @@ select = ["E", "F", "W", "I", "UP", "B", "TID"]
 "datetime.datetime.utcnow".msg = "Simulated time only; render via the scenario epoch."
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = ["TID251"]
+"tests/**" = ["TID251"]
+"datasets/**" = ["TID251"]

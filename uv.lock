@@ -3,21 +3,7 @@ revision = 3
 requires-python = ">=3.14"
 
 [manifest]
-members = [
-    "workbench",
-    "workbench-adapters",
-    "workbench-simulation",
-    "workbench-tools",
-    "workbench-workplaces",
-]
 constraints = [{ name = "litellm", specifier = "<1.95" }]
-
-[manifest.dependency-groups]
-dev = [
-    { name = "pytest", specifier = ">=8.3" },
-    { name = "pytest-asyncio", specifier = ">=1.0" },
-    { name = "ruff", specifier = ">=0.12" },
-]
 
 [[package]]
 name = "aiohappyeyeballs"
@@ -1425,88 +1411,41 @@ wheels = [
 [[package]]
 name = "workbench"
 version = "0.1.0"
-source = { editable = "workbench" }
-dependencies = [
-    { name = "pydantic" },
-    { name = "workbench-tools" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "pydantic", specifier = ">=2.10" },
-    { name = "workbench-tools", editable = "tools" },
-]
-
-[[package]]
-name = "workbench-adapters"
-version = "0.1.0"
-source = { editable = "adapters" }
+source = { editable = "." }
 dependencies = [
     { name = "httpx" },
     { name = "mcp" },
     { name = "pydantic" },
-    { name = "workbench-tools" },
+]
+
+[package.optional-dependencies]
+simulation = [
+    { name = "dspy" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "dspy" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "dspy", marker = "extra == 'simulation'", specifier = ">=3.3,<3.4" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "mcp", specifier = ">=2.0" },
     { name = "pydantic", specifier = ">=2.10" },
-    { name = "workbench-tools", editable = "tools" },
 ]
+provides-extras = ["simulation"]
 
-[[package]]
-name = "workbench-simulation"
-version = "0.1.0"
-source = { editable = "simulation" }
-dependencies = [
-    { name = "dspy" },
-    { name = "httpx" },
-    { name = "mcp" },
-    { name = "pydantic" },
-    { name = "workbench" },
-]
-
-[package.metadata]
-requires-dist = [
+[package.metadata.requires-dev]
+dev = [
     { name = "dspy", specifier = ">=3.3,<3.4" },
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "mcp", specifier = ">=2.0" },
-    { name = "pydantic", specifier = ">=2.10" },
-    { name = "workbench", editable = "workbench" },
-]
-
-[[package]]
-name = "workbench-tools"
-version = "0.1.0"
-source = { editable = "tools" }
-dependencies = [
-    { name = "mcp" },
-    { name = "pydantic" },
-    { name = "workbench" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "mcp", specifier = ">=2.0" },
-    { name = "pydantic", specifier = ">=2.10" },
-    { name = "workbench", editable = "workbench" },
-]
-
-[[package]]
-name = "workbench-workplaces"
-version = "0.1.0"
-source = { editable = "workplaces" }
-dependencies = [
-    { name = "workbench" },
-    { name = "workbench-simulation" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "workbench", editable = "workbench" },
-    { name = "workbench-simulation", editable = "simulation" },
+    { name = "pytest", specifier = ">=8.3" },
+    { name = "pytest-asyncio", specifier = ">=1.0" },
+    { name = "ruff", specifier = ">=0.12" },
 ]
 
 [[package]]

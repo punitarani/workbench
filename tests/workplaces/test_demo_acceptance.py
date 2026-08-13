@@ -4,7 +4,7 @@ Needs the recorded cassette committed at CASSETTE below. Record it once:
 
     OPENROUTER_API_KEY=... uv run python -m workbench.simulation.demo \
         --seed 42 --mode record --out out/legal-day-record \
-        --cassette workplaces/src/workbench/workplaces/legal/cassettes/day-seed42
+        --cassette src/workbench/workplaces/legal/cassettes/day-seed42
 
 Until then every test here skips; the structural suite in
 test_legal_workplace.py runs regardless.
@@ -36,7 +36,7 @@ from workbench.workplaces.legal import (
 RECORDED_MODEL = "deepseek/deepseek-v4-flash-0731"
 
 CASSETTE = (
-    Path(__file__).parent.parent
+    Path(__file__).resolve().parents[2]
     / "src"
     / "workbench"
     / "workplaces"

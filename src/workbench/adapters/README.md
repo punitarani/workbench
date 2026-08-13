@@ -27,7 +27,7 @@ Tests script the chat client; nothing in this package's test suite calls
 a paid model.
 
 RL-framework adapters remain deferred: the engine's `ActTransport`
-protocol (`simulation/src/workbench/simulation/external/`) is the seam
+protocol (`src/workbench/simulation/external/`) is the seam
 one will plug into when a named target framework arrives.
 
 The Hartwell Harbor matrix runs through a local Responses gateway that restores

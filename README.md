@@ -30,35 +30,29 @@ flowchart LR
   M --> H
 ```
 
-**Offstage — `simulation/`, `workplaces/`.** `simulation/` is the domain-neutral engine — a clean-room, typed, async, deterministic rebuild of the Concordia generative agent-based modeling pattern: composed entities, a grounded game master that turns intents into typed world events, an interrupt-driven engine over simulated time, and a record/replay LM layer. Persona reasoning runs as DSPy programs (GEPA-optimizable). `workplaces/` holds concrete definitions — a legal department today; an accounting firm next — expressed with the engine's primitives. See [`docs/simulation-engine.md`](docs/simulation-engine.md).
+**Offstage — `workbench.simulation`, `workbench.workplaces`.** the simulation package is the domain-neutral engine — a clean-room, typed, async, deterministic rebuild of the Concordia generative agent-based modeling pattern: composed entities, a grounded game master that turns intents into typed world events, an interrupt-driven engine over simulated time, and a record/replay LM layer. Persona reasoning runs as DSPy programs (GEPA-optimizable). `workbench.workplaces` holds concrete definitions — a legal department today; an accounting firm next — expressed with the engine's primitives. See [`docs/simulation-engine.md`](docs/simulation-engine.md).
 
-**Onstage — `workbench/`, `tools/`.** The environment the agent inhabits: core contracts and the container image in `workbench/`, the agent-facing tool systems (projections and MCP servers) in `tools/`. Simulation output reaches the agent in exactly two forms — workspace data materialized before the run, and multi-agent modules served at runtime as tools. Neither exposes personas, hidden state, or ground truth.
+**Onstage — `workbench.core`, `workbench.tools`, `workbench.environment`.** The environment the agent inhabits: core contracts in `workbench.core`, the agent-facing tool systems (projections and MCP servers) in `workbench.tools`, workspace assembly in `workbench.environment`. Simulation output reaches the agent in exactly two forms — workspace data materialized before the run, and multi-agent modules served at runtime as tools. Neither exposes personas, hidden state, or ground truth.
 
 **Harness — `datasets/`, `adapters/`.** [Harbor](https://www.harborframework.com/docs) is the native harness, agent runner, and verifier. Tasks live in `datasets/<dataset>/tasks/<task>/` in Harbor's task format and score with [Reward Kit](https://www.harborframework.com/docs/rewardkit). `adapters/` bridges the same environment to other frameworks such as Prime and Tinker.
 
 ## Repository layout
 
 ```
-workbench/      the environment: core contracts, container image, bundle assembly
-tools/          agent-facing tool systems: projections and MCP servers
-simulation/     domain-neutral simulation engine
-workplaces/     concrete workplace definitions
-adapters/       bridges to non-Harbor frameworks
+src/workbench/  one Python distribution, one import namespace
+  core/           typed contracts: events, intents, actions, world log
+  tools/          agent-facing tool systems: projections and MCP servers
+  environment/    workspace materialization and bundle assembly
+  simulation/     domain-neutral simulation engine
+  workplaces/     concrete workplace definitions
+  adapters/       eval harness: agents and models against workspaces
+tests/          mirrors src/workbench/, plus tests/fixtures/ shared modules
+environment/    container image: Dockerfile, setuid shim
 datasets/       Harbor tasks, grouped into datasets
 docs/           architecture and authoring guides
 ```
 
-The Python packages form one [uv](https://docs.astral.sh/uv/) workspace sharing a single import namespace:
-
-| Directory | Distribution | Imports as |
-|---|---|---|
-| `workbench/` | `workbench` | `workbench.core`, `workbench.environment` |
-| `tools/` | `workbench-tools` | `workbench.tools` |
-| `simulation/` | `workbench-simulation` | `workbench.simulation` |
-| `workplaces/` | `workbench-workplaces` | `workbench.workplaces.<name>` |
-| `adapters/` | — | deferred until a concrete non-MCP consumer exists |
-
-`src/workbench/` is a [PEP 420](https://peps.python.org/pep-0420/) namespace package, so no package in the workspace defines `src/workbench/__init__.py`.
+One distribution, managed by [uv](https://docs.astral.sh/uv/). The base install carries only the contracts and tool servers; the simulation engine's LM stack is the `simulation` extra (`uv sync` includes it for development; task containers install the base project only). Subpackage layering is enforced by `tests/test_layering.py`.
 
 ## Quickstart
 

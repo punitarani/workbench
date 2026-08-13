@@ -43,7 +43,7 @@ Every generator and simulation entry point takes an explicit seed and produces i
 * Full annotations. Prefer precise types (`Literal`, `NewType`, discriminated unions, `Protocol`) over `Any` and over defensive `isinstance` checks.
 * Async by default for I/O. Keep sync and async paths separate rather than bridging them.
 * Errors are typed and specific. Fail at the boundary where the bad input arrived.
-* `src/` layout, and never create `src/workbench/__init__.py` — that directory is a PEP 420 namespace shared across packages.
+* Single distribution: all code lives in `src/workbench/<subpackage>/`, tests in `tests/<subpackage>/`. Layering is enforced by `tests/test_layering.py`, not by packaging.
 
 ## TypeScript
 
@@ -77,10 +77,10 @@ bunx oxlint                   # TypeScript / JavaScript lint
 
 `ruff` lints Python and `oxlint` lints TypeScript and JavaScript; oxlint has no Python support. Both must pass before work is considered done.
 
-Build the environment image with `workbench/environment/` as the build context, since the Dockerfile copies files relative to it:
+Build the environment image with `environment/` as the build context, since the Dockerfile copies files relative to it:
 
 ```bash
-docker build -f workbench/environment/Dockerfile -t workbench:dev workbench/environment
+docker build -f environment/Dockerfile -t workbench:dev environment
 ```
 
 ## Tasks and datasets

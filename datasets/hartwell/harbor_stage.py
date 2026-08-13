@@ -66,14 +66,19 @@ ORACLE_COMMAND: str = (
 HEALTHCHECK_COMMAND = f"sh {CONTAINER_STAGE}/install.sh"
 """What the task's [environment.healthcheck] must run."""
 
-# Source trees whose ``workbench.*`` subpackages merge into one namespace
-# package inside the runtime, exactly as the uv workspace assembles them.
-SOURCE_PACKAGES = ("tools/src/workbench", "workbench/src/workbench")
+# The runtime vendors only the subpackages the MCP servers import; the
+# simulation engine (and its dspy stack) never enters a task container.
+SOURCE_PACKAGES = (
+    "src/workbench/core",
+    "src/workbench/tools",
+    "src/workbench/environment",
+)
 
-# The runtime's third-party half is resolved from this member's metadata, so
-# the container tracks the same floor the workspace does.
-RUNTIME_REQUIREMENTS_FROM = "tools/pyproject.toml"
-WORKSPACE_MEMBERS = frozenset({"workbench", "workbench-tools"})
+# The runtime's third-party half is resolved from the project metadata, so
+# the container tracks the same floor the workspace does. The `simulation`
+# extra is deliberately excluded.
+RUNTIME_REQUIREMENTS_FROM = "pyproject.toml"
+WORKSPACE_MEMBERS = frozenset({"workbench"})
 
 PLATFORM_TAGS = {
     "arm64": "aarch64-manylinux2014",
@@ -356,7 +361,11 @@ def stage(
     shutil.rmtree(runtime / "bin", ignore_errors=True)
     (runtime / ".complete").unlink(missing_ok=True)
     for source in SOURCE_PACKAGES:
-        _copy_tree(repo_root / source, runtime / "workbench")
+        _copy_tree(repo_root / source, runtime / "workbench" / Path(source).name)
+    shutil.copyfile(
+        repo_root / "src" / "workbench" / "__init__.py",
+        runtime / "workbench" / "__init__.py",
+    )
 
     # The served tool set follows the databases actually staged: the read-only
     # surfaces a task carries, plus the one write system (compliance) when a task

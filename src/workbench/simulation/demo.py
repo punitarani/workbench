@@ -2,7 +2,7 @@
 
     uv run python -m workbench.simulation.demo --seed 42 --out out/legal-day \
         --mode replay \
-        --cassette workplaces/src/workbench/workplaces/legal/cassettes/day-seed42
+        --cassette src/workbench/workplaces/legal/cassettes/day-seed42
 
 Record mode needs OPENROUTER_API_KEY and writes the cassette it runs from;
 replay mode needs no network and is byte-deterministic.

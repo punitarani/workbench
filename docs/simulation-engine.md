@@ -53,7 +53,7 @@ into a cassette directory:
 ```bash
 OPENROUTER_API_KEY=... uv run python -m workbench.simulation.demo \
     --seed 42 --mode record --out out/legal-day \
-    --cassette workplaces/src/workbench/workplaces/legal/cassettes/day-seed42
+    --cassette src/workbench/workplaces/legal/cassettes/day-seed42
 ```
 
 Replay needs no network and is byte-deterministic:
@@ -61,7 +61,7 @@ Replay needs no network and is byte-deterministic:
 ```bash
 uv run python -m workbench.simulation.demo \
     --seed 42 --mode replay --out out/legal-day-replay \
-    --cassette workplaces/src/workbench/workplaces/legal/cassettes/day-seed42
+    --cassette src/workbench/workplaces/legal/cassettes/day-seed42
 ```
 
 Committing the cassette activates the full-day acceptance suite in
