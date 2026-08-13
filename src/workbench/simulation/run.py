@@ -10,6 +10,7 @@ remains the canonical artifact downstream consumers read.
 from collections.abc import Callable, Mapping
 from pathlib import Path
 
+from workbench.core.events import Event
 from workbench.core.seed import Seed
 from workbench.core.store import SqliteRunStore, export_jsonl
 from workbench.core.worldlog import RunManifest, write_manifest
@@ -154,8 +155,8 @@ def _build_runtime(
     )
 
 
-async def _deliver_genesis(runtime: _Runtime, compiled: CompiledWorkplace) -> None:
-    for event in compiled.genesis:
+async def _deliver_events(runtime: _Runtime, events) -> None:
+    for event in events:
         observers = await runtime.gm.route(event)
         relevant = event.tag in _PUBLIC_TAGS or event.tag == "document.created"
         if relevant:
@@ -255,6 +256,7 @@ async def run_compiled(
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
     checkpoint_every: int = 1,
+    history: tuple[Event, ...] = (),
 ) -> RunResult:
     out_dir.mkdir(parents=True, exist_ok=True)
     runtime = _build_runtime(
@@ -267,6 +269,8 @@ async def run_compiled(
     )
 
     store = SqliteRunStore.create(out_dir / "run.db")
+    for event in history:
+        store.append_event(event)
     for event in compiled.genesis:
         store.append_event(event)
     for item in compiled.scheduled:
@@ -279,7 +283,8 @@ async def run_compiled(
     store.set_meta("next_order", str(len(compiled.scheduled)))
     store.commit()
 
-    await _deliver_genesis(runtime, compiled)
+    await _deliver_events(runtime, history)
+    await _deliver_events(runtime, compiled.genesis)
     store.set_meta("gm_state", runtime.gm.get_state().model_dump_json())
     store.commit()
 
@@ -294,7 +299,7 @@ async def run_compiled(
         queue=queue,
         attention=AttentionBook(entities=tuple(e.name for e in runtime.entities)),
         store=store,
-        next_seq=len(compiled.genesis),
+        next_seq=len(history) + len(compiled.genesis),
         next_order=len(compiled.scheduled),
     )
     result = await engine.run(
@@ -372,7 +377,9 @@ async def resume_workplace(
     else:
         # Interrupted before the first checkpoint: rebuild the start-of-day
         # state exactly as a fresh run does, from the compiled workplace.
-        await _deliver_genesis(runtime, compiled)
+        # No checkpoint means no step ever committed: the stored events are
+        # exactly the run's history plus genesis. Deliver them all.
+        await _deliver_events(runtime, tuple(store.read_events()))
         gm_state = store.get_meta("gm_state")
         if gm_state is not None:
             runtime.gm.set_state(

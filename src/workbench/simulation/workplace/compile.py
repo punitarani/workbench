@@ -71,7 +71,19 @@ def _entity_name(person_id: str) -> str:
     return rest or person_id
 
 
-def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
+def compile_workplace(
+    spec: WorkplaceSpec,
+    seed: Seed,
+    *,
+    time_offset: int = 0,
+    starting_minter: IdMinter | None = None,
+    include_genesis: bool = True,
+) -> CompiledWorkplace:
+    """Compile a workplace. The hybrid parameters continue an existing world:
+    ``time_offset`` shifts every scheduled time onto an absolute timeline,
+    ``starting_minter`` continues id sequences past a prior history, and
+    ``include_genesis=False`` skips genesis for a world that already exists."""
+
     people = {person.person_id for person in spec.people}
 
     def require_person(ref: str, where: str) -> None:
@@ -92,7 +104,11 @@ def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
         for recipient in (*arrival.to, *arrival.cc):
             require_person(recipient, "day script")
 
-    minter = IdMinter()
+    minter = (
+        starting_minter.model_copy(deep=True)
+        if starting_minter is not None
+        else IdMinter()
+    )
     digest = config_hash(spec, seed)
 
     payloads: list = [
@@ -158,15 +174,18 @@ def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
             )
         )
 
-    genesis = tuple(
-        Event(seq=seq, time=0, tag=p.kind, source="gm", payload=p)
-        for seq, p in enumerate(payloads)
-    )
+    if not include_genesis:
+        genesis: tuple[Event, ...] = ()
+    else:
+        genesis = tuple(
+            Event(seq=seq, time=0, tag=p.kind, source="gm", payload=p)
+            for seq, p in enumerate(payloads)
+        )
 
     scheduled: list[ScheduledEvent] = []
     order = 0
     for arrival in sorted(spec.day_script, key=lambda a: a.at):
-        arrival_time = _clock_to_seconds(arrival.at)
+        arrival_time = time_offset + _clock_to_seconds(arrival.at)
         attachments: tuple[Attachment, ...] = ()
         if arrival.attachment is not None:
             document_id = minter.mint("doc")
@@ -233,11 +252,11 @@ def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
     # Periodic check-in turns: without these, personas act only when
     # addressed and the day dies with its reply chains.
     end_of_day_seconds = _clock_to_seconds(spec.end_of_day)
-    end_time = (spec.days - 1) * 86_400 + end_of_day_seconds
+    end_time = time_offset + (spec.days - 1) * 86_400 + end_of_day_seconds
     if spec.days == 1:
         # Byte-compatible with every recorded single-day cassette: the whole
         # ladder is materialized at compile time, and no day events exist.
-        day_start = 9 * 3600
+        day_start = time_offset + 9 * 3600
         for index, (entity_name, persona) in enumerate(personas):
             wake_time = day_start + (index + 1) * 180
             while wake_time < end_time:
@@ -259,7 +278,7 @@ def compile_workplace(spec: WorkplaceSpec, seed: Seed) -> CompiledWorkplace:
         )
         scheduled.append(
             ScheduledEvent(
-                time=0,
+                time=time_offset,
                 order=order,
                 draft=EventDraft(tag=started.kind, source="gm", payload=started),
             )
