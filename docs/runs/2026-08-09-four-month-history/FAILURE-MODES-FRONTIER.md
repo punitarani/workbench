@@ -477,3 +477,40 @@ harness or ported into the Hartwell env (needs the write-tool surface + state-di
 grader the read-only env lacks). This supersedes the "≤0.5 unreachable" conclusion
 *for the agentic paradigm*: it is reachable, legitimately, via intricate
 compliance workflows graded on outcome at pass^k.
+
+## INTEGRATED MEASUREMENT: the ported task scores Opus ≤0.5 at pass@1
+
+The recipe was ported into the Hartwell env and measured end-to-end against the
+**real** components: a `compliance` ToolSystem (`tools/.../compliance/`, 22 unit
+tests) provides read tools over scenario-seeded reference tables and write tools
+that mutate a real `compliance.db` via `connect_readwrite`; the **real verifier**
+(`compliance/grade.py`) grades the final DB state; the runner drives the real MCP
+server against Opus (chat/completions tool-calling) with a dynamic partner (Sol)
+that withholds facts and self-contradicts, and a general manual the agent must
+apply. Fourteen rollouts:
+
+| metric | value |
+|---|---|
+| **Opus per-attempt (pass@1)** | **7/14 = 0.500** |
+| pass² / pass³ | 0.25 / 0.125 |
+| mean invariant coverage | 0.959 (14 invariants) |
+| dominant failure | `flag_positional` (7/7 fails) |
+| secondary | `sol_2yr` (1) |
+
+The dominant, verified-genuine failure: Opus retrieves the firm's Delta
+"limitation-clauses-are-enforceable" position via `check_firm_positions`, but does
+not draw the multi-hop inference that Renner's suit (on a contract whose 2-year
+clause would bar it) requires arguing those clauses *un*enforceable — so it misses
+the positional conflict about half the time. A diligent litigator makes the
+connection (expert-solvable); the info is all available (fair); the model
+genuinely errs (real difficulty, not brittleness). Grading is outcome over world
+state with required *and* forbidden actions (un-gameable). This is the goal met:
+a realistic, practical, expert-solvable, un-gameably-graded intake task on which
+frontier Opus 5 scores ≤0.5 at pass@1, measured not designed.
+
+Caveat / next hardening: per-attempt here is *positional-dominated* (~0.5 hinges
+on one hard inference), which is higher-variance than ideal. The robust form
+spreads difficulty across several independent subtle invariants (per-attempt a
+product of several ~0.85-0.9 factors) and/or stacks a 2–3 matter queue, so pass²
+alone lands ≤0.5 without leaning on a single judgment. n=14 gives a wide CI
+(~[0.23, 0.77]); even at the upper bound pass³ = 0.46 ≤ 0.5.
