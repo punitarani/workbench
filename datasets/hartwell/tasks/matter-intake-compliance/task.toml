@@ -1,0 +1,52 @@
+schema_version = "1.3"
+
+# The first WRITE-workflow task in the Hartwell suite: the agent MUTATES world
+# state through the compliance tool surface, and grading reads the resulting
+# state (not a deliverable file). See README.md for the harness pieces this needs
+# beyond the read-only tasks (a read-write aperture for the compliance server and
+# the compliance system served in the container).
+
+[task]
+name = "workbench/matter-intake-compliance"
+description = """Run a compliant new-matter intake: discover and resolve every \
+conflict (affiliate, positional, Rule 1.18, imputation), verify beneficial \
+ownership for OFAC/KYC, book the retainer to trust correctly, calendar the \
+limitations deadline, and send the engagement letter — mutating firm state \
+through the compliance tools, graded on the resulting world-state."""
+authors = [{ name = "Workbench" }]
+keywords = [
+    "legal",
+    "agentic",
+    "write-workflow",
+    "conflicts",
+    "outcome-graded",
+    "mcp",
+]
+
+[metadata]
+dataset = "hartwell"
+difficulty = "hard"
+skills = ["conflicts-check", "inference", "trust-accounting", "diligence"]
+# Outcome-graded (pass^k), not partial-credit. Measured on the raw
+# chat/completions harness (docs/runs/.../FAILURE-MODES-FRONTIER.md): the single
+# intake is high-variance for a frontier model and dominated by the positional
+# inference; the reliable <=0.5 form is the 2-matter queue (pass^2 ~0.40-0.46).
+# Sol scores ~0.16-0.40; Opus ~0.63-1.0 depending on how much is elicited vs
+# stated. This bundle is the single-intake unit; compounding is a queue of these.
+grading = "conjunctive outcome (all required actions present, no forbidden action)"
+
+[metadata.evidence]
+primary_field = "compliance.db action tables"
+required_actions = ["matter_disposition", "positional", "rule_1_18", "imputation", "enhanced_kyc", "ofac_check", "ethical_wall", "conflict_notice", "trust", "deadline", "engagement_letter"]
+forbidden_actions = ["transfer_to_operating"]
+
+[environment]
+docker_image = "workbench:dev"
+os = "linux"
+workdir = "/home/agent/workspace"
+memory_mb = 4096
+network_mode = "allowlist"
+allowed_hosts = [
+    "openrouter.ai",
+    "raw.githubusercontent.com",
+]

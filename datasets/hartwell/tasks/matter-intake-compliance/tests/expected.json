@@ -1,0 +1,17 @@
+{
+  "client": "Renner Holdings LLC",
+  "adverse": "Cormorant Freight",
+  "status": "conflict_pending",
+  "flags": [
+    ["positional", "M-1900"],
+    ["rule_1_18", "Cormorant Freight"],
+    ["imputation", "Priya Shah"],
+    ["ethical_wall", "M-2041"],
+    ["conflict_notice", "M-2041"]
+  ],
+  "flag_kinds_present": ["enhanced_kyc", "ofac_check"],
+  "trust": ["Renner Holdings LLC", "fee_retainer", 15000000],
+  "deadline": "2026-02-10",
+  "letter_client": "Renner Holdings LLC",
+  "forbidden_trust_kinds": ["transfer_to_operating"]
+}
