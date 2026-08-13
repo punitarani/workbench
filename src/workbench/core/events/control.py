@@ -37,6 +37,16 @@ class SimGmNotePayload(Payload):
     entity: str | None = None
 
 
+class SimReflectionPayload(Payload):
+    """A scheduled reflection turn for one entity, minted by the day
+    chain near end-of-day; every fifth workday widens to a weekly scope."""
+
+    kind: Literal["sim.reflection"]
+    entity: str
+    day: str
+    scope: Literal["daily", "weekly"] = "daily"
+
+
 class SimCheckpointPayload(Payload):
     kind: Literal["sim.checkpoint"]
     step: int = Field(ge=0)

@@ -7,8 +7,9 @@ descriptions — exactly the surface GEPA mutates. Rendering supplies data.
 from typing import Literal
 
 import dspy
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
+from workbench.core.events.agent import MemoryBullet
 from workbench.core.intents import (
     CalendarScheduleSpec,
     ChatDraft,
@@ -209,6 +210,31 @@ class DraftMeeting(dspy.Signature):
     meeting: CalendarScheduleSpec = dspy.OutputField()
 
 
+class DailyReflection(BaseModel):
+    """What the day distilled to: bullets future-you needs, with the
+    world ids they concern and how much they matter."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    bullets: tuple[MemoryBullet, ...] = Field(min_length=1, max_length=8)
+    open_loops: tuple[str, ...] = ()
+
+
+class Reflect(dspy.Signature):
+    """Consolidate your working day into a durable note. Write three to
+    eight bullets a colleague could act on tomorrow: decisions made,
+    commitments given or received, risks noticed, threads left open.
+    Rate each bullet's importance 1-10 and carry the exact world ids
+    (thr-/tkt-/cnv-/doc-) it concerns. List open loops separately."""
+
+    identity: str = dspy.InputField()
+    day: str = dspy.InputField(desc="the day this reflection covers")
+    today_activity: str = dspy.InputField(desc="everything you saw and did today")
+    open_items: str = dspy.InputField(desc="unanswered items still pending")
+    prior_summaries: str = dspy.InputField(desc="your recent daily summaries")
+    reflection: DailyReflection = dspy.OutputField()
+
+
 class ProfessionalActor(dspy.Module):
     """Named predictors; the registry and GEPA address them by attribute."""
 
@@ -221,3 +247,4 @@ class ProfessionalActor(dspy.Module):
         self.draft_ticket = dspy.Predict(DraftTicket)
         self.draft_document = dspy.Predict(DraftDocumentEdit)
         self.draft_meeting = dspy.Predict(DraftMeeting)
+        self.reflect = dspy.Predict(Reflect)

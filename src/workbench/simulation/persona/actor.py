@@ -3,9 +3,16 @@
 import dspy
 from pydantic import BaseModel, ConfigDict
 
-from workbench.core.actions import ActionSpec, EntityAction, IntentAction
+from workbench.core.actions import (
+    ActionSpec,
+    EntityAction,
+    IntentAction,
+    ReflectActionSpec,
+)
+from workbench.core.events.agent import MemoryBullet
 from workbench.core.intents import (
     ActionIntent,
+    AgentNoteIntent,
     CalendarIntent,
     ChatIntent,
     EmailIntent,
@@ -16,6 +23,7 @@ from workbench.core.intents import (
 )
 from workbench.core.worldlog.views import email_thread
 from workbench.simulation.entity.context import ContextBlock
+from workbench.simulation.errors import CassetteMissError, LMBudgetExceededError
 from workbench.simulation.lm.dspy_lm import WorkbenchLM
 from workbench.simulation.persona.memory_stream import MemoryStreamComponent
 from workbench.simulation.persona.params import ProfessionalWorkerParams
@@ -47,6 +55,7 @@ class ActorActState(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     lm_calls: int = 0
+    deep_lm_calls: int = 0
 
 
 class ProfessionalActorAct:
@@ -61,19 +70,25 @@ class ProfessionalActorAct:
         actor: ProfessionalActor | None = None,
         workplace_norms: str = "",
         memory_stream: MemoryStreamComponent | None = None,
+        deep_lm: WorkbenchLM | None = None,
     ) -> None:
         self._params = params
         self._memory = working_memory
         self._stream = memory_stream
         self._lm = lm
+        # Reflection/planning/meeting turns run on the deep model when a
+        # second tier is configured; otherwise everything shares one LM.
+        self._deep_lm = deep_lm if deep_lm is not None else lm
         self._actor = actor if actor is not None else ProfessionalActor()
         self._workplace_norms = workplace_norms
 
     def get_state(self) -> ActorActState:
-        return ActorActState(lm_calls=self._lm.calls)
+        return ActorActState(lm_calls=self._lm.calls, deep_lm_calls=self._deep_lm.calls)
 
     def set_state(self, state: ActorActState) -> None:
         self._lm.set_calls(state.lm_calls)
+        if self._deep_lm is not self._lm:
+            self._deep_lm.set_calls(state.deep_lm_calls)
 
     def _relevant_memories(self, pending) -> str:
         if self._stream is None:
@@ -91,9 +106,60 @@ class ProfessionalActorAct:
         # decide surface is stable from here on.
         return "No plan recorded for today."
 
+    async def _reflect(self, spec: ReflectActionSpec) -> EntityAction:
+        identity = render_identity(self._params)
+        now = self._memory.last_time()
+        midnight = (now // 86_400) * 86_400
+        records = self._stream.records() if self._stream is not None else ()
+        today = [record for record in records if record.time >= midnight]
+        today_activity = (
+            "\n".join(
+                f"[{(r.time % 86_400) // 3600:02d}:"
+                f"{((r.time % 86_400) % 3600) // 60:02d}] {r.gist}"
+                for r in today[-40:]
+            )
+            or "A quiet day."
+        )
+        open_items = (
+            "\n".join(item.summary for item in self._memory.pending_items())
+            or "Nothing pending."
+        )
+        summaries = [record for record in records if record.kind == "summary"]
+        prior = "\n".join(record.gist for record in summaries[-5:]) or "None yet."
+        try:
+            with dspy.context(lm=self._deep_lm):
+                prediction = await self._actor.reflect.acall(
+                    identity=identity,
+                    day=spec.day,
+                    today_activity=today_activity,
+                    open_items=open_items,
+                    prior_summaries=prior,
+                )
+            bullets = prediction.reflection.bullets
+            open_loops = prediction.reflection.open_loops
+        except CassetteMissError, LMBudgetExceededError:
+            raise
+        except Exception:
+            # Cognition must never fail a day: an unparseable reflection
+            # degrades to a minimal note. Deterministic under replay — the
+            # same recorded text fails the same way.
+            bullets = (MemoryBullet(text="(reflection unavailable)", importance=2),)
+            open_loops = ()
+        note_kind = "weekly_summary" if spec.scope == "weekly" else "daily_summary"
+        return IntentAction(
+            intent=AgentNoteIntent(
+                note_kind=note_kind,
+                day=spec.day,
+                bullets=bullets,
+                open_loops=open_loops,
+            )
+        )
+
     async def get_action_attempt(
         self, blocks: tuple[ContextBlock, ...], spec: ActionSpec
     ) -> EntityAction:
+        if isinstance(spec, ReflectActionSpec):
+            return await self._reflect(spec)
         identity = render_identity(self._params)
         situation = "\n".join(block.content for block in blocks if not block.debug_only)
         pending = list(self._memory.pending_items())

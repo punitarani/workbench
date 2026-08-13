@@ -14,6 +14,7 @@ from workbench.core.actions import (
     IntentAction,
     IntentActionSpec,
     NextActingDecision,
+    ReflectActionSpec,
     ResolutionDecision,
     TerminateDecision,
 )
@@ -31,6 +32,7 @@ from workbench.core.events.control import (
     SimDayEndedPayload,
     SimDayStartedPayload,
     SimGmNotePayload,
+    SimReflectionPayload,
     SimWakePayload,
 )
 from workbench.core.events.documents import (
@@ -221,6 +223,8 @@ class GroundedGm:
                 return self._entities_for((payload.author,))
             case SimAgentMemoryPayload() | SimAgentPlanPayload():
                 return (payload.entity,)
+            case SimReflectionPayload():
+                return (payload.entity,)
             case SimGmNotePayload():
                 return (payload.entity,) if payload.entity is not None else ()
             case _:
@@ -264,6 +268,10 @@ class GroundedGm:
                     if payload.entity in self._person_for_entity
                     else ()
                 )
+            case SimReflectionPayload():
+                if payload.entity in self._person_for_entity:
+                    return (payload.entity,)
+                return ()
             case SimGmNotePayload():
                 if (
                     payload.entity is not None
@@ -277,6 +285,10 @@ class GroundedGm:
     async def next_acting(self, event: Event) -> NextActingDecision:
         payload = event.payload
         match payload:
+            case SimReflectionPayload():
+                if payload.entity in self._person_for_entity:
+                    return NextActingDecision(entities=(payload.entity,))
+                return NextActingDecision(entities=())
             case SimWakePayload():
                 if payload.entity in self._person_for_entity:
                     return NextActingDecision(entities=(payload.entity,))
@@ -323,6 +335,8 @@ class GroundedGm:
                 return NextActingDecision(entities=())
 
     async def action_spec_for(self, entity: str, event: Event) -> ActionSpec:
+        if isinstance(event.payload, SimReflectionPayload):
+            return ReflectActionSpec(day=event.payload.day, scope=event.payload.scope)
         return IntentActionSpec(
             call_to_action=(
                 "Something needs your attention. Decide your next workplace "
@@ -390,6 +404,30 @@ class GroundedGm:
                             )
                         )
                         wake_delay += quantum
+                # Reflection cohort: every persona consolidates its day on
+                # the last grid tick before close — one shared tick, so the
+                # deep-model calls batch under windowing.
+                workdays_so_far = sum(
+                    1 for index in range(day + 1) if plan.window.is_workday(index)
+                )
+                scope = "weekly" if workdays_so_far % 5 == 0 else "daily"
+                reflect_delay = max(plan.day_start, plan.end_of_day - grid)
+                for entity_name, _interval in plan.personas:
+                    reflection = SimReflectionPayload(
+                        kind="sim.reflection",
+                        entity=entity_name,
+                        day=payload.day,
+                        scope=scope,
+                    )
+                    drafts.append(
+                        EventDraft(
+                            tag=reflection.kind,
+                            source="gm",
+                            caused_by=event.event_id,
+                            payload=reflection,
+                            delay=SimDuration(reflect_delay),
+                        )
+                    )
                 ended = SimDayEndedPayload(kind="sim.day.ended", day=payload.day)
                 drafts.append(
                     EventDraft(

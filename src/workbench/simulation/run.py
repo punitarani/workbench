@@ -64,6 +64,7 @@ class _Runtime:
         ],
         pending_arrivals: dict[str, tuple[str, ProfessionalWorkerParams]],
         lms: dict[str, WorkbenchLM],
+        deep_lms: dict[str, WorkbenchLM],
         personas: dict[str, ComposedEntity],
     ) -> None:
         self.gm = gm
@@ -78,6 +79,7 @@ class _Runtime:
         # Registries the roll-forward resume and per-batch meta need:
         # every persona entity and its WorkbenchLM, arrivals included.
         self.lms = lms
+        self.deep_lms = deep_lms
         self.personas = personas
 
 
@@ -89,6 +91,7 @@ def _build_runtime(
     model: str,
     external_seats: Mapping[str, ActTransport] | None,
     actor_factory: Callable[[], ProfessionalActor] | None,
+    deep_model: str | None = None,
 ) -> _Runtime:
     from datetime import date, timedelta
 
@@ -137,6 +140,7 @@ def _build_runtime(
         )
 
     lms: dict[str, WorkbenchLM] = {}
+    deep_lms: dict[str, WorkbenchLM] = {}
     personas: dict[str, ComposedEntity] = {}
 
     def make_persona_entity(
@@ -154,6 +158,16 @@ def _build_runtime(
             seed=seed,
             path=("entity", entity_name),
         )
+        deep_lm = (
+            WorkbenchLM(
+                inner_lm,
+                model=deep_model,
+                seed=seed,
+                path=("entity", entity_name, "deep"),
+            )
+            if deep_model is not None
+            else None
+        )
         entity = ComposedEntity(
             name=entity_name,
             components=(memory, stream),
@@ -164,9 +178,12 @@ def _build_runtime(
                 actor=actor_factory() if actor_factory is not None else None,
                 workplace_norms=workplace_norms,
                 memory_stream=stream,
+                deep_lm=deep_lm,
             ),
         )
         lms[entity_name] = lm
+        if deep_lm is not None:
+            deep_lms[entity_name] = deep_lm
         personas[entity_name] = entity
         return memory, entity
 
@@ -198,6 +215,7 @@ def _build_runtime(
             for entity_name, params in compiled.arrivals
         },
         lms=lms,
+        deep_lms=deep_lms,
         personas=personas,
     )
 
@@ -209,11 +227,13 @@ def _durable_meta(runtime: _Runtime) -> dict[str, str]:
     persona's own action summaries — they live in no world event)."""
 
     counters = {name: lm.calls for name, lm in sorted(runtime.lms.items())}
+    deep_counters = {name: lm.calls for name, lm in sorted(runtime.deep_lms.items())}
     facts = {
         name: list(memory.facts()) for name, memory in sorted(runtime.memories.items())
     }
     return {
         "lm_calls": json.dumps(counters, sort_keys=True),
+        "deep_lm_calls": json.dumps(deep_counters, sort_keys=True),
         "memory_facts": json.dumps(facts, sort_keys=True),
     }
 
@@ -335,6 +355,7 @@ async def run_workplace(
     out_dir: Path,
     inner_lm: LanguageModel,
     model: str,
+    deep_model: str | None = None,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
@@ -348,6 +369,7 @@ async def run_workplace(
         out_dir=out_dir,
         inner_lm=inner_lm,
         model=model,
+        deep_model=deep_model,
         stop=stop,
         external_seats=external_seats,
         actor_factory=actor_factory,
@@ -363,6 +385,7 @@ async def run_compiled(
     out_dir: Path,
     inner_lm: LanguageModel,
     model: str,
+    deep_model: str | None = None,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
@@ -378,6 +401,7 @@ async def run_compiled(
         model=model,
         external_seats=external_seats,
         actor_factory=actor_factory,
+        deep_model=deep_model,
     )
 
     store = SqliteRunStore.create(out_dir / "run.db")
@@ -437,6 +461,7 @@ async def resume_workplace(
     out_dir: Path,
     inner_lm: LanguageModel,
     model: str,
+    deep_model: str | None = None,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
@@ -463,6 +488,7 @@ async def resume_workplace(
         model=model,
         external_seats=external_seats,
         actor_factory=actor_factory,
+        deep_model=deep_model,
     )
 
     stored = store.latest_snapshot()
@@ -545,6 +571,9 @@ async def resume_workplace(
         counters = json.loads(store.get_meta("lm_calls") or "{}")
         for name, lm in runtime.lms.items():
             lm.set_calls(int(counters.get(name, 0)))
+        deep_counters = json.loads(store.get_meta("deep_lm_calls") or "{}")
+        for name, lm in runtime.deep_lms.items():
+            lm.set_calls(int(deep_counters.get(name, 0)))
         facts = json.loads(store.get_meta("memory_facts") or "{}")
         for name, memory in runtime.memories.items():
             memory.restore_facts(tuple(facts.get(name, ())))

@@ -34,13 +34,27 @@ class FloatActionSpec(_Model):
     high: float
 
 
+class ReflectActionSpec(_Model):
+    """End-of-day reflection turn: the entity consolidates its day into a
+    persistent note instead of choosing a workplace action."""
+
+    kind: Literal["reflect"] = "reflect"
+    call_to_action: str = "Reflect on your day and write it down."
+    day: str
+    scope: Literal["daily", "weekly"] = "daily"
+
+
 class IntentActionSpec(_Model):
     kind: Literal["intent"] = "intent"
     call_to_action: str
 
 
 ActionSpec = Annotated[
-    FreeActionSpec | ChoiceActionSpec | FloatActionSpec | IntentActionSpec,
+    FreeActionSpec
+    | ChoiceActionSpec
+    | FloatActionSpec
+    | IntentActionSpec
+    | ReflectActionSpec,
     Field(discriminator="kind"),
 ]
 
