@@ -551,3 +551,47 @@ Net: the goal is met and measured — on the productionized task unit (2-matter
 intake queue), **both frontier sign-off models score ≤0.5** — with an
 un-gameable, expert-solvable, realistic task. A suite where *each* task scores low
 follows the same recipe: compounded agentic workflows, not single-inference tasks.
+
+## Diverse-suite attempt: three distinct inference-gaps, fair-graded
+
+To test whether *each* task in a suite could score ≤0.5, three intake scenarios
+were built, each hinging on a **different** genuine inference-gap, and measured
+fair-graded on both models (8 rollouts each; the compliance server + verifier):
+
+| scenario (inference) | Opus 5 pass@1 | Sol pass@1 | verdict |
+|---|---:|---:|---|
+| s1 — positional conflict (infer the client's unstated litigation theory, connect to a firm position) | ~0.68 (pooled 42/62, high variance) | 0.25 | genuine gap; hard for Sol, high-variance for Opus |
+| s2 — time-bar recognition | 0.63* | 0.25 | *spec artifact — see below |
+| s3 — 2-hop foreign ultimate-beneficial-owner | 1.00 | 1.00 | **dud: too easy for both** |
+
+Two integrity findings recorded rather than hidden:
+1. **s3 is not hard for anyone.** With fair deadline grading both models went 8/8
+   — Opus (and Sol) reliably chase a 2-hop ownership chain to a hidden foreign
+   owner. A frontier model does *stated-duty* diligence reliably.
+2. **s2's apparent difficulty was a grader artifact.** Opus's failures were
+   status/trust/letter because, on recognizing the claim is time-barred, it
+   *reasonably declined the whole intake* while the spec expected it to proceed
+   and flag. That is the grader penalising a defensible choice, not a model error.
+   (Earlier, before the limitations *period* was restored to the manual, the
+   `deadline` cell was also artificially failing because the agent used a
+   different reasonable statutory period — caught and fixed.)
+
+**Conclusion (now confirmed four independent ways).** A frontier model as strong
+as Opus 5 has **very few genuine inference-gaps**, and the ones that exist (the
+positional-theory inference) are **high-variance (~0.68)**. Intricate but *stated*
+rules — ownership-chain chasing, time-bar computation, waiver-scope, foreign-KYC —
+it applies reliably. Therefore:
+
+- **Sol (weaker frontier):** ≤0.5 at pass@1 is genuinely achievable on these
+  intake tasks (fails the positional inference *and* ownership/trust details).
+- **Opus (strongest):** ≤0.5 at pass@1 on a *single, fairly-graded, realistic*
+  task is **not reliably achievable** — gaps too scarce, variance too high. The
+  only legitimate route to Opus ≤0.5 is **compounding** — pass^k or a multi-matter
+  queue (s1 pass² ≈ 0.46; the 2-matter intake queue ≈ 0.32). That is τ-bench
+  methodology and un-gameable.
+
+So "each task ≤0.5 for *both* frontier models at pass@1" is not honestly reachable
+for the strongest model on single tasks; the truthful, legitimate deliverable is
+the **compounded** agentic task (queue / pass^k), on which both models score ≤0.5,
+plus the honest record that manufacturing single-task Opus-gaps beyond the
+positional inference proved low-yield.
