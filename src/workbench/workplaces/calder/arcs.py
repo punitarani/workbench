@@ -514,13 +514,26 @@ class CalderDirector:
                         ),
                     )
                     if rng.random() < 0.6:
+                        progress = rng.choice(
+                            (
+                                f"Bank recs done on {label}; "
+                                f"{rng.randrange(1, 4)} stale checks noted.",
+                                f"Revenue tie-out on {label} matches the "
+                                "source system to the dollar.",
+                                f"{label}: one unreconciled deposit left, "
+                                "client asked about it this morning.",
+                                f"Accruals posted for {label}; prepaids "
+                                "rolling forward now.",
+                                f"AP cutoff on {label} was clean this month for once.",
+                            )
+                        )
                         self._chat(
                             drafts,
                             minter,
                             at=_t(10, 30) + rng.randrange(0, 3600),
                             conversation=self._engagements,
                             sender=rng.choice(("per-nadia-osman", "per-colin-mackey")),
-                            body="Bank recs done on my side; two stale checks noted.",
+                            body=progress,
                             reply_to=message,
                         )
                     self._comment(
@@ -742,10 +755,13 @@ class CalderDirector:
             for person, ticket in _SEASON_STAFF:
                 if person == ARRIVAL.person_id and day.isoformat() <= ARRIVAL_DATE:
                     continue
-                chance = 0.85 if deadline_week else 0.5
+                chance = 0.95 if deadline_week else 0.8
                 if rng.random() >= chance:
                     continue
-                entries = 2 if deadline_week and rng.random() < 0.5 else 1
+                if deadline_week:
+                    entries = 3 if rng.random() < 0.4 else 2
+                else:
+                    entries = 2 if rng.random() < 0.45 else 1
                 label = ticket.split(" — ")[0]
                 for _ in range(entries):
                     note = rng.choice(_SEASON_NOTES).format(label=label)

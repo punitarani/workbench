@@ -227,21 +227,30 @@ IT_LINES: tuple[str, ...] = (
     "{hiccup} — anyone else?",
     "Ticket in: {hiccup}. Working around it for now.",
     "Is {sys} down for anyone else or just me?",
-    "New starter setup: which license pool do we pull from?",
-    "Reminder: reboot before the backup window tonight.",
+    "{sys} logged me out mid-save {when} — did anything survive?",
+    "Reminder: reboot before the backup window tonight, {sys} patch going in.",
     "Password reset on {sys} took three tries; whatever, I'm in.",
     "Can someone bump my access on {sys}? Read-only right now.",
-    "The conference room screen won't mirror again.",
+    "The conference room screen won't mirror from {sys} again.",
+    "Anyone else getting duplicate rows out of {sys} this morning?",
+    "Export from {sys} is missing a column — known thing?",
+    "{hiccup}, and of course it waits until I'm mid-{verb}.",
+    "New machine day for me — how long does the {sys} install take?",
+    "Heads up: {sys} maintenance {when}, save your work.",
 )
 
 IT_REPLIES: tuple[str, ...] = (
-    "Known issue — vendor says a fix lands tonight.",
-    "Rebooted the box, try again in five.",
-    "Just you, sadly. Clearing your cache usually does it.",
-    "Access bumped, log out and back in.",
-    "I'll swing by with a cable that works.",
+    "Known {sys} issue — vendor says a fix lands {when}.",
+    "Rebooted the box behind {sys}, try again in five.",
+    "Just you, sadly. Clearing the cache on {sys} usually does it.",
+    "Access bumped on {sys}, log out and back in.",
+    "I'll swing by {when} with a cable that works.",
     "Filed with the vendor, reference in the ticket.",
-    "Try the guest network as a stopgap.",
+    "Try the guest network as a stopgap; real fix coming {when}.",
+    "Restarted the service behind {sys} — give it ten minutes.",
+    "That's the patch from last night; rollback going out {when}.",
+    "Grab me {when} and we'll fix it at your desk.",
+    "Works on my end in {sys} — send a screenshot and I'll dig in.",
 )
 
 DM_OPENERS: tuple[str, ...] = (
@@ -263,15 +272,20 @@ DM_OPENERS: tuple[str, ...] = (
 
 DM_REPLIES: tuple[str, ...] = (
     "Yep — sending {when}.",
-    "Give me an hour, mid-rec right now.",
+    "Give me an hour, mid-{verb} on {task} right now.",
     "It's on {sys}, look under the engagement folder.",
-    "Looks right to me. One decimal thing, noted in the file.",
-    "Can do. Anything else while I'm in there?",
+    "Looks right to me. One decimal thing on {figure}, noted in the file.",
+    "Can do {when}. Anything else while I'm in there?",
     "Ha, sure — the usual.",
-    "Covered. Go.",
-    "It landed, I filed it this morning.",
+    "Covered — go. I'll watch {task} too.",
+    "{doc} landed, I filed it this morning.",
     "Handing it back with comments {when}.",
-    "Yes but only after my tie-out, fair warning.",
+    "Yes but only after I {verb} {figure}, fair warning.",
+    "Short answer yes; long answer {when} over coffee.",
+    "It's with {sys} support, chasing them {when}.",
+    "Already done — check {sys} before you redo anything.",
+    "Can't today — buried in {task}. Tomorrow?",
+    "Send it over, I'll {verb} it between calls.",
 )
 
 DM_CLOSERS: tuple[str, ...] = (
@@ -280,6 +294,9 @@ DM_CLOSERS: tuple[str, ...] = (
     "Perfect. {closer}",
     "That works. {closer}",
     "Noted — {closer}",
+    "Great — flagging {task} as sorted. {closer}",
+    "Done deal. {closer}",
+    "{closer} Coffee's on me {when}.",
 )
 
 INTERNAL_EMAIL: tuple[EmailForm, ...] = (
@@ -428,21 +445,21 @@ EXTERNAL_REPLIES: tuple[str, ...] = (
 
 TIME_NOTES: tuple[str, ...] = (
     "Bank reconciliation and follow-up on outstanding items — {matter}",
-    "Prepare adjusting journal entries; update lead sheets — {matter}",
-    "Review client-provided support; note open items — {matter}",
-    "Draft deliverable and self-review — {matter}",
-    "Client correspondence re: missing documentation — {matter}",
-    "Tie out schedules to general ledger — {matter}",
+    "Prepare adjusting journal entries; update {task} — {matter}",
+    "Review client-provided support; note open items on {task} — {matter}",
+    "Draft deliverable and self-review of {task} — {matter}",
+    "Client correspondence re: missing documentation for {task} — {matter}",
+    "Tie out {figure} to general ledger — {matter}",
     "Update depreciation and fixed-asset detail — {matter}",
     "Payroll reconciliation and quarterly report prep — {matter}",
-    "Research treatment question; memo to file — {matter}",
-    "Respond to review notes; clear diagnostics — {matter}",
-    "Rollforward workpapers; update PBC tracker — {matter}",
+    "Research treatment of {figure}; memo to file — {matter}",
+    "Respond to review notes; clear diagnostics on {task} — {matter}",
+    "Rollforward {task}; update PBC tracker — {matter}",
     "Prepare management letter points — {matter}",
     "Sales tax compilation and filing prep — {matter}",
     "Meeting with engagement team; update planning notes — {matter}",
-    "Analytical review of monthly results — {matter}",
-    "Reconcile intercompany balances — {matter}",
+    "Analytical review of {figure} against prior period — {matter}",
+    "Reconcile {figure}; document differences — {matter}",
 )
 
 MATTER_NOTES: tuple[str, ...] = (
