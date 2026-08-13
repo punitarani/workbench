@@ -145,6 +145,15 @@ class FreeformIntent(_Intent):
     text: str
 
 
+class MeetingSpeakIntent(_Intent):
+    """One utterance in an open meeting; yielding passes the floor."""
+
+    kind: Literal["meeting_speak"] = "meeting_speak"
+    meeting_ref: str
+    text: str
+    yields: bool = False
+
+
 class AgentNoteIntent(_Intent):
     """Persist a reflection or summary as a sim.agent.memory event. The
     GM drops unknown refs rather than rejecting: cognition must not fail
@@ -177,6 +186,7 @@ ActionIntent = Annotated[
     | IdleIntent
     | FreeformIntent
     | AgentNoteIntent
-    | AgentPlanIntent,
+    | AgentPlanIntent
+    | MeetingSpeakIntent,
     Field(discriminator="kind"),
 ]

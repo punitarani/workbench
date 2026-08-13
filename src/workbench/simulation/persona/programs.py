@@ -210,6 +210,28 @@ class DraftMeeting(dspy.Signature):
     meeting: CalendarScheduleSpec = dspy.OutputField()
 
 
+class MeetingUtterance(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    text: str
+    # Yield when you have said what you came to say; the meeting ends
+    # when everyone has yielded or the time budget runs out.
+    yields: bool = False
+
+
+class MeetingTurn(dspy.Signature):
+    """Speak one turn in the meeting, in your own voice. Contribute what
+    only you know when it helps the room; ask for what you need; keep it
+    to a few sentences. Yield once you have nothing further."""
+
+    identity: str = dspy.InputField()
+    meeting: str = dspy.InputField(desc="title, agenda, and who is in the room")
+    transcript: str = dspy.InputField(desc="the conversation so far")
+    established_facts: str = dspy.InputField()
+    relevant_knowledge: str = dspy.InputField()
+    utterance: MeetingUtterance = dspy.OutputField()
+
+
 class DayPlanSpec(BaseModel):
     """The day in time blocks: what gets focused attention and when."""
 
@@ -272,3 +294,4 @@ class ProfessionalActor(dspy.Module):
         self.draft_meeting = dspy.Predict(DraftMeeting)
         self.reflect = dspy.Predict(Reflect)
         self.plan_day = dspy.Predict(PlanDay)
+        self.meeting_turn = dspy.Predict(MeetingTurn)

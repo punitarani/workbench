@@ -31,7 +31,12 @@ from workbench.core.events.documents import (
     DocumentRevisedPayload,
 )
 from workbench.core.events.email import Attachment, EmailMessagePayload
-from workbench.core.events.meetings import MeetingTranscriptPayload, TranscriptTurn
+from workbench.core.events.meetings import (
+    MeetingTranscriptPayload,
+    SimMeetingConvenePayload,
+    SimMeetingTurnPayload,
+    TranscriptTurn,
+)
 from workbench.core.events.payloads import EventPayload
 from workbench.core.events.people import (
     OrganizationRecordPayload,
@@ -207,6 +212,21 @@ def sample_payloads() -> dict[str, EventPayload]:
         ),
         SimCheckpointPayload(kind="sim.checkpoint", step=12),
         SimWakePayload(kind="sim.wake", entity="daniel-reyes"),
+        SimMeetingConvenePayload(
+            kind="sim.meeting.convene",
+            meeting_id="mtg-000001",
+            calendar_event_id="cal-000001",
+            title="Legal stand-up",
+            attendees=("daniel-reyes", "meredith-chao"),
+            duration_seconds=900,
+        ),
+        SimMeetingTurnPayload(
+            kind="sim.meeting.turn",
+            meeting_id="mtg-000001",
+            speaker="daniel-reyes",
+            turn_index=0,
+            attendees=("daniel-reyes", "meredith-chao"),
+        ),
         SimPlanningPayload(
             kind="sim.planning",
             entity="daniel-reyes",

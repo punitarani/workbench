@@ -37,7 +37,11 @@ from workbench.core.events.documents import (
     DocumentRevisedPayload,
 )
 from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.meetings import MeetingTranscriptPayload
+from workbench.core.events.meetings import (
+    MeetingTranscriptPayload,
+    SimMeetingConvenePayload,
+    SimMeetingTurnPayload,
+)
 from workbench.core.events.people import (
     OrganizationRecordPayload,
     PersonRecordPayload,
@@ -77,7 +81,9 @@ EventPayload = Annotated[
     | SimAgentMemoryPayload
     | SimAgentPlanPayload
     | SimReflectionPayload
-    | SimPlanningPayload,
+    | SimPlanningPayload
+    | SimMeetingConvenePayload
+    | SimMeetingTurnPayload,
     Field(discriminator="kind"),
 ]
 
@@ -108,4 +114,6 @@ TAG_REGISTRY = {
     "sim.agent.plan": SimAgentPlanPayload,
     "sim.reflection": SimReflectionPayload,
     "sim.planning": SimPlanningPayload,
+    "sim.meeting.convene": SimMeetingConvenePayload,
+    "sim.meeting.turn": SimMeetingTurnPayload,
 }

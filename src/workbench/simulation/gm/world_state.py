@@ -10,13 +10,35 @@ from workbench.core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
 )
+from workbench.core.events.control import SimWakePayload
 from workbench.core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
 from workbench.core.events.email import EmailMessagePayload
+from workbench.core.events.meetings import (
+    MeetingTranscriptPayload,
+    SimMeetingConvenePayload,
+    TranscriptTurn,
+)
 from workbench.core.events.people import PersonRecordPayload
 from workbench.core.events.tickets import TicketCreatedPayload, TicketUpdatedPayload
+
+
+class MeetingProgress(BaseModel):
+    """An in-flight meeting: opened at convene, closed at transcript."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    meeting_id: str
+    calendar_event_id: str | None
+    title: str
+    description: str = ""
+    attendees: tuple[str, ...]  # entity names
+    started: int
+    budget: int
+    turns: tuple[TranscriptTurn, ...] = ()
+    yielded: tuple[str, ...] = ()
 
 
 class WorldStateModel(BaseModel):
@@ -38,6 +60,10 @@ class WorldStateModel(BaseModel):
     )
     # "entity|day" -> latest plan revision, so replans number deterministically.
     plan_revisions: tuple[tuple[str, int], ...] = ()
+    meetings: tuple[MeetingProgress, ...] = ()
+    # conversation_id -> consecutive auto-granted chat run length.
+    dm_streaks: tuple[tuple[str, int], ...] = ()
+    chat_message_senders: tuple[tuple[str, str], ...] = ()
 
 
 class WorldState:
@@ -56,6 +82,9 @@ class WorldState:
         self.document_paths: dict[str, str] = {}  # path -> id
         self.tickets: dict[str, dict[str, str | None]] = {}
         self.plan_revisions: dict[str, int] = {}
+        self.meetings: dict[str, MeetingProgress] = {}
+        self.dm_streaks: dict[str, int] = {}
+        self.chat_message_senders: dict[str, str] = {}
 
     def apply(self, event: Event) -> None:
         payload = event.payload
@@ -84,6 +113,12 @@ class WorldState:
                 self.chat_message_conversations[payload.chat_message_id] = (
                     payload.conversation_id
                 )
+                self.chat_message_senders[payload.chat_message_id] = payload.sender
+                members = self.conversations.get(payload.conversation_id, ())
+                if len(members) == 2:
+                    self.dm_streaks[payload.conversation_id] = (
+                        self.dm_streaks.get(payload.conversation_id, 0) + 1
+                    )
             case DocumentCreatedPayload():
                 self.documents[payload.document_id] = 1
                 self.document_paths[payload.path] = payload.document_id
@@ -107,6 +142,21 @@ class WorldState:
             case SimAgentPlanPayload():
                 key = f"{payload.entity}|{payload.day}"
                 self.plan_revisions[key] = payload.revision
+            case SimWakePayload():
+                # A wake is a beat in the day: chat bursts end, streaks reset.
+                self.dm_streaks.clear()
+            case SimMeetingConvenePayload():
+                self.meetings[payload.meeting_id] = MeetingProgress(
+                    meeting_id=payload.meeting_id,
+                    calendar_event_id=payload.calendar_event_id,
+                    title=payload.title,
+                    description=payload.description,
+                    attendees=payload.attendees,
+                    started=int(event.time),
+                    budget=max(4, min(12, payload.duration_seconds // 180)),
+                )
+            case MeetingTranscriptPayload():
+                self.meetings.pop(payload.meeting_id, None)
             case _:
                 pass
 
@@ -132,6 +182,9 @@ class WorldState:
                 for ticket_id, values in sorted(self.tickets.items())
             ),
             plan_revisions=tuple(sorted(self.plan_revisions.items())),
+            meetings=tuple(self.meetings[key] for key in sorted(self.meetings)),
+            dm_streaks=tuple(sorted(self.dm_streaks.items())),
+            chat_message_senders=tuple(sorted(self.chat_message_senders.items())),
         )
 
     @classmethod
@@ -155,6 +208,9 @@ class WorldState:
         state.document_paths = dict(model.document_paths)
         state.tickets = {ticket_id: dict(values) for ticket_id, values in model.tickets}
         state.plan_revisions = dict(model.plan_revisions)
+        state.meetings = {m.meeting_id: m for m in model.meetings}
+        state.dm_streaks = dict(model.dm_streaks)
+        state.chat_message_senders = dict(model.chat_message_senders)
         return state
 
     def resolve_person(self, ref: str) -> str | None:

@@ -43,6 +43,20 @@ class PlanActionSpec(_Model):
     day: str
 
 
+class MeetingTurnActionSpec(_Model):
+    """Speak in an open meeting: the GM renders the room, the entity
+    contributes one utterance with its own knowledge and voice."""
+
+    kind: Literal["meeting_turn"] = "meeting_turn"
+    call_to_action: str = "It is your turn to speak in the meeting."
+    meeting_id: str
+    title: str
+    agenda: str = ""
+    attendees: tuple[str, ...] = ()
+    transcript: str = ""
+    turn_index: int = 0
+
+
 class ReflectActionSpec(_Model):
     """End-of-day reflection turn: the entity consolidates its day into a
     persistent note instead of choosing a workplace action."""
@@ -64,7 +78,8 @@ ActionSpec = Annotated[
     | FloatActionSpec
     | IntentActionSpec
     | ReflectActionSpec
-    | PlanActionSpec,
+    | PlanActionSpec
+    | MeetingTurnActionSpec,
     Field(discriminator="kind"),
 ]
 

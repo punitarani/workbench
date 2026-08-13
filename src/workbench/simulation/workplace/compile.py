@@ -16,6 +16,7 @@ from workbench.core.events.control import (
 )
 from workbench.core.events.documents import DocumentCreatedPayload
 from workbench.core.events.email import Attachment, EmailMessagePayload
+from workbench.core.events.meetings import SimMeetingConvenePayload
 from workbench.core.events.people import (
     OrganizationRecordPayload,
     PersonRecordPayload,
@@ -195,19 +196,49 @@ def compile_workplace(
                 content=document.content,
             )
         )
+    persona_people = {
+        person.person_id for person in spec.people if person.persona is not None
+    }
+    seed_convenes: list[tuple[object, int]] = []
     for calendar_event in spec.seed_calendar:
+        calendar_id = minter.mint("cal")
+        start_seconds = _clock_to_seconds(calendar_event.start_clock)
+        end_seconds = _clock_to_seconds(calendar_event.end_clock)
         payloads.append(
             CalendarEventScheduledPayload(
                 kind="calendar.event.scheduled",
-                calendar_event_id=minter.mint("cal"),
+                calendar_event_id=calendar_id,
                 organizer=calendar_event.organizer,
                 title=calendar_event.title,
-                start=_clock_to_seconds(calendar_event.start_clock),
-                end=_clock_to_seconds(calendar_event.end_clock),
+                start=start_seconds,
+                end=end_seconds,
                 attendees=calendar_event.attendees,
                 description=calendar_event.description,
             )
         )
+        # Genesis events never pass through GM consequences, so seed
+        # meetings convene from compile: same payload, scheduled at the
+        # event's start.
+        simulated = tuple(
+            _entity_name(person_id)
+            for person_id in calendar_event.attendees
+            if person_id in persona_people
+        )
+        if len(simulated) >= 2:
+            seed_convenes.append(
+                (
+                    SimMeetingConvenePayload(
+                        kind="sim.meeting.convene",
+                        meeting_id=minter.mint("mtg"),
+                        calendar_event_id=calendar_id,
+                        title=calendar_event.title,
+                        description=calendar_event.description or "",
+                        attendees=simulated,
+                        duration_seconds=max(60, end_seconds - start_seconds),
+                    ),
+                    start_seconds,
+                )
+            )
 
     if not include_genesis:
         genesis: tuple[Event, ...] = ()
@@ -312,6 +343,15 @@ def compile_workplace(
         )
     )
     order += 1
+    for convene, start_seconds in seed_convenes:
+        scheduled.append(
+            ScheduledEvent(
+                time=time_offset + start_seconds,
+                order=order,
+                draft=EventDraft(tag=convene.kind, source="gm", payload=convene),
+            )
+        )
+        order += 1
     arrival_personas = tuple(
         (_entity_name(arrival.person.person_id), arrival.person.persona)
         for arrival in spec.arrivals

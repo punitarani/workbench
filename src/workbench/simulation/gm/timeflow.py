@@ -10,6 +10,7 @@ from workbench.core.intents import (
     EmailIntent,
     FreeformIntent,
     IdleIntent,
+    MeetingSpeakIntent,
     ReactionIntent,
     TicketIntent,
     TimeLogIntent,
@@ -41,5 +42,8 @@ def intent_duration(intent: ActionIntent) -> int:
             return 300
         case AgentPlanIntent():
             return 300
+        case MeetingSpeakIntent():
+            # The cadence of a real exchange: a couple of minutes a turn.
+            return 120
         case FreeformIntent():
             return 60

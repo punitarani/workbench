@@ -13,6 +13,7 @@ from workbench.core.actions import (
     EntityAction,
     IntentAction,
     IntentActionSpec,
+    MeetingTurnActionSpec,
     NextActingDecision,
     PlanActionSpec,
     ReflectActionSpec,
@@ -42,6 +43,12 @@ from workbench.core.events.documents import (
     DocumentRevisedPayload,
 )
 from workbench.core.events.email import EmailMessagePayload
+from workbench.core.events.meetings import (
+    MeetingTranscriptPayload,
+    SimMeetingConvenePayload,
+    SimMeetingTurnPayload,
+    TranscriptTurn,
+)
 from workbench.core.events.people import PersonRecordPayload
 from workbench.core.events.tickets import (
     TicketCommentedPayload,
@@ -60,6 +67,7 @@ from workbench.core.intents import (
     EmailIntent,
     FreeformIntent,
     IdleIntent,
+    MeetingSpeakIntent,
     ReactionIntent,
     TicketIntent,
     TimeLogIntent,
@@ -291,10 +299,20 @@ class GroundedGm:
                 if payload.entity in self._person_for_entity:
                     return NextActingDecision(entities=(payload.entity,))
                 return NextActingDecision(entities=())
-            case SimWakePayload():
-                if payload.entity in self._person_for_entity:
-                    return NextActingDecision(entities=(payload.entity,))
+            case SimMeetingTurnPayload():
+                if payload.speaker in self._person_for_entity:
+                    return NextActingDecision(entities=(payload.speaker,))
                 return NextActingDecision(entities=())
+            case SimWakePayload():
+                if payload.entity not in self._person_for_entity:
+                    return NextActingDecision(entities=())
+                in_meeting = any(
+                    payload.entity in progress.attendees
+                    for progress in self._world.meetings.values()
+                )
+                if in_meeting:
+                    return NextActingDecision(entities=())
+                return NextActingDecision(entities=(payload.entity,))
             case EmailMessagePayload():
                 # Deep chains stop granting automatic reply turns; a wake
                 # turn can always revive a thread deliberately. Without this
@@ -311,10 +329,23 @@ class GroundedGm:
                 members = self._world.conversations.get(payload.conversation_id, ())
                 body = payload.body.casefold()
                 if len(members) == 2:
+                    # A hot DM burst eventually needs a reason to continue:
+                    # after six straight messages the auto-grant stops until
+                    # the day moves (any wake resets the streaks).
+                    streak = self._world.dm_streaks.get(payload.conversation_id, 0)
+                    if streak >= 6:
+                        return NextActingDecision(entities=())
                     others = self._entities_for(
                         m for m in members if m != payload.sender
                     )
                     return NextActingDecision(entities=others[:1])
+                if payload.reply_to is not None:
+                    # Replying to someone's message grants them the turn.
+                    target = self._world.chat_message_senders.get(payload.reply_to)
+                    if target is not None and target != payload.sender:
+                        entities = self._entities_for((target,))
+                        if entities:
+                            return NextActingDecision(entities=entities)
                 for person_id in members:
                     if person_id == payload.sender:
                         continue
@@ -322,7 +353,8 @@ class GroundedGm:
                     if record is None:
                         continue
                     first_name = record.name.split()[0].casefold()
-                    if first_name in body:
+                    full_name = record.name.casefold()
+                    if first_name in body or full_name in body:
                         entities = self._entities_for((person_id,))
                         if entities:
                             return NextActingDecision(entities=entities)
@@ -341,6 +373,24 @@ class GroundedGm:
             return ReflectActionSpec(day=event.payload.day, scope=event.payload.scope)
         if isinstance(event.payload, SimPlanningPayload):
             return PlanActionSpec(day=event.payload.day)
+        if isinstance(event.payload, SimMeetingTurnPayload):
+            progress = self._world.meetings.get(event.payload.meeting_id)
+            if progress is not None:
+                names = []
+                for name in progress.attendees:
+                    person = self._world.people.get(self._person_for(name))
+                    names.append(person.name if person else name)
+                transcript = "\n".join(
+                    f"{turn.speaker}: {turn.text}" for turn in progress.turns
+                )
+                return MeetingTurnActionSpec(
+                    meeting_id=progress.meeting_id,
+                    title=progress.title,
+                    agenda=progress.description,
+                    attendees=tuple(names),
+                    transcript=transcript or "(the room settles)",
+                    turn_index=event.payload.turn_index,
+                )
         return IntentActionSpec(
             call_to_action=(
                 "Something needs your attention. Decide your next workplace "
@@ -374,10 +424,13 @@ class GroundedGm:
         return ResolutionDecision(drafts=drafts)
 
     async def consequences(self, event: Event) -> tuple[EventDraft, ...]:
+        payload = event.payload
+        meeting_drafts = self._meeting_consequences(event, payload)
+        if meeting_drafts is not None:
+            return meeting_drafts
         plan = self._day_plan
         if plan is None:
             return ()
-        payload = event.payload
         match payload:
             case SimDayStartedPayload():
                 day = self._day_index(payload.day)
@@ -485,6 +538,123 @@ class GroundedGm:
                 return ()
             case _:
                 return ()
+
+    def _meeting_consequences(
+        self, event: Event, payload
+    ) -> tuple[EventDraft, ...] | None:
+        """Meeting orchestration: convene scheduled calendar events with
+        two or more simulated attendees; a convene grants the organizer's
+        side the first turn. Returns None when the event is not
+        meeting-related so the day chain can look at it."""
+
+        match payload:
+            case CalendarEventScheduledPayload():
+                attendees = self._entities_for(payload.attendees)
+                start = int(payload.start)
+                if len(attendees) < 2 or start <= int(event.time):
+                    return ()
+                convene = SimMeetingConvenePayload(
+                    kind="sim.meeting.convene",
+                    meeting_id=self._minter.mint("mtg"),
+                    calendar_event_id=payload.calendar_event_id,
+                    title=payload.title,
+                    description=payload.description or "",
+                    attendees=attendees,
+                    duration_seconds=max(60, int(payload.end) - start),
+                )
+                return (
+                    EventDraft(
+                        tag=convene.kind,
+                        source="gm",
+                        caused_by=event.event_id,
+                        payload=convene,
+                        delay=SimDuration(start - int(event.time)),
+                    ),
+                )
+            case SimMeetingConvenePayload():
+                turn = SimMeetingTurnPayload(
+                    kind="sim.meeting.turn",
+                    meeting_id=payload.meeting_id,
+                    speaker=payload.attendees[0],
+                    turn_index=0,
+                    attendees=payload.attendees,
+                )
+                return (
+                    EventDraft(
+                        tag=turn.kind,
+                        source="gm",
+                        caused_by=event.event_id,
+                        payload=turn,
+                        delay=SimDuration(60),
+                    ),
+                )
+            case _:
+                return None
+
+    def _ground_meeting_speak(
+        self, entity, intent: MeetingSpeakIntent, event, delay
+    ) -> tuple[EventDraft, ...]:
+        progress = self._world.meetings.get(intent.meeting_ref)
+        if progress is None:
+            raise IntentRejection(f"no open meeting {intent.meeting_ref!r}")
+        if entity not in progress.attendees:
+            raise IntentRejection(f"{entity} is not in {progress.title!r}")
+        person = self._person_for(entity)
+        turns = (*progress.turns, TranscriptTurn(speaker=person, text=intent.text))
+        yielded = progress.yielded
+        if intent.yields and entity not in yielded:
+            yielded = (*yielded, entity)
+        updated = progress.model_copy(update={"turns": turns, "yielded": yielded})
+        self._world.meetings[intent.meeting_ref] = updated
+
+        finished = len(turns) >= updated.budget or set(updated.attendees) <= set(
+            yielded
+        )
+        if finished:
+            transcript = MeetingTranscriptPayload(
+                kind="meeting.transcript",
+                meeting_id=updated.meeting_id,
+                calendar_event_id=updated.calendar_event_id,
+                attendees=tuple(self._person_for(name) for name in updated.attendees),
+                started=updated.started,
+                ended=int(event.time) + 120,
+                turns=turns,
+            )
+            return (
+                EventDraft(
+                    tag=transcript.kind,
+                    source="gm",
+                    caused_by=event.event_id,
+                    payload=transcript,
+                    delay=SimDuration(120),
+                ),
+            )
+        order = updated.attendees
+        start = (order.index(entity) + 1) % len(order)
+        speaker = next(
+            (
+                order[(start + offset) % len(order)]
+                for offset in range(len(order))
+                if order[(start + offset) % len(order)] not in yielded
+            ),
+            order[start],
+        )
+        turn = SimMeetingTurnPayload(
+            kind="sim.meeting.turn",
+            meeting_id=updated.meeting_id,
+            speaker=speaker,
+            turn_index=len(turns),
+            attendees=order,
+        )
+        return (
+            EventDraft(
+                tag=turn.kind,
+                source="gm",
+                caused_by=event.event_id,
+                payload=turn,
+                delay=SimDuration(120),
+            ),
+        )
 
     def _day_index(self, iso_day: str) -> int:
         plan = self._day_plan
@@ -615,6 +785,8 @@ class GroundedGm:
                 return self._ground_agent_note(entity, intent, event, delay)
             case AgentPlanIntent():
                 return self._ground_agent_plan(entity, intent, event, delay)
+            case MeetingSpeakIntent():
+                return self._ground_meeting_speak(entity, intent, event, delay)
             case _:
                 raise IntentRejection(f"unsupported intent kind {intent.kind}")
 

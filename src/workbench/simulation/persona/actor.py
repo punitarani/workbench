@@ -7,6 +7,7 @@ from workbench.core.actions import (
     ActionSpec,
     EntityAction,
     IntentAction,
+    MeetingTurnActionSpec,
     PlanActionSpec,
     ReflectActionSpec,
 )
@@ -19,6 +20,7 @@ from workbench.core.intents import (
     ChatIntent,
     EmailIntent,
     IdleIntent,
+    MeetingSpeakIntent,
     ReactionIntent,
     TicketIntent,
     TimeLogIntent,
@@ -164,6 +166,35 @@ class ProfessionalActorAct:
             )
         return IntentAction(intent=AgentPlanIntent(day=day, blocks=blocks))
 
+    async def _meeting_turn(self, spec: MeetingTurnActionSpec) -> EntityAction:
+        identity = render_identity(self._params)
+        meeting = (
+            f"{spec.title}\nAgenda: {spec.agenda or 'none stated'}\n"
+            f"In the room: {', '.join(spec.attendees)}"
+        )
+        facts = "\n".join(self._memory.facts()[-12:]) or "None yet."
+        knowledge = render_knowledge(self._params) or "None."
+        try:
+            with dspy.context(lm=self._deep_lm):
+                prediction = await self._actor.meeting_turn.acall(
+                    identity=identity,
+                    meeting=meeting,
+                    transcript=spec.transcript,
+                    established_facts=facts,
+                    relevant_knowledge=knowledge,
+                )
+            text = prediction.utterance.text
+            yields = prediction.utterance.yields
+        except CassetteMissError, LMBudgetExceededError:
+            raise
+        except Exception:
+            text, yields = "(listens)", True
+        return IntentAction(
+            intent=MeetingSpeakIntent(
+                meeting_ref=spec.meeting_id, text=text, yields=yields
+            )
+        )
+
     async def _reflect(self, spec: ReflectActionSpec) -> EntityAction:
         identity = render_identity(self._params)
         now = self._memory.last_time()
@@ -220,6 +251,8 @@ class ProfessionalActorAct:
             return await self._reflect(spec)
         if isinstance(spec, PlanActionSpec):
             return await self._plan(spec.day)
+        if isinstance(spec, MeetingTurnActionSpec):
+            return await self._meeting_turn(spec)
         if (
             self._stream is not None
             and self._stream.replan_pending()

@@ -161,6 +161,17 @@ def _agent_plan(payload) -> Footprint:
     return Footprint(resources=frozenset({f"entity:{payload.entity}"}))
 
 
+def _meeting_control(payload) -> Footprint:
+    return Footprint(
+        resources=frozenset(
+            {
+                f"meeting:{payload.meeting_id}",
+                *(f"entity:{name}" for name in payload.attendees),
+            }
+        )
+    )
+
+
 def _free(payload) -> Footprint:
     return Footprint()
 
@@ -189,6 +200,8 @@ RULES: dict[str, Callable[[Payload], Footprint]] = {
     "sim.agent.plan": _agent_plan,
     "sim.reflection": _wake,
     "sim.planning": _wake,
+    "sim.meeting.convene": _meeting_control,
+    "sim.meeting.turn": _meeting_control,
 }
 
 
