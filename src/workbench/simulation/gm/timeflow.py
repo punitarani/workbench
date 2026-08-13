@@ -8,7 +8,9 @@ from workbench.core.intents import (
     EmailIntent,
     FreeformIntent,
     IdleIntent,
+    ReactionIntent,
     TicketIntent,
+    TimeLogIntent,
 )
 
 
@@ -25,6 +27,10 @@ def intent_duration(intent: ActionIntent) -> int:
             create_length = len(intent.create.content) if intent.create else 0
             return 600 + (edit_length + create_length) // 50
         case CalendarIntent():
+            return 60
+        case ReactionIntent():
+            return 10
+        case TimeLogIntent():
             return 60
         case IdleIntent():
             return intent.until_minutes * 60

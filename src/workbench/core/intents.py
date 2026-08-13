@@ -115,6 +115,23 @@ class CalendarIntent(_Intent):
     respond: CalendarResponseSpec | None = None
 
 
+class ReactionIntent(_Intent):
+    kind: Literal["reaction"] = "reaction"
+    chat_message_ref: str
+    emoji: str
+
+
+class TimeLogIntent(_Intent):
+    """Record time against a ticket. The rate comes from the persona's
+    profile at grounding time, never from the model."""
+
+    kind: Literal["time_log"] = "time_log"
+    ticket_ref: str
+    minutes: int = Field(ge=1)
+    note: str
+    billable: bool = True
+
+
 class IdleIntent(_Intent):
     kind: Literal["idle"] = "idle"
     until_minutes: int = Field(ge=1)
@@ -133,6 +150,8 @@ ActionIntent = Annotated[
     | TicketIntent
     | DocumentEditIntent
     | CalendarIntent
+    | ReactionIntent
+    | TimeLogIntent
     | IdleIntent
     | FreeformIntent,
     Field(discriminator="kind"),

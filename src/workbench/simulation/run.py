@@ -97,6 +97,13 @@ def _build_runtime(
         day_plan=day_plan,
     )
     gm.set_state(GroundedGm.state_model(minter=compiled.minter.model_copy(deep=True)))
+    gm.set_bill_rates(
+        {
+            params.person_id: params.bill_rate_cents
+            for _, params in compiled.personas
+            if params.bill_rate_cents is not None
+        }
+    )
 
     vocab = compiled.ticket_vocabulary
     workplace_norms = (

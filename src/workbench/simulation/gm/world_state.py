@@ -29,6 +29,7 @@ class WorldStateModel(BaseModel):
     conversations: tuple[tuple[str, tuple[str, ...]], ...] = ()
     conversation_names: tuple[tuple[str, str], ...] = ()
     chat_messages: tuple[str, ...] = ()
+    chat_message_conversations: tuple[tuple[str, str], ...] = ()
     documents: tuple[tuple[str, int], ...] = ()
     document_paths: tuple[tuple[str, str], ...] = ()
     tickets: tuple[tuple[str, tuple[tuple[str, str | None], ...]], ...] = Field(
@@ -47,6 +48,7 @@ class WorldState:
         self.conversations: dict[str, tuple[str, ...]] = {}
         self.conversation_names: dict[str, str] = {}  # "#legal" -> id
         self.chat_messages: set[str] = set()
+        self.chat_message_conversations: dict[str, str] = {}
         self.documents: dict[str, int] = {}  # id -> head revision
         self.document_paths: dict[str, str] = {}  # path -> id
         self.tickets: dict[str, dict[str, str | None]] = {}
@@ -75,6 +77,9 @@ class WorldState:
                     self.conversation_names[payload.name] = payload.conversation_id
             case ChatMessagePayload():
                 self.chat_messages.add(payload.chat_message_id)
+                self.chat_message_conversations[payload.chat_message_id] = (
+                    payload.conversation_id
+                )
             case DocumentCreatedPayload():
                 self.documents[payload.document_id] = 1
                 self.document_paths[payload.path] = payload.document_id
@@ -112,6 +117,9 @@ class WorldState:
             conversations=tuple(sorted(self.conversations.items())),
             conversation_names=tuple(sorted(self.conversation_names.items())),
             chat_messages=tuple(sorted(self.chat_messages)),
+            chat_message_conversations=tuple(
+                sorted(self.chat_message_conversations.items())
+            ),
             documents=tuple(sorted(self.documents.items())),
             document_paths=tuple(sorted(self.document_paths.items())),
             tickets=tuple(
@@ -136,6 +144,7 @@ class WorldState:
         }
         state.conversation_names = dict(model.conversation_names)
         state.chat_messages = set(model.chat_messages)
+        state.chat_message_conversations = dict(model.chat_message_conversations)
         state.documents = dict(model.documents)
         state.document_paths = dict(model.document_paths)
         state.tickets = {

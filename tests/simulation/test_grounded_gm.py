@@ -373,3 +373,85 @@ async def test_senders_observe_their_own_messages() -> None:
     assert "jess" in observers
     decision = await gm.next_acting(event)
     assert "daniel" not in decision.entities, "seeing your mail is not a turn"
+
+
+async def test_reaction_intent_grounds_to_reaction_event() -> None:
+    from workbench.core.intents import ReactionIntent
+
+    gm = make_gm()
+    intent = ReactionIntent(chat_message_ref="chm-000001", emoji="thumbsup")
+    decision = await gm.resolve(
+        "meredith", IntentAction(intent=intent), spec(), last_event()
+    )
+    payload = decision.drafts[0].payload
+    assert payload.kind == "chat.reaction.added"
+    assert payload.chat_message_id == "chm-000001"
+    assert payload.person_id == "per-meredith-chao"
+    assert payload.emoji == "thumbsup"
+
+
+async def test_reaction_to_unknown_message_is_rejected() -> None:
+    from workbench.core.intents import ReactionIntent
+
+    gm = make_gm()
+    intent = ReactionIntent(chat_message_ref="chm-999999", emoji="eyes")
+    decision = await gm.resolve(
+        "meredith", IntentAction(intent=intent), spec(), last_event()
+    )
+    assert decision.drafts[0].payload.kind == "sim.gm.note"
+
+
+async def test_time_log_intent_uses_persona_rate() -> None:
+    from workbench.core.intents import TimeLogIntent
+
+    gm = make_gm()
+    gm.set_bill_rates({"per-daniel-reyes": 44_500})
+    intent = TimeLogIntent(
+        ticket_ref="tkt-000001", minutes=90, note="NDA redline.", billable=True
+    )
+    decision = await gm.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    payload = decision.drafts[0].payload
+    assert payload.kind == "work.time.logged"
+    assert payload.person_id == "per-daniel-reyes"
+    assert payload.rate_cents == 44_500
+    assert payload.amount_cents == 66_750
+
+
+async def test_time_log_against_unknown_ticket_rejected() -> None:
+    from workbench.core.intents import TimeLogIntent
+
+    gm = make_gm()
+    intent = TimeLogIntent(ticket_ref="tkt-999999", minutes=30, note="x")
+    decision = await gm.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    assert decision.drafts[0].payload.kind == "sim.gm.note"
+
+
+async def test_calendar_schedule_grounds_to_scheduled_event() -> None:
+    from workbench.core.intents import CalendarIntent, CalendarScheduleSpec
+
+    gm = make_gm()
+    intent = CalendarIntent(
+        schedule=CalendarScheduleSpec(
+            title="NDA sync",
+            start=50_000,
+            end=51_800,
+            attendee_refs=("Meredith Chao", "Tom Okafor"),
+            description="Walk through the redline.",
+        )
+    )
+    decision = await gm.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    payload = decision.drafts[0].payload
+    assert payload.kind == "calendar.event.scheduled"
+    assert payload.organizer == "per-daniel-reyes"
+    assert set(payload.attendees) == {
+        "per-daniel-reyes",
+        "per-meredith-chao",
+        "per-tom-okafor",
+    }
+    assert payload.calendar_event_id.startswith("cal-")

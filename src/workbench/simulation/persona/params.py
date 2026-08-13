@@ -46,3 +46,6 @@ class ProfessionalWorkerParams(_Model):
     relationships: tuple[Relationship, ...] = ()
     knowledge: tuple[KnowledgeItem, ...] = ()
     check_interval_minutes: int = Field(default=30, ge=1)
+    # Hourly billing rate in cents; None for personas whose time is not
+    # billed. Applied by the GM when grounding time-log intents.
+    bill_rate_cents: int | None = Field(default=None, ge=0)

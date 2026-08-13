@@ -18,8 +18,11 @@ from workbench.core.actions import (
     TerminateDecision,
 )
 from workbench.core.events import Event, EventDraft
-from workbench.core.events.calendar import CalendarResponsePayload
-from workbench.core.events.chat import ChatMessagePayload
+from workbench.core.events.calendar import (
+    CalendarEventScheduledPayload,
+    CalendarResponsePayload,
+)
+from workbench.core.events.chat import ChatMessagePayload, ChatReactionAddedPayload
 from workbench.core.events.control import (
     SimDayEndedPayload,
     SimDayStartedPayload,
@@ -36,6 +39,7 @@ from workbench.core.events.tickets import (
     TicketCreatedPayload,
     TicketUpdatedPayload,
 )
+from workbench.core.events.work import TimeLoggedPayload
 from workbench.core.ids import IdMinter
 from workbench.core.intents import (
     ActionIntent,
@@ -45,7 +49,9 @@ from workbench.core.intents import (
     EmailIntent,
     FreeformIntent,
     IdleIntent,
+    ReactionIntent,
     TicketIntent,
+    TimeLogIntent,
 )
 from workbench.core.simtime import SimDuration
 from workbench.simulation.chronicle.calendar import SECONDS_PER_DAY, CalendarWindow
@@ -103,6 +109,7 @@ class GroundedGm:
         self._vocab = ticket_vocabulary
         self._response_delay = response_delay_seconds
         self._day_plan = day_plan
+        self._bill_rates: dict[str, int] = {}
 
     @property
     def world(self) -> WorldState:
@@ -127,6 +134,10 @@ class GroundedGm:
         elif isinstance(value, list):
             for item in value:
                 self._absorb_id(item)
+
+    def set_bill_rates(self, rates: dict[str, int]) -> None:
+        """Hourly rates in cents by person id; applied at time-log grounding."""
+        self._bill_rates = dict(rates)
 
     def get_state(self) -> GroundedGmState:
         # Deep-copy the minter: a captured state must not alias live counters.
@@ -374,6 +385,10 @@ class GroundedGm:
                 return self._ground_document(entity, sender, intent, event, delay)
             case CalendarIntent():
                 return self._ground_calendar(entity, sender, intent, event, delay)
+            case ReactionIntent():
+                return self._ground_reaction(entity, sender, intent, event, delay)
+            case TimeLogIntent():
+                return self._ground_time_log(entity, sender, intent, event, delay)
             case _:
                 raise IntentRejection(f"unsupported intent kind {intent.kind}")
 
@@ -592,11 +607,88 @@ class GroundedGm:
             ),
         )
 
+    def _ground_reaction(
+        self, entity, sender, intent: ReactionIntent, event, delay
+    ) -> tuple[EventDraft, ...]:
+        conversation_id = self._world.chat_message_conversations.get(
+            intent.chat_message_ref
+        )
+        if conversation_id is None:
+            raise IntentRejection(
+                f"unknown chat message {intent.chat_message_ref!r}"
+            )
+        members = self._world.conversations.get(conversation_id, ())
+        if sender not in members:
+            raise IntentRejection(f"{sender} is not in {conversation_id}")
+        payload = ChatReactionAddedPayload(
+            kind="chat.reaction.added",
+            conversation_id=conversation_id,
+            chat_message_id=intent.chat_message_ref,
+            person_id=sender,
+            emoji=intent.emoji,
+        )
+        return (
+            EventDraft(
+                tag=payload.kind,
+                source=entity,
+                caused_by=event.event_id,
+                payload=payload,
+                delay=delay,
+            ),
+        )
+
+    def _ground_time_log(
+        self, entity, sender, intent: TimeLogIntent, event, delay
+    ) -> tuple[EventDraft, ...]:
+        if intent.ticket_ref not in self._world.tickets:
+            raise IntentRejection(f"unknown ticket {intent.ticket_ref!r}")
+        payload = TimeLoggedPayload(
+            kind="work.time.logged",
+            person_id=sender,
+            ticket_id=intent.ticket_ref,
+            minutes=intent.minutes,
+            note=intent.note,
+            rate_cents=self._bill_rates.get(sender),
+            billable=intent.billable,
+        )
+        return (
+            EventDraft(
+                tag=payload.kind,
+                source=entity,
+                caused_by=event.event_id,
+                payload=payload,
+                delay=delay,
+            ),
+        )
+
     def _ground_calendar(
         self, entity, sender, intent: CalendarIntent, event, delay
     ) -> tuple[EventDraft, ...]:
+        if intent.schedule is not None:
+            attendees = self._resolve_people(
+                (sender, *intent.schedule.attendee_refs)
+            )
+            payload = CalendarEventScheduledPayload(
+                kind="calendar.event.scheduled",
+                calendar_event_id=self._minter.mint("cal"),
+                organizer=sender,
+                title=intent.schedule.title,
+                start=intent.schedule.start,
+                end=intent.schedule.end,
+                attendees=attendees,
+                description=intent.schedule.description,
+            )
+            return (
+                EventDraft(
+                    tag=payload.kind,
+                    source=entity,
+                    caused_by=event.event_id,
+                    payload=payload,
+                    delay=delay,
+                ),
+            )
         if intent.respond is None:
-            raise IntentRejection("only calendar responses are grounded in v1")
+            raise IntentRejection("calendar intent needs a schedule or a response")
         payload = CalendarResponsePayload(
             kind="calendar.response",
             calendar_event_id=intent.respond.calendar_event_ref,
