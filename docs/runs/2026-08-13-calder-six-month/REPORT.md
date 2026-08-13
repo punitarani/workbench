@@ -21,7 +21,8 @@ history proved out — now running on the revamped engine end to end:
    continuation (`compile_workplace(include_genesis=False,
    time_offset=…, starting_minter=minter_from_events(history))`),
    recorded once against `deepseek/deepseek-v4-flash-0731` and replayed
-   deterministically from the committed cassette forever after.
+   deterministically from the cassette (kept local, per the repo's
+   cassette policy) forever after.
 
 The revamp phases all execute at scale here: multi-day calendar shape
 (D), the arrival Maya Lindqvist joining mid-window (E2), `log_time` /
@@ -69,7 +70,7 @@ structured spreadsheet/formatted artifacts rendered to real `.xlsx` /
 | Bundle size | 3.6 MB |
 | Determinism check (two full builds) | 1.9 s, byte-identical |
 
-For scale: the engine records live at roughly 0.1 steps/s against a
+For scale: the engine records live at roughly 0.16 steps/s against a
 hosted model, so six months of *live* simulation would cost weeks of
 wall time. The hybrid split — deterministic chronicle for the past,
 engine for the day that matters — produces the same world shape in about
@@ -77,15 +78,72 @@ a second plus one recorded day.
 
 ### Live day (engine, hybrid continuation)
 
-<!-- FILL: record metrics -->
+Recorded once, live, at `window=8`; deterministic replay from the local
+cassette ever after (cassettes stay out of git per repo policy — the
+acceptance test self-skips without one).
+
+| Metric | Value |
+|---|---|
+| Steps to quiescence | 264 |
+| New events | 264 (92 emails, 10 time entries, 7 ticket comments, 2 tickets created, 3 document revisions, 3 chat messages, 141 wakes) |
+| LM calls | 270 (531k prompt tokens, 38k completion) |
+| Wall time (live recording) | 1,693.8 s (28.2 min) |
+| Cassette | 267 entries, 2.8 MB |
+| `run.db` | 12.0 MB carrying the full 22,264-event world |
+| Combined log validates | yes |
+
+Day quality: the four planted client emails all drew grounded responses —
+Gabriel explained the June inventory movement from his seeded knowledge,
+Sylvia answered the state notice by citing the Q1 amendment, Victor
+addressed the study-invoice question, and the payroll-services inquiry
+produced a tracked ticket. Personas also picked up threads from the
+*history* (replying to procedural mail from the previous week), and the
+E1 verbs fired repeatedly: ten `work.time.logged` entries with sensible
+narratives landed against the correct engagements. The cast strongly
+preferred email over chat on this day (92:3) — a plausible Monday-inbox
+shape, and a knob future day scripts can pull on.
 
 ### Windowed engine benchmark
 
-<!-- FILL: bench.json -->
+`datasets/calder/benchmark_windows.py` replays the recorded day with
+per-call LM latency modeled at 3.0 s (cassette hits are otherwise
+instant, which would measure nothing) and probes admission batch sizes:
+
+| Window | Wall | Batches | Max batch | Multi-step batches | Speedup |
+|---|---|---|---|---|---|
+| 1 | 815.1 s | — | — | — | 1.00× |
+| 8 | 716.0 s | 239 | 2 | 25 | **1.14×** |
+
+Both windows produce byte-identical worlds — the invariance guarantee is
+the hard result; the speedup is workload-dependent. This day batches
+modestly by design: the single-day compile staggers persona wakes three
+minutes apart (the byte-compat wake ladder), so same-effective-time
+collisions arise only from response scheduling — 25 real two-step
+batches. Denser day scripts, same-time wake cohorts, or the multi-day
+scheduler produce more same-time pressure; what the engine guarantees is
+that any window size yields the same bytes while concurrent LM calls
+shrink the critical path.
+
+A second fully-live sequential recording was deliberately skipped: live
+sampling differs run to run, so it would compare two *different* days at
+real cost — the modeled replay compares the same day exactly. The real
+live figure on record is the window=8 recording above (28.2 min).
 
 ### Determinism and resume
 
-<!-- FILL: acceptance results -->
+`tests/workplaces/test_calder_acceptance.py` (activates when the local
+cassette exists) rebuilds the 194-day history from scratch, then replays
+the recorded live day three ways and byte-compares the combined
+22,264-event logs:
+
+- sequential (`window=1`) — the reference;
+- windowed (`window=8`) — **byte-identical**, same step count;
+- interrupted at step 50 + resumed — **byte-identical**, steps sum to
+  the straight run's 264.
+
+Everything from the first genesis byte to the last live-day event is
+reproducible from source + seed + cassette; the only nondeterministic
+act in the whole pipeline was the one recorded day, captured once.
 
 ## Deviations and limitations
 
