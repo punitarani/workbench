@@ -263,11 +263,155 @@ class InterruptEngine:
         self._step += 1
         return result
 
+    async def step_batch(self, window: int) -> tuple[StepResult, ...]:
+        """Execute up to ``window`` same-time, footprint-disjoint steps with
+        every entity act across the batch running concurrently.
+
+        Admission scans the queue in canonical (time, order) order and stops
+        at the first conflict, so the executed sequence is always a canonical
+        prefix — the world log is byte-identical for every window size. The
+        whole batch commits in one transaction: durability moves from
+        per-step to per-batch, and a crash re-executes the batch from its
+        boundary (cassette replay makes that cheap)."""
+
+        from workbench.core.footprint import footprint_of
+
+        if self._store is None:
+            raise ConfigError("windowed execution requires store mode")
+        preview = getattr(self._gm, "observers_for", None)
+
+        first = self._queue.pop()
+        now = int(self._time.now())
+        head_time = SimTime(max(first.time, now))
+        admitted = [first]
+        footprints = [footprint_of(first.draft.payload)]
+        entity_sets = [
+            set(preview(first.draft.payload)) if preview is not None else set()
+        ]
+        # A GM without a pure routing preview gets batches of one.
+        while preview is not None and len(admitted) < window and len(self._queue):
+            candidate = self._queue.peek()
+            if max(candidate.time, now) != int(head_time):
+                break
+            footprint = footprint_of(candidate.draft.payload)
+            entities = set(preview(candidate.draft.payload))
+            if any(footprint.conflicts(other) for other in footprints) or any(
+                entities & seen for seen in entity_sets
+            ):
+                break
+            admitted.append(self._queue.pop())
+            footprints.append(footprint)
+            entity_sets.append(entities)
+
+        await self._time.wait_until(head_time)
+        self._time.advance_to(head_time)
+        await self._flush_expired(head_time)
+
+        contexts: list[
+            tuple[ScheduledEvent, Event, tuple[str, ...], tuple[str, ...], tuple]
+        ] = []
+        for item in admitted:
+            event = item.draft.to_event(seq=self._next_seq, time=head_time)
+            self._next_seq += 1
+            routed = await self._gm.route(event)
+            observers: list[str] = []
+            for name in routed:
+                if name not in self._entities:
+                    continue
+                if self._attention.should_deliver(name, event, now=head_time):
+                    observers.append(name)
+                else:
+                    self._attention.defer(name, event)
+            await asyncio.gather(
+                *(self._entities[name].observe(event) for name in observers)
+            )
+            decision = await self._gm.next_acting(event)
+            acting = tuple(
+                name for name in decision.entities if name in self._entities
+            )
+            specs = tuple(
+                [await self._gm.action_spec_for(name, event) for name in acting]
+            )
+            contexts.append((item, event, tuple(observers), acting, specs))
+
+        # The parallel phase: disjoint footprints guarantee no act's inputs
+        # depend on another batch member, so canonical gather order plus
+        # per-entity call seeds keep replay deterministic.
+        flat = [
+            (index, name, spec)
+            for index, (_, _, _, acting, specs) in enumerate(contexts)
+            for name, spec in zip(acting, specs, strict=True)
+        ]
+        all_actions = await asyncio.gather(
+            *(self._entities[name].act(spec) for _, name, spec in flat)
+        )
+        actions_by_step: dict[int, list[EntityAction]] = {}
+        for (index, _, _), action in zip(flat, all_actions, strict=True):
+            actions_by_step.setdefault(index, []).append(action)
+
+        results: list[StepResult] = []
+        for index, (_item, event, observers, acting, specs) in enumerate(contexts):
+            actions = tuple(actions_by_step.get(index, ()))
+            scheduled: list[ScheduledEvent] = []
+            for name, action, spec in zip(acting, actions, specs, strict=True):
+                resolution = await self._gm.resolve(name, action, spec, event)
+                for draft in resolution.drafts:
+                    entry = ScheduledEvent(
+                        time=int(head_time) + int(draft.delay),
+                        order=self._next_order,
+                        draft=draft,
+                    )
+                    self._next_order += 1
+                    self._queue.push(entry)
+                    scheduled.append(entry)
+            for draft in await self._gm.consequences(event):
+                entry = ScheduledEvent(
+                    time=int(head_time) + int(draft.delay),
+                    order=self._next_order,
+                    draft=draft,
+                )
+                self._next_order += 1
+                self._queue.push(entry)
+                scheduled.append(entry)
+            terminate = await self._gm.should_terminate()
+            if terminate.terminate and index < len(contexts) - 1:
+                raise ConfigError(
+                    "game master terminated mid-batch; a terminating game "
+                    "master needs window=1"
+                )
+            results.append(
+                StepResult(
+                    step=self._step,
+                    event=event,
+                    observers=observers,
+                    actions=tuple(zip(acting, actions, strict=True)),
+                    scheduled=tuple(scheduled),
+                    terminated=terminate.terminate,
+                )
+            )
+            self._step += 1
+
+        with self._store.transaction():
+            for (item, event, _, _, _), result in zip(
+                contexts, results, strict=True
+            ):
+                self._store.append_event(event)
+                self._store.queue_remove(order=item.order)
+                for entry in result.scheduled:
+                    self._store.queue_add(
+                        time=entry.time, order=entry.order, draft=entry.draft
+                    )
+            self._store.set_meta("step", str(self._step))
+            self._store.set_meta("next_order", str(self._next_order))
+            self._store.set_meta("gm_state", self._gm.get_state().model_dump_json())
+        return tuple(results)
+
     async def run(
         self,
         stop: StopCondition,
         *,
         on_step: Callable[[StepResult], None] | None = None,
+        window: int = 1,
     ) -> RunResult:
         steps = 0
         while True:
@@ -279,12 +423,19 @@ class InterruptEngine:
                 return self._result(steps, "quiescent")
             if stop.end_time is not None and self._queue.peek().time > stop.end_time:
                 return self._result(steps, "end_time")
-            result = await self.step()
-            steps += 1
-            if on_step is not None:
-                on_step(result)
-            if result.terminated:
-                return self._result(steps, "terminated")
+            if window <= 1:
+                results: tuple[StepResult, ...] = (await self.step(),)
+            else:
+                allowance = window
+                if stop.max_steps is not None:
+                    allowance = min(allowance, stop.max_steps - steps)
+                results = await self.step_batch(allowance)
+            for result in results:
+                steps += 1
+                if on_step is not None:
+                    on_step(result)
+                if result.terminated:
+                    return self._result(steps, "terminated")
 
     def _result(
         self,

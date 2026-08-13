@@ -1,11 +1,11 @@
 """OpenRouter backend: OpenAI-compatible chat completions over httpx."""
 
-import asyncio
 from typing import Any
 
 import httpx
 
 from workbench.simulation.errors import LMResponseError, LMTransportError
+from workbench.simulation.lm.permits import PermitPool
 from workbench.simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
 
 BASE_URL = "https://openrouter.ai/api/v1"
@@ -26,6 +26,7 @@ class OpenRouterLM:
         timeout_seconds: float = 120.0,
         transport: httpx.AsyncBaseTransport | None = None,
         providers: tuple[str, ...] = DEFAULT_PROVIDERS,
+        permits: PermitPool | None = None,
     ) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
@@ -33,7 +34,9 @@ class OpenRouterLM:
             timeout=timeout_seconds,
             transport=transport,
         )
-        self._semaphore = asyncio.Semaphore(max_concurrency)
+        # Inject a shared pool to bound several backends with one budget;
+        # by default each backend gets a private pool of max_concurrency.
+        self._permits = permits if permits is not None else PermitPool(max_concurrency)
         self._providers = providers
 
     async def complete(self, request: LMRequest) -> LMResponse:
@@ -67,7 +70,7 @@ class OpenRouterLM:
                 },
             }
 
-        async with self._semaphore:
+        async with self._permits:
             try:
                 http_response = await self._client.post("/chat/completions", json=body)
             except httpx.HTTPError as error:

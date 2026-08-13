@@ -168,6 +168,43 @@ class GroundedGm:
                 seen.append(entity)
         return tuple(seen)
 
+    def observers_for(self, payload) -> tuple[str, ...]:
+        """Pure routing preview for batch admission: a superset of what
+        ``route`` will return for this payload, computed without applying
+        the event. Supersets are safe — they only shrink batches."""
+        match payload:
+            case SimWakePayload():
+                if payload.entity in self._person_for_entity:
+                    return (payload.entity,)
+                return ()
+            case EmailMessagePayload():
+                return self._entities_for((payload.sender, *payload.to, *payload.cc))
+            case ChatMessagePayload():
+                members = self._world.conversations.get(payload.conversation_id, ())
+                return self._entities_for((payload.sender, *members))
+            case TicketCreatedPayload():
+                return self._entities_for(
+                    (payload.actor, payload.requester, payload.assignee)
+                )
+            case TicketUpdatedPayload():
+                values = self._world.tickets.get(payload.ticket_id, {})
+                changed = [
+                    ref
+                    for change in payload.changes
+                    if change.field == "assignee"
+                    for ref in (change.old, change.new)
+                ]
+                return self._entities_for(
+                    (payload.actor, values.get("assignee"), *changed)
+                )
+            case TicketCommentedPayload():
+                values = self._world.tickets.get(payload.ticket_id, {})
+                return self._entities_for((payload.actor, values.get("assignee")))
+            case DocumentCreatedPayload() | DocumentRevisedPayload():
+                return self._entities_for((payload.author,))
+            case _:
+                return ()
+
     async def route(self, event: Event) -> tuple[str, ...]:
         self._world.apply(event)
         self._absorb_event(event)

@@ -293,6 +293,7 @@ async def run_workplace(
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
     checkpoint_every: int = 1,
+    window: int = 1,
 ) -> RunResult:
     compiled = compile_workplace(spec, seed)
     return await run_compiled(
@@ -305,6 +306,7 @@ async def run_workplace(
         external_seats=external_seats,
         actor_factory=actor_factory,
         checkpoint_every=checkpoint_every,
+        window=window,
     )
 
 
@@ -320,6 +322,7 @@ async def run_compiled(
     actor_factory: Callable[[], ProfessionalActor] | None = None,
     checkpoint_every: int = 1,
     history: tuple[Event, ...] = (),
+    window: int = 1,
 ) -> RunResult:
     out_dir.mkdir(parents=True, exist_ok=True)
     runtime = _build_runtime(
@@ -368,6 +371,7 @@ async def run_compiled(
     result = await engine.run(
         stop if stop is not None else StopCondition(end_time=compiled.end_time),
         on_step=_on_step(runtime, engine, store, checkpoint_every),
+        window=window,
     )
     return _finish(store, out_dir, compiled, seed, result)
 
@@ -382,6 +386,7 @@ async def resume_workplace(
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
     checkpoint_every: int = 1,
+    window: int = 1,
 ) -> RunResult:
     """Continue a run from its latest committed state."""
 
@@ -484,5 +489,6 @@ async def resume_workplace(
     result = await engine.run(
         stop if stop is not None else StopCondition(end_time=compiled.end_time),
         on_step=_on_step(runtime, engine, store, checkpoint_every),
+        window=window,
     )
     return _finish(store, out_dir, compiled, seed=stored_seed, result=result)
