@@ -103,9 +103,7 @@ class SqliteRunStore:
         if event.seq != self._next_seq:
             raise RunStoreError(f"expected seq {self._next_seq}, got {event.seq}")
         if self._next_seq == 0 and event.tag != "sim.run.started":
-            raise RunStoreError(
-                f"first event must be sim.run.started, got {event.tag}"
-            )
+            raise RunStoreError(f"first event must be sim.run.started, got {event.tag}")
         if int(event.time) < self._last_time:
             raise RunStoreError(
                 f"time regressed from {self._last_time} to {int(event.time)}"
@@ -169,6 +167,18 @@ class SqliteRunStore:
             "INSERT OR REPLACE INTO snapshots (step, taken_seq, state)"
             " VALUES (?, ?, ?)",
             (step, taken_seq, state),
+        )
+
+    def prune_snapshots(self, *, keep: int) -> None:
+        """Drop all but the newest ``keep`` snapshots. Snapshots grow with
+        cast size and memory span; a long run keeps a small rolling set."""
+
+        if keep < 1:
+            raise ValueError(f"keep must be positive, got {keep}")
+        self._connection.execute(
+            "DELETE FROM snapshots WHERE step NOT IN "
+            "(SELECT step FROM snapshots ORDER BY step DESC LIMIT ?)",
+            (keep,),
         )
 
     def latest_snapshot(self) -> StoredSnapshot | None:

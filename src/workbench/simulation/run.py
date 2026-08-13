@@ -7,6 +7,7 @@ every run segment — byte-identical to the historical writer output — and
 remains the canonical artifact downstream consumers read.
 """
 
+import json
 from collections.abc import Callable, Mapping
 from pathlib import Path
 
@@ -61,6 +62,8 @@ class _Runtime:
             tuple[WorkingMemoryComponent, ComposedEntity],
         ],
         pending_arrivals: dict[str, tuple[str, ProfessionalWorkerParams]],
+        lms: dict[str, WorkbenchLM],
+        personas: dict[str, ComposedEntity],
     ) -> None:
         self.gm = gm
         self.entities = entities
@@ -71,6 +74,10 @@ class _Runtime:
         # person_id -> (entity_name, params) for scripted arrivals whose
         # person.record has not occurred yet.
         self.pending_arrivals = pending_arrivals
+        # Registries the roll-forward resume and per-batch meta need:
+        # every persona entity and its WorkbenchLM, arrivals included.
+        self.lms = lms
+        self.personas = personas
 
 
 def _build_runtime(
@@ -129,6 +136,9 @@ def _build_runtime(
             f"external seats name no persona in this workplace: {unknown_seats}"
         )
 
+    lms: dict[str, WorkbenchLM] = {}
+    personas: dict[str, ComposedEntity] = {}
+
     def make_persona_entity(
         entity_name: str, params: ProfessionalWorkerParams
     ) -> tuple[WorkingMemoryComponent, ComposedEntity]:
@@ -150,6 +160,8 @@ def _build_runtime(
                 workplace_norms=workplace_norms,
             ),
         )
+        lms[entity_name] = lm
+        personas[entity_name] = entity
         return memory, entity
 
     entities: list[Entity] = []
@@ -179,7 +191,25 @@ def _build_runtime(
             params.person_id: (entity_name, params)
             for entity_name, params in compiled.arrivals
         },
+        lms=lms,
+        personas=personas,
     )
+
+
+def _durable_meta(runtime: _Runtime) -> dict[str, str]:
+    """Act-derived state committed with every step/batch so a resume
+    without a usable snapshot can roll forward: per-entity LM call
+    counters (seed continuity) and working-memory facts ledgers (the
+    persona's own action summaries — they live in no world event)."""
+
+    counters = {name: lm.calls for name, lm in sorted(runtime.lms.items())}
+    facts = {
+        name: list(memory.facts()) for name, memory in sorted(runtime.memories.items())
+    }
+    return {
+        "lm_calls": json.dumps(counters, sort_keys=True),
+        "memory_facts": json.dumps(facts, sort_keys=True),
+    }
 
 
 async def _deliver_events(runtime: _Runtime, events) -> None:
@@ -260,24 +290,32 @@ def _on_step(
     return on_step
 
 
+_SNAPSHOTS_KEPT = 4
+
+
+def _take_snapshot(engine: InterruptEngine, store: SqliteRunStore, step: int) -> None:
+    snapshot = SimulationSnapshot(
+        config_hash=store.get_meta("config_hash") or "",
+        seed_root=int(store.get_meta("seed_root") or "0"),
+        world_log_length=engine.next_seq,
+        engine=engine.capture_state(),
+    )
+    store.put_snapshot(
+        step=step,
+        taken_seq=engine.next_seq,
+        state=snapshot.model_dump_json(),
+    )
+    store.prune_snapshots(keep=_SNAPSHOTS_KEPT)
+    store.commit()
+
+
 def _checkpointer(
     engine: InterruptEngine, store: SqliteRunStore, every: int
 ) -> Callable[[StepResult], None]:
     def checkpoint(result: StepResult) -> None:
         if (result.step + 1) % every != 0:
             return
-        snapshot = SimulationSnapshot(
-            config_hash=store.get_meta("config_hash") or "",
-            seed_root=int(store.get_meta("seed_root") or "0"),
-            world_log_length=engine.next_seq,
-            engine=engine.capture_state(),
-        )
-        store.put_snapshot(
-            step=result.step + 1,
-            taken_seq=engine.next_seq,
-            state=snapshot.model_dump_json(),
-        )
-        store.commit()
+        _take_snapshot(engine, store, result.step + 1)
 
     return checkpoint
 
@@ -347,6 +385,10 @@ async def run_compiled(
     store.set_meta("model", model)
     store.set_meta("step", "0")
     store.set_meta("next_order", str(len(compiled.scheduled)))
+    # The boundary between the broadcast-delivered opening world (history
+    # plus genesis) and engine-minted events: roll-forward resume replays
+    # each side with its own delivery semantics.
+    store.set_meta("initial_seq", str(len(history) + len(compiled.genesis)))
     store.commit()
 
     await _deliver_events(runtime, history)
@@ -367,12 +409,17 @@ async def run_compiled(
         store=store,
         next_seq=len(history) + len(compiled.genesis),
         next_order=len(compiled.scheduled),
+        meta_extra=lambda: _durable_meta(runtime),
     )
     result = await engine.run(
         stop if stop is not None else StopCondition(end_time=compiled.end_time),
         on_step=_on_step(runtime, engine, store, checkpoint_every),
         window=window,
     )
+    if result.reason == "interrupted":
+        # A graceful stop earns a snapshot at the head so the next resume
+        # takes the fast path regardless of checkpoint cadence.
+        _take_snapshot(engine, store, int(store.get_meta("step") or "0"))
     return _finish(store, out_dir, compiled, seed, result)
 
 
@@ -410,28 +457,20 @@ async def resume_workplace(
         actor_factory=actor_factory,
     )
 
-    engine = InterruptEngine(
-        entities=runtime.entities,
-        game_master=runtime.gm,
-        time_model=EventDrivenTimeModel(now=0),
-        queue=EventQueue(),
-        attention=AttentionBook(
-            entities=tuple(e.name for e in runtime.entities)
-        ),
-        store=store,
-        next_seq=0,
-        next_order=0,
-    )
-
     stored = store.latest_snapshot()
-    if stored is not None:
-        if stored.taken_seq != store.head()[0]:
-            store.close()
-            raise SnapshotError(
-                f"latest snapshot covers seq {stored.taken_seq} but the store "
-                f"head is {store.head()[0]}; commits after the snapshot need "
-                "a denser checkpoint cadence"
-            )
+    head_seq, head_time = store.head()
+    if stored is not None and stored.taken_seq == head_seq:
+        engine = InterruptEngine(
+            entities=runtime.entities,
+            game_master=runtime.gm,
+            time_model=EventDrivenTimeModel(now=0),
+            queue=EventQueue(),
+            attention=AttentionBook(entities=tuple(e.name for e in runtime.entities)),
+            store=store,
+            next_seq=0,
+            next_order=0,
+            meta_extra=lambda: _durable_meta(runtime),
+        )
         snapshot = SimulationSnapshot.model_validate_json(stored.state)
         stored_events = tuple(store.read_events())
         # Scripted arrivals that already happened grew the cast; rebuild
@@ -459,31 +498,63 @@ async def resume_workplace(
                 if rehydrate is not None:
                     rehydrate(events_by_id)
     else:
-        # Interrupted before the first checkpoint: rebuild the start-of-day
-        # state exactly as a fresh run does, from the compiled workplace.
-        # No checkpoint means no step ever committed: the stored events are
-        # exactly the run's history plus genesis. Deliver them all.
-        await _deliver_events(runtime, tuple(store.read_events()))
+        # Roll-forward: no snapshot at the head (killed mid-cadence, or
+        # never checkpointed). Rebuild live state by replaying the log with
+        # the same delivery semantics the original run used — the opening
+        # world (history + genesis) is broadcast, engine-minted events go
+        # only to their routed observers — then restore the committed GM
+        # state, queue, and per-entity LM counters from meta.
+        initial_meta = store.get_meta("initial_seq")
+        if initial_meta is None:
+            store.close()
+            raise SnapshotError(
+                "run.db has no snapshot at the head and predates roll-forward "
+                "resume (missing initial_seq meta); re-run or checkpoint denser"
+            )
+        stored_events = tuple(store.read_events())
+        initial = int(initial_meta)
+        await _deliver_events(runtime, stored_events[:initial])
+        arrived_entities: list[Entity] = []
+        for event in stored_events[initial:]:
+            observers = await runtime.gm.route(event)
+            for name in observers:
+                if name in runtime.externals:
+                    await runtime.externals[name].observe(event)
+                elif name in runtime.personas:
+                    await runtime.personas[name].observe(event)
+            # Admission follows delivery, exactly like the live run: the
+            # arriving entity never observes its own person.record.
+            if event.tag == "person.record":
+                pending = runtime.pending_arrivals.pop(event.payload.person_id, None)
+                if pending is not None:
+                    entity_name, params = pending
+                    memory, entity = runtime.make_persona_entity(entity_name, params)
+                    runtime.memories[entity_name] = memory
+                    arrived_entities.append(entity)
         gm_state = store.get_meta("gm_state")
         if gm_state is not None:
-            runtime.gm.set_state(
-                runtime.gm.state_model.model_validate_json(gm_state)
-            )
+            runtime.gm.set_state(runtime.gm.state_model.model_validate_json(gm_state))
+        counters = json.loads(store.get_meta("lm_calls") or "{}")
+        for name, lm in runtime.lms.items():
+            lm.set_calls(int(counters.get(name, 0)))
+        facts = json.loads(store.get_meta("memory_facts") or "{}")
+        for name, memory in runtime.memories.items():
+            memory.restore_facts(tuple(facts.get(name, ())))
         queue = EventQueue()
         for time, order, draft in store.queue_rows():
             queue.push(ScheduledEvent(time=time, order=order, draft=draft))
+        roster = (*runtime.entities, *arrived_entities)
         engine = InterruptEngine(
-            entities=runtime.entities,
+            entities=roster,
             game_master=runtime.gm,
-            time_model=EventDrivenTimeModel(now=store.head()[1]),
+            time_model=EventDrivenTimeModel(now=head_time),
             queue=queue,
-            attention=AttentionBook(
-                entities=tuple(e.name for e in runtime.entities)
-            ),
+            attention=AttentionBook(entities=tuple(e.name for e in roster)),
             store=store,
-            next_seq=store.head()[0],
+            next_seq=head_seq,
             next_order=int(store.get_meta("next_order") or "0"),
             step=int(store.get_meta("step") or "0"),
+            meta_extra=lambda: _durable_meta(runtime),
         )
 
     result = await engine.run(
@@ -491,4 +562,6 @@ async def resume_workplace(
         on_step=_on_step(runtime, engine, store, checkpoint_every),
         window=window,
     )
+    if result.reason == "interrupted":
+        _take_snapshot(engine, store, int(store.get_meta("step") or "0"))
     return _finish(store, out_dir, compiled, seed=stored_seed, result=result)

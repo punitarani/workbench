@@ -11,7 +11,7 @@ mutated only between gathers, never inside entity tasks.
 """
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
@@ -57,9 +57,7 @@ class RunResult(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     steps: int = Field(ge=0)
-    reason: Literal[
-        "terminated", "quiescent", "max_steps", "end_time", "interrupted"
-    ]
+    reason: Literal["terminated", "quiescent", "max_steps", "end_time", "interrupted"]
     final_time: int = Field(ge=0)
 
 
@@ -77,6 +75,7 @@ class InterruptEngine:
         next_seq: int,
         next_order: int,
         step: int = 0,
+        meta_extra: Callable[[], Mapping[str, str]] | None = None,
     ) -> None:
         if (world_log is None) == (store is None):
             raise ConfigError("engine needs exactly one of world_log or store")
@@ -91,6 +90,9 @@ class InterruptEngine:
         self._next_seq = next_seq
         self._next_order = next_order
         self._step = step
+        # Extra durable metadata committed with every step/batch — e.g. the
+        # runner's per-entity LM call counters for roll-forward resume.
+        self._meta_extra = meta_extra
 
     @property
     def step_count(self) -> int:
@@ -249,9 +251,10 @@ class InterruptEngine:
                     )
                 self._store.set_meta("step", str(self._step + 1))
                 self._store.set_meta("next_order", str(self._next_order))
-                self._store.set_meta(
-                    "gm_state", self._gm.get_state().model_dump_json()
-                )
+                self._store.set_meta("gm_state", self._gm.get_state().model_dump_json())
+                if self._meta_extra is not None:
+                    for key, value in self._meta_extra().items():
+                        self._store.set_meta(key, value)
         result = StepResult(
             step=self._step,
             event=event,
@@ -326,9 +329,7 @@ class InterruptEngine:
                 *(self._entities[name].observe(event) for name in observers)
             )
             decision = await self._gm.next_acting(event)
-            acting = tuple(
-                name for name in decision.entities if name in self._entities
-            )
+            acting = tuple(name for name in decision.entities if name in self._entities)
             specs = tuple(
                 [await self._gm.action_spec_for(name, event) for name in acting]
             )
@@ -392,9 +393,7 @@ class InterruptEngine:
             self._step += 1
 
         with self._store.transaction():
-            for (item, event, _, _, _), result in zip(
-                contexts, results, strict=True
-            ):
+            for (item, event, _, _, _), result in zip(contexts, results, strict=True):
                 self._store.append_event(event)
                 self._store.queue_remove(order=item.order)
                 for entry in result.scheduled:
@@ -404,6 +403,9 @@ class InterruptEngine:
             self._store.set_meta("step", str(self._step))
             self._store.set_meta("next_order", str(self._next_order))
             self._store.set_meta("gm_state", self._gm.get_state().model_dump_json())
+            if self._meta_extra is not None:
+                for key, value in self._meta_extra().items():
+                    self._store.set_meta(key, value)
         return tuple(results)
 
     async def run(
@@ -444,7 +446,7 @@ class InterruptEngine:
         self,
         steps: int,
         reason: Literal[
-        "terminated", "quiescent", "max_steps", "end_time", "interrupted"
-    ],
+            "terminated", "quiescent", "max_steps", "end_time", "interrupted"
+        ],
     ) -> RunResult:
         return RunResult(steps=steps, reason=reason, final_time=int(self._time.now()))

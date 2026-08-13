@@ -143,6 +143,13 @@ class WorkingMemoryComponent(BaseComponent):
     def facts(self) -> tuple[str, ...]:
         return self._facts
 
+    def restore_facts(self, facts: tuple[str, ...]) -> None:
+        """Roll-forward resume: facts are the persona's own action
+        summaries — they appear in no world event, so a rebuild without a
+        snapshot restores them from the run's durable metadata."""
+
+        self._facts = tuple(facts)
+
     def last_time(self) -> int:
         events = self._require_hydrated()
         if not events:
