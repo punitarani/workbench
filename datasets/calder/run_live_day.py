@@ -14,7 +14,6 @@ import argparse
 import asyncio
 import json
 import os
-import random
 import signal
 import sys
 import time
@@ -28,6 +27,7 @@ from workbench.simulation.lm.budget import BudgetedLM
 from workbench.simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
 from workbench.simulation.lm.openrouter import OpenRouterLM
 from workbench.simulation.lm.protocol import LanguageModel
+from workbench.simulation.lm.retry import RetryLM
 from workbench.simulation.run import resume_workplace, run_compiled
 from workbench.simulation.workplace.compile import compile_workplace
 from workbench.workplaces.calder import LIVE_DAY_OFFSET
@@ -42,28 +42,6 @@ DEFAULT_CASSETTE = Path("src/workbench/workplaces/calder/cassettes/live-2026-07-
 # pool rate-limits under load — the ordered list is the fallback chain.
 CASSETTE_MODEL = "deepseek/deepseek-v4-flash-0731"
 CASSETTE_PROVIDERS = ("deepinfra", "fireworks", "novita", "deepseek")
-
-
-class RetryLM:
-    """Retry transient transport failures while recording. Replay runs
-    never construct this: a cassette hit involves no network at all."""
-
-    def __init__(self, inner: LanguageModel, *, attempts: int = 6) -> None:
-        self._inner = inner
-        self._attempts = attempts
-
-    async def complete(self, request):
-        from workbench.simulation.errors import LMTransportError
-
-        for attempt in range(self._attempts):
-            try:
-                return await self._inner.complete(request)
-            except LMTransportError:
-                if attempt + 1 == self._attempts:
-                    raise
-                delay = min(2.0 * 2**attempt, 30.0) + random.uniform(0.0, 1.0)
-                await asyncio.sleep(delay)
-        raise AssertionError("unreachable")
 
 
 def build_lm(

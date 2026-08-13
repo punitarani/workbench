@@ -411,6 +411,7 @@ class InterruptEngine:
         stop: StopCondition,
         *,
         on_step: Callable[[StepResult], None] | None = None,
+        on_batch: Callable[[tuple[StepResult, ...]], None] | None = None,
         window: int = 1,
     ) -> RunResult:
         steps = 0
@@ -430,6 +431,8 @@ class InterruptEngine:
                 if stop.max_steps is not None:
                     allowance = min(allowance, stop.max_steps - steps)
                 results = await self.step_batch(allowance)
+            if on_batch is not None:
+                on_batch(results)
             for result in results:
                 steps += 1
                 if on_step is not None:
