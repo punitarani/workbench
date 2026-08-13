@@ -331,7 +331,11 @@ def _arrival_admitter(
 
 
 def _on_step(
-    runtime: _Runtime, engine: InterruptEngine, store: SqliteRunStore, every: int
+    runtime: _Runtime,
+    engine: InterruptEngine,
+    store: SqliteRunStore,
+    every: int,
+    extra: Callable[[StepResult], None] | None = None,
 ) -> Callable[[StepResult], None]:
     admit = _arrival_admitter(runtime, engine)
     checkpoint = _checkpointer(engine, store, every)
@@ -341,6 +345,8 @@ def _on_step(
         # arrival step already covers the grown cast.
         admit(result)
         checkpoint(result)
+        if extra is not None:
+            extra(result)
 
     return on_step
 
@@ -384,6 +390,8 @@ async def run_workplace(
     model: str,
     deep_model: str | None = None,
     director=None,
+    on_step: Callable[[StepResult], None] | None = None,
+    on_batch=None,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
@@ -399,6 +407,8 @@ async def run_workplace(
         model=model,
         deep_model=deep_model,
         director=director,
+        on_step=on_step,
+        on_batch=on_batch,
         stop=stop,
         external_seats=external_seats,
         actor_factory=actor_factory,
@@ -416,6 +426,8 @@ async def run_compiled(
     model: str,
     deep_model: str | None = None,
     director=None,
+    on_step: Callable[[StepResult], None] | None = None,
+    on_batch=None,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
@@ -476,7 +488,8 @@ async def run_compiled(
     )
     result = await engine.run(
         stop if stop is not None else StopCondition(end_time=compiled.end_time),
-        on_step=_on_step(runtime, engine, store, checkpoint_every),
+        on_step=_on_step(runtime, engine, store, checkpoint_every, on_step),
+        on_batch=on_batch,
         window=window,
     )
     if result.reason == "interrupted":
@@ -494,6 +507,8 @@ async def resume_workplace(
     model: str,
     deep_model: str | None = None,
     director=None,
+    on_step: Callable[[StepResult], None] | None = None,
+    on_batch=None,
     stop: StopCondition | None = None,
     external_seats: Mapping[str, ActTransport] | None = None,
     actor_factory: Callable[[], ProfessionalActor] | None = None,
@@ -629,7 +644,8 @@ async def resume_workplace(
 
     result = await engine.run(
         stop if stop is not None else StopCondition(end_time=compiled.end_time),
-        on_step=_on_step(runtime, engine, store, checkpoint_every),
+        on_step=_on_step(runtime, engine, store, checkpoint_every, on_step),
+        on_batch=on_batch,
         window=window,
     )
     if result.reason == "interrupted":
