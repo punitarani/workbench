@@ -105,7 +105,8 @@ def mcp_command(tool: str) -> str:
     return f"{MCP_WRAPPER_PREFIX}{tool}"
 
 
-INSTALL_SH = f"""#!/bin/sh
+def _install_sh(tools: tuple[str, ...]) -> str:
+    return f"""#!/bin/sh
 # Installed by datasets/hartwell/harbor_stage.py; run as root by the task's
 # [environment.healthcheck] after the environment starts and before the agent
 # is set up. Idempotent by construction: the staging tree is removed last, so
@@ -115,7 +116,7 @@ set -eu
 STAGE={CONTAINER_STAGE}
 STATE={CONTAINER_STATE}
 RUNTIME={CONTAINER_RUNTIME}
-TOOLS="{" ".join(TOOLS)}"
+TOOLS="{" ".join(tools)}"
 PTH=/usr/local/lib/python{PYTHON_VERSION}/dist-packages/workbench-runtime.pth
 WRAPPER={MCP_WRAPPER_PREFIX}
 LIBEXEC=/usr/local/libexec/workbench
@@ -357,8 +358,16 @@ def stage(
     for source in SOURCE_PACKAGES:
         _copy_tree(repo_root / source, runtime / "workbench")
 
+    # The served tool set follows the databases actually staged: the read-only
+    # surfaces always, plus the one write system (compliance) when a task carries
+    # its scenario database. Compliance needs no aperture change — its database is
+    # env-owned 0600 like the rest, so the env-user server opens it read-write
+    # while the agent still reaches it only through the (write) MCP surface.
+    served = TOOLS + (
+        ("compliance",) if (stage_dir / "state" / "compliance.db").exists() else ()
+    )
     install = stage_dir / "install.sh"
-    install.write_text(INSTALL_SH)
+    install.write_text(_install_sh(served))
     install.chmod(0o755)
     return stage_dir
 

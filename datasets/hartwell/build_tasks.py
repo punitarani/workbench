@@ -354,7 +354,51 @@ def _is_harbor_task(task: Path) -> bool:
     return bool(config.get("environment", {}).get("mcp_servers"))
 
 
+def build_compliance_task(task: Path) -> None:
+    """Build a write-workflow bundle. Unlike the read-only tasks it is not
+    projected from the world log: its compliance database is created and seeded
+    from the committed ``tests/scenario.json`` (reference tables filled, action
+    tables empty), and grading reads the state the agent writes. ``bundle/`` is
+    derived (gitignored) like every task's, so the seed lives under ``tests/`` and
+    the compliance ``mcp.json`` is generated here. There are no professional's
+    folders, so the agent workspace is empty."""
+    from workbench.tools.compliance import build_state
+
+    bundle = task / "bundle"
+    (bundle / "workspace").mkdir(parents=True, exist_ok=True)
+    (bundle / "state").mkdir(parents=True, exist_ok=True)
+    db = build_state(
+        bundle / "state" / "compliance.db", task / "tests" / "scenario.json"
+    )
+    (bundle / "mcp.json").write_text(
+        json.dumps(
+            {
+                "mcpServers": {
+                    "compliance": {
+                        "command": "python3",
+                        "args": [
+                            "-m",
+                            "workbench.tools.serve",
+                            "compliance",
+                            "--db",
+                            "state/compliance.db",
+                        ],
+                    }
+                }
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    print(f"{task.name}: seeded compliance state -> {db}")
+    stage_dir = stage(bundle, task / "environment")
+    print(f"{task.name}: staged -> {stage_dir.parent}")
+
+
 def build_task(world_log: Path, task: Path, *, refresh: bool) -> None:
+    if (task / "bundle" / "scenario.json").exists():
+        build_compliance_task(task)
+        return
     result = materialize(world_log, task / "bundle")
     print(f"{task.name}: {result.event_count} events -> {result.bundle}")
     certify_slack_timestamp_realism(result.bundle)

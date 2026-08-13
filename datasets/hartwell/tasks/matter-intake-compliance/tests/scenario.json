@@ -1,0 +1,22 @@
+{
+  "entity_ownership": [
+    {"ownership_id": "o1", "entity": "Renner Holdings LLC", "owner": "Cayman Sunrise Ltd", "pct": 40, "foreign_owned": true},
+    {"ownership_id": "o2", "entity": "Cormorant Freight", "owner": "Meridian Logistics Group", "pct": 100, "foreign_owned": false}
+  ],
+  "existing_representations": [
+    {"rep_id": "r1", "party": "Meridian Logistics Group", "client": "Meridian Logistics Group", "existing_matter": "M-2041", "waiver_on_file": false}
+  ],
+  "firm_positions": [
+    {"position_id": "p1", "matter_id": "M-1900", "client": "Delta Shipping Co", "topic": "logistics limitation clauses", "position": "contractual 2-year limitation clauses are ENFORCEABLE"}
+  ],
+  "prospective_clients": [
+    {"prospective_id": "pc1", "party": "Cormorant Freight", "about": "this Renner logistics dispute", "consulted": true}
+  ],
+  "laterals": [
+    {"lateral_id": "l1", "lawyer_name": "Priya Shah", "joined": "2026-06", "prior_work": "associate for Okafor & Bass, counsel to Cormorant Freight in this dispute"},
+    {"lateral_id": "l2", "lawyer_name": "Tom Ellery", "joined": "2026-05", "prior_work": "tax associate, unrelated"}
+  ],
+  "advance_waivers": [
+    {"waiver_id": "w1", "client": "Meridian Logistics Group", "scope": "transactional matters only"}
+  ]
+}

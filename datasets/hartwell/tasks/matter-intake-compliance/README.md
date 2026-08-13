@@ -13,7 +13,7 @@ solution's tool-path certifies).
 |---|---|
 | `task.toml` | task manifest |
 | `instruction.md` | the intake manual + the matter |
-| `bundle/scenario.json` | seed for the compliance reference tables (the discoverable traps) |
+| `tests/scenario.json` | seed for the compliance reference tables (the discoverable traps); `bundle/` is derived/gitignored, so the seed is committed under `tests/` |
 | `tests/expected.json` | the expected end-state (required actions, forbidden action) |
 | `tests/criteria.py` | the verifier — reads `WORKBENCH_STATE/compliance.db` action tables, conjunctive outcome + coverage |
 | `solution/solve.py` | reference solution / expert floor — issues the correct tool calls; the verifier certifies it |
@@ -41,23 +41,28 @@ caveat recorded in the failure-mode doc: manufacturing a *single*-task ≤0.5 fo
 Opus tends to produce grader artifacts, so this bundle's headline ≤0.5 claim is
 the **compounded (queue) unit**, and Sol is the model it discriminates cleanly.
 
-## Remaining container-integration (not yet wired; the read-only tasks don't need it)
+## Container integration — wired (needs one real Harbor run to certify)
 
-This bundle's **verifier and oracle are complete and tested here**, but running it
-end-to-end inside the Harbor container needs three harness pieces the read-only
-audit tasks never required (scoped in
-`docs/runs/2026-08-09-four-month-history/AGENTIC-PASSK-PORT-SPEC.md`):
+The three harness pieces the read-only tasks never required are now in place and
+unit-tested for *generation*:
 
-1. **Serve the compliance system in the container** — `bundle/mcp.json` composing
-   the `compliance` server; it is deliberately kept out of the global `REGISTRY`
-   (it would auto-materialize + expose writes in every task), so it needs a
-   task-scoped serve entry.
-2. **A read-write aperture** for `compliance.db` in `datasets/hartwell/harbor_stage.py`
-   — the compliance server runs as the `environment` user (setuid `run-as-environment`),
-   so it can be granted `rw` on `compliance.db` only, leaving the agent unable to
-   touch the file directly; the current `install.sh` asserts read-only.
-3. **`build_tasks.py`** step that creates `bundle/state/compliance.db` from
-   `SYSTEM.all_tables()` and seeds it from `bundle/scenario.json`.
+1. **Serve** — `serve compliance` resolves (`tools/src/workbench/tools/serve.py`);
+   the system is kept out of the global `REGISTRY` (it would auto-materialize +
+   expose writes in every task) and served opt-in. `build_tasks` generates
+   `bundle/mcp.json`.
+2. **Aperture** — none needed. The staged state DBs are env-owned `0600`, so the
+   env-user compliance server opens `compliance.db` read-write while the agent
+   still reaches it only through the (write) MCP surface. `harbor_stage.py` now
+   derives the served tool set per bundle, adding `compliance` (its wrapper + the
+   `serve` allowlist entry) when `compliance.db` is staged — the read-only tasks
+   are unchanged.
+3. **`build_tasks.py`** — `build_compliance_task()` creates + seeds
+   `bundle/state/compliance.db` from `tests/scenario.json` and stages the bundle.
 
-Until those land, measure with the harness in `docs/runs/.../` (drives the real
-compliance server + this verifier directly).
+Build it: `uv run python datasets/hartwell/build_tasks.py --tasks
+matter-intake-compliance`. What is **not** yet certified is the in-container
+execution of `install.sh` under the setuid boundary (env-user read-write on
+`compliance.db`, the agent-cannot-touch assertions) — that needs one real Harbor
+run, which can't be reproduced on the host. Until then, the harness in
+`docs/runs/2026-08-09-four-month-history/` drives the real compliance server + this
+verifier directly.

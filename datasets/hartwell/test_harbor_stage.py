@@ -14,7 +14,9 @@ FEE_TASK = HARTWELL / "tasks" / "fee-dispute-reconstruction"
 # would otherwise be treated as one and fail on its missing solution/.
 TASKS = tuple(sorted(path for path in (HARTWELL / "tasks").iterdir() if path.is_dir()))
 STAGE_MODULE: dict[str, object] = runpy.run_path(str(HARTWELL / "harbor_stage.py"))
-INSTALL_SH: str = str(STAGE_MODULE["INSTALL_SH"])
+# install.sh is generated per-bundle from its served tool set; the default set
+# (no compliance) is the read-only surface the security contract below covers.
+INSTALL_SH: str = str(STAGE_MODULE["_install_sh"](STAGE_MODULE["TOOLS"]))
 ORACLE_EXECUTABLE: str = "/usr/local/libexec/workbench/oracle"
 
 
@@ -63,6 +65,10 @@ def test_solution_keeps_privileged_read_and_agent_write_on_opposite_sides() -> N
 def test_reference_handoffs_are_readable_by_the_verifier_group() -> None:
     for task in TASKS:
         solve = (task / "solution" / "solve.sh").read_text()
+        # Write-workflow tasks are graded on world-state and emit no deliverable
+        # file, so there is no stdout-to-file handoff to make group-readable.
+        if 'mv -f "$TEMP"' not in solve:
+            continue
         assert 'chmod 640 "$TEMP"' in solve, task.name
         assert solve.index('chmod 640 "$TEMP"') < solve.index('mv -f "$TEMP"')
 

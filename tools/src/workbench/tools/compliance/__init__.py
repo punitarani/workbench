@@ -11,8 +11,10 @@ epoch still populate through the shared framework path); ``seed`` fills the
 reference tables at task-build time.
 """
 
+import json
 import sqlite3
 from collections.abc import Sequence
+from pathlib import Path
 
 from workbench.core.events import Event
 from workbench.tools.compliance.server import register
@@ -69,3 +71,19 @@ SYSTEM = ToolSystem(
     register=register,
     directory_tool=False,
 )
+
+
+def build_state(db_path: Path, scenario_path: Path) -> Path:
+    """Create ``compliance.db`` for a task bundle and seed its reference tables
+    from ``scenario_path``. The action tables start empty; the agent writes them
+    at run time and the verifier grades the result. Called at task-build time
+    (build_tasks.py) — this system is not world-log-projected like the read-only
+    surfaces, so it is materialized here instead of in ``project_all``."""
+    from workbench.tools.db import create_db
+
+    connection = create_db(db_path, SYSTEM.all_tables())
+    try:
+        seed(connection, json.loads(Path(scenario_path).read_text()))
+    finally:
+        connection.close()
+    return db_path

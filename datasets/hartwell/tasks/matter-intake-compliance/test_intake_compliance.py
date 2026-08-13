@@ -23,7 +23,7 @@ from workbench.tools.compliance.tables import (
 from workbench.tools.db import create_db
 
 TASK = Path(__file__).parent
-SCENARIO = json.loads((TASK / "bundle" / "scenario.json").read_text())
+SCENARIO = json.loads((TASK / "tests" / "scenario.json").read_text())
 
 _spec = importlib.util.spec_from_file_location(
     "intake_criteria", TASK / "tests" / "criteria.py"
