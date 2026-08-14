@@ -27,7 +27,11 @@ from workbench.core.intents import (
 )
 from workbench.core.worldlog.views import email_thread
 from workbench.simulation.entity.context import ContextBlock
-from workbench.simulation.errors import CassetteMissError, LMBudgetExceededError
+from workbench.simulation.errors import (
+    CassetteMissError,
+    LMBudgetExceededError,
+    LMTransportError,
+)
 from workbench.simulation.lm.dspy_lm import WorkbenchLM
 from workbench.simulation.persona.memory_stream import MemoryStreamComponent
 from workbench.simulation.persona.params import ProfessionalWorkerParams
@@ -154,7 +158,7 @@ class ProfessionalActorAct:
                     relevant_memories=self._relevant_memories(pending),
                 )
             blocks = prediction.plan.blocks
-        except CassetteMissError, LMBudgetExceededError:
+        except CassetteMissError, LMBudgetExceededError, LMTransportError:
             raise
         except Exception:
             blocks = (
@@ -185,7 +189,7 @@ class ProfessionalActorAct:
                 )
             text = prediction.utterance.text
             yields = prediction.utterance.yields
-        except CassetteMissError, LMBudgetExceededError:
+        except CassetteMissError, LMBudgetExceededError, LMTransportError:
             raise
         except Exception:
             text, yields = "(listens)", True
@@ -226,7 +230,7 @@ class ProfessionalActorAct:
                 )
             bullets = prediction.reflection.bullets
             open_loops = prediction.reflection.open_loops
-        except CassetteMissError, LMBudgetExceededError:
+        except CassetteMissError, LMBudgetExceededError, LMTransportError:
             raise
         except Exception:
             # Cognition must never fail a day: an unparseable reflection

@@ -26,6 +26,7 @@ class OpenRouterLM:
         timeout_seconds: float = 120.0,
         transport: httpx.AsyncBaseTransport | None = None,
         providers: tuple[str, ...] = DEFAULT_PROVIDERS,
+        providers_by_model: dict[str, tuple[str, ...]] | None = None,
         permits: PermitPool | None = None,
     ) -> None:
         self._client = httpx.AsyncClient(
@@ -38,6 +39,9 @@ class OpenRouterLM:
         # by default each backend gets a private pool of max_concurrency.
         self._permits = permits if permits is not None else PermitPool(max_concurrency)
         self._providers = providers
+        # Exact-model overrides: different models live on different
+        # provider fleets. An empty tuple means unpinned routing.
+        self._providers_by_model = dict(providers_by_model or {})
 
     async def complete(self, request: LMRequest) -> LMResponse:
         body: dict[str, Any] = {
@@ -51,9 +55,10 @@ class OpenRouterLM:
             # (tokens spent thinking); simulation turns want plain answers.
             "reasoning": {"enabled": False},
         }
-        if self._providers:
+        providers = self._providers_by_model.get(request.model, self._providers)
+        if providers:
             body["provider"] = {
-                "order": list(self._providers),
+                "order": list(providers),
                 "allow_fallbacks": False,
             }
         if request.temperature is not None:

@@ -19,7 +19,11 @@ from workbench.core.actions import (
 )
 from workbench.core.intents import EmailDraft, EmailIntent, IdleIntent
 from workbench.simulation.entity.context import ContextBlock
-from workbench.simulation.errors import CassetteMissError, LMBudgetExceededError
+from workbench.simulation.errors import (
+    CassetteMissError,
+    LMBudgetExceededError,
+    LMTransportError,
+)
 from workbench.simulation.lm.dspy_lm import WorkbenchLM
 from workbench.simulation.persona.rendering import render_thread
 from workbench.simulation.persona.working_memory import WorkingMemoryComponent
@@ -109,7 +113,7 @@ class ClientActorAct:
                     contacts=", ".join(self._params.contacts),
                 )
             draft = prediction.draft
-        except (CassetteMissError, LMBudgetExceededError):
+        except CassetteMissError, LMBudgetExceededError, LMTransportError:
             raise
         except Exception:
             # A client who cannot compose today stays quiet; the cue is

@@ -18,7 +18,7 @@ CASSETTE = (
     Path(__file__).parents[2] / "src/workbench/workplaces/calder/cassettes/epoch-seed42"
 )
 FAST = "deepseek/deepseek-v4-flash-0731"
-DEEP = "deepseek/deepseek-v4-pro-0813"
+DEEP = "anthropic/claude-haiku-4.5"
 SEED = Seed(root=42)
 DAYS = 2
 

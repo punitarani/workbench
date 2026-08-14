@@ -38,7 +38,7 @@ from workbench.simulation.workplace.compile import compile_workplace
 from workbench.workplaces.calder.epoch import epoch_director, epoch_spec
 
 FAST_MODEL = "deepseek/deepseek-v4-flash-0731"
-DEEP_MODEL = "deepseek/deepseek-v4-pro-0813"
+DEEP_MODEL = "anthropic/claude-haiku-4.5"
 PROVIDERS = ("deepinfra", "fireworks", "novita", "deepseek")
 DEFAULT_CASSETTE = Path("src/workbench/workplaces/calder/cassettes/epoch-seed42")
 
