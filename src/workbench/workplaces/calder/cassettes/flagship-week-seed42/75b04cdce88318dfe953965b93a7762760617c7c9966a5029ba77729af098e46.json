@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Dana Whitfield, Controller at Kestrel Manufacturing. Precise and numbers-fluent; expects the same back. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Dana Whitfield\nTo: Gabriel Fontes, Victor Alade\nSubject: Question on Monthly Close Package – Line Item Review\n\nHi Gabriel, Victor,\n\nI’m reviewing this month’s close package and have a question on the line item for [specific line item – please insert description or reference]. The number doesn’t align with my expectations based on the prior period trend, and I want to make sure we’re capturing everything correctly before we finalize.\n\nCan you both take a quick look and confirm the breakdown or flag if there’s an adjustment we missed? I’d like to close this out by end of day tomorrow if possible.\n\nThanks,\nDana\n\n---\n\nFrom: Gabriel Fontes\nTo: Dana Whitfield\nSubject: Re: Question on Monthly Close Package – Line Item Review\n\nHi Dana,\n\nThanks for flagging this. I’ve gone back through the line item you referenced, and here’s the breakdown:\n\nThe variance versus the prior period trend is almost entirely driven by a late-September material cost spike. That accounts for roughly 1.1 of the 1.2 percentage points in the gross margin movement; the remaining 0.1 point is minor and within normal noise. Freight is immaterial to this change.\n\nI can send a more detailed split by SKU if helpful, or we can walk through it together. I’m available for a quick call whenever works for you.\n\nHappy to close this out by tomorrow.\n\nBest,\nGabriel Fontes\n\n---\n\nFrom: Gabriel Fontes\nTo: Dana Whitfield\nSubject: Re: Question on Monthly Close Package – Line Item Review\n\nHi Dana,\n\nThanks for flagging this. I’ve taken a look at the line item you referenced, and here’s the breakdown:\n\nThe variance from the prior period trend is driven by a late-September material cost spike—about 1.1 of the 1.2 point difference comes from that. Freight is immaterial in comparison. The remaining ~0.1 point is within normal rounding and timing.\n\nIf it’s helpful, I can send over a SKU-level breakdown or walk through the detail on a quick call. I’m happy to support your review before you finalize.\n\nLet me know what works best.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Victor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 6658014268679446152,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Gabriel Fontes\", \"Victor Alade\"], \"subject\": \"Re: Question on Monthly Close Package – Line Item Review\", \"body\": \"Hi Gabriel, Victor,\\n\\nThanks, Gabriel, for the breakdown. That material cost spike explanation helps reconcile the variance. Could you send the SKU-level detail as well? I want to verify the allocation before we finalize.\\n\\nVictor, can you confirm on your end that no freight or other adjustments were booked that might shift the remaining 0.1 point? I'd like to have full visibility by end of day tomorrow.\\n\\nThanks,\\nDana\", \"cc\": [], \"summary\": \"Asks Gabriel for SKU-level detail on the material cost spike, and Victor to confirm no freight or other adjustments remain, to close the review by tomorrow.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 973,
+      "completion_tokens": 183
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

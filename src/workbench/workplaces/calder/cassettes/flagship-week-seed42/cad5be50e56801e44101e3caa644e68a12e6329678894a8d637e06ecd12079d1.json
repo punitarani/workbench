@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Marco Petrosyan, Owner at Blue Fir Restaurant Group. Warm, hurried, writes like he talks. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Marco Petrosyan\nTo: Gabriel Fontes, Sylvia Nakamura\nSubject: Tip reporting for the quarter — quick check\n\nHi Gabriel, Sylvia,\n\nHope you’re both doing well. I was going over the numbers for the quarter, and the tip reporting looks off to me — seems like it’s lower than what we’ve seen in past quarters, even with the same traffic. I might be missing something, but I want to make sure we’re capturing everything correctly before we file.\n\nCan you both take a look and let me know if there’s anything we need to adjust or if there’s a reason for the dip? I’d like to get this squared away before the end of the week so we’re not caught off guard.\n\nThanks — appreciate the quick response.\n\nMarco\n\n---\n\nFrom: Gabriel Fontes\nTo: Marco Petrosyan\nSubject: Re: Tip reporting for the quarter — quick check\n\nHi Marco,\n\nThanks for flagging this — I’ve pulled the tip reporting for the quarter and compared it against traffic and prior periods. You’re right that it’s slightly lower than the last two quarters, but it’s not a capture issue. The dip tracks to a small shift in payment mix (more card tips than cash this quarter, and card tips have a slightly lower average due to a couple of larger parties who tipped at a lower rate).\n\nI’ve also double-checked that all tip lines from the POS feed made it into the reporting package — nothing was missed. If it helps, I can send a short breakdown of the quarter-over-quarter comparison and the payment-mix detail so you can see the driver clearly.\n\nHappy to walk you through it if that’s easier — just let me know. We’re in good shape to file on time.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Sylvia Nakamura\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 15149930506909735539,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Gabriel Fontes\"], \"cc\": [\"Sylvia Nakamura\"], \"subject\": \"Re: Tip reporting for the quarter — quick check\", \"body\": \"Gabriel, thanks for the quick breakdown—that makes sense. Appreciate you digging into it. Yes, send over that quarter-over-quarter and payment-mix detail when you get a chance. I'd like to see it just to have it on file, but sounds like we're good. Let's keep moving.\\n\\nMarco\", \"summary\": \"Thanks Gabriel for the explanation, asks for the breakdown for records, confirms we're on track to file.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 875,
+      "completion_tokens": 145
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

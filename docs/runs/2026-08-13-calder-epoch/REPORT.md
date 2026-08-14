@@ -103,7 +103,21 @@ remembers).
 
 ## One-week flagship
 
-<!-- FILL: flagship metrics + audit + samples -->
+Five simulated workdays, full cast (16 personas + Maya's machinery + 11
+client actors), recorded live at window=32:
+
+| Metric | Value |
+|---|---|
+| Steps / events | 1,195 / 1,248 |
+| LM calls | 1,002 (1.68M prompt / 186k completion tokens) |
+| Wall | **28.7 min (~5.7 min per simulated day)** |
+| Per-day | ~240 steps, ~200 calls, plans + reflections every day, 23 cues over the week |
+| Audit | all gates green — 13% grounding failures (halved by reaction leniency), 8 thread-cap brakes, max thread 12, 137/138 distinct mail bodies |
+| Determinism | same engine, same cassette contract as the committed 2-day dataset |
+
+Rejections held roughly flat day-over-day (5→6/day after the fixes)
+instead of climbing — the failure-feedback loop plus graceful ref
+interpretation is doing its job.
 
 ## The six-month epoch (one command)
 
@@ -115,4 +129,8 @@ uv run --env-file .env python datasets/calder/run_epoch.py start \
 Resumable at any point (`run_epoch.py resume`), observable from another
 terminal (`status`), audited afterward (`audit`).
 
-<!-- FILL: extrapolated estimates from flagship -->
+Extrapolating from the measured flagship week (~200 calls, ~5.7 min,
+~340k prompt tokens per day): the 128-workday epoch lands around
+**26k LM calls, ~44M prompt tokens, and ~12 hours of wall clock** in
+resumable weekly segments — an overnight job, interruptible at any
+committed step.

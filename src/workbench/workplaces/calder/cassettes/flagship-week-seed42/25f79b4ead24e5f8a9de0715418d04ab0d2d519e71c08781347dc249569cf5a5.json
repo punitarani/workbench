@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Dana Whitfield, Controller at Kestrel Manufacturing. Precise and numbers-fluent; expects the same back. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Dana Whitfield\nTo: Gabriel Fontes\nSubject: Depreciation treatment for new CNC line\n\nGabriel,\n\nWe’re finalizing the capital budget for a new CNC machining line (approx. $1.2M, placed in service in Q3). I need your read on the depreciation treatment—specifically, whether we should take bonus depreciation or stick with MACRS straight-line, and how that affects our Q4 tax estimates.\n\nI’ve attached the purchase specs and the projected in-service date. I’d like a recommendation by Friday if possible so we can lock the numbers for the board pack.\n\nVictor, looping you in for the cash-flow impact.\n\nThanks,\nDana\n\n---\n\nFrom: Gabriel Fontes\nTo: Dana Whitfield\nSubject: Re: Depreciation treatment for new CNC line\n\nDana,\n\nThanks for the details on the CNC line. Quick read before Friday so you have the numbers for the board pack.\n\nFor a $1.2M machining line placed in service in Q3, you're looking at 7-year MACRS. My recommendation is to take full Section 179 on the personal-property portion (likely 80-90% of the cost, depending on installation), with 80% bonus depreciation as a fallback for anything that doesn't qualify. That gets you the maximum upfront deduction for federal purposes, which helps Q4 estimated tax payments by reducing taxable income now rather than spreading it out.\n\nOne thing to flag: Illinois does not conform to bonus depreciation, but it does allow Section 179. So if we go the Section 179 route, you avoid a state addback — cleaner for your Illinois returns. I'll attach a side-by-side cash-flow comparison showing the Q4 impact under both scenarios so you can see the difference clearly.\n\nI can have the recommendation and the comparison to you by Thursday end of day, ahead of your Friday deadline. Happy to walk through it on a call if that helps with the board discussion.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Victor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 1474608280414124327,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Gabriel Fontes\"], \"cc\": [\"Victor Alade\"], \"subject\": \"Re: Depreciation treatment for new CNC line\", \"body\": \"Gabriel,\\n\\nThanks for the quick turnaround. Section 179 on the personal-property portion with the state addback angle is exactly the kind of clarity I needed. Appreciate you flagging the Illinois nonconformity — that’s the detail that would’ve tripped us up later.\\n\\nThursday end of day works. Send the side-by-side cash-flow comparison when you have it, and I’ll review it against our Q4 estimates. If I have questions after seeing the numbers, I’ll reach out for a call.\\n\\nAlso, Victor — once we lock the federal and state treatment, we’ll need to adjust the Q4 cash-flow projections in the board pack. I’ll share the final numbers once Gabriel’s comparison lands.\\n\\nThanks,\\nDana\", \"summary\": \"Confirming Gabriel's recommendation on Section 179 for the CNC line, accepting Thursday deadline for the cash-flow comparison, and coordinating with Victor on Q4 board pack adjustments.\"}",
+    "usage": {
+      "prompt_tokens": 910,
+      "completion_tokens": 249
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

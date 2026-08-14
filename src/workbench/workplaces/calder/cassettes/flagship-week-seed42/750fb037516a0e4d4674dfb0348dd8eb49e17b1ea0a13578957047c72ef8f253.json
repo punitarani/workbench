@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `thread` (str): full rendered thread, oldest first\n3. `intent` (str): \n4. `established_facts` (str): things you already said or learned; do not contradict them\n5. `relevant_knowledge` (str): private knowledge with sharing guidance\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## thread ## ]]\n{thread}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Draft this email in this person's authentic voice and email register.\n        Ground every claim in the thread history, established facts, and private\n        knowledge given; never invent documents, people, meetings, or prior\n        statements not present in them. The summary must honestly compress what\n        the email commits to."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Colin Mackey, Staff Accountant (junior).\nStaff accountant, tax: the Riverbend cleanup is his baby; supports the Stonebridge close and 1065.\nPersonality: Steady, understated, secretly proud of his reconciliations.\nEmail register: Brief and factual; signs 'Colin'.\nChat register: Terse but friendly.\nWorking hours: 08:30-17:30\n\n[[ ## thread ## ]]\nFrom: Alice Kwon\nTo: Colin Mackey\nSubject: Following up on the buy-in question\n\nHi Colin,\n\nI wanted to follow up on the associate dentist buy-in question we touched on recently. I know I’ve been slow getting the numbers over—apologies again for the back-and-forth on the books; I appreciate your patience as we’ve been juggling the day-to-day.\n\nCould you help me understand what the next step would be from your side, and if there’s anything specific you need from me to move this forward? We’re keen to keep the practice moving and want to make sure we’re not holding anything up on our end.\n\nThanks for your time, and I’ll look out for your reply.\n\nBest,\nAlice\n\n[[ ## intent ## ]]\nAddress Alice's latest follow-up on the associate buy-in with the financial summary I committed to, and confirm readiness for the Thursday call\n\n[[ ## established_facts ## ]]\nCommented on tkt-000012: Log findings from the Riverbend cleanup documentation block and update the ticke\nCommented on tkt-000012: Continue Riverbend bookkeeping cleanup by logging findings and updating ticket w\nCommented on tkt-000012: Deep-dive reconciliation: record baseline adjustments found during the Riverbend\nCommented on tkt-000012: Wrap up the Riverbend reconciliation work for this cycle and prepare a clear han\nAgrees to a call this week (Thu/Fri afternoon), offers to pull current financials and coordinate with Elias on accounting details for the associate buy-in discussion.\nConfirm Thursday 2:00 PM call, have financial figures ready, and Elias will join for accounting details.\nConfirms the Thursday 2:00 PM call with Alice and Elias, states financial figures are ready, notes Elias will share monthly close numbers, and commits to sending a brief summary of key figures before the call.\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 15903095070482392604,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Alice Kwon\"], \"subject\": \"Re: Following up on the buy-in question\", \"body\": \"Hi Alice,\\n\\nThanks for the note. I’ve pulled the current financials and have the key figures ready for our call on Thursday at 2:00 PM. I’ll send a brief summary of those figures ahead of the call so you can review.\\n\\nElias will also join to walk through the monthly close numbers and any accounting details we’ll need for the associate buy-in.\\n\\nNo blockers on my end—just let me know if you need anything else before Thursday.\\n\\nBest,\\nColin\", \"cc\": [], \"summary\": \"Confirms Thursday 2:00 PM call with Alice and Elias, states financial figures are ready, notes Elias will share monthly close numbers, and commits to sending a brief summary of key figures before the call.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1016,
+      "completion_tokens": 200
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

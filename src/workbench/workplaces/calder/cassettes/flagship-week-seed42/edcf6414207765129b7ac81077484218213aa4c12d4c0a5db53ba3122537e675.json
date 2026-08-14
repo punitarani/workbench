@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Sana Qureshi, Founder & CEO at Loop & Ladder Software. Fast, technical, thinks in bullet points. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Sana Qureshi\nTo: Victor Alade\nSubject: R&D credit question from investors — quick help\n\nVictor,\n\nInvestors are asking about the R&D credit in diligence. Need to respond accurately and fast.\n\nCan you send over a summary of what we claimed, which years are open, and any exposure areas? Also note if there's anything we should flag to the investors proactively.\n\nTimeline: would like to have this by end of week.\n\nThanks,\nSana\n\n---\n\nFrom: Victor Alade\nTo: Sana Qureshi\nSubject: RE: R&D credit question from investors — quick help\n\nSana,\n\nQuick scope before I pull the full package: the credit study covers FY20–FY22, and the most recent return is still within the three-year open window for audit. No IRS notices or adjustments on the credit to date.\n\nTwo exposure areas I’d flag proactively to investors:\n- Documentation: engineering time records for the study period had some gaps—we reconciled with estimates, but a reviewer could push back on substantiation.\n- Methodology: we used the regular credit (not ASC), and the QRE base is conservative on the wage-side allocation.\n\nI can have a one-page summary with claimed amounts, open years, and risk notes to you by Thursday COB. If you need it sooner, let me know and I’ll shuffle the review queue.\n\nAlso, we still have the unbilled overage on the Loop & Ladder study—want to set up 15 minutes this week to close that out?\n\nV\n\n[[ ## contacts ## ]]\nVictor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 7703704544842149716,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Victor Alade\"],\n  \"subject\": \"RE: R&D credit question from investors — quick help\",\n  \"body\": \"Victor,\\n\\nThanks for the quick scope. Thursday COB works—send the one-pager then.\\n\\nOn the exposure points: yes, flag both documentation gaps and the methodology choice. Keep it brief, bullet-style, with claimed amounts, open years, and risk notes. I’ll pass it to the investors as-is, so make it investor-readable.\\n\\nHappy to do 15 minutes this week on the unbilled overage—send me a couple of times that work. Don’t let that slow down the summary.\\n\\nBest,\\nSana\",\n  \"summary\": \"Confirm Thursday COB for the R&D credit summary, request investor-ready bullet points on the two flagged exposure areas, and agree to a short call this week on the unbilled overage.\",\n  \"cc\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 815,
+      "completion_tokens": 212
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

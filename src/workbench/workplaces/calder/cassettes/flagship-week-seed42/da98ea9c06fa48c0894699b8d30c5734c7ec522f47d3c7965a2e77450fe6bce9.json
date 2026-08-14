@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Alice Kwon, Practice Manager at Riverbend Dental Studio. Apologetic about the books, grateful for patience. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Alice Kwon\nTo: Colin Mackey\nSubject: Following up on associate buy-in\n\nHi Colin,\n\nI wanted to follow up on the associate buy-in question we touched on last week. I apologize for the delay in getting back to you—I've been buried in the books, and I appreciate your patience as we sort through everything.\n\nCould we set up a brief call to discuss the next steps? I'd like to get your perspective on how to approach this with the associate, especially given the current financials. I've also looped in Elias for any accounting details we might need.\n\nLet me know what works for you. Thanks again for your understanding.\n\nBest,\nAlice\n\n---\n\nFrom: Colin Mackey\nTo: Alice Kwon\nSubject: Re: Following up on associate buy-in\n\nHi Alice,\n\nThanks for the follow-up. I can make time for a call this week—Thursday or Friday afternoon works best for me, but I can adjust if needed.\n\nOn the associate buy-in, I can pull together the relevant financial figures from the current books so we have a clear picture before we talk. I'll also check with Elias on any accounting details that might affect the approach.\n\nLet me know what time suits you.\n\nBest,\nColin\n\n[[ ## contacts ## ]]\nColin Mackey, Elias Finch\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 14409101446672674032,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Colin Mackey\"],\n  \"cc\": [\"Elias Finch\"],\n  \"subject\": \"Re: Following up on associate buy-in\",\n  \"body\": \"Hi Colin,\\n\\nThank you for getting back to me so quickly, and for offering to pull those figures—that’s a huge help. Thursday afternoon works well on my end; does 2:00 PM work for you? If not, I can shift to Friday.\\n\\nI really appreciate you checking with Elias on the accounting side as well. I’ll make sure he’s looped in for the call so we can cover any details that come up.\\n\\nAgain, sorry for the delay on my end—the books have been a bit of a tangle, but I’m grateful for your patience.\\n\\nBest,\\nAlice\",\n  \"summary\": \"Confirming Thursday 2 PM for the call, thanking Colin for pulling figures and checking with Elias, and reiterating gratitude for his patience.\"\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 755,
+      "completion_tokens": 221
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

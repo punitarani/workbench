@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Nadia Osman, Staff Accountant (junior).\nStaff accountant, tax: preparation on Kestrel and the Summit owners, close support for Gabriel in the first week of the month.\nPersonality: Diligent, fast learner, asks good questions in DMs before asking them in channels.\nEmail register: Polite and to the point; signs 'Nadia'.\nChat register: Quick, cheerful, emoji-fluent.\nWorking hours: 08:30-17:30\n\n[[ ## conversation ## ]]\n\n\n[[ ## intent ## ]]\nFollow up on tax prep items for Kestrel and Summit owner files and confirm process with the engagement channel\n\n[[ ## established_facts ## ]]\nRequesting guidance on open tax prep items for Kestrel and Summit owner files.\nAsking about open tax prep items and process confirmation for Kestrel and Summit owner files.\nAsked Gabriel for tax prep expectations on Kestrel/Summit and the channel reference.\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 4248295626889931750,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Hey team 👋 quick one from me—I've got open tax prep items for the Kestrel and Summit owner files. Want to confirm the process with you before I dive in. Gabriel, any expectations I should keep in mind? Thanks all! 🙏\", \"summary\": \"Following up on tax prep items for Kestrel and Summit owner files and confirming process with the channel\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 564,
+      "completion_tokens": 95
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

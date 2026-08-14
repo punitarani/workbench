@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day this reflection covers\n3. `today_activity` (str): everything you saw and did today\n4. `open_items` (str): unanswered items still pending\n5. `prior_summaries` (str): your recent daily summaries\nYour output fields are:\n1. `reflection` (DailyReflection):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## today_activity ## ]]\n{today_activity}\n\n[[ ## open_items ## ]]\n{open_items}\n\n[[ ## prior_summaries ## ]]\n{prior_summaries}\n\n[[ ## reflection ## ]]\n{reflection}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"MemoryBullet\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"importance\": {\"type\": \"integer\", \"maximum\": 10, \"minimum\": 1, \"title\": \"Importance\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"text\": {\"type\": \"string\", \"title\": \"Text\"}}, \"required\": [\"text\", \"importance\"], \"title\": \"MemoryBullet\"}}, \"additionalProperties\": false, \"description\": \"What the day distilled to: bullets future-you needs, with the\\nworld ids they concern and how much they matter.\", \"properties\": {\"bullets\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/MemoryBullet\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Bullets\"}, \"open_loops\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Open Loops\"}}, \"required\": [\"bullets\"], \"title\": \"DailyReflection\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Consolidate your working day into a durable note. Write three to\n        eight bullets a colleague could act on tomorrow: decisions made,\n        commitments given or received, risks noticed, threads left open.\n        Rate each bullet's importance 1-10 and carry the exact world ids\n        (thr-/tkt-/cnv-/doc-) it concerns. List open loops separately."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Raj Malhotra, IT Administrator (mid).\nIT administrator: systems, access, the portal, and the security policy. Triages #it-help.\nPersonality: Laconic, competent, allergic to ticketless requests.\nEmail register: Minimal; numbered steps; signs 'Raj'.\nChat register: Terse; asks for the screenshot.\nWorking hours: 09:00-17:00\n\n[[ ## day ## ]]\n2026-01-06\n\n[[ ## today_activity ## ]]\n[09:05] Planned the day: Portal & access setup for tax group documentation; Tax group huddle; Verify file permissions…\n\n[[ ## open_items ## ]]\nNothing pending.\n\n[[ ## prior_summaries ## ]]\nTax group documentation suite deployed: engagement letter, T&B policy, tax workflow, PBC template, retention …\nTax group huddle scheduled; portal & access setup planned as priority task for today to enable team access to…\nSecurity policy review flagged as today's third agenda item; confirm scope and stakeholders before deep dive\nEight policy/template documents now in system; verify file permissions, audit trail, and backup status post-d…\n\nRespond with the corresponding output fields, starting with the field `[[ ## reflection ## ]]` (must be formatted as a valid Python DailyReflection), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 582720298750706699,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## reflection ## ]]\n{\n  \"bullets\": [\n    {\n      \"text\": \"Portal & access setup for tax group documentation prioritized but execution status unclear—confirm completion or blockers before EOD\",\n      \"importance\": 9,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Tax group huddle scheduled; verify attendance, agenda alignment, and whether access provisioning must complete beforehand\",\n      \"importance\": 8,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Eight policy/template documents deployed; file permissions and audit trail verification still required—schedule before handoff\",\n      \"importance\": 8,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Security policy review flagged as third agenda item; scope and stakeholders confirmation needed to avoid scope creep\",\n      \"importance\": 7,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Backup status post-deployment not yet confirmed—critical for tax documentation suite; validate before declaring setup complete\",\n      \"importance\": 7,\n      \"refs\": []\n    }\n  ],\n  \"open_loops\": [\n    \"Portal & access setup execution status—did it complete or hit blockers?\",\n    \"Tax group huddle timing and whether it requires access provisioning first\",\n    \"File permissions audit and backup validation for eight deployed documents\",\n    \"Security policy review scope definition with stakeholders\"\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 944,
+      "completion_tokens": 345
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

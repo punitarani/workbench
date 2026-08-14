@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Evan Doyle, Chief Financial Officer at Stonebridge Property Group. Formal, lender-minded, wants dates and commitments. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Evan Doyle\nTo: Gabriel Fontes, Lucia Mendes\nSubject: Closing Allocation for Sale – Need Final Figures\n\nGabriel, Lucia,\n\nWe are within days of the closing on the property, and I need the allocation finalized before we sign. Please confirm the purchase price split between real estate and personal property, and any associated tax basis adjustments, by end of business tomorrow.\n\nWe need this locked in to avoid any post-closing surprises. Let me know if you need anything from my side to move this along.\n\nBest,\nEvan Doyle\nCFO, Stonebridge Property Group\n\n---\n\nFrom: Gabriel Fontes\nTo: Evan Doyle\nSubject: RE: Closing Allocation for Sale – Need Final Figures\n\nEvan,\n\nThanks for the reminder. Here are the final allocation figures you need for the closing.\n\nPurchase price split:\n- Real estate: 82%\n- Personal property: 18%\n\nTax basis adjustments: No additional adjustments are required beyond the standard allocation; the split above reflects the agreed valuation and aligns with the purchase agreement.\n\nI’m attaching the supporting schedule with line-item detail so you have the full breakdown for your records. Let me know if you need anything else on my side before you sign.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Lucia Mendes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 11767703638197508241,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Gabriel Fontes\"], \"cc\": [\"Lucia Mendes\"], \"subject\": \"RE: Closing Allocation for Sale – Need Final Figures\", \"body\": \"Gabriel,\\n\\nReceived the allocation figures—thank you for the prompt turnaround. To confirm before we sign: 82% real estate, 18% personal property, no additional tax basis adjustments. I will have our team review the supporting schedule for line-item consistency with the purchase agreement.\\n\\nWe are scheduled to close as planned. If any discrepancy surfaces during our review, I will flag it immediately. Otherwise, we are good to proceed.\\n\\nBest,\\nEvan Doyle\\nCFO, Stonebridge Property Group\", \"summary\": \"Acknowledges Gabriel's allocation figures, confirms 82/18 split and no tax adjustments, and requests review of the supporting schedule before signing.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 752,
+      "completion_tokens": 191
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Marco Petrosyan, Owner at Blue Fir Restaurant Group. Warm, hurried, writes like he talks. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nHe is weighing a fourth location and wants a gut check. (topic: advisory)\n\n[[ ## contacts ## ]]\nGabriel Fontes, Sylvia Nakamura\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 9637480124188556724,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Gabriel Fontes\", \"Sylvia Nakamura\"],\n  \"subject\": \"Quick gut check on a fourth location?\",\n  \"body\": \"Hey Gabriel, Sylvia —\\n\\nHope you’re both doing well. We’re seriously weighing a fourth spot, and before I get too far down the road, I’d love a gut check from you two. Not a full analysis yet — just your honest read on whether this makes sense for us right now.\\n\\nWe’re looking at a lease in the Pearl District, roughly 4,200 square feet, with a build-out that’s manageable if we move fast. The numbers look okay on paper, but something’s telling me to slow down and think about our bandwidth. You know me — I’d rather hear it straight now than wish I had later.\\n\\nCan we grab 20 minutes sometime this week? I can work around your schedules. Just want your real thoughts, not the polished version.\\n\\nThanks, as always. — Marco\\n\\nP.S. If either of you sees a red flag I’m missing, don’t wait for the call — shoot me a text.\"\n  ,\n  \"summary\": \"Marco asks Gabriel and Sylvia for a quick gut check on a potential fourth location in the Pearl District, requesting a short meeting and inviting any immediate red flags.\",\n  \"cc\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 513,
+      "completion_tokens": 304
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `document` (str): current full document text\n3. `intent` (str): \n4. `context` (str): facts and knowledge relevant to the edit\nYour output fields are:\n1. `edit` (DocumentEdit):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## document ## ]]\n{document}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## context ## ]]\n{context}\n\n[[ ## edit ## ]]\n{edit}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"change_summary\": {\"type\": \"string\", \"title\": \"Change Summary\"}, \"new_content\": {\"type\": \"string\", \"title\": \"New Content\"}}, \"required\": [\"new_content\", \"change_summary\"], \"title\": \"DocumentEdit\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Revise the document to accomplish the intent. Return the complete new\n        text, preserving everything not implicated by the intent. Ground every\n        change in the context given."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Hana Sato, Principal, Assurance (executive).\nAssurance principal. Signs the audit opinions, owns audit methodology and independence questions, and reviews anything the audit team escalates.\nPersonality: Precise, softly spoken, immovable on standards.\nEmail register: Measured, complete sentences; signs 'Hana Sato'.\nChat register: Rare; complete sentences when she does.\nWorking hours: 09:00-17:00\n\n[[ ## document ## ]]\n\n\n[[ ## intent ## ]]\nLocate or reconstruct the core engagement letter template so it can be verified against current audit methodology and independence requirements.\n\n[[ ## context ## ]]\nRevised doc-engagement-letter-standard: No changes made — document is empty; awaiting engagement letter content to review for compliance and methodology alignment.\n\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## edit ## ]]` (must be formatted as a valid Python DocumentEdit), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 7672884966828083321,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## edit ## ]]\n{\"change_summary\": \"Document is empty; no content available to revise or reconstruct. Awaiting the engagement letter template to review against audit methodology and independence requirements.\", \"new_content\": \"\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 480,
+      "completion_tokens": 52
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

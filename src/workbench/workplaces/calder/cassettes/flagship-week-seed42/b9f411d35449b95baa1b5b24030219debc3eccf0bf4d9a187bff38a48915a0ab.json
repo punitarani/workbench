@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Gloria Nunez, Office Manager at Summit Physical Therapy. Chatty, thorough, includes every detail. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nA partner wants their draw restructured. (topic: tax)\n\n[[ ## contacts ## ]]\nLucia Mendes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 6331429140845005940,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Lucia Mendes\"],\n  \"cc\": [],\n  \"subject\": \"Restructuring Partner Draw – Summit Physical Therapy\",\n  \"body\": \"Hi Lucia,\\n\\nHope you're doing well! I wanted to touch base about restructuring one of our partners' draws. We've been talking internally about how the current setup is working, and we think a change could help with some tax planning before year-end.\\n\\nSpecifically, we'd like to shift the timing and maybe the split between guaranteed payments and profit distributions—just to smooth things out and maybe reduce the tax bite. I know you handle the partnership returns for us, so I wanted to see what you'd need from our end to make this work smoothly. Do you have a preferred format for the draw schedule, and are there any deadlines we should keep in mind for it to have the tax impact we're hoping for?\\n\\nI can pull together the current partnership agreement, the most recent profit/loss statements, and the partners' K-1s if that helps. Just let me know what's easiest for you.\\n\\nThanks so much—we really appreciate your guidance on this!\\n\\nBest,\\nGloria Nunez\\nOffice Manager\\nSummit Physical Therapy\",\n  \"summary\": \"Requesting guidance from Lucia on restructuring a partner draw for tax purposes, asking what documentation and timing she needs.\"\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 506,
+      "completion_tokens": 298
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

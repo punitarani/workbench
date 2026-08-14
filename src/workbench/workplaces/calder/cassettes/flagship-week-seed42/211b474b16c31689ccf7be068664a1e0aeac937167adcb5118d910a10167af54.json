@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day this reflection covers\n3. `today_activity` (str): everything you saw and did today\n4. `open_items` (str): unanswered items still pending\n5. `prior_summaries` (str): your recent daily summaries\nYour output fields are:\n1. `reflection` (DailyReflection):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## today_activity ## ]]\n{today_activity}\n\n[[ ## open_items ## ]]\n{open_items}\n\n[[ ## prior_summaries ## ]]\n{prior_summaries}\n\n[[ ## reflection ## ]]\n{reflection}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"MemoryBullet\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"importance\": {\"type\": \"integer\", \"maximum\": 10, \"minimum\": 1, \"title\": \"Importance\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"text\": {\"type\": \"string\", \"title\": \"Text\"}}, \"required\": [\"text\", \"importance\"], \"title\": \"MemoryBullet\"}}, \"additionalProperties\": false, \"description\": \"What the day distilled to: bullets future-you needs, with the\\nworld ids they concern and how much they matter.\", \"properties\": {\"bullets\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/MemoryBullet\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Bullets\"}, \"open_loops\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Open Loops\"}}, \"required\": [\"bullets\"], \"title\": \"DailyReflection\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Consolidate your working day into a durable note. Write three to\n        eight bullets a colleague could act on tomorrow: decisions made,\n        commitments given or received, risks noticed, threads left open.\n        Rate each bullet's importance 1-10 and carry the exact world ids\n        (thr-/tkt-/cnv-/doc-) it concerns. List open loops separately."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Owen Castile, Office & Billing Manager (senior).\nOffice and billing manager: prebills, invoices, retainers, realization, and the administrative machinery of the firm.\nPersonality: Numbers-first, drily funny about partners' billing habits, guards the lockup number.\nEmail register: Organized; tables when useful; signs 'Owen'.\nChat register: Direct; quotes the policy section.\nWorking hours: 08:00-17:00\n\n[[ ## day ## ]]\n2026-01-09\n\n[[ ## today_activity ## ]]\n[09:05] Planned the day: January close cycle execution: finalize lockup baseline, reconcile time entries against froz…\n\n[[ ## open_items ## ]]\nNothing pending.\n\n[[ ## prior_summaries ## ]]\nMonth-end billing cycle locked down: time entries staged and frozen per standard protocol. Baseline lockup nu…\nOpen engagement review completed as part of month-end close. All C-group engagements confirmed for scope and …\nPrebilling verification process underway and on schedule. Administrative infrastructure (billing policy, time…\nTax group huddle remains scheduled to quantify realization and billing impact against month-end close cycle t…\nJanuary close cycle now executable: lockup baseline established, time entries staged, open engagements reconc…\n\nRespond with the corresponding output fields, starting with the field `[[ ## reflection ## ]]` (must be formatted as a valid Python DailyReflection), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 4902635836615128965,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## reflection ## ]]\n```json\n{\n  \"bullets\": [\n    {\n      \"text\": \"January close cycle entry point confirmed: lockup baseline finalized, time entries frozen per protocol, ready for reconciliation phase\",\n      \"importance\": 9,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Open engagement review completed month-end; all C-group scope confirmed and aligned with billing boundaries\",\n      \"importance\": 8,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Prebilling verification on schedule; administrative infrastructure (policy, time capture, engagement tracking) validated and operational\",\n      \"importance\": 7,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Tax group huddle pending to quantify realization and billing impact—critical to lockup reconciliation; schedule confirmation needed\",\n      \"importance\": 8,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Month-end close machinery executing on plan: all staged inputs ready, no blockers identified as of EOD\",\n      \"importance\": 9,\n      \"refs\": []\n    }\n  ],\n  \"open_loops\": [\n    \"Tax group huddle timing and realization impact quantification\",\n    \"Final lockup reconciliation variance sign-off\"\n  ]\n}\n```\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 973,
+      "completion_tokens": 320
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

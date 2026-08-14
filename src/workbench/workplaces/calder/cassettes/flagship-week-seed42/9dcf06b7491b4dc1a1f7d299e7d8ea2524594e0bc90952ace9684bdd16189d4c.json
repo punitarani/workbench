@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Evan Doyle, Chief Financial Officer at Stonebridge Property Group. Formal, lender-minded, wants dates and commitments. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Evan Doyle\nTo: Gabriel Fontes, Lucia Mendes\nSubject: CAM Reconciliation Dispute – Tenant [Name] – Action Required\n\nGabriel, Lucia,\n\nWe need to close the CAM reconciliation dispute with [Tenant Name] before the end of this quarter. This has been outstanding too long, and I need a firm date for resolution.\n\nPlease provide, by end of day Friday:\n1. A line-item breakdown of the disputed charges, with supporting documentation.\n2. The specific objections raised by the tenant, in writing.\n3. A proposed settlement range, with your recommended position.\n\nOnce I have that, I will review and we can schedule a call to finalize. I want this off the books by the 15th.\n\nConfirm receipt and your availability for a short call on Monday.\n\nEvan\n\n---\n\nFrom: Gabriel Fontes\nTo: Evan Doyle\nSubject: Re: CAM Reconciliation Dispute – Tenant [Name] – Action Required\n\nHi Evan,\n\nThanks for the nudge on this—I agree it's been open too long and I want it closed before the 15th.\n\nTo confirm: I have the line-item breakdown and the tenant's written objections already compiled. I'll pull the supporting docs together and send everything to you by end of day Friday, along with a proposed settlement range and my recommended position.\n\nMonday works for a short call—I have a window from 9:00 to 9:30, or after 11:00 if that's better. Happy to work around your schedule.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Lucia Mendes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 7460472397011146231,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Gabriel Fontes\"], \"cc\": [\"Lucia Mendes\"], \"subject\": \"Re: CAM Reconciliation Dispute – Tenant [Name] – Action Required\", \"body\": \"Gabriel,\\n\\nGood to have your confirmation. I'll expect your full package by Friday COB—line items, supporting docs, tenant objections, and your settlement recommendation.\\n\\nLet's take the 9:00–9:30 slot Monday. I'll dial in from my end; you can send a calendar invite with the line.\\n\\nOne thing: I want this closed by the 15th, no exceptions. If anything shifts on your side, flag it to me before Friday so we can adjust.\\n\\nEvan\", \"summary\": \"Confirming receipt of Gabriel's update, setting Monday 9-9:30 call, reiterating deadline of the 15th, and requesting early notification of any changes.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 817,
+      "completion_tokens": 205
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

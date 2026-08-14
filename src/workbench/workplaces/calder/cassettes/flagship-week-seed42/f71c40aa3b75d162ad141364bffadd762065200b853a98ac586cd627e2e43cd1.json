@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `document` (str): current full document text\n3. `intent` (str): \n4. `context` (str): facts and knowledge relevant to the edit\nYour output fields are:\n1. `edit` (DocumentEdit):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## document ## ]]\n{document}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## context ## ]]\n{context}\n\n[[ ## edit ## ]]\n{edit}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"change_summary\": {\"type\": \"string\", \"title\": \"Change Summary\"}, \"new_content\": {\"type\": \"string\", \"title\": \"New Content\"}}, \"required\": [\"new_content\", \"change_summary\"], \"title\": \"DocumentEdit\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Revise the document to accomplish the intent. Return the complete new\n        text, preserving everything not implicated by the intent. Ground every\n        change in the context given."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Sylvia Nakamura, Payroll Specialist (mid).\nPayroll specialist: runs Blue Fir's payroll and quarterly employment filings; the firm's answer to every withholding question.\nPersonality: Precise, calm on deadlines, keeps immaculate filing confirmations.\nEmail register: Exact and unhurried; signs 'Sylvia'.\nChat register: Short, always with the form number.\nWorking hours: 08:00-16:30\n\n[[ ## document ## ]]\n\n\n[[ ## intent ## ]]\nEstablish Blue Fir payroll workflows using the engagement letter, PBC request template, and monthly close checklist\n\n[[ ## context ## ]]\nNone yet.\n\n[Blue Fir Q1 amendment] Blue Fir's Q1 Oregon withholding return was amended in May to fix a tip-allocation error; the amended filing and payment confirmation are in the payroll folder. Any state notice about Q1 almost certainly crossed in the mail with the amendment.\nSharing: You share this when asked directly, but you do not volunteer it unprompted, and never in writing to outsiders.\n\nRespond with the corresponding output fields, starting with the field `[[ ## edit ## ]]` (must be formatted as a valid Python DocumentEdit), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 8706020565173594040,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## edit ## ]]\n{\"change_summary\": \"Created a draft payroll workflow document establishing Blue Fir payroll processes using the engagement letter, PBC request template, and monthly close checklist.\", \"new_content\": \"Blue Fir Payroll Workflows\\n\\n1. **Engagement Letter (Payroll Services)**  \\n   - Onboarding: Confirm scope of payroll services (processing, filings, amendments) with client and obtain signed engagement letter before first run.  \\n   - Keep signed copy in payroll folder under Engagement.  \\n   - Review annually or upon scope change; note any amendment handling (e.g., state withholding corrections) in scope.  \\n\\n2. **PBC Request Template (Payroll)**  \\n   - Send to client before each payroll cycle:  \\n     - Employee roster updates (new hires, terminations, rate changes)  \\n     - Hours worked / time sheets for hourly staff  \\n     - Tip allocation data (if applicable)  \\n     - Prior-period adjustments or voided checks  \\n   - Collect items by the 3rd business day before pay date; follow up by email if missing.  \\n\\n3. **Monthly Close Checklist (Payroll)**  \\n   - Verify payroll register matches general ledger entries.  \\n   - Reconcile all payroll liabilities (federal, state, local, FICA) to actual payments.  \\n   - Confirm quarterly state filings (e.g., Oregon Form OQ) are prepared and submitted by deadline.  \\n   - File confirmation copies in payroll folder under Filings.  \\n   - Flag any amendments (e.g., tip allocation corrections) in the checklist notes with date and reason.  \\n   - Review for year-end (W-2s, state withholding reconciliations) at each quarter close.  \\n\\n4. **Documentation and Retention**  \\n   - Keep all engagement letters, PBC responses, and close checklists in the payroll folder with consistent naming (e.g., YYYY-MM_CloseChecklist).  \\n   - Retain filings and payment confirmations per firm policy (minimum 7 years).  \\n\\n_Note: For any state notice regarding a prior quarter, check the payroll folder for amended filing confirmations before responding to the client._\",\n\"change_summary\": \"Drafted a structured document for Blue Fir payroll workflows, incorporating the engagement letter, PBC template, and monthly close checklist, with a note on handling amended state filings.\"\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 533,
+      "completion_tokens": 535
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

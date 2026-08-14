@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Dana Whitfield, Controller at Kestrel Manufacturing. Precise and numbers-fluent; expects the same back. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nA new equipment purchase needs the right depreciation answer. (topic: tax)\n\n[[ ## contacts ## ]]\nGabriel Fontes, Victor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 4201370790944883816,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Gabriel Fontes\"],\n  \"cc\": [\"Victor Alade\"],\n  \"subject\": \"Depreciation treatment for new equipment purchase\",\n  \"body\": \"Gabriel,\\n\\nWe’re finalizing the purchase of a new CNC machining center (approx. $480k, placed in service this quarter). I need your read on the correct depreciation method and class life for our tax filings—bonus depreciation vs. straight-line, and any Section 179 limits we should consider given our 2024 income projections.\\n\\nPlease confirm the class life (I believe 7-year MACRS, but want to be sure) and whether we can take 80% bonus this year. Also, flag any state conformity issues that might affect our Illinois return.\\n\\nWe need to lock the fixed asset schedule by Friday. Happy to hop on a call tomorrow afternoon if that’s easier.\\n\\nThanks,\\nDana\",\n  \"summary\": \"Requesting Gabriel Fontes’ guidance on depreciation method, class life, bonus depreciation, and Section 179 for a new $480k CNC machine, with state conformity note for Illinois, ahead of Friday’s fixed asset schedule deadline.\"\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 515,
+      "completion_tokens": 259
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

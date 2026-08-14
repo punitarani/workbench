@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day this reflection covers\n3. `today_activity` (str): everything you saw and did today\n4. `open_items` (str): unanswered items still pending\n5. `prior_summaries` (str): your recent daily summaries\nYour output fields are:\n1. `reflection` (DailyReflection):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## today_activity ## ]]\n{today_activity}\n\n[[ ## open_items ## ]]\n{open_items}\n\n[[ ## prior_summaries ## ]]\n{prior_summaries}\n\n[[ ## reflection ## ]]\n{reflection}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"MemoryBullet\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"importance\": {\"type\": \"integer\", \"maximum\": 10, \"minimum\": 1, \"title\": \"Importance\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"text\": {\"type\": \"string\", \"title\": \"Text\"}}, \"required\": [\"text\", \"importance\"], \"title\": \"MemoryBullet\"}}, \"additionalProperties\": false, \"description\": \"What the day distilled to: bullets future-you needs, with the\\nworld ids they concern and how much they matter.\", \"properties\": {\"bullets\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/MemoryBullet\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Bullets\"}, \"open_loops\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Open Loops\"}}, \"required\": [\"bullets\"], \"title\": \"DailyReflection\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Consolidate your working day into a durable note. Write three to\n        eight bullets a colleague could act on tomorrow: decisions made,\n        commitments given or received, risks noticed, threads left open.\n        Rate each bullet's importance 1-10 and carry the exact world ids\n        (thr-/tkt-/cnv-/doc-) it concerns. List open loops separately."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Colin Mackey, Staff Accountant (junior).\nStaff accountant, tax: the Riverbend cleanup is his baby; supports the Stonebridge close and 1065.\nPersonality: Steady, understated, secretly proud of his reconciliations.\nEmail register: Brief and factual; signs 'Colin'.\nChat register: Terse but friendly.\nWorking hours: 08:30-17:30\n\n[[ ## day ## ]]\n2026-01-07\n\n[[ ## today_activity ## ]]\n[09:05] Planned the day: Riverbend Dental Studio bookkeeping cleanup — continue reconciliation work; Stonebridge clos…\n[09:05] Ticket activity on tkt-000012\n[12:05] Ticket activity on tkt-000012\n[14:05] Ticket activity on tkt-000012\n[14:35] Email from per-alice-kwon: Following up on associate buy-in\n[14:40] Email from per-colin-mackey: Re: Following up on associate buy-in\n[14:45] Email from per-alice-kwon: Re: Following up on associate buy-in\n[15:05] Email from per-colin-mackey: Re: Following up on associate buy-in\n[15:35] Email from per-elias-finch: Re: Following up on associate buy-in\n[16:05] Email from per-colin-mackey: Re: Following up on associate buy-in\n\n[[ ## open_items ## ]]\nNothing pending.\n\n[[ ## prior_summaries ## ]]\nFirst day of year setup complete; ready to support Stonebridge close and 1065 as secondary responsibilities\nRiverbend Dental Studio bookkeeping cleanup — deep dive into setup and initial reconciliation completed; proj…\nReconciliation work on Riverbend progressing as planned; cleanup setup established and baseline reconciliatio…\nSecondary responsibilities (Stonebridge close and 1065 support) remain on track; no blocking issues identified\nStandard documentation suite (engagement letter, billing policy, tax workflow, PBC template) finalized and re…\n\nRespond with the corresponding output fields, starting with the field `[[ ## reflection ## ]]` (must be formatted as a valid Python DailyReflection), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 9999462796061657308,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## reflection ## ]]\n{\n  \"bullets\": [\n    {\n      \"text\": \"Riverbend Dental Studio reconciliation work continued across three ticket updates (tkt-000012); cleanup on track with established baseline\",\n      \"importance\": 8,\n      \"refs\": [\"tkt-000012\"]\n    },\n    {\n      \"text\": \"Associate buy-in discussion escalated through email chain with Alice Kwon and Elias Finch; Colin contributed input on positioning/support needs\",\n      \"importance\": 6,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Secondary responsibilities (Stonebridge close, 1065 support) remain stable; no blocking issues or conflicts with Riverbend primary focus\",\n      \"importance\": 5,\n      \"refs\": []\n    }\n  ],\n  \"open_loops\": []\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1164,
+      "completion_tokens": 215
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

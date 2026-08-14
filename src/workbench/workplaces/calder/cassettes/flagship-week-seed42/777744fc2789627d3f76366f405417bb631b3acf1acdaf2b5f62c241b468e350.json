@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Frank Osei, Owner at Cardinal Ridge Builders. Blunt, margin-obsessed, short sentences. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Frank Osei\nTo: Desmond Ortiz\nSubject: Margins on the last job\n\nDesmond,\n\nWe just closed the last job way under where we should have been. I need to know why. Get me the numbers — labor, materials, any overruns. Don't sugarcoat it. I want specifics by end of week.\n\nFrank\n\n---\n\nFrom: Desmond Ortiz\nTo: Frank Osei\nSubject: Margins on the last job — detailed breakdown\n\nFrank,\n\nGot your note. I pulled the numbers from the job file, and here's what I'm seeing — no sugarcoating.\n\nLabor ran about 12% over estimate, driven mostly by overtime on the framing crew in the second week. Materials came in roughly 6% over, with the lumber price spike hitting us on the last two deliveries. Combined with a small equipment rental overrun (we kept the excavator an extra three days), the total job cost landed about 9% above what we bid.\n\nThat puts our gross margin at 14.2% against the 20% we targeted. The biggest single culprit is the labor overrun — we had a crew change mid-week and the replacement crew needed extra time to get up to speed. The materials variance is more market-driven than anything we could have controlled.\n\nI've attached a line-item breakdown to the job file if you want to dig in further. Happy to walk through it whenever you have time.\n\nDes\n\n[[ ## contacts ## ]]\nDesmond Ortiz\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 15472687903218625451,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Desmond Ortiz\"], \"subject\": \"Re: Margins on the last job — detailed breakdown\", \"body\": \"Des,\\n\\nGot your numbers. 14.2% is not acceptable. Labor's the killer — crew change cost us 12% over. That's on us, not the market.\\n\\nMaterials, fine. Excavator, fine. But I want a plan to keep labor in line next job. No crew swaps mid-week unless I sign off.\\n\\nSend me one page — what you'll do different on the next bid and on the ground. By Friday.\\n\\nFrank\", \"summary\": \"Frank acknowledges the breakdown, pushes back on labor overrun, and asks for a one-page plan to prevent it on the next job.\", \"cc\": []}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 789,
+      "completion_tokens": 179
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

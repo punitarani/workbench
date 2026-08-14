@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day being planned\n3. `calendar_today` (str): meetings already on your calendar\n4. `yesterday` (str): yesterday's summary and open loops\n5. `relevant_memories` (str):\nYour output fields are:\n1. `plan` (DayPlanSpec):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## calendar_today ## ]]\n{calendar_today}\n\n[[ ## yesterday ## ]]\n{yesterday}\n\n[[ ## relevant_memories ## ]]\n{relevant_memories}\n\n[[ ## plan ## ]]\n{plan}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"PlanBlock\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"end\": {\"type\": \"integer\", \"exclusiveMinimum\": 0, \"maximum\": 86400, \"title\": \"End\"}, \"focus\": {\"type\": \"string\", \"title\": \"Focus\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"start\": {\"type\": \"integer\", \"exclusiveMaximum\": 86400, \"minimum\": 0, \"title\": \"Start\"}}, \"required\": [\"start\", \"end\", \"focus\"], \"title\": \"PlanBlock\"}}, \"additionalProperties\": false, \"description\": \"The day in time blocks: what gets focused attention and when.\", \"properties\": {\"blocks\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/PlanBlock\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Blocks\"}}, \"required\": [\"blocks\"], \"title\": \"DayPlanSpec\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Lay out your working day in two to six time blocks. Anchor blocks\n        to your real calendar first, then place the work your open items and\n        memories say matters most. Times are seconds since midnight inside\n        working hours; carry the exact world ids (thr-/tkt-/doc-) each block\n        concerns."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Priscilla Wong, Staff Accountant (junior).\nStaff accountant, assurance: testing and tie-outs on Harbor Light, learning the audit trade from Theo.\nPersonality: Meticulous, quiet in channels, sharp in the workpapers.\nEmail register: Careful and complete; signs 'Priscilla'.\nChat register: Sparing; asks one well-formed question.\nWorking hours: 09:00-17:30\n\n[[ ## day ## ]]\n2026-01-06\n\n[[ ## calendar_today ## ]]\nNothing scheduled.\n\n[[ ## yesterday ## ]]\nOnboarding day: reviewed engagement letter, billing policy, tax workflow, PBC template, retention/security po…\nTax group huddle scheduled; attendance confirmed. First team meeting to learn culture and connect with collea…\nHarbor Light assurance engagement awaiting deep dive. Theo will lead; ready to begin testing and tie-out work…\nRate sheet 2026 reviewed and in system. Understand current billing rates for time tracking and engagement cos…\nClient master list and records retention policies absorbed. Clear on file structure, security protocols, and …\n\n[[ ## relevant_memories ## ]]\n- [today | !8] Onboarding day: reviewed engagement letter, billing policy, tax workflow, PBC template, retention/security po…\n- [today | !8] Harbor Light assurance engagement awaiting deep dive. Theo will lead; ready to begin testing and tie-out work…\n- [today | !7] Client master list and records retention policies absorbed. Clear on file structure, security protocols, and …\n- [today | !6] Tax group huddle scheduled; attendance confirmed. First team meeting to learn culture and connect with collea…\n- [today | !6] Planned the day: Review onboarding materials and firm policies; Tax group huddle meeting; Harbor Light assura…\n- [today | !5] Rate sheet 2026 reviewed and in system. Understand current billing rates for time tracking and engagement cos…\n- [1d ago | !5] Meeting scheduled: Tax group huddle\n- [1d ago | !4] Document saved: Engagement Letter (Standard Form)\n- [1d ago | !4] Document saved: Time & Billing Policy\n- [1d ago | !4] Document saved: Tax Return Workflow & Review Policy\n- [1d ago | !4] Document saved: PBC Request Template\n- [1d ago | !4] Document saved: Records Retention & Security Policy\n\nRespond with the corresponding output fields, starting with the field `[[ ## plan ## ]]` (must be formatted as a valid Python DayPlanSpec), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 7023736273780810560,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 37800,\n      \"focus\": \"Tax group huddle and team onboarding\",\n      \"refs\": []\n    },\n    {\n      \"start\": 37800,\n      \"end\": 41400,\n      \"focus\": \"Harbor Light assurance engagement kickoff with Theo—review engagement materials and testing plan\",\n      \"refs\": []\n    },\n    {\n      \"start\": 41400,\n      \"end\": 46800,\n      \"focus\": \"Harbor Light testing and tie-outs—begin initial audit procedures under Theo's guidance\",\n      \"refs\": []\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"Workpaper setup and documentation—establish testing files and cross-references for Harbor Light\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1189,
+      "completion_tokens": 241
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

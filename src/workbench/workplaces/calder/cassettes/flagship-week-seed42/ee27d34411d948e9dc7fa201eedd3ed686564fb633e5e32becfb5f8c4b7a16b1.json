@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Frank Osei, Owner at Cardinal Ridge Builders. Blunt, margin-obsessed, short sentences. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Frank Osei\nTo: Desmond Ortiz\nSubject: Updated financials for bonding\n\nDesmond,\n\nBonding company is asking for fresh numbers. I need to get them something current so we can keep moving on the jobs we have lined up.\n\nSend over the latest statements and any updated P&L you have. I need them by end of week.\n\nFrank\n\n---\n\nFrom: Desmond Ortiz\nTo: Frank Osei\nSubject: Re: Updated financials for bonding\n\nFrank,\n\nGot it — I'll pull the latest statements and the updated P&L together and get them over to you by end of week. I'll also fold those numbers into the Cardinal Ridge PBC review I'm working through, and make sure they're reflected in the Friday margin plan we agreed on.\n\nLet me know if the bonding company needs anything specific in terms of format or level of detail, and I'll tailor it accordingly.\n\nThanks,\nDes\n\n[[ ## contacts ## ]]\nDesmond Ortiz\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 11811478849433977072,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Desmond Ortiz\"],\n  \"subject\": \"Re: Updated financials for bonding\",\n  \"body\": \"Des,\\n\\nGood. End of week works. Bonding company didn't ask for anything special format-wise — just current numbers. Make sure the P&L and statements are clean and match. That's it.\\n\\nFrank\",\n  \"summary\": \"Acknowledges Desmond's plan to send updated financials by end of week, confirms no special format needed, emphasizes clean and matching statements.\",\n  \"cc\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 683,
+      "completion_tokens": 127
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Frank Osei, Owner at Cardinal Ridge Builders. Blunt, margin-obsessed, short sentences. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Frank Osei\nTo: Desmond Ortiz\nSubject: Retention payment – Cardinal Ridge\n\nDesmond,\n\nRetention on the Henderson job is due. Cash is tight and we need that wire this week. Let me know the status and what you need from us to close it out.\n\nFrank\n\n---\n\nFrom: Desmond Ortiz\nTo: Frank Osei\nSubject: Re: Retention payment – Cardinal Ridge\n\nFrank,\n\nThanks for the nudge. The updated financials and P&L for the Henderson job are already in your inbox – they match what the bonding company has on file, so you should be good to wire this week.\n\nOn next steps for the bonding requirement: we're good on the financials, but the bonding company may ask for a brief note on the job margin variance (14.2% vs. the 20% target). I'll fold that into the Friday plan I owe you, along with the labor contingency, materials escalation buffer, and equipment rental review. That way, if they want backup, it's ready.\n\nHappy to hop on a call if the bonding rep needs anything sooner. Let me know.\n\nDes\n\n[[ ## contacts ## ]]\nDesmond Ortiz\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 7654944320573009104,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Desmond Ortiz\"], \"subject\": \"Re: Retention payment – Cardinal Ridge\", \"body\": \"Des,\\n\\nGot the financials. Thanks. Wire goes out this week.\\n\\nOn the margin variance note – 14.2 vs 20 is what it is. If they need backup, I'd rather have it ready before they ask. Get that note done in your Friday plan. Don't wait for a call.\\n\\nAlso, check the equipment rental review – that's where we can claw back something if we're off target.\\n\\nFrank\", \"cc\": [], \"summary\": \"Frank confirms receipt of financials, commits to wiring retention this week, and asks Desmond to prepare the margin variance note and include it in Friday's plan, plus review equipment rentals for cost recovery.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 724,
+      "completion_tokens": 180
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

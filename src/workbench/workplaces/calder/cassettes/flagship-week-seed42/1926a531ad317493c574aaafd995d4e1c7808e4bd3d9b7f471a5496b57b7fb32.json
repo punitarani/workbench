@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Evan Doyle, Chief Financial Officer at Stonebridge Property Group. Formal, lender-minded, wants dates and commitments. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Evan Doyle\nTo: Gabriel Fontes\nSubject: CAM Reconciliation Dispute – Need Resolution Timeline\n\nGabriel,\n\nWe’ve received the revised CAM reconciliation figures for the tenant in question, and the disputes are still unresolved from our last review. I need a clear path to close this out.\n\nPlease confirm by end of week which line items are still contested, and provide the supporting documentation for each. I also need a firm date for final resolution—no later than the close of next month.\n\nIf you need anything from our side to move this faster, let me know directly. I want this off the table.\n\nBest,\nEvan Doyle\nCFO, Stonebridge Property Group\n\n---\n\nFrom: Gabriel Fontes\nTo: Evan Doyle\nSubject: RE: CAM Reconciliation Dispute – Resolution Timeline\n\nHi Evan,\n\nThanks for the note. Just to confirm where we are: I’ve got the full package—line items still contested, supporting documentation for each, tenant objections, and a recommended settlement range—coming to you by end of day Friday. I’ll flag any changes before then.\n\nFor final resolution, we’re targeting close of next month as you requested. I’m holding Monday 9:00–9:30 for a call (invite sent, Lucia will join) to walk through the details and lock in any decisions needed from your side.\n\nIf you need anything sooner or have additional info that would help speed this up, just let me know.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Lucia Mendes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 14666025873495975860,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Gabriel Fontes\"], \"cc\": [\"Lucia Mendes\"], \"subject\": \"RE: CAM Reconciliation Dispute – Resolution Timeline\", \"body\": \"Gabriel,\\n\\nThanks for the update. I’m holding you to the Friday delivery and the Monday 9:00–9:30 call—Lucia can join as noted.\\n\\nA couple of specifics before we meet: please include a summary table of each contested line item, the dollar amount at stake, and the supporting doc reference. Also confirm the settlement range you’re recommending—I need to see the spread before we talk.\\n\\nOn the timeline, close of next month is firm. If anything shifts on the Friday package or the Monday call, notify me same day—no surprises.\\n\\nBest,\\nEvan Doyle\\nCFO, Stonebridge Property Group\", \"summary\": \"Confirming Friday delivery and Monday call; requesting a line-item summary with amounts and settlement range; reiterating firm close-of-next-month deadline.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 805,
+      "completion_tokens": 223
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

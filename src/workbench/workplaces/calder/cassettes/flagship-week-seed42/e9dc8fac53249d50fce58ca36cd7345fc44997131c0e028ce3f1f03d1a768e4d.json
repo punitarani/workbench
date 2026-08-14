@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day this reflection covers\n3. `today_activity` (str): everything you saw and did today\n4. `open_items` (str): unanswered items still pending\n5. `prior_summaries` (str): your recent daily summaries\nYour output fields are:\n1. `reflection` (DailyReflection):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## today_activity ## ]]\n{today_activity}\n\n[[ ## open_items ## ]]\n{open_items}\n\n[[ ## prior_summaries ## ]]\n{prior_summaries}\n\n[[ ## reflection ## ]]\n{reflection}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"MemoryBullet\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"importance\": {\"type\": \"integer\", \"maximum\": 10, \"minimum\": 1, \"title\": \"Importance\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"text\": {\"type\": \"string\", \"title\": \"Text\"}}, \"required\": [\"text\", \"importance\"], \"title\": \"MemoryBullet\"}}, \"additionalProperties\": false, \"description\": \"What the day distilled to: bullets future-you needs, with the\\nworld ids they concern and how much they matter.\", \"properties\": {\"bullets\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/MemoryBullet\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Bullets\"}, \"open_loops\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Open Loops\"}}, \"required\": [\"bullets\"], \"title\": \"DailyReflection\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Consolidate your working day into a durable note. Write three to\n        eight bullets a colleague could act on tomorrow: decisions made,\n        commitments given or received, risks noticed, threads left open.\n        Rate each bullet's importance 1-10 and carry the exact world ids\n        (thr-/tkt-/cnv-/doc-) it concerns. List open loops separately."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Nadia Osman, Staff Accountant (junior).\nStaff accountant, tax: preparation on Kestrel and the Summit owners, close support for Gabriel in the first week of the month.\nPersonality: Diligent, fast learner, asks good questions in DMs before asking them in channels.\nEmail register: Polite and to the point; signs 'Nadia'.\nChat register: Quick, cheerful, emoji-fluent.\nWorking hours: 08:30-17:30\n\n[[ ## day ## ]]\n2026-01-07\n\n[[ ## today_activity ## ]]\n[09:05] Planned the day: Clarify first-week-of-month support responsibilities with Gabriel; Review Kestrel owner tax …\n[09:30] Rejected action from nadia-osman: unknown conversation 'cnv-engagements'\n\n[[ ## open_items ## ]]\nNothing pending.\n\n[[ ## prior_summaries ## ]]\nFirst day as Staff Accountant (tax): completed onboarding documentation review covering engagement letter, ti…\nTax group huddle scheduled today but encountered system issues accessing conversation threads (thr-tax-group-…\nPrimary responsibility: support Gabriel with Kestrel and Summit owner tax preparation; need to clarify first-…\nSystem access issue blocking planned follow-up on engagement conversations — flag with admin/tech support if …\nEstablished working pattern: diligent approach to onboarding, asking clarifying questions in DMs before group…\n\nRespond with the corresponding output fields, starting with the field `[[ ## reflection ## ]]` (must be formatted as a valid Python DailyReflection), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 2290920374342076033,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## reflection ## ]]\n{\n  \"bullets\": [\n    {\n      \"text\": \"First day as Staff Accountant (tax) completed; onboarding documentation reviewed including engagement letters and tax preparation procedures\",\n      \"importance\": 8,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Primary role: support Gabriel with Kestrel and Summit owner tax preparation during first week of month; responsibilities need clarification in planned 1:1\",\n      \"importance\": 9,\n      \"refs\": []\n    },\n    {\n      \"text\": \"System access issue encountered: unable to access conversation thread 'cnv-engagements' and tax group huddle threads (thr-tax-group); needs IT/admin escalation\",\n      \"importance\": 7,\n      \"refs\": [\"thr-tax-group\"]\n    },\n    {\n      \"text\": \"Established working pattern: diligent approach to onboarding with preference for clarifying questions via DM before raising in group channels\",\n      \"importance\": 5,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Action rejected due to unknown conversation reference 'cnv-engagements' — system access or permissions issue to resolve with support\",\n      \"importance\": 6,\n      \"refs\": [\"cnv-engagements\"]\n    }\n  ],\n  \"open_loops\": [\n    \"Clarify first-week-of-month tax support responsibilities with Gabriel\",\n    \"Resolve system access issue with 'cnv-engagements' and tax group threads with IT/admin\",\n    \"Retrieve and review Kestrel owner tax preparation requirements once system access restored\"\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1017,
+      "completion_tokens": 404
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

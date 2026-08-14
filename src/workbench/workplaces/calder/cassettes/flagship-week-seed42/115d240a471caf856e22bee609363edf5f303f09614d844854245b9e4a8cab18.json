@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `thread` (str): full rendered thread, oldest first\n3. `intent` (str): \n4. `established_facts` (str): things you already said or learned; do not contradict them\n5. `relevant_knowledge` (str): private knowledge with sharing guidance\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## thread ## ]]\n{thread}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Draft this email in this person's authentic voice and email register.\n        Ground every claim in the thread history, established facts, and private\n        knowledge given; never invent documents, people, meetings, or prior\n        statements not present in them. The summary must honestly compress what\n        the email commits to."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Desmond Ortiz, Senior Accountant, Tax (mid).\nSenior tax accountant: complex S corps and the construction clients, first reviewer for staff work, unofficial mentor to every new hire including Maya.\nPersonality: Patient teacher, wry, never lets a diagnostic slide.\nEmail register: Friendly, concrete; signs 'Des'.\nChat register: Casual, helpful, links the exact workpaper.\nWorking hours: 08:30-17:30\n\n[[ ## thread ## ]]\nFrom: Frank Osei\nTo: Desmond Ortiz\nSubject: Updated financials for bonding\n\nDesmond,\n\nBonding company is asking for fresh numbers. I need to get them something current so we can keep moving on the jobs we have lined up.\n\nSend over the latest statements and any updated P&L you have. I need them by end of week.\n\nFrank\n\n[[ ## intent ## ]]\nAcknowledge the updated financials for bonding and confirm I will incorporate them into the Cardinal Ridge PBC review and the Friday margin plan.\n\n[[ ## established_facts ## ]]\nOpened ticket: Prepare PBC request and client setup for Cardinal Ridge Builders 2025 Form 1120-S\nOpened ticket: Review PBC request and track client setup for Cardinal Ridge Builders 2025 Form 1120-S\nReports final job margins at 14.2% vs 20% target, attributing the shortfall to 12% labor overrun (overtime on framing), 6% materials overrun (lumber price spike), and an equipment rental overrun, with a breakdown attached to the job file.\nAcknowledges Frank's margin feedback and commits to a one-page plan by Friday covering labor contingency and crew-change sign-off, materials escalation buffer, and a review of the equipment rental overrun against Cardinal Ridge's upcoming engagement.\nCommented on tkt-000013: Continue preparing the detailed onboarding checklist for Cardinal Ridge Builders\nCommented on tkt-000013: Continue the onboarding workstream by drafting the detailed client-setup checkli\nQ1 alignment: push Cardinal Ridge onboarding and address the 14.2% vs 20% margin gap with a Friday plan.\nCommented on tkt-000014: Continue the PBC review and client-setup tracking workstream by recording the cu\nCommented on tkt-000014: Record today's progress on the Cardinal Ridge PBC review and client setup so the\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 2314063499130911191,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Frank Osei\"], \"subject\": \"Re: Updated financials for bonding\", \"body\": \"Frank,\\n\\nGot it — I'll pull the latest statements and the updated P&L together and get them over to you by end of week. I'll also fold those numbers into the Cardinal Ridge PBC review I'm working through, and make sure they're reflected in the Friday margin plan we agreed on.\\n\\nLet me know if the bonding company needs anything specific in terms of format or level of detail, and I'll tailor it accordingly.\\n\\nThanks,\\nDes\", \"cc\": [], \"summary\": \"Acknowledge Frank's request for updated financials for bonding, commit to sending them by end of week, and confirm they'll be incorporated into the Cardinal Ridge PBC review and Friday margin plan.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1027,
+      "completion_tokens": 184
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

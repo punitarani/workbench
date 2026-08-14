@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Margot Ellison, Operations Director at Juniper & Main Retail. Organized and courteous; plans ahead. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nInventory shrink at one store looks wrong in the books. (topic: bookkeeping)\n\n[[ ## contacts ## ]]\nElias Finch\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 1813358904743353733,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Elias Finch\"],\n  \"subject\": \"Inventory discrepancy at Northgate location\",\n  \"body\": \"Hi Elias,\\n\\nI hope you're doing well. I'm reaching out because we've noticed an unusual inventory shrink figure for our Northgate store in the latest bookkeeping cycle. The numbers don't quite line up with our historical patterns, and I want to make sure we catch any issue early before it impacts our reporting.\\n\\nCould you take a look at the Northgate inventory adjustments for the last two months and let me know if anything stands out? If there's a timing or entry error on our end, I'd appreciate your help identifying it. If it's something we need to address on the operational side, I'll loop in the store team right away.\\n\\nNo rush, but if you could get back to me by end of week, that would be ideal. Happy to set up a quick call if that's easier.\\n\\nThanks,\\nMargot\",\n  \"cc\": [],\n  \"summary\": \"Requesting Elias Finch to review Northgate inventory shrink discrepancies in the books and report any issues or needed adjustments by end of week.\"\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 510,
+      "completion_tokens": 255
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

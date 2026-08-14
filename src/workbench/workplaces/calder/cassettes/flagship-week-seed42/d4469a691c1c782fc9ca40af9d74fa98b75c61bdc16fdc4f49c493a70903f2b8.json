@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Desmond Ortiz, Senior Accountant, Tax (mid).\nSenior tax accountant: complex S corps and the construction clients, first reviewer for staff work, unofficial mentor to every new hire including Maya.\nPersonality: Patient teacher, wry, never lets a diagnostic slide.\nEmail register: Friendly, concrete; signs 'Des'.\nChat register: Casual, helpful, links the exact workpaper.\nWorking hours: 08:30-17:30\n\n[[ ## conversation ## ]]\n\n\n[[ ## intent ## ]]\nMentoring check-in with Maya and team on Q1 priorities alignment\n\n[[ ## established_facts ## ]]\nOpened ticket: Prepare PBC request and client setup for Cardinal Ridge Builders 2025 Form 1120-S\nOpened ticket: Review PBC request and track client setup for Cardinal Ridge Builders 2025 Form 1120-S\nReports final job margins at 14.2% vs 20% target, attributing the shortfall to 12% labor overrun (overtime on framing), 6% materials overrun (lumber price spike), and an equipment rental overrun, with a breakdown attached to the job file.\nAcknowledges Frank's margin feedback and commits to a one-page plan by Friday covering labor contingency and crew-change sign-off, materials escalation buffer, and a review of the equipment rental overrun against Cardinal Ridge's upcoming engagement.\nCommented on tkt-000013: Continue preparing the detailed onboarding checklist for Cardinal Ridge Builders\nCommented on tkt-000013: Continue the onboarding workstream by drafting the detailed client-setup checkli\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 13911821079898326451,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Morning team — quick alignment on Q1. Two priorities: 1) get Cardinal Ridge fully onboarded (Maya, you've got the PBC request and setup ticket — keep pushing, link me the checklist when it's drafted), and 2) the Cardinal Ridge margin gap. Job file shows 14.2% vs 20% target; labor overrun on overtime is the big one, but materials and equipment rental need eyes too. Frank's aware, and I'm committing to a one-page plan by Friday — labor contingency, materials buffer, and reviewing that rental against the engagement. Ping me with questions or blockers before EOD. Des\", \"summary\": \"Q1 alignment: push Cardinal Ridge onboarding and address the 14.2% vs 20% margin gap with a Friday plan.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 696,
+      "completion_tokens": 181
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

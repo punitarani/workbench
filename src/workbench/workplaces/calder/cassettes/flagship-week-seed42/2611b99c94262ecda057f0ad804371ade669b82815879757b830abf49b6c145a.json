@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Marco Petrosyan, Owner at Blue Fir Restaurant Group. Warm, hurried, writes like he talks. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Marco Petrosyan\nTo: Gabriel Fontes, Sylvia Nakamura\nSubject: Tip reporting for the quarter — quick check\n\nHi Gabriel, Sylvia,\n\nHope you’re both doing well. I was going over the numbers for the quarter, and the tip reporting looks off to me — seems like it’s lower than what we’ve seen in past quarters, even with the same traffic. I might be missing something, but I want to make sure we’re capturing everything correctly before we file.\n\nCan you both take a look and let me know if there’s anything we need to adjust or if there’s a reason for the dip? I’d like to get this squared away before the end of the week so we’re not caught off guard.\n\nThanks — appreciate the quick response.\n\nMarco\n\n---\n\nFrom: Gabriel Fontes\nTo: Marco Petrosyan\nSubject: Re: Tip reporting for the quarter — quick check\n\nHi Marco,\n\nThanks for flagging this — I’ve pulled the tip reporting for the quarter and compared it against traffic and prior periods. You’re right that it’s slightly lower than the last two quarters, but it’s not a capture issue. The dip tracks to a small shift in payment mix (more card tips than cash this quarter, and card tips have a slightly lower average due to a couple of larger parties who tipped at a lower rate).\n\nI’ve also double-checked that all tip lines from the POS feed made it into the reporting package — nothing was missed. If it helps, I can send a short breakdown of the quarter-over-quarter comparison and the payment-mix detail so you can see the driver clearly.\n\nHappy to walk you through it if that’s easier — just let me know. We’re in good shape to file on time.\n\nBest,\nGabriel Fontes\n\n---\n\nFrom: Sylvia Nakamura\nTo: Marco Petrosyan\nSubject: Re: Tip reporting for the quarter — quick check\n\nHi Marco,\n\nThanks for flagging this. I’ve pulled the tip reporting data for the quarter and cross-checked it against the prior periods. You’re right that the figure is lower — but the dip traces to a tip-allocation correction we made earlier this year. Specifically, the Q1 Oregon withholding return was amended in May to fix that allocation error, and the adjustment carried into how tips were reported for the following quarter. So the number reflects that correction, not a capture issue.\n\nI’ve verified the source records and the amended filing confirmation is in the payroll folder if you want to review it. I’m confident we’re capturing everything correctly now, and we’re set for the end-of-week filing.\n\nIf you’d like me to walk through the line-by-line breakdown, I’m happy to do that — just let me know.\n\nBest,\nSylvia\n\n[[ ## contacts ## ]]\nGabriel Fontes, Sylvia Nakamura\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 12862457686976912551,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Gabriel Fontes\", \"Sylvia Nakamura\"],\n  \"subject\": \"Re: Tip reporting for the quarter — quick check\",\n  \"body\": \"Thanks both — appreciate you jumping on this fast. Looks like you're both pointing to different things (payment mix vs. the Q1 correction), which makes me wonder if we're all looking at the same numbers. Can you sync up and give me one clear answer on what's driving the dip? If you both agree, send me a quick summary — happy to take a call if that's easier. Just need to know we're good to file.\",\n  \"summary\": \"Marco asks Gabriel and Sylvia to reconcile their different explanations for the tip reporting dip and provide a single, agreed-upon reason before filing.\",\n  \"cc\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1083,
+      "completion_tokens": 180
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

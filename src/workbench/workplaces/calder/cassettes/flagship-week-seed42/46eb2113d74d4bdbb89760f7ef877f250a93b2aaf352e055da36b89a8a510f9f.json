@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\nInputs will have the following structure:\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\nOutputs will be a JSON object with the following fields.\n\n{\n  \"draft\": \"{draft}        # note: the value you produce must adhere to the JSON schema: {\\\"type\\\": \\\"object\\\", \\\"additionalProperties\\\": false, \\\"properties\\\": {\\\"body\\\": {\\\"type\\\": \\\"string\\\", \\\"title\\\": \\\"Body\\\"}, \\\"cc\\\": {\\\"type\\\": \\\"array\\\", \\\"default\\\": [], \\\"description\\\": \\\"Cc recipients by full name from the thread or directory.\\\", \\\"items\\\": {\\\"type\\\": \\\"string\\\"}, \\\"title\\\": \\\"Cc\\\"}, \\\"subject\\\": {\\\"type\\\": \\\"string\\\", \\\"title\\\": \\\"Subject\\\"}, \\\"summary\\\": {\\\"type\\\": \\\"string\\\", \\\"title\\\": \\\"Summary\\\"}, \\\"to\\\": {\\\"type\\\": \\\"array\\\", \\\"description\\\": \\\"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\\\", \\\"items\\\": {\\\"type\\\": \\\"string\\\"}, \\\"minItems\\\": 1, \\\"title\\\": \\\"To\\\"}}, \\\"required\\\": [\\\"to\\\", \\\"subject\\\", \\\"body\\\", \\\"summary\\\"], \\\"title\\\": \\\"EmailDraft\\\"}\"\n}\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Alice Kwon, Practice Manager at Riverbend Dental Studio. Apologetic about the books, grateful for patience. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nAn associate dentist buy-in question came up. (topic: advisory)\n\n[[ ## contacts ## ]]\nColin Mackey, Elias Finch\n\nRespond with a JSON object in the following order of fields: `draft` (must be formatted as a valid Python EmailDraft)."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 12404068508323307081,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "{\n  \"draft\": {\n    \"to\": [\"Colin Mackey\"],\n    \"subject\": \"Following up on associate buy-in\",\n    \"body\": \"Hi Colin,\\n\\nI wanted to follow up on the associate buy-in question we touched on last week. I apologize for the delay in getting back to you—I've been buried in the books, and I appreciate your patience as we sort through everything.\\n\\nCould we set up a brief call to discuss the next steps? I'd like to get your perspective on how to approach this with the associate, especially given the current financials. I've also looped in Elias for any accounting details we might need.\\n\\nLet me know what works for you. Thanks again for your understanding.\\n\\nBest,\\nAlice\",\n    \"cc\": [\"Elias Finch\"],\n    \"summary\": \"Alice follows up on the associate buy-in question, apologizes for delay, and asks to schedule a call with Colin, cc'ing Elias.\"\n  }\n}",
+    "usage": {
+      "prompt_tokens": 532,
+      "completion_tokens": 209
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

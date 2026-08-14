@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Gloria Nunez, Office Manager at Summit Physical Therapy. Chatty, thorough, includes every detail. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nAn insurer's audit letter needs a financial answer. (topic: close)\n\n[[ ## contacts ## ]]\nLucia Mendes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 17424223272199962637,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Lucia Mendes\"],\n  \"cc\": [],\n  \"subject\": \"Response to Audit Letter – Financial Documentation Needed\",\n  \"body\": \"Hi Lucia,\\n\\nHope you're doing well! I’m reaching out because we received that audit letter from the insurer last week, and it’s got a deadline we need to hit. We need to send back a financial breakdown, specifically the supporting documents for the claims listed in their request.\\n\\nTo put this together properly, I’m going to need the following from your end:\\n\\n- The payment history for the last six months for the accounts they flagged (I’ve attached the letter here for reference – it lists the exact claim numbers).\\n- A copy of any adjusted billing statements or refunds processed during that period.\\n- If possible, a summary of any prior authorizations or denials we received, just to have a complete picture.\\n\\nI know this is a bit of a scramble, but could you send those over by Thursday? I’d like to get the draft response to you by Friday so we can review together before mailing it out early next week.\\n\\nLet me know if you need me to pull anything else from our side – happy to help. Thanks so much for jumping on this!\\n\\nBest,\\nGloria Nunez\\nOffice Manager\\nSummit Physical Therapy\",\n  \"summary\": \"Requesting financial documentation from Lucia Mendes to respond to an insurer's audit letter before the deadline.\"\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 508,
+      "completion_tokens": 327
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

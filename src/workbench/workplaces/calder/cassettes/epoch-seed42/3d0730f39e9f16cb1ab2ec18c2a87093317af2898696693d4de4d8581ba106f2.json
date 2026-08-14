@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Frank Osei, Owner at Cardinal Ridge Builders. Blunt, margin-obsessed, short sentences. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Frank Osei\nTo: Desmond Ortiz\nSubject: Margins on the last job\n\nDesmond,\n\nJust closed the Henderson project. Numbers came in way under what we quoted. That's not how we do business.\n\nI need to know what happened. Was it labor, materials, or something we missed on the bid? Don't sugarcoat it—just tell me straight.\n\nSend me the breakdown by end of week.\n\nFrank\n\n---\n\nFrom: Desmond Ortiz\nTo: Frank Osei\nSubject: Re: Margins on the last job\n\nFrank,\n\nGot your note. I pulled the Henderson job file and ran the numbers against our bid. Short answer: it's labor, not materials or a missed line item on the bid.\n\nWe quoted 42% gross margin, but actual came in at 31%. The gap is roughly $18,400, and nearly all of it is from field overtime on the framing and finishing crews — about 220 extra hours beyond what the bid assumed. Materials tracked within 1.5% of estimate, and no scope items were dropped or added.\n\nI've attached the breakdown by phase with the bid vs. actual hours and rates. Also flagged the variance to the project manager's field notes; looks like the schedule slipped two weeks due to weather and inspection delays, which pushed us into premium time.\n\nIf you want, I can dig into whether the original bid understated productivity on this type of build, but that's a separate conversation. For now, the short version is: labor overrun, driven by schedule compression, not a pricing error.\n\nHappy to walk through the workpaper if helpful.\n\nDes\n\n[[ ## contacts ## ]]\nDesmond Ortiz\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 15472687903218625451,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Desmond Ortiz\"],\n  \"subject\": \"Re: Margins on the last job\",\n  \"body\": \"Des,\\n\\nGot your breakdown. Appreciate the straight answer. 31% is still not where we need to be, but at least I know it's labor and not a bid miss.\\n\\nThat 220 hours of overtime—that's a red flag. We can't eat that again. I want you to look at the productivity assumptions on that bid and see if we're being too optimistic on framing and finishing for that type of build. If we need to adjust our estimating, do it before the next bid goes out.\\n\\nAlso, check if there's any way to build weather or inspection delays into the schedule cushion next time. We can't control the weather, but we can price for it.\\n\\nSend me a one-page summary of what you'd change on the next similar bid by Tuesday.\\n\\nFrank\",\n  \"summary\": \"Frank acknowledges labor overrun as the cause, but demands action: review productivity assumptions and adjust bidding to avoid future overtime losses. Asks for a one-page recommendation by Tuesday.\",\n  \"cc\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 827,
+      "completion_tokens": 259
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

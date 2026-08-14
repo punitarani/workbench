@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Reuben Tate, General Manager at Alder Creek Brewing. Casual and direct; hates paperwork. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Reuben Tate\nTo: Gabriel Fontes\nSubject: Keg deposit tally mismatch\n\nHey Gabriel,\n\nHope you're doing well. I'm going through the books here and my keg deposit liability number isn't lining up with what you've got on your end. I'm showing a different total than what's on the statement you sent last month.\n\nCan you double-check the numbers and see if there's a discrepancy on your side? I want to make sure we're squared away before I close this out.\n\nLet me know what you find.\n\nThanks,\nReuben\n\n---\n\nFrom: Gabriel Fontes\nTo: Reuben Tate\nSubject: Re: Keg deposit tally mismatch\n\nHi Reuben,\n\nThanks for flagging this. I've pulled the keg deposit liability detail on my end and compared it against the statement I sent last month. I'm going to double-check the movement on the line item, including any post-statement activity, and I'll get you a SKU-level breakdown so we're looking at the same components.\n\nQuick question to help me narrow it down: are you seeing a difference on the opening balance, the activity, or the closing total? That'll tell me whether it's a timing cut-off issue or a classification point.\n\nI'll have the breakdown to you by end of day tomorrow, and if you want, we can jump on a short call after that to walk through it. No other adjustments are sitting in my queue for that line item, so we should be able to get this squared away quickly.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 8902518159312566059,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Gabriel Fontes\"],\n  \"subject\": \"Re: Keg deposit tally mismatch\",\n  \"body\": \"Hey Gabriel,\\n\\nThanks for digging in. I'm seeing the gap on the closing total, not the opening balance or activity. So sounds like it could be a cut-off thing, but let's see what the SKU-level breakdown shows.\\n\\nThat call tomorrow after you send it over works for me. Just shoot me a time and I'll make it.\\n\\nThanks,\\nReuben\",\n  \"cc\": [],\n  \"summary\": \"Reuben confirms the discrepancy is on the closing total and agrees to a short call after Gabriel sends the SKU-level breakdown tomorrow.\"\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 808,
+      "completion_tokens": 160
+    },
+    "cache_hit": false
+  },
+  "site": null
+}
