@@ -64,6 +64,7 @@ class WorldStateModel(BaseModel):
     # conversation_id -> consecutive auto-granted chat run length.
     dm_streaks: tuple[tuple[str, int], ...] = ()
     chat_message_senders: tuple[tuple[str, str], ...] = ()
+    last_chat_message: tuple[tuple[str, str], ...] = ()
 
 
 class WorldState:
@@ -85,6 +86,7 @@ class WorldState:
         self.meetings: dict[str, MeetingProgress] = {}
         self.dm_streaks: dict[str, int] = {}
         self.chat_message_senders: dict[str, str] = {}
+        self.last_chat_message: dict[str, str] = {}
 
     def apply(self, event: Event) -> None:
         payload = event.payload
@@ -114,6 +116,9 @@ class WorldState:
                     payload.conversation_id
                 )
                 self.chat_message_senders[payload.chat_message_id] = payload.sender
+                self.last_chat_message[payload.conversation_id] = (
+                    payload.chat_message_id
+                )
                 members = self.conversations.get(payload.conversation_id, ())
                 if len(members) == 2:
                     self.dm_streaks[payload.conversation_id] = (
@@ -185,6 +190,7 @@ class WorldState:
             meetings=tuple(self.meetings[key] for key in sorted(self.meetings)),
             dm_streaks=tuple(sorted(self.dm_streaks.items())),
             chat_message_senders=tuple(sorted(self.chat_message_senders.items())),
+            last_chat_message=tuple(sorted(self.last_chat_message.items())),
         )
 
     @classmethod
@@ -211,6 +217,7 @@ class WorldState:
         state.meetings = {m.meeting_id: m for m in model.meetings}
         state.dm_streaks = dict(model.dm_streaks)
         state.chat_message_senders = dict(model.chat_message_senders)
+        state.last_chat_message = dict(model.last_chat_message)
         return state
 
     def resolve_person(self, ref: str) -> str | None:

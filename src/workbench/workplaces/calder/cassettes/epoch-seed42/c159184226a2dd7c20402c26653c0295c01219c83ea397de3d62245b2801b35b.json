@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": []\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Riverbend Dental Studio bookkeeping cleanup — initial assessment and PBC request\",\n      \"refs\": [\"tkt-\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Review engagement letter, time & billing policy, and tax workflow documentation for Riverbend engagement\",\n      \"refs\": [\"doc-\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 42300,\n      \"focus\": \"Set up Riverbend file structure, rate sheet, and records retention protocols\",\n      \"refs\": [\"doc-\"]\n    },\n    {\n      \"start\": 42300,\n      \"end\": 45900,\n      \"focus\": \"Riverbend cleanup work — reconciliations and data organization\",\n      \"refs\": [\"tkt-\"]\n    },\n    {\n      \"start\": 45900,\n      \"end\": 48600,\n      \"focus\": \"Admin and email — client master list updates, close out day\",\n      \"refs\": [\"doc-\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": []\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Riverbend Dental Studio bookkeeping cleanup — intake and initial assessment\",\n      \"refs\": [\"tkt-\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Review engagement letter, PBC request template, and client master list for Riverbend setup\",\n      \"refs\": [\"doc-\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 42300,\n      \"focus\": \"Stonebridge close support — check status against monthly close checklist\",\n      \"refs\": []\n    },\n    {\n      \"start\": 42300,\n      \"end\": 45000,\n      \"focus\": \"1065 prep — document review and scheduling\",\n      \"refs\": []\n    },\n    {\n      \"start\": 45000,\n      \"end\": 46800,\n      \"focus\": \"Admin and reconciliation catch-up\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 943,
-      "completion_tokens": 352
+      "completion_tokens": 329
     },
     "cache_hit": false
   },

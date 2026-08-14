@@ -1058,18 +1058,29 @@ class GroundedGm:
     def _ground_reaction(
         self, entity, sender, intent: ReactionIntent, event, delay
     ) -> tuple[EventDraft, ...]:
-        conversation_id = self._world.chat_message_conversations.get(
-            intent.chat_message_ref
-        )
+        message_ref = intent.chat_message_ref
+        conversation_id = self._world.chat_message_conversations.get(message_ref)
         if conversation_id is None:
-            raise IntentRejection(f"unknown chat message {intent.chat_message_ref!r}")
+            # The commonest slip is naming the conversation instead of a
+            # message; reacting to its latest message is what they meant.
+            resolved = self._world.resolve_conversation(message_ref)
+            if resolved is not None:
+                latest = self._world.last_chat_message.get(resolved)
+                if latest is None:
+                    raise IntentRejection(
+                        f"conversation {resolved} has no messages to react to"
+                    )
+                message_ref = latest
+                conversation_id = resolved
+            else:
+                raise IntentRejection(f"unknown chat message {message_ref!r}")
         members = self._world.conversations.get(conversation_id, ())
         if sender not in members:
             raise IntentRejection(f"{sender} is not in {conversation_id}")
         payload = ChatReactionAddedPayload(
             kind="chat.reaction.added",
             conversation_id=conversation_id,
-            chat_message_id=intent.chat_message_ref,
+            chat_message_id=message_ref,
             person_id=sender,
             emoji=intent.emoji,
         )

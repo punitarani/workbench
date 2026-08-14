@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Harbor Light PBC tracker review and coordination\",\n      \"refs\": []\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle attendance and assurance coordination\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Review onboarded documentation: Engagement Letter, policies, rate sheet, checklists\",\n      \"refs\": []\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Harbor Light testing files organization and fieldwork planning\",\n      \"refs\": []\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"Process and file Client Master List; update PBC Request Template integration\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Review onboarded documentation and establish working baseline\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-pbc-template\", \"doc-rate-sheet-2026\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Set up Harbor Light PBC tracker and initial testing file structure\",\n      \"refs\": [\"thr-harbor-light\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Document fieldwork approach and create baseline working papers\",\n      \"refs\": [\"thr-harbor-light\"]\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"Review Time & Billing Policy and Records Retention & Security Policy for compliance\",\n      \"refs\": [\"doc-time-billing\", \"doc-records-retention\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 917,
-      "completion_tokens": 273
+      "completion_tokens": 316
     },
     "cache_hit": false
   },

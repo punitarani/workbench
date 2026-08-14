@@ -248,9 +248,12 @@ def audit(log_path: Path) -> int:
         in ("email.message", "chat.message", "ticket.commented", "work.time.logged")
     ]
     notes = [e for e in events if e.tag == "sim.gm.note"]
+    braked = [e for e in notes if "already carries" in e.payload.note]
+    failures = [e for e in notes if "already carries" not in e.payload.note]
     check(
-        f"rejection rate {len(notes)}/{len(acts)} stays under 20%",
-        len(acts) > 0 and len(notes) <= 0.2 * len(acts),
+        f"grounding failures {len(failures)}/{len(acts)} stay under 20% "
+        f"({len(braked)} thread-cap brakes counted separately)",
+        len(acts) > 0 and len(failures) <= 0.2 * len(acts),
     )
     plans = Counter(e.payload.day for e in events if e.tag == "sim.agent.plan")
     reflections = Counter(e.payload.day for e in events if e.tag == "sim.agent.memory")
