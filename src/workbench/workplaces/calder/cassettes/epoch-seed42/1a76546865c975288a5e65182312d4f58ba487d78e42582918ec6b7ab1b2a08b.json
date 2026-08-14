@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle & brief on new returns\",\n      \"refs\": [\"tkt-1120s-kestrel\", \"tkt-1065-stonebridge\", \"tkt-1120s-cardinal\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Review engagement letter, rate sheet, and workflow policies for 2026 consistency\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-rate-sheet-2026\", \"doc-tax-workflow-policy\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Client master list audit & PBC request process refresh\",\n      \"refs\": [\"doc-client-master-list\", \"doc-pbc-template\", \"doc-billing-policy\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Initial review: Kestrel 1120-S, Stonebridge 1065, Cardinal 1120-S returns\",\n      \"refs\": [\"tkt-1120s-kestrel\", \"tkt-1065-stonebridge\", \"tkt-1120s-cardinal\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 50400,\n      \"focus\": \"Afternoon flex: client calls, fee discussions, or return sign-off as needed\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle & open items review\",\n      \"refs\": [\"tkt-1120s-kestrel\", \"tkt-1065-stonebridge\", \"tkt-1120s-cardinal\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 37800,\n      \"focus\": \"Client onboarding & engagement setup\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-pbc-template\", \"doc-client-master\"]\n    },\n    {\n      \"start\": 37800,\n      \"end\": 41400,\n      \"focus\": \"Fee & scope review + rate calibration\",\n      \"refs\": [\"doc-rate-sheet-2026\", \"doc-time-billing-policy\"]\n    },\n    {\n      \"start\": 41400,\n      \"end\": 45000,\n      \"focus\": \"Workflow & compliance audit\",\n      \"refs\": [\"doc-tax-return-workflow\", \"doc-records-retention\", \"doc-monthly-close\"]\n    },\n    {\n      \"start\": 45000,\n      \"end\": 52200,\n      \"focus\": \"Client time — relationship & returns\",\n      \"refs\": [\"tkt-1120s-kestrel\", \"tkt-1065-stonebridge\", \"tkt-1120s-cardinal\"]\n    }\n  ]\n}\n```\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 1024,
-      "completion_tokens": 408
+      "completion_tokens": 377
     },
     "cache_hit": false
   },

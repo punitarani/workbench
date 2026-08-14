@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Reuben Tate, General Manager at Alder Creek Brewing. Casual and direct; hates paperwork. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Reuben Tate\nTo: Gabriel Fontes\nSubject: Missing excise form — deadline's close\n\nHey Gabriel,\n\nI'm in a bind here. The excise filing deadline is right around the corner and I've somehow misplaced the form you sent over. I know I should've kept better track of it, but here we are. Could you send me a fresh copy? I'll get it filled and back to you ASAP so we don't miss anything.\n\nAppreciate the patience.\n\nReuben\n\n---\n\nFrom: Gabriel Fontes\nTo: Reuben Tate\nSubject: Re: Missing excise form — deadline's close\n\nHi Reuben,\n\nNo worries at all — these things happen. I've attached a fresh copy of the excise form for you. Please give it a quick once-over and send it back whenever you're ready. I'll keep an eye on the inbox so we can get it filed before the deadline.\n\nJust let me know if you run into any questions while filling it out.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 5136359288782177841,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Gabriel Fontes\"], \"subject\": \"Re: Missing excise form — deadline's close\", \"body\": \"Hey Gabriel,\\n\\nGot it — thanks for sending that over. I'll get it filled out and back to you today, no problem. Appreciate you keeping an eye on the inbox for this.\\n\\nTalk soon,\\nReuben\", \"cc\": [], \"summary\": \"Reuben acknowledges receipt of the excise form, confirms he will fill it out and return it today, and thanks Gabriel for watching for it.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 705,
+      "completion_tokens": 129
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

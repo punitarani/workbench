@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Morning review: Standard Rate Sheet 2026, Client Master List, and Monthly Close Checklist setup for Q1\",\n      \"refs\": []\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Policy & process review: Engagement Letter (Standard Form), Time & Billing Policy, Tax Return Workflow & Review Policy\",\n      \"refs\": []\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Administrative setup: PBC Request Template and Records Retention & Security Policy implementation\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Tax group huddle preparation and attendance\",\n      \"refs\": []\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Post-huddle: reconcile billing implications, update retainer tracking, prebilling queue review\",\n      \"refs\": []\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"End-of-day lockup: realization metrics, invoice pipeline, retainer status—guard the number\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Morning admin & policy review\",\n      \"refs\": [\"doc-engagement-letter-std\", \"doc-time-billing-policy\", \"doc-tax-workflow-policy\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Tax group huddle & coordination\",\n      \"refs\": [\"thr-tax-group-huddle\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Billing infrastructure setup: rates, templates, retention\",\n      \"refs\": [\"doc-standard-rate-sheet-2026\", \"doc-pbc-request-template\", \"doc-records-retention-policy\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Client master list audit & monthly close prep\",\n      \"refs\": [\"doc-client-master-list\", \"doc-monthly-close-checklist\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 61200,\n      \"focus\": \"Afternoon: prebilling, retainer reconciliation, lockup review\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 925,
-      "completion_tokens": 365
+      "completion_tokens": 343
     },
     "cache_hit": false
   },

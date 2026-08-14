@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Onboarding review: engagement letter, billing policy, and audit workflows\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-time-billing-policy\", \"doc-tax-return-workflow\", \"doc-records-retention-policy\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle and team introduction\",\n      \"refs\": [\"thr-tax-group-huddle\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Study Harbor Light engagement: PBC template, rate sheet, client master list\",\n      \"refs\": [\"doc-pbc-request-template\", \"doc-standard-rate-sheet-2026\", \"doc-client-master-list\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Monthly close process and month-end procedures familiarization\",\n      \"refs\": [\"doc-monthly-close-checklist\"]\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"Connect with Theo: clarify Harbor Light testing scope and initial assignment\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 37800,\n      \"focus\": \"Onboarding review: engagement letter, policies, and firm standards\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-time-billing-policy\", \"doc-tax-return-workflow\", \"doc-records-retention-policy\", \"doc-rate-sheet-2026\"]\n    },\n    {\n      \"start\": 37800,\n      \"end\": 41400,\n      \"focus\": \"Tax group huddle meeting\",\n      \"refs\": []\n    },\n    {\n      \"start\": 41400,\n      \"end\": 48600,\n      \"focus\": \"Review PBC template, client master list, and monthly close checklist; prepare for Harbor Light engagement\",\n      \"refs\": [\"doc-pbc-request-template\", \"doc-client-master-list\", \"doc-monthly-close-checklist\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 926,
-      "completion_tokens": 360
+      "completion_tokens": 252
     },
     "cache_hit": false
   },

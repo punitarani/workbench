@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day this reflection covers\n3. `today_activity` (str): everything you saw and did today\n4. `open_items` (str): unanswered items still pending\n5. `prior_summaries` (str): your recent daily summaries\nYour output fields are:\n1. `reflection` (DailyReflection):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## today_activity ## ]]\n{today_activity}\n\n[[ ## open_items ## ]]\n{open_items}\n\n[[ ## prior_summaries ## ]]\n{prior_summaries}\n\n[[ ## reflection ## ]]\n{reflection}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"MemoryBullet\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"importance\": {\"type\": \"integer\", \"maximum\": 10, \"minimum\": 1, \"title\": \"Importance\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"text\": {\"type\": \"string\", \"title\": \"Text\"}}, \"required\": [\"text\", \"importance\"], \"title\": \"MemoryBullet\"}}, \"additionalProperties\": false, \"description\": \"What the day distilled to: bullets future-you needs, with the\\nworld ids they concern and how much they matter.\", \"properties\": {\"bullets\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/MemoryBullet\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Bullets\"}, \"open_loops\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Open Loops\"}}, \"required\": [\"bullets\"], \"title\": \"DailyReflection\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Consolidate your working day into a durable note. Write three to\n        eight bullets a colleague could act on tomorrow: decisions made,\n        commitments given or received, risks noticed, threads left open.\n        Rate each bullet's importance 1-10 and carry the exact world ids\n        (thr-/tkt-/cnv-/doc-) it concerns. List open loops separately."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Colin Mackey, Staff Accountant (junior).\nStaff accountant, tax: the Riverbend cleanup is his baby; supports the Stonebridge close and 1065.\nPersonality: Steady, understated, secretly proud of his reconciliations.\nEmail register: Brief and factual; signs 'Colin'.\nChat register: Terse but friendly.\nWorking hours: 08:30-17:30\n\n[[ ## day ## ]]\n2026-01-06\n\n[[ ## today_activity ## ]]\n[09:05] Planned the day: Resolve tkt-000012 reference issue and system sync investigation; Riverbend Dental Studio bo…\n[09:35] Ticket opened: Riverbend Dental Studio PBC initial assessment and dat…\n\n[[ ## open_items ## ]]\nNothing pending.\n\n[[ ## prior_summaries ## ]]\nRiverbend Dental Studio bookkeeping cleanup is now live as primary project; initial assessment and PBC reques…\nTax group huddle scheduled today; core policies and templates now in place (engagement letter, time & billing…\nClient Master List and Monthly Close Checklist documents established; foundation for Stonebridge close and 10…\nSystem rejected reference to tkt-000012 at 11:00; ticket exists but may have ID mismatch or system sync issue…\nStandard Rate Sheet 2026 finalized and distributed; billing structure locked for year\n\nRespond with the corresponding output fields, starting with the field `[[ ## reflection ## ]]` (must be formatted as a valid Python DailyReflection), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 3524938195997291599,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## reflection ## ]]\n{\n  \"bullets\": [\n    {\n      \"text\": \"Riverbend Dental Studio PBC project ticket opened (tkt-000012); initial assessment underway—this is now primary focus alongside existing Stonebridge and 1065 work\",\n      \"importance\": 9,\n      \"refs\": [\"tkt-000012\"]\n    },\n    {\n      \"text\": \"System reference sync issue with tkt-000012 identified at 11:00—ticket exists in system but may have ID mismatch or sync failure; needs investigation to resolve reference problems\",\n      \"importance\": 7,\n      \"refs\": [\"tkt-000012\"]\n    },\n    {\n      \"text\": \"Tax group huddle scheduled for today; core engagement and billing templates already in place, ready for discussion\",\n      \"importance\": 6\n    },\n    {\n      \"text\": \"Foundation documents established (Client Master List, Monthly Close Checklist, Standard Rate Sheet 2026); framework solid for Stonebridge close and 1065 work\",\n      \"importance\": 8\n    }\n  ],\n  \"open_loops\": [\n    \"Resolve tkt-000012 system sync issue—determine if ID mismatch or deeper system problem\",\n    \"Complete Riverbend Dental Studio initial assessment details\",\n    \"Attend and participate in tax group huddle\"\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1003,
+      "completion_tokens": 337
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

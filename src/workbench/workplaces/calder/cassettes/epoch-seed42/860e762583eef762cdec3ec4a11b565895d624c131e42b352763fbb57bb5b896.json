@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Onboarding: Review tax documentation and policies\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-time-billing-policy\", \"doc-tax-return-workflow\", \"doc-pbc-template\", \"doc-records-retention\", \"doc-rate-sheet-2026\", \"doc-client-master-list\"]\n    },\n    {\n      \"start\": 34200,\n      \"end\": 34500,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": [\"thr-tax-huddle\"]\n    },\n    {\n      \"start\": 34500,\n      \"end\": 36900,\n      \"focus\": \"Review Monthly Close Checklist and familiarize with tax prep workflows\",\n      \"refs\": [\"doc-monthly-close-checklist\"]\n    },\n    {\n      \"start\": 36900,\n      \"end\": 41400,\n      \"focus\": \"Kestrel and Summit tax prep: initial case review and setup\",\n      \"refs\": [\"tkt-kestrel-tax\", \"tkt-summit-tax\"]\n    },\n    {\n      \"start\": 41400,\n      \"end\": 46800,\n      \"focus\": \"Support Gabriel with month-end close tasks and identify next priorities\",\n      \"refs\": [\"tkt-gabriel-support\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Review onboarding documents and tax workflow policies\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-time-billing-policy\", \"doc-tax-return-workflow\", \"doc-pbc-request-template\", \"doc-records-retention-policy\"]\n    },\n    {\n      \"start\": 34200,\n      \"end\": 34500,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": [\"thr-tax-group-huddle\"]\n    },\n    {\n      \"start\": 34500,\n      \"end\": 37800,\n      \"focus\": \"Familiarize with 2026 rate sheet and client master list; prepare for month-end close\",\n      \"refs\": [\"doc-rate-sheet-2026\", \"doc-client-master-list\", \"doc-monthly-close-checklist\"]\n    },\n    {\n      \"start\": 37800,\n      \"end\": 41400,\n      \"focus\": \"Set up tax preparation workspace; review Kestrel and Summit owner files for January close\",\n      \"refs\": []\n    },\n    {\n      \"start\": 41400,\n      \"end\": 45000,\n      \"focus\": \"Support Gabriel's first-week-of-month close activities; identify action items\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 946,
-      "completion_tokens": 369
+      "completion_tokens": 366
     },
     "cache_hit": false
   },

@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Marco Petrosyan, Owner at Blue Fir Restaurant Group. Warm, hurried, writes like he talks. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Marco Petrosyan\nTo: Gabriel Fontes, Sylvia Nakamura\nSubject: Q3 tip reporting — numbers look off\n\nHey Gabriel, Sylvia —\n\nI was reviewing the tip reporting for the quarter, and something doesn't add up. I don't have the exact breakdown in front of me right now, but the totals are lower than I expected, especially for the busy months. I need you both to check the numbers and make sure everything's been filed correctly — tips from credit cards, cash tips, all of it. If there's a delay or a mistake, I want to know today, not after the deadline.\n\nAlso, if we need to adjust anything before the filing, tell me what you need from me — I'll sign off quickly.\n\nThanks,\nMarco\n\n---\n\nFrom: Gabriel Fontes\nTo: Marco Petrosyan\nSubject: Re: Q3 tip reporting — numbers look off\n\nHi Marco,\n\nThanks for flagging this. Sylvia and I are both on it — we’re pulling the full Q3 tip reporting breakdown now, covering credit card tips, cash tips, and any timing differences between when tips were received and when they were filed.\n\nI don’t want to give you a number until I’ve verified it against the source data. I’ll have a line-by-line comparison ready for you by end of day today, and if anything looks like a mistake rather than a timing issue, I’ll call it out explicitly with the dollar impact and what caused it.\n\nIf we do need to amend anything before the filing deadline, I’ll let you know exactly what I need from you — likely just a confirmation to proceed, and I’ll prep the adjustment so your sign-off is quick.\n\nWill update you before COB.\n\nBest,\nGabriel Fontes\n\n---\n\nFrom: Sylvia Nakamura\nTo: Marco Petrosyan, Gabriel Fontes\nSubject: Re: Q3 tip reporting — numbers look off\n\nMarco, Gabriel,\n\nThank you for flagging this. I’ve pulled the Q3 tip reporting file and am going line by line through the credit card and cash tip totals, including the breakdowns for the busier months. I’ll cross-check against the source data from the POS and the payroll system.\n\nAt this point, I don’t see any missed deadlines or unprocessed batches—everything that was scheduled for the quarter went out on time. But the totals do appear lower than expected, so I want to verify the allocation logic before we file. If there’s a calculation or reporting error, I’ll have the corrected numbers ready by end of day today, along with a note on what caused the discrepancy.\n\nIf we do need to amend anything before the filing, I’ll let you know exactly what I need from you, and I’ll have the forms ready for your sign-off. I’ll also update the payroll ticket with a status note once I’ve confirmed the numbers.\n\nI’ll follow up with specifics shortly.\n\nBest,\nSylvia\n\n[[ ## contacts ## ]]\nGabriel Fontes, Sylvia Nakamura\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 12862457686976912551,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Gabriel Fontes\", \"Sylvia Nakamura\"], \"subject\": \"Re: Q3 tip reporting — numbers look off\", \"body\": \"Hey Gabriel, Sylvia —\\n\\nOkay, good. I appreciate you both jumping on this fast. I trust you're on it, and I’ll wait for your end-of-day numbers before I push any further. Just be straight with me if it's a mistake — I'd rather fix it now than deal with it after the deadline.\\n\\nIf you need anything from me — a signature, a confirmation, whatever — send it over and I'll get it back to you same day. Just don't leave me hanging.\\n\\nThanks,\\nMarco\", \"cc\": [], \"summary\": \"Marco acknowledges both Gabriel and Sylvia are handling the Q3 tip reporting issue, asks them to be direct about any mistakes, and offers quick sign-off if they need anything from him before the deadline.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1112,
+      "completion_tokens": 211
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

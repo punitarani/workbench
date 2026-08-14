@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Portal & security policy review for new documents\",\n      \"refs\": [\"doc-engagement-letter-std\", \"doc-time-billing-policy\", \"doc-tax-return-workflow\", \"doc-pbc-template\", \"doc-records-retention\", \"doc-rate-sheet-2026\", \"doc-client-master-list\", \"doc-monthly-close-checklist\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 37800,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": []\n    },\n    {\n      \"start\": 37800,\n      \"end\": 42300,\n      \"focus\": \"IT help triage & system access provisioning\",\n      \"refs\": []\n    },\n    {\n      \"start\": 42300,\n      \"end\": 43200,\n      \"focus\": \"Security policy audit & access review\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Morning triage: #it-help review, access requests, portal issues\",\n      \"refs\": []\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Security & retention: review saved policies (Records Retention & Security Policy, Time & Billing Policy, Tax Return Workflow & Review Policy), ensure portal compliance\",\n      \"refs\": []\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"System audit: verify access controls for Client Master List, Standard Rate Sheet 2026, and engagement templates; check PBC Request Template distribution\",\n      \"refs\": []\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"Documentation & closure: log policy updates, confirm staff access to Monthly Close Checklist, handle any escalated #it-help tickets\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 919,
-      "completion_tokens": 276
+      "completion_tokens": 322
     },
     "cache_hit": false
   },

@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## choice ## ]]\n{\"action\": \"idle\", \"target_ref\": null, \"intent\": \"Start the day by reviewing the engagement and audit matters, but no pending request requires an immediate action.\", \"reason\": \"It is 09:00 Monday and I have no pending items, no direct requests, and no commitments from recent activity. The only ticket (tkt-000007) is already open and does not yet show an escalation requiring my review. I should not invent work or send acknowledgment-only messages; idling until the tax group huddle or new substantive input arrives is appropriate.\"}\n[[ ## completed ## ]]",
+    "text": "[[ ## choice ## ]]\n{\"action\": \"idle\", \"target_ref\": null, \"intent\": \"Assess morning priorities before acting\", \"reason\": \"It is 09:00 at the start of the day with no pending items, no direct requests, and no urgent escalations. The only known ticket is already open and tracked. I will wait for incoming requests or the scheduled tax group huddle rather than invent work outside my role.\"}\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 1247,
-      "completion_tokens": 131
+      "completion_tokens": 100
     },
     "cache_hit": false
   },

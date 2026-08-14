@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what happened and who is involved\n3. `intent` (str): \n4. `workplace_norms` (str): valid ticket statuses, priorities, and types\nYour output fields are:\n1. `ticket` (TicketCreateSpec):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## workplace_norms ## ]]\n{workplace_norms}\n\n[[ ## ticket ## ]]\n{ticket}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"assignee_ref\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"description\": \"Who should own it, by full name; null if unassigned.\", \"title\": \"Assignee Ref\"}, \"description\": {\"type\": \"string\", \"title\": \"Description\"}, \"priority\": {\"type\": \"string\", \"description\": \"One of the workplace's priorities.\", \"title\": \"Priority\"}, \"requester_ref\": {\"type\": \"string\", \"description\": \"The person who asked for this, by their full name as listed in the situation. A person, never a company.\", \"title\": \"Requester Ref\"}, \"status\": {\"type\": \"string\", \"description\": \"One of the workplace's ticket statuses.\", \"title\": \"Status\"}, \"ticket_type\": {\"type\": \"string\", \"description\": \"One of the workplace's ticket types.\", \"title\": \"Ticket Type\"}, \"title\": {\"type\": \"string\", \"title\": \"Title\"}}, \"required\": [\"title\", \"description\", \"requester_ref\", \"assignee_ref\", \"status\", \"priority\", \"ticket_type\"], \"title\": \"TicketCreateSpec\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Open a work-tracking ticket for this request. Use only status,\n        priority, and type values from the workplace norms given; name real\n        people from the situation as requester and assignee."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Imogen Carraway, Audit Manager (senior).\nAudit manager: ran the Harbor Light audit end to end, owns assurance scheduling and the PBC process. Post-season, planning next year's audit calendar.\nPersonality: Methodical, unflappable, keeps the team's morale up with understatement.\nEmail register: Structured and courteous; signs 'Imogen'.\nChat register: Tidy sentences; numbers her questions.\nWorking hours: 08:30-17:00\n\n[[ ## situation ## ]]\nPeople: Alice Kwon; Colin Mackey; Dana Whitfield; Denise Archer; Desmond Ortiz; Elias Finch; Evan Doyle; Frank Osei; Freya Holt; Gabriel Fontes; Gloria Nunez; Hana Sato; Imogen Carraway; Lucia Mendes; Marco Petrosyan; Margot Ellison; Nadia Osman; Naomi Castellanos; Owen Castile; Priscilla Wong; Raj Malhotra; Reuben Tate; Rosalind Calder; Sana Qureshi; Sylvia Nakamura; Theo Brandt; Victor Alade\n\nNone yet.\n\nPending:\n\n\n[[ ## intent ## ]]\nSet up the PBC (prepared-by-client) process for the Harbor Light Foundation FY2025 audit with a finalized template, client communication, and submission timeline.\n\n[[ ## workplace_norms ## ]]\nTicket statuses: open, in-progress, waiting-client, review, closed. Priorities: low, normal, high, urgent. Types: monthly-close, tax-return, payroll, audit, advisory, bookkeeping, onboarding, notice, general.\n\nRespond with the corresponding output fields, starting with the field `[[ ## ticket ## ]]` (must be formatted as a valid Python TicketCreateSpec), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 7054866569856066855,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## ticket ## ]]\n{\n  \"title\": \"Harbor Light Foundation FY2025 PBC Process Setup\",\n  \"description\": \"Set up the prepared-by-client (PBC) process for the Harbor Light Foundation FY2025 audit. Finalize the PBC template, draft and send client communication regarding required schedules and documents, and establish a submission timeline with clear deadlines. Coordinate with the client contact to confirm receipt and address any questions.\",\n  \"requester_ref\": \"Imogen Carraway\",\n  \"assignee_ref\": null,\n  \"status\": \"open\",\n  \"priority\": \"normal\",\n  \"ticket_type\": \"audit\"\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 867,
+      "completion_tokens": 142
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

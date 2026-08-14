@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Morning admin setup: portal queue review, institutional calendar check, prepare for tax group huddle\"\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Tax group huddle meeting\",\n      \"refs\": [\"thr-tax-huddle\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Document filing and portal management: organize engagement letter, policies, rate sheet, client list, and checklists into firm systems\",\n      \"refs\": [\"doc-engagement-letter-std\", \"doc-time-billing-policy\", \"doc-tax-return-workflow\", \"doc-pbc-template\", \"doc-records-retention-policy\", \"doc-rate-sheet-2026\", \"doc-client-master-list\", \"doc-monthly-close-checklist\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Scheduling and coordination: confirm next meetings, update institutional calendar, respond to portal inquiries\"\n    },\n    {\n      \"start\": 43200,\n      \"end\": 45000,\n      \"focus\": \"Close-of-day: tidy desk, prep tomorrow's queue, final email sweep\"\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Morning admin setup: review portal queue, check institutional calendar, organize documents saved overnight\"\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Tax group huddle meeting\",\n      \"refs\": [\"thr-tax-group-huddle\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"File and catalog new documents: engagement letter, policies, rate sheet, client list, checklists into shared systems\"\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Scheduling and calendar coordination: update institutional calendar, process any pending scheduling requests\"\n    },\n    {\n      \"start\": 43200,\n      \"end\": 45900,\n      \"focus\": \"Portal queue triage and follow-ups: address any client requests or administrative items requiring attention\"\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 915,
-      "completion_tokens": 362
+      "completion_tokens": 279
     },
     "cache_hit": false
   },

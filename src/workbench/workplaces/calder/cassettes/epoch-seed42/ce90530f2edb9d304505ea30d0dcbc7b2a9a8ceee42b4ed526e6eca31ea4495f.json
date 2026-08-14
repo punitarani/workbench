@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"minItems\": 1, \"title\": \"To\"}}, \"required\": [\"to\", \"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Frank Osei, Owner at Cardinal Ridge Builders. Blunt, margin-obsessed, short sentences. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Frank Osei\nTo: Desmond Ortiz\nSubject: Margins on the last job\n\nDesmond,\n\nWe closed the last project way under margin. I want to know why. \n\nSend me the numbers—line by line. Where did we lose it? Labor, materials, or something else?\n\nI need this before end of week.\n\nFrank\n\n---\n\nFrom: Desmond Ortiz\nTo: Frank Osei\nSubject: Re: Margins on the last job\n\nFrank,\n\nThanks for the note. I dug into the job file this morning and pulled the line-by-line breakdown you asked for.\n\nHere’s the short version: we lost it on labor. The budgeted hours came in about 18% over what we estimated, and the overtime premium on the last two weeks pushed that line item further. Materials were close to plan—within 2%—and equipment rental actually came in under. So the culprit is labor, specifically the rework on the foundation pour that wasn’t in the original takeoff.\n\nI’ll have the full schedule attached to the shared drive by end of day, broken down by phase and crew. If you want, I can also run a quick variance analysis against the last three similar-size projects to see if this is a pattern or a one-off.\n\nLet me know if you’d like me to walk you through it before the huddle.\n\nDes\n\n[[ ## contacts ## ]]\nDesmond Ortiz\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 15472687903218625451,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"to\": [\"Desmond Ortiz\"], \"subject\": \"Re: Margins on the last job\", \"cc\": [], \"summary\": \"Acknowledges labor variance, asks for root cause on rework and whether takeoff process needs fixing, schedules a quick call.\", \"body\": \"Des,\\n\\nGot it. Labor being the culprit is no surprise—rework always bleeds. But I want the why behind that foundation pour. Was it a takeoff miss, a crew issue, or something on the ground?\\n\\nRun that variance against the last three jobs. If this is a pattern, we need to fix the estimating process, not just the hours.\\n\\nCall me tomorrow at 9 to walk through it. Keep the full breakdown coming.\\n\\nFrank\"} \n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 776,
+      "completion_tokens": 173
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 37800,\n      \"focus\": \"Review onboarded documentation and firm policies\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-time-billing-policy\", \"doc-tax-workflow\", \"doc-records-retention\", \"doc-rate-sheet-2026\", \"doc-client-master-list\"]\n    },\n    {\n      \"start\": 37800,\n      \"end\": 41400,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": []\n    },\n    {\n      \"start\": 41400,\n      \"end\": 46800,\n      \"focus\": \"Set up PBC tracker and testing framework for Harbor Light\",\n      \"refs\": [\"doc-pbc-request-template\", \"doc-monthly-close-checklist\"]\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"Document fieldwork approach and establish baseline working files\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Harbor Light PBC tracker review and coordination\",\n      \"refs\": []\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle attendance and assurance coordination\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Review onboarded documentation: Engagement Letter, policies, rate sheet, checklists\",\n      \"refs\": []\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Harbor Light testing files organization and fieldwork planning\",\n      \"refs\": []\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"Process and file Client Master List; update PBC Request Template integration\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 917,
-      "completion_tokens": 278
+      "completion_tokens": 273
     },
     "cache_hit": false
   },

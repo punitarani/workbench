@@ -826,6 +826,18 @@ class GroundedGm:
             if intent.thread_ref not in self._world.thread_ids:
                 raise IntentRejection(f"unknown thread {intent.thread_ref!r}")
             thread_id = intent.thread_ref
+            # Wake-driven replies can ping-pong past any auto-grant cap; a
+            # real thread this long has become a meeting or a task. The
+            # rejection is feedback the persona remembers.
+            length = sum(
+                1 for thread in self._world.threads.values() if thread == thread_id
+            )
+            if length >= 12:
+                raise IntentRejection(
+                    f"thread {thread_id} already carries {length} messages; "
+                    "move the work forward — schedule a meeting, open or "
+                    "update a ticket, or let it rest"
+                )
         else:
             thread_id = self._minter.mint("thr")
         in_reply_to = intent.reply_to_ref

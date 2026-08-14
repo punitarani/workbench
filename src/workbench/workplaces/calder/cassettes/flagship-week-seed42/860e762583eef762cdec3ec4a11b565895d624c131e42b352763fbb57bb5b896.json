@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day being planned\n3. `calendar_today` (str): meetings already on your calendar\n4. `yesterday` (str): yesterday's summary and open loops\n5. `relevant_memories` (str):\nYour output fields are:\n1. `plan` (DayPlanSpec):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## calendar_today ## ]]\n{calendar_today}\n\n[[ ## yesterday ## ]]\n{yesterday}\n\n[[ ## relevant_memories ## ]]\n{relevant_memories}\n\n[[ ## plan ## ]]\n{plan}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"PlanBlock\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"end\": {\"type\": \"integer\", \"exclusiveMinimum\": 0, \"maximum\": 86400, \"title\": \"End\"}, \"focus\": {\"type\": \"string\", \"title\": \"Focus\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"start\": {\"type\": \"integer\", \"exclusiveMaximum\": 86400, \"minimum\": 0, \"title\": \"Start\"}}, \"required\": [\"start\", \"end\", \"focus\"], \"title\": \"PlanBlock\"}}, \"additionalProperties\": false, \"description\": \"The day in time blocks: what gets focused attention and when.\", \"properties\": {\"blocks\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/PlanBlock\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Blocks\"}}, \"required\": [\"blocks\"], \"title\": \"DayPlanSpec\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Lay out your working day in two to six time blocks. Anchor blocks\n        to your real calendar first, then place the work your open items and\n        memories say matters most. Times are seconds since midnight inside\n        working hours; carry the exact world ids (thr-/tkt-/doc-) each block\n        concerns."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Nadia Osman, Staff Accountant (junior).\nStaff accountant, tax: preparation on Kestrel and the Summit owners, close support for Gabriel in the first week of the month.\nPersonality: Diligent, fast learner, asks good questions in DMs before asking them in channels.\nEmail register: Polite and to the point; signs 'Nadia'.\nChat register: Quick, cheerful, emoji-fluent.\nWorking hours: 08:30-17:30\n\n[[ ## day ## ]]\n2026-01-05\n\n[[ ## calendar_today ## ]]\n09:30-09:45 Tax group huddle\n\n[[ ## yesterday ## ]]\nNo summary on file.\n\n[[ ## relevant_memories ## ]]\n- [today | !5] Meeting scheduled: Tax group huddle\n- [today | !4] Document saved: Engagement Letter (Standard Form)\n- [today | !4] Document saved: Time & Billing Policy\n- [today | !4] Document saved: Tax Return Workflow & Review Policy\n- [today | !4] Document saved: PBC Request Template\n- [today | !4] Document saved: Records Retention & Security Policy\n- [today | !4] Document saved: Standard Rate Sheet 2026\n- [today | !4] Document saved: Client Master List\n- [today | !4] Document saved: Monthly Close Checklist\n\nRespond with the corresponding output fields, starting with the field `[[ ## plan ## ]]` (must be formatted as a valid Python DayPlanSpec), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 279633350600534037,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Review onboarding documentation and policies\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-time-billing-policy\", \"doc-tax-workflow\", \"doc-pbc-template\", \"doc-records-retention\", \"doc-rate-sheet-2026\", \"doc-client-master-list\"]\n    },\n    {\n      \"start\": 34200,\n      \"end\": 34700,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": [\"thr-tax-group-huddle\"]\n    },\n    {\n      \"start\": 34700,\n      \"end\": 37800,\n      \"focus\": \"Familiarize with Monthly Close Checklist and tax preparation workflows\",\n      \"refs\": [\"doc-monthly-close-checklist\"]\n    },\n    {\n      \"start\": 37800,\n      \"end\": 44100,\n      \"focus\": \"Set up systems and prepare for first-week month-end support with Gabriel\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 946,
+      "completion_tokens": 294
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

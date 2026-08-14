@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Blue Fir payroll intake & quarterly filing setup\",\n      \"refs\": [\"tkt-payroll-blue-fir\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Tax group huddle & filing coordination\",\n      \"refs\": [\"tkt-payroll-blue-fir\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Review engagement letter, PBC template, and client documentation\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-pbc-template\", \"doc-client-master-list\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Prepare quarterly filing checklist and withholding verification\",\n      \"refs\": [\"tkt-payroll-blue-fir\", \"doc-monthly-close-checklist\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Review Blue Fir Restaurant Group payroll ticket and engagement materials; confirm quarterly filing requirements\",\n      \"refs\": [\"tkt-payroll-bluefir\", \"doc-engagement-letter\", \"doc-pbc-template\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Tax group huddle preparation; review Time & Billing Policy and Tax Return Workflow\",\n      \"refs\": [\"doc-time-billing-policy\", \"doc-tax-workflow-policy\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle meeting\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Post-huddle: organize Blue Fir payroll materials; cross-reference Client Master List and Rate Sheet; prepare initial filing checklist\",\n      \"refs\": [\"doc-client-master-list\", \"doc-rate-sheet-2026\", \"doc-monthly-close-checklist\", \"tkt-payroll-bluefir\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 45900,\n      \"focus\": \"Records Retention & Security verification for payroll handling; confirm compliance documentation in place\",\n      \"refs\": [\"doc-records-retention-policy\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 958,
-      "completion_tokens": 285
+      "completion_tokens": 390
     },
     "cache_hit": false
   },
