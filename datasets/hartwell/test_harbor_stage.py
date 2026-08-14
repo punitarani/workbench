@@ -73,7 +73,23 @@ def test_reference_handoffs_are_readable_by_the_verifier_group() -> None:
         assert solve.index('chmod 640 "$TEMP"') < solve.index('mv -f "$TEMP"')
 
 
-@pytest.mark.skipif(shutil.which("docker") is None, reason="docker is unavailable")
+def _dev_image_available() -> bool:
+    """CI runners have docker but not the locally built workbench:dev
+    image; these container regressions only run where it exists."""
+
+    if shutil.which("docker") is None:
+        return False
+    probe = subprocess.run(
+        ["docker", "image", "inspect", "workbench:dev"],
+        capture_output=True,
+        check=False,
+    )
+    return probe.returncode == 0
+
+
+@pytest.mark.skipif(
+    not _dev_image_available(), reason="workbench:dev image is unavailable"
+)
 def test_allowlisted_shell_preserves_environment_effective_uid() -> None:
     completed = subprocess.run(
         [
@@ -103,7 +119,9 @@ def test_allowlisted_shell_preserves_environment_effective_uid() -> None:
     assert completed.stdout.strip() == "10000"
 
 
-@pytest.mark.skipif(shutil.which("docker") is None, reason="docker is unavailable")
+@pytest.mark.skipif(
+    not _dev_image_available(), reason="workbench:dev image is unavailable"
+)
 def test_real_staged_task_installs_with_mcp_ready_and_boundary_intact() -> None:
     environment = FEE_TASK / "environment"
     if not (environment / ".workbench" / "install.sh").is_file():
