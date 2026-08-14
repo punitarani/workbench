@@ -249,11 +249,11 @@ def audit(log_path: Path) -> int:
     ]
     notes = [e for e in events if e.tag == "sim.gm.note"]
     braked = [e for e in notes if "already carries" in e.payload.note]
-    failures = [e for e in notes if "already carries" not in e.payload.note]
+    grounding = [e for e in notes if "already carries" not in e.payload.note]
     check(
-        f"grounding failures {len(failures)}/{len(acts)} stay under 20% "
+        f"grounding failures {len(grounding)}/{len(acts)} stay under 20% "
         f"({len(braked)} thread-cap brakes counted separately)",
-        len(acts) > 0 and len(failures) <= 0.2 * len(acts),
+        len(acts) > 0 and len(grounding) <= 0.2 * len(acts),
     )
     plans = Counter(e.payload.day for e in events if e.tag == "sim.agent.plan")
     reflections = Counter(e.payload.day for e in events if e.tag == "sim.agent.memory")
