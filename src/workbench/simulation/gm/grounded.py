@@ -1122,6 +1122,11 @@ class GroundedGm:
         self, entity, sender, intent: CalendarIntent, event, delay
     ) -> tuple[EventDraft, ...]:
         if intent.schedule is not None:
+            if intent.schedule.end <= intent.schedule.start:
+                raise IntentRejection(
+                    f"calendar event {intent.schedule.title!r} must end after it "
+                    f"starts; give it a positive duration"
+                )
             attendees = self._resolve_people((sender, *intent.schedule.attendee_refs))
             payload = CalendarEventScheduledPayload(
                 kind="calendar.event.scheduled",
