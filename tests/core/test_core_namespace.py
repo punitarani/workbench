@@ -19,6 +19,4 @@ def test_single_package_root() -> None:
 
 def test_no_stray_member_trees() -> None:
     strays = [path for path in REPO.glob("*/src/workbench") if path.is_dir()]
-    assert strays == [], (
-        f"member-style src trees must not reappear; found {strays}"
-    )
+    assert strays == [], f"member-style src trees must not reappear; found {strays}"

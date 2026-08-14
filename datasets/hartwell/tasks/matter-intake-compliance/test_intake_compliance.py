@@ -42,33 +42,79 @@ CORRECT_FLAGS = [
 ]
 
 
-def _state(tmp_path: Path, *, status="conflict_pending", flags=None,
-           trust_kind="fee_retainer", extra_trust=None, deadline="2026-02-10",
-           send_letter=True) -> Path:
+def _state(
+    tmp_path: Path,
+    *,
+    status="conflict_pending",
+    flags=None,
+    trust_kind="fee_retainer",
+    extra_trust=None,
+    deadline="2026-02-10",
+    send_letter=True,
+) -> Path:
     state = tmp_path / "state"
     state.mkdir()
     db = state / "compliance.db"
     conn = create_db(db, SYSTEM.all_tables())
     seed(conn, SCENARIO)
-    INTAKE_MATTERS.insert(conn, [IntakeMatter(
-        intake_matter_id="M-3050", client_name="Renner Holdings LLC",
-        adverse_party="Cormorant Freight", status=status)])
-    COMPLIANCE_FLAGS.insert(conn, [
-        ComplianceFlag(flag_id=f"f{i}", kind=k, subject=s)
-        for i, (k, s) in enumerate(CORRECT_FLAGS if flags is None else flags, 1)])
-    trust_rows = [TrustEntry(entry_id="t1", client_name="Renner Holdings LLC",
-                             kind=trust_kind, amount_cents=15_000_000)]
+    INTAKE_MATTERS.insert(
+        conn,
+        [
+            IntakeMatter(
+                intake_matter_id="M-3050",
+                client_name="Renner Holdings LLC",
+                adverse_party="Cormorant Freight",
+                status=status,
+            )
+        ],
+    )
+    COMPLIANCE_FLAGS.insert(
+        conn,
+        [
+            ComplianceFlag(flag_id=f"f{i}", kind=k, subject=s)
+            for i, (k, s) in enumerate(CORRECT_FLAGS if flags is None else flags, 1)
+        ],
+    )
+    trust_rows = [
+        TrustEntry(
+            entry_id="t1",
+            client_name="Renner Holdings LLC",
+            kind=trust_kind,
+            amount_cents=15_000_000,
+        )
+    ]
     if extra_trust:
-        trust_rows.append(TrustEntry(entry_id="t2", client_name="Renner Holdings LLC",
-                                     kind=extra_trust, amount_cents=5_000_000))
+        trust_rows.append(
+            TrustEntry(
+                entry_id="t2",
+                client_name="Renner Holdings LLC",
+                kind=extra_trust,
+                amount_cents=5_000_000,
+            )
+        )
     TRUST_ENTRIES.insert(conn, trust_rows)
-    INTAKE_DEADLINES.insert(conn, [IntakeDeadline(
-        deadline_id="d1", intake_matter_id="M-3050", kind="limitations",
-        date_iso=deadline)])
+    INTAKE_DEADLINES.insert(
+        conn,
+        [
+            IntakeDeadline(
+                deadline_id="d1",
+                intake_matter_id="M-3050",
+                kind="limitations",
+                date_iso=deadline,
+            )
+        ],
+    )
     if send_letter:
-        INTAKE_LETTERS.insert(conn, [IntakeLetter(
-            letter_id="L1", client_name="Renner Holdings LLC",
-            discloses_third_party_payor=False)])
+        INTAKE_LETTERS.insert(
+            conn,
+            [
+                IntakeLetter(
+                    letter_id="L1",
+                    client_name="Renner Holdings LLC",
+                    discloses_third_party_payor=False,
+                )
+            ],
+        )
     conn.commit()
     conn.close()
     return state

@@ -141,9 +141,7 @@ async def test_disjoint_same_time_items_batch_together(tmp_path: Path) -> None:
 
 
 async def test_barriers_execute_alone(tmp_path: Path) -> None:
-    engine = _engine(
-        tmp_path / "run.db", [_wake("a"), _arrival(), _wake("b")]
-    )
+    engine = _engine(tmp_path / "run.db", [_wake("a"), _arrival(), _wake("b")])
     assert len(await engine.step_batch(8)) == 1, "batch stops before a barrier"
     barrier = await engine.step_batch(8)
     assert [r.event.tag for r in barrier] == ["person.record"]

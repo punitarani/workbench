@@ -54,7 +54,12 @@ class DecideNextAction(dspy.Signature):
     said you would open a matter or deliver a redline and have not, that is
     your next action. Never redo work: if the situation already lists a
     ticket for a request, or your recent activity shows a revision
-    delivered, do not create or revise it again — move on or idle."""
+    delivered, do not create or revise it again — move on or idle.
+
+    target_ref must be a real id of the matching kind — thr-/msg-
+    for email threads, cnv- for chat conversations, chm- for chat
+    messages, tkt- for tickets, doc- for documents. Use ids you have
+    seen; never invent or cross-type one."""
 
     identity: str = dspy.InputField()
     situation: str = dspy.InputField(desc="current time, schedule, workload")
@@ -121,7 +126,12 @@ class DecideNextActionExtended(dspy.Signature):
     log_time records minutes of completed work against a ticket (set
     minutes); schedule_meeting puts a working session on calendars when
     coordination by message is stalling. Use only the verbs listed in
-    enabled_extras."""
+    enabled_extras.
+
+    target_ref must be a real id of the matching kind — thr-/msg-
+    for email threads, cnv- for chat conversations, chm- for chat
+    messages, tkt- for tickets, doc- for documents. Use ids you have
+    seen; never invent or cross-type one."""
 
     identity: str = dspy.InputField()
     situation: str = dspy.InputField(desc="current time, schedule, workload")

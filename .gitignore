@@ -37,8 +37,13 @@ pnpm-debug.log*
 *.tmp
 *.cache
 
-# Recorded simulation data (cassettes, world logs) stays local for now
+# Recorded simulation data (cassettes, world logs) stays local by
+# default; the Calder epoch cassettes are committed as the standing
+# determinism dataset (reviewed: prompts + completions only, no
+# credentials of any kind).
 src/workbench/workplaces/**/cassettes/
+!src/workbench/workplaces/calder/cassettes/
+!src/workbench/workplaces/calder/cassettes/**
 datasets/**/bundle/
 datasets/**/.workbench/
 

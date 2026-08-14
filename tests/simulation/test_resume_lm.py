@@ -47,9 +47,7 @@ def make_entity(spy: SeedSpy) -> ComposedEntity:
     return ComposedEntity(
         name="daniel-reyes",
         components=(memory,),
-        act_component=ProfessionalActorAct(
-            params=DANIEL, working_memory=memory, lm=lm
-        ),
+        act_component=ProfessionalActorAct(params=DANIEL, working_memory=memory, lm=lm),
     )
 
 
@@ -92,9 +90,7 @@ ENTITY_FOR_PERSON = {
 
 
 async def test_gm_world_state_survives_snapshot_restore() -> None:
-    gm = GroundedGm(
-        entity_for_person=ENTITY_FOR_PERSON, ticket_vocabulary=VOCAB
-    )
+    gm = GroundedGm(entity_for_person=ENTITY_FOR_PERSON, ticket_vocabulary=VOCAB)
     for event in observed_events():
         await gm.route(event)
 
@@ -111,14 +107,10 @@ async def test_gm_world_state_survives_snapshot_restore() -> None:
     last = observed_events()[-1]
 
     captured = gm.get_state()
-    direct = await gm.resolve(
-        "daniel-reyes", IntentAction(intent=intent), spec(), last
-    )
+    direct = await gm.resolve("daniel-reyes", IntentAction(intent=intent), spec(), last)
     assert direct.drafts[0].payload.kind == "email.message"
 
-    fresh = GroundedGm(
-        entity_for_person=ENTITY_FOR_PERSON, ticket_vocabulary=VOCAB
-    )
+    fresh = GroundedGm(entity_for_person=ENTITY_FOR_PERSON, ticket_vocabulary=VOCAB)
     fresh.set_state(captured)
     restored = await fresh.resolve(
         "daniel-reyes", IntentAction(intent=intent), spec(), last

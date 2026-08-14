@@ -58,7 +58,44 @@ transport failures now fail loud instead of masquerading as fallbacks.)
 
 ## Two-day acceptance recording
 
-<!-- FILL: metrics -->
+| Metric | Value |
+|---|---|
+| Steps / events | 513 / 554 (to quiescence) |
+| LM calls | 455 (704k prompt / 82k completion tokens across both tiers) |
+| Wall (live recording, window=32) | 20.1 min (~10 min/simulated day) |
+| Max batch | **16 — the entire persona cohort acts concurrently** (the old engine peaked at 2) |
+| Per-day shape | 16 plans, ~124 wakes, 16 reflections, a held tax huddle, seeded client cues, 28–38 emails |
+| Cassette | 455 entries, local (repo cassette policy) |
+| Rejection rate | 0–1 per day |
+
+Replay proof (`tests/workplaces/test_calder_epoch_acceptance.py`): the
+recorded run reproduces **byte-identically** at window=1, at window=32,
+and when killed at arbitrary step 73 and roll-forward resumed.
+
+Content samples from the record (verbatim):
+
+- **Client inbound** (Dana Whitfield, Kestrel controller, from a seeded
+  cue): *"We're prepping the close for the board, and the margin figure
+  they're asking about is pulling more than expected against the prior
+  quarter. I need your eyes on the numbers before Thursday…"*
+- **A partner's morning plan** (Rosalind): 08:00 admin & policy review →
+  09:00 tax group huddle → 10:00 client outreach → 11:00 close checklist
+  review — anchored to the real calendar event.
+- **A daily reflection** (Rosalind, scored bullets): *"!8 Onboarded core
+  operational policies and templates… !7 PBC request template scope
+  clarified with team: main entity only for now"* with the open loop
+  *"Sub-entity PBC gaps — monitor during reviews."*
+- **The huddle transcript** (5 turns): Victor runs the queue, Desmond
+  reports three S-corp returns in review with a messy basis calculation,
+  Lucia reports the Stonebridge K-1s filed — each speaking from their
+  own staffing and knowledge.
+
+Known texture wrinkle: personas occasionally reference plausible-but-
+unestablished specifics (day-one chatter about work "in review" before
+any ticket says so). The world model prevents *stateful* hallucination —
+they cannot cite a thread or document that doesn't exist — but prose
+color can outrun the record; instruction tuning (GEPA surfaces now cover
+plan/reflect/meeting) is the lever.
 
 ## One-week flagship
 

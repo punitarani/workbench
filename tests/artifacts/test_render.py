@@ -41,9 +41,7 @@ def formatted_content() -> str:
 
 
 def test_markdown_passes_through(tmp_path: Path) -> None:
-    outcome = render_document(
-        "markdown", "# Hello", tmp_path / "note.md"
-    )
+    outcome = render_document("markdown", "# Hello", tmp_path / "note.md")
     assert outcome == RenderOutcome(path=tmp_path / "note.md", skipped=None)
     assert (tmp_path / "note.md").read_text(encoding="utf-8") == "# Hello"
 
@@ -76,15 +74,11 @@ def test_formatted_renders_openable_docx(tmp_path: Path) -> None:
     assert table.rows[1].cells[1].text == "$5,000"
 
 
-def test_pdf_without_soffice_records_a_skip(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_pdf_without_soffice_records_a_skip(tmp_path: Path, monkeypatch) -> None:
     import workbench.artifacts.render as render
 
     monkeypatch.setattr(render.shutil, "which", lambda name: None)
-    outcome = render_document(
-        "formatted", formatted_content(), tmp_path / "letter.pdf"
-    )
+    outcome = render_document("formatted", formatted_content(), tmp_path / "letter.pdf")
     # The content still lands — as the docx it was built from — and the
     # skip is recorded rather than silently swallowed.
     assert outcome.path == tmp_path / "letter.docx"

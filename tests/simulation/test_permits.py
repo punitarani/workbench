@@ -33,9 +33,7 @@ async def test_two_backends_share_one_pool() -> None:
     peak = 0
 
     class Probe(httpx.AsyncBaseTransport):
-        async def handle_async_request(
-            self, request: httpx.Request
-        ) -> httpx.Response:
+        async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
             nonlocal active, peak
             active += 1
             peak = max(peak, active)
@@ -49,9 +47,7 @@ async def test_two_backends_share_one_pool() -> None:
                 },
             )
 
-    lms = [
-        OpenRouterLM(api_key="k", transport=Probe(), permits=pool) for _ in range(2)
-    ]
+    lms = [OpenRouterLM(api_key="k", transport=Probe(), permits=pool) for _ in range(2)]
     request = LMRequest(
         model="test/model",
         messages=(ChatMessage(role="user", content="hi"),),

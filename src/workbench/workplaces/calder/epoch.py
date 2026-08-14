@@ -14,6 +14,7 @@ from datetime import date
 
 from workbench.core.events.chat import ChatConversationCreatedPayload
 from workbench.core.events.documents import DocumentCreatedPayload
+from workbench.core.events.tickets import TicketCreatedPayload
 from workbench.core.seed import Seed
 from workbench.simulation.actors.client import ClientActorParams
 from workbench.simulation.director import PoissonCueSchedule
@@ -23,6 +24,7 @@ from workbench.simulation.workplace.spec import (
     PersonSpec,
     SeedCalendarEvent,
     SeedDocument,
+    SeedTicket,
     WorkplaceSpec,
 )
 from workbench.workplaces.calder.genesis import build_genesis
@@ -112,13 +114,16 @@ def _people() -> tuple[PersonSpec, ...]:
     return tuple(people)
 
 
-def _seed_surfaces() -> tuple[tuple[ChannelSpec, ...], tuple[SeedDocument, ...]]:
+def _seed_surfaces() -> tuple[
+    tuple[ChannelSpec, ...], tuple[SeedDocument, ...], tuple[SeedTicket, ...]
+]:
     """Channels and documents from the same authored genesis data the
     chronicle used — rebuilt as spec fields so compile owns t=0."""
 
     genesis = build_genesis(Seed(root=42))
     channels: list[ChannelSpec] = []
     documents: list[SeedDocument] = []
+    tickets: list[SeedTicket] = []
     epoch_people = {person.person_id for person in _people()} | {ARRIVAL.person_id}
     for event in genesis.events:
         payload = event.payload
@@ -140,11 +145,25 @@ def _seed_surfaces() -> tuple[tuple[ChannelSpec, ...], tuple[SeedDocument, ...]]
                     content_format=payload.content_format,
                 )
             )
-    return tuple(channels), tuple(documents)
+        elif isinstance(payload, TicketCreatedPayload):
+            tickets.append(
+                SeedTicket(
+                    title=payload.title,
+                    description=payload.description,
+                    actor=payload.actor,
+                    requester=payload.requester,
+                    assignee=payload.assignee,
+                    status=payload.status,
+                    priority=payload.priority,
+                    ticket_type=payload.ticket_type,
+                    client_ref=payload.client_ref,
+                )
+            )
+    return tuple(channels), tuple(documents), tuple(tickets)
 
 
 def epoch_spec(days: int = 194) -> WorkplaceSpec:
-    channels, documents = _seed_surfaces()
+    channels, documents, tickets = _seed_surfaces()
     arrival_day = (
         date.fromisoformat(ARRIVAL_DATE) - date.fromisoformat(EPOCH_START)
     ).days
@@ -169,6 +188,7 @@ def epoch_spec(days: int = 194) -> WorkplaceSpec:
             "arrivals": arrivals,
             "channels": channels,
             "seed_documents": documents,
+            "seed_tickets": tickets,
             "seed_calendar": (
                 SeedCalendarEvent(
                     organizer="per-victor-alade",

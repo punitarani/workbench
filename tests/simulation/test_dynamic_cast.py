@@ -74,7 +74,7 @@ def test_compile_schedules_arrival_and_org_genesis() -> None:
     ]
     assert len(arrival_drafts) == 1
     assert arrival_drafts[0].time == 9 * 3600 + 20 * 60
-    assert ("lena-brooks", ) == tuple(e for e, _ in compiled.arrivals)
+    assert ("lena-brooks",) == tuple(e for e, _ in compiled.arrivals)
 
 
 async def test_arrival_joins_acts_and_log_validates(tmp_path: Path) -> None:

@@ -49,6 +49,22 @@ class SeedDocument(_Model):
     content: str
 
 
+class SeedTicket(_Model):
+    """An engagement open at genesis: the work the firm is already doing.
+    Without these, personas with time to log have nothing real to log
+    against and invent refs the GM must reject."""
+
+    title: str
+    description: str
+    actor: str
+    requester: str
+    assignee: str | None
+    status: str
+    priority: str
+    ticket_type: str
+    client_ref: str | None = None
+
+
 class SeedCalendarEvent(_Model):
     organizer: str
     title: str
@@ -99,6 +115,7 @@ class WorkplaceSpec(_Model):
     channels: tuple[ChannelSpec, ...] = ()
     seed_documents: tuple[SeedDocument, ...] = ()
     seed_calendar: tuple[SeedCalendarEvent, ...] = ()
+    seed_tickets: tuple[SeedTicket, ...] = ()
     day_script: tuple[ExogenousEmail, ...] = ()
     end_of_day: str = "17:30"
     # Simulated window length in calendar days; weekends inside the

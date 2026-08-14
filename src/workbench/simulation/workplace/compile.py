@@ -21,6 +21,7 @@ from workbench.core.events.people import (
     OrganizationRecordPayload,
     PersonRecordPayload,
 )
+from workbench.core.events.tickets import TicketCreatedPayload
 from workbench.core.hashing import content_hash
 from workbench.core.ids import IdMinter
 from workbench.core.seed import Seed
@@ -142,6 +143,11 @@ def compile_workplace(
         require_person(calendar_event.organizer, f"calendar {calendar_event.title}")
         for attendee in calendar_event.attendees:
             require_person(attendee, f"calendar {calendar_event.title}")
+    for ticket in spec.seed_tickets:
+        require_person(ticket.actor, f"seed ticket {ticket.title}")
+        require_person(ticket.requester, f"seed ticket {ticket.title}")
+        if ticket.assignee is not None:
+            require_person(ticket.assignee, f"seed ticket {ticket.title}")
     for arrival in spec.day_script:
         require_person(arrival.sender, "day script")
         for recipient in (*arrival.to, *arrival.cc):
@@ -243,6 +249,23 @@ def compile_workplace(
                     start_seconds,
                 )
             )
+
+    for ticket in spec.seed_tickets:
+        payloads.append(
+            TicketCreatedPayload(
+                kind="ticket.created",
+                ticket_id=minter.mint("tkt"),
+                actor=ticket.actor,
+                title=ticket.title,
+                description=ticket.description,
+                requester=ticket.requester,
+                assignee=ticket.assignee,
+                status=ticket.status,
+                priority=ticket.priority,
+                ticket_type=ticket.ticket_type,
+                client_ref=ticket.client_ref,
+            )
+        )
 
     if not include_genesis:
         genesis: tuple[Event, ...] = ()

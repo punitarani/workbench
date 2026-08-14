@@ -65,9 +65,7 @@ def _write(path: Path, *, status: str, flags, trust, letters) -> None:
         TRUST_ENTRIES.insert(
             c,
             [
-                TrustEntry(
-                    entry_id=f"t-{i}", client_name=cl, kind=k, amount_cents=a
-                )
+                TrustEntry(entry_id=f"t-{i}", client_name=cl, kind=k, amount_cents=a)
                 for i, (cl, k, a) in enumerate(trust, 1)
             ],
         )

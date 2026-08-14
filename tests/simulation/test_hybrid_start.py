@@ -77,10 +77,6 @@ async def test_engine_continues_from_existing_history(tmp_path: Path) -> None:
     assert new_events, "day two produced activity"
     assert all(int(e.time) >= 86_400 for e in new_events)
 
-    day_one_ids = {
-        e.payload.message_id for e in history if e.tag == "email.message"
-    }
-    day_two_ids = {
-        e.payload.message_id for e in new_events if e.tag == "email.message"
-    }
+    day_one_ids = {e.payload.message_id for e in history if e.tag == "email.message"}
+    day_two_ids = {e.payload.message_id for e in new_events if e.tag == "email.message"}
     assert not day_one_ids & day_two_ids, "minted ids never collide with history"
