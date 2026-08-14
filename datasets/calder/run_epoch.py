@@ -50,7 +50,12 @@ def build_lm(mode: str, cassette: Path, max_calls: int):
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise SystemExit("record mode requires OPENROUTER_API_KEY")
-    backend = OpenRouterLM(api_key=api_key, providers=PROVIDERS, max_concurrency=16)
+    backend = OpenRouterLM(
+        api_key=api_key,
+        providers=PROVIDERS,
+        providers_by_model={DEEP_MODEL: ("amazon-bedrock",)},
+        max_concurrency=16,
+    )
     return BudgetedLM(
         RecordingLM(RetryLM(backend), store), max_calls=max_calls
     ), backend
