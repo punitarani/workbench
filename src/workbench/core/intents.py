@@ -88,6 +88,12 @@ class DocumentCreateSpec(_Intent):
     title: str
     path: str
     content: str
+    # What ``content`` actually is. v1 hardcoded markdown at grounding time,
+    # so a persona could not author a workbook or a deck even when the work
+    # called for one; the GM validates the content against this declaration.
+    content_format: Literal["markdown", "formatted", "spreadsheet", "slides"] = (
+        "markdown"
+    )
 
 
 class DocumentEditIntent(_Intent):

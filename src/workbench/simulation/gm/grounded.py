@@ -21,6 +21,11 @@ from workbench.core.actions import (
     ResolutionDecision,
     TerminateDecision,
 )
+from workbench.core.artifacts import (
+    parse_formatted,
+    parse_slides,
+    parse_spreadsheet,
+)
 from workbench.core.events import Event, EventDraft
 from workbench.core.events.agent import (
     SimAgentMemoryPayload,
@@ -65,6 +70,7 @@ from workbench.core.intents import (
     AgentPlanIntent,
     CalendarIntent,
     ChatIntent,
+    DocumentCreateSpec,
     DocumentEditIntent,
     EmailIntent,
     FreeformIntent,
@@ -109,6 +115,33 @@ class DayPlan(BaseModel):
     day_start: int = 9 * 3600
     wake_grid_minutes: int = 30
     seed_root: int = 0
+
+
+def _validated_format(create: DocumentCreateSpec) -> str:
+    """The declared format, once the content is known to parse as it.
+
+    A persona that says "spreadsheet" and writes prose gets the same
+    instructive rejection as one that invents a ticket id, rather than a
+    document that only fails much later at render time.
+    """
+
+    parsers = {
+        "spreadsheet": parse_spreadsheet,
+        "formatted": parse_formatted,
+        "slides": parse_slides,
+    }
+    parser = parsers.get(create.content_format)
+    if parser is None:
+        return create.content_format
+    try:
+        parser(create.content)
+    except ValueError as error:
+        raise IntentRejection(
+            f"{create.path} declares {create.content_format} but its content "
+            f"does not parse as one ({error}); send the structured JSON for "
+            f"that format, or declare markdown and write prose"
+        ) from error
+    return create.content_format
 
 
 class GroundedGmState(BaseModel):
@@ -1022,7 +1055,7 @@ class GroundedGm:
                 title=intent.create.title,
                 path=intent.create.path,
                 location="repository",
-                content_format="markdown",
+                content_format=_validated_format(intent.create),
                 content=intent.create.content,
             )
         else:
