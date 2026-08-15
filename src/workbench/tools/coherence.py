@@ -19,6 +19,13 @@ class CoherenceFinding(BaseModel):
     detail: str
 
 
+def _present(connection, table: str) -> bool:
+    row = connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)
+    ).fetchone()
+    return row is not None
+
+
 def check_coherence(
     state_dir: Path, systems: Sequence[ToolSystem]
 ) -> tuple[CoherenceFinding, ...]:
@@ -31,6 +38,10 @@ def check_coherence(
         for system in systems:
             connection = connections[system.name]
             for table in system.all_tables():
+                if not _present(connection, table.name):
+                    # A workspace materialized before a system grew an action
+                    # table simply has no rows there, and no rows can dangle.
+                    continue
                 for column, marker in table.ids().items():
                     values = connection.execute(f"SELECT {column} FROM {table.name}")
                     known.setdefault(marker.kind, set()).update(
@@ -41,6 +52,8 @@ def check_coherence(
         for system in systems:
             connection = connections[system.name]
             for table in system.all_tables():
+                if not _present(connection, table.name):
+                    continue
                 for column, marker in table.refs().items():
                     values = {
                         row[0]
