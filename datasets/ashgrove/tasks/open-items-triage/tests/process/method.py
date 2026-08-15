@@ -1,7 +1,5 @@
 """Diagnostic (non-reward) checks for open-items triage."""
 
-from pathlib import Path
-
 import rewardkit as rk
 
 D = "open_items.json"
