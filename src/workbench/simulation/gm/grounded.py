@@ -291,6 +291,10 @@ class GroundedGm:
                 # they preview as nobody's business, land in one batch, and
                 # ask one person to act several times at the same instant.
                 return self._entities_for((payload.person_id,))
+            case SimMeetingTurnPayload():
+                # Turns are minted one at a time today, but the same gap
+                # would let two land together and act one speaker twice.
+                return (payload.speaker,) if payload.speaker else ()
             case _:
                 return ()
 
