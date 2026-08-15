@@ -224,6 +224,16 @@ class ProfessionalActorAct:
             or "A quiet day."
         )
         engagements = "\n".join(spec.engagements) or "No engagements assigned."
+        stance = (
+            "You bill clients. A normal day is roughly four chargeable hours "
+            "plus the rest of your day in non-billable work — reviews you "
+            "were not engaged for, admin, training, business development. Do "
+            "not stretch client work to fill the day."
+            if spec.bills_clients
+            else "You do not bill clients. Everything you log is "
+            "non-billable (billable=false) with the category that fits: "
+            "admin, internal, training, or business development."
+        )
         try:
             # Without a bound LM the call raises and the degradation path
             # below eats it, so a whole day of time silently vanishes —
@@ -234,6 +244,7 @@ class ProfessionalActorAct:
                     day=spec.day,
                     engagements=engagements,
                     today_activity=today_activity,
+                    billing_stance=stance,
                 )
             lines = prediction.timesheet.lines
         except CassetteMissError, LMBudgetExceededError, LMTransportError:

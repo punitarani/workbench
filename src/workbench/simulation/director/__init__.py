@@ -7,9 +7,10 @@ schedule, byte for byte.
 """
 
 from workbench.simulation.director.schedule import (  # noqa: F401
+    ClientProfile,
     CueDraft,
     DirectorSchedule,
     PoissonCueSchedule,
 )
 
-__all__ = ["CueDraft", "DirectorSchedule", "PoissonCueSchedule"]
+__all__ = ["ClientProfile", "CueDraft", "DirectorSchedule", "PoissonCueSchedule"]

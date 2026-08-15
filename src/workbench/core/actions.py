@@ -85,6 +85,9 @@ class TimesheetActionSpec(_Model):
     call_to_action: str = "Write up your time for the day."
     day: str
     engagements: tuple[str, ...] = ()
+    # Admin, IT, and office roles carry no bill rate: their day is real
+    # work and belongs on a timesheet, but none of it is chargeable.
+    bills_clients: bool = True
 
 
 class IntentActionSpec(_Model):

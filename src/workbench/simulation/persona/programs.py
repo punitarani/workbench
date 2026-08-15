@@ -319,6 +319,7 @@ class LogDay(dspy.Signature):
     day: str = dspy.InputField(desc="the day being written up")
     engagements: str = dspy.InputField(desc="engagement ids you may log against")
     today_activity: str = dspy.InputField(desc="everything you did today")
+    billing_stance: str = dspy.InputField(desc="what is chargeable for your role")
     timesheet: DayTimesheet = dspy.OutputField()
 
 

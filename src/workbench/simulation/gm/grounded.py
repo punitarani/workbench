@@ -448,7 +448,11 @@ class GroundedGm:
                 if values.get("assignee") != person
             ]
             engagements = tuple(mine + others)[:16]
-            return TimesheetActionSpec(day=event.payload.day, engagements=engagements)
+            return TimesheetActionSpec(
+                day=event.payload.day,
+                engagements=engagements,
+                bills_clients=person in self._bill_rates,
+            )
         if isinstance(event.payload, SimCuePayload):
             return CueActionSpec(note=event.payload.note, topic=event.payload.topic)
         if isinstance(event.payload, SimMeetingTurnPayload):
