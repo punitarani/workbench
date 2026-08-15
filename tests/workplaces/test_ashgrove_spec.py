@@ -117,3 +117,31 @@ class TestSeason:
         assert max(ashgrove_season(february).values(), default=0) >= max(
             ashgrove_season(april).values(), default=0
         )
+
+
+class TestRates:
+    def test_billing_roles_carry_rates_and_support_roles_do_not(self) -> None:
+        """A firm with no rates cannot compute realization or WIP.
+
+        The first Ashgrove run logged 100% non-billable time because no
+        persona in either firm carried a rate, so the engine's
+        "does this person bill?" check found nobody.
+        """
+
+        people = [p for p in ashgrove_spec(5).people if p.affiliation == "internal"]
+        billing = [
+            p for p in people if p.persona and p.persona.bill_rate_cents is not None
+        ]
+        support = [
+            p for p in people if not p.persona or p.persona.bill_rate_cents is None
+        ]
+        assert len(billing) == 14
+        assert {p.name for p in support} == {
+            "Owen Castile",
+            "Freya Holt",
+            "Raj Malhotra",
+        }
+        rates = {p.title: p.persona.bill_rate_cents for p in billing}
+        assert rates["Managing Partner"] > rates["Audit Manager"]
+        assert rates["Audit Manager"] > rates["Staff Accountant"]
+        assert all(10_000 <= rate <= 60_000 for rate in rates.values())

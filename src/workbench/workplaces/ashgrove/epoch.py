@@ -205,6 +205,23 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
 )
 
 
+# The 2026 rate sheet. Realization, WIP, and write-offs are meaningless
+# without rates, and the roles carrying none are the ones that genuinely do
+# not bill: office, admin, IT.
+_BILL_RATES: dict[str, int] = {
+    "Managing Partner": 47500,
+    "Partner, Client Accounting & Advisory": 42500,
+    "Principal, Assurance": 40000,
+    "Audit Manager": 32500,
+    "Tax Manager": 31000,
+    "Senior Accountant, Assurance": 24500,
+    "Senior Accountant, Tax": 23500,
+    "Client Accounting Lead": 21500,
+    "Staff Accountant": 17500,
+    "Payroll Specialist": 15500,
+}
+
+
 def _client_params(person_id: str) -> ClientActorParams:
     for pid, name, organization, role, temperament, contacts in _CLIENTS:
         if pid == person_id:
@@ -227,7 +244,15 @@ def _people() -> tuple[PersonSpec, ...]:
         if person.affiliation != "internal":
             continue
         local = person.email_address.split("@")[0]
-        people.append(person.model_copy(update={"email_address": f"{local}@{DOMAIN}"}))
+        persona = person.persona
+        rate = _BILL_RATES.get(person.title)
+        if persona is not None and rate is not None:
+            persona = persona.model_copy(update={"bill_rate_cents": rate})
+        people.append(
+            person.model_copy(
+                update={"email_address": f"{local}@{DOMAIN}", "persona": persona}
+            )
+        )
     for pid, name, organization, role, _temperament, _contacts in _CLIENTS:
         local = name.lower().replace(" ", ".")
         domain = organization.split("(")[0].strip().lower()
