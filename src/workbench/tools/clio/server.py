@@ -163,14 +163,32 @@ class _Directory:
         people = PEOPLE_TABLE.select(connection, order_by="person_id")
         self.users = [p for p in people if p.affiliation == "internal"]
         self.external = [p for p in people if p.affiliation == "external"]
-        self.contact_ids = {o.org_id: n for n, o in enumerate(self.organizations, 1)}
-        offset = len(self.organizations)
+        self.org_names = {o.org_id: o.name for o in self.organizations}
+        # Worlds may reference client orgs that never got an org.record (the
+        # Calder epoch seeds engagements without an org roster). Admit them
+        # into the contact space under their ref — the same deterministic
+        # fallback the projector uses for display numbers — so every client
+        # id a matter carries resolves to a listable contact.
+        referenced = sorted(
+            {
+                m.client_org
+                for m in MATTERS.select(connection, order_by="matter_number")
+                if m.client_org is not None
+            }
+            - set(self.org_names)
+        )
+        self.org_names.update({ref: ref for ref in referenced})
+        self.company_contacts = [
+            (o.org_id, o.name, o.category == "client") for o in self.organizations
+        ] + [(ref, ref, True) for ref in referenced]
+        org_ids = [o.org_id for o in self.organizations] + referenced
+        self.contact_ids = {org_id: n for n, org_id in enumerate(org_ids, 1)}
+        offset = len(org_ids)
         self.contact_ids.update(
             {p.person_id: offset + n for n, p in enumerate(self.external, 1)}
         )
         self.user_ids = {p.person_id: n for n, p in enumerate(self.users, 1)}
         self.people = {p.person_id: p for p in people}
-        self.org_names = {o.org_id: o.name for o in self.organizations}
         self.epoch = read_epoch(connection)
 
     def party(self, person_id: str) -> PartyStub:
@@ -339,14 +357,14 @@ def register(server: MCPServer, db_path: Path) -> None:
             directory = _Directory(connection)
         records = [
             ContactRecord(
-                id=directory.contact_ids[o.org_id],
-                etag=f'"c{directory.contact_ids[o.org_id]}"',
-                name=o.name,
+                id=directory.contact_ids[org_id],
+                etag=f'"c{directory.contact_ids[org_id]}"',
+                name=name,
                 type="Company",
-                is_client=o.category == "client",
+                is_client=is_client,
                 primary_email_address=None,
             )
-            for o in directory.organizations
+            for org_id, name, is_client in directory.company_contacts
         ] + [
             ContactRecord(
                 id=directory.contact_ids[p.person_id],
