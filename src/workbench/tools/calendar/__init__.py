@@ -7,7 +7,11 @@ response shapes. Calendars are people, keyed by email address.
 
 from workbench.tools.calendar.project import project
 from workbench.tools.calendar.server import register
-from workbench.tools.calendar.tables import ATTENDEES, CALENDAR_EVENTS
+from workbench.tools.calendar.tables import (
+    ATTENDEES,
+    CALENDAR_EVENTS,
+    RECURRENCE,
+)
 from workbench.tools.framework import ToolSystem
 
 SYSTEM = ToolSystem(
@@ -18,7 +22,7 @@ SYSTEM = ToolSystem(
         "calendar.response",
         "person.record",
     ),
-    tables=(CALENDAR_EVENTS, ATTENDEES),
+    tables=(CALENDAR_EVENTS, ATTENDEES, RECURRENCE),
     project=project,
     register=register,
     directory_tool=False,

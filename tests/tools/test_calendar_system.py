@@ -175,7 +175,7 @@ def test_calendar_projection_is_coherent(tmp_path: Path) -> None:
 
 async def test_list_events_google_shape(server) -> None:
     payload = await call(server, "list_events")
-    assert set(payload) == {"events", "nextPageToken"}
+    assert set(payload) == {"events", "nextPageToken", "timeZone", "accessRole"}
     assert payload["nextPageToken"] is None
     kickoff, client_call = payload["events"]
     assert set(kickoff) == {
@@ -189,7 +189,11 @@ async def test_list_events_google_shape(server) -> None:
         "end",
         "organizer",
         "attendees",
+        # The official Event carries the recurrence rules and the
+        # free/busy reading beside the type.
+        "recurrence",
         "eventType",
+        "availability",
     }
     assert kickoff["id"] == KICKOFF
     assert kickoff["summary"] == "NDA kickoff II"
@@ -211,7 +215,10 @@ async def test_list_events_google_shape(server) -> None:
         {"email": TOM, "displayName": "Tom Okafor", "responseStatus": "declined"},
     ]
     assert kickoff["status"] == "vacated - continued per clerk notice"
-    assert kickoff["eventType"] == "default"
+    # The MCP surface returns the proto enum form (DEFAULT), where the REST
+    # API v3 used lowercase "default" — matching the captured MCP schema.
+    assert kickoff["eventType"] == "DEFAULT"
+    assert kickoff["availability"] == "AVAILABILITY_BUSY"
     assert client_call["status"] == "confirmed"
     assert client_call["start"] == {"dateTime": "2026-03-13T10:00:00-07:00"}
 
@@ -298,17 +305,33 @@ CALENDAR_TOOL_ARGUMENTS = {
     "list_events": {},
     "get_event": {"eventId": KICKOFF},
     "list_calendars": {},
+    "search_events": {"query": "kickoff"},
+    "suggest_time": {
+        "attendeeEmails": ["meredith.chao@hartwellbrightlaw.example"],
+        "startTime": "2026-03-16T09:00:00-07:00",
+        "endTime": "2026-03-16T17:00:00-07:00",
+    },
+    "create_event": {
+        "summary": "Working session",
+        "startTime": "2026-03-17T10:00:00-07:00",
+        "endTime": "2026-03-17T11:00:00-07:00",
+    },
+    "update_event": {"eventId": KICKOFF, "summary": "NDA kickoff II"},
+    "delete_event": {"eventId": CLIENT_CALL},
+    "respond_to_event": {"eventId": KICKOFF, "responseStatus": "accepted"},
 }
 
 
-async def test_surface_is_read_only_and_leaks_nothing(server) -> None:
+async def test_surface_matches_the_official_server_and_leaks_nothing(server) -> None:
+    """v2 adds the official write half (create/update/delete/RSVP).
+
+    The invariant that survives is the offstage boundary: no tool, read or
+    write, may leak a simulation marker into its response.
+    """
+
     tools = await server.list_tools()
     assert sorted(tool.name for tool in tools) == sorted(CALENDAR_TOOL_ARGUMENTS)
     for tool in tools:
-        assert not any(
-            verb in tool.name
-            for verb in ("send", "create", "update", "delete", "write", "post")
-        ), f"calendar exposes a write tool in the read-only phase: {tool.name}"
         result = await server.call_tool(tool.name, CALENDAR_TOOL_ARGUMENTS[tool.name])
         text = "".join(c.text for c in result.content if hasattr(c, "text"))
         for marker in OFFSTAGE_MARKERS:

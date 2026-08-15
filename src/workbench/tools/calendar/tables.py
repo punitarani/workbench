@@ -36,7 +36,15 @@ class Attendee(BaseModel):
     response_status: Literal["needsAction", "accepted", "declined", "tentative"]
 
 
+class EventRecurrence(BaseModel):
+    """RFC 5545 rules for a recurring series (RRULE/RDATE/EXDATE lines)."""
+
+    calendar_event_id: Annotated[str, Ref("calendar.event")]
+    rule: str
+
+
 CALENDAR_EVENTS = Table(
     "calendar_events", CalendarEvent, primary_key=("calendar_event_id",)
 )
+RECURRENCE = Table("event_recurrence", EventRecurrence)
 ATTENDEES = Table("attendees", Attendee, primary_key=("calendar_event_id", "person_id"))
