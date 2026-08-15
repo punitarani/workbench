@@ -18,11 +18,15 @@ class _Intent(BaseModel):
 
 
 class EmailDraft(_Intent):
+    # No min_length: a model that returns an empty recipient list should
+    # meet the GM's instructive rejection like any other malformed intent,
+    # not fail schema parsing and take the run down with it.
     to: tuple[str, ...] = Field(
-        min_length=1,
+        default=(),
         description=(
             "Recipients by full name exactly as they appear in the thread or "
-            "directory (e.g. 'Tom Okafor'). Never invent addresses."
+            "directory (e.g. 'Tom Okafor'). At least one. Never invent "
+            "addresses."
         ),
     )
     cc: tuple[str, ...] = Field(

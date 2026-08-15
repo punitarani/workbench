@@ -916,6 +916,11 @@ class GroundedGm:
     def _ground_email(
         self, entity, sender, intent: EmailIntent, event, delay
     ) -> tuple[EventDraft, ...]:
+        if not intent.draft.to:
+            raise IntentRejection(
+                "an email needs at least one recipient; name them by full "
+                "name as they appear in the thread or the directory"
+            )
         minted: list[PersonRecordPayload] = []
         to = self._resolve_or_mint_people(intent.draft.to, minted)
         cc = self._resolve_or_mint_people(intent.draft.cc, minted)

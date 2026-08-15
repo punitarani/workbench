@@ -213,3 +213,22 @@ class TestCognitionContract:
             not in inspect.getsource(getattr(ProfessionalActorAct, name))
         ]
         assert not offenders, f"dispatched turns with no LM bound: {offenders}"
+
+
+class TestMalformedIntentsDoNotCrashRuns:
+    """Model mistakes belong to the GM's rejection loop, not the stack trace.
+
+    An empty recipient list took down a twelve-day epoch mid-flight: the
+    schema demanded at least one recipient, so the failure surfaced inside
+    output parsing rather than as an instructive rejection the persona
+    could learn from.
+    """
+
+    def test_an_email_with_no_recipients_parses_and_is_rejected(self) -> None:
+        from workbench.core.intents import EmailDraft, EmailIntent
+
+        draft = EmailDraft(to=(), subject="s", body="b", summary="x")
+        gm = _gm({"tkt-000001": ("Kestrel close", "per-ana")})
+        intent = EmailIntent(thread_ref=None, reply_to_ref=None, draft=draft)
+        with pytest.raises(IntentRejection, match="at least one recipient"):
+            gm._ground_email("ana", "per-ana", intent, _event(), 0)
