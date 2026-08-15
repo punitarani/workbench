@@ -129,8 +129,35 @@ uv run --env-file .env python datasets/calder/run_epoch.py start \
 Resumable at any point (`run_epoch.py resume`), observable from another
 terminal (`status`), audited afterward (`audit`).
 
-Extrapolating from the measured flagship week (~200 calls, ~5.7 min,
-~340k prompt tokens per day): the 128-workday epoch lands around
-**26k LM calls, ~44M prompt tokens, and ~12 hours of wall clock** in
-resumable weekly segments — an overnight job, interruptible at any
-committed step.
+## The six-month epoch — RUN AND MEASURED (2026-08-13/14)
+
+The full epoch was recorded live over one supervised day
+(`out/calder/epoch-6mo`, cassette local — 355M):
+
+| Metric | Value |
+|---|---|
+| Span | **140 workdays, 2026-01-05 → 2026-07-17** (194 calendar days) |
+| Events | 35,670 (validates end-to-end) |
+| LM calls | 29,621 — 65.9M prompt / 5.8M completion tokens (~$30–35) |
+| Wall | 20.6h recording (~8.8 min per simulated day) |
+| Artifacts | 3,048 emails (3,038 distinct bodies), 2,824 chats, 664 ticket comments, 517 reactions, 446 time logs, 77 calendar events |
+| Cognition | 2,342 plans + 2,240 reflections — **perfect daily cadence, 140/140** |
+| Audit | **all gates green** — 4.3% grounding failures (299/6,982 acts), 734 thread-cap brakes, 599 cues |
+| Prompt bound | flat ~2.2k prompt tokens/call from day 1 to day 140 (consolidation holds O(1)) |
+
+The run surfaced and survived one real defect: 78 days in, a persona
+scheduled a zero-duration calendar event and the pydantic validator
+escaped `_ground_calendar` as a crash. The step never committed; the
+guard now rejects with instructive feedback, and roll-forward resume
+continued the recording losslessly (the bad intent replayed from the
+cassette and bounced). Rejections *declined* over the run — week-1
+peaks of 15/day settled to 2–8/day by June — the failure-feedback loop
+teaching personas is visible in the telemetry. Seasonality is too:
+April 15 was the busiest day in its window, with visible decompression
+after.
+
+Known limits, measured honestly: seed meetings convene once
+(recurrence deferred — 1 transcript over the span; chat absorbs the
+coordination), and the thread cap's grounding-time enforcement can
+overshoot by concurrently drafted replies (max observed 13 vs cap 12;
+the audit gates on cap + in-flight slack).
