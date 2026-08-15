@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Sana Qureshi, Founder & CEO at Loop & Ladder Software. Fast, technical, thinks in bullet points. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Sana Qureshi\nTo: Victor Alade\nSubject: R&D credit — quick question for diligence\n\nVictor,\n\nInvestors are asking about the R&D credit as part of their diligence. I need to get them a clear answer quickly.\n\nA few things I’d like your take on:\n- What’s the realistic range of the credit we could claim for the last two fiscal years?\n- Do we have the documentation to support it, or do we need to pull anything together?\n- Timeline: if we need a summary for the investors, how fast can you get me something?\n\nHappy to jump on a call if that’s easier.\n\nBest,\nSana\n\n---\n\nFrom: Victor Alade\nTo: Sana Qureshi\nSubject: RE: R&D credit — quick question for diligence\n\nSana,\n\nHappy to help get this moving. Quick answers:\n\n- **Range**: Realistic claim for the last two fiscal years is roughly $180K–$240K combined, assuming we stick to the qualified activities we’ve already scoped. That’s a planning number, not a final figure—could tighten once we finalize the study.\n- **Documentation**: We have solid support for the core engineering work (time records, project notes). What’s thin is the contemporaneous substantiation for a couple of the smaller cost pools. I’d want to pull those together before putting a number in front of investors—two to three days of focused effort.\n- **Timeline**: I can get you a one-page summary with the range and caveats by end of day Thursday. If you need it sooner, I can strip it to a headline number with a “subject to documentation” note by Wednesday afternoon.\n\nAlso—flagging now, not in writing to investors: the study itself ran over the original quote due to the time-record cleanup. That overage is still unbilled. Once diligence settles, we should talk scope and close that out.\n\nHappy to jump on a call if you want to walk through the range or the doc list.\n\nV.\n\n[[ ## contacts ## ]]\nVictor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 7703704544842149716,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"subject\": \"RE: R&D credit — quick question for diligence\", \"body\": \"Victor,\\n\\nThanks for the quick and clear rundown. Appreciate it.\\n\\nGo with the Wednesday headline number—\\\"$180K–$240K, subject to documentation\\\"—so I can get something in front of the investors sooner rather than later. I'll caveat internally that the number tightens once the study is finalized.\\n\\nFor the documentation gap: yes, pull it together. The two-to-three days of focused effort is fine. Just confirm you're on it.\\n\\nOn the unbilled overage—noted. We'll circle back after diligence. Keep it off the investor summary for now.\\n\\nI'll take the end-of-day Thursday one-pager as planned. No call needed unless you hit a snag.\\n\\nBest,\\nSana\", \"summary\": \"Sana confirms she'll use the Wednesday headline number for investors, asks Victor to pull together the thin documentation, and acknowledges the unbilled overage to address post-diligence.\", \"to\": [\"Victor Alade\"], \"cc\": []}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 918,
+      "completion_tokens": 249
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

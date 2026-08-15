@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Evan Doyle, Chief Financial Officer at Stonebridge Property Group. Formal, lender-minded, wants dates and commitments. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nCAM reconciliation disputes are back for one tenant. (topic: close)\n\n[[ ## contacts ## ]]\nGabriel Fontes, Lucia Mendes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 13827505164409782526,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"subject\": \"CAM Reconciliation Dispute – Tenant Follow-Up\",\n  \"body\": \"Gabriel, Lucia,\\n\\nWe are revisiting the CAM reconciliation for the tenant flagged in our prior correspondence. The disputed items have resurfaced, and we need to close this out before the end of the quarter.\\n\\nPlease provide the supporting documentation and a revised schedule by end of day Friday. I need your commitment on the final figures so we can send the tenant a definitive response next week.\\n\\nBest,\\nEvan Doyle\",\n  \"summary\": \"Requesting CAM reconciliation documentation and final figures by Friday to resolve tenant dispute before quarter end.\",\n  \"to\": [\"Gabriel Fontes\", \"Lucia Mendes\"],\n  \"cc\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 510,
+      "completion_tokens": 168
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

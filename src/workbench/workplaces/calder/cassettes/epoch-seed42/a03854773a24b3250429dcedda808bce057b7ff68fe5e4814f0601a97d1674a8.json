@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Evan Doyle, Chief Financial Officer at Stonebridge Property Group. Formal, lender-minded, wants dates and commitments. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Evan Doyle\nTo: Gabriel Fontes, Lucia Mendes\nSubject: CAM Reconciliation Dispute – Need Resolution by Friday\n\nGabriel, Lucia,\n\nWe have a recurring issue on the CAM reconciliation for one tenant that needs to be closed out. The disputed line items are back on the table, and I need both of you to review the attached schedules and confirm the final numbers by end of day Friday.\n\nSpecifically, I need a firm commitment on the three contested categories – maintenance, management fees, and utilities – and a clear date when the corrected reconciliation will be issued to the tenant. We cannot let this drag into next quarter.\n\nPlease send me a joint response with your proposed resolution and a timeline for finalizing the tenant notice.\n\nEvan\n\n---\n\nFrom: Lucia Mendes\nTo: Evan Doyle\nSubject: RE: CAM Reconciliation Dispute – Need Resolution by Friday\n\nEvan,\n\nAcknowledged. The final package is on track for Thursday EOD – supporting documentation is complete and the audit trail is verified. I've also finished the final consistency check on pro-rata allocation, so we're clear on the three contested categories (maintenance, management fees, utilities).\n\nGabriel will send the corrected reconciliation Thursday EOD as planned. I'll be available Friday morning if anything surfaces on your end before you issue the tenant notice.\n\nNo open items from our side.\n\nBest,\nLucia\n\n[[ ## contacts ## ]]\nGabriel Fontes, Lucia Mendes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 14666025873495975860,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"subject\": \"RE: CAM Reconciliation Dispute – Need Resolution by Friday\", \n \"body\": \"Lucia,\\n\\nThanks for the update. I’m glad the final package is on track for Thursday EOD and that you’ve confirmed the audit trail and pro-rata allocation checks. \\n\\nI need to lock in the specifics before we issue anything to the tenant. Please confirm in writing:\\n1. The exact dollar amounts for maintenance, management fees, and utilities as they will appear in the corrected reconciliation.\\n2. The date you and Gabriel will send the tenant notice—should be Thursday EOD, but I want it in writing.\\n\\nAlso, if there’s any residual risk that the tenant pushes back on the numbers after the notice, flag that now so we can prepare a response. I want this closed out by Friday COB, no exceptions.\\n\\nEvan\", \n \"summary\": \"Evan confirms Lucia's timeline but asks for written confirmation of the three contested amounts and the tenant notice date, and requests early flagging of any tenant pushback risk.\", \n \"to\": [\"Lucia Mendes\"], \n \"cc\": [\"Gabriel Fontes\"]}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 778,
+      "completion_tokens": 258
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

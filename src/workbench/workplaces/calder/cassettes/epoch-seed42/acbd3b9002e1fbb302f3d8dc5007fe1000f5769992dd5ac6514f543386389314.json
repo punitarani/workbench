@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `thread` (str): full rendered thread, oldest first\n3. `intent` (str): \n4. `established_facts` (str): things you already said or learned; do not contradict them\n5. `relevant_knowledge` (str): private knowledge with sharing guidance\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## thread ## ]]\n{thread}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Draft this email in this person's authentic voice and email register.\n        Ground every claim in the thread history, established facts, and private\n        knowledge given; never invent documents, people, meetings, or prior\n        statements not present in them. The summary must honestly compress what\n        the email commits to."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Desmond Ortiz, Senior Accountant, Tax (mid).\nSenior tax accountant: complex S corps and the construction clients, first reviewer for staff work, unofficial mentor to every new hire including Maya.\nPersonality: Patient teacher, wry, never lets a diagnostic slide.\nEmail register: Friendly, concrete; signs 'Des'.\nChat register: Casual, helpful, links the exact workpaper.\nWorking hours: 08:30-17:30\n\n[[ ## thread ## ]]\n\n\n[[ ## intent ## ]]\nSend the PBC request for Cardinal Ridge Builders to the correct client contact now that the missing contact name issue is resolved, listing the required workpapers and flagging major transaction items.\n\n[[ ## established_facts ## ]]\nRequesting PBC workpapers from Cardinal Ridge Builders contact to begin 1120-S collection, listing specific documents and flagging major transactions.\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 9762985285420918541,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"subject\": \"PBC Request – Cardinal Ridge Builders 1120-S\", \"body\": \"Hi [Client Contact],\\n\\nNow that we've confirmed your contact info, here's the formal request for the tax workpapers needed to start the 1120-S for Cardinal Ridge Builders.\\n\\nPlease send over the following:\\n- Trial balance (as of 12/31)\\n- General ledger detail\\n- Bank statements (all accounts)\\n- Credit card statements\\n- Loan statements and payoff schedules\\n- Prior year tax return (if not already in our system)\\n- Fixed asset rollforward\\n- Payroll summaries and 941s\\n- Any K-1s from investments\\n- Shareholder distribution and contribution details\\n\\nMajor transactions to flag as we go:\\n- Any sale or disposition of real property or equipment\\n- Shareholder loans (in or out) — need terms and activity\\n- Any large one-off receipts or expenses over $25k\\n- Change in accounting method or entity structure\\n\\nOnce I have the trial balance and GL, I can kick off the collection. Let me know if you have questions or need an extension on any item.\\n\\nThanks,\\nDes\", \"to\": [\"[Client Contact]\"], \"cc\": [], \"summary\": \"Send formal PBC request to Cardinal Ridge Builders' contact, listing required workpapers (TB, GL, bank/credit statements, loans, fixed assets, payroll, K-1s, shareholder items) and flagging major transactions (asset sales, shareholder loans, large one-offs, accounting changes) to begin 1120-S collection.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 706,
+      "completion_tokens": 352
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -75,6 +75,7 @@ def _stop(pid: int, reason: str) -> None:
 def supervise(
     out: Path,
     pid: int,
+    log_path: Path | None,
     poll: int,
     stall_minutes: int,
     mute_minutes: int,
@@ -86,11 +87,12 @@ def supervise(
 
     while True:
         if not _alive(pid):
-            log = out.parent / "run.log"
+            log = log_path or (out.parent / "run.log")
             tail = ""
             if log.exists():
                 tail = "\n".join(log.read_text().splitlines()[-12:])
-            finished = "reason=end_time" in tail
+            # A run that stops at quiescence finished its work too.
+            finished = "reason=end_time" in tail or "reason=quiescent" in tail
             print("\n=== RUN ENDED ===\n" + tail, flush=True)
             return 0 if finished else 1
 
@@ -143,6 +145,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--pid", type=int, required=True)
+    parser.add_argument("--log", type=Path, default=None)
     parser.add_argument("--poll", type=int, default=60)
     parser.add_argument("--stall-minutes", type=int, default=12)
     parser.add_argument("--mute-minutes", type=int, default=8)
@@ -151,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
     return supervise(
         args.out,
         args.pid,
+        args.log,
         args.poll,
         args.stall_minutes,
         args.mute_minutes,

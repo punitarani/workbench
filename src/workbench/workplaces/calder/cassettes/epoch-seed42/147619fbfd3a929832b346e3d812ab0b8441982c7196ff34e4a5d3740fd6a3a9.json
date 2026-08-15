@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle + Stonebridge Form 1065 kickoff\",\n      \"refs\": [\"tkt-1065-stonebridge\", \"thr-tax-huddle\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Form 1065 setup — Stonebridge Property Group 2025\",\n      \"refs\": [\"tkt-1065-stonebridge\", \"doc-pbc-template\", \"doc-workflow-policy\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Owner returns — Summit Physical Therapy partners (intake & PBC)\",\n      \"refs\": [\"tkt-owner-returns-summit\", \"doc-pbc-template\", \"doc-engagement-letter\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"K-1 planning & timeline — both engagements\",\n      \"refs\": [\"tkt-1065-stonebridge\", \"tkt-owner-returns-summit\", \"doc-workflow-policy\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Admin — client master list review, rate confirmation, retention check\",\n      \"refs\": [\"doc-client-master-list\", \"doc-rate-sheet-2026\", \"doc-retention-policy\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle + K-1 season kickoff\",\n      \"refs\": [\"tkt-1065-stonebridge\", \"tkt-summit-owners\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Stonebridge Form 1065 — initial intake and PBC assembly\",\n      \"refs\": [\"tkt-1065-stonebridge\", \"doc-pbc-template\", \"doc-engagement-letter\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Summit Physical Therapy partner returns — scope and timeline\",\n      \"refs\": [\"tkt-summit-owners\", \"doc-pbc-template\", \"doc-workflow-policy\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 42000,\n      \"focus\": \"Administrative setup — file structure, team assignments, tracking\",\n      \"refs\": [\"doc-client-master-list\", \"doc-rate-sheet-2026\", \"doc-retention-policy\"]\n    },\n    {\n      \"start\": 42000,\n      \"end\": 44400,\n      \"focus\": \"Buffer — follow-ups, client comms, loose ends\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 982,
-      "completion_tokens": 405
+      "completion_tokens": 366
     },
     "cache_hit": false
   },

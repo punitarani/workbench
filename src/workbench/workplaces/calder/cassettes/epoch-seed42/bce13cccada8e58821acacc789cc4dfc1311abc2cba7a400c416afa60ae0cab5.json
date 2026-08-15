@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Onboarding: Review firm policies and procedures\",\n      \"refs\": [\n        \"doc-engagement-letter\",\n        \"doc-time-billing-policy\",\n        \"doc-tax-return-workflow\",\n        \"doc-records-retention-security\",\n        \"doc-standard-rate-sheet-2026\"\n      ]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 37800,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": []\n    },\n    {\n      \"start\": 37800,\n      \"end\": 41400,\n      \"focus\": \"Onboarding: Review client materials and engagement setup\",\n      \"refs\": [\n        \"doc-pbc-request-template\",\n        \"doc-client-master-list\",\n        \"doc-monthly-close-checklist\"\n      ]\n    },\n    {\n      \"start\": 41400,\n      \"end\": 50400,\n      \"focus\": \"Harbor Light: Initial file review and tie-out preparation with Theo\",\n      \"refs\": [\n        \"thr-harbor-light\"\n      ]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Onboarding review: engagement letter, policies, and workflows\",\n      \"refs\": [\"doc-engagement-letter-std\", \"doc-time-billing-policy\", \"doc-tax-return-workflow\", \"doc-records-retention-security\", \"doc-rate-sheet-2026\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Review PBC template and client master list; preparation for Harbor Light engagement\",\n      \"refs\": [\"doc-pbc-request-template\", \"doc-client-master-list\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Study monthly close checklist and initial Harbor Light file setup\",\n      \"refs\": [\"doc-monthly-close-checklist\"]\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"Workpaper organization and tie-out preparation; meet with Theo for Harbor Light orientation\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 926,
-      "completion_tokens": 328
+      "completion_tokens": 349
     },
     "cache_hit": false
   },

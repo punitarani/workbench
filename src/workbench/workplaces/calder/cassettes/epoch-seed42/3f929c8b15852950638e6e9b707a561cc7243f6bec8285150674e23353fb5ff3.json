@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day this reflection covers\n3. `today_activity` (str): everything you saw and did today\n4. `open_items` (str): unanswered items still pending\n5. `prior_summaries` (str): your recent daily summaries\nYour output fields are:\n1. `reflection` (DailyReflection):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## today_activity ## ]]\n{today_activity}\n\n[[ ## open_items ## ]]\n{open_items}\n\n[[ ## prior_summaries ## ]]\n{prior_summaries}\n\n[[ ## reflection ## ]]\n{reflection}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"MemoryBullet\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"importance\": {\"type\": \"integer\", \"maximum\": 10, \"minimum\": 1, \"title\": \"Importance\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"text\": {\"type\": \"string\", \"title\": \"Text\"}}, \"required\": [\"text\", \"importance\"], \"title\": \"MemoryBullet\"}}, \"additionalProperties\": false, \"description\": \"What the day distilled to: bullets future-you needs, with the\\nworld ids they concern and how much they matter.\", \"properties\": {\"bullets\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/MemoryBullet\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Bullets\"}, \"open_loops\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Open Loops\"}}, \"required\": [\"bullets\"], \"title\": \"DailyReflection\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Consolidate your working day into a durable note. Write three to\n        eight bullets a colleague could act on tomorrow: decisions made,\n        commitments given or received, risks noticed, threads left open.\n        Rate each bullet's importance 1-10 and carry the exact world ids\n        (thr-/tkt-/cnv-/doc-) it concerns. List open loops separately."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Theo Brandt, Senior Accountant, Assurance (mid).\nSenior assurance accountant: fieldwork lead on Harbor Light, owns the PBC tracker and the testing files.\nPersonality: Thorough, quietly funny, documents everything twice.\nEmail register: Complete and orderly; signs 'Theo'.\nChat register: Fuller sentences than chat deserves.\nWorking hours: 09:00-17:30\n\n[[ ## day ## ]]\n2026-01-06\n\n[[ ## today_activity ## ]]\n[09:05] Planned the day: Harbor Light PBC tracker setup and validation—verify document references are correctly resol…\n[14:30] Rejected action from theo-brandt: unknown ticket 'tkt-pbc-template-cross-reference'\n\n[[ ## open_items ## ]]\nNothing pending.\n\n[[ ## prior_summaries ## ]]\nOnboarding documentation suite prepared and organized: Engagement Letter, Time & Billing Policy, Tax Return W…\nPBC Request Template cross-reference task initiated but document reference resolution failed—need to verify c…\nTax group huddle scheduled; confirms team coordination cadence is active for Q1 2026.\nDay planning commenced with focus on fieldwork lead responsibilities for Harbor Light engagement—PBC tracker …\n\nRespond with the corresponding output fields, starting with the field `[[ ## reflection ## ]]` (must be formatted as a valid Python DailyReflection), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 3108226799743442057,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## reflection ## ]]\n{\n  \"bullets\": [\n    {\n      \"text\": \"Harbor Light PBC tracker setup commenced but stalled: document reference resolution failed on cross-reference task. Need to verify that all PBC template references map correctly to source documents before proceeding with validation.\",\n      \"importance\": 9,\n      \"refs\": [\"tkt-pbc-template-cross-reference\"]\n    },\n    {\n      \"text\": \"Fieldwork lead responsibilities clarified for Harbor Light engagement. PBC tracker ownership and testing file management are primary focus areas for Q1 2026.\",\n      \"importance\": 8,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Onboarding documentation suite from prior week remains in good order (Engagement Letter, Time & Billing Policy, Tax Return materials). Foundation is solid for team coordination.\",\n      \"importance\": 6,\n      \"refs\": []\n    },\n    {\n      \"text\": \"Tax group huddle coordination confirmed active for Q1. Team cadence is established; ensure Harbor Light fieldwork integrates cleanly with broader tax group schedule.\",\n      \"importance\": 7,\n      \"refs\": []\n    }\n  ],\n  \"open_loops\": [\n    \"Resolve PBC template cross-reference document mapping—ticket reference was rejected; clarify correct ticket identifier and complete reference validation\",\n    \"Validate all PBC tracker document references resolve correctly before opening tracker to team\"\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 966,
+      "completion_tokens": 345
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

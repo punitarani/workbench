@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## choice ## ]]\n{\"action\": \"idle\", \"target_ref\": null, \"intent\": \"Start the day by reviewing the engagement and audit matters for Harbor Light Foundation before any substantive action\", \"reason\": \"It is 09:00, the start of my working day, with no pending items and no direct requests requiring immediate response. I have a scheduled tax group huddle later, and a recently opened ticket (tkt-000007) that I should review before acting. Idling now is appropriate because no substantive action is currently supported by pending items.\"}\n[[ ## completed ## ]]",
+    "text": "[[ ## choice ## ]]\n{\"action\": \"idle\", \"target_ref\": null, \"intent\": \"Start the day by reviewing the engagement and audit pipeline before acting.\", \"reason\": \"It is 09:00 Monday, the start of the workday. There are no pending items, no direct requests, and no plan recorded. The only ticket (tkt-000007) is already open and is a normal engagement matter, not something requiring immediate executive action. I should not invent work or send acknowledgments. Idling until the tax group huddle or further input is appropriate.\"}\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 1247,
-      "completion_tokens": 125
+      "completion_tokens": 129
     },
     "cache_hit": false
   },

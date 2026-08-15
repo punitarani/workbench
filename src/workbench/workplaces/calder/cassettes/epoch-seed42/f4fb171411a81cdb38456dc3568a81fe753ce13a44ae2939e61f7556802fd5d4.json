@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Review Blue Fir Restaurant Group payroll ticket and engagement materials\",\n      \"refs\": [\"tkt-payroll-bluefir\", \"doc-engagement-letter\", \"doc-pbc-template\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Tax group huddle preparation and attendance\",\n      \"refs\": [\"tkt-payroll-bluefir\", \"doc-tax-workflow\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Initial payroll intake for Blue Fir — withholding setup and quarterly filing checklist\",\n      \"refs\": [\"tkt-payroll-bluefir\", \"doc-monthly-close-checklist\", \"doc-records-retention\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Document organization and filing confirmations — payroll records and client master update\",\n      \"refs\": [\"doc-client-master-list\", \"doc-time-billing-policy\", \"doc-rate-sheet-2026\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Review Blue Fir Restaurant Group engagement and payroll setup\",\n      \"refs\": [\"tkt-payroll-blue-fir\", \"doc-engagement-letter\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Tax group huddle and quarterly filings alignment\",\n      \"refs\": [\"tkt-payroll-blue-fir\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Prepare PBC request and records checklist for Blue Fir\",\n      \"refs\": [\"doc-pbc-template\", \"doc-records-retention\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Establish payroll processing workflow and time & billing verification\",\n      \"refs\": [\"doc-time-billing-policy\", \"doc-monthly-close-checklist\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 958,
-      "completion_tokens": 328
+      "completion_tokens": 286
     },
     "cache_hit": false
   },
