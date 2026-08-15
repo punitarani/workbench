@@ -1,0 +1,184 @@
+{
+ "client_engagements": 12,
+ "internal_engagements": 2,
+ "total_client_wip_dollars": 133596.9,
+ "blended_rate_dollars_per_hour": 259.7,
+ "engagements": [
+  {
+   "ticket_id": "tkt-000001",
+   "billable_hours": 86.83,
+   "wip_dollars": 23195.23,
+   "staff_count": 17
+  },
+  {
+   "ticket_id": "tkt-000002",
+   "billable_hours": 41.37,
+   "wip_dollars": 11815.5,
+   "staff_count": 16
+  },
+  {
+   "ticket_id": "tkt-000003",
+   "billable_hours": 67.02,
+   "wip_dollars": 17453.0,
+   "staff_count": 17
+  },
+  {
+   "ticket_id": "tkt-000004",
+   "billable_hours": 80.6,
+   "wip_dollars": 18200.89,
+   "staff_count": 17
+  },
+  {
+   "ticket_id": "tkt-000005",
+   "billable_hours": 28.65,
+   "wip_dollars": 8237.32,
+   "staff_count": 16
+  },
+  {
+   "ticket_id": "tkt-000006",
+   "billable_hours": 37.95,
+   "wip_dollars": 11666.8,
+   "staff_count": 11
+  },
+  {
+   "ticket_id": "tkt-000007",
+   "billable_hours": 90.68,
+   "wip_dollars": 22072.11,
+   "staff_count": 16
+  },
+  {
+   "ticket_id": "tkt-000008",
+   "billable_hours": 16.33,
+   "wip_dollars": 3764.86,
+   "staff_count": 12
+  },
+  {
+   "ticket_id": "tkt-000009",
+   "billable_hours": 41.35,
+   "wip_dollars": 10036.37,
+   "staff_count": 13
+  },
+  {
+   "ticket_id": "tkt-000010",
+   "billable_hours": 9.45,
+   "wip_dollars": 2702.03,
+   "staff_count": 11
+  },
+  {
+   "ticket_id": "tkt-000013",
+   "billable_hours": 6.75,
+   "wip_dollars": 2644.23,
+   "staff_count": 17
+  },
+  {
+   "ticket_id": "tkt-000014",
+   "billable_hours": 7.45,
+   "wip_dollars": 1808.56,
+   "staff_count": 13
+  }
+ ],
+ "people": [
+  {
+   "name": "Colin Mackey",
+   "logged_hours": 52.1,
+   "billable_hours": 39.85,
+   "utilization_pct": 76.5
+  },
+  {
+   "name": "Desmond Ortiz",
+   "logged_hours": 49.73,
+   "billable_hours": 36.02,
+   "utilization_pct": 72.4
+  },
+  {
+   "name": "Elias Finch",
+   "logged_hours": 49.0,
+   "billable_hours": 31.38,
+   "utilization_pct": 64.0
+  },
+  {
+   "name": "Freya Holt",
+   "logged_hours": 44.75,
+   "billable_hours": 0.33,
+   "utilization_pct": 0.7
+  },
+  {
+   "name": "Gabriel Fontes",
+   "logged_hours": 58.38,
+   "billable_hours": 41.85,
+   "utilization_pct": 71.7
+  },
+  {
+   "name": "Hana Sato",
+   "logged_hours": 44.12,
+   "billable_hours": 31.53,
+   "utilization_pct": 71.5
+  },
+  {
+   "name": "Imogen Carraway",
+   "logged_hours": 53.02,
+   "billable_hours": 37.43,
+   "utilization_pct": 70.6
+  },
+  {
+   "name": "Lucia Mendes",
+   "logged_hours": 52.3,
+   "billable_hours": 36.13,
+   "utilization_pct": 69.1
+  },
+  {
+   "name": "Maya Lindqvist",
+   "logged_hours": 52.47,
+   "billable_hours": 36.6,
+   "utilization_pct": 69.8
+  },
+  {
+   "name": "Nadia Osman",
+   "logged_hours": 56.72,
+   "billable_hours": 39.02,
+   "utilization_pct": 68.8
+  },
+  {
+   "name": "Owen Castile",
+   "logged_hours": 50.33,
+   "billable_hours": 0.0,
+   "utilization_pct": 0.0
+  },
+  {
+   "name": "Priscilla Wong",
+   "logged_hours": 53.43,
+   "billable_hours": 40.07,
+   "utilization_pct": 75.0
+  },
+  {
+   "name": "Raj Malhotra",
+   "logged_hours": 45.58,
+   "billable_hours": 0.0,
+   "utilization_pct": 0.0
+  },
+  {
+   "name": "Rosalind Calder",
+   "logged_hours": 54.13,
+   "billable_hours": 31.63,
+   "utilization_pct": 58.4
+  },
+  {
+   "name": "Sylvia Nakamura",
+   "logged_hours": 47.8,
+   "billable_hours": 33.05,
+   "utilization_pct": 69.1
+  },
+  {
+   "name": "Theo Brandt",
+   "logged_hours": 56.87,
+   "billable_hours": 38.37,
+   "utilization_pct": 67.5
+  },
+  {
+   "name": "Victor Alade",
+   "logged_hours": 56.87,
+   "billable_hours": 41.17,
+   "utilization_pct": 72.4
+  }
+ ]
+}
