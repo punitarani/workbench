@@ -101,7 +101,7 @@ async def test_gateway_pins_chat_completions_for_opencode(
     assert seen["url"] == "https://openrouter.test/api/v1/chat/completions"
     assert seen["body"]["model"] == "anthropic/claude-opus-5"
     assert seen["body"]["provider"] == {
-        "order": ["amazon-bedrock"],
+        "order": ["amazon-bedrock/us-east-1", "amazon-bedrock"],
         "allow_fallbacks": False,
     }
 
