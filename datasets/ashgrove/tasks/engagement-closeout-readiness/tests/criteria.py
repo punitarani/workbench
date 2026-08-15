@@ -6,14 +6,11 @@ from pathlib import Path
 from rewardkit import criterion
 
 MAX_BYTES = 300_000
+# Read the required field set off the oracle rather than restating it: a
+# hand-kept copy silently fails correct answers the day the report grows a
+# field, which is exactly what happened when WIP-at-risk was added.
 TOP = frozenset(
-    {
-        "client_engagements",
-        "status_counts",
-        "awaiting_firm_reply",
-        "longest_waiting_engagement",
-        "engagements",
-    }
+    json.loads((Path(__file__).resolve().parent / "oracle.json").read_text())
 )
 ROWS = "engagements"
 KEY = "ticket_id"

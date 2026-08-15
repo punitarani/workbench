@@ -52,6 +52,7 @@ rk.row_fields(
         "staff_count": 0,
         "status": 0,
         "client_waiting_hours": 0.2,
+        "wip_dollars": 5.0,
     },
     name="row_figures",
     weight=6.0,
