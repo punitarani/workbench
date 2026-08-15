@@ -57,7 +57,10 @@ def _display_number(
     person_names: Mapping[str, str],
 ) -> str:
     if state.client_ref is not None:
-        client = org_names[state.client_ref].replace(" ", "")
+        # Worlds may reference client orgs without org.record events (the
+        # epoch genesis seeds tickets but no org roster); the ref itself is
+        # the deterministic fallback display name.
+        client = org_names.get(state.client_ref, state.client_ref).replace(" ", "")
     else:
         client = person_names[state.requester].split()[-1]
     return f"{number:05d}-{client}"

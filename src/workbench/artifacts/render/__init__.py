@@ -43,16 +43,39 @@ def render_document(content_format: str, content: str, target: Path) -> RenderOu
             target.write_text(content, encoding="utf-8")
             return RenderOutcome(path=target)
         case "spreadsheet":
-            _render_xlsx(parse_spreadsheet(content), target)
+            try:
+                parsed = parse_spreadsheet(content)
+            except ValueError:
+                return _raw_fallback(content_format, content, target)
+            _render_xlsx(parsed, target)
             return RenderOutcome(path=target)
         case "formatted":
-            document = parse_formatted(content)
+            try:
+                document = parse_formatted(content)
+            except ValueError:
+                return _raw_fallback(content_format, content, target)
             if target.suffix.lower() == ".pdf":
                 return _render_pdf(document, target)
             _render_docx(document, target)
             return RenderOutcome(path=target)
         case _:
             raise ValueError(f"unknown content format {content_format!r}")
+
+
+def _raw_fallback(content_format: str, content: str, target: Path) -> RenderOutcome:
+    """Authors sometimes declare a structured format but write prose; the
+    record still deserves a file, so the raw text lands beside the intended
+    name with the skip recorded."""
+
+    fallback = target.with_suffix(".txt")
+    fallback.write_text(content, encoding="utf-8")
+    return RenderOutcome(
+        path=fallback,
+        skipped=(
+            f"{target.name}: {content_format} content did not parse; "
+            f"wrote raw text as {fallback.name}"
+        ),
+    )
 
 
 def _render_xlsx(content: SpreadsheetContent, target: Path) -> None:
