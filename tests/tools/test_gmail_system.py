@@ -23,6 +23,9 @@ MESSAGE_KEYS = [
     "ccRecipients",
     "date",
     "plaintextBody",
+    # The official Message carries both bodies; ours derives the HTML
+    # alternative from the plaintext the record stores.
+    "htmlBody",
     "attachmentIds",
     "attachments",
     "labelIds",
@@ -231,7 +234,7 @@ async def test_unknown_ids_raise(server) -> None:
 
 async def test_list_labels_empty(server) -> None:
     [labels] = await call(server, "list_labels")
-    assert labels == {"labels": []}
+    assert labels == {"labels": [], "nextPageToken": None}
 
 
 async def test_seat_scoping_hides_nonparticipant_mail(
@@ -271,6 +274,20 @@ async def test_leakage_audit_no_offstage_markers(server) -> None:
         "search_threads": {"query": ""},
         "get_thread": {"threadId": "thr-000001"},
         "get_message": {"messageId": "msg-000001"},
+        "create_draft": {"subject": "Draft", "body": "Body"},
+        "create_label": {"displayName": "Audit"},
+        "label_message": {"messageId": "msg-000001", "labelIds": ["Label_000001"]},
+        "unlabel_message": {"messageId": "msg-000001", "labelIds": ["Label_000001"]},
+        "label_thread": {"threadId": "thr-000001", "labelIds": ["Label_000001"]},
+        "unlabel_thread": {"threadId": "thr-000001", "labelIds": ["Label_000001"]},
+        "trash_message": {"messageId": "msg-000001"},
+        "untrash_message": {"messageId": "msg-000001"},
+        "trash_thread": {"threadId": "thr-000001"},
+        "untrash_thread": {"threadId": "thr-000001"},
+        "mark_message_spam": {"messageId": "msg-000001"},
+        "unmark_message_spam": {"messageId": "msg-000001"},
+        "mark_thread_spam": {"threadId": "thr-000001"},
+        "unmark_thread_spam": {"threadId": "thr-000001"},
     }
     for tool in await server.list_tools():
         result = await server.call_tool(tool.name, arguments.get(tool.name, {}))
@@ -279,12 +296,19 @@ async def test_leakage_audit_no_offstage_markers(server) -> None:
             assert marker not in text, f"gmail.{tool.name} leaked {marker!r}"
 
 
-async def test_only_read_tools(server) -> None:
+async def test_write_surface_matches_the_official_server(server) -> None:
+    """Gmail gained a write surface in v2 — drafts, labels, trash, spam.
+
+    The one thing the official server cannot do is *send* (ADR-0005): a
+    person opens the draft and sends it. That boundary is the invariant,
+    not the absence of writes.
+    """
+
     tools = await server.list_tools()
     names = {tool.name for tool in tools}
     assert {"search_threads", "get_thread", "get_message", "list_labels"} <= names
+    assert {"create_draft", "create_label", "trash_message"} <= names
     for tool in tools:
         assert not any(
-            verb in tool.name
-            for verb in ("send", "create", "update", "delete", "write", "post")
-        ), f"gmail exposes a write tool in the read-only phase: {tool.name}"
+            verb in tool.name for verb in ("send", "update", "delete", "post")
+        ), f"gmail exposes a verb the official server does not: {tool.name}"
