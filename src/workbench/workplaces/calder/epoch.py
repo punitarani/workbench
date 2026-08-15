@@ -162,7 +162,14 @@ def _seed_surfaces() -> tuple[
     return tuple(channels), tuple(documents), tuple(tickets)
 
 
-def epoch_spec(days: int = 194) -> WorkplaceSpec:
+def epoch_spec(days: int = 194, *, version: int = 1) -> WorkplaceSpec:
+    """The firm's epoch.
+
+    ``version=1`` is the recorded v1 world, kept replayable byte for byte.
+    ``version=2`` turns on the v2 behaviours that change the log — today
+    the end-of-day timesheet cohort — which is why they are a version and
+    not a default.
+    """
     channels, documents, tickets = _seed_surfaces()
     arrival_day = (
         date.fromisoformat(ARRIVAL_DATE) - date.fromisoformat(EPOCH_START)
@@ -205,6 +212,7 @@ def epoch_spec(days: int = 194) -> WorkplaceSpec:
                 ),
             ),
             "day_script": (),
+            "timesheets": version >= 2,
         }
     )
 

@@ -131,7 +131,7 @@ class _DayTracker:
 
 async def _start_or_resume(args: argparse.Namespace, *, resume: bool) -> int:
     seed = Seed(root=args.seed)
-    spec = epoch_spec(days=args.days)
+    spec = epoch_spec(days=args.days, version=args.version)
     compiled = compile_workplace(spec, seed)
     director = epoch_director(seed)
     inner, backend = build_lm(args.mode, args.cassette, args.max_calls)
@@ -318,6 +318,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--max-calls", type=int, default=100_000)
         p.add_argument("--checkpoint-every", type=int, default=100)
         p.add_argument("--max-steps", type=int, default=None)
+        p.add_argument("--version", type=int, default=1, choices=(1, 2))
     for name in ("status", "report"):
         p = sub.add_parser(name)
         p.add_argument("--out", type=Path, default=Path("out/calder/epoch"))
