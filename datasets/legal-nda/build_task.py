@@ -20,8 +20,7 @@ def main() -> int:
     world_log = Path(sys.argv[1] if len(sys.argv) > 1 else "out/legal-day/world.jsonl")
     if not world_log.exists():
         raise SystemExit(
-            f"{world_log} not found — replay the demo day first "
-            "(see docs/simulation-engine.md)"
+            f"{world_log} not found — replay the demo day first (see docs/WORKBENCH.md)"
         )
     for task in sorted(p for p in TASKS.iterdir() if (p / "task.toml").exists()):
         result = materialize(world_log, task / "bundle")

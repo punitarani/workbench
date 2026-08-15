@@ -1,11 +1,13 @@
 # datasets
 
 Harbor tasks, grouped into datasets — the eval/RL deliverable built on top
-of recorded workplace days. Arrives with Phase 3 of the
-[v1 design](../docs/superpowers/specs/2026-08-08-workbench-v1-design.md):
-tasks are mined from simulated history, ground truth extracted from
-offstage state, every task validated (solvable, discriminating,
-deterministic, leak-free) before it lands here.
+of recorded workplace days. Tasks are mined from simulated history,
+ground truth extracted from offstage state, and validated (solvable,
+discriminating, deterministic, leak-free) before landing here. See
+[docs/WORKBENCH.md](../docs/WORKBENCH.md#tasks-and-grading) for how a
+task is built and graded — including the standing caveat that a reward
+measured against an oracle the agent cannot reproduce through the tool
+surface is not evidence about a model.
 
 Task format: `datasets/<dataset>/tasks/<task>/` per Harbor's layout
 (`task.toml`, `instruction.md`, `solution/solve.sh`, `tests/test.sh`).

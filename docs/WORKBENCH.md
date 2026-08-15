@@ -35,7 +35,10 @@ The goals, concretely:
 3. **Grade against the world itself.** Harbor tasks are built on those
    environments and scored against oracles computed from the same world
    state the agent explores — so ground truth is extracted, never
-   hand-authored.
+   hand-authored. Extracted is necessary but not sufficient: the oracle
+   must also be *reachable*. A rule the agent cannot evaluate through the
+   tool surface grades the environment's plumbing rather than the model,
+   however faithfully it reflects the log.
 4. **Replay everything.** Every LM call is recorded into content-keyed
    cassettes; a recorded world replays byte-identically with no network,
    which is what makes the datasets auditable and CI-checkable.
@@ -275,14 +278,45 @@ Measured baselines (one `claude-opus-5` rollout through the Harbor
 verifier on the exact committed bundle, recorded in each `task.toml`
 under `[metadata.baseline]`):
 
-| Task (dataset) | Opus 5 reward |
-|---|---|
-| open-items-triage (ashgrove) | 1.0 |
-| staffing-leverage-review (ashgrove) | 0.65 |
-| client-responsiveness-sla (ashgrove) | 0.632 |
-| wip-utilization-review (ashgrove) | 0.564 |
-| engagement-closeout-readiness (ashgrove) | measurement pending |
-| h1-billing-audit (calder) | 1.0 |
+| Task (dataset) | Opus 5 reward | What the number means |
+|---|---|---|
+| open-items-triage (ashgrove) | 1.0 | capability |
+| staffing-leverage-review (ashgrove) | 0.65 | **oracle defect** (see below) |
+| client-responsiveness-sla (ashgrove) | 0.632 | **oracle defect** |
+| wip-utilization-review (ashgrove) | 0.564 | **oracle defect** |
+| engagement-closeout-readiness (ashgrove) | 1.0 / 0.273 | **undefined identifier** |
+| h1-billing-audit (calder) | 1.0 | capability |
+
+**The Ashgrove sub-1.0 numbers do not measure model capability, and must
+not be used to calibrate difficulty.** A 2026-08-15 audit traced every
+zeroed criterion to its cause:
+
+- The WIP and leverage oracles separate client from internal work by
+  `description.startswith("Firm —")`. Two records that are filing chores,
+  not engagements, fall on the client side of that string test. The model
+  counted 10 client engagements against the oracle's 12, agreed on the
+  population of 14, and was right about the boundary. That one
+  disagreement zeroed four of six criteria in WIP and two of four in
+  leverage while per-row figures held at 0.83.
+- The SLA oracle treats every `affiliation='external'` person as a
+  client. The model excluded exactly one — a "Peer Review Captain", the
+  external reviewer of the firm's *own* peer review — and lost three
+  criteria for being correct.
+- `ticket_id` (`tkt-000005`) is an internal world id the clio surface
+  never exposes; clio offers `id` and `display_number`
+  (`00005-Mensah`), while the id leaks into 26 of 65 Slack messages. Two
+  rollouts of the same model on the same task scored 1.0 and 0.273 purely
+  on which vocabulary each guessed. The 0.273 run used the authoritative
+  system of record, flagged the ambiguity in its notes, and computed the
+  money to within $1.20 of the oracle.
+
+The common root cause is that reference solvers read `state/*.db`
+directly and therefore see internal ids, raw description strings, and
+affiliation flags that no agent can observe. **A rule an agent cannot
+evaluate through the tool surface is not a task rule**; oracles should be
+computed through the same MCP surface the agent uses, and distinctions
+the grading depends on (internal vs client, client contact vs other
+external party) belong in the data as explicit fields.
 
 The Hartwell suite (ten tasks, including the matter-intake-compliance
 write workflow) carries its own measured floors, naive scores, and
@@ -497,8 +531,21 @@ The fidelity ledger's ABSENT column is the worklist, measured honestly:
   all currently failing their bands.
 - **Volume**: firm-wide email is below band (36/day vs 60–120 at the
   committed 3–5× scale).
-- **Baseline in flight**: engagement-closeout-readiness re-measurement
-  is pending; do not cite a number for it.
+- **Oracles see what agents cannot**: reference solvers read `state/*.db`
+  directly, so task rules can depend on internal ids and raw column
+  values that no tool exposes. This produced every Ashgrove sub-1.0
+  score. Until solvers run through the MCP surface, a measured reward is
+  not evidence about a model.
+- **Referential coherence of authored content**: iManage registers
+  "Audit Engagement Letter Template" over a document whose body is a
+  change-order summary for "Ridgeview" — a client in no roster and no
+  workplace spec. One mislabel in five documents, found by a rollout
+  rather than by a gate; no check asserts a document's registered name
+  matches its content, or that entities named in prose exist.
+- **Work items minted as engagements**: the ledger carries "Register 2026
+  engagement letter document" and "Compile itemized 401(k) discrepancy
+  list" as matters alongside real audits, which is what made the
+  client/internal boundary ambiguous in the first place.
 
 ## Appendices — measurement records
 
