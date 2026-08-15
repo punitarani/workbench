@@ -24,8 +24,8 @@ from workbench.core.events.control import (
     SimGmNotePayload,
     SimPlanningPayload,
     SimReflectionPayload,
-    SimTimesheetPayload,
     SimRunStartedPayload,
+    SimTimesheetPayload,
     SimWakePayload,
 )
 from workbench.core.events.documents import (
