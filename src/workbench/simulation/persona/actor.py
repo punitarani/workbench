@@ -225,12 +225,16 @@ class ProfessionalActorAct:
         )
         engagements = "\n".join(spec.engagements) or "No engagements assigned."
         try:
-            prediction = await self._actor.log_day.acall(
-                identity=identity,
-                day=spec.day,
-                engagements=engagements,
-                today_activity=today_activity,
-            )
+            # Without a bound LM the call raises and the degradation path
+            # below eats it, so a whole day of time silently vanishes —
+            # which is exactly what the first flagged mini-epoch did.
+            with dspy.context(lm=self._lm):
+                prediction = await self._actor.log_day.acall(
+                    identity=identity,
+                    day=spec.day,
+                    engagements=engagements,
+                    today_activity=today_activity,
+                )
             lines = prediction.timesheet.lines
         except CassetteMissError, LMBudgetExceededError, LMTransportError:
             raise

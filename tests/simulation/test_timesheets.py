@@ -187,3 +187,29 @@ class TestTimeflow:
             )
         )
         assert intent_duration(short) < intent_duration(long)
+
+
+class TestCognitionContract:
+    def test_every_dispatched_turn_binds_an_lm(self) -> None:
+        """The bug that made the first flagged mini-epoch produce nothing.
+
+        A turn dispatched straight from ``get_action_attempt`` owns its own
+        LM context. Without one the predictor call raises, the degradation
+        path meant for unparseable output swallows it, and the turn quietly
+        produces nothing — 16 timesheet turns made zero LM calls and logged
+        zero hours. Helpers called *inside* an established context are fine;
+        these entry points are not.
+        """
+
+        import inspect
+
+        from workbench.simulation.persona.actor import ProfessionalActorAct
+
+        dispatched = ("_timesheet", "_reflect", "_plan", "_meeting_turn")
+        offenders = [
+            name
+            for name in dispatched
+            if "dspy.context("
+            not in inspect.getsource(getattr(ProfessionalActorAct, name))
+        ]
+        assert not offenders, f"dispatched turns with no LM bound: {offenders}"
