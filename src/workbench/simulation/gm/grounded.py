@@ -286,6 +286,11 @@ class GroundedGm:
                 return (payload.entity,)
             case SimGmNotePayload():
                 return (payload.entity,) if payload.entity is not None else ()
+            case TimeLoggedPayload():
+                # A day of time arrives as many events at once. Without this
+                # they preview as nobody's business, land in one batch, and
+                # ask one person to act several times at the same instant.
+                return self._entities_for((payload.person_id,))
             case _:
                 return ()
 
