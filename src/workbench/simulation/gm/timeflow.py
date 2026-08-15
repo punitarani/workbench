@@ -14,6 +14,7 @@ from workbench.core.intents import (
     ReactionIntent,
     TicketIntent,
     TimeLogIntent,
+    TimesheetIntent,
 )
 
 
@@ -35,6 +36,10 @@ def intent_duration(intent: ActionIntent) -> int:
             return 10
         case TimeLogIntent():
             return 60
+        case TimesheetIntent():
+            # Writing up the whole day: a couple of minutes plus a beat per
+            # line, which is what a timesheet actually costs someone.
+            return 120 + 30 * len(intent.entries)
         case IdleIntent():
             return intent.until_minutes * 60
         case AgentNoteIntent():
@@ -47,3 +52,8 @@ def intent_duration(intent: ActionIntent) -> int:
             return 120
         case FreeformIntent():
             return 60
+        case _:
+            # A new intent with no duration rule used to fall through as
+            # None and blow up much later inside delivery quantization,
+            # with a traceback that named neither the intent nor this file.
+            raise ValueError(f"no duration rule for intent kind {intent.kind!r}")

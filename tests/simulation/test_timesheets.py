@@ -138,3 +138,52 @@ class TestScheduling:
         assert not footprint.conflicts(other), (
             "two people writing up their own time do not contend, so the cohort batches"
         )
+
+
+class TestTimeflow:
+    def test_every_intent_kind_has_a_duration_rule(self) -> None:
+        """The gap that killed the first v2 mini-epoch.
+
+        A new intent without a rule fell through the match as None and blew
+        up later inside delivery quantization, in a traceback that named
+        neither the intent nor the rule table.
+        """
+
+        import inspect
+        import typing
+
+        from workbench.core.intents import ActionIntent
+        from workbench.simulation.gm import timeflow
+
+        source = inspect.getsource(timeflow.intent_duration)
+        members = typing.get_args(typing.get_args(ActionIntent)[0])
+        assert len(members) > 10, "the intent union should not have shrunk"
+        missing = [
+            member.__name__
+            for member in members
+            if f"case {member.__name__}()" not in source
+        ]
+        assert not missing, f"intents with no duration rule: {missing}"
+
+    def test_an_unruled_intent_fails_loudly(self) -> None:
+        from workbench.simulation.gm.timeflow import intent_duration
+
+        class Unruled:
+            kind = "unruled"
+
+        with pytest.raises(ValueError, match="no duration rule"):
+            intent_duration(Unruled())
+
+    def test_a_timesheet_costs_time_proportional_to_its_lines(self) -> None:
+        from workbench.simulation.gm.timeflow import intent_duration
+
+        short = TimesheetIntent(
+            entries=(TimesheetEntry(ticket_ref="tkt-1", minutes=30, note="x"),)
+        )
+        long = TimesheetIntent(
+            entries=tuple(
+                TimesheetEntry(ticket_ref="tkt-1", minutes=30, note="x")
+                for _ in range(8)
+            )
+        )
+        assert intent_duration(short) < intent_duration(long)
