@@ -1,0 +1,146 @@
+{
+  "vendor": "calendar",
+  "product": "Google Calendar MCP server",
+  "endpoint": "https://calendarmcp.googleapis.com/mcp/v1",
+  "captured": "2026-08-14",
+  "status": "Developer Preview (Google Workspace Developer Preview Program)",
+  "provenance": "published reference (developers.google.com/workspace/calendar/api/v3/reference/mcp)",
+  "confidence": "high — parameter names and enums read from per-tool reference pages",
+  "notes": "The MCP surface uses startTime/endTime, not the REST API's timeMin/timeMax. Event enums are proto-style SCREAMING_SNAKE (eventType, availability) where REST v3 used lowercase.",
+  "tools": {
+    "list_events": {
+      "params": {
+        "calendarId": "string? default primary",
+        "pageSize": "integer? default 100 range 1-250",
+        "pageToken": "string?",
+        "startTime": "string? ISO-8601",
+        "endTime": "string? ISO-8601",
+        "timeZone": "string? IANA",
+        "orderBy": "enum? default|startTime|startTimeDesc|lastModified",
+        "fullText": "string?",
+        "eventType": "string[]? default {DEFAULT,OUT_OF_OFFICE,FOCUS_TIME,FROM_GMAIL}",
+        "eventTypeFilter": "string[]? DEPRECATED"
+      },
+      "returns": [
+        "summary",
+        "description",
+        "updated",
+        "timeZone",
+        "accessRole",
+        "defaultReminders",
+        "events",
+        "nextPageToken"
+      ]
+    },
+    "get_event": {
+      "params": {"eventId": "string!", "calendarId": "string?"},
+      "returns": ["Event"]
+    },
+    "list_calendars": {
+      "params": {"pageSize": "integer? default 100 max 250", "pageToken": "string?"},
+      "returns": ["calendars", "nextPageToken"]
+    },
+    "search_events": {
+      "params": {
+        "query": "string!",
+        "pageSize": "integer?",
+        "pageToken": "string?"
+      },
+      "returns": ["events", "nextPageToken"],
+      "notes": "primary calendar only"
+    },
+    "suggest_time": {
+      "params": {
+        "attendeeEmails": "string[]!",
+        "startTime": "string! ISO-8601",
+        "endTime": "string! ISO-8601",
+        "timeZone": "string? IANA",
+        "durationMinutes": "integer? default 30",
+        "preferences": "object? {startHour,endHour,excludeWeekends,pageSize}"
+      },
+      "returns": ["timeSlots"]
+    },
+    "create_event": {
+      "params": {
+        "summary": "string!",
+        "startTime": "string! ISO-8601",
+        "endTime": "string! ISO-8601",
+        "calendarId": "string?",
+        "description": "string?",
+        "location": "string?",
+        "allDay": "boolean? default false",
+        "timeZone": "string? IANA",
+        "attendees": "Attendee[]?",
+        "attendeeEmails": "string[]? DEPRECATED",
+        "recurrenceData": "string[]? RRULE/RDATE/EXDATE",
+        "overrideReminders": "Reminder[]?",
+        "attachments": "Attachment[]?",
+        "notificationLevel": "enum? NotificationLevel",
+        "addGoogleMeetUrl": "boolean? default false",
+        "googleMeetUrl": "string?",
+        "visibility": "string? default|public|private",
+        "colorId": "string?",
+        "guestPermissions": "object?",
+        "availability": "enum?",
+        "eventType": "enum?",
+        "workingLocationProperties": "object?"
+      },
+      "returns": ["Event"]
+    },
+    "update_event": {
+      "params": {
+        "eventId": "string!",
+        "calendarId": "string?",
+        "summary": "string?",
+        "description": "string?",
+        "location": "string?",
+        "startTime": "string?",
+        "endTime": "string?",
+        "allDay": "boolean?",
+        "timeZone": "string?",
+        "notificationLevel": "enum? default ALL",
+        "addGoogleMeetUrl": "boolean?",
+        "googleMeetUrl": "string?",
+        "visibility": "string?",
+        "colorId": "string?",
+        "addedAttendees": "Attendee[]?",
+        "removedAttendeeEmails": "string[]?",
+        "overrideReminders": "Reminder[]?",
+        "addedAttachments": "Attachment[]?",
+        "removedAttachmentFileUrls": "string[]?",
+        "guestPermissions": "object?",
+        "availability": "enum?"
+      },
+      "returns": ["Event"],
+      "idempotent": true,
+      "notes": "attendee and attachment changes are deltas, not full-replace arrays; updating only the start preserves duration"
+    },
+    "delete_event": {
+      "params": {
+        "eventId": "string!",
+        "calendarId": "string?",
+        "notificationLevel": "enum?"
+      },
+      "returns": ["Event"],
+      "notes": "returns the deleted event"
+    },
+    "respond_to_event": {
+      "params": {
+        "eventId": "string!",
+        "responseStatus": "string! declined|tentative|accepted",
+        "calendarId": "string?",
+        "notificationLevel": "enum?",
+        "responseComment": "string?"
+      },
+      "returns": ["Event"]
+    }
+  },
+  "waived": {
+    "create_event.addGoogleMeetUrl": "no conferencing product is modeled in this world",
+    "create_event.overrideReminders": "reminder delivery is not modeled",
+    "create_event.colorId": "cosmetic; carries no professional signal",
+    "create_event.guestPermissions": "no permission model on the calendar surface",
+    "update_event.addedAttachments": "calendar attachments are modeled on the document surface",
+    "list_events.defaultReminders": "reminder delivery is not modeled"
+  }
+}
