@@ -28,6 +28,10 @@ ALLOWED: dict[str, frozenset[str]] = {
     "workplaces": frozenset({"core", "simulation"}),
     "adapters": frozenset({"core", "tools"}),
     "artifacts": frozenset({"core"}),
+    # Analysis reads finished worlds — the log and the databases projected
+    # from it — and never runs inside the simulation, so it may see core
+    # and tools but nothing may depend on it.
+    "analysis": frozenset({"core", "tools"}),
 }
 
 

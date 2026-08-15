@@ -280,8 +280,9 @@ async def test_search_channels_matches_and_pages(server: MCPServer) -> None:
 
 async def test_read_channel_newest_first_threads_reactions(server: MCPServer) -> None:
     payload = await call(server, "slack_read_channel", {"channel_id": C_LEGAL})
-    assert set(payload) == {"ok", "messages", "has_more"}
+    assert set(payload) == {"ok", "messages", "has_more", "response_metadata"}
     assert payload["ok"] is True and payload["has_more"] is False
+    assert payload["response_metadata"] == {"next_cursor": ""}
     reply, parent = payload["messages"]
     assert [m["ts"] for m in (reply, parent)] == [TS_REPLY, TS_PARENT]
     assert set(parent) == {
@@ -364,7 +365,7 @@ async def test_read_thread_parent_first(server: MCPServer) -> None:
         "slack_read_thread",
         {"channel_id": C_LEGAL, "message_ts": TS_PARENT},
     )
-    assert set(payload) == {"ok", "messages"}
+    assert set(payload) == {"ok", "messages", "has_more", "response_metadata"}
     assert [m["ts"] for m in payload["messages"]] == [TS_PARENT, TS_REPLY]
     from_reply = await call(
         server,
@@ -548,7 +549,14 @@ async def test_read_user_profile_accepts_both_id_forms(server: MCPServer) -> Non
 
 async def test_list_channel_members(server: MCPServer) -> None:
     payload = await call(server, "slack_list_channel_members", {"channel_id": C_LEGAL})
-    assert payload == {"ok": True, "members": [U_DANIEL, U_MEREDITH, U_TOM]}
+    assert [m["id"] for m in payload["members"]] == [U_DANIEL, U_MEREDITH, U_TOM]
+    assert payload["members"][0]["real_name"] == "Daniel Reyes"
+    ids = await call(
+        server,
+        "slack_list_channel_members",
+        {"channel_id": C_LEGAL, "response_format": "ids_only"},
+    )
+    assert ids == {"ok": True, "members": [U_DANIEL, U_MEREDITH, U_TOM]}
 
 
 async def test_get_reactions(server: MCPServer) -> None:
@@ -590,27 +598,57 @@ async def test_unknown_ids_raise(server: MCPServer) -> None:
         )
 
 
-async def test_surface_is_slack_named_and_read_only(server: MCPServer) -> None:
+async def test_surface_is_slack_named_reads_and_writes(server: MCPServer) -> None:
     tools = await server.list_tools()
     assert sorted(tool.name for tool in tools) == [
+        "slack_add_reaction",
+        "slack_create_canvas",
+        "slack_create_conversation",
         "slack_get_reactions",
         "slack_list_channel_members",
+        "slack_read_canvas",
         "slack_read_channel",
+        "slack_read_file",
         "slack_read_thread",
         "slack_read_user_profile",
+        "slack_schedule_message",
         "slack_search_channels",
+        "slack_search_emojis",
         "slack_search_public",
         "slack_search_public_and_private",
         "slack_search_users",
+        "slack_send_message",
+        "slack_send_message_draft",
+        "slack_update_canvas",
     ]
-    for tool in tools:
-        assert not any(
+    mutating = {
+        tool.name
+        for tool in tools
+        if any(
             verb in tool.name
-            for verb in ("send", "create", "update", "delete", "write", "post")
-        ), f"slack exposes a write tool in the read-only phase: {tool.name}"
+            for verb in ("send", "create", "update", "schedule", "add", "delete")
+        )
+    }
+    assert mutating == {
+        "slack_add_reaction",
+        "slack_create_canvas",
+        "slack_create_conversation",
+        "slack_schedule_message",
+        "slack_send_message",
+        "slack_send_message_draft",
+        "slack_update_canvas",
+    }, "the write aperture is exactly Slack's own seven write tools"
 
 
-async def test_leakage_audit_no_offstage_markers(server: MCPServer) -> None:
+async def test_leakage_audit_no_offstage_markers(
+    server: MCPServer, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Every tool, writes included, over a seat that can reach them all."""
+    monkeypatch.setenv("WORKBENCH_SEAT", "per-tom-okafor")
+    canvas = await call(
+        server, "slack_create_canvas", {"title": "Audit", "content": "One section."}
+    )
+    canvas_id = canvas["canvas"]["id"]
     arguments = {
         "slack_search_channels": {"query": ""},
         "slack_read_channel": {"channel_id": C_LEGAL},
@@ -621,6 +659,24 @@ async def test_leakage_audit_no_offstage_markers(server: MCPServer) -> None:
         "slack_read_user_profile": {"user_id": U_MEREDITH},
         "slack_list_channel_members": {"channel_id": C_LEGAL},
         "slack_get_reactions": {"channel_id": C_LEGAL, "message_ts": TS_PARENT},
+        "slack_search_emojis": {"query": ""},
+        "slack_read_file": {"file_id": canvas_id},
+        "slack_read_canvas": {"canvas_id": canvas_id},
+        "slack_send_message": {"channel_id": C_LEGAL, "message": "On it."},
+        "slack_send_message_draft": {"channel_id": C_LEGAL, "message": "Draft."},
+        "slack_schedule_message": {
+            "channel_id": C_LEGAL,
+            "message": "Monday recap.",
+            "post_at": 1773400000,
+        },
+        "slack_create_conversation": {"channel_name": "audit-room"},
+        "slack_add_reaction": {
+            "channel_id": C_LEGAL,
+            "message_ts": TS_PARENT,
+            "emoji": "eyes",
+        },
+        "slack_create_canvas": {"title": "Second", "content": "Body."},
+        "slack_update_canvas": {"canvas_id": canvas_id, "content": "More."},
     }
     for tool in await server.list_tools():
         result = await server.call_tool(tool.name, arguments[tool.name])

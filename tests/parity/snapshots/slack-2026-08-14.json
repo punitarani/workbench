@@ -1,0 +1,166 @@
+{
+  "vendor": "slack",
+  "product": "Slack MCP server",
+  "endpoint": "https://mcp.slack.com/mcp",
+  "captured": "2026-08-14",
+  "status": "GA (February 2026), per-user OAuth, workspace-admin approval",
+  "provenance": "Slack's published tool categories (docs.slack.dev/ai/slack-mcp-server) plus a third-party gateway capture of the live tools/list for parameter names",
+  "confidence": "medium — Slack publishes categories and scopes but not JSON schemas, and states that tools/list is the source of truth; parameter names come from a gateway capture, not from Slack",
+  "notes": "The server grew from 13 tools to 19 during 2026. Official responses are rendered text blocks; ours returns dicts — a whole-workspace decision recorded in MCP-PARITY-AND-DOCUMENTS.md, not a Slack-specific divergence.",
+  "tools": {
+    "slack_search_public": {
+      "params": {
+        "query": "string!",
+        "content_types": "string?",
+        "limit": "integer?",
+        "cursor": "string?",
+        "after": "string?",
+        "before": "string?",
+        "context_channel_id": "string?",
+        "include_bots": "boolean? default false",
+        "include_context": "boolean? default true",
+        "max_context_length": "integer?",
+        "sort": "string? score|timestamp",
+        "sort_dir": "string? asc|desc",
+        "response_format": "string? detailed|concise|ids_only"
+      }
+    },
+    "slack_search_public_and_private": {
+      "params": {
+        "query": "string!",
+        "channel_types": "string?",
+        "content_types": "string?",
+        "limit": "integer?",
+        "cursor": "string?",
+        "after": "string?",
+        "before": "string?",
+        "context_channel_id": "string?",
+        "include_bots": "boolean?",
+        "include_context": "boolean?",
+        "max_context_length": "integer?",
+        "sort": "string?",
+        "sort_dir": "string?",
+        "response_format": "string?"
+      }
+    },
+    "slack_search_channels": {
+      "params": {
+        "query": "string!",
+        "channel_types": "string?",
+        "limit": "integer?",
+        "cursor": "string?",
+        "include_archived": "boolean?",
+        "response_format": "string?"
+      }
+    },
+    "slack_search_users": {
+      "params": {
+        "query": "string!",
+        "limit": "integer?",
+        "cursor": "string?",
+        "response_format": "string?"
+      }
+    },
+    "slack_search_emojis": {"params": {"query": "string!"}},
+    "slack_read_channel": {
+      "params": {
+        "channel_id": "string!",
+        "limit": "integer?",
+        "cursor": "string?",
+        "latest": "string?",
+        "oldest": "string?",
+        "response_format": "string?"
+      }
+    },
+    "slack_read_thread": {
+      "params": {
+        "channel_id": "string!",
+        "message_ts": "string!",
+        "limit": "integer?",
+        "cursor": "string?",
+        "latest": "string?",
+        "oldest": "string?",
+        "response_format": "string?"
+      }
+    },
+    "slack_read_user_profile": {
+      "params": {
+        "user_id": "string?",
+        "include_locale": "boolean? default false",
+        "response_format": "string?"
+      }
+    },
+    "slack_read_file": {"params": {"file_id": "string!"}},
+    "slack_read_canvas": {"params": {"canvas_id": "string!"}},
+    "slack_list_channel_members": {
+      "params": {
+        "channel_id": "string!",
+        "limit": "integer?",
+        "cursor": "string?",
+        "include_bots": "boolean?",
+        "include_deleted": "boolean?",
+        "response_format": "string?"
+      }
+    },
+    "slack_get_reactions": {
+      "params": {"channel_id": "string!", "message_ts": "string!"}
+    },
+    "slack_send_message": {
+      "params": {
+        "channel_id": "string!",
+        "message": "string!",
+        "thread_ts": "string?",
+        "reply_broadcast": "boolean? default false",
+        "draft_id": "string?"
+      }
+    },
+    "slack_send_message_draft": {
+      "params": {
+        "channel_id": "string!",
+        "message": "string!",
+        "thread_ts": "string?"
+      }
+    },
+    "slack_schedule_message": {
+      "params": {
+        "channel_id": "string!",
+        "message": "string!",
+        "post_at": "integer!",
+        "thread_ts": "string?",
+        "reply_broadcast": "boolean?"
+      }
+    },
+    "slack_create_conversation": {
+      "params": {
+        "channel_name": "string?",
+        "is_private": "boolean? default false",
+        "user_ids": "string[]?"
+      }
+    },
+    "slack_add_reaction": {
+      "params": {
+        "channel_id": "string!",
+        "message_ts": "string!",
+        "emoji": "string!"
+      },
+      "idempotent": true
+    },
+    "slack_create_canvas": {"params": {"title": "string!", "content": "string!"}},
+    "slack_update_canvas": {
+      "params": {
+        "canvas_id": "string!",
+        "content": "string!",
+        "action": "string! append|prepend|replace",
+        "section_id": "string?"
+      }
+    }
+  },
+  "waived": {
+    "slack_search_public.sort": "accepted; there is no relevance model behind score, so ordering is context-channel first then recency (stated in the module docstring)",
+    "slack_search_channels.include_archived": "accepted and inert: the record has no archived channels",
+    "slack_list_channel_members.include_bots": "accepted and inert: the record has no bot accounts",
+    "slack_list_channel_members.include_deleted": "accepted and inert: the record has no deactivated users",
+    "slack_read_user_profile.include_locale": "returns a workspace constant; the record has no per-person locale",
+    "slack_read_file.file_id": "serves canvases only — the projection carries no uploaded files, and canvases are files in Slack"
+  }
+}

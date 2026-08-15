@@ -22,6 +22,8 @@ from pathlib import Path
 
 import pytest
 
+from workbench.core.events import Event
+from workbench.core.events.control import SimRunStartedPayload
 from workbench.tools.framework import build_server, project_system
 from workbench.tools.registry import get_system
 
@@ -36,10 +38,38 @@ def _latest_snapshot(vendor: str) -> dict:
     return json.loads(files[-1].read_text(encoding="utf-8"))
 
 
+def _minimal_world() -> list[Event]:
+    """A world with nothing in it but a clock.
+
+    Some servers read the epoch when their tools are registered, so an
+    empty projection is not enough to stand one up.
+    """
+
+    return [
+        Event(
+            seq=0,
+            event_id="evt-000000",
+            time=0,
+            tag="sim.run.started",
+            source="gm",
+            payload=SimRunStartedPayload(
+                kind="sim.run.started",
+                run_id="run-parity",
+                seed_root=1,
+                workplace_id="parity",
+                config_hash="0" * 64,
+                schema_version=1,
+                epoch="2026-01-05T00:00:00-08:00",
+                timezone="America/Los_Angeles",
+            ),
+        )
+    ]
+
+
 def _served_tools(vendor: str, tmp_path: Path):
     system = get_system(vendor)
     db_path = tmp_path / f"{vendor}.db"
-    project_system(system, [], db_path)
+    project_system(system, _minimal_world(), db_path)
     return build_server(system, db_path)
 
 
