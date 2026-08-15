@@ -19,6 +19,7 @@ from workbench.simulation.actors.client import ClientActorParams
 from workbench.simulation.director import PoissonCueSchedule
 from workbench.simulation.workplace.spec import (
     ChannelSpec,
+    OrganizationSpec,
     PersonSpec,
     SeedCalendarEvent,
     SeedDocument,
@@ -116,14 +117,32 @@ _CLIENTS: tuple[tuple[str, str, str, str, str, tuple[str, ...]], ...] = (
     ),
 )
 
+# The organizations behind the contacts. Nine are clients; Shaw & Associates
+# is the practice that reviews Ashgrove's own work, which is why category
+# matters — "external" and "client" are not the same set, and a task that
+# conflates them grades the conflation rather than the agent.
+_ORGANIZATIONS: tuple[tuple[str, str, str], ...] = (
+    ("org-fairmount", "Fairmount Community Foundation", "client"),
+    ("org-rivergate", "Rivergate Housing Trust", "client"),
+    ("org-kestrel", "Kestrel Manufacturing", "client"),
+    ("org-cardinal-ridge", "Cardinal Ridge Builders", "client"),
+    ("org-northwind", "Northwind Software", "client"),
+    ("org-harbor-light", "Harbor Light Distribution", "client"),
+    ("org-meridian", "Meridian Family Health", "client"),
+    ("org-stonebridge", "Stonebridge Property Group", "client"),
+    ("org-ashfield", "Ashfield Pension Trust", "client"),
+    ("org-shaw-associates", "Shaw & Associates", "other"),
+)
+
 # Engagements open at genesis: what the firm is already doing on day one.
-_ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
+_ENGAGEMENTS: tuple[tuple[str, str, str, str, str | None], ...] = (
     (
         "Fairmount Community Foundation — FY2025 financial statement audit",
         "Calendar-year audit with a Single Audit component; fieldwork planned "
         "for February. Materiality memo and risk assessment are open.",
         "per-imogen-carraway",
         "per-harriet-vance",
+        "org-fairmount",
     ),
     (
         "Fairmount Community Foundation — Single Audit (Uniform Guidance)",
@@ -131,6 +150,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "determination and the SEFA are the open items.",
         "per-imogen-carraway",
         "per-harriet-vance",
+        "org-fairmount",
     ),
     (
         "Rivergate Housing Trust — FY2025 audit and Single Audit",
@@ -138,6 +158,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "forward from last year's management letter.",
         "per-elias-finch",
         "per-desmond-blakely",
+        "org-rivergate",
     ),
     (
         "Kestrel Manufacturing 401(k) — plan year 2025 audit",
@@ -145,6 +166,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "is the known problem area; 5500 extension runs to October 15.",
         "per-hana-sato",
         "per-nora-behrens",
+        "org-kestrel",
     ),
     (
         "Cardinal Ridge Builders — FY2025 audit",
@@ -152,6 +174,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "Two jobs flagged for change-order cutoff testing.",
         "per-elias-finch",
         "per-idris-mensah",
+        "org-cardinal-ridge",
     ),
     (
         "Northwind Software — quality of earnings",
@@ -159,6 +182,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "recognition is the central question.",
         "per-victor-alade",
         "per-priya-raman",
+        "org-northwind",
     ),
     (
         "Harbor Light Distribution — FY2025 audit",
@@ -166,6 +190,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "is mid-move. Prior-year cutoff comment to clear.",
         "per-hana-sato",
         "per-tomas-lindgren",
+        "org-harbor-light",
     ),
     (
         "Meridian Family Health — FY2025 review",
@@ -173,6 +198,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "shifted materially this year.",
         "per-colin-mackey",
         "per-adaeze-okonkwo",
+        "org-meridian",
     ),
     (
         "Stonebridge Property Group — FY2025 audit",
@@ -180,6 +206,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "memo needs refreshing after a new location opened.",
         "per-elias-finch",
         "per-lucia-arroyo",
+        "org-stonebridge",
     ),
     (
         "Ashfield Pension Trust — FY2025 audit",
@@ -187,6 +214,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "and the trustees want an interim report.",
         "per-hana-sato",
         "per-garrett-poole",
+        "org-ashfield",
     ),
     (
         "Firm — 2026 peer review preparation",
@@ -194,6 +222,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "engagement-letter coverage are the open threads.",
         "per-rosalind-calder",
         "per-benedict-shaw",
+        None,
     ),
     (
         "Firm — audit methodology refresh",
@@ -201,6 +230,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "engagement templates and review checklists.",
         "per-imogen-carraway",
         "per-rosalind-calder",
+        None,
     ),
 )
 
@@ -368,8 +398,9 @@ def _surfaces() -> tuple[
             status="Open",
             priority="Normal",
             ticket_type="engagement",
+            client_ref=client_ref,
         )
-        for title, description, assignee, requester in _ENGAGEMENTS
+        for title, description, assignee, requester, client_ref in _ENGAGEMENTS
     )
     return channels, documents, tickets
 
@@ -386,6 +417,10 @@ def epoch_spec(days: int = 194, *, version: int = 2) -> WorkplaceSpec:
             "epoch": _epoch_datetime(),
             "days": days,
             "people": _people(),
+            "organizations": tuple(
+                OrganizationSpec(org_id=org_id, name=name, category=category)
+                for org_id, name, category in _ORGANIZATIONS
+            ),
             "arrivals": (),
             "channels": channels,
             "seed_documents": documents,
