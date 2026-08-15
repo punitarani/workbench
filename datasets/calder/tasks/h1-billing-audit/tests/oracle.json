@@ -1,0 +1,83 @@
+{
+ "total_logged_hours": 326.38,
+ "matters_by_hours": [
+  {
+   "ticket_id": "tkt-000006",
+   "hours": 97.88
+  },
+  {
+   "ticket_id": "tkt-000008",
+   "hours": 64.5
+  },
+  {
+   "ticket_id": "tkt-000019",
+   "hours": 62.17
+  },
+  {
+   "ticket_id": "tkt-000012",
+   "hours": 47.92
+  },
+  {
+   "ticket_id": "tkt-000010",
+   "hours": 25.83
+  },
+  {
+   "ticket_id": "tkt-000009",
+   "hours": 10.67
+  },
+  {
+   "ticket_id": "tkt-000014",
+   "hours": 4.42
+  },
+  {
+   "ticket_id": "tkt-000020",
+   "hours": 3.92
+  },
+  {
+   "ticket_id": "tkt-000018",
+   "hours": 2.67
+  },
+  {
+   "ticket_id": "tkt-000013",
+   "hours": 2.5
+  },
+  {
+   "ticket_id": "tkt-000005",
+   "hours": 1.5
+  },
+  {
+   "ticket_id": "tkt-000011",
+   "hours": 1.0
+  },
+  {
+   "ticket_id": "tkt-000015",
+   "hours": 0.58
+  },
+  {
+   "ticket_id": "tkt-000007",
+   "hours": 0.5
+  },
+  {
+   "ticket_id": "tkt-000016",
+   "hours": 0.33
+  }
+ ],
+ "worked_but_untimed": [
+  "tkt-000001",
+  "tkt-000017",
+  "tkt-000021"
+ ],
+ "untouched_matters": [
+  "tkt-000002",
+  "tkt-000003",
+  "tkt-000004"
+ ],
+ "cam_dispute": {
+  "admin_overhead_usd": 2100,
+  "utilities_usd": 1225,
+  "credit_usd": 650,
+  "net_reduction_usd": 2870,
+  "final_position_date": "2026-01-09",
+  "final_position_message_id": "msg-000139"
+ }
+}

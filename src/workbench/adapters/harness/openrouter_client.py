@@ -27,7 +27,11 @@ MODEL_PROVIDERS: dict[str, tuple[str, ...]] = {
     # endpoints found" rather than falling back, which would fail a paid batch
     # nine tasks deep. Bedrock and Azure serve the same weights, so the scores
     # stay reproducible; a quantized community replica would not.
-    "anthropic/claude-opus-5": ("amazon-bedrock",),
+    # The bare amazon-bedrock tag routes to whichever Bedrock endpoint
+    # OpenRouter ranks first; when that endpoint is deranked it stalls with
+    # keep-alive whitespace instead of erroring. Pin the healthy region first
+    # and keep the bare tag as the recovery fallback.
+    "anthropic/claude-opus-5": ("amazon-bedrock/us-east-1", "amazon-bedrock"),
     "openai/gpt-5.6-sol": ("azure",),
     "openai/gpt-5.6-luna": ("openai",),
     "z-ai/glm-5.2": (
