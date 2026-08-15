@@ -225,10 +225,13 @@ class ProfessionalActorAct:
         )
         engagements = "\n".join(spec.engagements) or "No engagements assigned."
         stance = (
-            "You bill clients. A normal day is roughly four chargeable hours "
-            "plus the rest of your day in non-billable work — reviews you "
-            "were not engaged for, admin, training, business development. Do "
-            "not stretch client work to fill the day."
+            "You bill clients. Most of your logged day is chargeable — "
+            "about three quarters of it for staff and seniors, less for "
+            "managers and partners, whose days carry more review, "
+            "supervision, and business development. The rest is real "
+            "non-billable work: admin, training, internal meetings. Do not "
+            "stretch client work to fill the day, and do not pad the "
+            "non-billable side either."
             if spec.bills_clients
             else "You do not bill clients. Everything you log is "
             "non-billable (billable=false) with the category that fits: "
