@@ -40,7 +40,7 @@ _CLIENTS: tuple[tuple[str, str, str, str, str, tuple[str, ...]], ...] = (
         "Fairmount Community Foundation",
         "Chief Financial Officer",
         "Board-minded and precise; asks what the auditors will ask.",
-        ("Imogen Carraway", "Owen Whitfield"),
+        ("Imogen Carraway", "Hana Sato"),
     ),
     (
         "per-desmond-blakely",
@@ -56,7 +56,7 @@ _CLIENTS: tuple[tuple[str, str, str, str, str, tuple[str, ...]], ...] = (
         "Kestrel Manufacturing",
         "HR & Benefits Manager",
         "Practical, deadline-driven, apologetic about recordkeeper data.",
-        ("Sylvia Nakamura", "Owen Whitfield"),
+        ("Sylvia Nakamura", "Hana Sato"),
     ),
     (
         "per-idris-mensah",
@@ -80,7 +80,7 @@ _CLIENTS: tuple[tuple[str, str, str, str, str, tuple[str, ...]], ...] = (
         "Harbor Light Distribution",
         "Operations Controller",
         "Warehouse-first thinker; schedules around physical reality.",
-        ("Owen Whitfield", "Freya Holt"),
+        ("Hana Sato", "Freya Holt"),
     ),
     (
         "per-adaeze-okonkwo",
@@ -112,7 +112,7 @@ _CLIENTS: tuple[tuple[str, str, str, str, str, tuple[str, ...]], ...] = (
         "Ashfield Pension Trust",
         "Trustee",
         "Deliberate and formal; thinks in fiduciary duty.",
-        ("Owen Whitfield", "Victor Alade"),
+        ("Hana Sato", "Victor Alade"),
     ),
 )
 
@@ -143,7 +143,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "Kestrel Manufacturing 401(k) — plan year 2025 audit",
         "Limited-scope becomes a full-scope this year. Census reconciliation "
         "is the known problem area; 5500 extension runs to October 15.",
-        "per-owen-whitfield",
+        "per-hana-sato",
         "per-nora-behrens",
     ),
     (
@@ -164,7 +164,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "Harbor Light Distribution — FY2025 audit",
         "Inventory observation scheduling is unsettled because the warehouse "
         "is mid-move. Prior-year cutoff comment to clear.",
-        "per-owen-whitfield",
+        "per-hana-sato",
         "per-tomas-lindgren",
     ),
     (
@@ -185,7 +185,7 @@ _ENGAGEMENTS: tuple[tuple[str, str, str, str], ...] = (
         "Ashfield Pension Trust — FY2025 audit",
         "Defined-benefit plan; investment statements historically arrive late "
         "and the trustees want an interim report.",
-        "per-owen-whitfield",
+        "per-hana-sato",
         "per-garrett-poole",
     ),
     (
@@ -264,7 +264,7 @@ def _surfaces() -> tuple[
         if pid
         in (
             "per-imogen-carraway",
-            "per-owen-whitfield",
+            "per-hana-sato",
             "per-elias-finch",
             "per-rosalind-calder",
             "per-freya-holt",
@@ -313,7 +313,7 @@ def _surfaces() -> tuple[
         SeedDocument(
             title="PBC Request Template — Assurance",
             path="/firm/templates/pbc-assurance.md",
-            author="per-owen-whitfield",
+            author="per-hana-sato",
             content=(
                 "# Prepared-by-client request\n\n"
                 "Trial balance, reconciliations, confirmations list, "
@@ -373,7 +373,7 @@ def epoch_spec(days: int = 194, *, version: int = 2) -> WorkplaceSpec:
                     end_clock="09:20",
                     attendees=(
                         "per-imogen-carraway",
-                        "per-owen-whitfield",
+                        "per-hana-sato",
                         "per-elias-finch",
                         "per-freya-holt",
                     ),
