@@ -360,6 +360,17 @@ def _workspace_recency(connection: sqlite3.Connection) -> dict[str, tuple[int, i
     return stamps
 
 
+def _action_target(
+    connection: sqlite3.Connection, action: Action, documents: dict[str, dict]
+) -> str:
+    """The served id for what an action names; the table stores the world's."""
+
+    if action.target_kind == "document":
+        document = documents[action.target_id]
+        return _served_id(document, document["head_version"])
+    return _resolve_workspace(connection, action.target_id)["id"]
+
+
 def _by_recency(stamps: dict[str, tuple[int, int]]) -> list[str]:
     """Most recent first; the key breaks ties so the order is total."""
 
@@ -631,14 +642,7 @@ def register(server: MCPServer, db_path: Path) -> None:
                     "id": action.action_id,
                     "action": action.tool,
                     "target_type": action.target_kind,
-                    "target_id": (
-                        _served_id(
-                            documents[action.target_id],
-                            documents[action.target_id]["head_version"],
-                        )
-                        if action.target_kind == "document"
-                        else _resolve_workspace(connection, action.target_id)["id"]
-                    ),
+                    "target_id": _action_target(connection, action, documents),
                     "user_id": action.person_id,
                     "action_date": _date(connection, action.time),
                     # A read answers or raises, so nothing half-done is

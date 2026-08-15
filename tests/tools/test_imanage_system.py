@@ -66,6 +66,9 @@ def _person(
 
 
 def _document(document_id: str, author: str, title: str, path: str, content: str):
+    """``content_format`` is the world log's text carrier, so a .csv path
+    carries its rows as text and the extension comes from the path."""
+
     return DocumentCreatedPayload(
         kind="document.created",
         document_id=document_id,
@@ -127,6 +130,16 @@ def _events() -> list[Event]:
             ),
         ),
         (
+            400,
+            _document(
+                "doc-000004",
+                "per-meredith-chao",
+                "Rate Card",
+                "/clients/acme/rate-card.csv",
+                "matter,partner,rate\nAcme merger,Chao,675\nAcme lease,Reyes,540\n",
+            ),
+        ),
+        (
             700,
             DocumentRevisedPayload(
                 kind="document.revised",
@@ -177,8 +190,17 @@ def test_projection_numbers_and_workspaces(db_path: Path) -> None:
         ("doc-000001", 1, "legal", "md", "DOC", 2),
         ("doc-000002", 2, "attachments", "md", "DOC", 1),
         ("doc-000003", 3, "legal", "md", "DOC", 1),
+        ("doc-000004", 4, "clients", "csv", "DOC", 1),
     ]
     assert versions == [(1, "Created."), (2, "Tighten indemnity.")]
+
+
+def test_actions_start_empty(db_path: Path) -> None:
+    """The projection writes documents and versions; the actions table is
+    the agent's own, empty until a tool opens something."""
+
+    with sqlite3.connect(db_path) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM actions").fetchone() == (0,)
 
 
 async def test_search_by_content_and_number(server) -> None:
@@ -390,6 +412,9 @@ async def test_unknown_ids_raise(server) -> None:
 
 
 async def test_leakage_and_no_write_tools(server) -> None:
+    """No tool changes the record. The actions table the read tools append
+    to is an access log — what this user opened — not a write surface."""
+
     arguments = {
         "search": {"query": "a"},
         "search_workspaces": {"criteria": "a"},
@@ -398,6 +423,9 @@ async def test_leakage_and_no_write_tools(server) -> None:
         "get_document_profile": {"document_id": "LEGAL!1.1"},
         "get_document_versions": {"document_id": "LEGAL!1"},
         "download_document": {"document_id": "LEGAL!1"},
+        "fetch": {"id": "LEGAL!1"},
+        "get_rows_from_csv_document": {"document_id": "LEGAL!4"},
+        "get_workspace_templates": {"library_name": "LEGAL"},
     }
     tools = await server.list_tools()
     assert {tool.name for tool in tools} >= {
@@ -410,6 +438,12 @@ async def test_leakage_and_no_write_tools(server) -> None:
         "download_document",
         "get_libraries",
         "get_user_information",
+        "fetch",
+        "get_rows_from_csv_document",
+        "get_recent_documents",
+        "get_recent_workspaces",
+        "get_workspace_templates",
+        "list_actions",
     }
     for tool in tools:
         assert not any(

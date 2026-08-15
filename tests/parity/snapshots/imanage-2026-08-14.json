@@ -1,0 +1,32 @@
+{
+  "vendor": "imanage",
+  "product": "iManage Work MCP connector",
+  "endpoint": "https://cloudimanage.com/mcp/work",
+  "captured": "2026-08-14",
+  "status": "GA (~May 2026), browser OAuth, streamable HTTP",
+  "provenance": "iManage's published connector documentation (docs.imanage.com MCP server help) and the iManage-published Microsoft connector listing (updated June 2026)",
+  "confidence": "medium — iManage publishes tool descriptions, not JSON schemas; only container_id and query are verbatim-confirmed parameter names. An authenticated tools/list is the only source of byte-exact schemas.",
+  "notes": "Document ids use the LIBRARY!number.version grammar (ACTIVE!5482.3). Pagination: 100 per page, 500 results maximum, no caller-chosen page size on search; get_document_versions returns up to 1000. Throttle 100 calls / 60s. iManage ships four connectors (Work, Tracker, Search, Insight+); this is Work.",
+  "tools": {
+    "search": {"params": {"query": "string!"}},
+    "fetch": {"params": {"id": "string!"}},
+    "search_workspaces": {"params": {"criteria": "string!"}},
+    "get_workspace_profile": {"params": {"workspace_id": "string!"}},
+    "get_container_children": {"params": {"container_id": "string!"}},
+    "get_document_profile": {"params": {"document_id": "string!"}},
+    "get_document_versions": {"params": {"document_id": "string!"}},
+    "download_document": {"params": {"document_id": "string!"}},
+    "get_rows_from_csv_document": {"params": {"document_id": "string!"}},
+    "get_recent_documents": {"params": {}},
+    "get_recent_workspaces": {"params": {}},
+    "get_workspace_templates": {"params": {"library_name": "string!"}},
+    "get_libraries": {"params": {}},
+    "get_user_information": {"params": {"query": "string?"}},
+    "list_actions": {"params": {}}
+  },
+  "waived": {
+    "download_document.chunk": "the docs imply chunked retrieval for large files but publish no parameter name; our documents fit one response",
+    "get_recent_documents.filters": "document-property filters are described but unnamed in the published docs",
+    "get_workspace_templates.library_name": "emulated: the record has no template store, so a library offers the folder shapes its own matters already have — derived from the record, never invented"
+  }
+}

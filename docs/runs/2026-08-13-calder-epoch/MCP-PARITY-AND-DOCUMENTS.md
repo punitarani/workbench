@@ -99,9 +99,13 @@ Missing tools (6): `fetch`, `get_rows_from_csv_document`,
 
 Two fidelity caveats: (1) iManage publishes descriptions, not JSON
 schemas — byte-exact parity requires an authenticated `tools/list`
-against `cloudimanage.com/mcp/work`; (2) official document ids use the
+against `cloudimanage.com/mcp/work`; (2) ~~official document ids use the
 `LIBRARY!number.version` grammar (`ACTIVE!5482.3`) — ours uses
-`doc-000001`, a visible tell. Official pagination: 100/page, 500 max,
+`doc-000001`, a visible tell.~~ **Correction (2026-08-14):** this audit
+claim was wrong. The server already minted the official grammar at its
+boundary (`LEGAL!1.2`); `doc-000001` is the *stored* id, which the world
+log needs for coherence and which never reaches a caller. v2 centralized
+that translation in one helper and added round-trip tests. Official pagination: 100/page, 500 max,
 100 calls/60s throttle.
 
 ### clio — ours 8 tools; **no official server exists (confirmed Aug 2026)**
