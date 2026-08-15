@@ -14,12 +14,15 @@ from pydantic import BaseModel, ConfigDict
 
 from workbench.core.artifacts import (
     FormattedDocument,
+    Formula,
     HeadingBlock,
     ListBlock,
     ParagraphBlock,
+    SlideDeck,
     SpreadsheetContent,
     TableBlock,
     parse_formatted,
+    parse_slides,
     parse_spreadsheet,
 )
 
@@ -58,6 +61,13 @@ def render_document(content_format: str, content: str, target: Path) -> RenderOu
                 return _render_pdf(document, target)
             _render_docx(document, target)
             return RenderOutcome(path=target)
+        case "slides":
+            try:
+                deck = parse_slides(content)
+            except ValueError:
+                return _raw_fallback(content_format, content, target)
+            _render_pptx(deck, target)
+            return RenderOutcome(path=target)
         case _:
             raise ValueError(f"unknown content format {content_format!r}")
 
@@ -87,8 +97,54 @@ def _render_xlsx(content: SpreadsheetContent, target: Path) -> None:
         worksheet = workbook.create_sheet(title=sheet.name)
         worksheet.append(list(sheet.columns))
         for row in sheet.rows:
-            worksheet.append(list(row))
+            # openpyxl writes a leading-"=" string as a real formula, which
+            # is what a workpaper needs: the file recalculates rather than
+            # carrying a frozen number.
+            worksheet.append(
+                [cell.expression if isinstance(cell, Formula) else cell for cell in row]
+            )
     workbook.save(target)
+
+
+def _render_pptx(deck: SlideDeck, target: Path) -> None:
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+
+    presentation = Presentation()
+    title_and_body = presentation.slide_layouts[1]
+    title_only = presentation.slide_layouts[5]
+    for slide in deck.slides:
+        layout = title_and_body if slide.bullets else title_only
+        rendered = presentation.slides.add_slide(layout)
+        rendered.shapes.title.text = slide.title
+        if slide.bullets:
+            frame = rendered.placeholders[1].text_frame
+            frame.text = slide.bullets[0]
+            for bullet in slide.bullets[1:]:
+                paragraph = frame.add_paragraph()
+                paragraph.text = bullet
+        if slide.table is not None:
+            columns = len(slide.table.columns)
+            rows = len(slide.table.rows) + 1
+            shape = rendered.shapes.add_table(
+                rows,
+                columns,
+                Inches(0.5),
+                Inches(4.0),
+                Inches(9.0),
+                Inches(0.4 * rows),
+            )
+            table = shape.table
+            for index, heading in enumerate(slide.table.columns):
+                table.cell(0, index).text = heading
+            for row_index, row in enumerate(slide.table.rows, start=1):
+                for column_index, value in enumerate(row):
+                    cell = table.cell(row_index, column_index)
+                    cell.text = str(value)
+                    cell.text_frame.paragraphs[0].font.size = Pt(12)
+        if slide.notes:
+            rendered.notes_slide.notes_text_frame.text = slide.notes
+    presentation.save(target)
 
 
 def _render_docx(document: FormattedDocument, target: Path) -> None:

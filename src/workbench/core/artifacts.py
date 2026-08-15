@@ -11,8 +11,6 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-Cell = str | int | float | bool | None
-
 
 class _Model(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -20,6 +18,27 @@ class _Model(BaseModel):
     def canonical_json(self) -> str:
         """The deterministic wire form: field order is model order."""
         return self.model_dump_json()
+
+
+class Formula(_Model):
+    """A spreadsheet formula: the thing that makes a workpaper a workpaper.
+
+    Stored as structure rather than a bare "=" string so the canonical JSON
+    stays unambiguous and a renderer can tell a formula from a person who
+    happened to start a sentence with an equals sign.
+    """
+
+    kind: Literal["formula"] = "formula"
+    expression: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _leading_equals(self) -> Formula:
+        if not self.expression.startswith("="):
+            raise ValueError("a formula expression starts with '='")
+        return self
+
+
+Cell = str | int | float | bool | None | Formula
 
 
 class SpreadsheetSheet(_Model):
@@ -85,9 +104,31 @@ class FormattedDocument(_Model):
     blocks: tuple[Block, ...] = Field(min_length=1)
 
 
+class Slide(_Model):
+    """One slide: a title, body bullets, an optional table, and notes.
+
+    Deliberately narrow. A deck a professional actually builds for a
+    client meeting is a title and a handful of claims, sometimes a table
+    of numbers — not a design surface.
+    """
+
+    title: str
+    bullets: tuple[str, ...] = ()
+    table: TableBlock | None = None
+    notes: str = ""
+
+
+class SlideDeck(_Model):
+    slides: tuple[Slide, ...] = Field(min_length=1)
+
+
 def parse_spreadsheet(content: str) -> SpreadsheetContent:
     return SpreadsheetContent.model_validate_json(content)
 
 
 def parse_formatted(content: str) -> FormattedDocument:
     return FormattedDocument.model_validate_json(content)
+
+
+def parse_slides(content: str) -> SlideDeck:
+    return SlideDeck.model_validate_json(content)
