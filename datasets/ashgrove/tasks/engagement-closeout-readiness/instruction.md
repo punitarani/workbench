@@ -1,0 +1,56 @@
+# Engagement status review
+
+You are the engagement-support lead at **Ashgrove Reid LLP**. The
+partners meet tomorrow and want one page: for every client engagement,
+who owns it, how much work has gone in, and whether the client is
+sitting waiting on us.
+
+Systems available through tools: **clio** (engagements, time, people),
+**gmail** (firm-wide mail), **slack**, **calendar**, **imanage**.
+
+## What to produce
+
+One file: **`closeout.json`**, with exactly these fields:
+
+- `client_engagements` — client engagements reviewed.
+- `status_counts` — a map of status → count.
+- `awaiting_firm_reply` — sorted ticket ids in that status.
+- `longest_waiting_engagement` — the ticket id whose client has been
+  waiting longest (`null` if none).
+- `wip_at_risk_dollars` — unbilled work-in-progress sitting behind the
+  firm's own silence: the WIP of every `awaiting_firm_reply` engagement,
+  2 dp.
+- `at_risk_over_10k` — sorted ticket ids of awaiting engagements whose
+  WIP exceeds $10,000.
+- `engagements` — one entry per client engagement, sorted by
+  `ticket_id`: `ticket_id`, `client_contact` (full name),
+  `responsible` (full name), `total_hours` (2 dp), `staff_count`
+  (distinct people who logged any time), `status`,
+  `client_waiting_hours` (1 dp; `0.0` when not waiting),
+  `wip_dollars` (2 dp).
+
+## How the firm values work in progress
+
+WIP is **billable** time valued at the rate recorded on the entry.
+Non-billable time is real work and belongs in `total_hours`, but carries
+no value. Some people carry no rate at all: their time is hours without
+dollars.
+
+## How the firm decides status
+
+An engagement is **client work** when the person who opened it is
+outside the firm; that person is the engagement's client. Work a partner
+or staff member opened on the firm's own behalf is not client work and
+is excluded — judge by who opened it, not by what it is called.
+
+A client engagement is:
+
+- **`awaiting_firm_reply`** when that client's last message in *any*
+  mail thread has no firm message after it; or
+- **`clear`** otherwise.
+
+`client_waiting_hours` is measured from that client's **oldest**
+still-unanswered last message to the latest message anywhere in the
+record. A client waiting on one thread makes **every** engagement they
+opened `awaiting_firm_reply`, however much work it has had.
+

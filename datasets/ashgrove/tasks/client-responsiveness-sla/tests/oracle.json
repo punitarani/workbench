@@ -1,0 +1,108 @@
+{
+ "clients": 10,
+ "inbound_total": 132,
+ "unanswered_total": 12,
+ "firm_median_reply_hours": 0.08,
+ "slowest_client": "Nora Behrens",
+ "client_rows": [
+  {
+   "client": "Adaeze Okonkwo",
+   "inbound": 18,
+   "answered": 18,
+   "unanswered_message_ids": [],
+   "median_reply_hours": 0.25,
+   "longest_reply_hours": 21.5
+  },
+  {
+   "client": "Benedict Shaw",
+   "inbound": 9,
+   "answered": 8,
+   "unanswered_message_ids": [
+    "msg-000180"
+   ],
+   "median_reply_hours": 0.08,
+   "longest_reply_hours": 0.33
+  },
+  {
+   "client": "Desmond Blakely",
+   "inbound": 11,
+   "answered": 11,
+   "unanswered_message_ids": [],
+   "median_reply_hours": 0.08,
+   "longest_reply_hours": 3.08
+  },
+  {
+   "client": "Garrett Poole",
+   "inbound": 8,
+   "answered": 8,
+   "unanswered_message_ids": [],
+   "median_reply_hours": 0.08,
+   "longest_reply_hours": 4.33
+  },
+  {
+   "client": "Harriet Vance",
+   "inbound": 24,
+   "answered": 21,
+   "unanswered_message_ids": [
+    "msg-000128",
+    "msg-000253",
+    "msg-000291"
+   ],
+   "median_reply_hours": 0.08,
+   "longest_reply_hours": 20.33
+  },
+  {
+   "client": "Idris Mensah",
+   "inbound": 19,
+   "answered": 18,
+   "unanswered_message_ids": [
+    "msg-000037"
+   ],
+   "median_reply_hours": 0.08,
+   "longest_reply_hours": 18.5
+  },
+  {
+   "client": "Lucia Arroyo",
+   "inbound": 6,
+   "answered": 5,
+   "unanswered_message_ids": [
+    "msg-000293"
+   ],
+   "median_reply_hours": 0.08,
+   "longest_reply_hours": 0.33
+  },
+  {
+   "client": "Nora Behrens",
+   "inbound": 11,
+   "answered": 9,
+   "unanswered_message_ids": [
+    "msg-000075",
+    "msg-000326"
+   ],
+   "median_reply_hours": 0.5,
+   "longest_reply_hours": 41.42
+  },
+  {
+   "client": "Priya Raman",
+   "inbound": 11,
+   "answered": 10,
+   "unanswered_message_ids": [
+    "msg-000328"
+   ],
+   "median_reply_hours": 0.08,
+   "longest_reply_hours": 0.92
+  },
+  {
+   "client": "Tomas Lindgren",
+   "inbound": 15,
+   "answered": 12,
+   "unanswered_message_ids": [
+    "msg-000168",
+    "msg-000188",
+    "msg-000284"
+   ],
+   "median_reply_hours": 0.08,
+   "longest_reply_hours": 27.42
+  }
+ ]
+}

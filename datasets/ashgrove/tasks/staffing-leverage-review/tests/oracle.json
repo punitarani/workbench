@@ -1,0 +1,136 @@
+{
+ "engagements_reviewed": 12,
+ "firm_leverage_ratio": 1.38,
+ "over_supervised": [
+  "tkt-000001",
+  "tkt-000002",
+  "tkt-000003",
+  "tkt-000005",
+  "tkt-000006",
+  "tkt-000008",
+  "tkt-000010",
+  "tkt-000013"
+ ],
+ "engagements": [
+  {
+   "ticket_id": "tkt-000001",
+   "partner_hours": 17.98,
+   "manager_hours": 28.13,
+   "senior_hours": 12.15,
+   "staff_hours": 30.73,
+   "support_hours": 15.28,
+   "leverage_ratio": 0.93,
+   "review_share_pct": 51.8
+  },
+  {
+   "ticket_id": "tkt-000002",
+   "partner_hours": 10.37,
+   "manager_hours": 14.62,
+   "senior_hours": 7.4,
+   "staff_hours": 8.98,
+   "support_hours": 5.9,
+   "leverage_ratio": 0.66,
+   "review_share_pct": 60.4
+  },
+  {
+   "ticket_id": "tkt-000003",
+   "partner_hours": 14.02,
+   "manager_hours": 15.28,
+   "senior_hours": 7.87,
+   "staff_hours": 29.85,
+   "support_hours": 11.82,
+   "leverage_ratio": 1.29,
+   "review_share_pct": 43.7
+  },
+  {
+   "ticket_id": "tkt-000004",
+   "partner_hours": 10.23,
+   "manager_hours": 10.77,
+   "senior_hours": 15.42,
+   "staff_hours": 47.38,
+   "support_hours": 8.45,
+   "leverage_ratio": 2.99,
+   "review_share_pct": 25.1
+  },
+  {
+   "ticket_id": "tkt-000005",
+   "partner_hours": 8.83,
+   "manager_hours": 4.32,
+   "senior_hours": 11.9,
+   "staff_hours": 4.1,
+   "support_hours": 2.87,
+   "leverage_ratio": 1.22,
+   "review_share_pct": 45.1
+  },
+  {
+   "ticket_id": "tkt-000006",
+   "partner_hours": 9.15,
+   "manager_hours": 21.62,
+   "senior_hours": 3.28,
+   "staff_hours": 4.4,
+   "support_hours": 7.47,
+   "leverage_ratio": 0.25,
+   "review_share_pct": 80.0
+  },
+  {
+   "ticket_id": "tkt-000007",
+   "partner_hours": 8.95,
+   "manager_hours": 14.15,
+   "senior_hours": 31.35,
+   "staff_hours": 37.82,
+   "support_hours": 3.25,
+   "leverage_ratio": 2.99,
+   "review_share_pct": 25.0
+  },
+  {
+   "ticket_id": "tkt-000008",
+   "partner_hours": 2.12,
+   "manager_hours": 5.48,
+   "senior_hours": 1.78,
+   "staff_hours": 7.37,
+   "support_hours": 3.63,
+   "leverage_ratio": 1.2,
+   "review_share_pct": 45.4
+  },
+  {
+   "ticket_id": "tkt-000009",
+   "partner_hours": 5.45,
+   "manager_hours": 2.17,
+   "senior_hours": 19.82,
+   "staff_hours": 14.25,
+   "support_hours": 1.83,
+   "leverage_ratio": 4.47,
+   "review_share_pct": 18.3
+  },
+  {
+   "ticket_id": "tkt-000010",
+   "partner_hours": 4.12,
+   "manager_hours": 3.33,
+   "senior_hours": 1.0,
+   "staff_hours": 2.42,
+   "support_hours": 1.33,
+   "leverage_ratio": 0.46,
+   "review_share_pct": 68.6
+  },
+  {
+   "ticket_id": "tkt-000013",
+   "partner_hours": 10.33,
+   "manager_hours": 7.45,
+   "senior_hours": 6.05,
+   "staff_hours": 11.15,
+   "support_hours": 17.15,
+   "leverage_ratio": 0.97,
+   "review_share_pct": 50.8
+  },
+  {
+   "ticket_id": "tkt-000014",
+   "partner_hours": 1.12,
+   "manager_hours": 2.17,
+   "senior_hours": 1.08,
+   "staff_hours": 3.83,
+   "support_hours": 2.67,
+   "leverage_ratio": 1.5,
+   "review_share_pct": 40.0
+  }
+ ]
+}

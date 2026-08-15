@@ -1,0 +1,139 @@
+{
+ "client_engagements": 11,
+ "status_counts": {
+  "awaiting_firm_reply": 8,
+  "clear": 3
+ },
+ "awaiting_firm_reply": [
+  "tkt-000001",
+  "tkt-000002",
+  "tkt-000004",
+  "tkt-000005",
+  "tkt-000006",
+  "tkt-000007",
+  "tkt-000009",
+  "tkt-000011"
+ ],
+ "longest_waiting_engagement": "tkt-000005",
+ "wip_at_risk_dollars": 105224.22,
+ "at_risk_over_10k": [
+  "tkt-000001",
+  "tkt-000002",
+  "tkt-000004",
+  "tkt-000006",
+  "tkt-000007",
+  "tkt-000009"
+ ],
+ "engagements": [
+  {
+   "ticket_id": "tkt-000001",
+   "client_contact": "Harriet Vance",
+   "responsible": "Imogen Carraway",
+   "total_hours": 104.28,
+   "staff_count": 17,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 195.2,
+   "wip_dollars": 23195.23
+  },
+  {
+   "ticket_id": "tkt-000002",
+   "client_contact": "Harriet Vance",
+   "responsible": "Imogen Carraway",
+   "total_hours": 47.27,
+   "staff_count": 16,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 195.2,
+   "wip_dollars": 11815.5
+  },
+  {
+   "ticket_id": "tkt-000003",
+   "client_contact": "Desmond Blakely",
+   "responsible": "Elias Finch",
+   "total_hours": 78.83,
+   "staff_count": 17,
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 17453.0
+  },
+  {
+   "ticket_id": "tkt-000004",
+   "client_contact": "Nora Behrens",
+   "responsible": "Hana Sato",
+   "total_hours": 92.25,
+   "staff_count": 17,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 221.4,
+   "wip_dollars": 18200.89
+  },
+  {
+   "ticket_id": "tkt-000005",
+   "client_contact": "Idris Mensah",
+   "responsible": "Elias Finch",
+   "total_hours": 32.02,
+   "staff_count": 16,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 267.4,
+   "wip_dollars": 8237.32
+  },
+  {
+   "ticket_id": "tkt-000006",
+   "client_contact": "Priya Raman",
+   "responsible": "Victor Alade",
+   "total_hours": 45.92,
+   "staff_count": 11,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 6.9,
+   "wip_dollars": 11666.8
+  },
+  {
+   "ticket_id": "tkt-000007",
+   "client_contact": "Tomas Lindgren",
+   "responsible": "Hana Sato",
+   "total_hours": 95.52,
+   "staff_count": 16,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 174.2,
+   "wip_dollars": 22072.11
+  },
+  {
+   "ticket_id": "tkt-000008",
+   "client_contact": "Adaeze Okonkwo",
+   "responsible": "Colin Mackey",
+   "total_hours": 20.38,
+   "staff_count": 12,
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 3764.86
+  },
+  {
+   "ticket_id": "tkt-000009",
+   "client_contact": "Lucia Arroyo",
+   "responsible": "Elias Finch",
+   "total_hours": 43.52,
+   "staff_count": 13,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 51.0,
+   "wip_dollars": 10036.37
+  },
+  {
+   "ticket_id": "tkt-000010",
+   "client_contact": "Garrett Poole",
+   "responsible": "Hana Sato",
+   "total_hours": 12.2,
+   "staff_count": 11,
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 2702.03
+  },
+  {
+   "ticket_id": "tkt-000011",
+   "client_contact": "Benedict Shaw",
+   "responsible": "Rosalind Calder",
+   "total_hours": 129.17,
+   "staff_count": 17,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 171.4,
+   "wip_dollars": 0.0
+  }
+ ]
+}
