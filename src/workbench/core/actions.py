@@ -77,6 +77,16 @@ class ReflectActionSpec(_Model):
     scope: Literal["daily", "weekly"] = "daily"
 
 
+class TimesheetActionSpec(_Model):
+    """End-of-day timesheet turn: the entity writes up the whole day's
+    time against real engagements instead of choosing a workplace action."""
+
+    kind: Literal["timesheet"] = "timesheet"
+    call_to_action: str = "Write up your time for the day."
+    day: str
+    engagements: tuple[str, ...] = ()
+
+
 class IntentActionSpec(_Model):
     kind: Literal["intent"] = "intent"
     call_to_action: str
@@ -89,6 +99,7 @@ ActionSpec = Annotated[
     | IntentActionSpec
     | ReflectActionSpec
     | PlanActionSpec
+    | TimesheetActionSpec
     | MeetingTurnActionSpec
     | CueActionSpec,
     Field(discriminator="kind"),

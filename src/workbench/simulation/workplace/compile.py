@@ -87,6 +87,7 @@ class CompiledWorkplace(BaseModel):
     # minted ids can never collide with scheduled-but-not-yet-occurred ones.
     minter: IdMinter
     wake_grid_minutes: int = 30
+    timesheets: bool = False
     delivery_quantum_seconds: int = 300
 
 
@@ -425,5 +426,6 @@ def compile_workplace(
         end_of_day_seconds=end_of_day_seconds,
         minter=minter,
         wake_grid_minutes=spec.wake_grid_minutes,
+        timesheets=spec.timesheets,
         delivery_quantum_seconds=spec.delivery_quantum_seconds,
     )

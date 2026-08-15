@@ -110,6 +110,7 @@ def _build_runtime(
         ),
         end_of_day=compiled.end_of_day_seconds,
         wake_grid_minutes=compiled.wake_grid_minutes,
+        timesheets=compiled.timesheets,
         seed_root=seed.root,
     )
     gm = GroundedGm(

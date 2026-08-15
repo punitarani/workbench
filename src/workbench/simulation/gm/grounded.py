@@ -20,6 +20,7 @@ from workbench.core.actions import (
     ReflectActionSpec,
     ResolutionDecision,
     TerminateDecision,
+    TimesheetActionSpec,
 )
 from workbench.core.artifacts import (
     parse_formatted,
@@ -43,6 +44,7 @@ from workbench.core.events.control import (
     SimGmNotePayload,
     SimPlanningPayload,
     SimReflectionPayload,
+    SimTimesheetPayload,
     SimWakePayload,
 )
 from workbench.core.events.documents import (
@@ -79,6 +81,7 @@ from workbench.core.intents import (
     ReactionIntent,
     TicketIntent,
     TimeLogIntent,
+    TimesheetIntent,
 )
 from workbench.core.seed import Seed, derive_seed
 from workbench.core.simtime import SimDuration
@@ -115,6 +118,9 @@ class DayPlan(BaseModel):
     day_start: int = 9 * 3600
     wake_grid_minutes: int = 30
     seed_root: int = 0
+    # v2: one end-of-day timesheet turn per persona. Off by default so a v1
+    # recording replays byte-identically.
+    timesheets: bool = False
 
 
 def _validated_format(create: DocumentCreateSpec) -> str:
@@ -271,7 +277,12 @@ class GroundedGm:
                 return self._entities_for((payload.author,))
             case SimAgentMemoryPayload() | SimAgentPlanPayload():
                 return (payload.entity,)
-            case SimReflectionPayload() | SimPlanningPayload() | SimCuePayload():
+            case (
+                SimReflectionPayload()
+                | SimPlanningPayload()
+                | SimCuePayload()
+                | SimTimesheetPayload()
+            ):
                 return (payload.entity,)
             case SimGmNotePayload():
                 return (payload.entity,) if payload.entity is not None else ()
@@ -316,7 +327,12 @@ class GroundedGm:
                     if payload.entity in self._person_for_entity
                     else ()
                 )
-            case SimReflectionPayload() | SimPlanningPayload() | SimCuePayload():
+            case (
+                SimReflectionPayload()
+                | SimPlanningPayload()
+                | SimCuePayload()
+                | SimTimesheetPayload()
+            ):
                 if payload.entity in self._person_for_entity:
                     return (payload.entity,)
                 return ()
@@ -333,7 +349,12 @@ class GroundedGm:
     async def next_acting(self, event: Event) -> NextActingDecision:
         payload = event.payload
         match payload:
-            case SimReflectionPayload() | SimPlanningPayload() | SimCuePayload():
+            case (
+                SimReflectionPayload()
+                | SimPlanningPayload()
+                | SimCuePayload()
+                | SimTimesheetPayload()
+            ):
                 if payload.entity in self._person_for_entity:
                     return NextActingDecision(entities=(payload.entity,))
                 return NextActingDecision(entities=())
@@ -411,6 +432,23 @@ class GroundedGm:
             return ReflectActionSpec(day=event.payload.day, scope=event.payload.scope)
         if isinstance(event.payload, SimPlanningPayload):
             return PlanActionSpec(day=event.payload.day)
+        if isinstance(event.payload, SimTimesheetPayload):
+            person = self._person_for(entity)
+            # Their own engagements first, then the rest of the book, so a
+            # persona logs against work they actually touch but can still
+            # bill a colleague's matter when they helped on it.
+            mine = [
+                f"{ticket_id} {values.get('title', '')}"
+                for ticket_id, values in self._world.tickets.items()
+                if values.get("assignee") == person
+            ]
+            others = [
+                f"{ticket_id} {values.get('title', '')}"
+                for ticket_id, values in self._world.tickets.items()
+                if values.get("assignee") != person
+            ]
+            engagements = tuple(mine + others)[:16]
+            return TimesheetActionSpec(day=event.payload.day, engagements=engagements)
         if isinstance(event.payload, SimCuePayload):
             return CueActionSpec(note=event.payload.note, topic=event.payload.topic)
         if isinstance(event.payload, SimMeetingTurnPayload):
@@ -526,6 +564,26 @@ class GroundedGm:
                 )
                 scope = "weekly" if workdays_so_far % 5 == 0 else "daily"
                 reflect_delay = max(plan.day_start, plan.end_of_day - grid)
+                if plan.timesheets:
+                    # Time gets written up just before the day is reflected
+                    # on, the way a professional closes out: log the hours,
+                    # then think about the day.
+                    timesheet_delay = max(plan.day_start, reflect_delay - grid)
+                    for entity_name, _interval in plan.personas:
+                        timesheet = SimTimesheetPayload(
+                            kind="sim.timesheet",
+                            entity=entity_name,
+                            day=payload.day,
+                        )
+                        drafts.append(
+                            EventDraft(
+                                tag=timesheet.kind,
+                                source="gm",
+                                caused_by=event.event_id,
+                                payload=timesheet,
+                                delay=SimDuration(timesheet_delay),
+                            )
+                        )
                 for entity_name, _interval in plan.personas:
                     reflection = SimReflectionPayload(
                         kind="sim.reflection",
@@ -840,6 +898,8 @@ class GroundedGm:
                 return self._ground_reaction(entity, sender, intent, event, delay)
             case TimeLogIntent():
                 return self._ground_time_log(entity, sender, intent, event, delay)
+            case TimesheetIntent():
+                return self._ground_timesheet(entity, sender, intent, event, delay)
             case AgentNoteIntent():
                 return self._ground_agent_note(entity, intent, event, delay)
             case AgentPlanIntent():
@@ -1150,6 +1210,65 @@ class GroundedGm:
                 delay=delay,
             ),
         )
+
+    def _ground_timesheet(
+        self, entity, sender, intent: TimesheetIntent, event, delay
+    ) -> tuple[EventDraft, ...]:
+        """A day of time in one turn.
+
+        Unknown engagements are dropped with a note rather than failing the
+        whole day: one bad ref should not cost a professional their entire
+        timesheet, and the note still teaches.
+        """
+
+        drafts: list[EventDraft] = []
+        unknown: list[str] = []
+        for entry in intent.entries:
+            if entry.ticket_ref not in self._world.tickets:
+                unknown.append(entry.ticket_ref)
+                continue
+            payload = TimeLoggedPayload(
+                kind="work.time.logged",
+                person_id=sender,
+                ticket_id=entry.ticket_ref,
+                minutes=entry.minutes,
+                note=entry.note,
+                rate_cents=self._bill_rates.get(sender),
+                billable=entry.billable,
+            )
+            drafts.append(
+                EventDraft(
+                    tag=payload.kind,
+                    source=entity,
+                    caused_by=event.event_id,
+                    payload=payload,
+                    delay=delay,
+                )
+            )
+        if unknown and not drafts:
+            raise IntentRejection(
+                f"none of these engagements exist: {sorted(set(unknown))}; log "
+                "time against the ids on your own engagement list"
+            )
+        if unknown:
+            note = SimGmNotePayload(
+                kind="sim.gm.note",
+                note=(
+                    f"dropped {len(unknown)} timesheet entries against unknown "
+                    f"engagements {sorted(set(unknown))}"
+                ),
+                entity=entity,
+            )
+            drafts.append(
+                EventDraft(
+                    tag=note.kind,
+                    source="gm",
+                    caused_by=event.event_id,
+                    payload=note,
+                    delay=delay,
+                )
+            )
+        return tuple(drafts)
 
     def _ground_calendar(
         self, entity, sender, intent: CalendarIntent, event, delay

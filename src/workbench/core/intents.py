@@ -139,6 +139,24 @@ class TimeLogIntent(_Intent):
     billable: bool = True
 
 
+class TimesheetEntry(_Intent):
+    ticket_ref: str
+    minutes: int = Field(ge=6, le=600)
+    note: str
+    billable: bool = True
+    # Why the time is not billable: admin, cpe, business development,
+    # internal, or pro bono. A real timesheet carries these beside the
+    # client work, and a firm that reports none is not being audited.
+    category: str = "client"
+
+
+class TimesheetIntent(_Intent):
+    """A whole day of time, written up at once."""
+
+    kind: Literal["timesheet"] = "timesheet"
+    entries: tuple[TimesheetEntry, ...] = ()
+
+
 class IdleIntent(_Intent):
     kind: Literal["idle"] = "idle"
     until_minutes: int = Field(ge=1)
@@ -189,6 +207,7 @@ ActionIntent = Annotated[
     | CalendarIntent
     | ReactionIntent
     | TimeLogIntent
+    | TimesheetIntent
     | IdleIntent
     | FreeformIntent
     | AgentNoteIntent

@@ -67,6 +67,20 @@ class SimReflectionPayload(Payload):
     scope: Literal["daily", "weekly"] = "daily"
 
 
+class SimTimesheetPayload(Payload):
+    """A scheduled end-of-day timesheet turn for one entity.
+
+    A professional does not log time action by action through the day;
+    they write the day up at the end of it. One turn per person-day
+    yields the whole day's entries in a single call, which is how the
+    volume a real practice produces stays inside a sane LM budget.
+    """
+
+    kind: Literal["sim.timesheet"]
+    entity: str
+    day: str
+
+
 class SimCheckpointPayload(Payload):
     kind: Literal["sim.checkpoint"]
     step: int = Field(ge=0)

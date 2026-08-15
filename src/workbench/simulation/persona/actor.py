@@ -10,6 +10,7 @@ from workbench.core.actions import (
     MeetingTurnActionSpec,
     PlanActionSpec,
     ReflectActionSpec,
+    TimesheetActionSpec,
 )
 from workbench.core.events.agent import MemoryBullet, PlanBlock
 from workbench.core.intents import (
@@ -24,6 +25,8 @@ from workbench.core.intents import (
     ReactionIntent,
     TicketIntent,
     TimeLogIntent,
+    TimesheetEntry,
+    TimesheetIntent,
 )
 from workbench.core.worldlog.views import email_thread
 from workbench.simulation.entity.context import ContextBlock
@@ -199,6 +202,55 @@ class ProfessionalActorAct:
             )
         )
 
+    async def _timesheet(self, spec: TimesheetActionSpec) -> EntityAction:
+        """A whole day of time in one call.
+
+        Batched deliberately: a professional writes the day up at the end
+        of it, and one structured call per person-day is what keeps a
+        realistic volume of time entries inside a sane LM budget.
+        """
+
+        identity = render_identity(self._params)
+        now = self._memory.last_time()
+        midnight = (now // 86_400) * 86_400
+        records = self._stream.records() if self._stream is not None else ()
+        today = [record for record in records if record.time >= midnight]
+        today_activity = (
+            "\n".join(
+                f"[{(r.time % 86_400) // 3600:02d}:"
+                f"{((r.time % 86_400) % 3600) // 60:02d}] {r.gist}"
+                for r in today[-40:]
+            )
+            or "A quiet day."
+        )
+        engagements = "\n".join(spec.engagements) or "No engagements assigned."
+        try:
+            prediction = await self._actor.log_day.acall(
+                identity=identity,
+                day=spec.day,
+                engagements=engagements,
+                today_activity=today_activity,
+            )
+            lines = prediction.timesheet.lines
+        except CassetteMissError, LMBudgetExceededError, LMTransportError:
+            raise
+        except Exception:
+            # An unparseable timesheet is a day with no time logged, not a
+            # failed day — the same degradation contract as the other
+            # cognition turns.
+            lines = []
+        entries = tuple(
+            TimesheetEntry(
+                ticket_ref=line.ticket_ref,
+                minutes=max(6, min(600, int(line.minutes))),
+                note=line.note,
+                billable=bool(line.billable),
+                category=line.category,
+            )
+            for line in lines
+        )
+        return IntentAction(intent=TimesheetIntent(entries=entries))
+
     async def _reflect(self, spec: ReflectActionSpec) -> EntityAction:
         identity = render_identity(self._params)
         now = self._memory.last_time()
@@ -251,6 +303,8 @@ class ProfessionalActorAct:
     async def get_action_attempt(
         self, blocks: tuple[ContextBlock, ...], spec: ActionSpec
     ) -> EntityAction:
+        if isinstance(spec, TimesheetActionSpec):
+            return await self._timesheet(spec)
         if isinstance(spec, ReflectActionSpec):
             return await self._reflect(spec)
         if isinstance(spec, PlanActionSpec):

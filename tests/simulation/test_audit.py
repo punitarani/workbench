@@ -138,6 +138,8 @@ def test_registry_enumerates_named_predictors() -> None:
         "draft_meeting",
         "meeting_turn",
         "plan_day",
+        # v2: the end-of-day timesheet turn, one call for a whole day of time.
+        "log_day",
         "reflect",
     }
 

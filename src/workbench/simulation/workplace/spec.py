@@ -125,4 +125,7 @@ class WorkplaceSpec(_Model):
     # windowed engine forms real batches; grounded deliveries round up
     # to the quantum so replies co-land too.
     wake_grid_minutes: int = Field(default=30, ge=1)
+    # v2: one end-of-day timesheet turn per persona per workday. Off by
+    # default so a v1 recording replays byte-identically.
+    timesheets: bool = False
     delivery_quantum_seconds: int = Field(default=300, ge=1)

@@ -290,6 +290,38 @@ class Reflect(dspy.Signature):
     reflection: DailyReflection = dspy.OutputField()
 
 
+class TimesheetLine(BaseModel):
+    """One line of a timesheet: an engagement, minutes, and what was done."""
+
+    ticket_ref: str
+    minutes: int
+    note: str
+    billable: bool = True
+    category: str = "client"
+
+
+class DayTimesheet(BaseModel):
+    lines: list[TimesheetLine]
+
+
+class LogDay(dspy.Signature):
+    """Write up your time for the day, the way a professional actually
+    does it: six to eight lines covering the whole working day, each
+    against a real engagement id from your list, with a short note naming
+    what you did. Minutes are how long the work took — vary them
+    honestly (37, 45, 90, 20), do not round everything to the half hour,
+    and do not pad to fill the day. Include your non-billable time too:
+    admin, CPE, business development, internal meetings — mark those
+    billable=false with the matching category. Only use engagement ids
+    that appear in your list."""
+
+    identity: str = dspy.InputField()
+    day: str = dspy.InputField(desc="the day being written up")
+    engagements: str = dspy.InputField(desc="engagement ids you may log against")
+    today_activity: str = dspy.InputField(desc="everything you did today")
+    timesheet: DayTimesheet = dspy.OutputField()
+
+
 class ProfessionalActor(dspy.Module):
     """Named predictors; the registry and GEPA address them by attribute."""
 
@@ -304,4 +336,5 @@ class ProfessionalActor(dspy.Module):
         self.draft_meeting = dspy.Predict(DraftMeeting)
         self.reflect = dspy.Predict(Reflect)
         self.plan_day = dspy.Predict(PlanDay)
+        self.log_day = dspy.Predict(LogDay)
         self.meeting_turn = dspy.Predict(MeetingTurn)
