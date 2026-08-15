@@ -31,8 +31,9 @@ Nothing here knows about legal work, simulation, or language models. If a
 concept only makes sense for one domain or one layer, it does not belong
 here.
 
-Also here, under `environment/`: the `Dockerfile` and `run-as-environment.c`
-setuid shim — the container image for the Phase 2+ agent environment.
+The container image the bundles run in (`Dockerfile`,
+`run-as-environment.c` setuid shim) lives at the repo root under
+`environment/`.
 
-Start with [`docs/simulation-engine.md`](../docs/simulation-engine.md) for
-how these contracts are used.
+Start with [`docs/WORKBENCH.md`](../../../docs/WORKBENCH.md) for how
+these contracts are used.

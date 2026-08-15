@@ -8,9 +8,13 @@ Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Package-specific:
   world log is the sole input. The metadata cycle with the `workbench`
   member (environment depends on tools, tools depends on workbench for
   core) is deliberate — uv resolves it, and imports stay acyclic.
-* **Servers are read-only in this phase.** Databases open through
-  `db.connect_readonly` (SQLite read-only URI mode); every exposed tool is
-  a query. Write tools arrive with the externalized seat.
+* **Reads are read-only; writes are confined.** Read tools open through
+  `db.connect_readonly` (SQLite read-only URI mode). Write tools open
+  through `db.connect_readwrite` and touch only action/sent tables that
+  grading reads — nothing an agent writes feeds back into the projected
+  record or the simulation. A write surface must match its official
+  product's boundary (gmail has no send tool) or be a declared waiver in
+  the parity snapshot.
 * **The offstage boundary is structural.** Only tags a system declares in
   `handled_tags` may reach its database; `ToolSystem.__post_init__`
   refuses `sim.*` tags outright. Every agent-facing tool keeps a test
@@ -69,8 +73,8 @@ that, reconsider the model before extending the layer.
 
 ## Tests
 
-`tools/tests/projection_fixtures.py` mirrors
-`workbench/tests/worldlog_fixtures.py`; each member suite is
-self-contained, so keep edits in both. Behavior tests live at the MCP
+`tests/tools/projection_fixtures.py` mirrors
+`tests/fixtures/worldlog_fixtures.py`; each suite is self-contained, so
+keep edits in both. Behavior tests live at the MCP
 surface (call the tools, parse the JSON) — schema details are free to
 change; tool names, arguments, and JSON shapes are contracts.

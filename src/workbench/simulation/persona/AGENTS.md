@@ -6,8 +6,10 @@
   instructions. Do not hide behavioral text in f-strings.
 * **Grounding, not imagination.** Working memory state is the observed
   events themselves; every view is a fold over them, shared with
-  `workbench.core.worldlog.views`. A persona can only reference what
-  actually happened. Keep it that way — no free-floating "memory" strings.
+  `workbench.core.worldlog.views`. The memory stream stores typed
+  cognition events, and retrieval scoring is integer-only — floats would
+  cost byte-identity. A persona can only reference what actually
+  happened. Keep it that way — no free-floating "memory" strings.
 * The facts ledger records what a persona has committed to (draft
   summaries). Drafters receive it with a do-not-contradict instruction;
   audit cross-checks it.

@@ -3,7 +3,8 @@
 Living document, CI-checked by `tests/parity/`. Every official tool is
 **implemented** or **waived with a reason**; every waiver is a line in the
 vendor's snapshot file, not a silence. Parity is pinned to dated captures
-under `tests/parity/snapshots/` (ADR-0006) because the official surfaces
+under `tests/parity/snapshots/` (see the design decisions in
+[`WORKBENCH.md`](../../WORKBENCH.md)) because the official surfaces
 move — Slack grew from 13 tools to 19 during 2026, Google's live Gmail
 server serves eight tools whose documentation pages 404, and iManage
 publishes descriptions rather than JSON schemas.
@@ -16,8 +17,8 @@ publishes descriptions rather than JSON schemas.
 | calendar | 9 | 9 | 6 params | 2026-08-14 | high (published reference) |
 | slack | 19 | see snapshot | see snapshot | 2026-08-14 | medium (third-party gateway captures) |
 | imanage | 15 | see snapshot | see snapshot | 2026-08-14 | medium (descriptions published, schemas not) |
-| practice management | n/a | modeled surface | — | — | no official server exists (ADR-0001) |
-| billing / tax / ledger | n/a | modeled surfaces | — | — | no official servers in this class (ADR-0007) |
+| practice management | n/a | modeled surface | — | — | no official server exists |
+| billing / tax / ledger | n/a | planned, unbuilt | — | — | no official servers in this class |
 
 ## gmail — complete
 
@@ -28,8 +29,8 @@ All 19 tools: `search_threads`, `get_thread`, `get_message`,
 `mark_message_spam`, `unmark_message_spam`, `mark_thread_spam`,
 `unmark_thread_spam`.
 
-Deliberate boundary: **no send tool**, matching the official server
-(ADR-0005). `apply_sensitive_message_label` / `apply_sensitive_thread_label`
+Deliberate boundary: **no send tool**, matching the official server.
+`apply_sensitive_message_label` / `apply_sensitive_thread_label`
 appear in doc cross-links but are not served by the live server, so they
 are not emulated.
 
@@ -64,12 +65,13 @@ absolute match.
 
 ## Modeled surfaces (no official server to match)
 
-Practice management, billing, tax, and the client ledger have no official
-MCP servers in their product class. They are *modeled* surfaces: their
-API grammar follows a named lineage (the community Clio surface and Clio
-v4 REST for practice management), and the matrix records them as modeled
-rather than emulated so nobody mistakes an in-house design for vendor
-parity.
+Practice management has no official MCP server in its product class. It
+is a *modeled* surface: its API grammar follows a named lineage (the
+community Clio surface and Clio v4 REST), and the matrix records it as
+modeled rather than emulated so nobody mistakes an in-house design for
+vendor parity. The compliance write surface is likewise in-house by
+design. Billing, tax, and ledger are planned as further modeled systems
+and do not exist yet.
 
 ## Refresh procedure
 

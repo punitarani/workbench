@@ -3,7 +3,7 @@
 * The payload union in `payloads.py` is **closed**: every kind is declared
   there and in `TAG_REGISTRY`, nowhere else. Workplaces never add kinds. A
   test asserts union and registry match exactly — extend both plus the
-  sample in `workbench/tests/payload_samples.py`.
+  sample in `tests/fixtures/payload_samples.py`.
 * Within a schema version, evolution is **additive only**: new kinds or new
   optional fields. Anything else bumps `SCHEMA_VERSION` and invalidates
   every recorded run.

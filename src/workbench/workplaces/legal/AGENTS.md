@@ -16,5 +16,5 @@ Cassettes under `cassettes/` pair with the spec that recorded them. After
 any prompt-affecting change anywhere in the repo, re-record
 (`--mode record`, needs `OPENROUTER_API_KEY`), review the new day's world
 log, and commit spec + cassette together. The acceptance suite in
-`workplaces/tests/test_demo_acceptance.py` activates whenever a cassette
+`tests/workplaces/test_demo_acceptance.py` activates whenever a cassette
 is present.

@@ -1,30 +1,40 @@
 # tools
 
-The agent-facing tool systems: projections from the recorded world log into
-per-tool SQLite databases, and read-only MCP servers over them. This is the
-`workbench-tools` distribution, importable as `workbench.tools`.
+The agent-facing tool systems: projections from the recorded world log
+into per-tool SQLite databases, and MCP servers over them that emulate
+each product's official surface — reads and writes both.
 
 Each system is a plugin — a subpackage implementing one typed contract
 (`ToolSystem`): the world-log tags it observes, its tables, a projector,
 and a server registrar. A single registry (`registry.py`, one line per
-system) drives everything downstream: projection, cross-database coherence
-checking, server assembly, the environment bundle's `mcp.json` specs, and
-the stdio
-serve entry point.
+system) drives everything downstream: projection, cross-database
+coherence checking, server assembly, the environment bundle's `mcp.json`
+specs, and the stdio serve entry point.
 
-| System | Database | Mirrors | Read tools |
-|---|---|---|---|
-| `gmail` | `gmail.db` | Google's official Gmail MCP | `search_threads`, `get_thread`, `get_message`, `list_labels` |
-| `slack` | `slack.db` | Slack's official MCP | `slack_search_public`, `slack_search_public_and_private`, `slack_read_channel`, `slack_read_thread`, `slack_search_channels`, `slack_search_users`, `slack_read_user_profile`, `slack_list_channel_members`, `slack_get_reactions` |
-| `imanage` | `imanage.db` | official iManage MCP | `search`, `search_workspaces`, `get_workspace_profile`, `get_container_children`, `get_document_profile`, `get_document_versions`, `download_document`, `get_libraries`, `get_user_information` |
-| `clio` | `clio.db` | Clio Manage API v4 (no official MCP exists) | `list_matters`, `get_matter`, `list_matter_contacts`, `list_contacts`, `list_activities`, `list_notes`, `list_users`, `who_am_i` |
-| `calendar` | `calendar.db` | Google's official Calendar MCP (read half) | `list_events`, `get_event`, `list_calendars` |
+| System | Database | Tools | Mirrors | Write half |
+|---|---|---|---|---|
+| `gmail` | `gmail.db` | 19 | Google's official Gmail MCP | drafts, labels, trash, spam — no send tool, matching the official server |
+| `calendar` | `calendar.db` | 9 | Google's official Calendar MCP | `create_event`, `update_event`, `delete_event`, `respond_to_event` |
+| `slack` | `slack.db` | 19 | Slack's official MCP | messages, drafts, scheduled sends, conversations, reactions, canvases |
+| `imanage` | `imanage.db` | 15 | official iManage Work MCP | recents and actions recorded server-side |
+| `clio` | `clio.db` | 8 | Clio Manage API v4 grammar (no official MCP exists) | read-only |
+| `compliance` | `compliance.db` | 11 | in-house write surface | the template: reference tables seeded at build time, action tables written by the agent |
 
-Slack ships two search tools and so does this one: `slack_search_public`
-sees channels, `slack_search_public_and_private` also sees the dms the
-caller belongs to. iManage `search` spans every document version, so each
-hit reports `matched_versions` and `in_head` — a match on text the head
-version no longer contains says so rather than passing for current.
+Reads open through `connect_readonly`; writes go through
+`connect_readwrite` into action/sent tables that grading reads — nothing
+an agent writes ever feeds back into the simulation. `compliance` is the
+one system not projected from the world log: its reference tables are
+seeded from a task scenario and its action tables start empty.
+
+Parity with the official vendors is pinned to dated `tools/list`
+snapshots under `tests/parity/snapshots/` and enforced by
+`tests/parity/` (implemented-or-waived, no invented tools, required
+parameters, provenance); the living implemented/waived matrix is
+[`docs/epochs/v2/PARITY-MATRIX.md`](../../../docs/epochs/v2/PARITY-MATRIX.md).
+Divergences are declared as snapshot waivers, never silent — e.g.
+iManage `search` spans every document version, so each hit reports
+`matched_versions` and `in_head` rather than passing stale text off as
+current.
 
 People surface through each product's own user tools; the shared people
 table stays in every database as their projection source. The seat comes
@@ -39,12 +49,17 @@ from `WORKBENCH_SEAT` (`serve --user`), read at call time via
 | `clio` | `who_am_i` is the seat | `who_am_i` errors rather than guess |
 | `calendar` | `primary` is the seat's calendar | `primary` means every calendar |
 
-Schemas are typed end to end: `db.py` derives DDL, inserts, and reads from
-Pydantic row models, so the schema cannot drift from the types, and `Id`/
-`Ref` column markers make cross-database references machine-checkable.
+Write tools that need an identity (`slack_send_message`,
+`create_draft`, …) require the seat and raise `SeatUnsetError` rather
+than defaulting to some person.
 
-Serve one system over stdio, from the bundle root (the container wraps this
-with `run-as-environment`, so the database is readable only by the
+Schemas are typed end to end: `db.py` derives DDL, inserts, and reads
+from Pydantic row models, so the schema cannot drift from the types, and
+`Id`/`Ref` column markers make cross-database references
+machine-checkable.
+
+Serve one system over stdio, from the bundle root (the container wraps
+this with `run-as-environment`, so the database is readable only by the
 `environment` user and the tools are the sole aperture onto it):
 
 ```bash
@@ -52,5 +67,6 @@ python -m workbench.tools.serve gmail --db state/gmail.db
 ```
 
 Projection and bundle assembly are usually reached through
-`workbench.environment.materialize`, which validates the world log first.
-It keeps `state/` out of the agent's own `workspace/` by construction.
+`workbench.environment.materialize`, which validates the world log
+first. It keeps `state/` out of the agent's own `workspace/` by
+construction.
