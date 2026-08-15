@@ -95,9 +95,7 @@ class TestSeason:
 
         october = season_multipliers("2026-10-09")
         march = season_multipliers("2026-03-09")
-        assert october.get("per-nora-behrens", 1000) > march.get(
-            "per-nora-behrens", 1000
-        )
+        assert october.get("nora-behrens", 1000) > march.get("nora-behrens", 1000)
 
     def test_the_two_firms_peak_in_different_months(self) -> None:
         """Calder crests at April 15; Ashgrove crests in fieldwork season."""
@@ -145,3 +143,42 @@ class TestRates:
         assert rates["Managing Partner"] > rates["Audit Manager"]
         assert rates["Audit Manager"] > rates["Staff Accountant"]
         assert all(10_000 <= rate <= 60_000 for rate in rates.values())
+
+
+class TestCuesReachTheirClients:
+    """A cue naming an entity that does not exist is silently skipped.
+
+    The first complete Ashgrove run produced 3,980 events and zero
+    emails: every cue named ``per-harriet-vance`` while the client
+    entity is ``harriet-vance``, so the GM dropped all of them and the
+    outside world never spoke. The world validated, the run reported
+    success, and the dataset was useless.
+    """
+
+    def test_every_profile_names_a_real_client_entity(self) -> None:
+        from workbench.core.seed import Seed as _Seed
+        from workbench.simulation.workplace.compile import (
+            compile_workplace as _compile,
+        )
+        from workbench.workplaces.ashgrove.season import CLIENT_PROFILES
+
+        compiled = _compile(ashgrove_spec(3), _Seed(root=7))
+        entities = {name for name, _ in compiled.clients}
+        named = {profile.entity for profile in CLIENT_PROFILES}
+        assert named <= entities, (
+            f"cues name entities that do not exist: {sorted(named - entities)}; "
+            f"real client entities are {sorted(entities)}"
+        )
+
+    def test_season_multipliers_name_real_client_entities(self) -> None:
+        from workbench.core.seed import Seed as _Seed
+        from workbench.simulation.workplace.compile import (
+            compile_workplace as _compile,
+        )
+        from workbench.workplaces.ashgrove.season import season_multipliers
+
+        compiled = _compile(ashgrove_spec(3), _Seed(root=7))
+        entities = {name for name, _ in compiled.clients}
+        for day in ("2026-02-11", "2026-05-12", "2026-10-08"):
+            named = set(season_multipliers(day))
+            assert named <= entities, f"{day} boosts unknown {sorted(named - entities)}"

@@ -17,7 +17,7 @@ from workbench.simulation.director import ClientProfile
 
 CLIENT_PROFILES: tuple[ClientProfile, ...] = (
     ClientProfile(
-        entity="per-harriet-vance",
+        entity="harriet-vance",
         rate_millis=520,
         situations=(
             ("The board wants the audit timeline before the March meeting.", "audit"),
@@ -27,7 +27,7 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
         ),
     ),
     ClientProfile(
-        entity="per-desmond-blakely",
+        entity="desmond-blakely",
         rate_millis=470,
         situations=(
             ("Our federal expenditures crossed the Single Audit threshold.", "audit"),
@@ -36,7 +36,7 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
         ),
     ),
     ClientProfile(
-        entity="per-nora-behrens",
+        entity="nora-behrens",
         rate_millis=430,
         situations=(
             ("Our 401(k) census file has participants we cannot place.", "benefits"),
@@ -45,7 +45,7 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
         ),
     ),
     ClientProfile(
-        entity="per-idris-mensah",
+        entity="idris-mensah",
         rate_millis=400,
         situations=(
             ("Percentage-of-completion on two jobs looks off to me.", "audit"),
@@ -54,7 +54,7 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
         ),
     ),
     ClientProfile(
-        entity="per-priya-raman",
+        entity="priya-raman",
         rate_millis=380,
         situations=(
             (
@@ -66,7 +66,7 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
         ),
     ),
     ClientProfile(
-        entity="per-tomas-lindgren",
+        entity="tomas-lindgren",
         rate_millis=360,
         situations=(
             (
@@ -77,7 +77,7 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
         ),
     ),
     ClientProfile(
-        entity="per-adaeze-okonkwo",
+        entity="adaeze-okonkwo",
         rate_millis=340,
         situations=(
             ("The clinic's payor mix changed and receivables aged badly.", "audit"),
@@ -85,7 +85,7 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
         ),
     ),
     ClientProfile(
-        entity="per-benedict-shaw",
+        entity="benedict-shaw",
         rate_millis=300,
         situations=(
             (
@@ -96,7 +96,7 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
         ),
     ),
     ClientProfile(
-        entity="per-lucia-arroyo",
+        entity="lucia-arroyo",
         rate_millis=280,
         situations=(
             ("Our internal controls memo from last year needs refreshing.", "audit"),
@@ -104,7 +104,7 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
         ),
     ),
     ClientProfile(
-        entity="per-garrett-poole",
+        entity="garrett-poole",
         rate_millis=240,
         situations=(
             ("The trustees want an interim report before year end.", "audit"),
@@ -114,13 +114,13 @@ CLIENT_PROFILES: tuple[ClientProfile, ...] = (
 )
 
 _FIELDWORK_CLIENTS = (
-    "per-harriet-vance",
-    "per-idris-mensah",
-    "per-tomas-lindgren",
-    "per-lucia-arroyo",
+    "harriet-vance",
+    "idris-mensah",
+    "tomas-lindgren",
+    "lucia-arroyo",
 )
-_SINGLE_AUDIT_CLIENTS = ("per-harriet-vance", "per-desmond-blakely")
-_BENEFIT_PLAN_CLIENTS = ("per-nora-behrens",)
+_SINGLE_AUDIT_CLIENTS = ("harriet-vance", "desmond-blakely")
+_BENEFIT_PLAN_CLIENTS = ("nora-behrens",)
 
 
 def season_multipliers(day: str) -> Mapping[str, int]:
