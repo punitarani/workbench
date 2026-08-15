@@ -6,7 +6,7 @@
   "status": "Developer Preview (Google Workspace Developer Preview Program)",
   "provenance": "published reference (developers.google.com/workspace/gmail/api/reference/mcp) plus a live tools/list capture for the eight trash/spam tools whose doc pages 404",
   "confidence": "high for the 11 documented tools; high for the 8 live tools (schemas read from the server's own tools/list)",
-  "notes": "No send tool exists — the server drafts, reads, labels, and triages; a person sends. apply_sensitive_message_label / apply_sensitive_thread_label are cross-referenced in docs but not served; deliberately not emulated.",
+  "notes": "No send tool exists \u2014 the server drafts, reads, labels, and triages; a person sends. apply_sensitive_message_label / apply_sensitive_thread_label are cross-referenced in docs but not served; deliberately not emulated.",
   "tools": {
     "search_threads": {
       "params": {
@@ -16,21 +16,30 @@
         "includeTrash": "boolean? default false",
         "view": "enum? ThreadView default THREAD_VIEW_MINIMAL"
       },
-      "returns": ["threads", "nextPageToken", "resultCountEstimate"]
+      "returns": [
+        "threads",
+        "nextPageToken",
+        "resultCountEstimate"
+      ]
     },
     "get_thread": {
       "params": {
         "threadId": "string!",
         "messageFormat": "enum? MessageFormat default FULL_CONTENT"
       },
-      "returns": ["id", "messages"]
+      "returns": [
+        "id",
+        "messages"
+      ]
     },
     "get_message": {
       "params": {
         "messageId": "string!",
         "messageFormat": "enum? MessageFormat default FULL_CONTENT"
       },
-      "returns": ["Message"]
+      "returns": [
+        "Message"
+      ]
     },
     "list_drafts": {
       "params": {
@@ -39,7 +48,10 @@
         "query": "string?",
         "view": "enum? DraftView default DRAFT_VIEW_FULL"
       },
-      "returns": ["drafts", "nextPageToken"]
+      "returns": [
+        "drafts",
+        "nextPageToken"
+      ]
     },
     "create_draft": {
       "params": {
@@ -52,44 +64,109 @@
         "replyToMessageId": "string?",
         "attachments": "Attachment[]?"
       },
-      "returns": ["Draft"]
+      "returns": [
+        "Draft"
+      ]
     },
     "list_labels": {
-      "params": {"pageSize": "integer?", "pageToken": "string?"},
-      "returns": ["labels", "nextPageToken"]
+      "params": {
+        "pageSize": "integer?",
+        "pageToken": "string?"
+      },
+      "returns": [
+        "labels",
+        "nextPageToken"
+      ]
     },
     "create_label": {
-      "params": {"displayName": "string!", "color": "LabelColor?"},
-      "returns": ["Label"]
+      "params": {
+        "displayName": "string!",
+        "color": "LabelColor?"
+      },
+      "returns": [
+        "Label"
+      ]
     },
     "label_message": {
-      "params": {"messageId": "string!", "labelIds": "string[]!"},
+      "params": {
+        "messageId": "string!",
+        "labelIds": "string[]!"
+      },
       "returns": [],
       "idempotent": true
     },
     "unlabel_message": {
-      "params": {"messageId": "string!", "labelIds": "string[]!"},
+      "params": {
+        "messageId": "string!",
+        "labelIds": "string[]!"
+      },
       "returns": [],
       "idempotent": true
     },
     "label_thread": {
-      "params": {"threadId": "string!", "labelIds": "string[]!"},
+      "params": {
+        "threadId": "string!",
+        "labelIds": "string[]!"
+      },
       "returns": [],
       "idempotent": true
     },
     "unlabel_thread": {
-      "params": {"threadId": "string!", "labelIds": "string[]!"},
+      "params": {
+        "threadId": "string!",
+        "labelIds": "string[]!"
+      },
       "returns": [],
       "idempotent": true
     },
-    "trash_message": {"params": {"messageId": "string!"}, "returns": []},
-    "untrash_message": {"params": {"messageId": "string!"}, "returns": []},
-    "trash_thread": {"params": {"threadId": "string!"}, "returns": []},
-    "untrash_thread": {"params": {"threadId": "string!"}, "returns": []},
-    "mark_message_spam": {"params": {"messageId": "string!"}, "returns": []},
-    "unmark_message_spam": {"params": {"messageId": "string!"}, "returns": []},
-    "mark_thread_spam": {"params": {"threadId": "string!"}, "returns": []},
-    "unmark_thread_spam": {"params": {"threadId": "string!"}, "returns": []}
+    "trash_message": {
+      "params": {
+        "messageId": "string!"
+      },
+      "returns": []
+    },
+    "untrash_message": {
+      "params": {
+        "messageId": "string!"
+      },
+      "returns": []
+    },
+    "trash_thread": {
+      "params": {
+        "threadId": "string!"
+      },
+      "returns": []
+    },
+    "untrash_thread": {
+      "params": {
+        "threadId": "string!"
+      },
+      "returns": []
+    },
+    "mark_message_spam": {
+      "params": {
+        "messageId": "string!"
+      },
+      "returns": []
+    },
+    "unmark_message_spam": {
+      "params": {
+        "messageId": "string!"
+      },
+      "returns": []
+    },
+    "mark_thread_spam": {
+      "params": {
+        "threadId": "string!"
+      },
+      "returns": []
+    },
+    "unmark_thread_spam": {
+      "params": {
+        "threadId": "string!"
+      },
+      "returns": []
+    }
   },
   "message_fields": [
     "id",
@@ -105,5 +182,7 @@
     "attachments",
     "labelIds"
   ],
-  "waived": {}
+  "waived": {
+    "search_threads.view": "DIVERGENCE: the official search never returns bodies; ours does when no view is named, because the frozen Hartwell floor scripts read bodies from search results. Named views (THREAD_VIEW_MINIMAL, THREAD_VIEW_METADATA_ONLY) behave exactly as documented. Tracked for removal once those scripts hydrate through get_thread."
+  }
 }

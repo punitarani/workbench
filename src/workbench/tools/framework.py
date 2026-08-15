@@ -183,6 +183,7 @@ def project_system(system: ToolSystem, events: Sequence[Event], db_path: Path) -
 
 
 def build_server(system: ToolSystem, db_path: Path) -> MCPServer:
+    _ensure_tables(system, db_path)
     server = MCPServer(
         name=f"workbench-{system.name}",
         instructions=f"The organization's {system.name} system.",
@@ -191,6 +192,30 @@ def build_server(system: ToolSystem, db_path: Path) -> MCPServer:
     if system.directory_tool:
         _add_directory(server, db_path)
     return server
+
+
+def _ensure_tables(system: ToolSystem, db_path: Path) -> None:
+    """Create any declared table the database is missing.
+
+    A workspace materialized before a system grew an action table would
+    otherwise fail every read that touches it — and those failures land in
+    task bundles built months earlier, far from the change that caused
+    them. The server owns this file and knows its own schema, so it
+    reconciles rather than crashing. Projected tables are always created by
+    ``project_system``, so this only ever fills in empty action tables.
+    """
+
+    if not db_path.exists():
+        return
+    connection = sqlite3.connect(db_path)
+    try:
+        with connection:
+            for table in system.all_tables():
+                connection.execute(
+                    table.ddl().replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS")
+                )
+    finally:
+        connection.close()
 
 
 def _add_directory(server: MCPServer, db_path: Path) -> None:

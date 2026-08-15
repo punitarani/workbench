@@ -461,6 +461,7 @@ async def _read_window(
 
 async def _gmail_all_pages(client: CountingClient, query: str) -> list[dict]:
     """Every message of every matched thread, annotated with its thread id."""
+
     messages: list[dict] = []
     token: str | None = None
     while True:
@@ -978,7 +979,9 @@ async def operative_deadline(client: CountingClient) -> None:
     docket_dm = None
     for dm in dms:
         members = await client.call(
-            "slack__slack_list_channel_members", channel_id=dm["id"]
+            "slack__slack_list_channel_members",
+            channel_id=dm["id"],
+            response_format="ids_only",
         )
         member_names = {names[m] for m in members["members"]}
         if member_names == {"Grace Adeyemi", "Samuel Marsh"}:
@@ -1260,7 +1263,9 @@ async def _visitor_log_ledger(client: CountingClient) -> tuple[list[dict], int]:
     membership: dict[str, set[str]] = {}
     for lane in lanes:
         members = await client.call(
-            "slack__slack_list_channel_members", channel_id=lane["id"]
+            "slack__slack_list_channel_members",
+            channel_id=lane["id"],
+            response_format="ids_only",
         )
         membership[lane["id"]] = set(members["members"])
 
@@ -1369,7 +1374,9 @@ async def _second_read_ledger(client: CountingClient) -> tuple[list[dict], int]:
     membership: dict[str, set[str]] = {}
     for lane in lanes:
         members = await client.call(
-            "slack__slack_list_channel_members", channel_id=lane["id"]
+            "slack__slack_list_channel_members",
+            channel_id=lane["id"],
+            response_format="ids_only",
         )
         membership[lane["id"]] = set(members["members"])
 

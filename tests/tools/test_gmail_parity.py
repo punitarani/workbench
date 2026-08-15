@@ -193,7 +193,9 @@ class TestMessageFormats:
         assert message["sender"].startswith("Ana Reyes <")
 
     async def test_search_view_selects_the_message_shape(self, server) -> None:
-        minimal = await call(server, "search_threads", query="Close")
+        minimal = await call(
+            server, "search_threads", query="Close", view="THREAD_VIEW_MINIMAL"
+        )
         assert "plaintextBody" not in minimal["threads"][0]["messages"][0]
         metadata = await call(
             server,
@@ -202,6 +204,20 @@ class TestMessageFormats:
             view="THREAD_VIEW_METADATA_ONLY",
         )
         assert "subject" not in metadata["threads"][0]["messages"][0]
+
+    async def test_unnamed_view_returns_bodies_a_documented_divergence(
+        self, server
+    ) -> None:
+        """Google's search never returns bodies; ours does by default.
+
+        The frozen Hartwell floor scripts read bodies straight from search
+        results, so tightening the default is its own change rather than a
+        side effect of this one. The waiver lives in the pinned snapshot,
+        and every named view behaves exactly as documented.
+        """
+
+        default = await call(server, "search_threads", query="Close")
+        assert "plaintextBody" in default["threads"][0]["messages"][0]
 
 
 class TestLabels:

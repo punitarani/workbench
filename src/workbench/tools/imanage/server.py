@@ -287,6 +287,13 @@ def _record(db_path: Path, tool: str, kind: str, target_id: str) -> None:
     """
 
     with connect_readwrite(db_path) as connection:
+        # A workspace materialized before this table existed still has to
+        # serve reads: the access log is a convenience the server owns, not
+        # part of the record, so it creates its own table rather than
+        # failing a read that has nothing to do with it.
+        connection.execute(
+            ACTIONS.ddl().replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS")
+        )
         ACTIONS.insert(
             connection,
             [

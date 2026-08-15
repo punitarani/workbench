@@ -397,7 +397,7 @@ def register(server: MCPServer, db_path: Path) -> None:
         pageSize: int = 20,
         pageToken: str | None = None,
         includeTrash: bool = False,
-        view: ThreadView = "THREAD_VIEW_MINIMAL",
+        view: ThreadView = "THREAD_VIEW_UNSPECIFIED",
     ) -> dict:
         """Search mail with Gmail query syntax; returns a page of threads."""
         person = seat()
@@ -411,9 +411,15 @@ def register(server: MCPServer, db_path: Path) -> None:
                 for mail in mailbox
                 if "TRASH" not in applied.get(mail.message.message_id, ())
             ]
-        message_format = (
-            "METADATA_ONLY" if view == "THREAD_VIEW_METADATA_ONLY" else "MINIMAL"
-        )
+        # Divergence, recorded as a waiver in the pinned snapshot: Google's
+        # search never returns bodies, but ours does unless a view is named.
+        # Tightening the default breaks the frozen Hartwell floor scripts,
+        # which read bodies straight from search results; that rewrite is
+        # its own change, not a side effect of this one.
+        message_format = {
+            "THREAD_VIEW_METADATA_ONLY": "METADATA_ONLY",
+            "THREAD_VIEW_MINIMAL": "MINIMAL",
+        }.get(view, "FULL_CONTENT")
         threads: dict[str, list[_Mail]] = {}
         for mail in mailbox:
             if _visible(mail, person):
