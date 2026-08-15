@@ -1,7 +1,7 @@
 """The acting component: decide, route to one drafter, emit a typed intent."""
 
 import dspy
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workbench.core.actions import (
     ActionSpec,
@@ -67,6 +67,15 @@ class ActorActState(BaseModel):
 
     lm_calls: int = 0
     deep_lm_calls: int = 0
+
+
+def _first_missing(error: ValidationError) -> str:
+    """The field the model left out, for the note it writes to itself."""
+
+    for problem in error.errors():
+        location = ".".join(str(part) for part in problem.get("loc", ()))
+        return f"{location or 'field'}: {problem.get('msg', 'invalid')}"
+    return "invalid draft"
 
 
 class ProfessionalActorAct:
@@ -367,12 +376,35 @@ class ProfessionalActorAct:
                     pending=pending,
                     recent_activity=facts,
                 )
-            intent = await self._route(
-                decision.choice,
-                identity=identity,
-                facts=facts,
-                knowledge=knowledge,
-            )
+            try:
+                intent = await self._route(
+                    decision.choice,
+                    identity=identity,
+                    facts=facts,
+                    knowledge=knowledge,
+                )
+            except ValidationError as error:
+                # A draft the model filled in badly — a missing summary, an
+                # empty recipient list — used to fail schema parsing and take
+                # the whole run down. Malformed output is the persona's
+                # mistake, so it becomes the persona's note: visible in the
+                # log, remembered, and survivable. Transport, budget, and
+                # cassette failures still raise; only content degrades.
+                intent = AgentNoteIntent(
+                    note_kind="note",
+                    day=spec.day if isinstance(spec, PlanActionSpec) else "",
+                    bullets=(
+                        MemoryBullet(
+                            text=(
+                                f"I started to {decision.choice.action} and left "
+                                f"the draft malformed ({_first_missing(error)}); "
+                                "redo it with every field filled."
+                            ),
+                            importance=8,
+                        ),
+                    ),
+                    open_loops=(),
+                )
         return IntentAction(intent=intent)
 
     async def _route(

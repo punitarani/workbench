@@ -81,3 +81,50 @@ def test_meeting_turns_name_their_speaker() -> None:
         turn_index=0,
     )
     assert gm.observers_for(payload) == ("ana",)
+
+
+class TestMalformedDraftsDegrade:
+    """A model that fills a draft badly must not end the run.
+
+    Two runs died this way: an empty recipient list, then a missing
+    summary. Patching fields one at a time is how the second happened, so
+    the guard is at the parse boundary instead — any validation failure in
+    a draft becomes a note the persona writes to itself, visible in the
+    log and remembered, while transport, budget, and cassette failures
+    still raise.
+    """
+
+    def test_the_boundary_catches_validation_errors(self) -> None:
+        import inspect
+
+        from workbench.simulation.persona.actor import ProfessionalActorAct
+
+        source = inspect.getsource(ProfessionalActorAct.get_action_attempt)
+        assert "except ValidationError" in source
+        assert "self._route(" in source
+
+    def test_loud_failures_are_still_loud(self) -> None:
+        """Only content degrades; the loud-failure contract is intact."""
+
+        import inspect
+
+        from workbench.simulation.persona import actor
+
+        source = inspect.getsource(actor)
+        assert "CassetteMissError" in source
+        assert "LMBudgetExceededError" in source
+        assert "LMTransportError" in source
+
+    def test_the_note_names_the_missing_field(self) -> None:
+        from pydantic import BaseModel, ValidationError
+
+        from workbench.simulation.persona.actor import _first_missing
+
+        class Draft(BaseModel):
+            summary: str
+
+        try:
+            Draft()
+        except ValidationError as error:
+            described = _first_missing(error)
+        assert "summary" in described
