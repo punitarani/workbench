@@ -112,24 +112,41 @@ def test_every_criterion_called_is_defined(task: Path) -> None:
     """
 
     defined = {
-        node.name
+        node.name: node.args
         for node in ast.walk(ast.parse((task / "tests/criteria.py").read_text()))
         if isinstance(node, ast.FunctionDef) and not node.name.startswith("_")
     }
     for script in (*_answer_scripts(task), *(task / "tests/process").glob("*.py")):
-        called = {
-            node.func.attr
+        calls = [
+            node
             for node in ast.walk(ast.parse(script.read_text()))
             if isinstance(node, ast.Call)
             and isinstance(node.func, ast.Attribute)
             and isinstance(node.func.value, ast.Name)
             and node.func.value.id == "rk"
-        }
-        missing = sorted(called - defined)
+        ]
+        missing = sorted({c.func.attr for c in calls} - set(defined))
         assert not missing, (
             f"{task.name}: {script.name} calls {missing} but criteria.py "
             f"defines only {sorted(defined)}"
         )
+        # Arity too. rewardkit binds these itself and a mismatch is the
+        # same import-time death as a missing name: this task was copied
+        # from a criteria.py whose `scalar` took no tolerance, and every
+        # `rk.scalar(D, field, expected, 0.02)` in it raised "too many
+        # positional arguments" before a single criterion could run.
+        for call in calls:
+            args = defined[call.func.attr]
+            # `workspace` is injected by the runner, `name` and `weight`
+            # are the registration's own; what is left is the caller's.
+            allowed = len(args.posonlyargs) + len(args.args) - 1
+            required = allowed - len(args.defaults)
+            given = len(call.args)
+            assert required <= given <= allowed, (
+                f"{task.name}: {script.name} calls rk.{call.func.attr} with "
+                f"{given} positional argument(s); criteria.py accepts "
+                f"{required}..{allowed}"
+            )
 
 
 @pytest.mark.parametrize("task", TASKS, ids=lambda p: p.name)

@@ -7,14 +7,16 @@ from rewardkit import criterion
 
 MAX_BYTES = 300_000
 # Read off the oracle rather than restated here: a hand-kept copy fails
-# correct answers the day the report grows a field.
+# correct answers the day the report changes shape, which is exactly what
+# it did — this list still named `client_rows` after the report moved to
+# threads, and every right answer would have failed the schema check.
 TOP = frozenset(
     json.loads((Path(__file__).resolve().parent / "oracle.json").read_text())
 )
 ROWS = "allocations"
 # A row is a person *and* an engagement. Keyed on either alone, a
 # hundred and ninety-seven rows collapse to seventeen or to thirteen,
-# and the grader silently marks a fraction of the work.
+# and the grader silently marks a fraction of the work as all of it.
 KEY = ("person", "engagement")
 
 
@@ -33,11 +35,15 @@ def _rows(got: dict) -> dict:
     rows = got.get(ROWS)
     if not isinstance(rows, list):
         return {}
-    return {
-        tuple(str(r.get(k)).strip().casefold() for k in KEY): r
-        for r in rows
-        if isinstance(r, dict)
-    }
+    return {str(r.get(KEY)): r for r in rows if isinstance(r, dict)}
+
+
+def _close(a, b, tol) -> bool:
+    if b is None:
+        return a is None
+    if a is None or isinstance(a, bool):
+        return False
+    return isinstance(a, (int, float)) and abs(float(a) - float(b)) <= tol
 
 
 @criterion(shared=True, description="deliverable parses with the required fields")
@@ -47,12 +53,21 @@ def schema_ok(workspace: Path, path: str) -> bool:
 
 
 @criterion(shared=True, description="{field} matches")
-def scalar(workspace: Path, path: str, field: str, expected) -> bool:
+def scalar(workspace: Path, path: str, field: str, expected, tol: float = 0.0) -> bool:
     got = _submitted(workspace, path)
-    return got is not None and got.get(field) == expected
+    if got is None:
+        return False
+    mine = got.get(field)
+    if isinstance(expected, str) or expected is None:
+        return (str(mine).strip().casefold() if mine is not None else None) == (
+            expected.strip().casefold() if isinstance(expected, str) else expected
+        )
+    if isinstance(expected, dict):
+        return mine == expected
+    return _close(mine, expected, tol)
 
 
-@criterion(shared=True, description="the document set, F1 against the truth")
+@criterion(shared=True, description="{field} set, F1 against the truth")
 def flagged_f1(workspace: Path, path: str, expected: list) -> float:
     got = _submitted(workspace, path)
     if got is None:
@@ -68,12 +83,12 @@ def flagged_f1(workspace: Path, path: str, expected: list) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
-@criterion(shared=True, description="per-document facts")
-def row_fields(workspace: Path, path: str, expected: list, fields: list) -> float:
-    """Author, workspace, and whether it moved internally at all.
+@criterion(shared=True, description="per-row figures")
+def row_fields(workspace: Path, path: str, expected: list, spec: dict) -> float:
+    """Every field of every expected row, with a per-field tolerance.
 
-    An invented row costs, but cannot wipe out work that is correct: a
-    cliff to zero says nothing about what the agent actually knew.
+    Rows the record does not contain are penalised: an invented row is as
+    wrong as a missing one.
     """
 
     got = _submitted(workspace, path)
@@ -82,16 +97,19 @@ def row_fields(workspace: Path, path: str, expected: list, fields: list) -> floa
     mine = _rows(got)
     checked = matched = 0
     for row in expected:
-        theirs = mine.get(tuple(str(row[k]).strip().casefold() for k in KEY), {})
-        for field in fields:
+        theirs = mine.get(str(row[KEY]), {})
+        for field, tol in spec.items():
             checked += 1
-            want, have = row[field], theirs.get(field)
+            want = row[field]
+            have = theirs.get(field)
             if isinstance(want, str):
                 matched += str(have).strip().casefold() == want.strip().casefold()
+            elif isinstance(want, list):
+                matched += [str(x) for x in (have or [])] == [str(x) for x in want]
             else:
-                matched += have == want
-    extra = len(
-        set(mine) - {tuple(str(r[k]).strip().casefold() for k in KEY) for r in expected}
-    )
-    penalty = min(extra * len(fields), checked // 2)
+                matched += _close(have, want, tol)
+    extra = len(set(mine) - {str(r[KEY]) for r in expected})
+    # Invented rows cost, but they cannot wipe out work that is correct:
+    # a cliff to zero tells the reader nothing about what the agent knew.
+    penalty = min(extra * len(spec), checked // 2)
     return max(0.0, (matched - penalty) / checked) if checked else 0.0
