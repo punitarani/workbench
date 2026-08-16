@@ -35,7 +35,11 @@ def _rows(got: dict) -> dict:
     rows = got.get(ROWS)
     if not isinstance(rows, list):
         return {}
-    return {str(r.get(KEY)): r for r in rows if isinstance(r, dict)}
+    return {
+        tuple(str(r.get(k)).strip().casefold() for k in KEY): r
+        for r in rows
+        if isinstance(r, dict)
+    }
 
 
 def _close(a, b, tol) -> bool:
@@ -97,7 +101,7 @@ def row_fields(workspace: Path, path: str, expected: list, spec: dict) -> float:
     mine = _rows(got)
     checked = matched = 0
     for row in expected:
-        theirs = mine.get(str(row[KEY]), {})
+        theirs = mine.get(tuple(str(row[k]).strip().casefold() for k in KEY), {})
         for field, tol in spec.items():
             checked += 1
             want = row[field]
@@ -108,7 +112,10 @@ def row_fields(workspace: Path, path: str, expected: list, spec: dict) -> float:
                 matched += [str(x) for x in (have or [])] == [str(x) for x in want]
             else:
                 matched += _close(have, want, tol)
-    extra = len(set(mine) - {str(r[KEY]) for r in expected})
+    extra = len(
+        set(mine)
+        - {tuple(str(r[k]).strip().casefold() for k in KEY) for r in expected}
+    )
     # Invented rows cost, but they cannot wipe out work that is correct:
     # a cliff to zero tells the reader nothing about what the agent knew.
     penalty = min(extra * len(spec), checked // 2)

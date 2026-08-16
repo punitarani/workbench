@@ -36,7 +36,7 @@ rk.flagged_f1(D, T["documents"], name="documents.f1", weight=2.0)
 rk.row_fields(
     D,
     T["documents"],
-    ["workspace", "author", "versions", "reviewed", "reached_client"],
+    ["author", "versions", "reviewed", "reached_client"],
     name="row_facts",
     weight=6.0,
 )

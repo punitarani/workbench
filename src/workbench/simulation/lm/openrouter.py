@@ -50,7 +50,19 @@ class OpenRouterLM:
                 {"role": m.role, "content": m.content} for m in request.messages
             ],
             "max_tokens": request.max_tokens,
-            "seed": request.seed,
+            # Narrowed to a signed 64-bit range on the way out, and only
+            # here. `derive_seed` yields a full unsigned 64-bit integer, so
+            # about half of all calls carry a number above 2**63 - 1, and
+            # the gateway rejects those outright:
+            #
+            #   cannot unmarshal number 9491566813972402000 into Go struct
+            #   field ChatCompletionRequestAlias.seed of type int
+            #
+            # It killed a fifteen-day run on day six. Masking here rather
+            # than in `derive_seed` keeps the cassette key — which is taken
+            # over the request as built — byte-identical, so every existing
+            # recording still replays.
+            "seed": request.seed % (2**63),
             # Reasoning modes can return completions whose content is empty
             # (tokens spent thinking); simulation turns want plain answers.
             "reasoning": {"enabled": False},

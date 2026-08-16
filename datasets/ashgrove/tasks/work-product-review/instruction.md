@@ -51,6 +51,11 @@ rather than by reading email addresses: the directory says who is
 internal, and that is the answer even when someone writes from an address
 that looks unfamiliar.
 
+**Names are not unique.** The same document name can appear in more
+than one workspace, holding different work by different authors. Each
+is its own entry; the pair of name and workspace is what identifies a
+document here.
+
 **Every document.** The `documents` list covers the whole repository, not
 only the interesting rows. A document nobody reviewed and nobody sent
 still gets an entry, with `reviewed` and `reached_client` both `false`.

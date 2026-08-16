@@ -81,6 +81,7 @@ def _stub(calls: list) -> types.ModuleType:
 
     module.criterion = criterion
     module.__getattr__ = __getattr__
+    module.registered = registered
     return module
 
 
@@ -99,6 +100,21 @@ def _run(path: Path, calls: list) -> dict:
         return _exec(path)
     finally:
         del sys.modules["rewardkit"]
+
+
+def _load(task: Path) -> tuple[dict, list, dict]:
+    """Criteria namespace, the calls its scripts made, and the functions."""
+
+    calls: list = []
+    module = _stub(calls)
+    sys.modules["rewardkit"] = module
+    try:
+        criteria = _exec(task / "tests/criteria.py")
+        for script in (*_answer_scripts(task), *(task / "tests/process").glob("*.py")):
+            _exec(script)
+    finally:
+        del sys.modules["rewardkit"]
+    return criteria, calls, module.registered
 
 
 def _run_task(task: Path, calls: list) -> dict:
@@ -308,3 +324,36 @@ def test_every_published_field_is_graded(task: Path) -> None:
         key = criteria.get("KEY") or next(iter(rows[0]))
         ungraded = sorted(f for f in rows[0] if f != key and f not in graded)
         assert not ungraded, f"{task.name}: row fields never graded: {ungraded}"
+
+
+@pytest.mark.parametrize("task", TASKS, ids=lambda p: p.name)
+def test_the_oracle_scores_full_marks(task: Path, tmp_path: Path) -> None:
+    """Hand the grader the reference answer; it must score every point.
+
+    This is the property the whole dataset rests on. If the oracle does
+    not score 1.0 against its own criteria, then some part of the gap an
+    agent is charged for belongs to the task, and the standing rule —
+    every lost point is a defect until the transcript says otherwise —
+    cannot be applied to anything.
+
+    It is also the only check here that runs the criteria rather than
+    registering them. Two rollouts were spent on bugs living in criterion
+    bodies rather than their signatures: a composite row key left
+    unpatched in three of five places, so `row[('person', 'engagement')]`
+    raised KeyError, and `_rows` keying every one of a hundred and
+    ninety-seven rows to the string "None".
+    """
+
+    criteria, calls, registered = _load(task)
+    oracle = _oracle(task)
+    for name, args, _kwargs in calls:
+        deliverable = tmp_path / str(args[0])
+        deliverable.parent.mkdir(parents=True, exist_ok=True)
+        deliverable.write_text(json.dumps(oracle, indent=1) + "\n")
+        function, _description = registered[name]
+        score = float(function(tmp_path, *args))
+        assert score == 1.0, (
+            f"{task.name}: criterion {name} scores {score:.3f} on the "
+            f"oracle itself — the reference answer cannot get full marks, "
+            f"so neither can any agent"
+        )

@@ -12,7 +12,14 @@ TOP = frozenset(
     json.loads((Path(__file__).resolve().parent / "oracle.json").read_text())
 )
 ROWS = "documents"
-KEY = "document"
+# Name *and* workspace. Two different documents are both called
+# "Single Audit Playbook" — one in `firm` by Imogen Carraway at four
+# versions, one in `engagements` by Victor Alade at one — and keyed on
+# the name alone the second shadows the first. The oracle itself then
+# scored 0.976 against this grader, so a perfect answer was capped
+# below full marks and the missing quarter-point was charged to the
+# agent.
+KEY = ("document", "workspace")
 
 
 def _submitted(workspace: Path, path: str) -> dict | None:
@@ -30,7 +37,11 @@ def _rows(got: dict) -> dict:
     rows = got.get(ROWS)
     if not isinstance(rows, list):
         return {}
-    return {str(r.get(KEY)).strip().casefold(): r for r in rows if isinstance(r, dict)}
+    return {
+        tuple(str(r.get(k)).strip().casefold() for k in KEY): r
+        for r in rows
+        if isinstance(r, dict)
+    }
 
 
 @criterion(shared=True, description="deliverable parses with the required fields")
@@ -51,7 +62,7 @@ def flagged_f1(workspace: Path, path: str, expected: list) -> float:
     if got is None:
         return 0.0
     mine = set(_rows(got))
-    want = {str(r[KEY]).strip().casefold() for r in expected}
+    want = {tuple(str(r[k]).strip().casefold() for k in KEY) for r in expected}
     if not want:
         return 1.0 if not mine else 0.0
     hit = len(mine & want)
@@ -75,7 +86,7 @@ def row_fields(workspace: Path, path: str, expected: list, fields: list) -> floa
     mine = _rows(got)
     checked = matched = 0
     for row in expected:
-        theirs = mine.get(str(row[KEY]).strip().casefold(), {})
+        theirs = mine.get(tuple(str(row[k]).strip().casefold() for k in KEY), {})
         for field in fields:
             checked += 1
             want, have = row[field], theirs.get(field)
@@ -83,6 +94,9 @@ def row_fields(workspace: Path, path: str, expected: list, fields: list) -> floa
                 matched += str(have).strip().casefold() == want.strip().casefold()
             else:
                 matched += have == want
-    extra = len(set(mine) - {str(r[KEY]).strip().casefold() for r in expected})
+    extra = len(
+        set(mine)
+        - {tuple(str(r[k]).strip().casefold() for k in KEY) for r in expected}
+    )
     penalty = min(extra * len(fields), checked // 2)
     return max(0.0, (matched - penalty) / checked) if checked else 0.0
