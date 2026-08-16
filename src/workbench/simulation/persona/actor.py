@@ -14,6 +14,7 @@ from workbench.core.actions import (
     TimesheetActionSpec,
 )
 from workbench.core.events.agent import MemoryBullet, PlanBlock
+from workbench.core.events.chat import ChatMessagePayload
 from workbench.core.intents import (
     ActionIntent,
     AgentNoteIntent,
@@ -604,7 +605,24 @@ class ProfessionalActorAct:
                     draft=prediction.draft,
                 )
             case "post_chat":
+                # A chm- target is a reply to that message; anything else
+                # is the channel itself. Threading was hardcoded off, so a
+                # world of a thousand chat messages contained no thread at
+                # all — the same shape as the attachments field that was
+                # always empty.
                 conversation_ref = choice.target_ref or ""
+                reply_to_chat: str | None = None
+                if conversation_ref.startswith("chm-"):
+                    reply_to_chat = conversation_ref
+                    conversation_ref = next(
+                        (
+                            e.payload.conversation_id
+                            for e in reversed(events)
+                            if isinstance(e.payload, ChatMessagePayload)
+                            and e.payload.chat_message_id == reply_to_chat
+                        ),
+                        "",
+                    )
                 prediction = await self._actor.draft_chat.acall(
                     identity=identity,
                     conversation=render_conversation(events, conversation_ref),
@@ -614,7 +632,7 @@ class ProfessionalActorAct:
                 )
                 return ChatIntent(
                     conversation_ref=conversation_ref,
-                    reply_to_ref=None,
+                    reply_to_ref=reply_to_chat,
                     draft=prediction.draft,
                 )
             case "comment_ticket":

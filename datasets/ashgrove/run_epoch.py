@@ -259,7 +259,13 @@ def audit(log_path: Path) -> int:
         len(acts) > 0 and len(grounding) <= 0.2 * len(acts),
     )
     plans = Counter(e.payload.day for e in events if e.tag == "sim.agent.plan")
-    reflections = Counter(e.payload.day for e in events if e.tag == "sim.agent.memory")
+    # Only the records that belong to a day. A rejection routed back to an
+    # actor is also a memory and carries no day, so counting them all made
+    # the audit report eleven days of reflection in a ten-day world and
+    # fail a world that was correct.
+    reflections = Counter(
+        e.payload.day for e in events if e.tag == "sim.agent.memory" and e.payload.day
+    )
     check(
         f"every workday carries plans ({len(plans)}/{len(days)} days)",
         len(plans) == len(days),

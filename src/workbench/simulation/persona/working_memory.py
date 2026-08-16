@@ -16,7 +16,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from workbench.core.actions import ActionSpec, EntityAction, IntentAction
 from workbench.core.events import Event
-from workbench.core.events.calendar import CalendarEventScheduledPayload
+from workbench.core.events.calendar import (
+    CalendarEventScheduledPayload,
+    CalendarResponsePayload,
+)
 from workbench.core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
@@ -98,11 +101,22 @@ class WorkingMemoryComponent(BaseComponent):
             for e in events
             if isinstance(e.payload, TicketCreatedPayload)
         ][-10:]
+        # Only the ones still outstanding. Listing every invitation meant
+        # personas answered the same standing meeting every day — 44
+        # responses in a world, 40 of them repeats of 4, and not one of the
+        # thirteen meetings people actually scheduled ever got an answer.
+        answered = {
+            e.payload.calendar_event_id
+            for e in events
+            if isinstance(e.payload, CalendarResponsePayload)
+            and e.payload.responder == self._person_id
+        }
         invitations = [
             f"{e.payload.title} ({e.payload.calendar_event_id})"
             for e in events
             if isinstance(e.payload, CalendarEventScheduledPayload)
             and self._person_id in e.payload.attendees
+            and e.payload.calendar_event_id not in answered
         ][-8:]
         # Name *and* id, here and above. Shown a name alone, a persona
         # asked for a typed ref builds one out of it — `cnv-assurance` —

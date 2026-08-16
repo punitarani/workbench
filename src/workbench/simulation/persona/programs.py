@@ -165,7 +165,14 @@ class DecideNextActionExtended(dspy.Signature):
     scope, a heads-up that fieldwork slipped, an answer someone is waiting
     on. post_chat is the right action far more often than the document
     verbs are, and a firm where nobody speaks in its channels is not a
-    working firm. Channels are listed in your situation with their ids.
+    working firm. Channels are listed in your situation with their ids;
+    target a chm- message id instead when you are answering that
+    particular message, which keeps the reply with what it answers.
+
+    When you send a client something the firm has produced, attach it.
+    Naming a schedule in prose while the file stays in the repository is
+    how work goes undelivered — the documents you know of are listed with
+    their doc- ids for exactly this.
 
     target_ref must be a real id of the matching kind — thr-/msg-
     for email threads, cnv- for chat conversations, chm- for chat
