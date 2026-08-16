@@ -160,6 +160,13 @@ class DecideNextActionExtended(dspy.Signature):
     how to use a system are not deliverables and are never the right
     action — if an id was rejected, simply use a real one next time.
 
+    Not everything is a deliverable. Most of what passes between
+    colleagues in a day is a quick word in a channel: a question about
+    scope, a heads-up that fieldwork slipped, an answer someone is waiting
+    on. post_chat is the right action far more often than the document
+    verbs are, and a firm where nobody speaks in its channels is not a
+    working firm. Channels are listed in your situation with their ids.
+
     target_ref must be a real id of the matching kind — thr-/msg-
     for email threads, cnv- for chat conversations, chm- for chat
     messages, tkt- for tickets, doc- for documents. Use ids you have
