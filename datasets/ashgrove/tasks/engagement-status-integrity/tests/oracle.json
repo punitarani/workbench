@@ -1,72 +1,56 @@
 {
  "engagements_reviewed": 12,
- "dormant_count": 0,
- "worked_after_close_count": 0,
- "churned_count": 8,
+ "reopened_count": 5,
+ "backward_move_count": 12,
+ "never_moved_count": 3,
  "flagged": [
   {
    "engagement": "00001-FairmountCommunityFoundation",
    "status": "In-progress",
-   "hours_logged": 91.7,
-   "dormant": false,
-   "worked_after_close": false,
-   "status_changes": 7
+   "status_changes": 7,
+   "backward_moves": 2,
+   "reopened": true,
+   "hours_after_first_backward": 64.07
   },
   {
    "engagement": "00002-FairmountCommunityFoundation",
    "status": "Review",
-   "hours_logged": 50.18,
-   "dormant": false,
-   "worked_after_close": false,
-   "status_changes": 6
-  },
-  {
-   "engagement": "00003-RivergateHousingTrust",
-   "status": "Review",
-   "hours_logged": 78.37,
-   "dormant": false,
-   "worked_after_close": false,
-   "status_changes": 2
+   "status_changes": 6,
+   "backward_moves": 2,
+   "reopened": false,
+   "hours_after_first_backward": 15.17
   },
   {
    "engagement": "00004-KestrelManufacturing",
    "status": "Review",
-   "hours_logged": 56.0,
-   "dormant": false,
-   "worked_after_close": false,
-   "status_changes": 9
+   "status_changes": 9,
+   "backward_moves": 3,
+   "reopened": true,
+   "hours_after_first_backward": 49.83
   },
   {
    "engagement": "00006-NorthwindSoftware",
    "status": "Review",
-   "hours_logged": 59.78,
-   "dormant": false,
-   "worked_after_close": false,
-   "status_changes": 2
-  },
-  {
-   "engagement": "00008-MeridianFamilyHealth",
-   "status": "Review",
-   "hours_logged": 27.97,
-   "dormant": false,
-   "worked_after_close": false,
-   "status_changes": 2
+   "status_changes": 2,
+   "backward_moves": 1,
+   "reopened": true,
+   "hours_after_first_backward": 30.7
   },
   {
    "engagement": "00009-StonebridgePropertyGroup",
    "status": "In-progress",
-   "hours_logged": 106.13,
-   "dormant": false,
-   "worked_after_close": false,
-   "status_changes": 6
+   "status_changes": 6,
+   "backward_moves": 2,
+   "reopened": true,
+   "hours_after_first_backward": 14.52
   },
   {
    "engagement": "00011-Shaw",
    "status": "Review",
-   "hours_logged": 132.77,
-   "dormant": false,
-   "worked_after_close": false,
-   "status_changes": 6
+   "status_changes": 6,
+   "backward_moves": 2,
+   "reopened": true,
+   "hours_after_first_backward": 91.13
   }
  ]
 }
