@@ -95,6 +95,44 @@ def _names(value, into: set) -> None:
 
 
 @pytest.mark.parametrize("task", TASKS, ids=lambda p: p.name)
+def test_every_criterion_called_is_defined(task: Path) -> None:
+    """`rk.name(...)` must resolve to a criterion this task defines.
+
+    rewardkit exposes shared criteria as module attributes and raises
+    AttributeError for anything else, so a grading script that calls a
+    criterion under a name nobody defined does not score badly — it fails
+    to import, the verifier writes no reward file, and Harbor reports
+    RewardFileNotFoundError after a full agent rollout has been paid for.
+
+    That is what a renamed task cost here: two tasks kept calling
+    `rk.flagged_f1` while their criteria still defined `undelivered_f1`
+    and `id_set_f1`. Twenty-one minutes of rollout, no measurement. The
+    other guards in this file check what is graded; this one checks that
+    grading can run at all.
+    """
+
+    defined = {
+        node.name
+        for node in ast.walk(ast.parse((task / "tests/criteria.py").read_text()))
+        if isinstance(node, ast.FunctionDef) and not node.name.startswith("_")
+    }
+    for script in (*_answer_scripts(task), *(task / "tests/process").glob("*.py")):
+        called = {
+            node.func.attr
+            for node in ast.walk(ast.parse(script.read_text()))
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "rk"
+        }
+        missing = sorted(called - defined)
+        assert not missing, (
+            f"{task.name}: {script.name} calls {missing} but criteria.py "
+            f"defines only {sorted(defined)}"
+        )
+
+
+@pytest.mark.parametrize("task", TASKS, ids=lambda p: p.name)
 def test_schema_check_matches_the_oracle(task: Path) -> None:
     """The required field set must be the oracle's, not a copy of it."""
 

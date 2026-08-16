@@ -65,12 +65,12 @@ def scalar(workspace: Path, path: str, field: str, expected, tol: float = 0.0) -
 
 
 @criterion(shared=True, description="{field} set, F1 against the truth")
-def id_set_f1(workspace: Path, path: str, field: str, expected: list) -> float:
+def flagged_f1(workspace: Path, path: str, expected: list) -> float:
     got = _submitted(workspace, path)
-    if got is None or not isinstance(got.get(field), list):
+    if got is None:
         return 0.0
-    mine = {str(x) for x in got[field]}
-    want = {str(x) for x in expected}
+    mine = set(_rows(got))
+    want = {str(r[KEY]).strip().casefold() for r in expected}
     if not want:
         return 1.0 if not mine else 0.0
     hit = len(mine & want)

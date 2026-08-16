@@ -46,7 +46,7 @@ def scalar(workspace: Path, path: str, field: str, expected) -> bool:
 
 
 @criterion(shared=True, description="the document set, F1 against the truth")
-def undelivered_f1(workspace: Path, path: str, expected: list) -> float:
+def flagged_f1(workspace: Path, path: str, expected: list) -> float:
     got = _submitted(workspace, path)
     if got is None:
         return 0.0
