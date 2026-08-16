@@ -20,9 +20,11 @@ fields:
 - `blended_rate_dollars_per_hour` — total client WIP divided by the
   billable hours behind it, 2 decimals.
 - `engagements` — one entry per **client** engagement, sorted by
-  `ticket_id`: `ticket_id`, `billable_hours` (2 dp), `wip_dollars`
-  (2 dp), `staff_count` (distinct people who logged any time to it,
-  billable or not).
+  `engagement`: `engagement` (the engagement's display number, as clio
+  shows it — for example `00005-Mensah`), `billable_hours` (2 dp),
+  `wip_dollars` (2 dp), `staff_count` (distinct people who logged any
+  time to it, billable or not). Include every client engagement, even one
+  with no time logged against it yet — it belongs on the list at zero.
 - `people` — one entry per person who logged any time, sorted by name:
   `name`, `logged_hours` (2 dp), `billable_hours` (2 dp),
   `utilization_pct` (billable ÷ logged × 100, 1 dp).
@@ -32,10 +34,12 @@ fields:
 - **WIP is billable time valued at the rate recorded on the entry.**
   Non-billable time is real work and belongs in `logged_hours`, but it
   never carries value.
-- **Engagements the firm opened on itself are not client work.** They
-  are excluded from `engagements`, from `total_client_wip_dollars`, and
-  from the blended rate — but the time people spent on them still counts
-  in that person's `logged_hours` and utilization.
+- **An engagement is client work when it has a client.** The firm's own
+  engagements — peer review, methodology, internal administration — carry
+  no client, and are excluded from `engagements`, from
+  `total_client_wip_dollars`, and from the blended rate. The time people
+  spent on them still counts in that person's `logged_hours` and
+  utilization.
 - **Some people carry no standard rate.** Their time is logged and
   counted in hours, and contributes no dollars.
 - Round only at the end, to the stated precision.

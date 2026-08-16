@@ -17,6 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from workbench.analysis.reachability import unreachable
 from workbench.environment.materialize import materialize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hartwell"))
@@ -66,6 +67,18 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
             )
         else:
             print(f"{name}: oracle verified")
+
+        # An oracle the tools cannot spell is not an answer key, it is a
+        # coin flip on which internal vocabulary the agent guesses. This
+        # blocks the task rather than letting it produce a plausible score.
+        missing = unreachable(answer, SHARED_BUNDLE / "state")
+        if missing:
+            raise SystemExit(
+                f"{name}: the oracle names {len(missing)} value(s) no tool "
+                f"ever serves: {missing[:8]}. Express the rule in something "
+                "the surfaces expose, or the score measures the guess."
+            )
+        print(f"{name}: oracle reachable through the tools")
 
         bundle = task / "bundle"
         shutil.rmtree(bundle, ignore_errors=True)

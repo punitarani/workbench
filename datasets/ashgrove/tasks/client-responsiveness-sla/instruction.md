@@ -21,6 +21,18 @@ One file: **`sla_report.json`**, with exactly these fields:
   `inbound`, `answered`, `unanswered_message_ids` (sorted),
   `median_reply_hours` (2 dp), `longest_reply_hours` (2 dp).
 
+## Who counts as a client
+
+Not everyone outside the firm is a client. The directory records what
+each outside contact is to Ashgrove, and only the client contacts belong
+in this report — a peer reviewer examining the firm's own work is an
+outside correspondent, not a client, and their messages are neither
+inbound nor unanswered here.
+
+Anyone outside the firm still counts as "not the firm" when deciding
+whether a message was answered: a reply must come from someone inside
+Ashgrove.
+
 ## How the firm measures a reply
 
 A client message is **answered** when someone inside the firm writes

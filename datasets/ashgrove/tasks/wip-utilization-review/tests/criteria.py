@@ -51,11 +51,11 @@ def engagement_rows(workspace: Path, path: str, expected: list) -> float:
     if got is None or not isinstance(got.get("engagements"), list):
         return 0.0
     mine = {
-        str(r.get("ticket_id")): r for r in got["engagements"] if isinstance(r, dict)
+        str(r.get("engagement")): r for r in got["engagements"] if isinstance(r, dict)
     }
     checked = matched = 0
     for row in expected:
-        got_row = mine.get(row["ticket_id"], {})
+        got_row = mine.get(row["engagement"], {})
         for field, tol in (
             ("billable_hours", 0.05),
             ("wip_dollars", 1.0),
@@ -64,7 +64,7 @@ def engagement_rows(workspace: Path, path: str, expected: list) -> float:
             checked += 1
             matched += _close(got_row.get(field), row[field], tol)
     # An engagement invented or an internal one included is a real error.
-    extra = len(set(mine) - {r["ticket_id"] for r in expected})
+    extra = len(set(mine) - {r["engagement"] for r in expected})
     return max(0.0, (matched - 3 * extra) / checked) if checked else 0.0
 
 
@@ -97,7 +97,7 @@ def ordered(workspace: Path, path: str) -> bool:
     if got is None:
         return False
     tickets = [
-        str(r.get("ticket_id"))
+        str(r.get("engagement"))
         for r in got.get("engagements", [])
         if isinstance(r, dict)
     ]

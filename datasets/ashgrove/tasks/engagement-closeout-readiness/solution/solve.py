@@ -23,23 +23,16 @@ def main() -> None:
     gmail = sqlite3.connect(f"file:{STATE / 'gmail.db'}?mode=ro", uri=True)
     names = dict(clio.execute("SELECT person_id, name FROM people"))
     matters = {
-        t: (d, r, o)
-        for t, d, r, o in clio.execute(
-            "SELECT ticket_id, description, responsible_person, originating_person "
-            "FROM matters"
+        t: (d, r, o, e, c)
+        for t, d, r, o, e, c in clio.execute(
+            "SELECT ticket_id, description, responsible_person, originating_person, "
+            "display_number, client_org FROM matters"
         )
     }
-    external_people = {
-        p
-        for (p,) in clio.execute(
-            "SELECT person_id FROM people WHERE affiliation='external'"
-        )
-    }
-    # Client work is work a client asked for. The title is not the test —
-    # "Firm — 2026 peer review preparation" was opened by the outside peer
-    # reviewer and is a client engagement; an engagement a partner opened on
-    # the firm's own behalf is not, whatever it is called.
-    internal = {t for t, (_d, _r, o) in matters.items() if o not in external_people}
+    # An engagement is client work when it has a client. Who opened it is
+    # not the test: the firm's peer review was opened by the outside
+    # reviewer and is still the firm's own work, carrying no client.
+    internal = {t for t, row in matters.items() if row[4] is None}
 
     hours: dict[str, int] = defaultdict(int)
     staff: dict[str, set] = defaultdict(set)
@@ -75,11 +68,11 @@ def main() -> None:
 
     rows = []
     for ticket in sorted(t for t in matters if t not in internal):
-        _description, responsible, originator = matters[ticket]
+        _description, responsible, originator, engagement, _client = matters[ticket]
         waiting = originator in waiting_since
         rows.append(
             {
-                "ticket_id": ticket,
+                "engagement": engagement,
                 "client_contact": names.get(originator, originator or ""),
                 "responsible": names.get(responsible, responsible or ""),
                 "total_hours": round(hours.get(ticket, 0) / 3600, 2),
@@ -102,17 +95,17 @@ def main() -> None:
             {
                 "client_engagements": len(rows),
                 "status_counts": dict(sorted(counts.items())),
-                "awaiting_firm_reply": sorted(r["ticket_id"] for r in awaiting),
+                "awaiting_firm_reply": sorted(r["engagement"] for r in awaiting),
                 "longest_waiting_engagement": max(
                     awaiting, key=lambda r: r["client_waiting_hours"]
-                )["ticket_id"]
+                )["engagement"]
                 if awaiting
                 else None,
                 "wip_at_risk_dollars": round(
                     sum(r["wip_dollars"] for r in awaiting), 2
                 ),
                 "at_risk_over_10k": sorted(
-                    r["ticket_id"] for r in awaiting if r["wip_dollars"] > 10000
+                    r["engagement"] for r in awaiting if r["wip_dollars"] > 10000
                 ),
                 "engagements": rows,
             },

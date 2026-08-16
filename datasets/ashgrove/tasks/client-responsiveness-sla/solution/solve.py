@@ -28,10 +28,20 @@ def _median(values: list[float]) -> float:
 
 def main() -> None:
     gmail = sqlite3.connect(f"file:{STATE / 'gmail.db'}?mode=ro", uri=True)
+    # Outside the firm is not the same as a client: the peer reviewer writes
+    # in too, and the directory says which is which. Everyone external still
+    # counts as "not the firm" for the purpose of who answers whom.
     external = {
         p
         for (p,) in gmail.execute(
             "SELECT person_id FROM people WHERE affiliation='external'"
+        )
+    }
+    clients = {
+        p
+        for (p,) in gmail.execute(
+            "SELECT person_id FROM people "
+            "WHERE affiliation='external' AND department='Client'"
         )
     }
     names = dict(gmail.execute("SELECT person_id, name FROM people"))
@@ -50,7 +60,7 @@ def main() -> None:
     )
     for thread in threads.values():
         for index, (message_id, _thread_id, sender, when) in enumerate(thread):
-            if sender not in external:
+            if sender not in clients:
                 continue
             row = per_client[sender]
             row["inbound"] += 1
@@ -61,11 +71,11 @@ def main() -> None:
                 row["answered"] += 1
                 row["waits"].append((reply[3] - when) / 3600)
 
-    clients = []
+    rows = []
     for person, row in sorted(
         per_client.items(), key=lambda kv: names.get(kv[0], kv[0])
     ):
-        clients.append(
+        rows.append(
             {
                 "client": names.get(person, person),
                 "inbound": row["inbound"],
@@ -81,16 +91,14 @@ def main() -> None:
     OUT.write_text(
         json.dumps(
             {
-                "clients": len(clients),
-                "inbound_total": sum(c["inbound"] for c in clients),
-                "unanswered_total": sum(
-                    len(c["unanswered_message_ids"]) for c in clients
-                ),
+                "clients": len(rows),
+                "inbound_total": sum(c["inbound"] for c in rows),
+                "unanswered_total": sum(len(c["unanswered_message_ids"]) for c in rows),
                 "firm_median_reply_hours": round(_median(all_waits), 2),
-                "slowest_client": max(clients, key=lambda c: c["longest_reply_hours"])[
+                "slowest_client": max(rows, key=lambda c: c["longest_reply_hours"])[
                     "client"
                 ],
-                "client_rows": clients,
+                "client_rows": rows,
             },
             indent=1,
         )

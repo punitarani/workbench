@@ -15,15 +15,16 @@ One file: **`closeout.json`**, with exactly these fields:
 - `client_engagements` — client engagements reviewed.
 - `status_counts` — a map of status → count.
 - `awaiting_firm_reply` — sorted ticket ids in that status.
-- `longest_waiting_engagement` — the ticket id whose client has been
+- `longest_waiting_engagement` — the engagement whose client has been
   waiting longest (`null` if none).
 - `wip_at_risk_dollars` — unbilled work-in-progress sitting behind the
   firm's own silence: the WIP of every `awaiting_firm_reply` engagement,
   2 dp.
-- `at_risk_over_10k` — sorted ticket ids of awaiting engagements whose
-  WIP exceeds $10,000.
+- `at_risk_over_10k` — sorted engagements whose status is
+  `awaiting_firm_reply` and whose WIP exceeds $10,000.
 - `engagements` — one entry per client engagement, sorted by
-  `ticket_id`: `ticket_id`, `client_contact` (full name),
+  `engagement`: `engagement` (the engagement's display number, as clio
+  shows it — for example `00005-Mensah`), `client_contact` (full name),
   `responsible` (full name), `total_hours` (2 dp), `staff_count`
   (distinct people who logged any time), `status`,
   `client_waiting_hours` (1 dp; `0.0` when not waiting),
@@ -38,10 +39,10 @@ dollars.
 
 ## How the firm decides status
 
-An engagement is **client work** when the person who opened it is
-outside the firm; that person is the engagement's client. Work a partner
-or staff member opened on the firm's own behalf is not client work and
-is excluded — judge by who opened it, not by what it is called.
+An engagement is **client work** when it has a client. The firm's own
+engagements — peer review, methodology, internal administration — carry
+no client and are excluded, however they are titled and whoever opened
+them. The engagement's client contact is the person who opened it.
 
 A client engagement is:
 

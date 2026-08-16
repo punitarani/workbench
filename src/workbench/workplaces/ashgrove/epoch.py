@@ -134,6 +134,14 @@ _ORGANIZATIONS: tuple[tuple[str, str, str], ...] = (
     ("org-shaw-associates", "Shaw & Associates", "other"),
 )
 
+# How each contact's organization relates to the firm. Only "Client" is a
+# client; the peer reviewer is a counterparty of a different kind.
+_CATEGORY_OF = {
+    name: ("Client" if category == "client" else "Peer review")
+    for _org_id, name, category in _ORGANIZATIONS
+}
+_CATEGORY_OF["Shaw & Associates (peer reviewer)"] = "Peer review"
+
 # Engagements open at genesis: what the firm is already doing on day one.
 _ENGAGEMENTS: tuple[tuple[str, str, str, str, str | None], ...] = (
     (
@@ -294,7 +302,12 @@ def _people() -> tuple[PersonSpec, ...]:
                 name=name,
                 email_address=f"{local}@{domain}",
                 title=role,
-                department="Client",
+                # Not everyone outside the firm is a client. The peer
+                # reviewer examines Ashgrove's own work, and a directory
+                # that files him under "Client" makes that distinction
+                # unlearnable — which is exactly how a responsiveness
+                # report ends up counting the reviewer as a client.
+                department=_CATEGORY_OF[organization],
                 manager=None,
                 affiliation="external",
                 timezone="America/Los_Angeles",

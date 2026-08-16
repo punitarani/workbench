@@ -10,7 +10,7 @@ TOP = frozenset(
     {"engagements_reviewed", "firm_leverage_ratio", "over_supervised", "engagements"}
 )
 ROWS = "engagements"
-KEY = "ticket_id"
+KEY = "engagement"
 
 
 def _submitted(workspace: Path, path: str) -> dict | None:

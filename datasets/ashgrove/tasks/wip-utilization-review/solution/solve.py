@@ -1,9 +1,15 @@
 """Reference solver: WIP and utilization at the end of the record.
 
-Three traps that change many numbers at once if missed: engagements the
-firm opened on itself are not client WIP; people with no standard rate
-carry no value however much they log; and non-billable time counts
-toward a person's day but never toward WIP.
+Every rule here is one an agent can apply through the tools. An engagement
+is client work when it has a client — the way Clio models a matter — not
+because its title happens to start with a particular word. Engagements are
+named by their display number, which is what clio serves; the world's
+internal `tkt-` ids never appear on the surface and must never be asked for.
+
+Three traps that move many numbers at once: the firm's own engagements
+carry no client and no WIP; people with no standard rate carry no value
+however much they log; and non-billable time counts toward a person's day
+but never toward WIP.
 """
 
 import json
@@ -21,10 +27,12 @@ def main() -> None:
     clio = sqlite3.connect(f"file:{STATE / 'clio.db'}?mode=ro", uri=True)
     names = dict(clio.execute("SELECT person_id, name FROM people"))
     matters = {
-        row[0]: row[1]
-        for row in clio.execute("SELECT ticket_id, description FROM matters")
+        row[0]: {"display_number": row[1], "client": row[2]}
+        for row in clio.execute(
+            "SELECT ticket_id, display_number, client_org FROM matters"
+        )
     }
-    internal = {t for t, d in matters.items() if d.startswith("Firm —")}
+    internal = {t for t, m in matters.items() if m["client"] is None}
 
     per_engagement: dict[str, dict] = defaultdict(
         lambda: {"billable_seconds": 0, "value_cents": 0, "staff": set()}
@@ -50,14 +58,21 @@ def main() -> None:
             row["billable_seconds"] += seconds
             row["value_cents"] += value
 
+    # Every client engagement appears, including any with no time against it
+    # yet: a quiet engagement is still on the book, and leaving it out would
+    # make the count depend on whether anyone happened to log to it.
+    empty = {"billable_seconds": 0, "value_cents": 0, "staff": ()}
     engagements = [
         {
-            "ticket_id": ticket,
+            "engagement": matters[ticket]["display_number"],
             "billable_hours": round(row["billable_seconds"] / 3600, 2),
             "wip_dollars": round(row["value_cents"] / 100, 2),
             "staff_count": len(row["staff"]),
         }
-        for ticket, row in sorted(per_engagement.items())
+        for ticket, row in sorted(
+            ((t, per_engagement.get(t, empty)) for t in matters if t not in internal),
+            key=lambda kv: matters[kv[0]]["display_number"],
+        )
     ]
     people = [
         {
@@ -79,7 +94,7 @@ def main() -> None:
     OUT.write_text(
         json.dumps(
             {
-                "client_engagements": len(engagements),
+                "client_engagements": len(matters) - len(internal),
                 "internal_engagements": len(internal),
                 "total_client_wip_dollars": round(total_value / 100, 2),
                 "blended_rate_dollars_per_hour": round(
