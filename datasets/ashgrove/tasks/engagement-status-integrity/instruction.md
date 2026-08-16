@@ -1,10 +1,10 @@
-# Engagements whose status is not telling the truth
+# Engagements that went backwards
 
 You are the practice manager at **Ashgrove Reid LLP**, an audit and
-assurance practice. Engagement statuses drive the firm's reporting, its
-billing, and what the partners believe is happening. Before the monthly
-review you need the engagements whose recorded status is contradicted by
-what the record actually shows.
+assurance practice. Engagements are supposed to move forward: opened,
+worked, reviewed, closed. Work that goes back a stage — or comes back
+after it was closed — is where budgets are lost, and the partners want it
+named before the monthly review.
 
 The firm's systems are available through tools: **clio** (engagements,
 their status history, and time activities), **gmail**, **imanage**,
@@ -16,36 +16,42 @@ One file in your workspace: **`status_integrity.json`**, with exactly
 these fields:
 
 - `engagements_reviewed` — how many engagements exist.
-- `dormant_count` — how many are dormant, by the rule below.
-- `worked_after_close_count` — how many had time logged after they were
-  closed.
-- `churned_count` — how many had their status changed more than once.
-- `flagged` — one entry per engagement failing **any** of the three
-  checks, sorted by `engagement`, each with:
+- `reopened_count` — how many were reopened, by the rule below.
+- `backward_move_count` — how many backward moves happened across the
+  whole firm, counting every one, not one per engagement.
+- `never_moved_count` — how many engagements have never had a status
+  change at all.
+- `flagged` — one entry per engagement that moved backwards at least
+  once, sorted by `engagement`, each with:
   - `engagement` — the engagement's display number, as clio shows it
   - `status` — its status now
-  - `hours_logged` — total hours logged to it, 2 decimals
-  - `dormant` — `true` if it meets the dormancy rule
-  - `worked_after_close` — `true` if time was logged after its close date
-  - `status_changes` — how many times its status has changed
+  - `status_changes` — how many status changes it has had in total
+  - `backward_moves` — how many of those went backwards
+  - `reopened` — `true` if any change took it out of `closed`
+  - `hours_after_first_backward` — hours logged to it after the moment of
+    its first backward move, 2 decimals
 
-## The three checks
+## The stages
 
-**Dormant.** The engagement's status is one the firm uses for live work —
-anything other than `closed` — and no time at all has been logged to it
-in the **last three calendar days** of the record. The record's last day
-is the latest timestamp on any time activity.
+An engagement's status is one of these, and they run in this order:
 
-**Worked after close.** The engagement's status is `closed`, and time was
-logged to it at a moment after its close date. Work continuing after a
-close is either a status applied too early or time booked to the wrong
-engagement; either way the partners want it.
+1. `open`
+2. `in-progress`
+3. `review`
+4. `closed`
 
-**Churn.** The engagement's status has been changed more than once. A
-single change is the ordinary course of an engagement moving forward; a
-second one means it moved and then moved again.
+A **backward move** is a status change whose new stage is earlier in that
+list than the old one. `review` back to `in-progress` is backward;
+`in-progress` on to `review` is not.
 
-An engagement appears in `flagged` once, however many checks it fails,
-with a flag for each. An engagement failing none of them does not appear
-at all, and every engagement is counted in `engagements_reviewed`
-regardless.
+`waiting-client` is a hold rather than a stage: it has no position in the
+order. A change into or out of `waiting-client` is never a backward move,
+and never counts in `backward_moves`, though it does count in
+`status_changes`.
+
+**Reopened** means any change whose old status was `closed`, whatever it
+became. An engagement can be reopened more than once and still counts
+once in `reopened_count`.
+
+Compare statuses without regard to capitalisation: the record does not
+spell them consistently, and that is not the thing being tested.
