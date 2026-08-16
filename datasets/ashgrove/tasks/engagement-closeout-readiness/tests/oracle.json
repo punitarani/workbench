@@ -1,139 +1,120 @@
 {
- "client_engagements": 11,
+ "client_engagements": 10,
  "status_counts": {
-  "awaiting_firm_reply": 8,
-  "clear": 3
+  "awaiting_firm_reply": 4,
+  "clear": 6
  },
  "awaiting_firm_reply": [
-  "tkt-000001",
-  "tkt-000002",
-  "tkt-000004",
-  "tkt-000005",
-  "tkt-000006",
-  "tkt-000007",
-  "tkt-000009",
-  "tkt-000011"
+  "00005-CardinalRidgeBuilders",
+  "00006-NorthwindSoftware",
+  "00008-MeridianFamilyHealth",
+  "00009-StonebridgePropertyGroup"
  ],
- "longest_waiting_engagement": "tkt-000005",
- "wip_at_risk_dollars": 105224.22,
+ "longest_waiting_engagement": "00009-StonebridgePropertyGroup",
+ "wip_at_risk_dollars": 35097.6,
  "at_risk_over_10k": [
-  "tkt-000001",
-  "tkt-000002",
-  "tkt-000004",
-  "tkt-000006",
-  "tkt-000007",
-  "tkt-000009"
+  "00006-NorthwindSoftware"
  ],
  "engagements": [
   {
-   "ticket_id": "tkt-000001",
+   "engagement": "00001-FairmountCommunityFoundation",
    "client_contact": "Harriet Vance",
    "responsible": "Imogen Carraway",
-   "total_hours": 104.28,
+   "total_hours": 95.23,
    "staff_count": 17,
-   "status": "awaiting_firm_reply",
-   "client_waiting_hours": 195.2,
-   "wip_dollars": 23195.23
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 20741.47
   },
   {
-   "ticket_id": "tkt-000002",
+   "engagement": "00002-FairmountCommunityFoundation",
    "client_contact": "Harriet Vance",
    "responsible": "Imogen Carraway",
-   "total_hours": 47.27,
-   "staff_count": 16,
-   "status": "awaiting_firm_reply",
-   "client_waiting_hours": 195.2,
-   "wip_dollars": 11815.5
+   "total_hours": 63.95,
+   "staff_count": 17,
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 15023.99
   },
   {
-   "ticket_id": "tkt-000003",
+   "engagement": "00003-RivergateHousingTrust",
    "client_contact": "Desmond Blakely",
    "responsible": "Elias Finch",
-   "total_hours": 78.83,
+   "total_hours": 65.67,
    "staff_count": 17,
    "status": "clear",
    "client_waiting_hours": 0.0,
-   "wip_dollars": 17453.0
+   "wip_dollars": 15817.5
   },
   {
-   "ticket_id": "tkt-000004",
+   "engagement": "00004-KestrelManufacturing",
    "client_contact": "Nora Behrens",
    "responsible": "Hana Sato",
-   "total_hours": 92.25,
-   "staff_count": 17,
-   "status": "awaiting_firm_reply",
-   "client_waiting_hours": 221.4,
-   "wip_dollars": 18200.89
+   "total_hours": 65.33,
+   "staff_count": 13,
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 12848.81
   },
   {
-   "ticket_id": "tkt-000005",
+   "engagement": "00005-CardinalRidgeBuilders",
    "client_contact": "Idris Mensah",
    "responsible": "Elias Finch",
-   "total_hours": 32.02,
-   "staff_count": 16,
+   "total_hours": 24.78,
+   "staff_count": 10,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 267.4,
-   "wip_dollars": 8237.32
+   "client_waiting_hours": 172.2,
+   "wip_dollars": 6349.57
   },
   {
-   "ticket_id": "tkt-000006",
+   "engagement": "00006-NorthwindSoftware",
    "client_contact": "Priya Raman",
    "responsible": "Victor Alade",
-   "total_hours": 45.92,
-   "staff_count": 11,
-   "status": "awaiting_firm_reply",
-   "client_waiting_hours": 6.9,
-   "wip_dollars": 11666.8
-  },
-  {
-   "ticket_id": "tkt-000007",
-   "client_contact": "Tomas Lindgren",
-   "responsible": "Hana Sato",
-   "total_hours": 95.52,
-   "staff_count": 16,
-   "status": "awaiting_firm_reply",
-   "client_waiting_hours": 174.2,
-   "wip_dollars": 22072.11
-  },
-  {
-   "ticket_id": "tkt-000008",
-   "client_contact": "Adaeze Okonkwo",
-   "responsible": "Colin Mackey",
-   "total_hours": 20.38,
-   "staff_count": 12,
-   "status": "clear",
-   "client_waiting_hours": 0.0,
-   "wip_dollars": 3764.86
-  },
-  {
-   "ticket_id": "tkt-000009",
-   "client_contact": "Lucia Arroyo",
-   "responsible": "Elias Finch",
-   "total_hours": 43.52,
-   "staff_count": 13,
-   "status": "awaiting_firm_reply",
-   "client_waiting_hours": 51.0,
-   "wip_dollars": 10036.37
-  },
-  {
-   "ticket_id": "tkt-000010",
-   "client_contact": "Garrett Poole",
-   "responsible": "Hana Sato",
-   "total_hours": 12.2,
-   "staff_count": 11,
-   "status": "clear",
-   "client_waiting_hours": 0.0,
-   "wip_dollars": 2702.03
-  },
-  {
-   "ticket_id": "tkt-000011",
-   "client_contact": "Benedict Shaw",
-   "responsible": "Rosalind Calder",
-   "total_hours": 129.17,
+   "total_hours": 64.28,
    "staff_count": 17,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 171.4,
-   "wip_dollars": 0.0
+   "client_waiting_hours": 195.9,
+   "wip_dollars": 15491.57
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "client_contact": "Tomas Lindgren",
+   "responsible": "Hana Sato",
+   "total_hours": 79.95,
+   "staff_count": 14,
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 19681.58
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "client_contact": "Adaeze Okonkwo",
+   "responsible": "Colin Mackey",
+   "total_hours": 21.4,
+   "staff_count": 12,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 216.2,
+   "wip_dollars": 4299.55
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "client_contact": "Lucia Arroyo",
+   "responsible": "Elias Finch",
+   "total_hours": 36.7,
+   "staff_count": 10,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 266.2,
+   "wip_dollars": 8956.91
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "client_contact": "Garrett Poole",
+   "responsible": "Hana Sato",
+   "total_hours": 11.0,
+   "staff_count": 11,
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 2959.95
   }
  ]
 }

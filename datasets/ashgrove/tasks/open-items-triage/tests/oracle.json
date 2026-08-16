@@ -1,55 +1,34 @@
 {
  "threads_reviewed": 50,
- "awaiting_firm_count": 7,
- "closed_by_client_courtesy": 5,
+ "awaiting_firm_count": 4,
+ "closed_by_client_courtesy": 2,
  "awaiting_firm": [
   {
-   "thread_id": "thr-000011",
-   "message_id": "msg-000075",
-   "client": "Nora Behrens",
-   "subject": "Plan Year Data Correction \u2013 Please Review",
-   "messages_in_thread": 3
-  },
-  {
-   "thread_id": "thr-000015",
-   "message_id": "msg-000128",
-   "client": "Harriet Vance",
-   "subject": "Audited statements timing \u2013 bank inquiry",
-   "messages_in_thread": 11
-  },
-  {
-   "thread_id": "thr-000022",
-   "message_id": "msg-000168",
-   "client": "Tomas Lindgren",
-   "subject": "Adjusting inventory count date \u2013 warehouse relocation",
-   "messages_in_thread": 10
-  },
-  {
-   "thread_id": "thr-000027",
-   "message_id": "msg-000188",
-   "client": "Tomas Lindgren",
-   "subject": "Inventory count date change \u2014 warehouse move",
-   "messages_in_thread": 1
-  },
-  {
-   "thread_id": "thr-000035",
-   "message_id": "msg-000253",
-   "client": "Harriet Vance",
-   "subject": "Audited statements timeline for bank",
-   "messages_in_thread": 3
-  },
-  {
-   "thread_id": "thr-000040",
-   "message_id": "msg-000291",
-   "client": "Harriet Vance",
-   "subject": "Audit Timeline for March Board Meeting",
-   "messages_in_thread": 5
-  },
-  {
-   "thread_id": "thr-000041",
-   "message_id": "msg-000293",
+   "thread_id": "thr-000003",
+   "message_id": "msg-000033",
    "client": "Lucia Arroyo",
-   "subject": "New location opened \u2014 need to align on accounting records",
+   "subject": "Notification template draft for new site openings",
+   "messages_in_thread": 12
+  },
+  {
+   "thread_id": "thr-000025",
+   "message_id": "msg-000224",
+   "client": "Idris Mensah",
+   "subject": "Revised surety audit schedule \u2014 as committed",
+   "messages_in_thread": 12
+  },
+  {
+   "thread_id": "thr-000037",
+   "message_id": "msg-000328",
+   "client": "Idris Mensah",
+   "subject": "Percentage-of-completion on Creekside and Hartwell jobs",
+   "messages_in_thread": 12
+  },
+  {
+   "thread_id": "thr-000043",
+   "message_id": "msg-000327",
+   "client": "Idris Mensah",
+   "subject": "Surety deadline \u2014 reviewed statements earlier this year",
    "messages_in_thread": 1
   }
  ]

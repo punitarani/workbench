@@ -1,184 +1,172 @@
 {
- "client_engagements": 12,
- "internal_engagements": 2,
- "total_client_wip_dollars": 133596.9,
- "blended_rate_dollars_per_hour": 259.7,
+ "client_engagements": 10,
+ "internal_engagements": 3,
+ "total_client_wip_dollars": 122170.9,
+ "blended_rate_dollars_per_hour": 260.67,
  "engagements": [
   {
-   "ticket_id": "tkt-000001",
-   "billable_hours": 86.83,
-   "wip_dollars": 23195.23,
+   "engagement": "00001-FairmountCommunityFoundation",
+   "billable_hours": 78.08,
+   "wip_dollars": 20741.47,
    "staff_count": 17
   },
   {
-   "ticket_id": "tkt-000002",
-   "billable_hours": 41.37,
-   "wip_dollars": 11815.5,
-   "staff_count": 16
-  },
-  {
-   "ticket_id": "tkt-000003",
-   "billable_hours": 67.02,
-   "wip_dollars": 17453.0,
+   "engagement": "00002-FairmountCommunityFoundation",
+   "billable_hours": 57.13,
+   "wip_dollars": 15023.99,
    "staff_count": 17
   },
   {
-   "ticket_id": "tkt-000004",
-   "billable_hours": 80.6,
-   "wip_dollars": 18200.89,
+   "engagement": "00003-RivergateHousingTrust",
+   "billable_hours": 55.18,
+   "wip_dollars": 15817.5,
    "staff_count": 17
   },
   {
-   "ticket_id": "tkt-000005",
-   "billable_hours": 28.65,
-   "wip_dollars": 8237.32,
-   "staff_count": 16
+   "engagement": "00004-KestrelManufacturing",
+   "billable_hours": 60.35,
+   "wip_dollars": 12848.81,
+   "staff_count": 13
   },
   {
-   "ticket_id": "tkt-000006",
-   "billable_hours": 37.95,
-   "wip_dollars": 11666.8,
-   "staff_count": 11
+   "engagement": "00005-CardinalRidgeBuilders",
+   "billable_hours": 22.28,
+   "wip_dollars": 6349.57,
+   "staff_count": 10
   },
   {
-   "ticket_id": "tkt-000007",
-   "billable_hours": 90.68,
-   "wip_dollars": 22072.11,
-   "staff_count": 16
+   "engagement": "00006-NorthwindSoftware",
+   "billable_hours": 54.75,
+   "wip_dollars": 15491.57,
+   "staff_count": 17
   },
   {
-   "ticket_id": "tkt-000008",
-   "billable_hours": 16.33,
-   "wip_dollars": 3764.86,
+   "engagement": "00007-HarborLightDistribution",
+   "billable_hours": 77.55,
+   "wip_dollars": 19681.58,
+   "staff_count": 14
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "billable_hours": 18.82,
+   "wip_dollars": 4299.55,
    "staff_count": 12
   },
   {
-   "ticket_id": "tkt-000009",
-   "billable_hours": 41.35,
-   "wip_dollars": 10036.37,
-   "staff_count": 13
+   "engagement": "00009-StonebridgePropertyGroup",
+   "billable_hours": 35.78,
+   "wip_dollars": 8956.91,
+   "staff_count": 10
   },
   {
-   "ticket_id": "tkt-000010",
-   "billable_hours": 9.45,
-   "wip_dollars": 2702.03,
+   "engagement": "00010-AshfieldPensionTrust",
+   "billable_hours": 8.75,
+   "wip_dollars": 2959.95,
    "staff_count": 11
-  },
-  {
-   "ticket_id": "tkt-000013",
-   "billable_hours": 6.75,
-   "wip_dollars": 2644.23,
-   "staff_count": 17
-  },
-  {
-   "ticket_id": "tkt-000014",
-   "billable_hours": 7.45,
-   "wip_dollars": 1808.56,
-   "staff_count": 13
   }
  ],
  "people": [
   {
    "name": "Colin Mackey",
-   "logged_hours": 52.1,
-   "billable_hours": 39.85,
-   "utilization_pct": 76.5
+   "logged_hours": 51.97,
+   "billable_hours": 36.6,
+   "utilization_pct": 70.4
   },
   {
    "name": "Desmond Ortiz",
-   "logged_hours": 49.73,
-   "billable_hours": 36.02,
-   "utilization_pct": 72.4
+   "logged_hours": 52.78,
+   "billable_hours": 39.82,
+   "utilization_pct": 75.4
   },
   {
    "name": "Elias Finch",
-   "logged_hours": 49.0,
-   "billable_hours": 31.38,
-   "utilization_pct": 64.0
+   "logged_hours": 50.08,
+   "billable_hours": 35.45,
+   "utilization_pct": 70.8
   },
   {
    "name": "Freya Holt",
-   "logged_hours": 44.75,
-   "billable_hours": 0.33,
-   "utilization_pct": 0.7
+   "logged_hours": 46.2,
+   "billable_hours": 0.0,
+   "utilization_pct": 0.0
   },
   {
    "name": "Gabriel Fontes",
-   "logged_hours": 58.38,
-   "billable_hours": 41.85,
-   "utilization_pct": 71.7
+   "logged_hours": 53.32,
+   "billable_hours": 39.48,
+   "utilization_pct": 74.1
   },
   {
    "name": "Hana Sato",
-   "logged_hours": 44.12,
-   "billable_hours": 31.53,
-   "utilization_pct": 71.5
+   "logged_hours": 43.7,
+   "billable_hours": 29.95,
+   "utilization_pct": 68.5
   },
   {
    "name": "Imogen Carraway",
-   "logged_hours": 53.02,
-   "billable_hours": 37.43,
-   "utilization_pct": 70.6
+   "logged_hours": 52.1,
+   "billable_hours": 37.55,
+   "utilization_pct": 72.1
   },
   {
    "name": "Lucia Mendes",
-   "logged_hours": 52.3,
-   "billable_hours": 36.13,
-   "utilization_pct": 69.1
+   "logged_hours": 57.42,
+   "billable_hours": 42.72,
+   "utilization_pct": 74.4
   },
   {
    "name": "Maya Lindqvist",
-   "logged_hours": 52.47,
-   "billable_hours": 36.6,
-   "utilization_pct": 69.8
+   "logged_hours": 56.87,
+   "billable_hours": 37.05,
+   "utilization_pct": 65.2
   },
   {
    "name": "Nadia Osman",
-   "logged_hours": 56.72,
-   "billable_hours": 39.02,
-   "utilization_pct": 68.8
+   "logged_hours": 55.55,
+   "billable_hours": 40.27,
+   "utilization_pct": 72.5
   },
   {
    "name": "Owen Castile",
-   "logged_hours": 50.33,
+   "logged_hours": 46.0,
    "billable_hours": 0.0,
    "utilization_pct": 0.0
   },
   {
    "name": "Priscilla Wong",
-   "logged_hours": 53.43,
-   "billable_hours": 40.07,
+   "logged_hours": 51.08,
+   "billable_hours": 38.33,
    "utilization_pct": 75.0
   },
   {
    "name": "Raj Malhotra",
-   "logged_hours": 45.58,
+   "logged_hours": 48.38,
    "billable_hours": 0.0,
    "utilization_pct": 0.0
   },
   {
    "name": "Rosalind Calder",
-   "logged_hours": 54.13,
-   "billable_hours": 31.63,
-   "utilization_pct": 58.4
+   "logged_hours": 48.65,
+   "billable_hours": 32.32,
+   "utilization_pct": 66.4
   },
   {
    "name": "Sylvia Nakamura",
-   "logged_hours": 47.8,
-   "billable_hours": 33.05,
-   "utilization_pct": 69.1
+   "logged_hours": 46.42,
+   "billable_hours": 32.0,
+   "utilization_pct": 68.9
   },
   {
    "name": "Theo Brandt",
-   "logged_hours": 56.87,
-   "billable_hours": 38.37,
-   "utilization_pct": 67.5
+   "logged_hours": 64.97,
+   "billable_hours": 50.43,
+   "utilization_pct": 77.6
   },
   {
    "name": "Victor Alade",
-   "logged_hours": 56.87,
-   "billable_hours": 41.17,
-   "utilization_pct": 72.4
+   "logged_hours": 53.8,
+   "billable_hours": 38.13,
+   "utilization_pct": 70.9
   }
  ]
 }

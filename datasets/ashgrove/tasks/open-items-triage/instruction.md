@@ -25,8 +25,10 @@ fields:
   - `thread_id`
   - `message_id` — the client's last message in that thread
   - `client` — the sender's full name
-  - `subject` — the thread subject with any `Re:`/`RE:`/`Fwd:` prefix
-    removed
+  - `subject` — the subject line of **that message** (the one named in
+    `message_id`), with any `Re:`/`RE:`/`Fwd:` prefix removed. Subjects
+    drift as a thread runs, so take it from the message you are
+    reporting, not from the message that opened the thread.
   - `messages_in_thread` — total messages in the thread
 
 ## The rule (apply it exactly)

@@ -14,7 +14,7 @@ One file: **`closeout.json`**, with exactly these fields:
 
 - `client_engagements` — client engagements reviewed.
 - `status_counts` — a map of status → count.
-- `awaiting_firm_reply` — sorted ticket ids in that status.
+- `awaiting_firm_reply` — sorted engagements in that status.
 - `longest_waiting_engagement` — the engagement whose client has been
   waiting longest (`null` if none).
 - `wip_at_risk_dollars` — unbilled work-in-progress sitting behind the
@@ -24,11 +24,19 @@ One file: **`closeout.json`**, with exactly these fields:
   `awaiting_firm_reply` and whose WIP exceeds $10,000.
 - `engagements` — one entry per client engagement, sorted by
   `engagement`: `engagement` (the engagement's display number, as clio
-  shows it — for example `00005-Mensah`), `client_contact` (full name),
+  shows it — for example `00005-CardinalRidgeBuilders`), `client_contact` (full name),
   `responsible` (full name), `total_hours` (2 dp), `staff_count`
   (distinct people who logged any time), `status`,
   `client_waiting_hours` (1 dp; `0.0` when not waiting),
   `wip_dollars` (2 dp).
+
+## Naming an engagement
+
+Wherever this report names an engagement — in any field — use the
+engagement's **display number**, exactly as clio shows it (for example
+`00005-CardinalRidgeBuilders`). Identifiers in any other form that appear
+elsewhere in the firm's systems are internal and are not what this report
+asks for.
 
 ## How the firm values work in progress
 

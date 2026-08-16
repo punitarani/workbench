@@ -21,13 +21,21 @@ fields:
   billable hours behind it, 2 decimals.
 - `engagements` — one entry per **client** engagement, sorted by
   `engagement`: `engagement` (the engagement's display number, as clio
-  shows it — for example `00005-Mensah`), `billable_hours` (2 dp),
+  shows it — for example `00005-CardinalRidgeBuilders`), `billable_hours` (2 dp),
   `wip_dollars` (2 dp), `staff_count` (distinct people who logged any
   time to it, billable or not). Include every client engagement, even one
   with no time logged against it yet — it belongs on the list at zero.
 - `people` — one entry per person who logged any time, sorted by name:
   `name`, `logged_hours` (2 dp), `billable_hours` (2 dp),
   `utilization_pct` (billable ÷ logged × 100, 1 dp).
+
+## Naming an engagement
+
+Wherever this report names an engagement — in any field — use the
+engagement's **display number**, exactly as clio shows it (for example
+`00005-CardinalRidgeBuilders`). Identifiers in any other form that appear
+elsewhere in the firm's systems are internal and are not what this report
+asks for.
 
 ## How the firm counts
 
