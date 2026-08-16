@@ -116,6 +116,11 @@ class DayPlan(BaseModel):
 
     window: CalendarWindow
     personas: tuple[tuple[str, int], ...]  # (entity name, check interval minutes)
+    # How often each person produces work product, in days. A staff
+    # accountant writes workpapers most days; a partner writes a memo
+    # now and then. Rotating everyone equally gave all seventeen people
+    # the same five documents, which no practice has ever looked like.
+    deliverable_period: tuple[tuple[str, int], ...] = ()
     end_of_day: int
     day_start: int = 9 * 3600
     wake_grid_minutes: int = 30
@@ -628,8 +633,10 @@ class GroundedGm:
                         plan.day_start,
                         plan.day_start + (plan.end_of_day - plan.day_start) // 3,
                     )
+                    periods = dict(plan.deliverable_period)
                     for index, (entity_name, _interval) in enumerate(plan.personas):
-                        if (index + day) % 2:
+                        period = periods.get(entity_name, 2)
+                        if (index + day) % period:
                             continue
                         deliverable = SimDeliverablePayload(
                             kind="sim.deliverable",

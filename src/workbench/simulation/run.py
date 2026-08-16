@@ -50,6 +50,17 @@ _PUBLIC_TAGS = (
 )
 
 
+# Work product concentrates in the people who do the work: staff and
+# seniors write most days, managers less, partners occasionally. The
+# numbers are days between deliverables.
+_DELIVERABLE_PERIOD = {
+    "junior": 1,
+    "mid": 2,
+    "senior": 3,
+    "executive": 5,
+}
+
+
 class _Runtime:
     def __init__(
         self,
@@ -110,6 +121,10 @@ def _build_runtime(
         ),
         end_of_day=compiled.end_of_day_seconds,
         wake_grid_minutes=compiled.wake_grid_minutes,
+        deliverable_period=tuple(
+            (entity_name, _DELIVERABLE_PERIOD.get(params.seniority, 2))
+            for entity_name, params in compiled.personas
+        ),
         timesheets=compiled.timesheets,
         deliverables=compiled.deliverables,
         seed_root=seed.root,
