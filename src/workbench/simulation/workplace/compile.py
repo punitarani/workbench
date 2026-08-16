@@ -88,6 +88,7 @@ class CompiledWorkplace(BaseModel):
     minter: IdMinter
     wake_grid_minutes: int = 30
     timesheets: bool = False
+    deliverables: bool = False
     delivery_quantum_seconds: int = 300
 
 
@@ -427,5 +428,6 @@ def compile_workplace(
         minter=minter,
         wake_grid_minutes=spec.wake_grid_minutes,
         timesheets=spec.timesheets,
+        deliverables=spec.deliverables,
         delivery_quantum_seconds=spec.delivery_quantum_seconds,
     )

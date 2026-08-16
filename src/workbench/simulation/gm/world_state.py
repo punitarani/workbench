@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from workbench.core.events import Event
 from workbench.core.events.agent import SimAgentPlanPayload
+from workbench.core.events.calendar import CalendarEventScheduledPayload
 from workbench.core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
@@ -54,6 +55,7 @@ class WorldStateModel(BaseModel):
     chat_messages: tuple[str, ...] = ()
     chat_message_conversations: tuple[tuple[str, str], ...] = ()
     documents: tuple[tuple[str, int], ...] = ()
+    calendar_events: tuple[str, ...] = ()
     document_paths: tuple[tuple[str, str], ...] = ()
     tickets: tuple[tuple[str, tuple[tuple[str, str | None], ...]], ...] = Field(
         default=()
@@ -84,6 +86,8 @@ class WorldState:
         self.tickets: dict[str, dict[str, str | None]] = {}
         self.plan_revisions: dict[str, int] = {}
         self.meetings: dict[str, MeetingProgress] = {}
+        # Invitations can only be answered for meetings that exist.
+        self.calendar_events: set[str] = set()
         self.dm_streaks: dict[str, int] = {}
         self.chat_message_senders: dict[str, str] = {}
         self.last_chat_message: dict[str, str] = {}
@@ -150,6 +154,8 @@ class WorldState:
             case SimWakePayload():
                 # A wake is a beat in the day: chat bursts end, streaks reset.
                 self.dm_streaks.clear()
+            case CalendarEventScheduledPayload():
+                self.calendar_events.add(payload.calendar_event_id)
             case SimMeetingConvenePayload():
                 self.meetings[payload.meeting_id] = MeetingProgress(
                     meeting_id=payload.meeting_id,
@@ -181,6 +187,7 @@ class WorldState:
                 sorted(self.chat_message_conversations.items())
             ),
             documents=tuple(sorted(self.documents.items())),
+            calendar_events=tuple(sorted(self.calendar_events)),
             document_paths=tuple(sorted(self.document_paths.items())),
             tickets=tuple(
                 (ticket_id, tuple(sorted(values.items())))
@@ -211,6 +218,7 @@ class WorldState:
         state.chat_messages = set(model.chat_messages)
         state.chat_message_conversations = dict(model.chat_message_conversations)
         state.documents = dict(model.documents)
+        state.calendar_events = set(model.calendar_events)
         state.document_paths = dict(model.document_paths)
         state.tickets = {ticket_id: dict(values) for ticket_id, values in model.tickets}
         state.plan_revisions = dict(model.plan_revisions)
@@ -258,4 +266,5 @@ class WorldState:
             or ref in self.chat_messages
             or ref in self.documents
             or ref in self.tickets
+            or ref in self.calendar_events
         )

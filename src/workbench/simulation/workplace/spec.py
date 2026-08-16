@@ -128,4 +128,8 @@ class WorkplaceSpec(_Model):
     # v2: one end-of-day timesheet turn per persona per workday. Off by
     # default so a v1 recording replays byte-identically.
     timesheets: bool = False
+    # v2: a scheduled work-product turn for half the cast each workday, so
+    # the repository fills with the firm's deliverables rather than the
+    # templates it opened with.
+    deliverables: bool = False
     delivery_quantum_seconds: int = Field(default=300, ge=1)

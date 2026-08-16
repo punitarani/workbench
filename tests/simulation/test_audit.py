@@ -141,6 +141,9 @@ def test_registry_enumerates_named_predictors() -> None:
         # v2: the end-of-day timesheet turn, one call for a whole day of time.
         "log_day",
         "reflect",
+        # v2: authoring work product, and moving an engagement's own fields.
+        "author_document",
+        "update_ticket",
     }
 
 

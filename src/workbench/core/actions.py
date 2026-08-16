@@ -90,13 +90,30 @@ class TimesheetActionSpec(_Model):
     bills_clients: bool = True
 
 
+class DeliverableActionSpec(_Model):
+    """A turn to produce work product against a real engagement.
+
+    Carries the engagements the person is actually on, so the deliverable
+    is about the firm's work rather than whatever happened to be in the
+    inbox — which is what authoring produced when it was left to chance.
+    """
+
+    kind: Literal["deliverable"] = "deliverable"
+    call_to_action: str = (
+        "Produce the piece of work product your engagements most need next."
+    )
+    day: str
+    engagements: tuple[str, ...] = ()
+
+
 class IntentActionSpec(_Model):
     kind: Literal["intent"] = "intent"
     call_to_action: str
 
 
 ActionSpec = Annotated[
-    FreeActionSpec
+    DeliverableActionSpec
+    | FreeActionSpec
     | ChoiceActionSpec
     | FloatActionSpec
     | IntentActionSpec

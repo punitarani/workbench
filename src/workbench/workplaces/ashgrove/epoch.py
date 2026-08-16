@@ -426,6 +426,7 @@ def epoch_spec(days: int = 194, *, version: int = 2) -> WorkplaceSpec:
     return LIVE_DAY_SPEC.model_copy(
         update={
             "workplace_id": "ashgrove",
+            "deliverables": True,
             "display_name": FIRM,
             "epoch": _epoch_datetime(),
             "days": days,

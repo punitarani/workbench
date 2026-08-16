@@ -67,6 +67,23 @@ class SimReflectionPayload(Payload):
     scope: Literal["daily", "weekly"] = "daily"
 
 
+class SimDeliverablePayload(Payload):
+    """A scheduled turn to produce work product for one entity.
+
+    Authoring was left opportunistic at first — a persona could reach for
+    create_document whenever it felt apt — and a ten-day audit produced
+    nothing but the templates it began with, because "write the memo" never
+    outranked answering mail. Time entries had exactly this problem until
+    the timesheet turn made them an obligation; this is the same remedy for
+    deliverables, and for the same reason: the work a firm is measured on
+    is not the work that shouts loudest in an inbox.
+    """
+
+    kind: Literal["sim.deliverable"]
+    entity: str
+    day: str
+
+
 class SimTimesheetPayload(Payload):
     """A scheduled end-of-day timesheet turn for one entity.
 

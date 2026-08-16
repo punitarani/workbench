@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from workbench.core.actions import (
     ActionSpec,
     CueActionSpec,
+    DeliverableActionSpec,
     EntityAction,
     IntentAction,
     IntentActionSpec,
@@ -41,6 +42,7 @@ from workbench.core.events.control import (
     SimCuePayload,
     SimDayEndedPayload,
     SimDayStartedPayload,
+    SimDeliverablePayload,
     SimGmNotePayload,
     SimPlanningPayload,
     SimReflectionPayload,
@@ -121,6 +123,9 @@ class DayPlan(BaseModel):
     # v2: one end-of-day timesheet turn per persona. Off by default so a v1
     # recording replays byte-identically.
     timesheets: bool = False
+    # v2: a scheduled work-product turn for half the cast each day. Off by
+    # default for the same reason.
+    deliverables: bool = False
 
 
 def _validated_format(create: DocumentCreateSpec) -> str:
@@ -282,6 +287,7 @@ class GroundedGm:
                 | SimPlanningPayload()
                 | SimCuePayload()
                 | SimTimesheetPayload()
+                | SimDeliverablePayload()
             ):
                 return (payload.entity,)
             case SimGmNotePayload():
@@ -341,6 +347,7 @@ class GroundedGm:
                 | SimPlanningPayload()
                 | SimCuePayload()
                 | SimTimesheetPayload()
+                | SimDeliverablePayload()
             ):
                 if payload.entity in self._person_for_entity:
                     return (payload.entity,)
@@ -363,6 +370,7 @@ class GroundedGm:
                 | SimPlanningPayload()
                 | SimCuePayload()
                 | SimTimesheetPayload()
+                | SimDeliverablePayload()
             ):
                 if payload.entity in self._person_for_entity:
                     return NextActingDecision(entities=(payload.entity,))
@@ -461,6 +469,21 @@ class GroundedGm:
                 day=event.payload.day,
                 engagements=engagements,
                 bills_clients=person in self._bill_rates,
+            )
+        if isinstance(event.payload, SimDeliverablePayload):
+            person = self._person_for(entity)
+            mine = [
+                f"{ticket_id} {values.get('title', '')}"
+                for ticket_id, values in self._world.tickets.items()
+                if values.get("assignee") == person
+            ]
+            others = [
+                f"{ticket_id} {values.get('title', '')}"
+                for ticket_id, values in self._world.tickets.items()
+                if values.get("assignee") != person
+            ]
+            return DeliverableActionSpec(
+                day=event.payload.day, engagements=tuple(mine + others)[:12]
             )
         if isinstance(event.payload, SimCuePayload):
             return CueActionSpec(note=event.payload.note, topic=event.payload.topic)
@@ -577,6 +600,34 @@ class GroundedGm:
                 )
                 scope = "weekly" if workdays_so_far % 5 == 0 else "daily"
                 reflect_delay = max(plan.day_start, plan.end_of_day - grid)
+                if plan.deliverables:
+                    # Work product lands during the working day, not at the
+                    # end of it. Half the cast on any given day, alternating,
+                    # so a professional produces something every other day —
+                    # roughly what fieldwork looks like, and enough that the
+                    # repository reflects the practice rather than its
+                    # templates.
+                    produce_delay = max(
+                        plan.day_start,
+                        plan.day_start + (plan.end_of_day - plan.day_start) // 3,
+                    )
+                    for index, (entity_name, _interval) in enumerate(plan.personas):
+                        if (index + day) % 2:
+                            continue
+                        deliverable = SimDeliverablePayload(
+                            kind="sim.deliverable",
+                            entity=entity_name,
+                            day=payload.day,
+                        )
+                        drafts.append(
+                            EventDraft(
+                                tag=deliverable.kind,
+                                source="gm",
+                                caused_by=event.event_id,
+                                payload=deliverable,
+                                delay=SimDuration(produce_delay),
+                            )
+                        )
                 if plan.timesheets:
                     # Time gets written up just before the day is reflected
                     # on, the way a professional closes out: log the hours,
@@ -1319,6 +1370,13 @@ class GroundedGm:
             )
         if intent.respond is None:
             raise IntentRejection("calendar intent needs a schedule or a response")
+        if intent.respond.calendar_event_ref not in self._world.calendar_events:
+            # Every other surface rejects an id it has never issued; without
+            # this one, an invented cal- ref became a response event and the
+            # materializer refused the whole log as incoherent.
+            raise IntentRejection(
+                f"unknown calendar event {intent.respond.calendar_event_ref!r}"
+            )
         payload = CalendarResponsePayload(
             kind="calendar.response",
             calendar_event_id=intent.respond.calendar_event_ref,

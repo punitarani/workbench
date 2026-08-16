@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workbench.core.actions import (
     ActionSpec,
+    DeliverableActionSpec,
     EntityAction,
     IntentAction,
     MeetingTurnActionSpec,
@@ -20,6 +21,8 @@ from workbench.core.intents import (
     CalendarIntent,
     CalendarResponseSpec,
     ChatIntent,
+    DocumentCreateSpec,
+    DocumentEditIntent,
     EmailIntent,
     IdleIntent,
     MeetingSpeakIntent,
@@ -328,11 +331,85 @@ class ProfessionalActorAct:
             )
         )
 
+    @staticmethod
+    def _create_spec(authored) -> DocumentCreateSpec:
+        """Turn one filled body into the create spec the GM grounds.
+
+        The body that is present decides the format, so the two can never
+        disagree — which is the failure the string-content version kept
+        producing.
+        """
+
+        for attribute, content_format in (
+            ("workbook", "spreadsheet"),
+            ("document", "formatted"),
+            ("deck", "slides"),
+        ):
+            body = getattr(authored, attribute, None)
+            if body is not None:
+                return DocumentCreateSpec(
+                    title=authored.title,
+                    path=authored.path,
+                    content=body.model_dump_json(),
+                    content_format=content_format,
+                )
+        return DocumentCreateSpec(
+            title=authored.title,
+            path=authored.path,
+            content=authored.note or "",
+            content_format="markdown",
+        )
+
+    async def _deliverable(self, spec: DeliverableActionSpec) -> EntityAction:
+        """Produce one piece of work product against a real engagement.
+
+        Scheduled rather than opportunistic. Left to the decide loop,
+        authoring lost every time to answering mail, and ten workdays of a
+        seventeen-person audit practice produced no work product at all.
+        """
+
+        identity = render_identity(self._params)
+        now = self._memory.last_time()
+        midnight = (now // 86_400) * 86_400
+        records = self._stream.records() if self._stream is not None else ()
+        today = [record for record in records if record.time >= midnight]
+        context = (
+            "\n".join(f"- {record.gist}" for record in today[-24:])
+            or "Nothing yet today."
+        )
+        engagements = "\n".join(spec.engagements) or "No engagements assigned."
+        try:
+            # Bind the LM: an unbound call raises, the degradation path below
+            # swallows it, and the day's work product disappears without a
+            # trace — the failure this engine has already shipped once.
+            with dspy.context(lm=self._lm):
+                prediction = await self._actor.author_document.acall(
+                    identity=identity,
+                    intent=(
+                        f"{spec.call_to_action} Engagements you are on:\n{engagements}"
+                    ),
+                    context=context,
+                )
+        except CassetteMissError, LMBudgetExceededError, LMTransportError:
+            raise
+        except Exception:
+            # Nothing to produce is a quiet day, not a failed one.
+            return IntentAction(
+                intent=IdleIntent(until_minutes=self._params.check_interval_minutes)
+            )
+        return IntentAction(
+            intent=DocumentEditIntent(
+                document_ref=None, create=self._create_spec(prediction.document)
+            )
+        )
+
     async def get_action_attempt(
         self, blocks: tuple[ContextBlock, ...], spec: ActionSpec
     ) -> EntityAction:
         if isinstance(spec, TimesheetActionSpec):
             return await self._timesheet(spec)
+        if isinstance(spec, DeliverableActionSpec):
+            return await self._deliverable(spec)
         if isinstance(spec, ReflectActionSpec):
             return await self._reflect(spec)
         if isinstance(spec, PlanActionSpec):

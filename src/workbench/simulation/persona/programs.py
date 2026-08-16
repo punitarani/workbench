@@ -9,12 +9,16 @@ from typing import Literal
 import dspy
 from pydantic import BaseModel, ConfigDict, Field
 
+from workbench.core.artifacts import (
+    FormattedDocument,
+    SlideDeck,
+    SpreadsheetContent,
+)
 from workbench.core.events.agent import MemoryBullet, PlanBlock
 from workbench.core.events.tickets import FieldChange
 from workbench.core.intents import (
     CalendarScheduleSpec,
     ChatDraft,
-    DocumentCreateSpec,
     DocumentEdit,
     EmailDraft,
     TicketCreateSpec,
@@ -236,6 +240,38 @@ class DraftDocumentEdit(dspy.Signature):
     edit: DocumentEdit = dspy.OutputField()
 
 
+class AuthoredDocument(BaseModel):
+    """A deliverable, with its body in the shape its form requires.
+
+    Exactly one body field is filled, and that choice *is* the format.
+    Earlier this was a single string holding the canonical JSON for
+    whichever format was declared, and authors reliably wrote prose into a
+    field declared `spreadsheet` — every workbook and memo was rejected
+    unparsed. Typing the bodies means the model fills a schema instead of
+    imitating one.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    title: str
+    path: str = Field(
+        description="Where it belongs in the repository, suffix matching "
+        "the body: .xlsx, .docx, .pdf, .pptx, or .md"
+    )
+    workbook: SpreadsheetContent | None = Field(
+        default=None, description="Columns of numbers: tie-outs, schedules, aging"
+    )
+    document: FormattedDocument | None = Field(
+        default=None, description="Prose a client or partner reads: memos, letters"
+    )
+    deck: SlideDeck | None = Field(
+        default=None, description="A board or committee presentation"
+    )
+    note: str | None = Field(
+        default=None, description="Plain markdown, for an informal internal note only"
+    )
+
+
 class AuthorDocument(dspy.Signature):
     """Produce the deliverable your intent describes, as a real file.
 
@@ -274,7 +310,7 @@ class AuthorDocument(dspy.Signature):
     identity: str = dspy.InputField()
     intent: str = dspy.InputField()
     context: str = dspy.InputField(desc="facts and knowledge the document rests on")
-    document: DocumentCreateSpec = dspy.OutputField()
+    document: AuthoredDocument = dspy.OutputField()
 
 
 class UpdateTicket(dspy.Signature):

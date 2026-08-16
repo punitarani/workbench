@@ -1,6 +1,7 @@
 """Format-aware document creation: declare a format, and mean it."""
 
 import pytest
+from pydantic import ValidationError
 
 from workbench.core.artifacts import (
     Formula,
@@ -26,11 +27,27 @@ def _spreadsheet() -> str:
 
 
 class TestDeclaredFormats:
-    def test_markdown_is_the_default_and_needs_no_parse(self) -> None:
+    def test_the_format_must_be_stated(self) -> None:
+        """There is no default, and that is the point.
+
+        While `content_format` defaulted to markdown, every document the
+        firm authored came out a .md file: the field could simply be
+        omitted, so it always was. Making the author declare the form is
+        what produces workbooks, memos, and decks.
+        """
+
+        with pytest.raises(ValidationError):
+            DocumentCreateSpec(
+                title="Notes", path="/firm/notes.md", content="Just prose."
+            )
+
+    def test_markdown_needs_no_parse(self) -> None:
         create = DocumentCreateSpec(
-            title="Notes", path="/firm/notes.md", content="Just prose."
+            title="Notes",
+            path="/firm/notes.md",
+            content="Just prose.",
+            content_format="markdown",
         )
-        assert create.content_format == "markdown"
         assert _validated_format(create) == "markdown"
 
     def test_spreadsheet_content_passes(self) -> None:
