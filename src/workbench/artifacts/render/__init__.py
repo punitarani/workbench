@@ -1,13 +1,12 @@
 """Render structured document content into real office files.
 
 Consumed by environment materialization only — the simulation never sees
-rendered bytes. Requires the ``artifacts`` extra (openpyxl, python-docx);
-PDF conversion additionally uses LibreOffice's ``soffice`` when installed
-and records a skip when it is not.
+rendered bytes. Requires the ``artifacts`` extra: openpyxl for workbooks,
+python-docx for documents, python-pptx for decks, reportlab for PDFs. No
+external converter is involved, so every format works wherever the
+package installs.
 """
 
-import shutil
-import subprocess
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
@@ -174,27 +173,60 @@ def _render_docx(document: FormattedDocument, target: Path) -> None:
 
 
 def _render_pdf(document: FormattedDocument, target: Path) -> RenderOutcome:
-    intermediate = target.with_suffix(".docx")
-    _render_docx(document, intermediate)
-    soffice = shutil.which("soffice")
-    if soffice is None:
-        return RenderOutcome(
-            path=intermediate,
-            skipped=f"{target.name}: PDF conversion needs soffice "
-            "(LibreOffice); wrote the docx instead",
-        )
-    subprocess.run(
-        [
-            soffice,
-            "--headless",
-            "--convert-to",
-            "pdf",
-            "--outdir",
-            str(target.parent),
-            str(intermediate),
-        ],
-        check=True,
-        capture_output=True,
+    """Write a real PDF, with no external converter in the picture.
+
+    This used to shell out to LibreOffice and, when `soffice` was absent,
+    quietly leave a .docx where a .pdf was asked for — which is most of
+    the time: not on this host, not in CI, not in the task container. A
+    firm that never emits a PDF is not a firm.
+    """
+
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.platypus import (
+        ListFlowable,
+        ListItem,
+        Paragraph,
+        SimpleDocTemplate,
+        Spacer,
+        Table,
+        TableStyle,
     )
-    intermediate.unlink()
+
+    styles = getSampleStyleSheet()
+    flow: list = []
+    for block in document.blocks:
+        match block:
+            case HeadingBlock():
+                level = min(max(block.level, 1), 4)
+                flow.append(Paragraph(block.text, styles[f"Heading{level}"]))
+            case ParagraphBlock():
+                flow.append(Paragraph(block.text, styles["BodyText"]))
+            case ListBlock():
+                flow.append(
+                    ListFlowable(
+                        [
+                            ListItem(Paragraph(item, styles["BodyText"]))
+                            for item in block.items
+                        ],
+                        bulletType="1" if block.ordered else "bullet",
+                    )
+                )
+            case TableBlock():
+                data = [list(block.columns)] + [list(row) for row in block.rows]
+                table = Table(data)
+                table.setStyle(
+                    TableStyle(
+                        [
+                            ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
+                            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                            ("FONTSIZE", (0, 0), (-1, -1), 8),
+                        ]
+                    )
+                )
+                flow.append(table)
+        flow.append(Spacer(1, 8))
+    SimpleDocTemplate(str(target), pagesize=LETTER).build(flow)
     return RenderOutcome(path=target)

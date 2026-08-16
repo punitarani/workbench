@@ -111,13 +111,11 @@ def test_materialize_renders_real_office_files(tmp_path: Path) -> None:
     assert result.skipped_renders == ()
 
 
-def test_pdf_skip_is_recorded_not_swallowed(tmp_path: Path, monkeypatch) -> None:
-    import workbench.artifacts.render as render
-
-    monkeypatch.setattr(render.shutil, "which", lambda name: None)
+def test_a_pdf_document_materializes_as_a_pdf(tmp_path: Path) -> None:
     out = tmp_path / "bundle"
     result = materialize(write_log(tmp_path, artifact_events(with_pdf=True)), out)
 
-    assert (out / "workspace" / "legal" / "terms.docx").exists()
-    assert len(result.skipped_renders) == 1
-    assert "terms.pdf" in result.skipped_renders[0]
+    rendered = out / "workspace" / "legal" / "terms.pdf"
+    assert rendered.exists()
+    assert rendered.read_bytes().startswith(b"%PDF-")
+    assert result.skipped_renders == ()

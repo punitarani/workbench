@@ -92,12 +92,12 @@ class DocumentCreateSpec(_Intent):
     title: str
     path: str
     content: str
-    # What ``content`` actually is. v1 hardcoded markdown at grounding time,
-    # so a persona could not author a workbook or a deck even when the work
-    # called for one; the GM validates the content against this declaration.
-    content_format: Literal["markdown", "formatted", "spreadsheet", "slides"] = (
-        "markdown"
-    )
+    # What ``content`` actually is; the GM validates the content against
+    # this declaration. No default on purpose — when this defaulted to
+    # markdown, every authored document in a ten-day audit came out as a
+    # .md file, because the field could simply be omitted. Making the
+    # author state the form is what produces workbooks and memos.
+    content_format: Literal["markdown", "formatted", "spreadsheet", "slides"]
 
 
 class DocumentEditIntent(_Intent):

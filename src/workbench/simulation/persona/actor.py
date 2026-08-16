@@ -18,6 +18,7 @@ from workbench.core.intents import (
     AgentNoteIntent,
     AgentPlanIntent,
     CalendarIntent,
+    CalendarResponseSpec,
     ChatIntent,
     EmailIntent,
     IdleIntent,
@@ -28,7 +29,7 @@ from workbench.core.intents import (
     TimesheetEntry,
     TimesheetIntent,
 )
-from workbench.core.worldlog.views import email_thread
+from workbench.core.worldlog.views import email_thread, ticket_snapshot
 from workbench.simulation.entity.context import ContextBlock
 from workbench.simulation.errors import (
     CassetteMissError,
@@ -430,6 +431,39 @@ class ProfessionalActorAct:
                     minutes=choice.minutes or 30,
                     note=choice.intent,
                 )
+            case "respond_invite":
+                if choice.target_ref is None or choice.response is None:
+                    return IdleIntent(until_minutes=self._params.check_interval_minutes)
+                return CalendarIntent(
+                    respond=CalendarResponseSpec(
+                        calendar_event_ref=choice.target_ref,
+                        response=choice.response,
+                    )
+                )
+            case "update_ticket":
+                if choice.target_ref is None:
+                    return IdleIntent(until_minutes=self._params.check_interval_minutes)
+                try:
+                    snapshot = ticket_snapshot(events, choice.target_ref)
+                except KeyError:
+                    # An invented id is the GM's to reject and teach; here it
+                    # simply means there is nothing to update.
+                    return IdleIntent(until_minutes=self._params.check_interval_minutes)
+                # The GM rejects a change whose `old` does not match reality,
+                # so state reality rather than asking the model to recall it.
+                current = (
+                    f"status={snapshot.status}; priority={snapshot.priority}; "
+                    f"type={snapshot.ticket_type}; title={snapshot.title}"
+                )
+                prediction = await self._actor.update_ticket.acall(
+                    identity=identity,
+                    ticket=current,
+                    intent=choice.intent,
+                    vocabulary=self._params.ticket_vocabulary,
+                )
+                return TicketIntent(
+                    ticket_ref=choice.target_ref, changes=tuple(prediction.changes)
+                )
             case "schedule_meeting":
                 names = person_names(events)
                 people_line = "People: " + "; ".join(sorted(names.values()))
@@ -496,7 +530,7 @@ class ProfessionalActorAct:
                     workplace_norms=self._workplace_norms,
                 )
                 return TicketIntent(ticket_ref=None, create=prediction.ticket)
-            case "revise_document":
+            case "revise_document" | "create_document":
                 return await self._route_document(
                     choice, identity=identity, facts=facts, knowledge=knowledge
                 )
@@ -514,6 +548,19 @@ class ProfessionalActorAct:
                 document_text = document_head(events, choice.target_ref).content
             except KeyError:
                 document_text = ""
+
+        # Authoring and revising are different acts. Without this branch the
+        # actor could only ever emit an edit, so a persona who meant to write
+        # a workpaper produced a revision of a document that did not exist —
+        # which is why the firm's repository held nothing but its templates.
+        if choice.action == "create_document" or not document_text:
+            prediction = await self._actor.author_document.acall(
+                identity=identity,
+                intent=choice.intent,
+                context=f"{facts}\n\n{knowledge}",
+            )
+            return DocumentEditIntent(document_ref=None, create=prediction.document)
+
         prediction = await self._actor.draft_document.acall(
             identity=identity,
             document=document_text,

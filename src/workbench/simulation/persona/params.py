@@ -45,10 +45,23 @@ class ProfessionalWorkerParams(_Model):
     manager: str | None
     relationships: tuple[Relationship, ...] = ()
     knowledge: tuple[KnowledgeItem, ...] = ()
+    # What this firm calls a ticket's states. The GM rejects a status it does
+    # not know, so the persona has to be told rather than left to guess.
+    ticket_vocabulary: str = "statuses: Open, In Progress, Blocked, Closed"
     check_interval_minutes: int = Field(default=30, ge=1)
     # Hourly billing rate in cents; None for personas whose time is not
     # billed. Applied by the GM when grounding time-log intents.
     bill_rate_cents: int | None = Field(default=None, ge=0)
     # Opt-in verbs beyond the core set. Empty keeps the exact recorded
     # decide prompt; any entry switches the persona to the extended decide.
-    extra_verbs: tuple[Literal["react_chat", "log_time", "schedule_meeting"], ...] = ()
+    extra_verbs: tuple[
+        Literal[
+            "react_chat",
+            "log_time",
+            "schedule_meeting",
+            "create_document",
+            "update_ticket",
+            "respond_invite",
+        ],
+        ...,
+    ] = ()

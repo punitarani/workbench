@@ -74,13 +74,17 @@ def test_formatted_renders_openable_docx(tmp_path: Path) -> None:
     assert table.rows[1].cells[1].text == "$5,000"
 
 
-def test_pdf_without_soffice_records_a_skip(tmp_path: Path, monkeypatch) -> None:
-    import workbench.artifacts.render as render
+def test_pdf_renders_without_any_external_converter(tmp_path: Path) -> None:
+    """A .pdf must be a PDF everywhere, not a .docx wearing the name.
 
-    monkeypatch.setattr(render.shutil, "which", lambda name: None)
+    This used to shell out to LibreOffice and leave a docx behind when
+    `soffice` was missing — which is the normal case on a developer
+    machine, in CI, and inside the task container, so the firm never
+    produced a single PDF.
+    """
+
     outcome = render_document("formatted", formatted_content(), tmp_path / "letter.pdf")
-    # The content still lands — as the docx it was built from — and the
-    # skip is recorded rather than silently swallowed.
-    assert outcome.path == tmp_path / "letter.docx"
-    assert outcome.skipped is not None and "soffice" in outcome.skipped
-    assert outcome.path.exists()
+
+    assert outcome.path == tmp_path / "letter.pdf"
+    assert outcome.skipped is None
+    assert outcome.path.read_bytes().startswith(b"%PDF-")

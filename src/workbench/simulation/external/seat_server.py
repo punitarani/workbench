@@ -169,13 +169,26 @@ def build_seat_server(session: SeatSession) -> MCPServer:
         return {"submitted": "document_edit"}
 
     @server.tool()
-    def create_document(title: str, path: str, content: str) -> dict:
-        """Create a new document in the repository."""
+    def create_document(
+        title: str, path: str, content: str, content_format: str = "markdown"
+    ) -> dict:
+        """Create a new document in the repository.
+
+        `content_format` is one of markdown, formatted (a .docx or .pdf),
+        spreadsheet (a .xlsx), or slides (a .pptx); anything but markdown
+        expects the structured JSON for that form.
+        """
+
         session.submit(
             IntentAction(
                 intent=DocumentEditIntent(
                     document_ref=None,
-                    create=DocumentCreateSpec(title=title, path=path, content=content),
+                    create=DocumentCreateSpec(
+                        title=title,
+                        path=path,
+                        content=content,
+                        content_format=content_format,
+                    ),
                 )
             )
         )

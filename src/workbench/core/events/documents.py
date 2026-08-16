@@ -13,10 +13,11 @@ class DocumentCreatedPayload(Payload):
     title: str
     path: str
     location: Literal["repository", "attachment"]
-    # markdown holds the text itself; spreadsheet and formatted hold the
-    # canonical JSON of the workbench.core.artifacts models, rendered into
-    # real office files only at materialization.
-    content_format: Literal["markdown", "spreadsheet", "formatted"]
+    # markdown holds the text itself; the rest hold the canonical JSON of
+    # the workbench.core.artifacts models, rendered into real office files
+    # only at materialization: spreadsheet -> .xlsx, slides -> .pptx, and
+    # formatted -> .docx or .pdf depending on the path's suffix.
+    content_format: Literal["markdown", "spreadsheet", "formatted", "slides"]
     content: str
 
 

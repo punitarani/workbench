@@ -64,7 +64,10 @@ def _params(
     quirks: str | None = None,
     relationships: tuple[Relationship, ...] = (),
     knowledge: tuple[KnowledgeItem, ...] = (),
-    extra_verbs: tuple = (),
+    # Everyone who does or reviews the work produces work product, answers
+    # invitations, and moves an engagement along. Verbs beyond these stay
+    # opt-in per person.
+    extra_verbs: tuple = ("create_document", "update_ticket", "respond_invite"),
 ) -> ProfessionalWorkerParams:
     record = _RECORDS[person_id]
     return ProfessionalWorkerParams(
@@ -185,7 +188,13 @@ VICTOR = _params(
     chat_register="Quick, direct, occasionally emoji-punctuated.",
     working_hours="08:00-18:00",
     check_interval=60,
-    extra_verbs=("log_time", "schedule_meeting"),
+    extra_verbs=(
+        "log_time",
+        "schedule_meeting",
+        "create_document",
+        "update_ticket",
+        "respond_invite",
+    ),
     relationships=(
         Relationship(
             person="per-desmond-ortiz",
@@ -219,7 +228,12 @@ IMOGEN = _params(
     chat_register="Tidy sentences; numbers her questions.",
     working_hours="08:30-17:00",
     check_interval=60,
-    extra_verbs=("schedule_meeting",),
+    extra_verbs=(
+        "schedule_meeting",
+        "create_document",
+        "update_ticket",
+        "respond_invite",
+    ),
 )
 
 DESMOND = _params(
@@ -233,7 +247,7 @@ DESMOND = _params(
     chat_register="Casual, helpful, links the exact workpaper.",
     working_hours="08:30-17:30",
     check_interval=60,
-    extra_verbs=("log_time",),
+    extra_verbs=("log_time", "create_document", "update_ticket", "respond_invite"),
 )
 
 LUCIA = _params(
@@ -246,7 +260,7 @@ LUCIA = _params(
     chat_register="Short, precise, occasionally deadpan.",
     working_hours="08:30-17:30",
     check_interval=60,
-    extra_verbs=("log_time",),
+    extra_verbs=("log_time", "create_document", "update_ticket", "respond_invite"),
 )
 
 THEO = _params(
@@ -259,7 +273,7 @@ THEO = _params(
     chat_register="Fuller sentences than chat deserves.",
     working_hours="09:00-17:30",
     check_interval=60,
-    extra_verbs=("log_time",),
+    extra_verbs=("log_time", "create_document", "update_ticket", "respond_invite"),
 )
 
 NADIA = _params(
@@ -273,7 +287,7 @@ NADIA = _params(
     chat_register="Quick, cheerful, emoji-fluent.",
     working_hours="08:30-17:30",
     check_interval=45,
-    extra_verbs=("react_chat",),
+    extra_verbs=("react_chat", "create_document", "update_ticket", "respond_invite"),
 )
 
 COLIN = _params(
@@ -286,7 +300,7 @@ COLIN = _params(
     chat_register="Terse but friendly.",
     working_hours="08:30-17:30",
     check_interval=45,
-    extra_verbs=("react_chat",),
+    extra_verbs=("react_chat", "create_document", "update_ticket", "respond_invite"),
 )
 
 PRISCILLA = _params(
@@ -402,7 +416,7 @@ FREYA = _params(
     chat_register="Upbeat, quick, first with the reaction.",
     working_hours="08:00-16:30",
     check_interval=60,
-    extra_verbs=("react_chat",),
+    extra_verbs=("react_chat", "create_document", "update_ticket", "respond_invite"),
 )
 
 RAJ = _params(

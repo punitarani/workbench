@@ -10,9 +10,11 @@ import dspy
 from pydantic import BaseModel, ConfigDict, Field
 
 from workbench.core.events.agent import MemoryBullet, PlanBlock
+from workbench.core.events.tickets import FieldChange
 from workbench.core.intents import (
     CalendarScheduleSpec,
     ChatDraft,
+    DocumentCreateSpec,
     DocumentEdit,
     EmailDraft,
     TicketCreateSpec,
@@ -90,16 +92,21 @@ class ExtendedActionChoice(BaseModel):
         "create_ticket",
         "comment_ticket",
         "log_time",
+        "create_document",
         "revise_document",
         "schedule_meeting",
+        "update_ticket",
+        "respond_invite",
         "idle",
     ]
     target_ref: str | None
     intent: str
     reason: str
-    # Only meaningful for react_chat / log_time; null otherwise.
+    # Only meaningful for react_chat / log_time / respond_invite; null
+    # otherwise.
     emoji: str | None = None
     minutes: int | None = None
+    response: Literal["accept", "decline", "tentative"] | None = None
 
 
 class DecideNextActionExtended(dspy.Signature):
@@ -127,6 +134,27 @@ class DecideNextActionExtended(dspy.Signature):
     minutes); schedule_meeting puts a working session on calendars when
     coordination by message is stalling. Use only the verbs listed in
     enabled_extras.
+
+    update_ticket moves an engagement's own fields — most often its
+    status, when the work has actually reached a new stage. Set
+    target_ref to the tkt- id. respond_invite answers a meeting
+    invitation you have received (set response to accept, decline, or
+    tentative) and takes the cal- id; answer invitations rather than
+    leaving colleagues waiting on your availability.
+
+    create_document produces a new deliverable and is how substantive work
+    actually lands: a testing workpaper or tie-out, a reconciliation, a
+    materiality or planning memo, a management-letter comment, a sampling
+    schedule, a client-ready letter, a committee deck. When you have
+    committed to produce something, or the work in front of you is the
+    making of a document rather than a message about one, create_document
+    is the action; leave target_ref null, since the document does not
+    exist yet. Use revise_document only for a doc- id you have seen.
+
+    Write the firm's work, not notes about the firm's tools. Documents
+    about ticket-naming conventions, file paths, status vocabularies, or
+    how to use a system are not deliverables and are never the right
+    action — if an id was rejected, simply use a real one next time.
 
     target_ref must be a real id of the matching kind — thr-/msg-
     for email threads, cnv- for chat conversations, chm- for chat
@@ -206,6 +234,64 @@ class DraftDocumentEdit(dspy.Signature):
     intent: str = dspy.InputField()
     context: str = dspy.InputField(desc="facts and knowledge relevant to the edit")
     edit: DocumentEdit = dspy.OutputField()
+
+
+class AuthorDocument(dspy.Signature):
+    """Produce the deliverable your intent describes, as a real file.
+
+    Choose the form the work actually takes, and write the content in that
+    form's structure:
+
+    - `spreadsheet` for anything that is columns of numbers a colleague
+      will foot or filter: trial balances, testing workpapers, census
+      reconciliations, sampling schedules, aging.
+    - `formatted` for prose a client or partner reads: memos, letters,
+      management-letter comments, planning documents. Give it a `.docx`
+      path, or `.pdf` when it is issued rather than edited further.
+    - `slides` for something presented to a board or committee.
+    - `markdown` only for informal internal notes.
+
+    `path` is where it belongs in the firm's repository, with the suffix
+    matching the form (.xlsx, .docx, .pdf, .pptx, .md). Content must be
+    the real thing — actual numbers, actual names, the substance the
+    intent calls for — not a description of what the document would say.
+
+    Markdown is the exception, not the default. Almost nothing a firm
+    delivers is a .md file: a tie-out is a workbook, a memo to a partner
+    is a document, an audit committee update is a deck. Reach for
+    markdown only when the artifact really is an informal internal note
+    with no numbers and no reader outside the team.
+
+    Match the form to the work:
+      testing workpaper, tie-out, reconciliation, census, aging,
+      sampling schedule, trial balance    -> spreadsheet (.xlsx)
+      memo, planning document, letter, management-letter comment,
+      independence confirmation, review note -> formatted (.docx, or
+                                              .pdf when it is issued)
+      board or audit-committee update        -> slides (.pptx)
+    """
+
+    identity: str = dspy.InputField()
+    intent: str = dspy.InputField()
+    context: str = dspy.InputField(desc="facts and knowledge the document rests on")
+    document: DocumentCreateSpec = dspy.OutputField()
+
+
+class UpdateTicket(dspy.Signature):
+    """State the field changes this engagement has actually undergone.
+
+    `old` must be the value the ticket carries now, exactly as given; a
+    change claiming a stale prior value is rejected. Change only what the
+    work genuinely moved — a status that has really advanced, an assignee
+    who has really taken it over — and never more than the intent
+    supports.
+    """
+
+    identity: str = dspy.InputField()
+    ticket: str = dspy.InputField(desc="the ticket's current fields")
+    intent: str = dspy.InputField()
+    vocabulary: str = dspy.InputField(desc="the statuses and priorities this firm uses")
+    changes: tuple[FieldChange, ...] = dspy.OutputField()
 
 
 class DraftMeeting(dspy.Signature):
@@ -334,6 +420,8 @@ class ProfessionalActor(dspy.Module):
         self.draft_chat = dspy.Predict(DraftChatMessage)
         self.draft_ticket = dspy.Predict(DraftTicket)
         self.draft_document = dspy.Predict(DraftDocumentEdit)
+        self.author_document = dspy.Predict(AuthorDocument)
+        self.update_ticket = dspy.Predict(UpdateTicket)
         self.draft_meeting = dspy.Predict(DraftMeeting)
         self.reflect = dspy.Predict(Reflect)
         self.plan_day = dspy.Predict(PlanDay)
