@@ -1232,6 +1232,27 @@ class GroundedGm:
                     and change.new not in self._vocab.priorities
                 ):
                     raise IntentRejection(f"unknown priority {change.new!r}")
+            # The check above compares against the world as it stands now,
+            # but the event lands after a delay — so two people who both
+            # look at an open ticket in the same tick both ground cleanly,
+            # and the second one's `old` is a value the record has already
+            # left behind. Four such transitions failed validation in a
+            # fifteen-day run, and they land in `matter_history`, which is
+            # exactly what the status-integrity task reads to decide which
+            # engagements moved backwards.
+            #
+            # So book the change against the GM's own state at grounding
+            # rather than only at landing. The next intent in the same tick
+            # then sees the value this one is about to write and is
+            # rejected or restated, instead of recording a transition from
+            # a status the ticket no longer had.
+            values.update(
+                {
+                    change.field: change.new
+                    for change in intent.changes
+                    if change.field in values
+                }
+            )
             payload = TicketUpdatedPayload(
                 kind="ticket.updated",
                 ticket_id=intent.ticket_ref,
