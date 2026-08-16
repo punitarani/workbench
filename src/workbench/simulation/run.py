@@ -474,6 +474,12 @@ async def run_compiled(
     store.set_meta("config_hash", compiled.config_hash)
     store.set_meta("seed_root", str(seed.root))
     store.set_meta("workplace_id", compiled.workplace_id)
+    # The run's length, so a resume can recompile the spec it was started
+    # with. `--days` is part of the config hash, so a fifteen-day run
+    # resumed under the flag's default recompiles as a five-day one and
+    # refuses to continue — loudly, correctly, and only after the operator
+    # has queued the wrong command and waited for it.
+    store.set_meta("days", str(compiled.days))
     store.set_meta("model", model)
     store.set_meta("step", "0")
     store.set_meta("next_order", str(len(compiled.scheduled)))

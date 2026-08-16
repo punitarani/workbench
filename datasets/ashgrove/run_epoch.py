@@ -134,6 +134,16 @@ class _DayTracker:
 
 async def _start_or_resume(args: argparse.Namespace, *, resume: bool) -> int:
     seed = Seed(root=args.seed)
+    if resume:
+        # A resume must recompile the spec the run was started with, and
+        # `--days` is part of it. Left to the flag's default a fifteen-day
+        # run resumes as a five-day one, the config hash moves, and the
+        # run refuses to continue — correctly, but after the operator has
+        # already lost the time. The length is recoverable from the run
+        # itself, so recover it rather than asking twice.
+        stored = SqliteRunStore.open(args.out / "run.db").get_meta("days")
+        if stored is not None:
+            args.days = int(stored)
     spec = epoch_spec(days=args.days, version=args.version)
     compiled = compile_workplace(spec, seed)
     director = epoch_director(seed)
