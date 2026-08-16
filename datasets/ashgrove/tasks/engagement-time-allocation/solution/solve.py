@@ -71,18 +71,23 @@ def main() -> None:
     busiest = max(
         rows, key=lambda row: (row["hours"], row["person"], row["engagement"])
     )
+    # Firm totals come off the entries, not off the rounded rows. Adding a
+    # hundred and ninety-seven figures that have each been cut to two
+    # decimals drifts: 817.27 that way against 817.23 from the seconds.
+    # Both are defensible and the instruction used to say neither, so an
+    # agent with every row right lost both totals on a coin toss. It says
+    # so now, and this computes what it says.
+    total_seconds = sum(row["seconds"] for row in totals.values())
+    total_billable = sum(row["billable_seconds"] for row in totals.values())
+    total_cents = sum(row["cents"] for row in totals.values())
     OUT.write_text(
         json.dumps(
             {
                 "entries_total": sum(row["entries"] for row in rows),
                 "pairs": len(rows),
-                "total_hours": round(sum(row["hours"] for row in rows), 2),
-                "total_billable_hours": round(
-                    sum(row["billable_hours"] for row in rows), 2
-                ),
-                "total_fees_dollars": round(
-                    sum(row["fees_dollars"] for row in rows), 2
-                ),
+                "total_hours": round(total_seconds / 3600, 2),
+                "total_billable_hours": round(total_billable / 3600, 2),
+                "total_fees_dollars": round(total_cents / 100, 2),
                 "busiest_person": busiest["person"],
                 "busiest_engagement": busiest["engagement"],
                 "allocations": rows,

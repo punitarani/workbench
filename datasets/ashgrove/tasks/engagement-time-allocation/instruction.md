@@ -47,6 +47,14 @@ This is true even for the occasional billable entry with no rate on it.
 **Non-billable time still counts as time.** It belongs in `hours` and in
 `entries`, and stays out of `billable_hours` and `fees_dollars`.
 
+**Round once, at the end.** The four firm totals — `total_hours`,
+`total_billable_hours`, `total_fees_dollars` — are computed from the time
+entries themselves and rounded when they are written, **not** by adding up
+the rounded figures in `allocations`. Adding two hundred numbers that have
+each been cut to two decimals drifts away from the real total: the firm's
+hours come to `817.23` from the entries and `817.27` from the rounded
+rows, and only the first is the answer.
+
 ## A warning about completeness
 
 The firm's time runs to well over a thousand entries and the tools hand
