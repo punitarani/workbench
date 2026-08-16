@@ -348,8 +348,22 @@ def compile_workplace(
         )
         order += 1
 
+    # Personas are told the firm's own ticket vocabulary rather than
+    # guessing it. A hardcoded default of "Open, In Progress, Blocked,
+    # Closed" cost 31 rejected status changes in one half-epoch: the
+    # personas used the words they were given, and this firm calls them
+    # open, in-progress, waiting-client, review, closed.
+    vocabulary = (
+        "statuses: "
+        + ", ".join(spec.ticket_vocabulary.statuses)
+        + "; priorities: "
+        + ", ".join(spec.ticket_vocabulary.priorities)
+    )
     personas = tuple(
-        (_entity_name(person.person_id), person.persona)
+        (
+            _entity_name(person.person_id),
+            person.persona.model_copy(update={"ticket_vocabulary": vocabulary}),
+        )
         for person in spec.people
         if person.persona is not None
     )

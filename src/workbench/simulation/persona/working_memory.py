@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from workbench.core.actions import ActionSpec, EntityAction, IntentAction
 from workbench.core.events import Event
+from workbench.core.events.calendar import CalendarEventScheduledPayload
 from workbench.core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
@@ -88,7 +89,7 @@ class WorkingMemoryComponent(BaseComponent):
         clock = f"{seconds // 3600:02d}:{(seconds % 3600) // 60:02d}"
         # Bounded views: the most recent handful, not a lifetime inventory.
         documents = [
-            e.payload.path
+            f"{e.payload.path} ({e.payload.document_id})"
             for e in events
             if isinstance(e.payload, DocumentCreatedPayload)
         ][-10:]
@@ -97,8 +98,21 @@ class WorkingMemoryComponent(BaseComponent):
             for e in events
             if isinstance(e.payload, TicketCreatedPayload)
         ][-10:]
+        invitations = [
+            f"{e.payload.title} ({e.payload.calendar_event_id})"
+            for e in events
+            if isinstance(e.payload, CalendarEventScheduledPayload)
+            and self._person_id in e.payload.attendees
+        ][-8:]
+        # Name *and* id, here and above. Shown a name alone, a persona
+        # asked for a typed ref builds one out of it — `cnv-assurance` —
+        # and every post is rejected. Nothing then reaches the log for
+        # anyone to learn the real id from, so the firm's chat goes silent
+        # from a cold start it cannot recover from.
         channels = [
-            e.payload.name or e.payload.conversation_id
+            f"{e.payload.name} ({e.payload.conversation_id})"
+            if e.payload.name
+            else e.payload.conversation_id
             for e in events
             if isinstance(e.payload, ChatConversationCreatedPayload)
             and self._person_id in e.payload.members
@@ -116,6 +130,11 @@ class WorkingMemoryComponent(BaseComponent):
             lines.append("Tickets you know of: " + "; ".join(tickets))
         if channels:
             lines.append("Chat channels you can post in: " + "; ".join(channels))
+        # An invitation nobody can see is an invitation nobody answers. The
+        # first RSVPs in this engine's history named events invented out of
+        # their titles, because the id had never been put in front of anyone.
+        if invitations:
+            lines.append("Meetings you are invited to: " + "; ".join(invitations))
         total = len(self._pending_all())
         if total > PENDING_CAP:
             lines.append(
