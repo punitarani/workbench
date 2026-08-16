@@ -64,7 +64,7 @@ def scalar(workspace: Path, path: str, field: str, expected, tol: float = 0.0) -
     return _close(mine, expected, tol)
 
 
-@criterion(shared=True, description="{field} set, F1 against the truth")
+@criterion(shared=True, description="the row set, F1 against the truth")
 def flagged_f1(workspace: Path, path: str, expected: list) -> float:
     got = _submitted(workspace, path)
     if got is None:

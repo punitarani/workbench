@@ -17,7 +17,9 @@ compute.
 """
 
 import ast
+import inspect
 import json
+import re
 import sys
 import types
 from pathlib import Path
@@ -28,32 +30,93 @@ TASKS = sorted(p for p in (Path("datasets/ashgrove/tasks")).iterdir() if p.is_di
 
 
 def _stub(calls: list) -> types.ModuleType:
-    """A stand-in for rewardkit that records every criterion registration."""
+    """A stand-in for rewardkit that registers criteria the way it does.
+
+    Faithful on purpose. A permissive stub — one that accepts any name
+    with any arguments — passes every grading script ever written, and
+    three separate rollouts were spent discovering what it would have
+    caught in a second: a criterion called under a name nobody defined,
+    a call carrying one more positional argument than the criterion
+    takes, and a description template naming a parameter that had been
+    removed. Each is an import-time death in the verifier, so Harbor
+    reports RewardFileNotFoundError rather than a score, and the run is
+    paid for in full before anyone learns anything.
+
+    So this mimics the three things rewardkit does at registration:
+    resolve the name against the shared criteria, bind the caller's
+    arguments to the signature (less `workspace`, which the runner
+    injects), and format the description against that binding.
+    """
 
     module = types.ModuleType("rewardkit")
+    registered: dict[str, tuple] = {}
 
-    def criterion(*_args, **_kwargs):
-        return lambda fn: fn
+    def criterion(*_args, description: str | None = None, **_kwargs):
+        def decorate(fn):
+            registered[fn.__name__] = (fn, description)
+            return fn
+
+        return decorate
 
     def __getattr__(name: str):
-        def record(*args, **kwargs):
+        if name not in registered:
+            raise AttributeError(f"module 'rewardkit' has no attribute {name!r}")
+        fn, description = registered[name]
+        signature = inspect.Signature(
+            [
+                parameter
+                for parameter in inspect.signature(fn).parameters.values()
+                if parameter.name != "workspace"
+            ]
+        )
+
+        def register(*args, **kwargs):
+            own = {k: v for k, v in kwargs.items() if k not in ("name", "weight")}
+            bound = signature.bind_partial(*args, **own)
+            if description:
+                description.format(**{**kwargs, **bound.arguments})
             calls.append((name, args, kwargs))
 
-        return record
+        return register
 
     module.criterion = criterion
     module.__getattr__ = __getattr__
     return module
 
 
+def _exec(path: Path, namespace: dict | None = None) -> dict:
+    namespace = namespace or {"__file__": str(path), "__name__": path.stem}
+    namespace |= {"__file__": str(path), "__name__": path.stem}
+    exec(compile(path.read_text(), str(path), "exec"), namespace)
+    return namespace
+
+
 def _run(path: Path, calls: list) -> dict:
-    """Execute a grading script under the stub and return its namespace."""
+    """Execute one grading file against a stub that knows nothing yet."""
 
     sys.modules["rewardkit"] = _stub(calls)
     try:
-        namespace: dict = {"__file__": str(path), "__name__": path.stem}
-        exec(compile(path.read_text(), str(path), "exec"), namespace)
-        return namespace
+        return _exec(path)
+    finally:
+        del sys.modules["rewardkit"]
+
+
+def _run_task(task: Path, calls: list) -> dict:
+    """Load a task's criteria and then its scripts, sharing one module.
+
+    The verifier imports criteria.py and the grading scripts into the
+    same rewardkit, which is the whole reason `rk.name(...)` resolves at
+    all. Giving each file its own stub hid that: the scripts ran against
+    an empty registry and every name looked fine because nothing was
+    ever checked.
+    """
+
+    sys.modules["rewardkit"] = _stub(calls)
+    try:
+        criteria = _exec(task / "tests/criteria.py")
+        for script in (*_answer_scripts(task), *(task / "tests/process").glob("*.py")):
+            _exec(script)
+        return criteria
     finally:
         del sys.modules["rewardkit"]
 
@@ -150,6 +213,42 @@ def test_every_criterion_called_is_defined(task: Path) -> None:
 
 
 @pytest.mark.parametrize("task", TASKS, ids=lambda p: p.name)
+def test_criterion_descriptions_name_real_parameters(task: Path) -> None:
+    """A `{placeholder}` in a description must be one of the arguments.
+
+    rewardkit formats the description against the bound call, so a
+    template naming a parameter the function no longer takes raises
+    KeyError at registration — again at import, again no reward file,
+    again after the rollout is paid for. This is the third shape of the
+    same accident: `flagged_f1` replaced an `id_set_f1` that took a
+    `field`, the decorator above it kept saying `{field} set, F1 against
+    the truth`, and eleven minutes of agent produced no number.
+    """
+
+    tree = ast.parse((task / "tests/criteria.py").read_text())
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.FunctionDef):
+            continue
+        parameters = {a.arg for a in (*node.args.posonlyargs, *node.args.args)}
+        parameters |= {a.arg for a in node.args.kwonlyargs}
+        for decorator in node.decorator_list:
+            if not isinstance(decorator, ast.Call):
+                continue
+            for keyword in decorator.keywords:
+                if keyword.arg != "description":
+                    continue
+                if not isinstance(keyword.value, ast.Constant):
+                    continue
+                named = set(re.findall(r"{(\w+)}", str(keyword.value.value)))
+                unknown = sorted(named - parameters)
+                assert not unknown, (
+                    f"{task.name}: {node.name}'s description names "
+                    f"{unknown}, which it does not take; it takes "
+                    f"{sorted(parameters)}"
+                )
+
+
+@pytest.mark.parametrize("task", TASKS, ids=lambda p: p.name)
 def test_schema_check_matches_the_oracle(task: Path) -> None:
     """The required field set must be the oracle's, not a copy of it."""
 
@@ -174,9 +273,7 @@ def test_every_published_field_is_graded(task: Path) -> None:
 
     oracle = _oracle(task)
     calls: list = []
-    criteria = _run(task / "tests/criteria.py", calls)
-    for script in _answer_scripts(task):
-        _run(script, calls)
+    criteria = _run_task(task, calls)
 
     # The expected values are handed to the grader straight off the oracle,
     # so harvesting names from them would find every field by construction
