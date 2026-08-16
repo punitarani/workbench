@@ -310,10 +310,18 @@ class AuthorDocument(dspy.Signature):
     Match the form to the work:
       testing workpaper, tie-out, reconciliation, census, aging,
       sampling schedule, trial balance    -> spreadsheet (.xlsx)
-      memo, planning document, letter, management-letter comment,
-      independence confirmation, review note -> formatted (.docx, or
-                                              .pdf when it is issued)
-      board or audit-committee update        -> slides (.pptx)
+      an extract for someone else's system: recordkeeper data, a
+      general-ledger export, a client upload -> spreadsheet (.csv)
+      memo, planning document, review note, management-letter comment
+                                          -> formatted (.docx)
+      anything issued rather than edited further — a signed engagement
+      letter, a representation letter, a final report, a statement sent
+      to a client or a lender     -> formatted, with a .pdf path
+      board or audit-committee update     -> slides (.pptx)
+
+    The suffix follows that choice, and issued work really is issued: a
+    letter that leaves the firm is a PDF, not a draft someone can still
+    edit.
     """
 
     identity: str = dspy.InputField()

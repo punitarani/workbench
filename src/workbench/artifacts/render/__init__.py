@@ -49,6 +49,12 @@ def render_document(content_format: str, content: str, target: Path) -> RenderOu
                 parsed = parse_spreadsheet(content)
             except ValueError:
                 return _raw_fallback(content_format, content, target)
+            # A .csv is a real thing a firm exchanges — an export for a
+            # client's system, a recordkeeper extract — and it is the same
+            # tabular content without the workbook around it.
+            if target.suffix.lower() == ".csv":
+                _render_csv(parsed, target)
+                return RenderOutcome(path=target)
             _render_xlsx(parsed, target)
             return RenderOutcome(path=target)
         case "formatted":
@@ -103,6 +109,22 @@ def _sheet_title(name: str, used: set[str]) -> str:
         title = f"{stem}-{index}"
     used.add(title)
     return title
+
+
+def _render_csv(content: SpreadsheetContent, target: Path) -> None:
+    """The first sheet, flat. CSV carries no tabs and no formulas, so a
+    formula is written as the expression a spreadsheet would evaluate."""
+
+    import csv
+
+    sheet = content.sheets[0]
+    with target.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(list(sheet.columns))
+        for row in sheet.rows:
+            writer.writerow(
+                [cell.expression if isinstance(cell, Formula) else cell for cell in row]
+            )
 
 
 def _render_xlsx(content: SpreadsheetContent, target: Path) -> None:
