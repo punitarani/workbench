@@ -19,6 +19,7 @@ broken task, and this is the gate that says so before it is ever run.
 
 import asyncio
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -190,6 +191,43 @@ def unreachable(oracle: Any, state_dir: Path) -> list[str]:
     return sorted(
         value for value in wanted if _is_identifier(value) and value not in reachable
     )
+
+
+def solver_columns(solver: Path) -> dict[str, set[str]]:
+    """What the reference solver reads, table by column.
+
+    This is documentation, not a gate, and the distinction was expensive
+    to learn. ``unreachable`` checks the answer's nouns and deliberately
+    ignores derived numbers, which leaves a gap: a task can name only
+    reachable engagements while resting on a table nobody can read. The
+    regression task counted backward transitions out of ``matter_history``
+    when no clio tool returned a status change; Opus 5 scored 0.067 on an
+    unobtainable answer.
+
+    Two static gates for it were written and both were vacuous. A table's
+    values (``Open``, ``in-progress``, a person's name) all appear
+    elsewhere, so "some value is served" passes always; and every surface
+    renames columns on the way out (``quantity_seconds`` is served as
+    ``quantity``), so "the column name is served" fails always. What
+    actually caught the defect was a rollout and a reading of the score.
+
+    So this returns the solver's read set for a human to check against the
+    tool list, and the real gate stays where it belongs: any criterion
+    below 1.0 is a defect until the transcript says otherwise.
+    """
+
+    text = solver.read_text()
+    reads: dict[str, set[str]] = {}
+    for columns, table in re.findall(
+        r"SELECT\s+(.*?)\s+FROM\s+([a-z_][a-z0-9_]*)", text, re.IGNORECASE | re.DOTALL
+    ):
+        names = {
+            part.strip().split()[-1].strip('"')
+            for part in columns.split(",")
+            if part.strip() and "(" not in part
+        }
+        reads.setdefault(table.lower(), set()).update(names)
+    return reads
 
 
 def _is_identifier(value: str) -> bool:

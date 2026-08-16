@@ -131,6 +131,16 @@ class NoteRecord(BaseModel):
     author: PartyStub
 
 
+class HistoryRecord(BaseModel):
+    id: int
+    matter: MatterStub
+    field: str
+    old_value: str | None
+    new_value: str | None
+    date: str
+    user: PartyStub
+
+
 class UserRecord(BaseModel):
     id: int
     etag: str
@@ -152,6 +162,22 @@ STATUS_CHANGES = Query(
     _StatusChange,
     "SELECT ticket_id, new_value, time FROM matter_history "
     "WHERE field='status' ORDER BY time",
+)
+
+
+class _HistoryRow(BaseModel):
+    ticket_id: str
+    actor: str
+    field: str
+    old_value: str | None
+    new_value: str | None
+    time: int
+
+
+HISTORY = Query(
+    _HistoryRow,
+    "SELECT ticket_id, actor, field, old_value, new_value, time "
+    "FROM matter_history ORDER BY time, rowid",
 )
 
 
@@ -472,6 +498,45 @@ def register(server: MCPServer, db_path: Path) -> None:
                         display_number=matter.display_number,
                     ),
                     author=directory.party(note.author),
+                )
+            )
+        if matter_id is not None:
+            if not any(m.matter_number == matter_id for m in matters.values()):
+                raise UnknownRefError(f"no matter {matter_id}")
+            records = [r for r in records if r.matter.id == matter_id]
+        return _page(records)
+
+    @server.tool()
+    def list_matter_history(matter_id: int | None = None) -> dict:
+        """Every recorded change to a matter's fields, oldest first: what
+        the field was, what it became, who changed it, and when.
+
+        Without this the record only ever showed a matter's status now.
+        Anything about how it got there — reopened work, a stage repeated,
+        a priority raised — was in the database and reachable by nobody.
+        """
+
+        with connect_readonly(db_path) as connection:
+            directory = _Directory(connection)
+            matters = {m.ticket_id: m for m in MATTERS.select(connection)}
+            rows = HISTORY.run(connection)
+        records = []
+        for number, row in enumerate(rows, 1):
+            matter = matters.get(row.ticket_id)
+            if matter is None:
+                continue
+            records.append(
+                HistoryRecord(
+                    id=number,
+                    matter=MatterStub(
+                        id=matter.matter_number,
+                        display_number=matter.display_number,
+                    ),
+                    field=row.field,
+                    old_value=row.old_value,
+                    new_value=row.new_value,
+                    date=_iso_date(directory, row.time),
+                    user=directory.party(row.actor),
                 )
             )
         if matter_id is not None:
