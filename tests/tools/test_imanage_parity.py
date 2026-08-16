@@ -489,3 +489,20 @@ class TestPaginationCaps:
             bulk_server, "get_document_versions", document_id="LEGAL!1"
         )
         assert len(versions["data"]) == 1
+
+
+def test_a_bare_filename_does_not_become_its_own_workspace() -> None:
+    """Every document belongs to a workspace; a filename is not one.
+
+    An author who writes `brief.docx` with no folder had the file
+    materialize as the directory `brief.docx/brief.docx`, because the
+    workspace was taken as the first path segment and the only segment was
+    the file itself.
+    """
+
+    from workbench.tools.imanage.project import _workspace
+
+    assert _workspace("brief.docx") == "firm"
+    assert _workspace("/brief.docx") == "firm"
+    assert _workspace("engagements/fairmount/brief.docx") == "engagements"
+    assert _workspace("/legal/contracts/nda.docx") == "legal"

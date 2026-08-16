@@ -18,12 +18,28 @@ from workbench.core.events.documents import (
 )
 from workbench.tools.imanage.tables import DOCUMENTS, VERSIONS, Document, Version
 
-_FORMAT_EXTENSIONS = {"markdown": "md", "spreadsheet": "xlsx", "formatted": "docx"}
+_FORMAT_EXTENSIONS = {
+    "markdown": "md",
+    "spreadsheet": "xlsx",
+    "formatted": "docx",
+    "slides": "pptx",
+}
+# Where a document lands when its author gave a bare filename. Every
+# document belongs to some workspace in iManage; without this a path of
+# "brief.docx" made the file its own workspace and materialized as the
+# directory "brief.docx/brief.docx".
+_DEFAULT_WORKSPACE = "firm"
 
 
 def _workspace(path: str) -> str:
-    """The workspace is the top-level path segment: /legal/... -> legal."""
-    return path.strip("/").split("/")[0]
+    """The workspace is the top-level path segment: /legal/... -> legal.
+
+    A path with no directory at all has no workspace to name, so it goes to
+    the firm's own — never to a workspace named after the file.
+    """
+
+    segments = [segment for segment in path.strip("/").split("/") if segment]
+    return segments[0] if len(segments) > 1 else _DEFAULT_WORKSPACE
 
 
 def _extension(path: str, content_format: str) -> str:

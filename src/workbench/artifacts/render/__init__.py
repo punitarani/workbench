@@ -87,13 +87,32 @@ def _raw_fallback(content_format: str, content: str, target: Path) -> RenderOutc
     )
 
 
+# Excel forbids these in a sheet name and caps it at 31 characters. An
+# author who names a tab "Revenue/Expenses" is being reasonable; openpyxl
+# raises, and the whole materialization dies with it.
+_SHEET_FORBIDDEN = str.maketrans({c: "-" for c in "/\\*?:[]"})
+
+
+def _sheet_title(name: str, used: set[str]) -> str:
+    title = (name.translate(_SHEET_FORBIDDEN).strip() or "Sheet")[:31]
+    if title in used:
+        stem = title[:28]
+        index = 2
+        while f"{stem}-{index}" in used:
+            index += 1
+        title = f"{stem}-{index}"
+    used.add(title)
+    return title
+
+
 def _render_xlsx(content: SpreadsheetContent, target: Path) -> None:
     from openpyxl import Workbook
 
     workbook = Workbook()
     workbook.remove(workbook.active)
+    used: set[str] = set()
     for sheet in content.sheets:
-        worksheet = workbook.create_sheet(title=sheet.name)
+        worksheet = workbook.create_sheet(title=_sheet_title(sheet.name, used))
         worksheet.append(list(sheet.columns))
         for row in sheet.rows:
             # openpyxl writes a leading-"=" string as a real formula, which

@@ -88,3 +88,26 @@ def test_pdf_renders_without_any_external_converter(tmp_path: Path) -> None:
     assert outcome.path == tmp_path / "letter.pdf"
     assert outcome.skipped is None
     assert outcome.path.read_bytes().startswith(b"%PDF-")
+
+
+def test_sheet_titles_excel_would_reject_are_repaired(tmp_path: Path) -> None:
+    """An author naming a tab "Revenue/Expenses" is being reasonable.
+
+    openpyxl raises on the slash, and that exception took the whole
+    materialization of a world down with it.
+    """
+
+    content = SpreadsheetContent(
+        sheets=(
+            SpreadsheetSheet(name="Revenue/Expenses", columns=("A",), rows=(("1",),)),
+            SpreadsheetSheet(name="Revenue/Expenses", columns=("A",), rows=(("2",),)),
+            SpreadsheetSheet(name="X" * 40, columns=("A",), rows=(("3",),)),
+        )
+    ).canonical_json()
+
+    outcome = render_document("spreadsheet", content, tmp_path / "wp.xlsx")
+
+    from openpyxl import load_workbook
+
+    titles = load_workbook(outcome.path).sheetnames
+    assert titles == ["Revenue-Expenses", "Revenue-Expenses-2", "X" * 31]
