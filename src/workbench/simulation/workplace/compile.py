@@ -62,6 +62,23 @@ def _clock_to_seconds(clock: str) -> int:
     return int(hours) * 3600 + int(minutes) * 60
 
 
+def _recurrence_days(recurrence: str, days: int) -> tuple[int, ...]:
+    """Which sim days a standing meeting lands on.
+
+    Sim days are workdays, so "daily" is every day index and "weekly" is
+    every fifth — no calendar arithmetic, and no meeting on a Saturday
+    that the simulation does not have.
+    """
+
+    match recurrence:
+        case "daily":
+            return tuple(range(max(1, days)))
+        case "weekly":
+            return tuple(range(0, max(1, days), 5))
+        case _:
+            return (0,)
+
+
 class CompiledWorkplace(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -213,44 +230,50 @@ def compile_workplace(
     }
     seed_convenes: list[tuple[object, int]] = []
     for calendar_event in spec.seed_calendar:
-        calendar_id = minter.mint("cal")
-        start_seconds = _clock_to_seconds(calendar_event.start_clock)
-        end_seconds = _clock_to_seconds(calendar_event.end_clock)
-        payloads.append(
-            CalendarEventScheduledPayload(
-                kind="calendar.event.scheduled",
-                calendar_event_id=calendar_id,
-                organizer=calendar_event.organizer,
-                title=calendar_event.title,
-                start=start_seconds,
-                end=end_seconds,
-                attendees=calendar_event.attendees,
-                description=calendar_event.description,
-            )
-        )
-        # Genesis events never pass through GM consequences, so seed
-        # meetings convene from compile: same payload, scheduled at the
-        # event's start.
-        simulated = tuple(
-            _entity_name(person_id)
-            for person_id in calendar_event.attendees
-            if person_id in persona_people
-        )
-        if len(simulated) >= 2:
-            seed_convenes.append(
-                (
-                    SimMeetingConvenePayload(
-                        kind="sim.meeting.convene",
-                        meeting_id=minter.mint("mtg"),
-                        calendar_event_id=calendar_id,
-                        title=calendar_event.title,
-                        description=calendar_event.description or "",
-                        attendees=simulated,
-                        duration_seconds=max(60, end_seconds - start_seconds),
-                    ),
-                    start_seconds,
+        base_start = _clock_to_seconds(calendar_event.start_clock)
+        base_end = _clock_to_seconds(calendar_event.end_clock)
+        # A standing meeting is one spec row and many instances, each with
+        # its own id: sharing one id across days would make every RSVP and
+        # every transcript point at the same event.
+        for day in _recurrence_days(calendar_event.recurrence, spec.days):
+            calendar_id = minter.mint("cal")
+            start_seconds = day * 86_400 + base_start
+            end_seconds = day * 86_400 + base_end
+            payloads.append(
+                CalendarEventScheduledPayload(
+                    kind="calendar.event.scheduled",
+                    calendar_event_id=calendar_id,
+                    organizer=calendar_event.organizer,
+                    title=calendar_event.title,
+                    start=start_seconds,
+                    end=end_seconds,
+                    attendees=calendar_event.attendees,
+                    description=calendar_event.description,
                 )
             )
+            # Genesis events never pass through GM consequences, so seed
+            # meetings convene from compile: same payload, scheduled at the
+            # event's start.
+            simulated = tuple(
+                _entity_name(person_id)
+                for person_id in calendar_event.attendees
+                if person_id in persona_people
+            )
+            if len(simulated) >= 2:
+                seed_convenes.append(
+                    (
+                        SimMeetingConvenePayload(
+                            kind="sim.meeting.convene",
+                            meeting_id=minter.mint("mtg"),
+                            calendar_event_id=calendar_id,
+                            title=calendar_event.title,
+                            description=calendar_event.description or "",
+                            attendees=simulated,
+                            duration_seconds=max(60, end_seconds - start_seconds),
+                        ),
+                        start_seconds,
+                    )
+                )
 
     for ticket in spec.seed_tickets:
         payloads.append(

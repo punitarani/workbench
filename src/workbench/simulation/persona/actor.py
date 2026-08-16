@@ -385,15 +385,22 @@ class ProfessionalActorAct:
         # second version.
         if spec.revise_document_id and spec.revise_document_text:
             try:
+                intent = (
+                    "Review a colleague's work product. Read it as the "
+                    "reviewer of record: leave review notes where the "
+                    "evidence is thin, tighten conclusions the testing "
+                    "does not support, and sign off what stands. Keep "
+                    "their work; you are marking it up, not rewriting it."
+                    if spec.as_review
+                    else "Work this deliverable forward: clear review "
+                    "points, extend the testing, or bring it up to "
+                    "date with what the engagement now knows."
+                )
                 with dspy.context(lm=self._lm):
                     revision = await self._actor.draft_document.acall(
                         identity=identity,
                         document=spec.revise_document_text,
-                        intent=(
-                            "Work this deliverable forward: clear review "
-                            "points, extend the testing, or bring it up to "
-                            "date with what the engagement now knows."
-                        ),
+                        intent=intent,
                         context=context,
                     )
             except CassetteMissError, LMBudgetExceededError, LMTransportError:
@@ -592,12 +599,14 @@ class ProfessionalActorAct:
                     messages = email_thread(events, thread_ref)
                     if messages:
                         reply_to = messages[-1].message_id
+                known = self._memory.known_documents()
                 prediction = await self._actor.draft_email.acall(
                     identity=identity,
                     thread=thread_text,
                     intent=choice.intent,
                     established_facts=facts,
                     relevant_knowledge=knowledge,
+                    attachable_documents="; ".join(known) if known else "(none yet)",
                 )
                 return EmailIntent(
                     thread_ref=thread_ref,

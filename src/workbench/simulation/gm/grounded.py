@@ -487,25 +487,53 @@ class GroundedGm:
                 for ticket_id, values in self._world.tickets.items()
                 if values.get("assignee") != person
             ]
-            # Alternate authoring with revision, so drafts get reworked the
-            # way reviewed work actually is. The candidate is this person's
-            # own most recent document; its text comes from the log.
+            # Authoring, rework, and review in rotation. Reviewing a
+            # colleague's file is the branch that was missing: the earlier
+            # rule only ever handed a person their own draft back, so a
+            # firm of seventeen produced a hundred versions without a
+            # single second reader — and a practice's whole quality
+            # control was invisible in its own record.
             candidate: str | None = None
             text = ""
+            as_review = False
             if self._world.documents:
+                paths = self._world.document_paths_by_id
+                authors = self._world.document_authors
                 authored = [
                     document_id
-                    for document_id, path in self._world.document_paths_by_id.items()
-                    if self._world.document_authors.get(document_id) == person
+                    for document_id in paths
+                    if authors.get(document_id) == person
                 ]
-                if authored and len(authored) % 2 == 0:
+                colleagues = [
+                    document_id
+                    for document_id in paths
+                    if authors.get(document_id) not in (None, person)
+                ]
+                # Rotate on something that actually advances. Authorship
+                # never moves once a document exists, so a phase counted
+                # from "documents I wrote" sticks on whichever branch it
+                # first reaches — the old rule stuck on rework, which is
+                # why five files carry nine versions each and no file
+                # carries a second name. Total versions in the world moves
+                # with every create and every revision; the roster offset
+                # keeps seventeen people from all doing the same thing on
+                # the same morning.
+                roster = sorted(self._world.people)
+                offset = roster.index(person) if person in roster else 0
+                phase = (sum(self._world.documents.values()) + offset) % 3
+                if phase == 2 and authored:
                     candidate = authored[-1]
+                elif phase == 1 and colleagues:
+                    candidate = colleagues[offset % len(colleagues)]
+                    as_review = True
+                if candidate is not None:
                     text = self._world.document_heads.get(candidate, "")
             return DeliverableActionSpec(
                 day=event.payload.day,
                 engagements=tuple(mine + others)[:12],
                 revise_document_id=candidate,
                 revise_document_text=text,
+                as_review=as_review,
             )
         if isinstance(event.payload, SimCuePayload):
             return CueActionSpec(note=event.payload.note, topic=event.payload.topic)

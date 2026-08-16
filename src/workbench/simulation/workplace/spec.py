@@ -72,6 +72,14 @@ class SeedCalendarEvent(_Model):
     end_clock: str
     attendees: tuple[str, ...] = Field(min_length=1)
     description: str = ""
+    recurrence: Literal["once", "daily", "weekly"] = "once"
+    """How often the meeting sits on the calendar.
+
+    ``daily`` is every workday and ``weekly`` every fifth, because a sim
+    day is a workday — the clock never lands on a Saturday. Standing
+    meetings were unsayable before this field, so a firm of seventeen
+    held one meeting in ten days.
+    """
 
 
 class ExogenousEmail(_Model):

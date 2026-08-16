@@ -110,6 +110,13 @@ class DeliverableActionSpec(_Model):
     # document ever reaches a second version.
     revise_document_id: str | None = None
     revise_document_text: str = ""
+    # Whether this turn is a colleague's review rather than the author's
+    # own rework. A workpaper is not finished when its author stops
+    # typing; in a practice it is finished when someone else has been
+    # through it. The first ten-day world contained 34 documents, 101
+    # versions, and not one revision by a second pair of hands — so the
+    # firm's central control left no trace anyone could audit.
+    as_review: bool = False
 
 
 class IntentActionSpec(_Model):

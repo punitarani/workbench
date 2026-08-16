@@ -214,6 +214,13 @@ class DraftEmail(dspy.Signature):
     relevant_knowledge: str = dspy.InputField(
         desc="private knowledge with sharing guidance"
     )
+    attachable_documents: str = dspy.InputField(
+        desc=(
+            "work product in the repository, as 'path (doc- id)'. Put the "
+            "id in attachment_refs when the email sends one of these; "
+            "leave it empty otherwise. Never attach an id not listed here."
+        )
+    )
     draft: EmailDraft = dspy.OutputField()
 
 

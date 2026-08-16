@@ -439,6 +439,9 @@ def epoch_spec(days: int = 194, *, version: int = 2) -> WorkplaceSpec:
             "channels": channels,
             "seed_documents": documents,
             "seed_tickets": tickets,
+            # A practice runs on standing meetings. Before recurrence
+            # existed this was one event on one morning, and seventeen
+            # people held a single meeting in ten workdays.
             "seed_calendar": (
                 SeedCalendarEvent(
                     organizer="per-imogen-carraway",
@@ -448,10 +451,59 @@ def epoch_spec(days: int = 194, *, version: int = 2) -> WorkplaceSpec:
                     attendees=(
                         "per-imogen-carraway",
                         "per-hana-sato",
-                        "per-elias-finch",
+                        "per-theo-brandt",
                         "per-freya-holt",
                     ),
                     description="Fieldwork status, blockers, and review queue.",
+                    recurrence="daily",
+                ),
+                SeedCalendarEvent(
+                    organizer="per-victor-alade",
+                    title="Tax desk huddle",
+                    start_clock="09:30",
+                    end_clock="09:50",
+                    attendees=(
+                        "per-victor-alade",
+                        "per-desmond-ortiz",
+                        "per-lucia-mendes",
+                        "per-nadia-osman",
+                    ),
+                    description="Returns in progress, review notes, client chasers.",
+                    recurrence="daily",
+                ),
+                SeedCalendarEvent(
+                    organizer="per-rosalind-calder",
+                    title="Partner engagement review",
+                    start_clock="15:00",
+                    end_clock="16:00",
+                    attendees=(
+                        "per-rosalind-calder",
+                        "per-elias-finch",
+                        "per-hana-sato",
+                        "per-victor-alade",
+                        "per-imogen-carraway",
+                        "per-owen-castile",
+                    ),
+                    description=(
+                        "Engagement status, budget overruns, WIP and billing "
+                        "decisions, staffing for the fortnight."
+                    ),
+                    recurrence="weekly",
+                ),
+                SeedCalendarEvent(
+                    organizer="per-gabriel-fontes",
+                    title="Client accounting close check-in",
+                    start_clock="11:00",
+                    end_clock="11:30",
+                    attendees=(
+                        "per-gabriel-fontes",
+                        "per-sylvia-nakamura",
+                        "per-colin-mackey",
+                        "per-priscilla-wong",
+                        "per-maya-lindqvist",
+                    ),
+                    description="Monthly closes, payroll runs, and open client items.",
+                    recurrence="weekly",
                 ),
             ),
             "day_script": (),

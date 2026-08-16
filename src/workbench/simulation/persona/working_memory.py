@@ -91,11 +91,7 @@ class WorkingMemoryComponent(BaseComponent):
         seconds = now % 86_400
         clock = f"{seconds // 3600:02d}:{(seconds % 3600) // 60:02d}"
         # Bounded views: the most recent handful, not a lifetime inventory.
-        documents = [
-            f"{e.payload.path} ({e.payload.document_id})"
-            for e in events
-            if isinstance(e.payload, DocumentCreatedPayload)
-        ][-10:]
+        documents = self.known_documents()
         tickets = [
             f"{e.payload.ticket_id}: {e.payload.title}"
             for e in events
@@ -111,12 +107,21 @@ class WorkingMemoryComponent(BaseComponent):
             if isinstance(e.payload, CalendarResponsePayload)
             and e.payload.responder == self._person_id
         }
+        # And only the ones near enough to matter. A standing meeting
+        # compiles to one event per workday, so the whole fortnight of
+        # them sat in this list at once: personas spent the day RSVPing
+        # to a standup a week out, and the firm's chat fell from 94
+        # messages a day to 9. A calendar shows you this week, not the
+        # quarter.
+        horizon = now + 2 * 86_400
         invitations = [
             f"{e.payload.title} ({e.payload.calendar_event_id})"
             for e in events
             if isinstance(e.payload, CalendarEventScheduledPayload)
             and self._person_id in e.payload.attendees
             and e.payload.calendar_event_id not in answered
+            and int(e.payload.end) >= now
+            and int(e.payload.start) <= horizon
         ][-8:]
         # Name *and* id, here and above. Shown a name alone, a persona
         # asked for a typed ref builds one out of it — `cnv-assurance` —
@@ -183,6 +188,22 @@ class WorkingMemoryComponent(BaseComponent):
 
     def events(self) -> tuple[Event, ...]:
         return self._require_hydrated()
+
+    def known_documents(self) -> list[str]:
+        """Work product this person could attach, by path and doc- id.
+
+        The drafting prompt tells personas to attach the file rather than
+        describe it, and for ten days nobody did: four attachments across
+        three hundred emails. The instruction was never the problem — the
+        draft call was simply never shown an id to attach. A firm whose
+        workpapers never travel is not an accounting firm.
+        """
+
+        return [
+            f"{e.payload.path} ({e.payload.document_id})"
+            for e in self._require_hydrated()
+            if isinstance(e.payload, DocumentCreatedPayload)
+        ][-10:]
 
     def facts(self) -> tuple[str, ...]:
         return self._facts
