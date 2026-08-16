@@ -1,91 +1,379 @@
 {
- "clients": 9,
- "inbound_total": 120,
- "unanswered_total": 6,
- "firm_median_reply_hours": 0.08,
- "slowest_client": "Nora Behrens",
- "client_rows": [
+ "threads_reviewed": 47,
+ "threads_with_client_inbound": 41,
+ "inbound_total": 112,
+ "unanswered_total": 9,
+ "firm_median_reply_hours": 0.33,
+ "slowest_thread": "thr-000014",
+ "threads": [
   {
-   "client": "Adaeze Okonkwo",
-   "inbound": 8,
-   "answered": 7,
-   "unanswered_message_ids": [
-    "msg-000145"
-   ],
-   "median_reply_hours": 0.08,
-   "longest_reply_hours": 1.83
+   "thread_id": "thr-000001",
+   "client": "Tomas Lindgren",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
   },
   {
-   "client": "Desmond Blakely",
-   "inbound": 12,
-   "answered": 12,
-   "unanswered_message_ids": [],
-   "median_reply_hours": 0.08,
-   "longest_reply_hours": 2.75
-  },
-  {
-   "client": "Garrett Poole",
-   "inbound": 8,
-   "answered": 8,
-   "unanswered_message_ids": [],
-   "median_reply_hours": 0.17,
-   "longest_reply_hours": 4.5
-  },
-  {
+   "thread_id": "thr-000002",
    "client": "Harriet Vance",
-   "inbound": 22,
-   "answered": 22,
-   "unanswered_message_ids": [],
-   "median_reply_hours": 0.08,
-   "longest_reply_hours": 16.42
+   "messages": 6,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
   },
   {
-   "client": "Idris Mensah",
-   "inbound": 24,
-   "answered": 21,
-   "unanswered_message_ids": [
-    "msg-000224",
-    "msg-000327",
-    "msg-000328"
-   ],
-   "median_reply_hours": 0.08,
-   "longest_reply_hours": 15.92
-  },
-  {
+   "thread_id": "thr-000003",
    "client": "Lucia Arroyo",
-   "inbound": 14,
-   "answered": 13,
-   "unanswered_message_ids": [
-    "msg-000033"
-   ],
-   "median_reply_hours": 0.08,
+   "messages": 8,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
+  },
+  {
+   "thread_id": "thr-000004",
+   "client": "Nora Behrens",
+   "messages": 12,
+   "inbound": 3,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
+  },
+  {
+   "thread_id": "thr-000007",
+   "client": "Desmond Blakely",
+   "messages": 10,
+   "inbound": 5,
+   "unanswered": 1,
+   "first_reply_hours": 0.5,
+   "longest_reply_hours": 0.58
+  },
+  {
+   "thread_id": "thr-000008",
+   "client": "Idris Mensah",
+   "messages": 7,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 1.0,
+   "longest_reply_hours": 1.0
+  },
+  {
+   "thread_id": "thr-000009",
+   "client": "Desmond Blakely",
+   "messages": 12,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.5,
+   "longest_reply_hours": 0.5
+  },
+  {
+   "thread_id": "thr-000010",
+   "client": "Garrett Poole",
+   "messages": 12,
+   "inbound": 3,
+   "unanswered": 0,
+   "first_reply_hours": 1.0,
+   "longest_reply_hours": 21.92
+  },
+  {
+   "thread_id": "thr-000011",
+   "client": "Harriet Vance",
+   "messages": 1,
+   "inbound": 1,
+   "unanswered": 1,
+   "first_reply_hours": 0.0,
+   "longest_reply_hours": 0.0
+  },
+  {
+   "thread_id": "thr-000013",
+   "client": "Priya Raman",
+   "messages": 13,
+   "inbound": 3,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
    "longest_reply_hours": 2.92
   },
   {
+   "thread_id": "thr-000014",
    "client": "Nora Behrens",
-   "inbound": 8,
-   "answered": 8,
-   "unanswered_message_ids": [],
-   "median_reply_hours": 0.08,
-   "longest_reply_hours": 25.42
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 118.5,
+   "longest_reply_hours": 118.5
   },
   {
-   "client": "Priya Raman",
-   "inbound": 9,
-   "answered": 8,
-   "unanswered_message_ids": [
-    "msg-000177"
-   ],
-   "median_reply_hours": 0.42,
-   "longest_reply_hours": 0.75
+   "thread_id": "thr-000015",
+   "client": "Lucia Arroyo",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.25
   },
   {
+   "thread_id": "thr-000016",
+   "client": "Adaeze Okonkwo",
+   "messages": 12,
+   "inbound": 5,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 2.42
+  },
+  {
+   "thread_id": "thr-000018",
+   "client": "Harriet Vance",
+   "messages": 10,
+   "inbound": 4,
+   "unanswered": 0,
+   "first_reply_hours": 0.5,
+   "longest_reply_hours": 43.42
+  },
+  {
+   "thread_id": "thr-000019",
    "client": "Tomas Lindgren",
-   "inbound": 15,
-   "answered": 15,
-   "unanswered_message_ids": [],
-   "median_reply_hours": 0.08,
-   "longest_reply_hours": 1.83
+   "messages": 3,
+   "inbound": 2,
+   "unanswered": 1,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
+  },
+  {
+   "thread_id": "thr-000020",
+   "client": "Idris Mensah",
+   "messages": 12,
+   "inbound": 4,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 15.92
+  },
+  {
+   "thread_id": "thr-000022",
+   "client": "Lucia Arroyo",
+   "messages": 12,
+   "inbound": 5,
+   "unanswered": 0,
+   "first_reply_hours": 3.5,
+   "longest_reply_hours": 16.92
+  },
+  {
+   "thread_id": "thr-000023",
+   "client": "Idris Mensah",
+   "messages": 10,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.83
+  },
+  {
+   "thread_id": "thr-000024",
+   "client": "Tomas Lindgren",
+   "messages": 5,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 1.0,
+   "longest_reply_hours": 1.0
+  },
+  {
+   "thread_id": "thr-000025",
+   "client": "Idris Mensah",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 2.0,
+   "longest_reply_hours": 3.92
+  },
+  {
+   "thread_id": "thr-000026",
+   "client": "Garrett Poole",
+   "messages": 11,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 2.75,
+   "longest_reply_hours": 2.75
+  },
+  {
+   "thread_id": "thr-000028",
+   "client": "Desmond Blakely",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 3.33
+  },
+  {
+   "thread_id": "thr-000029",
+   "client": "Harriet Vance",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
+  },
+  {
+   "thread_id": "thr-000030",
+   "client": "Harriet Vance",
+   "messages": 9,
+   "inbound": 4,
+   "unanswered": 0,
+   "first_reply_hours": 1.0,
+   "longest_reply_hours": 15.92
+  },
+  {
+   "thread_id": "thr-000031",
+   "client": "Idris Mensah",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.5,
+   "longest_reply_hours": 0.5
+  },
+  {
+   "thread_id": "thr-000032",
+   "client": "Tomas Lindgren",
+   "messages": 6,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 23.5,
+   "longest_reply_hours": 23.5
+  },
+  {
+   "thread_id": "thr-000034",
+   "client": "Harriet Vance",
+   "messages": 12,
+   "inbound": 6,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 5.75
+  },
+  {
+   "thread_id": "thr-000035",
+   "client": "Lucia Arroyo",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 24.58,
+   "longest_reply_hours": 24.58
+  },
+  {
+   "thread_id": "thr-000036",
+   "client": "Garrett Poole",
+   "messages": 13,
+   "inbound": 5,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 1.67
+  },
+  {
+   "thread_id": "thr-000037",
+   "client": "Idris Mensah",
+   "messages": 11,
+   "inbound": 5,
+   "unanswered": 0,
+   "first_reply_hours": 0.5,
+   "longest_reply_hours": 4.92
+  },
+  {
+   "thread_id": "thr-000040",
+   "client": "Harriet Vance",
+   "messages": 11,
+   "inbound": 4,
+   "unanswered": 1,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
+  },
+  {
+   "thread_id": "thr-000041",
+   "client": "Harriet Vance",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
+  },
+  {
+   "thread_id": "thr-000042",
+   "client": "Tomas Lindgren",
+   "messages": 3,
+   "inbound": 2,
+   "unanswered": 1,
+   "first_reply_hours": 3.0,
+   "longest_reply_hours": 3.0
+  },
+  {
+   "thread_id": "thr-000043",
+   "client": "Idris Mensah",
+   "messages": 6,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.17,
+   "longest_reply_hours": 0.17
+  },
+  {
+   "thread_id": "thr-000044",
+   "client": "Desmond Blakely",
+   "messages": 3,
+   "inbound": 2,
+   "unanswered": 1,
+   "first_reply_hours": 1.0,
+   "longest_reply_hours": 1.0
+  },
+  {
+   "thread_id": "thr-000045",
+   "client": "Lucia Arroyo",
+   "messages": 1,
+   "inbound": 1,
+   "unanswered": 1,
+   "first_reply_hours": 0.0,
+   "longest_reply_hours": 0.0
+  },
+  {
+   "thread_id": "thr-000046",
+   "client": "Desmond Blakely",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 1.58,
+   "longest_reply_hours": 1.58
+  },
+  {
+   "thread_id": "thr-000047",
+   "client": "Nora Behrens",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
+  },
+  {
+   "thread_id": "thr-000048",
+   "client": "Tomas Lindgren",
+   "messages": 4,
+   "inbound": 2,
+   "unanswered": 0,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.33
+  },
+  {
+   "thread_id": "thr-000049",
+   "client": "Harriet Vance",
+   "messages": 7,
+   "inbound": 4,
+   "unanswered": 1,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.67
+  },
+  {
+   "thread_id": "thr-000050",
+   "client": "Idris Mensah",
+   "messages": 3,
+   "inbound": 2,
+   "unanswered": 1,
+   "first_reply_hours": 0.08,
+   "longest_reply_hours": 0.08
   }
  ]
 }

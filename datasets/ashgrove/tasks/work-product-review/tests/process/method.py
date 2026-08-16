@@ -2,4 +2,4 @@
 
 import rewardkit as rk
 
-rk.schema_ok("follow_through.json", name="deliverable_schema", weight=1.0)
+rk.schema_ok("work_product_review.json", name="deliverable_schema", weight=1.0)

@@ -1,120 +1,125 @@
 {
  "client_engagements": 10,
  "status_counts": {
-  "awaiting_firm_reply": 4,
-  "clear": 6
+  "awaiting_firm_reply": 6,
+  "clear": 4
  },
  "awaiting_firm_reply": [
+  "00001-FairmountCommunityFoundation",
+  "00002-FairmountCommunityFoundation",
+  "00003-RivergateHousingTrust",
   "00005-CardinalRidgeBuilders",
-  "00006-NorthwindSoftware",
-  "00008-MeridianFamilyHealth",
+  "00007-HarborLightDistribution",
   "00009-StonebridgePropertyGroup"
  ],
- "longest_waiting_engagement": "00009-StonebridgePropertyGroup",
- "wip_at_risk_dollars": 35097.6,
+ "longest_waiting_engagement": "00003-RivergateHousingTrust",
+ "wip_at_risk_dollars": 74385.0,
  "at_risk_over_10k": [
-  "00006-NorthwindSoftware"
+  "00001-FairmountCommunityFoundation",
+  "00002-FairmountCommunityFoundation",
+  "00003-RivergateHousingTrust",
+  "00007-HarborLightDistribution"
  ],
  "engagements": [
   {
    "engagement": "00001-FairmountCommunityFoundation",
    "client_contact": "Harriet Vance",
    "responsible": "Imogen Carraway",
-   "total_hours": 95.23,
+   "total_hours": 80.1,
    "staff_count": 17,
-   "status": "clear",
-   "client_waiting_hours": 0.0,
-   "wip_dollars": 20741.47
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 242.6,
+   "wip_dollars": 16250.34
   },
   {
    "engagement": "00002-FairmountCommunityFoundation",
    "client_contact": "Harriet Vance",
    "responsible": "Imogen Carraway",
-   "total_hours": 63.95,
+   "total_hours": 65.48,
    "staff_count": 17,
-   "status": "clear",
-   "client_waiting_hours": 0.0,
-   "wip_dollars": 15023.99
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 242.6,
+   "wip_dollars": 15778.4
   },
   {
    "engagement": "00003-RivergateHousingTrust",
    "client_contact": "Desmond Blakely",
    "responsible": "Elias Finch",
-   "total_hours": 65.67,
+   "total_hours": 57.52,
    "staff_count": 17,
-   "status": "clear",
-   "client_waiting_hours": 0.0,
-   "wip_dollars": 15817.5
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 263.0,
+   "wip_dollars": 12054.3
   },
   {
    "engagement": "00004-KestrelManufacturing",
    "client_contact": "Nora Behrens",
    "responsible": "Hana Sato",
-   "total_hours": 65.33,
-   "staff_count": 13,
+   "total_hours": 67.77,
+   "staff_count": 17,
    "status": "clear",
    "client_waiting_hours": 0.0,
-   "wip_dollars": 12848.81
+   "wip_dollars": 15568.34
   },
   {
    "engagement": "00005-CardinalRidgeBuilders",
    "client_contact": "Idris Mensah",
    "responsible": "Elias Finch",
-   "total_hours": 24.78,
-   "staff_count": 10,
+   "total_hours": 15.72,
+   "staff_count": 11,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 172.2,
-   "wip_dollars": 6349.57
+   "client_waiting_hours": 0.9,
+   "wip_dollars": 4187.08
   },
   {
    "engagement": "00006-NorthwindSoftware",
    "client_contact": "Priya Raman",
    "responsible": "Victor Alade",
-   "total_hours": 64.28,
+   "total_hours": 153.82,
    "staff_count": 17,
-   "status": "awaiting_firm_reply",
-   "client_waiting_hours": 195.9,
-   "wip_dollars": 15491.57
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 34939.68
   },
   {
    "engagement": "00007-HarborLightDistribution",
    "client_contact": "Tomas Lindgren",
    "responsible": "Hana Sato",
-   "total_hours": 79.95,
-   "staff_count": 14,
-   "status": "clear",
-   "client_waiting_hours": 0.0,
-   "wip_dollars": 19681.58
+   "total_hours": 81.52,
+   "staff_count": 16,
+   "status": "awaiting_firm_reply",
+   "client_waiting_hours": 217.9,
+   "wip_dollars": 20137.28
   },
   {
    "engagement": "00008-MeridianFamilyHealth",
    "client_contact": "Adaeze Okonkwo",
    "responsible": "Colin Mackey",
-   "total_hours": 21.4,
-   "staff_count": 12,
-   "status": "awaiting_firm_reply",
-   "client_waiting_hours": 216.2,
-   "wip_dollars": 4299.55
+   "total_hours": 17.23,
+   "staff_count": 13,
+   "status": "clear",
+   "client_waiting_hours": 0.0,
+   "wip_dollars": 3967.25
   },
   {
    "engagement": "00009-StonebridgePropertyGroup",
    "client_contact": "Lucia Arroyo",
    "responsible": "Elias Finch",
-   "total_hours": 36.7,
-   "staff_count": 10,
+   "total_hours": 27.1,
+   "staff_count": 11,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 266.2,
-   "wip_dollars": 8956.91
+   "client_waiting_hours": 6.6,
+   "wip_dollars": 5977.6
   },
   {
    "engagement": "00010-AshfieldPensionTrust",
    "client_contact": "Garrett Poole",
    "responsible": "Hana Sato",
-   "total_hours": 11.0,
-   "staff_count": 11,
+   "total_hours": 9.3,
+   "staff_count": 10,
    "status": "clear",
    "client_waiting_hours": 0.0,
-   "wip_dollars": 2959.95
+   "wip_dollars": 2812.95
   }
  ]
 }

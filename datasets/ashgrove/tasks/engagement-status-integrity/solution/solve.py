@@ -9,6 +9,12 @@ Two traps. `waiting-client` is a hold with no place in the progression,
 so changes into and out of it are changes without being backward moves.
 And the record does not capitalise statuses consistently — the seed says
 `Open`, the personas write `open` — so every comparison folds case.
+
+Time is counted in whole days on purpose. Clio dates a time entry and a
+field change; it never stamps an hour on either, here or in the real
+product. An earlier draft of this task asked for the hours logged after
+the *moment* of a backward move, which the oracle could compute from the
+world's seconds and no agent could ever recover from the tools.
 """
 
 import json
@@ -64,9 +70,12 @@ def main() -> None:
     for ticket, matter in sorted(matters.items(), key=lambda kv: kv[1]["engagement"]):
         if not backward.get(ticket):
             continue
-        since = first_backward[ticket]
+        # Whole days, because that is the resolution the tools serve.
+        since_day = first_backward[ticket] // 86_400
         seconds = sum(
-            quantity for when, quantity in activity.get(ticket, ()) if when > since
+            quantity
+            for when, quantity in activity.get(ticket, ())
+            if when // 86_400 >= since_day
         )
         flagged.append(
             {
@@ -75,7 +84,7 @@ def main() -> None:
                 "status_changes": changes.get(ticket, 0),
                 "backward_moves": backward[ticket],
                 "reopened": ticket in reopened,
-                "hours_after_first_backward": round(seconds / 3600, 2),
+                "hours_from_backward_day": round(seconds / 3600, 2),
             }
         )
 

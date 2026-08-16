@@ -1,35 +1,35 @@
 {
- "threads_reviewed": 50,
+ "threads_reviewed": 47,
  "awaiting_firm_count": 4,
- "closed_by_client_courtesy": 2,
+ "closed_by_client_courtesy": 5,
  "awaiting_firm": [
   {
-   "thread_id": "thr-000003",
-   "message_id": "msg-000033",
-   "client": "Lucia Arroyo",
-   "subject": "Notification template draft for new site openings",
-   "messages_in_thread": 12
-  },
-  {
-   "thread_id": "thr-000025",
-   "message_id": "msg-000224",
-   "client": "Idris Mensah",
-   "subject": "Revised surety audit schedule \u2014 as committed",
-   "messages_in_thread": 12
-  },
-  {
-   "thread_id": "thr-000037",
-   "message_id": "msg-000328",
-   "client": "Idris Mensah",
-   "subject": "Percentage-of-completion on Creekside and Hartwell jobs",
-   "messages_in_thread": 12
-  },
-  {
-   "thread_id": "thr-000043",
-   "message_id": "msg-000327",
-   "client": "Idris Mensah",
-   "subject": "Surety deadline \u2014 reviewed statements earlier this year",
+   "thread_id": "thr-000011",
+   "message_id": "msg-000054",
+   "client": "Harriet Vance",
+   "subject": "Audit timeline for March board meeting",
    "messages_in_thread": 1
+  },
+  {
+   "thread_id": "thr-000040",
+   "message_id": "msg-000286",
+   "client": "Harriet Vance",
+   "subject": "Audited statements \u2014 timing for the bank",
+   "messages_in_thread": 11
+  },
+  {
+   "thread_id": "thr-000045",
+   "message_id": "msg-000304",
+   "client": "Lucia Arroyo",
+   "subject": "Refreshing the internal controls memo",
+   "messages_in_thread": 1
+  },
+  {
+   "thread_id": "thr-000049",
+   "message_id": "msg-000331",
+   "client": "Harriet Vance",
+   "subject": "Audited statements timeline for the bank \u2013 final commitment sent",
+   "messages_in_thread": 7
   }
  ]
 }

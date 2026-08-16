@@ -1,8 +1,14 @@
-"""Reference solver: how fast the firm answers its clients.
+"""Reference solver: how fast the firm answers its clients, thread by thread.
 
-A message counts as answered when someone inside the firm writes into
-the same thread after it. Consecutive client messages are the trap: only
-the firm's next message closes them, and it closes all of them at once.
+A message counts as answered when someone inside the firm writes into the
+same thread after it. Consecutive client messages are the trap: only the
+firm's next message closes them, and it closes all of them at once.
+
+Reported per conversation rather than per client. Nine clients make nine
+rows, and a nine-row answer is graded as a verdict on the rule — every
+rollout of the per-client version came back exactly 1.000. A practice
+manager reads this thread by thread anyway: the question is which
+conversation is sitting unanswered, not which client is on average slow.
 """
 
 import json
@@ -45,60 +51,56 @@ def main() -> None:
         )
     }
     names = dict(gmail.execute("SELECT person_id, name FROM people"))
-    messages = list(
-        gmail.execute(
-            "SELECT message_id, thread_id, sender, time FROM messages "
-            "ORDER BY time, message_id"
-        )
-    )
     threads: dict[str, list] = defaultdict(list)
-    for row in messages:
+    for row in gmail.execute(
+        "SELECT message_id, thread_id, sender, time FROM messages "
+        "ORDER BY time, message_id"
+    ):
         threads[row[1]].append(row)
 
-    per_client: dict[str, dict] = defaultdict(
-        lambda: {"inbound": 0, "answered": 0, "waits": [], "unanswered": []}
-    )
-    for thread in threads.values():
-        for index, (message_id, _thread_id, sender, when) in enumerate(thread):
-            if sender not in clients:
+    rows = []
+    all_waits: list[float] = []
+    for thread_id, thread in sorted(threads.items()):
+        inbound = [m for m in thread if m[2] in clients]
+        if not inbound:
+            continue
+        unanswered = 0
+        waits: list[float] = []
+        for index, (_message_id, _t, _sender, when) in enumerate(thread):
+            if thread[index][2] not in clients:
                 continue
-            row = per_client[sender]
-            row["inbound"] += 1
             reply = next((m for m in thread[index + 1 :] if m[2] not in external), None)
             if reply is None:
-                row["unanswered"].append(message_id)
+                unanswered += 1
             else:
-                row["answered"] += 1
-                row["waits"].append((reply[3] - when) / 3600)
-
-    rows = []
-    for person, row in sorted(
-        per_client.items(), key=lambda kv: names.get(kv[0], kv[0])
-    ):
+                waits.append((reply[3] - when) / 3600)
+        all_waits.extend(waits)
         rows.append(
             {
-                "client": names.get(person, person),
-                "inbound": row["inbound"],
-                "answered": row["answered"],
-                "unanswered_message_ids": sorted(row["unanswered"]),
-                "median_reply_hours": round(_median(row["waits"]), 2),
-                "longest_reply_hours": round(max(row["waits"]), 2)
-                if row["waits"]
-                else 0.0,
+                "thread_id": thread_id,
+                "client": names.get(inbound[0][2], inbound[0][2]),
+                "messages": len(thread),
+                "inbound": len(inbound),
+                "unanswered": unanswered,
+                "first_reply_hours": round(waits[0], 2) if waits else 0.0,
+                "longest_reply_hours": round(max(waits), 2) if waits else 0.0,
             }
         )
-    all_waits = [w for row in per_client.values() for w in row["waits"]]
+
     OUT.write_text(
         json.dumps(
             {
-                "clients": len(rows),
-                "inbound_total": sum(c["inbound"] for c in rows),
-                "unanswered_total": sum(len(c["unanswered_message_ids"]) for c in rows),
+                "threads_reviewed": len(threads),
+                "threads_with_client_inbound": len(rows),
+                "inbound_total": sum(row["inbound"] for row in rows),
+                "unanswered_total": sum(row["unanswered"] for row in rows),
                 "firm_median_reply_hours": round(_median(all_waits), 2),
-                "slowest_client": max(rows, key=lambda c: c["longest_reply_hours"])[
-                    "client"
-                ],
-                "client_rows": rows,
+                "slowest_thread": max(
+                    rows, key=lambda row: (row["longest_reply_hours"], row["thread_id"])
+                )["thread_id"]
+                if rows
+                else "",
+                "threads": rows,
             },
             indent=1,
         )

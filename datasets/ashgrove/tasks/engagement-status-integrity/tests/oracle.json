@@ -1,56 +1,40 @@
 {
- "engagements_reviewed": 12,
- "reopened_count": 5,
- "backward_move_count": 12,
- "never_moved_count": 3,
+ "engagements_reviewed": 13,
+ "reopened_count": 4,
+ "backward_move_count": 4,
+ "never_moved_count": 1,
  "flagged": [
   {
    "engagement": "00001-FairmountCommunityFoundation",
    "status": "In-progress",
-   "status_changes": 7,
-   "backward_moves": 2,
+   "status_changes": 4,
+   "backward_moves": 1,
    "reopened": true,
-   "hours_after_first_backward": 64.07
-  },
-  {
-   "engagement": "00002-FairmountCommunityFoundation",
-   "status": "Review",
-   "status_changes": 6,
-   "backward_moves": 2,
-   "reopened": false,
-   "hours_after_first_backward": 15.17
+   "hours_from_backward_day": 36.92
   },
   {
    "engagement": "00004-KestrelManufacturing",
    "status": "Review",
-   "status_changes": 9,
-   "backward_moves": 3,
+   "status_changes": 3,
+   "backward_moves": 1,
    "reopened": true,
-   "hours_after_first_backward": 49.83
+   "hours_from_backward_day": 1.8
   },
   {
    "engagement": "00006-NorthwindSoftware",
-   "status": "Review",
-   "status_changes": 2,
+   "status": "Closed",
+   "status_changes": 6,
    "backward_moves": 1,
    "reopened": true,
-   "hours_after_first_backward": 30.7
+   "hours_from_backward_day": 145.37
   },
   {
-   "engagement": "00009-StonebridgePropertyGroup",
-   "status": "In-progress",
+   "engagement": "00013-Brandt",
+   "status": "Closed",
    "status_changes": 6,
-   "backward_moves": 2,
+   "backward_moves": 1,
    "reopened": true,
-   "hours_after_first_backward": 14.52
-  },
-  {
-   "engagement": "00011-Shaw",
-   "status": "Review",
-   "status_changes": 6,
-   "backward_moves": 2,
-   "reopened": true,
-   "hours_after_first_backward": 91.13
+   "hours_from_backward_day": 10.83
   }
  ]
 }

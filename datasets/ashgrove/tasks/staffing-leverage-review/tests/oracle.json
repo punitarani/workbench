@@ -1,114 +1,115 @@
 {
  "engagements_reviewed": 10,
- "firm_leverage_ratio": 1.4,
+ "firm_leverage_ratio": 1.47,
  "over_supervised": [
   "00001-FairmountCommunityFoundation",
   "00002-FairmountCommunityFoundation",
   "00003-RivergateHousingTrust",
+  "00004-KestrelManufacturing",
+  "00005-CardinalRidgeBuilders",
   "00006-NorthwindSoftware",
-  "00008-MeridianFamilyHealth",
   "00010-AshfieldPensionTrust"
  ],
  "engagements": [
   {
    "engagement": "00001-FairmountCommunityFoundation",
-   "partner_hours": 16.95,
-   "manager_hours": 23.9,
-   "senior_hours": 14.87,
-   "staff_hours": 25.12,
-   "support_hours": 14.4,
-   "leverage_ratio": 0.98,
-   "review_share_pct": 50.5
+   "partner_hours": 12.03,
+   "manager_hours": 17.57,
+   "senior_hours": 13.53,
+   "staff_hours": 23.52,
+   "support_hours": 13.45,
+   "leverage_ratio": 1.25,
+   "review_share_pct": 44.4
   },
   {
    "engagement": "00002-FairmountCommunityFoundation",
-   "partner_hours": 12.53,
-   "manager_hours": 11.95,
-   "senior_hours": 12.13,
-   "staff_hours": 20.85,
-   "support_hours": 6.48,
-   "leverage_ratio": 1.35,
-   "review_share_pct": 42.6
+   "partner_hours": 15.27,
+   "manager_hours": 10.85,
+   "senior_hours": 12.38,
+   "staff_hours": 20.05,
+   "support_hours": 6.93,
+   "leverage_ratio": 1.24,
+   "review_share_pct": 44.6
   },
   {
    "engagement": "00003-RivergateHousingTrust",
-   "partner_hours": 15.07,
-   "manager_hours": 16.82,
-   "senior_hours": 6.78,
-   "staff_hours": 17.68,
-   "support_hours": 9.32,
-   "leverage_ratio": 0.77,
-   "review_share_pct": 56.6
+   "partner_hours": 6.95,
+   "manager_hours": 12.87,
+   "senior_hours": 9.75,
+   "staff_hours": 18.67,
+   "support_hours": 9.28,
+   "leverage_ratio": 1.43,
+   "review_share_pct": 41.1
   },
   {
    "engagement": "00004-KestrelManufacturing",
-   "partner_hours": 8.55,
-   "manager_hours": 2.92,
-   "senior_hours": 5.62,
-   "staff_hours": 43.27,
-   "support_hours": 4.98,
+   "partner_hours": 13.33,
+   "manager_hours": 12.15,
+   "senior_hours": 9.8,
+   "staff_hours": 24.73,
+   "support_hours": 7.75,
+   "leverage_ratio": 1.36,
+   "review_share_pct": 42.5
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "partner_hours": 3.92,
+   "manager_hours": 2.13,
+   "senior_hours": 7.17,
+   "staff_hours": 1.33,
+   "support_hours": 1.17,
+   "leverage_ratio": 1.4,
+   "review_share_pct": 41.6
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "partner_hours": 25.7,
+   "manager_hours": 30.58,
+   "senior_hours": 33.82,
+   "staff_hours": 44.22,
+   "support_hours": 19.5,
+   "leverage_ratio": 1.39,
+   "review_share_pct": 41.9
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "partner_hours": 10.5,
+   "manager_hours": 15.73,
+   "senior_hours": 29.03,
+   "staff_hours": 23.13,
+   "support_hours": 3.12,
+   "leverage_ratio": 1.99,
+   "review_share_pct": 33.5
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "partner_hours": 3.7,
+   "manager_hours": 2.5,
+   "senior_hours": 0.75,
+   "staff_hours": 8.83,
+   "support_hours": 1.45,
+   "leverage_ratio": 1.55,
+   "review_share_pct": 39.3
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "partner_hours": 4.3,
+   "manager_hours": 0.33,
+   "senior_hours": 8.73,
+   "staff_hours": 10.98,
+   "support_hours": 2.75,
    "leverage_ratio": 4.26,
    "review_share_pct": 19.0
   },
   {
-   "engagement": "00005-CardinalRidgeBuilders",
-   "partner_hours": 5.25,
-   "manager_hours": 1.7,
-   "senior_hours": 14.17,
-   "staff_hours": 1.17,
-   "support_hours": 2.5,
-   "leverage_ratio": 2.21,
-   "review_share_pct": 31.2
-  },
-  {
-   "engagement": "00006-NorthwindSoftware",
-   "partner_hours": 12.78,
-   "manager_hours": 17.0,
-   "senior_hours": 9.88,
-   "staff_hours": 15.42,
-   "support_hours": 9.2,
-   "leverage_ratio": 0.85,
-   "review_share_pct": 54.1
-  },
-  {
-   "engagement": "00007-HarborLightDistribution",
-   "partner_hours": 10.0,
-   "manager_hours": 16.7,
-   "senior_hours": 20.87,
-   "staff_hours": 29.98,
-   "support_hours": 2.4,
-   "leverage_ratio": 1.9,
-   "review_share_pct": 34.4
-  },
-  {
-   "engagement": "00008-MeridianFamilyHealth",
-   "partner_hours": 0.58,
-   "manager_hours": 7.37,
-   "senior_hours": 4.42,
-   "staff_hours": 6.78,
-   "support_hours": 2.25,
-   "leverage_ratio": 1.41,
-   "review_share_pct": 41.5
-  },
-  {
-   "engagement": "00009-StonebridgePropertyGroup",
-   "partner_hours": 5.33,
-   "manager_hours": 5.08,
-   "senior_hours": 12.87,
-   "staff_hours": 12.5,
-   "support_hours": 0.92,
-   "leverage_ratio": 2.44,
-   "review_share_pct": 29.1
-  },
-  {
    "engagement": "00010-AshfieldPensionTrust",
-   "partner_hours": 4.67,
-   "manager_hours": 1.92,
-   "senior_hours": 1.25,
-   "staff_hours": 1.25,
-   "support_hours": 1.92,
+   "partner_hours": 5.17,
+   "manager_hours": 1.13,
+   "senior_hours": 1.0,
+   "staff_hours": 1.42,
+   "support_hours": 0.58,
    "leverage_ratio": 0.38,
-   "review_share_pct": 72.5
+   "review_share_pct": 72.3
   }
  ]
 }

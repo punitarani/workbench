@@ -31,7 +31,7 @@ rk.row_fields(
         "status_changes",
         "backward_moves",
         "reopened",
-        "hours_after_first_backward",
+        "hours_from_backward_day",
     ],
     name="row_facts",
     weight=5.0,

@@ -11,15 +11,28 @@ Systems available through tools: **gmail** (firm-wide mail), **clio**,
 
 One file: **`sla_report.json`**, with exactly these fields:
 
-- `clients` — how many client contacts wrote to the firm.
+- `threads_reviewed` — how many mail threads the firm holds in total.
+- `threads_with_client_inbound` — how many of those carry at least one
+  message from a client.
 - `inbound_total` — messages from clients, across all threads.
 - `unanswered_total` — client messages never answered.
-- `firm_median_reply_hours` — median first-reply time across every
-  answered client message, 2 dp.
-- `slowest_client` — the client whose single longest wait was longest.
-- `client_rows` — one entry per client, sorted by name: `client`,
-  `inbound`, `answered`, `unanswered_message_ids` (sorted),
-  `median_reply_hours` (2 dp), `longest_reply_hours` (2 dp).
+- `firm_median_reply_hours` — median reply time across every answered
+  client message, 2 dp.
+- `slowest_thread` — the `thread_id` containing the single longest wait.
+  Break a tie by taking the lower `thread_id`.
+- `threads` — **one entry per thread that carries client mail**, sorted by
+  `thread_id`, each with:
+  - `thread_id` — the thread's id, as the mail surface shows it
+  - `client` — the name of the client who wrote the **first** client
+    message in that thread
+  - `messages` — how many messages the thread holds in total, from
+    everyone
+  - `inbound` — how many of them came from clients
+  - `unanswered` — how many client messages in it were never answered
+  - `first_reply_hours` — the reply time of the **earliest** answered
+    client message in the thread, 2 dp; `0.0` if none was answered
+  - `longest_reply_hours` — the longest reply time in the thread, 2 dp;
+    `0.0` if none was answered
 
 ## Who counts as a client
 
@@ -47,4 +60,8 @@ Two things follow, and both matter:
 - A client message with no later firm message in that thread is
   unanswered, and contributes to no median.
 
-A client with no answered messages has a median and longest of `0.0`.
+A thread with no answered client message has `first_reply_hours` and
+`longest_reply_hours` of `0.0`.
+
+Threads with no client mail at all — the firm talking to itself — are
+counted in `threads_reviewed` and appear nowhere else.

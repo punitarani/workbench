@@ -28,8 +28,10 @@ these fields:
   - `status_changes` — how many status changes it has had in total
   - `backward_moves` — how many of those went backwards
   - `reopened` — `true` if any change took it out of `closed`
-  - `hours_after_first_backward` — hours logged to it after the moment of
-    its first backward move, 2 decimals
+  - `hours_from_backward_day` — hours logged to it on or after the **date**
+    of its first backward move, 2 decimals. Clio dates changes and time
+    entries and stamps no hour on either, so count whole days: an entry
+    dated the same day as the backward move counts.
 
 ## The stages
 

@@ -11,7 +11,7 @@ MAX_BYTES = 300_000
 TOP = frozenset(
     json.loads((Path(__file__).resolve().parent / "oracle.json").read_text())
 )
-ROWS = "undelivered"
+ROWS = "documents"
 KEY = "document"
 
 
@@ -45,7 +45,7 @@ def scalar(workspace: Path, path: str, field: str, expected) -> bool:
     return got is not None and got.get(field) == expected
 
 
-@criterion(shared=True, description="the undelivered set, F1 against the truth")
+@criterion(shared=True, description="the document set, F1 against the truth")
 def undelivered_f1(workspace: Path, path: str, expected: list) -> float:
     got = _submitted(workspace, path)
     if got is None:

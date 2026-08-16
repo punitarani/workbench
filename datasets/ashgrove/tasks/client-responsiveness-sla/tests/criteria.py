@@ -6,18 +6,15 @@ from pathlib import Path
 from rewardkit import criterion
 
 MAX_BYTES = 300_000
+# Read off the oracle rather than restated here: a hand-kept copy fails
+# correct answers the day the report changes shape, which is exactly what
+# it did — this list still named `client_rows` after the report moved to
+# threads, and every right answer would have failed the schema check.
 TOP = frozenset(
-    {
-        "clients",
-        "inbound_total",
-        "unanswered_total",
-        "firm_median_reply_hours",
-        "slowest_client",
-        "client_rows",
-    }
+    json.loads((Path(__file__).resolve().parent / "oracle.json").read_text())
 )
-ROWS = "client_rows"
-KEY = "client"
+ROWS = "threads"
+KEY = "thread_id"
 
 
 def _submitted(workspace: Path, path: str) -> dict | None:

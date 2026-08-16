@@ -30,6 +30,46 @@ DEFAULT_LOG = REPO / "out" / "ashgrove" / "epoch" / "world.jsonl"
 SHARED_BUNDLE = REPO / "out" / "ashgrove" / "bundle"
 
 
+def degenerate(answer: dict) -> list[str]:
+    """Row fields that carry the same value in every row.
+
+    A constant column is a criterion that grades nothing: an agent that
+    never looks it up and writes the majority value scores full marks on
+    it. Both new tasks this dataset gained were degenerate on their first
+    real world — 88 of 90 documents undelivered, and not one workpaper
+    with a second author — and both looked healthy right up until the
+    distributions were counted.
+
+    Reported rather than fatal. Sparseness can be the finding (few
+    documents ever reach a client, and that is the point), so this is a
+    number for a person to weigh, not a gate to trip.
+    """
+
+    reports = []
+    for key, rows in answer.items():
+        if not isinstance(rows, list) or not rows:
+            continue
+        if not isinstance(rows[0], dict):
+            continue
+        # A handful of rows cannot produce a partial score. Six of seven
+        # tasks here answered with four to ten rows and every rollout came
+        # back 1.000 or near zero: with so little to get partly right, the
+        # grade is a verdict on the rule and not a measure of the work.
+        if len(rows) < 12:
+            reports.append(
+                f"{key} has only {len(rows)} rows — too thin for partial credit"
+            )
+        if len(rows) < 5:
+            continue
+        for field in rows[0]:
+            values = {json.dumps(row.get(field), sort_keys=True) for row in rows}
+            if len(values) == 1:
+                reports.append(
+                    f"{key}.{field} is {values.pop()} in all {len(rows)} rows"
+                )
+    return reports
+
+
 def build(world_log: Path, names: list[str], refresh: bool) -> int:
     env = materialize(world_log, SHARED_BUNDLE, seat=None)
     print(f"materialized {env.event_count} events -> {SHARED_BUNDLE}")
@@ -79,6 +119,9 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
                 "the surfaces expose, or the score measures the guess."
             )
         print(f"{name}: oracle reachable through the tools")
+
+        for report in degenerate(answer):
+            print(f"{name}: DEGENERATE {report}")
 
         bundle = task / "bundle"
         shutil.rmtree(bundle, ignore_errors=True)

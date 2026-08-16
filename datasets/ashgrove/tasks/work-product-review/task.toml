@@ -7,10 +7,10 @@ schema_version = "1.3"
 # from the same world state.
 
 [task]
-name = "workbench/ashgrove-deliverable-follow-through"
-description = """Find the work the firm produced and never delivered: \
-join the document repository against outbound mail, and separate what \
-reached a client from what only ever circulated inside the firm."""
+name = "workbench/ashgrove-work-product-review"
+description = """Report the review and delivery state of every workpaper \
+the firm holds: read each document's version chain for a second author, \
+and join the repository against outbound mail to see what left the firm."""
 authors = [{ name = "Workbench" }]
 keywords = [
     "accounting",
@@ -24,11 +24,17 @@ keywords = [
 [metadata]
 dataset = "ashgrove"
 difficulty = "hard"
-skills = ["cross-surface-join", "set-reasoning", "completeness", "retrieval"]
+skills = [
+    "cross-surface-join",
+    "version-history",
+    "completeness",
+    "per-row-lookup",
+    "retrieval",
+]
 agent_data_scope = "Intentionally seatless firm-wide Gmail, Slack, Clio, Calendar, and iManage records from the LLM-generated epoch."
 
 [metadata.evidence]
-primary_field = "follow_through.json"
+primary_field = "work_product_review.json"
 source_surfaces = ["imanage", "gmail"]
 
 [environment]
