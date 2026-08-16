@@ -51,7 +51,7 @@ def _write_document_files(
     try:
         rows = connection.execute(
             "SELECT documents.document_id, documents.workspace, "
-            "documents.path, versions.content "
+            "documents.path, versions.content, documents.extension "
             "FROM documents JOIN versions "
             "ON versions.document_id = documents.document_id "
             "AND versions.version = documents.head_version "
@@ -60,8 +60,14 @@ def _write_document_files(
     finally:
         connection.close()
     skipped: list[str] = []
-    for document_id, workspace, path, content in rows:
-        target = agent_workspace / workspace / path.rsplit("/", 1)[-1]
+    for document_id, workspace, path, content, extension in rows:
+        # The name follows the bytes. An author who declared a workbook and
+        # named it `.docx` would otherwise leave a file Word cannot open,
+        # and an agent that trusts the extension is misled by the
+        # environment rather than by the work.
+        basename = path.rsplit("/", 1)[-1]
+        stem = basename.rsplit(".", 1)[0] if "." in basename else basename
+        target = agent_workspace / workspace / f"{stem}.{extension}"
         content_format = formats.get(document_id, "markdown")
         if content_format == "markdown":
             target.parent.mkdir(parents=True, exist_ok=True)

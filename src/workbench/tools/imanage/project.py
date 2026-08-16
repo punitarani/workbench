@@ -42,11 +42,39 @@ def _workspace(path: str) -> str:
     return segments[0] if len(segments) > 1 else _DEFAULT_WORKSPACE
 
 
+# What each format may legitimately be called. A formatted document is a
+# .docx normally and a .pdf when it is issued; tabular content is a .xlsx
+# normally and a .csv when it is an extract. Anything else is the author
+# mislabelling their own work.
+_ALLOWED_EXTENSIONS = {
+    # Plain text is legitimately a .csv or a .txt: a comma-separated
+    # extract stored as text is a CSV, and the CSV reader has always
+    # parsed exactly that.
+    "markdown": ("md", "txt", "csv"),
+    "spreadsheet": ("xlsx", "csv"),
+    "formatted": ("docx", "pdf"),
+    "slides": ("pptx",),
+}
+
+
 def _extension(path: str, content_format: str) -> str:
+    """The suffix the file will actually carry.
+
+    A name must never lie about its bytes. An author who declares a
+    workbook and names it `.docx` produced a file that Word cannot open,
+    and an agent that trusts the extension is misled by the environment
+    rather than by the work — so the format wins the disagreement.
+    """
+
+    canonical = _FORMAT_EXTENSIONS.get(content_format, content_format)
     basename = path.rsplit("/", 1)[-1]
-    if "." in basename:
-        return basename.rsplit(".", 1)[-1]
-    return _FORMAT_EXTENSIONS.get(content_format, content_format)
+    if "." not in basename:
+        return canonical
+    suffix = basename.rsplit(".", 1)[-1].lower()
+    allowed = _ALLOWED_EXTENSIONS.get(content_format)
+    if allowed is None:
+        return suffix
+    return suffix if suffix in allowed else canonical
 
 
 def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:

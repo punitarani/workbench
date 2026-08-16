@@ -506,3 +506,27 @@ def test_a_bare_filename_does_not_become_its_own_workspace() -> None:
     assert _workspace("/brief.docx") == "firm"
     assert _workspace("engagements/fairmount/brief.docx") == "engagements"
     assert _workspace("/legal/contracts/nda.docx") == "legal"
+
+
+def test_a_filename_never_lies_about_its_bytes() -> None:
+    """The format wins a disagreement with the path's suffix.
+
+    An author who declares a workbook and names it `.docx` produced a file
+    Word cannot open. An agent that trusts the extension is then misled by
+    the environment rather than by the work — the exact shape of defect
+    that turns a capable model into a failing score.
+    """
+
+    from workbench.tools.imanage.project import _extension
+
+    # the author's suffix stands when it is a real form of that content
+    assert _extension("wp.xlsx", "spreadsheet") == "xlsx"
+    assert _extension("extract.csv", "spreadsheet") == "csv"
+    assert _extension("letter.pdf", "formatted") == "pdf"
+    assert _extension("rows.csv", "markdown") == "csv"
+
+    # and is overruled when it contradicts the bytes
+    assert _extension("confused.docx", "spreadsheet") == "xlsx"
+    assert _extension("confused.xlsx", "formatted") == "docx"
+    assert _extension("deck.docx", "slides") == "pptx"
+    assert _extension("nosuffix", "formatted") == "docx"
