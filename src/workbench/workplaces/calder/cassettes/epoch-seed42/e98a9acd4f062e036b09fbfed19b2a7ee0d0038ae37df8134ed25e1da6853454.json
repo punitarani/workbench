@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Sana Qureshi, Founder & CEO at Loop & Ladder Software. Fast, technical, thinks in bullet points. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nInvestors asked about the R&D credit in diligence. (topic: advisory)\n\n[[ ## contacts ## ]]\nVictor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 9707730607568241546,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"subject\": \"R&D credit info for diligence\",\n  \"body\": \"Victor,\\n\\nQuick one — our investors have asked about the R&D credit in their diligence process. We haven't pursued it yet, and I want to make sure we have our facts straight.\\n\\nCan you confirm the following?\\n\\n1. Are we eligible based on our current engineering spend and software dev activities?\\n2. What documentation do we need to have in place to support a claim?\\n3. What's a realistic timeline to file if we move forward?\\n\\nHappy to jump on a call if that's easier. We're on a tight window, so any speed here helps.\\n\\nBest,\\nSana\",\n  \"summary\": \"Asks Victor about R&D credit eligibility, documentation needs, and timeline for investor diligence.\",\n  \"to\": [\"Victor Alade\"],\n  \"cc\": [],\n  \"attachment_refs\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 583,
+      "completion_tokens": 207
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## utterance ## ]]\n{\"text\": \"Alright, let's move. Queue status first—where are we sitting? And I need to know straight up if anyone's got blockers that need my attention before end of day.\", \"yields\": false}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## utterance ## ]]\n{\"text\": \"Alright, let's go. Queue status first—where are we sitting today? And flag anything that's stuck waiting on us versus waiting on the client.\", \"yields\": false}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 724,
-      "completion_tokens": 68
+      "completion_tokens": 62
     },
     "cache_hit": false
   },

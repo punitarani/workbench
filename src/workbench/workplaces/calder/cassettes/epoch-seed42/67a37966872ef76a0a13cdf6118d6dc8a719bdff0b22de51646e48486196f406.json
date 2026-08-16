@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Dana Whitfield, Controller at Kestrel Manufacturing. Precise and numbers-fluent; expects the same back. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Dana Whitfield\nTo: Gabriel Fontes, Victor Alade\nSubject: Margin clarification needed before Thursday\n\nGabe, Victor –\n\nAhead of Thursday's board discussion, I need the gross margin figure for Q3 explained in plain terms. Specifically, the 41.2% we reported versus the 43.8% from Q2 – what drove the drop? I have my own numbers on COGS and pricing, but I want your read before I put this in front of the board.\n\nPlease send a short note (bullet points are fine) with the key drivers by Wednesday end of day. If you have a supporting schedule, attach it – I’ll pull what I need from that.\n\nThanks,\nDana\n\n---\n\nFrom: Gabriel Fontes\nTo: Dana Whitfield\nSubject: Q3 gross margin drivers – brief note\n\nHi Dana,\n\nHere’s the quick read on the Q3 gross margin drop from 43.8% to 41.2%:\n\n• Mix shift – we had a higher proportion of lower-margin product lines in Q3 vs. Q2.\n• Freight costs – spot rates ran higher than the prior quarter, adding about 0.7 points.\n• Pricing – a couple of large customer renewals came with modest concessions; net impact roughly 0.5 points.\n• One-time write-off – a small inventory adjustment (about $18k) hit COGS in Q3; that accounts for the remainder.\n\nI’ve got a supporting schedule with the line-by-line breakdown if you’d like it – happy to send over. Just say the word.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Victor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 13962192582593886281,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"subject\": \"Re: Q3 gross margin drivers – need supporting schedule\", \"body\": \"Gabe, Victor –\\n\\nThanks for the quick note, Gabe. That covers the high level, but I need the numbers to back it up before I put this in front of the board on Thursday.\\n\\nPlease send the supporting schedule with the line-by-line breakdown – the one you mentioned. I want to see how the mix shift breaks down by product line, and I need the freight and pricing impacts quantified precisely, not just in points. Also, make sure the inventory write-off is clearly separated so it doesn't get conflated with ongoing operational drivers.\\n\\nSend it by Wednesday end of day at the latest. If Victor has anything to add on the pricing side, I'd appreciate his confirmation on the renewal concessions.\\n\\nThanks,\\nDana\", \"summary\": \"Requesting the supporting schedule for Q3 gross margin drop, with breakdown by product line and precise quantification of freight, pricing, and inventory write-off impacts, due by Wednesday EOD.\", \"to\": [\"Gabriel Fontes\", \"Victor Alade\"], \"cc\": [], \"attachment_refs\": []}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 908,
+      "completion_tokens": 256
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

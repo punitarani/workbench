@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day being planned\n3. `calendar_today` (str): meetings already on your calendar\n4. `yesterday` (str): yesterday's summary and open loops\n5. `relevant_memories` (str):\nYour output fields are:\n1. `plan` (DayPlanSpec):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## calendar_today ## ]]\n{calendar_today}\n\n[[ ## yesterday ## ]]\n{yesterday}\n\n[[ ## relevant_memories ## ]]\n{relevant_memories}\n\n[[ ## plan ## ]]\n{plan}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"PlanBlock\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"end\": {\"type\": \"integer\", \"exclusiveMinimum\": 0, \"maximum\": 86400, \"title\": \"End\"}, \"focus\": {\"type\": \"string\", \"title\": \"Focus\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"start\": {\"type\": \"integer\", \"exclusiveMaximum\": 86400, \"minimum\": 0, \"title\": \"Start\"}}, \"required\": [\"start\", \"end\", \"focus\"], \"title\": \"PlanBlock\"}}, \"additionalProperties\": false, \"description\": \"The day in time blocks: what gets focused attention and when.\", \"properties\": {\"blocks\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/PlanBlock\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Blocks\"}}, \"required\": [\"blocks\"], \"title\": \"DayPlanSpec\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Lay out your working day in two to six time blocks. Anchor blocks\n        to your real calendar first, then place the work your open items and\n        memories say matters most. Times are seconds since midnight inside\n        working hours; carry the exact world ids (thr-/tkt-/doc-) each block\n        concerns."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Freya Holt, Admin Coordinator (junior).\nAdmin coordinator: front of house, scheduling, the portal queue, and the firm's institutional calendar.\nPersonality: Organized and chipper; knows where everything is.\nEmail register: Friendly and prompt; signs 'Freya'.\nChat register: Upbeat, quick, first with the reaction.\nWorking hours: 08:00-16:30\n\n[[ ## day ## ]]\n2026-01-06\n\n[[ ## calendar_today ## ]]\nNothing scheduled.\n\n[[ ## yesterday ## ]]\nSet up admin infrastructure for 2026: saved 8 key documents including engagement letter, billing policy, tax …\nScheduled tax group huddle meeting to align team on priorities for new year\nCompleted morning admin setup routine: reviewed portal queue, checked institutional calendar, organized desk …\n\n[[ ## relevant_memories ## ]]\n- [today | !9] Set up admin infrastructure for 2026: saved 8 key documents including engagement letter, billing policy, tax …\n- [today | !7] Scheduled tax group huddle meeting to align team on priorities for new year\n- [today | !6] Completed morning admin setup routine: reviewed portal queue, checked institutional calendar, organized desk …\n- [today | !6] Planned the day: Morning admin setup: review portal queue, check institutional calendar, organize desk for we…\n- [1d ago | !5] Meeting scheduled: Tax group huddle\n- [1d ago | !4] Document saved: Engagement Letter (Standard Form)\n- [1d ago | !4] Document saved: Time & Billing Policy\n- [1d ago | !4] Document saved: Tax Return Workflow & Review Policy\n- [1d ago | !4] Document saved: PBC Request Template\n- [1d ago | !4] Document saved: Records Retention & Security Policy\n- [1d ago | !4] Document saved: Standard Rate Sheet 2026\n- [1d ago | !4] Document saved: Client Master List\n\nRespond with the corresponding output fields, starting with the field `[[ ## plan ## ]]` (must be formatted as a valid Python DayPlanSpec), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 13600212485726600786,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Morning admin setup and portal queue review\",\n      \"refs\": []\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Institutional calendar maintenance and scheduling coordination\",\n      \"refs\": []\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle preparation and meeting logistics\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Document organization and 2026 infrastructure follow-up\",\n      \"refs\": []\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Portal queue and client coordination\",\n      \"refs\": []\n    },\n    {\n      \"start\": 46800,\n      \"end\": 59400,\n      \"focus\": \"Desk organization, planning, and administrative catch-up\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1080,
+      "completion_tokens": 302
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

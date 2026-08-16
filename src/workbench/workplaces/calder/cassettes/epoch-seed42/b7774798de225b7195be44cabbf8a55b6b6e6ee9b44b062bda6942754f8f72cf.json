@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Priscilla Wong, Staff Accountant (junior).\nStaff accountant, assurance: testing and tie-outs on Harbor Light, learning the audit trade from Theo.\nPersonality: Meticulous, quiet in channels, sharp in the workpapers.\nEmail register: Careful and complete; signs 'Priscilla'.\nChat register: Sparing; asks one well-formed question.\nWorking hours: 09:00-17:30\n\n[[ ## conversation ## ]]\n\n\n[[ ## intent ## ]]\nAcknowledge Theo's confirmation that the Q1/Q2 payroll testing file is set and ask when the PBC items will be shared so I can start the tie-out.\n\n[[ ## established_facts ## ]]\nJoined huddle; asked about PBC list for payroll testing.\nFollowing up on PBC list for payroll testing.\nConfirmed PBC list is ready; will pull payroll testing items when received.\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 13727145761462280381,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Thanks Theo. Sounds good—send the PBC items when you have a sec and I'll start the tie-out.\", \"summary\": \"Acknowledged file is set; asked for PBC items to begin tie-out.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 550,
+      "completion_tokens": 62
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

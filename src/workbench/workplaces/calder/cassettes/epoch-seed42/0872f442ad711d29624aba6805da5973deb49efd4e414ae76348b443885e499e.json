@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day being planned\n3. `calendar_today` (str): meetings already on your calendar\n4. `yesterday` (str): yesterday's summary and open loops\n5. `relevant_memories` (str):\nYour output fields are:\n1. `plan` (DayPlanSpec):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## calendar_today ## ]]\n{calendar_today}\n\n[[ ## yesterday ## ]]\n{yesterday}\n\n[[ ## relevant_memories ## ]]\n{relevant_memories}\n\n[[ ## plan ## ]]\n{plan}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"PlanBlock\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"end\": {\"type\": \"integer\", \"exclusiveMinimum\": 0, \"maximum\": 86400, \"title\": \"End\"}, \"focus\": {\"type\": \"string\", \"title\": \"Focus\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"start\": {\"type\": \"integer\", \"exclusiveMaximum\": 86400, \"minimum\": 0, \"title\": \"Start\"}}, \"required\": [\"start\", \"end\", \"focus\"], \"title\": \"PlanBlock\"}}, \"additionalProperties\": false, \"description\": \"The day in time blocks: what gets focused attention and when.\", \"properties\": {\"blocks\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/PlanBlock\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Blocks\"}}, \"required\": [\"blocks\"], \"title\": \"DayPlanSpec\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Lay out your working day in two to six time blocks. Anchor blocks\n        to your real calendar first, then place the work your open items and\n        memories say matters most. Times are seconds since midnight inside\n        working hours; carry the exact world ids (thr-/tkt-/doc-) each block\n        concerns."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Hana Sato, Principal, Assurance (executive).\nAssurance principal. Signs the audit opinions, owns audit methodology and independence questions, and reviews anything the audit team escalates.\nPersonality: Precise, softly spoken, immovable on standards.\nEmail register: Measured, complete sentences; signs 'Hana Sato'.\nChat register: Rare; complete sentences when she does.\nWorking hours: 09:00-17:00\n\n[[ ## day ## ]]\n2026-01-06\n\n[[ ## calendar_today ## ]]\nNothing scheduled.\n\n[[ ## yesterday ## ]]\nCardinal Ridge engagement: PBC list sent to client using standard template after fee confirmation from Rosali…\nFY2025 PBC list confirmed and distributed across audit team (Theo, Priscilla, Sylvia, Colin, Gabriel). Team h…\nCardinal Ridge PBC was held pending fee sign-off; Rosalind locked fees at 14:35 and 16:45, clearing path for …\nTeam coordination on Cardinal Ridge was tight and well-managed: Desmond circled back multiple times with Rosa…\nNadia drafting huddle summary; Sylvia coordinating Q1/Q2 item pull. Standard workstream activity underway wit…\n\n[[ ## relevant_memories ## ]]\n- [today | !8] Cardinal Ridge engagement: PBC list sent to client using standard template after fee confirmation from Rosali…\n- [today | !8] Cardinal Ridge PBC was held pending fee sign-off; Rosalind locked fees at 14:35 and 16:45, clearing path for …\n- [today | !5] Chat from per-hana-sato: Sylvia — noted. I'll be on the call and will…\n- [today | !3] Chat from per-nadia-osman: Morning Rosalind — fee's locked, sending C…\n- [today | !3] Chat from per-theo-brandt: Morning Rosalind — thanks for the update. …\n- [today | !3] Chat from per-rosalind-calder: Nadia — thanks. Fee's locked; send the…\n- [today | !3] Chat from per-imogen-carraway: Rosalind — thanks for the update. Note…\n- [today | !3] Chat from per-desmond-ortiz: Rosalind — Cardinal Ridge PBC is out now…\n- [today | !3] Chat from per-rosalind-calder: Desmond — thanks for holding. Fee call…\n- [today | !3] Chat from per-imogen-carraway: Rosalind — thanks for the update. Hold…\n- [today | !3] Chat from per-sylvia-nakamura: Thanks Rosalind — holding the PBC unti…\n- [today | !3] Chat from per-desmond-ortiz: Nice — fee's locked, sending Cardinal Ri…\n\nRespond with the corresponding output fields, starting with the field `[[ ## plan ## ]]` (must be formatted as a valid Python DayPlanSpec), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 10028966023094195794,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Cardinal Ridge engagement review: assess PBC list distribution, fee confirmation, and team coordination\",\n      \"refs\": [\"thr-cardinal-ridge-engagement\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Audit methodology and independence assessment: review Cardinal Ridge engagement for standards compliance\",\n      \"refs\": [\"thr-cardinal-ridge-engagement\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Team escalation review and open items: coordinate with Sylvia on Q1/Q2 item pull and team workstreams\",\n      \"refs\": [\"thr-cardinal-ridge-engagement\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 50400,\n      \"focus\": \"Administrative and strategic planning: correspondence, internal reviews, and week planning\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1301,
+      "completion_tokens": 277
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

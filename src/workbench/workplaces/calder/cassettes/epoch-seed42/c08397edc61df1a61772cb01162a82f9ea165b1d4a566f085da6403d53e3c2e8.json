@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day being planned\n3. `calendar_today` (str): meetings already on your calendar\n4. `yesterday` (str): yesterday's summary and open loops\n5. `relevant_memories` (str):\nYour output fields are:\n1. `plan` (DayPlanSpec):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## calendar_today ## ]]\n{calendar_today}\n\n[[ ## yesterday ## ]]\n{yesterday}\n\n[[ ## relevant_memories ## ]]\n{relevant_memories}\n\n[[ ## plan ## ]]\n{plan}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"PlanBlock\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"end\": {\"type\": \"integer\", \"exclusiveMinimum\": 0, \"maximum\": 86400, \"title\": \"End\"}, \"focus\": {\"type\": \"string\", \"title\": \"Focus\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"start\": {\"type\": \"integer\", \"exclusiveMaximum\": 86400, \"minimum\": 0, \"title\": \"Start\"}}, \"required\": [\"start\", \"end\", \"focus\"], \"title\": \"PlanBlock\"}}, \"additionalProperties\": false, \"description\": \"The day in time blocks: what gets focused attention and when.\", \"properties\": {\"blocks\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/PlanBlock\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Blocks\"}}, \"required\": [\"blocks\"], \"title\": \"DayPlanSpec\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Lay out your working day in two to six time blocks. Anchor blocks\n        to your real calendar first, then place the work your open items and\n        memories say matters most. Times are seconds since midnight inside\n        working hours; carry the exact world ids (thr-/tkt-/doc-) each block\n        concerns."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Owen Castile, Office & Billing Manager (senior).\nOffice and billing manager: prebills, invoices, retainers, realization, and the administrative machinery of the firm.\nPersonality: Numbers-first, drily funny about partners' billing habits, guards the lockup number.\nEmail register: Organized; tables when useful; signs 'Owen'.\nChat register: Direct; quotes the policy section.\nWorking hours: 08:00-17:00\n\n[[ ## day ## ]]\n2026-01-06\n\n[[ ## calendar_today ## ]]\nNothing scheduled.\n\n[[ ## yesterday ## ]]\nReviewed and organized 2026 billing infrastructure: engagement letters, rate sheet, time & billing policy, ta…\nTax group huddle scheduled—ready to discuss prebilling strategy, realization tracking, and any 2026 rate adju…\nMonthly close checklist confirmed and in place for 2026—billing machinery set up to run predictably from Janu…\n\n[[ ## relevant_memories ## ]]\n- [today | !9] Reviewed and organized 2026 billing infrastructure: engagement letters, rate sheet, time & billing policy, ta…\n- [today | !8] Tax group huddle scheduled—ready to discuss prebilling strategy, realization tracking, and any 2026 rate adju…\n- [today | !7] Monthly close checklist confirmed and in place for 2026—billing machinery set up to run predictably from Janu…\n- [today | !6] Planned the day: Morning: Review 2026 billing infrastructure & policies; Prepare for Tax group huddle: prebil…\n- [1d ago | !5] Meeting scheduled: Tax group huddle\n- [1d ago | !4] Document saved: Engagement Letter (Standard Form)\n- [1d ago | !4] Document saved: Time & Billing Policy\n- [1d ago | !4] Document saved: Tax Return Workflow & Review Policy\n- [1d ago | !4] Document saved: PBC Request Template\n- [1d ago | !4] Document saved: Records Retention & Security Policy\n- [1d ago | !4] Document saved: Standard Rate Sheet 2026\n- [1d ago | !4] Document saved: Client Master List\n\nRespond with the corresponding output fields, starting with the field `[[ ## plan ## ]]` (must be formatted as a valid Python DayPlanSpec), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 16865696702297426550,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Morning: Review 2026 billing infrastructure & finalize policies\",\n      \"refs\": [\"doc-engagement-letter-std\", \"doc-rate-sheet-2026\", \"doc-time-billing-policy\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Prepare for Tax group huddle: prebilling strategy, realization tracking, rate adjustments\",\n      \"refs\": [\"doc-tax-workflow\", \"doc-pbc-template\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle: discuss 2026 prebilling, realization, rate strategy\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Post-huddle: update monthly close checklist and document action items\",\n      \"refs\": [\"doc-records-retention\", \"doc-client-master-list\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 61200,\n      \"focus\": \"Afternoon: Execute monthly close procedures, reconcile retainers, monitor realization\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1136,
+      "completion_tokens": 353
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

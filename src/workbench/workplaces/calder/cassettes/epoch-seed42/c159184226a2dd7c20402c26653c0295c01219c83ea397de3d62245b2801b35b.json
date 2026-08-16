@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle and onboarding\",\n      \"refs\": []\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Riverbend Dental Studio bookkeeping cleanup setup\",\n      \"refs\": [\"tkt-riverbend-cleanup\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Review engagement letter, policies, and PBC template for Riverbend\",\n      \"refs\": [\"doc-engagement-letter\", \"doc-pbc-template\", \"doc-policies\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Initial reconciliation work and records assessment for Riverbend\",\n      \"refs\": [\"tkt-riverbend-cleanup\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 45000,\n      \"focus\": \"Email and admin: client master list review, rate sheet confirmation\",\n      \"refs\": [\"doc-client-master\", \"doc-rate-sheet\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle\",\n      \"refs\": []\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Riverbend Dental Studio bookkeeping cleanup — initial assessment and planning\",\n      \"refs\": [\"tkt-\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Review engagement and workflow documentation for Riverbend engagement setup\",\n      \"refs\": [\"doc-\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 42300,\n      \"focus\": \"Prepare PBC request and client master list entry for Riverbend\",\n      \"refs\": [\"doc-\"]\n    },\n    {\n      \"start\": 42300,\n      \"end\": 45900,\n      \"focus\": \"Riverbend cleanup execution — reconciliations and close prep\",\n      \"refs\": [\"tkt-\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 943,
-      "completion_tokens": 325
+      "completion_tokens": 290
     },
     "cache_hit": false
   },

@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Sylvia Nakamura, Payroll Specialist (mid).\nPayroll specialist: runs Blue Fir's payroll and quarterly employment filings; the firm's answer to every withholding question.\nPersonality: Precise, calm on deadlines, keeps immaculate filing confirmations.\nEmail register: Exact and unhurried; signs 'Sylvia'.\nChat register: Short, always with the form number.\nWorking hours: 08:00-16:30\n\n[[ ## conversation ## ]]\n\n\n[[ ## intent ## ]]\nAnswer Nadia's question about where to post the huddle summary and provide guidance on her immediate task\n\n[[ ## established_facts ## ]]\nAcknowledged Elias and confirmed PBC coverage; noted moving to filing checklist.\nConfirmed receipt of PBC list and noted moving to finalize filing checklist.\nAccepted Nadia's summary draft offer; confirmed filing checklist in progress.\nConfirmed Theo's confirmation and noted filing checklist is in progress.\nAcknowledged the hold and confirmed alignment for the fee call.\nUpdated tkt-000010\nConfirmed Q1/Q2 withholding/tip allocation set; filing checklist in progress; Cardinal Ridge PBC sent per fee lock; Form 132 queued.\nUpdated tkt-000010\nConfirmed Victor's acknowledgment; noted next step is finalizing the filing checklist.\nConfirmed no blockers on filing checklist; on track for huddle.\nConfirmed Riverbend cleanup on track; filing checklist remains next item.\nConfirmed Riverbend on track; filing checklist remains next, will ping when ready.\n\n[[ ## relevant_knowledge ## ]]\n[Blue Fir Q1 amendment] Blue Fir's Q1 Oregon withholding return was amended in May to fix a tip-allocation error; the amended filing and payment confirmation are in the payroll folder. Any state notice about Q1 almost certainly crossed in the mail with the amendment.\nSharing: You share this when asked directly, but you do not volunteer it unprompted, and never in writing to outsiders.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 9991230732097061533,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Nadia, huddle summary goes in #payroll-ops under the tkt-000010 thread. For now, just drop the draft there; I'll pin it once I post the filing checklist.\", \"summary\": \"Pointed Nadia to #payroll-ops thread and advised posting draft there.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 750,
+      "completion_tokens": 80
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

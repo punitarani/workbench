@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Morning admin setup: review portal queue, check institutional calendar, organize documents saved yesterday\"\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Tax group huddle meeting preparation and attendance\"\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Document organization and filing: catalogue engagement letter, policies, templates, and rate sheet for easy access\"\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Client Master List review and scheduling coordination; prepare for week ahead\"\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Email processing and portal queue management; end-of-day admin closeout\"\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Morning admin setup: review portal queue, check institutional calendar, organize desk for week ahead\",\n      \"refs\": []\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Document review and filing: process yesterday's saved documents (Engagement Letter, policies, rate sheet, checklists, templates)\",\n      \"refs\": []\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Tax group huddle meeting preparation and attendance\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Post-meeting admin: update calendar, distribute any action items, file notes, follow-up coordination\",\n      \"refs\": []\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Week planning and scheduling: confirm client meetings, prep for upcoming engagements using newly filed documents\",\n      \"refs\": []\n    },\n    {\n      \"start\": 46800,\n      \"end\": 59400,\n      \"focus\": \"Open office hours: handle portal queue, respond to scheduling requests, support team queries\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 915,
-      "completion_tokens": 256
+      "completion_tokens": 358
     },
     "cache_hit": false
   },

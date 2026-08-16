@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `ticket` (str): the ticket's current fields\n3. `intent` (str): \n4. `vocabulary` (str): the statuses and priorities this firm uses\nYour output fields are:\n1. `changes` (tuple[FieldChange, Ellipsis]):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## ticket ## ]]\n{ticket}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## vocabulary ## ]]\n{vocabulary}\n\n[[ ## changes ## ]]\n{changes}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"array\", \"$defs\": {\"FieldChange\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"field\": {\"type\": \"string\", \"title\": \"Field\"}, \"new\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"title\": \"New\"}, \"old\": {\"anyOf\": [{\"type\": \"string\"}, {\"type\": \"null\"}], \"title\": \"Old\"}}, \"required\": [\"field\", \"old\", \"new\"], \"title\": \"FieldChange\"}}, \"items\": {\"$ref\": \"#/$defs/FieldChange\"}}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        State the field changes this engagement has actually undergone.\n        \n        `old` must be the value the ticket carries now, exactly as given; a\n        change claiming a stale prior value is rejected. Change only what the\n        work genuinely moved — a status that has really advanced, an assignee\n        who has really taken it over — and never more than the intent\n        supports."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Colin Mackey, Staff Accountant (junior).\nStaff accountant, tax: the Riverbend cleanup is his baby; supports the Stonebridge close and 1065.\nPersonality: Steady, understated, secretly proud of his reconciliations.\nEmail register: Brief and factual; signs 'Colin'.\nChat register: Terse but friendly.\nWorking hours: 08:30-17:30\n\n[[ ## ticket ## ]]\nstatus=open; priority=low; type=bookkeeping; title=Bookkeeping cleanup — Riverbend Dental Studio\n\n[[ ## intent ## ]]\nMark Riverbend bookkeeping cleanup as progressing per the morning assessment and execution phase\n\n[[ ## vocabulary ## ]]\nstatuses: open, in-progress, waiting-client, review, closed; priorities: low, normal, high, urgent\n\nRespond with the corresponding output fields, starting with the field `[[ ## changes ## ]]` (must be formatted as a valid Python tuple[FieldChange, Ellipsis]), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 9167655436116157782,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## changes ##]]\n(\n  {\"field\": \"status\", \"old\": \"open\", \"new\": \"in-progress\"},\n)\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 618,
+      "completion_tokens": 34
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -19,10 +19,10 @@
     "rollout_id": 0
   },
   "response": {
-    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle + K-1 season kickoff\",\n      \"refs\": [\"tkt-1065-stonebridge\", \"tkt-summit-owners\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Stonebridge Form 1065 — initial intake and PBC assembly\",\n      \"refs\": [\"tkt-1065-stonebridge\", \"doc-pbc-template\", \"doc-engagement-letter\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Summit Physical Therapy partner returns — scope and timeline\",\n      \"refs\": [\"tkt-summit-owners\", \"doc-pbc-template\", \"doc-workflow-policy\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 42000,\n      \"focus\": \"Administrative setup — file structure, team assignments, tracking\",\n      \"refs\": [\"doc-client-master-list\", \"doc-rate-sheet-2026\", \"doc-retention-policy\"]\n    },\n    {\n      \"start\": 42000,\n      \"end\": 44400,\n      \"focus\": \"Buffer — follow-ups, client comms, loose ends\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 32400,\n      \"focus\": \"Tax group huddle and Stonebridge Form 1065 kickoff\",\n      \"refs\": [\"tkt-\", \"thr-\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Stonebridge Property Group 2025 Form 1065 setup and PBC request\",\n      \"refs\": [\"tkt-\"]\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Summit Physical Therapy partner returns intake and documentation\",\n      \"refs\": [\"tkt-\"]\n    },\n    {\n      \"start\": 39600,\n      \"end\": 41400,\n      \"focus\": \"Review engagement letter and workflow documentation for both clients\",\n      \"refs\": [\"doc-\"]\n    },\n    {\n      \"start\": 41400,\n      \"end\": 43200,\n      \"focus\": \"Organize PBC requests and timeline for K-1 season deliverables\",\n      \"refs\": [\"doc-\"]\n    },\n    {\n      \"start\": 43200,\n      \"end\": 45000,\n      \"focus\": \"Client communication and follow-up planning\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
     "usage": {
       "prompt_tokens": 982,
-      "completion_tokens": 366
+      "completion_tokens": 353
     },
     "cache_hit": false
   },

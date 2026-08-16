@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Theo Brandt, Senior Accountant, Assurance (mid).\nSenior assurance accountant: fieldwork lead on Harbor Light, owns the PBC tracker and the testing files.\nPersonality: Thorough, quietly funny, documents everything twice.\nEmail register: Complete and orderly; signs 'Theo'.\nChat register: Fuller sentences than chat deserves.\nWorking hours: 09:00-17:30\n\n[[ ## conversation ## ]]\n\n\n[[ ## intent ## ]]\nAnswer Priscilla's Q1/Q2 tie-out update and confirm no action needed, while keeping the door open if anything flags.\n\n[[ ## established_facts ## ]]\nSent FY2025 PBC items to Priscilla for the Q1/Q2 payroll tie-out.\nAcknowledged Elias, confirmed Q1/Q2 PBC review is underway with Nadia, and noted FY2025 PBC items sent to Priscilla.\nConfirmed FY2025 PBC list for Q1/Q2 review, no blockers, Harbor Light distribution noted complete.\nSent payroll testing file for Q1/Q2 tie-out.\nConfirmed receipt of PBC items, gave direction on payroll testing file, offered support if anything's missing.\nConfirmed PBC items sent and payroll testing file ready for Q1/Q2 tie-out; offered support if anything's missing.\nConfirmed alignment on FY2025 PBC list and forward progress; acknowledged Elias's offer.\nConfirmed Q1/Q2 tie-out is a single pass; no sequencing needed.\nConfirmed FY2025 PBC items already sent; Q1/Q2 tie-out clear to proceed in one pass, no blockers.\nAcknowledged Priscilla's Q1/Q2 tie-out progress, offered support if anything flags.\nAcknowledged Priscilla's tie-out progress and confirmed no action needed currently.\nAcknowledged Priscilla's update; confirmed no action needed, offered support if anything flags.\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 17530223207638740792,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Thanks for the update, Priscilla. Q1/Q2 tie-out looks on track—no action needed on my end right now. Shout if anything flags and I'll jump in.\", \"summary\": \"Acknowledged Priscilla's update, confirmed no action needed, offered support if issues arise.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 744,
+      "completion_tokens": 80
+    },
+    "cache_hit": false
+  },
+  "site": null
+}
