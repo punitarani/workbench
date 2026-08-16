@@ -58,6 +58,8 @@ class WorldStateModel(BaseModel):
     calendar_events: tuple[str, ...] = ()
     document_paths: tuple[tuple[str, str], ...] = ()
     document_formats: tuple[tuple[str, str], ...] = ()
+    document_authors: tuple[tuple[str, str], ...] = ()
+    document_heads: tuple[tuple[str, str], ...] = ()
     tickets: tuple[tuple[str, tuple[tuple[str, str | None], ...]], ...] = Field(
         default=()
     )
@@ -88,6 +90,10 @@ class WorldState:
         # both directions of the document mapping.
         self.document_paths_by_id: dict[str, str] = {}  # id -> path
         self.document_formats: dict[str, str] = {}  # id -> content format
+        # Who wrote it and what it currently says: a revision turn needs
+        # both to carry a document forward rather than start a new one.
+        self.document_authors: dict[str, str] = {}
+        self.document_heads: dict[str, str] = {}
         self.tickets: dict[str, dict[str, str | None]] = {}
         self.plan_revisions: dict[str, int] = {}
         self.meetings: dict[str, MeetingProgress] = {}
@@ -138,9 +144,12 @@ class WorldState:
                 self.document_paths[payload.path] = payload.document_id
                 self.document_paths_by_id[payload.document_id] = payload.path
                 self.document_formats[payload.document_id] = payload.content_format
+                self.document_authors[payload.document_id] = payload.author
+                self.document_heads[payload.document_id] = payload.content
             case DocumentRevisedPayload():
                 if payload.document_id in self.documents:
                     self.documents[payload.document_id] = payload.revision
+                    self.document_heads[payload.document_id] = payload.content
             case TicketCreatedPayload():
                 self.tickets[payload.ticket_id] = {
                     "title": payload.title,
@@ -197,6 +206,8 @@ class WorldState:
             calendar_events=tuple(sorted(self.calendar_events)),
             document_paths=tuple(sorted(self.document_paths.items())),
             document_formats=tuple(sorted(self.document_formats.items())),
+            document_authors=tuple(sorted(self.document_authors.items())),
+            document_heads=tuple(sorted(self.document_heads.items())),
             tickets=tuple(
                 (ticket_id, tuple(sorted(values.items())))
                 for ticket_id, values in sorted(self.tickets.items())
@@ -232,6 +243,8 @@ class WorldState:
             document_id: path for path, document_id in model.document_paths
         }
         state.document_formats = dict(model.document_formats)
+        state.document_authors = dict(model.document_authors)
+        state.document_heads = dict(model.document_heads)
         state.tickets = {ticket_id: dict(values) for ticket_id, values in model.tickets}
         state.plan_revisions = dict(model.plan_revisions)
         state.meetings = {m.meeting_id: m for m in model.meetings}

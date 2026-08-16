@@ -482,8 +482,25 @@ class GroundedGm:
                 for ticket_id, values in self._world.tickets.items()
                 if values.get("assignee") != person
             ]
+            # Alternate authoring with revision, so drafts get reworked the
+            # way reviewed work actually is. The candidate is this person's
+            # own most recent document; its text comes from the log.
+            candidate: str | None = None
+            text = ""
+            if self._world.documents:
+                authored = [
+                    document_id
+                    for document_id, path in self._world.document_paths_by_id.items()
+                    if self._world.document_authors.get(document_id) == person
+                ]
+                if authored and len(authored) % 2 == 0:
+                    candidate = authored[-1]
+                    text = self._world.document_heads.get(candidate, "")
             return DeliverableActionSpec(
-                day=event.payload.day, engagements=tuple(mine + others)[:12]
+                day=event.payload.day,
+                engagements=tuple(mine + others)[:12],
+                revise_document_id=candidate,
+                revise_document_text=text,
             )
         if isinstance(event.payload, SimCuePayload):
             return CueActionSpec(note=event.payload.note, topic=event.payload.topic)

@@ -378,6 +378,35 @@ class ProfessionalActorAct:
             or "Nothing yet today."
         )
         engagements = "\n".join(spec.engagements) or "No engagements assigned."
+
+        # Carrying existing work forward is as much of a day as starting
+        # something new, and it is the only way a document ever reaches a
+        # second version.
+        if spec.revise_document_id and spec.revise_document_text:
+            try:
+                with dspy.context(lm=self._lm):
+                    revision = await self._actor.draft_document.acall(
+                        identity=identity,
+                        document=spec.revise_document_text,
+                        intent=(
+                            "Work this deliverable forward: clear review "
+                            "points, extend the testing, or bring it up to "
+                            "date with what the engagement now knows."
+                        ),
+                        context=context,
+                    )
+            except CassetteMissError, LMBudgetExceededError, LMTransportError:
+                raise
+            except Exception:
+                return IntentAction(
+                    intent=IdleIntent(until_minutes=self._params.check_interval_minutes)
+                )
+            return IntentAction(
+                intent=DocumentEditIntent(
+                    document_ref=spec.revise_document_id, edit=revision.edit
+                )
+            )
+
         try:
             # Bind the LM: an unbound call raises, the degradation path below
             # swallows it, and the day's work product disappears without a

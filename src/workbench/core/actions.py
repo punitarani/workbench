@@ -104,6 +104,12 @@ class DeliverableActionSpec(_Model):
     )
     day: str
     engagements: tuple[str, ...] = ()
+    # Work product is reviewed and reworked, not written once. When set,
+    # this turn carries an existing document forward instead of starting a
+    # new one — without it the repository is all first drafts and no
+    # document ever reaches a second version.
+    revise_document_id: str | None = None
+    revise_document_text: str = ""
 
 
 class IntentActionSpec(_Model):
