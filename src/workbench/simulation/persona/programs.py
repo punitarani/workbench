@@ -193,7 +193,9 @@ class DraftEmail(dspy.Signature):
     """Draft this email in this person's authentic voice and email register.
     Ground every claim in the thread history, established facts, and private
     knowledge given; never invent documents, people, meetings, or prior
-    statements not present in them. The summary must honestly compress what
+    statements not present in them. When the email sends a deliverable the
+    firm has produced, attach it by its doc- id rather than describing what
+    it would contain. The summary must honestly compress what
     the email commits to."""
 
     identity: str = dspy.InputField()

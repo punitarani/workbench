@@ -53,7 +53,7 @@ from workbench.core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
-from workbench.core.events.email import EmailMessagePayload
+from workbench.core.events.email import Attachment, EmailMessagePayload
 from workbench.core.events.meetings import (
     MeetingTranscriptPayload,
     SimMeetingConvenePayload,
@@ -973,6 +973,48 @@ class GroundedGm:
             case _:
                 raise IntentRejection(f"unsupported intent kind {intent.kind}")
 
+    _MEDIA_TYPES = {
+        "markdown": ("md", "text/markdown"),
+        "spreadsheet": (
+            "xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ),
+        "formatted": (
+            "docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ),
+        "slides": (
+            "pptx",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        ),
+    }
+
+    def _resolve_attachments(self, refs: tuple[str, ...]) -> tuple[Attachment, ...]:
+        """Turn doc- ids into real attachments.
+
+        Deliverables were produced and never sent: the payload has carried an
+        attachments field all along and the grounding hardcoded it empty, so
+        no email in any world ever had a file on it.
+        """
+
+        attachments = []
+        for ref in refs:
+            document_id = self._world.resolve_document(ref)
+            if document_id is None:
+                raise IntentRejection(f"unknown document {ref!r}")
+            path = self._world.document_paths_by_id.get(document_id, "")
+            content_format = self._world.document_formats.get(document_id, "markdown")
+            suffix, media_type = self._MEDIA_TYPES.get(
+                content_format, ("bin", "application/octet-stream")
+            )
+            name = path.rsplit("/", 1)[-1] or f"{document_id}.{suffix}"
+            attachments.append(
+                Attachment(
+                    filename=name, media_type=media_type, document_id=document_id
+                )
+            )
+        return tuple(attachments)
+
     def _ground_email(
         self, entity, sender, intent: EmailIntent, event, delay
     ) -> tuple[EventDraft, ...]:
@@ -1024,7 +1066,7 @@ class GroundedGm:
             cc=cc,
             subject=intent.draft.subject,
             body=intent.draft.body,
-            attachments=(),
+            attachments=self._resolve_attachments(intent.draft.attachment_refs),
         )
         record_drafts = tuple(
             EventDraft(

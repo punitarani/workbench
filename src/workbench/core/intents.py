@@ -29,6 +29,14 @@ class EmailDraft(_Intent):
             "addresses."
         ),
     )
+    attachment_refs: tuple[str, ...] = Field(
+        default=(),
+        description=(
+            "doc- ids of deliverables this email sends, if any. Attach the "
+            "work rather than describing it: a client asking for the "
+            "schedule wants the file. Only ids you have seen."
+        ),
+    )
     cc: tuple[str, ...] = Field(
         default=(),
         description="Cc recipients by full name from the thread or directory.",

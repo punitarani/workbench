@@ -57,6 +57,7 @@ class WorldStateModel(BaseModel):
     documents: tuple[tuple[str, int], ...] = ()
     calendar_events: tuple[str, ...] = ()
     document_paths: tuple[tuple[str, str], ...] = ()
+    document_formats: tuple[tuple[str, str], ...] = ()
     tickets: tuple[tuple[str, tuple[tuple[str, str | None], ...]], ...] = Field(
         default=()
     )
@@ -83,6 +84,10 @@ class WorldState:
         self.chat_message_conversations: dict[str, str] = {}
         self.documents: dict[str, int] = {}  # id -> head revision
         self.document_paths: dict[str, str] = {}  # path -> id
+        # An attachment needs the file's name and kind, so the fold keeps
+        # both directions of the document mapping.
+        self.document_paths_by_id: dict[str, str] = {}  # id -> path
+        self.document_formats: dict[str, str] = {}  # id -> content format
         self.tickets: dict[str, dict[str, str | None]] = {}
         self.plan_revisions: dict[str, int] = {}
         self.meetings: dict[str, MeetingProgress] = {}
@@ -131,6 +136,8 @@ class WorldState:
             case DocumentCreatedPayload():
                 self.documents[payload.document_id] = 1
                 self.document_paths[payload.path] = payload.document_id
+                self.document_paths_by_id[payload.document_id] = payload.path
+                self.document_formats[payload.document_id] = payload.content_format
             case DocumentRevisedPayload():
                 if payload.document_id in self.documents:
                     self.documents[payload.document_id] = payload.revision
@@ -189,6 +196,7 @@ class WorldState:
             documents=tuple(sorted(self.documents.items())),
             calendar_events=tuple(sorted(self.calendar_events)),
             document_paths=tuple(sorted(self.document_paths.items())),
+            document_formats=tuple(sorted(self.document_formats.items())),
             tickets=tuple(
                 (ticket_id, tuple(sorted(values.items())))
                 for ticket_id, values in sorted(self.tickets.items())
@@ -220,6 +228,10 @@ class WorldState:
         state.documents = dict(model.documents)
         state.calendar_events = set(model.calendar_events)
         state.document_paths = dict(model.document_paths)
+        state.document_paths_by_id = {
+            document_id: path for path, document_id in model.document_paths
+        }
+        state.document_formats = dict(model.document_formats)
         state.tickets = {ticket_id: dict(values) for ticket_id, values in model.tickets}
         state.plan_revisions = dict(model.plan_revisions)
         state.meetings = {m.meeting_id: m for m in model.meetings}
