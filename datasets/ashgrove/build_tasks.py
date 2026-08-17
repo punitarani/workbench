@@ -128,6 +128,12 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     tracker_path.parent.mkdir(parents=True, exist_ok=True)
     tracker_path.write_text(tracker)
     print(f"tracker written -> {tracker_path.relative_to(SHARED_BUNDLE)}")
+    # Which world this bundle is. Everything downstream -- the independence
+    # check, the miss classifier -- needs the log the oracles were computed
+    # from, and defaulting to a fixed path meant comparing a fresh oracle
+    # against a stale world and reporting 256 disagreements that were only
+    # a wrong filename.
+    (SHARED_BUNDLE / "SOURCE").write_text(str(world_log.resolve()) + "\n")
     if env.skipped_renders:
         for skip in env.skipped_renders:
             print(f"  render skipped: {skip}")

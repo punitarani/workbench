@@ -40,6 +40,20 @@ _MAX_PAGES = 60
 # measures a world must not change it.
 _READ_VERBS = ("get_", "list_", "search_", "read_", "find_", "who_", "describe_")
 
+
+def _is_read(name: str) -> bool:
+    """A read verb, with or without its system's prefix.
+
+    Slack names every tool ``slack_search_channels``, ``slack_read_thread``
+    and so on, so matching the verb at the start of the string excluded that
+    whole surface from the crawl -- and the gate then reported 272 message
+    timestamps as unservable when the tools serve them plainly.
+    """
+
+    return name.startswith(_READ_VERBS) or name.split("_", 1)[-1].startswith(
+        _READ_VERBS
+    )
+
 # An ISO calendar date, with or without a time on it.
 _DATE = re.compile(r"\d{4}-\d{2}-\d{2}(?:[T ][\d:.+\-]*)?")
 
@@ -101,11 +115,18 @@ async def _collect(server, name: str, arguments: dict, into: set[str]) -> None:
         _strings(payload, into)
         if token_arg is None or not isinstance(payload, dict):
             return
+        # Slack tucks its cursor inside `response_metadata`, so looking only
+        # at the top level stopped every channel at page one and left most
+        # of the firm's chat unreached — which the gate then reported as
+        # unservable rather than as its own blind spot.
+        nested = payload.get("response_metadata")
+        places = (payload, nested if isinstance(nested, dict) else {})
         token = next(
             (
-                payload[key]
+                where[key]
+                for where in places
                 for key in ("nextPageToken", "nextCursor", "next_cursor")
-                if payload.get(key)
+                if where.get(key)
             ),
             None,
         )
@@ -136,20 +157,37 @@ async def _served(state_dir: Path) -> set[str]:
         tools = [
             tool
             for tool in await server.list_tools()
-            if tool.name.startswith(_READ_VERBS)
+            if _is_read(tool.name)
         ]
         discovered: set[str] = set()
         for tool in tools:
-            if (tool.input_schema or {}).get("required"):
-                continue
-            await _collect(server, tool.name, {}, discovered)
+            required = (tool.input_schema or {}).get("required") or []
+            if not required:
+                await _collect(server, tool.name, {}, discovered)
+            elif required == ["query"]:
+                # A search that insists on a query is still discovery: an
+                # agent with no ids types an empty one, and so does this.
+                # Slack is the case that matters -- `search_channels`
+                # requires a query, so skipping it left the whole surface
+                # unreached, and 272 message timestamps the tools plainly
+                # do serve were reported as unservable.
+                await _collect(server, tool.name, {"query": ""}, discovered)
         reachable |= discovered
 
         # Step two: open what step one named.
+        # Shortest first, then alphabetical. The cap bounds a crawl that is
+        # otherwise quadratic, but truncating it alphabetically sorted
+        # seventeen-character timestamps ahead of nine-character channel ids
+        # and cut every channel out of the follow -- so two messages in a
+        # 543-message room were reported as unservable while the tool
+        # returned them happily when asked.
         candidates = sorted(
-            value
-            for value in discovered
-            if value and len(value) < 64 and " " not in value
+            (
+                value
+                for value in discovered
+                if value and len(value) < 64 and " " not in value
+            ),
+            key=lambda value: (len(value), value),
         )[:_MAX_FOLLOW]
         for tool in tools:
             schema = tool.input_schema or {}

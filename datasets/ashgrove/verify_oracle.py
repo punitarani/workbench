@@ -42,7 +42,15 @@ from workbench.environment.snapshot import status_on
 
 REPO = Path(__file__).resolve().parents[2]
 TASKS = Path(__file__).resolve().parent / "tasks"
-DEFAULT_LOG = REPO / "out" / "ashgrove" / "epoch" / "world.jsonl"
+_SOURCE = REPO / "out" / "ashgrove" / "bundle" / "SOURCE"
+# The world the current bundle was built from, when the build recorded it.
+# A fixed fallback is what made this check compare a fresh oracle against a
+# stale world once, so the recorded answer wins whenever there is one.
+DEFAULT_LOG = (
+    Path(_SOURCE.read_text().strip())
+    if _SOURCE.is_file()
+    else REPO / "out" / "ashgrove" / "epoch" / "world.jsonl"
+)
 # Tight on purpose. Both sides round once, at the end, from the same
 # integer seconds and cents, so they should agree to the last place; this
 # only absorbs IEEE noise from accumulating `seconds * rate / 3600` in

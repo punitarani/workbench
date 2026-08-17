@@ -12,114 +12,114 @@
   "00007-HarborLightDistribution",
   "00009-StonebridgePropertyGroup"
  ],
- "longest_waiting_engagement": "00003-RivergateHousingTrust",
- "wip_at_risk_dollars": 74385.0,
+ "longest_waiting_engagement": "00007-HarborLightDistribution",
+ "wip_at_risk_dollars": 140558.13,
  "at_risk_over_10k": [
   "00001-FairmountCommunityFoundation",
-  "00002-FairmountCommunityFoundation",
   "00003-RivergateHousingTrust",
-  "00007-HarborLightDistribution"
+  "00007-HarborLightDistribution",
+  "00009-StonebridgePropertyGroup"
  ],
  "engagements": [
   {
    "engagement": "00001-FairmountCommunityFoundation",
    "client_contact": "Harriet Vance",
    "responsible": "Imogen Carraway",
-   "total_hours": 80.1,
+   "total_hours": 166.3,
    "staff_count": 17,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 242.6,
-   "wip_dollars": 16250.34
+   "client_waiting_hours": 3.4,
+   "wip_dollars": 42249.37
   },
   {
    "engagement": "00002-FairmountCommunityFoundation",
    "client_contact": "Harriet Vance",
    "responsible": "Imogen Carraway",
-   "total_hours": 65.48,
-   "staff_count": 17,
+   "total_hours": 23.18,
+   "staff_count": 13,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 242.6,
-   "wip_dollars": 15778.4
+   "client_waiting_hours": 3.4,
+   "wip_dollars": 6596.03
   },
   {
    "engagement": "00003-RivergateHousingTrust",
    "client_contact": "Desmond Blakely",
    "responsible": "Elias Finch",
-   "total_hours": 57.52,
+   "total_hours": 146.37,
    "staff_count": 17,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 263.0,
-   "wip_dollars": 12054.3
+   "client_waiting_hours": 127.9,
+   "wip_dollars": 34165.38
   },
   {
    "engagement": "00004-KestrelManufacturing",
    "client_contact": "Nora Behrens",
    "responsible": "Hana Sato",
-   "total_hours": 67.77,
+   "total_hours": 148.42,
    "staff_count": 17,
    "status": "clear",
    "client_waiting_hours": 0.0,
-   "wip_dollars": 15568.34
+   "wip_dollars": 33254.23
   },
   {
    "engagement": "00005-CardinalRidgeBuilders",
    "client_contact": "Idris Mensah",
    "responsible": "Elias Finch",
-   "total_hours": 15.72,
+   "total_hours": 28.27,
    "staff_count": 11,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 0.9,
-   "wip_dollars": 4187.08
+   "client_waiting_hours": 73.8,
+   "wip_dollars": 7519.83
   },
   {
    "engagement": "00006-NorthwindSoftware",
    "client_contact": "Priya Raman",
    "responsible": "Victor Alade",
-   "total_hours": 153.82,
-   "staff_count": 17,
+   "total_hours": 44.47,
+   "staff_count": 13,
    "status": "clear",
    "client_waiting_hours": 0.0,
-   "wip_dollars": 34939.68
+   "wip_dollars": 11846.83
   },
   {
    "engagement": "00007-HarborLightDistribution",
    "client_contact": "Tomas Lindgren",
    "responsible": "Hana Sato",
-   "total_hours": 81.52,
-   "staff_count": 16,
+   "total_hours": 149.3,
+   "staff_count": 17,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 217.9,
-   "wip_dollars": 20137.28
+   "client_waiting_hours": 246.9,
+   "wip_dollars": 35351.08
   },
   {
    "engagement": "00008-MeridianFamilyHealth",
    "client_contact": "Adaeze Okonkwo",
    "responsible": "Colin Mackey",
-   "total_hours": 17.23,
-   "staff_count": 13,
+   "total_hours": 11.2,
+   "staff_count": 8,
    "status": "clear",
    "client_waiting_hours": 0.0,
-   "wip_dollars": 3967.25
+   "wip_dollars": 2164.89
   },
   {
    "engagement": "00009-StonebridgePropertyGroup",
    "client_contact": "Lucia Arroyo",
    "responsible": "Elias Finch",
-   "total_hours": 27.1,
-   "staff_count": 11,
+   "total_hours": 64.77,
+   "staff_count": 13,
    "status": "awaiting_firm_reply",
-   "client_waiting_hours": 6.6,
-   "wip_dollars": 5977.6
+   "client_waiting_hours": 169.3,
+   "wip_dollars": 14676.44
   },
   {
    "engagement": "00010-AshfieldPensionTrust",
    "client_contact": "Garrett Poole",
    "responsible": "Hana Sato",
-   "total_hours": 9.3,
-   "staff_count": 10,
+   "total_hours": 43.28,
+   "staff_count": 13,
    "status": "clear",
    "client_waiting_hours": 0.0,
-   "wip_dollars": 2812.95
+   "wip_dollars": 11705.15
   }
  ]
 }

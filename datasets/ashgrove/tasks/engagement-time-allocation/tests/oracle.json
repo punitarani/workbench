@@ -1,288 +1,264 @@
 {
- "entries_total": 1304,
- "pairs": 197,
- "total_hours": 817.23,
- "total_billable_hours": 513.88,
- "total_fees_dollars": 135025.75,
- "busiest_person": "Theo Brandt",
+ "entries_total": 1260,
+ "pairs": 188,
+ "total_hours": 1125.07,
+ "total_billable_hours": 764.3,
+ "total_fees_dollars": 200947.42,
+ "busiest_person": "Priscilla Wong",
  "busiest_engagement": "00007-HarborLightDistribution",
  "allocations": [
   {
    "person": "Colin Mackey",
    "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 7,
-   "hours": 3.8,
-   "billable_hours": 3.8,
-   "fees_dollars": 665.0
-  },
-  {
-   "person": "Colin Mackey",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 3,
-   "hours": 2.15,
-   "billable_hours": 2.15,
-   "fees_dollars": 376.25
+   "entries": 12,
+   "hours": 10.78,
+   "billable_hours": 10.78,
+   "fees_dollars": 1887.08
   },
   {
    "person": "Colin Mackey",
    "engagement": "00003-RivergateHousingTrust",
-   "entries": 6,
-   "hours": 4.3,
-   "billable_hours": 4.3,
-   "fees_dollars": 752.5
+   "entries": 9,
+   "hours": 12.08,
+   "billable_hours": 12.08,
+   "fees_dollars": 2114.58
   },
   {
    "person": "Colin Mackey",
    "engagement": "00004-KestrelManufacturing",
-   "entries": 3,
-   "hours": 1.8,
-   "billable_hours": 1.8,
-   "fees_dollars": 315.0
-  },
-  {
-   "person": "Colin Mackey",
-   "engagement": "00005-CardinalRidgeBuilders",
-   "entries": 1,
-   "hours": 0.5,
-   "billable_hours": 0.5,
-   "fees_dollars": 87.5
+   "entries": 6,
+   "hours": 7.0,
+   "billable_hours": 7.0,
+   "fees_dollars": 1225.0
   },
   {
    "person": "Colin Mackey",
    "engagement": "00006-NorthwindSoftware",
-   "entries": 13,
-   "hours": 9.58,
-   "billable_hours": 8.75,
-   "fees_dollars": 1531.25
+   "entries": 3,
+   "hours": 3.03,
+   "billable_hours": 3.03,
+   "fees_dollars": 530.83
+  },
+  {
+   "person": "Colin Mackey",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 3,
+   "hours": 2.53,
+   "billable_hours": 2.53,
+   "fees_dollars": 443.33
   },
   {
    "person": "Colin Mackey",
    "engagement": "00008-MeridianFamilyHealth",
-   "entries": 8,
-   "hours": 5.92,
-   "billable_hours": 5.92,
-   "fees_dollars": 1035.42
+   "entries": 2,
+   "hours": 2.25,
+   "billable_hours": 2.25,
+   "fees_dollars": 393.75
   },
   {
    "person": "Colin Mackey",
    "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 10,
-   "hours": 9.07,
-   "billable_hours": 9.07,
-   "fees_dollars": 1586.67
-  },
-  {
-   "person": "Colin Mackey",
-   "engagement": "00010-AshfieldPensionTrust",
-   "entries": 2,
-   "hours": 0.58,
-   "billable_hours": 0.58,
-   "fees_dollars": 102.08
+   "entries": 15,
+   "hours": 17.32,
+   "billable_hours": 17.32,
+   "fees_dollars": 3030.42
   },
   {
    "person": "Colin Mackey",
    "engagement": "00011-Shaw",
-   "entries": 11,
-   "hours": 4.55,
+   "entries": 12,
+   "hours": 6.83,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Colin Mackey",
    "engagement": "00012-Calder",
-   "entries": 10,
-   "hours": 4.53,
+   "entries": 11,
+   "hours": 4.77,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Colin Mackey",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 0.67,
+   "engagement": "00013-Mendes",
+   "entries": 1,
+   "hours": 0.53,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Desmond Ortiz",
    "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 9,
-   "hours": 6.12,
-   "billable_hours": 6.12,
-   "fees_dollars": 1437.42
-  },
-  {
-   "person": "Desmond Ortiz",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 3,
-   "hours": 2.92,
-   "billable_hours": 2.92,
-   "fees_dollars": 685.42
+   "entries": 10,
+   "hours": 9.78,
+   "billable_hours": 9.78,
+   "fees_dollars": 2299.08
   },
   {
    "person": "Desmond Ortiz",
    "engagement": "00003-RivergateHousingTrust",
-   "entries": 9,
-   "hours": 6.13,
-   "billable_hours": 6.13,
-   "fees_dollars": 1441.33
+   "entries": 11,
+   "hours": 12.85,
+   "billable_hours": 12.52,
+   "fees_dollars": 2941.42
   },
   {
    "person": "Desmond Ortiz",
    "engagement": "00004-KestrelManufacturing",
-   "entries": 7,
-   "hours": 4.3,
-   "billable_hours": 3.83,
-   "fees_dollars": 900.83
+   "entries": 9,
+   "hours": 8.67,
+   "billable_hours": 8.67,
+   "fees_dollars": 2036.67
   },
   {
    "person": "Desmond Ortiz",
    "engagement": "00005-CardinalRidgeBuilders",
-   "entries": 7,
-   "hours": 6.5,
-   "billable_hours": 6.5,
-   "fees_dollars": 1527.5
+   "entries": 11,
+   "hours": 12.65,
+   "billable_hours": 12.65,
+   "fees_dollars": 2972.75
   },
   {
    "person": "Desmond Ortiz",
    "engagement": "00006-NorthwindSoftware",
-   "entries": 11,
-   "hours": 12.03,
-   "billable_hours": 11.7,
-   "fees_dollars": 2749.5
-  },
-  {
-   "person": "Desmond Ortiz",
-   "engagement": "00007-HarborLightDistribution",
-   "entries": 4,
-   "hours": 2.78,
-   "billable_hours": 2.78,
-   "fees_dollars": 654.08
-  },
-  {
-   "person": "Desmond Ortiz",
-   "engagement": "00008-MeridianFamilyHealth",
-   "entries": 2,
+   "entries": 1,
    "hours": 0.75,
    "billable_hours": 0.75,
    "fees_dollars": 176.25
   },
   {
    "person": "Desmond Ortiz",
-   "engagement": "00009-StonebridgePropertyGroup",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 4,
+   "hours": 4.25,
+   "billable_hours": 4.25,
+   "fees_dollars": 998.75
+  },
+  {
+   "person": "Desmond Ortiz",
+   "engagement": "00008-MeridianFamilyHealth",
    "entries": 1,
-   "hours": 0.47,
-   "billable_hours": 0.47,
-   "fees_dollars": 109.67
+   "hours": 0.88,
+   "billable_hours": 0.88,
+   "fees_dollars": 207.58
+  },
+  {
+   "person": "Desmond Ortiz",
+   "engagement": "00009-StonebridgePropertyGroup",
+   "entries": 3,
+   "hours": 2.23,
+   "billable_hours": 2.23,
+   "fees_dollars": 524.83
   },
   {
    "person": "Desmond Ortiz",
    "engagement": "00010-AshfieldPensionTrust",
-   "entries": 2,
-   "hours": 1.0,
-   "billable_hours": 0.58,
-   "fees_dollars": 137.08
+   "entries": 5,
+   "hours": 5.8,
+   "billable_hours": 5.8,
+   "fees_dollars": 1363.0
   },
   {
    "person": "Desmond Ortiz",
    "engagement": "00011-Shaw",
-   "entries": 11,
-   "hours": 7.13,
+   "entries": 12,
+   "hours": 7.62,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Desmond Ortiz",
    "engagement": "00012-Calder",
-   "entries": 9,
-   "hours": 4.42,
+   "entries": 10,
+   "hours": 5.1,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Desmond Ortiz",
-   "engagement": "00013-Brandt",
+   "engagement": "00013-Mendes",
    "entries": 2,
-   "hours": 1.0,
-   "billable_hours": 0.67,
-   "fees_dollars": 156.67
+   "hours": 1.02,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
   },
   {
    "person": "Elias Finch",
    "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 3,
-   "hours": 1.92,
-   "billable_hours": 1.92,
-   "fees_dollars": 814.58
+   "entries": 12,
+   "hours": 11.85,
+   "billable_hours": 11.43,
+   "fees_dollars": 4859.17
   },
   {
    "person": "Elias Finch",
    "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 7,
-   "hours": 4.25,
-   "billable_hours": 4.25,
-   "fees_dollars": 1806.25
+   "entries": 5,
+   "hours": 4.27,
+   "billable_hours": 4.27,
+   "fees_dollars": 1813.33
   },
   {
    "person": "Elias Finch",
    "engagement": "00003-RivergateHousingTrust",
-   "entries": 3,
-   "hours": 1.53,
-   "billable_hours": 1.53,
-   "fees_dollars": 651.67
+   "entries": 10,
+   "hours": 10.22,
+   "billable_hours": 10.22,
+   "fees_dollars": 4342.08
   },
   {
    "person": "Elias Finch",
    "engagement": "00004-KestrelManufacturing",
-   "entries": 6,
-   "hours": 3.88,
-   "billable_hours": 3.88,
-   "fees_dollars": 1650.42
+   "entries": 7,
+   "hours": 7.62,
+   "billable_hours": 7.62,
+   "fees_dollars": 3237.08
   },
   {
    "person": "Elias Finch",
    "engagement": "00005-CardinalRidgeBuilders",
    "entries": 4,
-   "hours": 1.5,
-   "billable_hours": 1.5,
-   "fees_dollars": 637.5
+   "hours": 2.68,
+   "billable_hours": 2.68,
+   "fees_dollars": 1140.42
   },
   {
    "person": "Elias Finch",
    "engagement": "00006-NorthwindSoftware",
-   "entries": 12,
-   "hours": 9.9,
-   "billable_hours": 9.9,
-   "fees_dollars": 4207.5
+   "entries": 4,
+   "hours": 6.75,
+   "billable_hours": 6.75,
+   "fees_dollars": 2868.75
   },
   {
    "person": "Elias Finch",
    "engagement": "00007-HarborLightDistribution",
-   "entries": 4,
-   "hours": 2.67,
-   "billable_hours": 2.67,
-   "fees_dollars": 1133.33
+   "entries": 5,
+   "hours": 4.32,
+   "billable_hours": 4.32,
+   "fees_dollars": 1834.58
   },
   {
    "person": "Elias Finch",
    "engagement": "00008-MeridianFamilyHealth",
-   "entries": 3,
-   "hours": 2.12,
-   "billable_hours": 2.12,
-   "fees_dollars": 899.58
+   "entries": 1,
+   "hours": 0.5,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
   },
   {
    "person": "Elias Finch",
    "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 6,
-   "hours": 2.72,
-   "billable_hours": 2.72,
-   "fees_dollars": 1154.58
+   "entries": 3,
+   "hours": 2.2,
+   "billable_hours": 2.2,
+   "fees_dollars": 935.0
   },
   {
    "person": "Elias Finch",
    "engagement": "00010-AshfieldPensionTrust",
-   "entries": 3,
+   "entries": 2,
    "hours": 1.75,
    "billable_hours": 1.75,
    "fees_dollars": 743.75
@@ -290,88 +266,96 @@
   {
    "person": "Elias Finch",
    "engagement": "00011-Shaw",
-   "entries": 12,
-   "hours": 7.55,
+   "entries": 11,
+   "hours": 7.97,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Elias Finch",
    "engagement": "00012-Calder",
-   "entries": 10,
-   "hours": 5.95,
+   "entries": 11,
+   "hours": 5.55,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Elias Finch",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 1.67,
-   "billable_hours": 1.67,
-   "fees_dollars": 708.33
+   "engagement": "00013-Mendes",
+   "entries": 3,
+   "hours": 2.17,
+   "billable_hours": 1.75,
+   "fees_dollars": 743.75
   },
   {
    "person": "Freya Holt",
    "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 12,
-   "hours": 5.83,
+   "entries": 8,
+   "hours": 4.48,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
    "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 6,
-   "hours": 2.75,
+   "entries": 1,
+   "hours": 0.58,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
    "engagement": "00003-RivergateHousingTrust",
-   "entries": 8,
-   "hours": 2.72,
+   "entries": 10,
+   "hours": 5.92,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
    "engagement": "00004-KestrelManufacturing",
-   "entries": 6,
-   "hours": 2.53,
-   "billable_hours": 0.5,
+   "entries": 8,
+   "hours": 5.93,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Freya Holt",
+   "engagement": "00005-CardinalRidgeBuilders",
+   "entries": 1,
+   "hours": 0.5,
+   "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
    "engagement": "00006-NorthwindSoftware",
-   "entries": 8,
-   "hours": 6.45,
+   "entries": 4,
+   "hours": 3.08,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
    "engagement": "00007-HarborLightDistribution",
-   "entries": 2,
-   "hours": 0.75,
+   "entries": 4,
+   "hours": 2.2,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
    "engagement": "00008-MeridianFamilyHealth",
-   "entries": 3,
-   "hours": 1.2,
+   "entries": 1,
+   "hours": 0.32,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
    "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 2,
-   "hours": 0.67,
+   "entries": 3,
+   "hours": 2.25,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
@@ -379,295 +363,311 @@
    "person": "Freya Holt",
    "engagement": "00010-AshfieldPensionTrust",
    "entries": 1,
-   "hours": 0.25,
+   "hours": 0.67,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
    "engagement": "00011-Shaw",
-   "entries": 17,
-   "hours": 9.03,
+   "entries": 21,
+   "hours": 15.95,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
    "engagement": "00012-Calder",
-   "entries": 12,
-   "hours": 7.57,
+   "entries": 5,
+   "hours": 2.12,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Freya Holt",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 2.17,
+   "engagement": "00013-Mendes",
+   "entries": 7,
+   "hours": 5.33,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Gabriel Fontes",
    "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 10,
+   "entries": 12,
+   "hours": 12.0,
+   "billable_hours": 12.0,
+   "fees_dollars": 2580.0
+  },
+  {
+   "person": "Gabriel Fontes",
+   "engagement": "00002-FairmountCommunityFoundation",
+   "entries": 3,
+   "hours": 2.0,
+   "billable_hours": 2.0,
+   "fees_dollars": 430.0
+  },
+  {
+   "person": "Gabriel Fontes",
+   "engagement": "00003-RivergateHousingTrust",
+   "entries": 8,
+   "hours": 9.25,
+   "billable_hours": 9.25,
+   "fees_dollars": 1988.75
+  },
+  {
+   "person": "Gabriel Fontes",
+   "engagement": "00004-KestrelManufacturing",
+   "entries": 8,
+   "hours": 7.42,
+   "billable_hours": 7.42,
+   "fees_dollars": 1594.58
+  },
+  {
+   "person": "Gabriel Fontes",
+   "engagement": "00005-CardinalRidgeBuilders",
+   "entries": 5,
+   "hours": 3.95,
+   "billable_hours": 3.95,
+   "fees_dollars": 849.25
+  },
+  {
+   "person": "Gabriel Fontes",
+   "engagement": "00006-NorthwindSoftware",
+   "entries": 2,
+   "hours": 2.5,
+   "billable_hours": 2.5,
+   "fees_dollars": 537.5
+  },
+  {
+   "person": "Gabriel Fontes",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 5,
+   "hours": 4.5,
+   "billable_hours": 4.5,
+   "fees_dollars": 967.5
+  },
+  {
+   "person": "Gabriel Fontes",
+   "engagement": "00008-MeridianFamilyHealth",
+   "entries": 5,
+   "hours": 3.17,
+   "billable_hours": 3.17,
+   "fees_dollars": 680.83
+  },
+  {
+   "person": "Gabriel Fontes",
+   "engagement": "00009-StonebridgePropertyGroup",
+   "entries": 8,
    "hours": 6.23,
    "billable_hours": 6.23,
    "fees_dollars": 1340.17
   },
   {
    "person": "Gabriel Fontes",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 8,
-   "hours": 4.25,
-   "billable_hours": 4.25,
-   "fees_dollars": 913.75
-  },
-  {
-   "person": "Gabriel Fontes",
-   "engagement": "00003-RivergateHousingTrust",
-   "entries": 10,
-   "hours": 5.87,
-   "billable_hours": 5.87,
-   "fees_dollars": 1261.33
-  },
-  {
-   "person": "Gabriel Fontes",
-   "engagement": "00004-KestrelManufacturing",
-   "entries": 6,
-   "hours": 3.88,
-   "billable_hours": 3.88,
-   "fees_dollars": 834.92
-  },
-  {
-   "person": "Gabriel Fontes",
-   "engagement": "00005-CardinalRidgeBuilders",
-   "entries": 2,
-   "hours": 1.17,
-   "billable_hours": 1.17,
-   "fees_dollars": 250.83
-  },
-  {
-   "person": "Gabriel Fontes",
-   "engagement": "00006-NorthwindSoftware",
-   "entries": 11,
-   "hours": 9.17,
-   "billable_hours": 9.17,
-   "fees_dollars": 1970.83
-  },
-  {
-   "person": "Gabriel Fontes",
-   "engagement": "00007-HarborLightDistribution",
+   "engagement": "00010-AshfieldPensionTrust",
    "entries": 4,
-   "hours": 2.73,
-   "billable_hours": 2.73,
-   "fees_dollars": 587.67
-  },
-  {
-   "person": "Gabriel Fontes",
-   "engagement": "00008-MeridianFamilyHealth",
-   "entries": 2,
-   "hours": 0.58,
-   "billable_hours": 0.58,
-   "fees_dollars": 125.42
+   "hours": 3.12,
+   "billable_hours": 3.12,
+   "fees_dollars": 670.08
   },
   {
    "person": "Gabriel Fontes",
    "engagement": "00011-Shaw",
-   "entries": 10,
-   "hours": 5.8,
+   "entries": 11,
+   "hours": 6.15,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Gabriel Fontes",
    "engagement": "00012-Calder",
-   "entries": 10,
-   "hours": 4.77,
+   "entries": 8,
+   "hours": 3.72,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Gabriel Fontes",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 1.0,
-   "billable_hours": 0.58,
-   "fees_dollars": 125.42
+   "engagement": "00013-Mendes",
+   "entries": 1,
+   "hours": 0.5,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
   },
   {
    "person": "Hana Sato",
    "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 8,
-   "hours": 3.75,
-   "billable_hours": 3.75,
-   "fees_dollars": 1500.0
+   "entries": 12,
+   "hours": 14.07,
+   "billable_hours": 14.07,
+   "fees_dollars": 5626.67
   },
   {
    "person": "Hana Sato",
    "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 8,
-   "hours": 5.53,
-   "billable_hours": 5.53,
-   "fees_dollars": 2213.33
+   "entries": 1,
+   "hours": 1.0,
+   "billable_hours": 1.0,
+   "fees_dollars": 400.0
   },
   {
    "person": "Hana Sato",
    "engagement": "00003-RivergateHousingTrust",
-   "entries": 5,
-   "hours": 2.25,
-   "billable_hours": 2.25,
-   "fees_dollars": 900.0
+   "entries": 6,
+   "hours": 6.93,
+   "billable_hours": 6.93,
+   "fees_dollars": 2773.33
   },
   {
    "person": "Hana Sato",
    "engagement": "00004-KestrelManufacturing",
-   "entries": 9,
-   "hours": 6.17,
-   "billable_hours": 6.17,
-   "fees_dollars": 2466.67
+   "entries": 10,
+   "hours": 9.45,
+   "billable_hours": 9.45,
+   "fees_dollars": 3780.0
   },
   {
    "person": "Hana Sato",
    "engagement": "00005-CardinalRidgeBuilders",
    "entries": 2,
-   "hours": 0.75,
-   "billable_hours": 0.75,
-   "fees_dollars": 300.0
+   "hours": 1.47,
+   "billable_hours": 1.47,
+   "fees_dollars": 586.67
   },
   {
    "person": "Hana Sato",
    "engagement": "00006-NorthwindSoftware",
-   "entries": 8,
-   "hours": 6.25,
-   "billable_hours": 6.25,
-   "fees_dollars": 2500.0
+   "entries": 3,
+   "hours": 3.33,
+   "billable_hours": 3.33,
+   "fees_dollars": 1333.33
   },
   {
    "person": "Hana Sato",
    "engagement": "00007-HarborLightDistribution",
-   "entries": 10,
-   "hours": 6.5,
-   "billable_hours": 6.5,
-   "fees_dollars": 2600.0
+   "entries": 9,
+   "hours": 10.38,
+   "billable_hours": 10.38,
+   "fees_dollars": 4153.33
   },
   {
    "person": "Hana Sato",
-   "engagement": "00008-MeridianFamilyHealth",
-   "entries": 3,
-   "hours": 1.33,
-   "billable_hours": 1.33,
-   "fees_dollars": 533.33
+   "engagement": "00009-StonebridgePropertyGroup",
+   "entries": 2,
+   "hours": 1.45,
+   "billable_hours": 1.45,
+   "fees_dollars": 580.0
   },
   {
    "person": "Hana Sato",
    "engagement": "00010-AshfieldPensionTrust",
+   "entries": 4,
+   "hours": 4.98,
+   "billable_hours": 4.98,
+   "fees_dollars": 1993.33
+  },
+  {
+   "person": "Hana Sato",
+   "engagement": "00011-Shaw",
+   "entries": 11,
+   "hours": 7.08,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Hana Sato",
+   "engagement": "00012-Calder",
+   "entries": 11,
+   "hours": 8.02,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Imogen Carraway",
+   "engagement": "00001-FairmountCommunityFoundation",
+   "entries": 15,
+   "hours": 15.25,
+   "billable_hours": 14.33,
+   "fees_dollars": 4658.33
+  },
+  {
+   "person": "Imogen Carraway",
+   "engagement": "00002-FairmountCommunityFoundation",
+   "entries": 6,
+   "hours": 5.35,
+   "billable_hours": 5.35,
+   "fees_dollars": 1738.75
+  },
+  {
+   "person": "Imogen Carraway",
+   "engagement": "00003-RivergateHousingTrust",
+   "entries": 8,
+   "hours": 8.52,
+   "billable_hours": 8.52,
+   "fees_dollars": 2767.92
+  },
+  {
+   "person": "Imogen Carraway",
+   "engagement": "00004-KestrelManufacturing",
+   "entries": 5,
+   "hours": 5.08,
+   "billable_hours": 5.08,
+   "fees_dollars": 1652.08
+  },
+  {
+   "person": "Imogen Carraway",
+   "engagement": "00005-CardinalRidgeBuilders",
+   "entries": 1,
+   "hours": 0.47,
+   "billable_hours": 0.47,
+   "fees_dollars": 151.67
+  },
+  {
+   "person": "Imogen Carraway",
+   "engagement": "00006-NorthwindSoftware",
+   "entries": 1,
+   "hours": 0.58,
+   "billable_hours": 0.58,
+   "fees_dollars": 189.58
+  },
+  {
+   "person": "Imogen Carraway",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 11,
+   "hours": 14.08,
+   "billable_hours": 14.08,
+   "fees_dollars": 4577.08
+  },
+  {
+   "person": "Imogen Carraway",
+   "engagement": "00008-MeridianFamilyHealth",
+   "entries": 2,
+   "hours": 1.25,
+   "billable_hours": 1.25,
+   "fees_dollars": 406.25
+  },
+  {
+   "person": "Imogen Carraway",
+   "engagement": "00009-StonebridgePropertyGroup",
    "entries": 2,
    "hours": 2.33,
    "billable_hours": 2.33,
-   "fees_dollars": 933.33
-  },
-  {
-   "person": "Hana Sato",
-   "engagement": "00011-Shaw",
-   "entries": 10,
-   "hours": 5.25,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Hana Sato",
-   "engagement": "00012-Calder",
-   "entries": 11,
-   "hours": 7.0,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Hana Sato",
-   "engagement": "00013-Brandt",
-   "entries": 1,
-   "hours": 0.5,
-   "billable_hours": 0.5,
-   "fees_dollars": 200.0
-  },
-  {
-   "person": "Imogen Carraway",
-   "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 10,
-   "hours": 6.92,
-   "billable_hours": 6.92,
-   "fees_dollars": 2247.92
-  },
-  {
-   "person": "Imogen Carraway",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 5,
-   "hours": 3.7,
-   "billable_hours": 3.28,
-   "fees_dollars": 1067.08
-  },
-  {
-   "person": "Imogen Carraway",
-   "engagement": "00003-RivergateHousingTrust",
-   "entries": 9,
-   "hours": 5.67,
-   "billable_hours": 5.67,
-   "fees_dollars": 1841.67
-  },
-  {
-   "person": "Imogen Carraway",
-   "engagement": "00004-KestrelManufacturing",
-   "entries": 2,
-   "hours": 2.0,
-   "billable_hours": 2.0,
-   "fees_dollars": 650.0
-  },
-  {
-   "person": "Imogen Carraway",
-   "engagement": "00006-NorthwindSoftware",
-   "entries": 13,
-   "hours": 10.82,
-   "billable_hours": 10.15,
-   "fees_dollars": 3298.75
-  },
-  {
-   "person": "Imogen Carraway",
-   "engagement": "00007-HarborLightDistribution",
-   "entries": 12,
-   "hours": 11.75,
-   "billable_hours": 11.75,
-   "fees_dollars": 3818.75
-  },
-  {
-   "person": "Imogen Carraway",
-   "engagement": "00008-MeridianFamilyHealth",
-   "entries": 2,
-   "hours": 0.67,
-   "billable_hours": 0.67,
-   "fees_dollars": 216.67
-  },
-  {
-   "person": "Imogen Carraway",
-   "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 1,
-   "hours": 0.33,
-   "billable_hours": 0.33,
-   "fees_dollars": 108.33
+   "fees_dollars": 758.33
   },
   {
    "person": "Imogen Carraway",
    "engagement": "00010-AshfieldPensionTrust",
    "entries": 2,
-   "hours": 0.67,
-   "billable_hours": 0.33,
-   "fees_dollars": 108.33
+   "hours": 1.95,
+   "billable_hours": 1.95,
+   "fees_dollars": 633.75
   },
   {
    "person": "Imogen Carraway",
    "engagement": "00011-Shaw",
-   "entries": 10,
-   "hours": 4.92,
+   "entries": 11,
+   "hours": 8.72,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
@@ -675,167 +675,143 @@
    "person": "Imogen Carraway",
    "engagement": "00012-Calder",
    "entries": 11,
-   "hours": 6.08,
+   "hours": 7.42,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
-  },
-  {
-   "person": "Imogen Carraway",
-   "engagement": "00013-Brandt",
-   "entries": 1,
-   "hours": 0.5,
-   "billable_hours": 0.5,
-   "fees_dollars": 162.5
   },
   {
    "person": "Lucia Mendes",
    "engagement": "00001-FairmountCommunityFoundation",
    "entries": 7,
-   "hours": 3.33,
-   "billable_hours": 3.33,
-   "fees_dollars": 783.33
+   "hours": 8.1,
+   "billable_hours": 8.1,
+   "fees_dollars": 1903.5
   },
   {
    "person": "Lucia Mendes",
    "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 7,
-   "hours": 4.9,
-   "billable_hours": 4.9,
-   "fees_dollars": 1151.5
+   "entries": 1,
+   "hours": 0.63,
+   "billable_hours": 0.63,
+   "fees_dollars": 148.83
   },
   {
    "person": "Lucia Mendes",
    "engagement": "00003-RivergateHousingTrust",
-   "entries": 5,
-   "hours": 2.7,
-   "billable_hours": 2.7,
-   "fees_dollars": 634.5
+   "entries": 8,
+   "hours": 8.25,
+   "billable_hours": 8.25,
+   "fees_dollars": 1938.75
   },
   {
    "person": "Lucia Mendes",
    "engagement": "00004-KestrelManufacturing",
-   "entries": 3,
-   "hours": 1.8,
-   "billable_hours": 1.8,
-   "fees_dollars": 423.0
-  },
-  {
-   "person": "Lucia Mendes",
-   "engagement": "00005-CardinalRidgeBuilders",
-   "entries": 2,
-   "hours": 0.67,
-   "billable_hours": 0.67,
-   "fees_dollars": 156.67
-  },
-  {
-   "person": "Lucia Mendes",
-   "engagement": "00006-NorthwindSoftware",
    "entries": 10,
-   "hours": 12.0,
-   "billable_hours": 12.0,
-   "fees_dollars": 2820.0
+   "hours": 10.25,
+   "billable_hours": 10.25,
+   "fees_dollars": 2408.75
   },
   {
    "person": "Lucia Mendes",
    "engagement": "00007-HarborLightDistribution",
    "entries": 3,
-   "hours": 2.45,
-   "billable_hours": 2.45,
-   "fees_dollars": 575.75
+   "hours": 3.62,
+   "billable_hours": 3.62,
+   "fees_dollars": 849.92
   },
   {
    "person": "Lucia Mendes",
    "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 12,
-   "hours": 8.27,
-   "billable_hours": 8.27,
-   "fees_dollars": 1942.67
+   "entries": 16,
+   "hours": 18.93,
+   "billable_hours": 18.93,
+   "fees_dollars": 4449.33
+  },
+  {
+   "person": "Lucia Mendes",
+   "engagement": "00010-AshfieldPensionTrust",
+   "entries": 5,
+   "hours": 5.12,
+   "billable_hours": 5.12,
+   "fees_dollars": 1202.42
   },
   {
    "person": "Lucia Mendes",
    "engagement": "00011-Shaw",
-   "entries": 14,
-   "hours": 6.75,
+   "entries": 11,
+   "hours": 7.67,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Lucia Mendes",
    "engagement": "00012-Calder",
-   "entries": 10,
-   "hours": 5.3,
+   "entries": 11,
+   "hours": 6.37,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Lucia Mendes",
-   "engagement": "00013-Brandt",
-   "entries": 5,
-   "hours": 3.33,
-   "billable_hours": 3.33,
-   "fees_dollars": 783.33
+   "engagement": "00013-Mendes",
+   "entries": 1,
+   "hours": 0.5,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
   },
   {
    "person": "Maya Lindqvist",
    "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 7,
-   "hours": 5.08,
-   "billable_hours": 5.08,
-   "fees_dollars": 889.58
-  },
-  {
-   "person": "Maya Lindqvist",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 11,
-   "hours": 6.75,
-   "billable_hours": 6.75,
-   "fees_dollars": 1181.25
+   "entries": 13,
+   "hours": 13.13,
+   "billable_hours": 13.13,
+   "fees_dollars": 2298.33
   },
   {
    "person": "Maya Lindqvist",
    "engagement": "00003-RivergateHousingTrust",
-   "entries": 5,
-   "hours": 3.73,
-   "billable_hours": 3.73,
-   "fees_dollars": 653.33
+   "entries": 13,
+   "hours": 14.93,
+   "billable_hours": 14.93,
+   "fees_dollars": 2613.33
   },
   {
    "person": "Maya Lindqvist",
    "engagement": "00004-KestrelManufacturing",
-   "entries": 9,
-   "hours": 7.12,
-   "billable_hours": 7.12,
-   "fees_dollars": 1245.42
+   "entries": 17,
+   "hours": 18.9,
+   "billable_hours": 18.9,
+   "fees_dollars": 3307.5
   },
   {
    "person": "Maya Lindqvist",
    "engagement": "00005-CardinalRidgeBuilders",
    "entries": 1,
-   "hours": 0.33,
-   "billable_hours": 0.33,
-   "fees_dollars": 58.33
+   "hours": 1.17,
+   "billable_hours": 1.17,
+   "fees_dollars": 204.17
   },
   {
    "person": "Maya Lindqvist",
    "engagement": "00006-NorthwindSoftware",
-   "entries": 14,
-   "hours": 9.92,
-   "billable_hours": 9.92,
-   "fees_dollars": 1735.42
+   "entries": 1,
+   "hours": 1.0,
+   "billable_hours": 1.0,
+   "fees_dollars": 175.0
   },
   {
    "person": "Maya Lindqvist",
    "engagement": "00007-HarborLightDistribution",
-   "entries": 3,
-   "hours": 1.75,
-   "billable_hours": 1.75,
-   "fees_dollars": 306.25
+   "entries": 5,
+   "hours": 4.2,
+   "billable_hours": 4.2,
+   "fees_dollars": 735.0
   },
   {
    "person": "Maya Lindqvist",
    "engagement": "00011-Shaw",
-   "entries": 11,
-   "hours": 5.37,
+   "entries": 13,
+   "hours": 6.62,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
@@ -843,87 +819,87 @@
    "person": "Maya Lindqvist",
    "engagement": "00012-Calder",
    "entries": 10,
-   "hours": 5.0,
+   "hours": 5.12,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Maya Lindqvist",
-   "engagement": "00013-Brandt",
+   "engagement": "00013-Mendes",
    "entries": 2,
-   "hours": 0.83,
-   "billable_hours": 0.83,
-   "fees_dollars": 145.83
+   "hours": 0.88,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
   },
   {
    "person": "Nadia Osman",
    "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 7,
-   "hours": 5.48,
-   "billable_hours": 5.48,
-   "fees_dollars": 959.58
+   "entries": 10,
+   "hours": 8.9,
+   "billable_hours": 8.9,
+   "fees_dollars": 1557.5
   },
   {
    "person": "Nadia Osman",
    "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 7,
-   "hours": 5.37,
-   "billable_hours": 5.37,
-   "fees_dollars": 939.17
-  },
-  {
-   "person": "Nadia Osman",
-   "engagement": "00003-RivergateHousingTrust",
-   "entries": 7,
-   "hours": 4.03,
-   "billable_hours": 4.03,
-   "fees_dollars": 705.83
-  },
-  {
-   "person": "Nadia Osman",
-   "engagement": "00004-KestrelManufacturing",
-   "entries": 11,
-   "hours": 7.57,
-   "billable_hours": 7.57,
-   "fees_dollars": 1324.17
-  },
-  {
-   "person": "Nadia Osman",
-   "engagement": "00006-NorthwindSoftware",
-   "entries": 12,
-   "hours": 9.75,
-   "billable_hours": 9.75,
-   "fees_dollars": 1706.25
-  },
-  {
-   "person": "Nadia Osman",
-   "engagement": "00007-HarborLightDistribution",
-   "entries": 3,
+   "entries": 2,
    "hours": 1.5,
    "billable_hours": 1.5,
    "fees_dollars": 262.5
   },
   {
    "person": "Nadia Osman",
+   "engagement": "00003-RivergateHousingTrust",
+   "entries": 10,
+   "hours": 13.33,
+   "billable_hours": 13.33,
+   "fees_dollars": 2333.33
+  },
+  {
+   "person": "Nadia Osman",
+   "engagement": "00004-KestrelManufacturing",
+   "entries": 16,
+   "hours": 19.73,
+   "billable_hours": 19.73,
+   "fees_dollars": 3453.33
+  },
+  {
+   "person": "Nadia Osman",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 4,
+   "hours": 3.78,
+   "billable_hours": 3.78,
+   "fees_dollars": 662.08
+  },
+  {
+   "person": "Nadia Osman",
    "engagement": "00008-MeridianFamilyHealth",
-   "entries": 1,
-   "hours": 0.5,
-   "billable_hours": 0.5,
-   "fees_dollars": 87.5
+   "entries": 2,
+   "hours": 1.87,
+   "billable_hours": 1.87,
+   "fees_dollars": 326.67
   },
   {
    "person": "Nadia Osman",
    "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 2,
-   "hours": 1.33,
-   "billable_hours": 1.33,
-   "fees_dollars": 233.33
+   "entries": 1,
+   "hours": 1.13,
+   "billable_hours": 1.13,
+   "fees_dollars": 198.33
+  },
+  {
+   "person": "Nadia Osman",
+   "engagement": "00010-AshfieldPensionTrust",
+   "entries": 3,
+   "hours": 3.92,
+   "billable_hours": 3.92,
+   "fees_dollars": 685.42
   },
   {
    "person": "Nadia Osman",
    "engagement": "00011-Shaw",
    "entries": 11,
-   "hours": 4.12,
+   "hours": 6.83,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
@@ -931,39 +907,39 @@
    "person": "Nadia Osman",
    "engagement": "00012-Calder",
    "entries": 11,
-   "hours": 5.52,
+   "hours": 5.2,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Nadia Osman",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 1.03,
-   "billable_hours": 0.62,
-   "fees_dollars": 107.92
+   "engagement": "00013-Mendes",
+   "entries": 3,
+   "hours": 1.58,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
    "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 8,
-   "hours": 3.9,
+   "entries": 9,
+   "hours": 5.42,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
    "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 6,
-   "hours": 2.67,
+   "entries": 2,
+   "hours": 1.12,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
    "engagement": "00003-RivergateHousingTrust",
-   "entries": 8,
-   "hours": 3.75,
+   "entries": 10,
+   "hours": 7.32,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
@@ -971,63 +947,55 @@
    "person": "Owen Castile",
    "engagement": "00004-KestrelManufacturing",
    "entries": 6,
-   "hours": 2.7,
+   "hours": 4.57,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
    "engagement": "00005-CardinalRidgeBuilders",
-   "entries": 3,
-   "hours": 1.17,
+   "entries": 2,
+   "hours": 1.1,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
    "engagement": "00006-NorthwindSoftware",
-   "entries": 12,
-   "hours": 7.55,
+   "entries": 1,
+   "hours": 2.0,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
    "engagement": "00007-HarborLightDistribution",
-   "entries": 1,
-   "hours": 0.5,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Owen Castile",
-   "engagement": "00008-MeridianFamilyHealth",
-   "entries": 1,
-   "hours": 0.25,
+   "entries": 4,
+   "hours": 2.82,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
    "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 2,
-   "hours": 1.08,
+   "entries": 5,
+   "hours": 3.03,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
    "engagement": "00010-AshfieldPensionTrust",
-   "entries": 1,
-   "hours": 0.33,
+   "entries": 2,
+   "hours": 1.2,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
    "engagement": "00011-Shaw",
-   "entries": 18,
-   "hours": 14.33,
+   "entries": 17,
+   "hours": 13.82,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
@@ -1035,553 +1003,513 @@
    "person": "Owen Castile",
    "engagement": "00012-Calder",
    "entries": 11,
-   "hours": 7.62,
+   "hours": 6.17,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Owen Castile",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 1.62,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 7,
-   "hours": 3.7,
-   "billable_hours": 3.7,
-   "fees_dollars": 647.5
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 5,
-   "hours": 2.75,
-   "billable_hours": 2.75,
-   "fees_dollars": 481.25
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00003-RivergateHousingTrust",
-   "entries": 4,
-   "hours": 2.37,
-   "billable_hours": 2.37,
-   "fees_dollars": 414.17
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00004-KestrelManufacturing",
-   "entries": 6,
-   "hours": 3.53,
-   "billable_hours": 3.53,
-   "fees_dollars": 618.33
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00006-NorthwindSoftware",
-   "entries": 10,
-   "hours": 5.7,
-   "billable_hours": 5.7,
-   "fees_dollars": 997.5
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00007-HarborLightDistribution",
-   "entries": 19,
-   "hours": 19.13,
-   "billable_hours": 18.88,
-   "fees_dollars": 3304.58
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00008-MeridianFamilyHealth",
-   "entries": 1,
-   "hours": 0.62,
-   "billable_hours": 0.62,
-   "fees_dollars": 107.92
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00011-Shaw",
-   "entries": 9,
-   "hours": 4.53,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00012-Calder",
-   "entries": 11,
-   "hours": 5.88,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Priscilla Wong",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 1.25,
-   "billable_hours": 1.25,
-   "fees_dollars": 218.75
-  },
-  {
-   "person": "Raj Malhotra",
-   "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 9,
-   "hours": 3.72,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Raj Malhotra",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 4,
-   "hours": 1.52,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Raj Malhotra",
-   "engagement": "00003-RivergateHousingTrust",
+   "engagement": "00013-Mendes",
    "entries": 8,
-   "hours": 2.82,
+   "hours": 7.48,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Priscilla Wong",
+   "engagement": "00001-FairmountCommunityFoundation",
+   "entries": 9,
+   "hours": 9.13,
+   "billable_hours": 9.13,
+   "fees_dollars": 1598.33
+  },
+  {
+   "person": "Priscilla Wong",
+   "engagement": "00002-FairmountCommunityFoundation",
+   "entries": 1,
+   "hours": 1.0,
+   "billable_hours": 1.0,
+   "fees_dollars": 175.0
+  },
+  {
+   "person": "Priscilla Wong",
+   "engagement": "00003-RivergateHousingTrust",
+   "entries": 3,
+   "hours": 3.12,
+   "billable_hours": 3.12,
+   "fees_dollars": 545.42
+  },
+  {
+   "person": "Priscilla Wong",
+   "engagement": "00004-KestrelManufacturing",
+   "entries": 4,
+   "hours": 3.75,
+   "billable_hours": 3.75,
+   "fees_dollars": 656.25
+  },
+  {
+   "person": "Priscilla Wong",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 34,
+   "hours": 45.15,
+   "billable_hours": 45.15,
+   "fees_dollars": 7901.25
+  },
+  {
+   "person": "Priscilla Wong",
+   "engagement": "00011-Shaw",
+   "entries": 11,
+   "hours": 6.17,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Priscilla Wong",
+   "engagement": "00012-Calder",
+   "entries": 11,
+   "hours": 6.63,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Raj Malhotra",
+   "engagement": "00001-FairmountCommunityFoundation",
+   "entries": 1,
+   "hours": 0.47,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Raj Malhotra",
+   "engagement": "00003-RivergateHousingTrust",
+   "entries": 2,
+   "hours": 0.97,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Raj Malhotra",
    "engagement": "00004-KestrelManufacturing",
-   "entries": 5,
-   "hours": 2.52,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Raj Malhotra",
-   "engagement": "00006-NorthwindSoftware",
-   "entries": 12,
-   "hours": 5.5,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Raj Malhotra",
-   "engagement": "00007-HarborLightDistribution",
-   "entries": 3,
-   "hours": 1.87,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Raj Malhotra",
-   "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 3,
+   "entries": 1,
    "hours": 1.0,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Raj Malhotra",
+   "engagement": "00006-NorthwindSoftware",
+   "entries": 3,
+   "hours": 4.12,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Raj Malhotra",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 1,
+   "hours": 0.62,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Raj Malhotra",
    "engagement": "00011-Shaw",
-   "entries": 16,
-   "hours": 10.78,
+   "entries": 45,
+   "hours": 42.83,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Raj Malhotra",
    "engagement": "00012-Calder",
-   "entries": 14,
-   "hours": 9.17,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Raj Malhotra",
-   "engagement": "00013-Brandt",
-   "entries": 2,
+   "entries": 4,
    "hours": 3.0,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
-   "person": "Rosalind Calder",
-   "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 10,
-   "hours": 6.37,
-   "billable_hours": 4.12,
-   "fees_dollars": 1955.42
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 9,
-   "hours": 5.48,
-   "billable_hours": 5.48,
-   "fees_dollars": 2604.58
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00003-RivergateHousingTrust",
-   "entries": 6,
-   "hours": 3.17,
-   "billable_hours": 3.17,
-   "fees_dollars": 1504.17
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00004-KestrelManufacturing",
-   "entries": 4,
-   "hours": 3.28,
-   "billable_hours": 3.28,
-   "fees_dollars": 1559.58
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00005-CardinalRidgeBuilders",
-   "entries": 4,
-   "hours": 1.67,
-   "billable_hours": 1.67,
-   "fees_dollars": 791.67
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00006-NorthwindSoftware",
-   "entries": 11,
-   "hours": 9.55,
-   "billable_hours": 9.55,
-   "fees_dollars": 4536.25
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00007-HarborLightDistribution",
-   "entries": 2,
-   "hours": 1.33,
-   "billable_hours": 1.33,
-   "fees_dollars": 633.33
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00008-MeridianFamilyHealth",
-   "entries": 1,
-   "hours": 0.25,
-   "billable_hours": 0.25,
-   "fees_dollars": 118.75
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 4,
-   "hours": 1.58,
-   "billable_hours": 1.58,
-   "fees_dollars": 752.08
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00010-AshfieldPensionTrust",
-   "entries": 2,
-   "hours": 1.08,
-   "billable_hours": 1.08,
-   "fees_dollars": 514.58
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00011-Shaw",
-   "entries": 12,
-   "hours": 6.97,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00012-Calder",
-   "entries": 10,
-   "hours": 7.12,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Rosalind Calder",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 0.75,
-   "billable_hours": 0.75,
-   "fees_dollars": 356.25
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 9,
-   "hours": 5.45,
-   "billable_hours": 5.45,
-   "fees_dollars": 844.75
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 5,
-   "hours": 3.03,
-   "billable_hours": 3.03,
-   "fees_dollars": 470.17
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00003-RivergateHousingTrust",
+   "person": "Raj Malhotra",
+   "engagement": "00013-Mendes",
    "entries": 7,
-   "hours": 4.23,
-   "billable_hours": 4.23,
-   "fees_dollars": 656.17
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00004-KestrelManufacturing",
-   "entries": 8,
-   "hours": 4.72,
-   "billable_hours": 4.72,
-   "fees_dollars": 731.08
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00005-CardinalRidgeBuilders",
-   "entries": 1,
-   "hours": 0.5,
-   "billable_hours": 0.5,
-   "fees_dollars": 77.5
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00006-NorthwindSoftware",
-   "entries": 12,
-   "hours": 9.27,
-   "billable_hours": 9.27,
-   "fees_dollars": 1436.33
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00007-HarborLightDistribution",
-   "entries": 1,
-   "hours": 0.75,
-   "billable_hours": 0.75,
-   "fees_dollars": 116.25
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00008-MeridianFamilyHealth",
-   "entries": 4,
-   "hours": 1.8,
-   "billable_hours": 1.8,
-   "fees_dollars": 279.0
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00009-StonebridgePropertyGroup",
-   "entries": 1,
-   "hours": 0.58,
-   "billable_hours": 0.58,
-   "fees_dollars": 90.42
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00010-AshfieldPensionTrust",
-   "entries": 2,
-   "hours": 0.83,
-   "billable_hours": 0.83,
-   "fees_dollars": 129.17
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00011-Shaw",
-   "entries": 14,
-   "hours": 7.85,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00012-Calder",
-   "entries": 10,
-   "hours": 5.6,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Sylvia Nakamura",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 1.08,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Theo Brandt",
-   "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 9,
-   "hours": 4.08,
-   "billable_hours": 3.25,
-   "fees_dollars": 796.25
-  },
-  {
-   "person": "Theo Brandt",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 7,
-   "hours": 4.57,
-   "billable_hours": 4.57,
-   "fees_dollars": 1118.83
-  },
-  {
-   "person": "Theo Brandt",
-   "engagement": "00003-RivergateHousingTrust",
-   "entries": 2,
-   "hours": 0.92,
-   "billable_hours": 0.92,
-   "fees_dollars": 224.58
-  },
-  {
-   "person": "Theo Brandt",
-   "engagement": "00004-KestrelManufacturing",
-   "entries": 4,
-   "hours": 3.7,
-   "billable_hours": 3.7,
-   "fees_dollars": 906.5
-  },
-  {
-   "person": "Theo Brandt",
-   "engagement": "00006-NorthwindSoftware",
-   "entries": 15,
-   "hours": 9.78,
-   "billable_hours": 9.78,
-   "fees_dollars": 2396.92
-  },
-  {
-   "person": "Theo Brandt",
-   "engagement": "00007-HarborLightDistribution",
-   "entries": 23,
-   "hours": 23.8,
-   "billable_hours": 23.5,
-   "fees_dollars": 5757.5
-  },
-  {
-   "person": "Theo Brandt",
-   "engagement": "00011-Shaw",
-   "entries": 11,
-   "hours": 4.83,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Theo Brandt",
-   "engagement": "00012-Calder",
-   "entries": 11,
-   "hours": 4.08,
-   "billable_hours": 0.0,
-   "fees_dollars": 0.0
-  },
-  {
-   "person": "Theo Brandt",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 0.92,
-   "billable_hours": 0.67,
-   "fees_dollars": 163.33
-  },
-  {
-   "person": "Victor Alade",
-   "engagement": "00001-FairmountCommunityFoundation",
-   "entries": 9,
-   "hours": 4.42,
-   "billable_hours": 4.42,
-   "fees_dollars": 1369.17
-  },
-  {
-   "person": "Victor Alade",
-   "engagement": "00002-FairmountCommunityFoundation",
-   "entries": 6,
-   "hours": 2.9,
-   "billable_hours": 2.48,
-   "fees_dollars": 769.83
-  },
-  {
-   "person": "Victor Alade",
-   "engagement": "00003-RivergateHousingTrust",
-   "entries": 3,
-   "hours": 1.33,
-   "billable_hours": 1.33,
-   "fees_dollars": 413.33
-  },
-  {
-   "person": "Victor Alade",
-   "engagement": "00004-KestrelManufacturing",
-   "entries": 9,
    "hours": 6.27,
-   "billable_hours": 6.27,
-   "fees_dollars": 1942.67
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
   },
   {
-   "person": "Victor Alade",
+   "person": "Rosalind Calder",
+   "engagement": "00001-FairmountCommunityFoundation",
+   "entries": 11,
+   "hours": 10.92,
+   "billable_hours": 10.92,
+   "fees_dollars": 5185.42
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00002-FairmountCommunityFoundation",
+   "entries": 2,
+   "hours": 1.5,
+   "billable_hours": 1.5,
+   "fees_dollars": 712.5
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00003-RivergateHousingTrust",
+   "entries": 6,
+   "hours": 7.87,
+   "billable_hours": 7.87,
+   "fees_dollars": 3736.67
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00004-KestrelManufacturing",
+   "entries": 7,
+   "hours": 7.33,
+   "billable_hours": 7.33,
+   "fees_dollars": 3483.33
+  },
+  {
+   "person": "Rosalind Calder",
    "engagement": "00005-CardinalRidgeBuilders",
    "entries": 3,
-   "hours": 0.97,
-   "billable_hours": 0.97,
+   "hours": 2.37,
+   "billable_hours": 2.37,
+   "fees_dollars": 1124.17
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00006-NorthwindSoftware",
+   "entries": 5,
+   "hours": 4.83,
+   "billable_hours": 4.83,
+   "fees_dollars": 2295.83
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 4,
+   "hours": 3.42,
+   "billable_hours": 3.42,
+   "fees_dollars": 1622.92
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00009-StonebridgePropertyGroup",
+   "entries": 4,
+   "hours": 3.72,
+   "billable_hours": 3.72,
+   "fees_dollars": 1765.42
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00010-AshfieldPensionTrust",
+   "entries": 5,
+   "hours": 4.63,
+   "billable_hours": 4.63,
+   "fees_dollars": 2200.83
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00011-Shaw",
+   "entries": 12,
+   "hours": 11.13,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00012-Calder",
+   "entries": 10,
+   "hours": 5.78,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Rosalind Calder",
+   "engagement": "00013-Mendes",
+   "entries": 1,
+   "hours": 1.42,
+   "billable_hours": 1.42,
+   "fees_dollars": 672.92
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00001-FairmountCommunityFoundation",
+   "entries": 8,
+   "hours": 7.77,
+   "billable_hours": 7.77,
+   "fees_dollars": 1203.83
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00002-FairmountCommunityFoundation",
+   "entries": 2,
+   "hours": 1.93,
+   "billable_hours": 1.93,
    "fees_dollars": 299.67
   },
   {
+   "person": "Sylvia Nakamura",
+   "engagement": "00003-RivergateHousingTrust",
+   "entries": 7,
+   "hours": 7.77,
+   "billable_hours": 7.77,
+   "fees_dollars": 1203.83
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00004-KestrelManufacturing",
+   "entries": 18,
+   "hours": 19.88,
+   "billable_hours": 19.88,
+   "fees_dollars": 3081.92
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00005-CardinalRidgeBuilders",
+   "entries": 1,
+   "hours": 0.67,
+   "billable_hours": 0.67,
+   "fees_dollars": 103.33
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 4,
+   "hours": 3.2,
+   "billable_hours": 3.2,
+   "fees_dollars": 496.0
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00008-MeridianFamilyHealth",
+   "entries": 1,
+   "hours": 0.97,
+   "billable_hours": 0.97,
+   "fees_dollars": 149.83
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00010-AshfieldPensionTrust",
+   "entries": 5,
+   "hours": 5.2,
+   "billable_hours": 5.2,
+   "fees_dollars": 806.0
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00011-Shaw",
+   "entries": 13,
+   "hours": 7.47,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00012-Calder",
+   "entries": 8,
+   "hours": 3.9,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Sylvia Nakamura",
+   "engagement": "00013-Mendes",
+   "entries": 2,
+   "hours": 1.0,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00001-FairmountCommunityFoundation",
+   "entries": 12,
+   "hours": 12.03,
+   "billable_hours": 11.45,
+   "fees_dollars": 2805.25
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00002-FairmountCommunityFoundation",
+   "entries": 2,
+   "hours": 1.5,
+   "billable_hours": 1.5,
+   "fees_dollars": 367.5
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00003-RivergateHousingTrust",
+   "entries": 6,
+   "hours": 6.45,
+   "billable_hours": 6.45,
+   "fees_dollars": 1580.25
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00004-KestrelManufacturing",
+   "entries": 5,
+   "hours": 5.08,
+   "billable_hours": 5.08,
+   "fees_dollars": 1245.42
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00006-NorthwindSoftware",
+   "entries": 2,
+   "hours": 2.0,
+   "billable_hours": 2.0,
+   "fees_dollars": 490.0
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00007-HarborLightDistribution",
+   "entries": 24,
+   "hours": 36.35,
+   "billable_hours": 36.35,
+   "fees_dollars": 8905.75
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00009-StonebridgePropertyGroup",
+   "entries": 2,
+   "hours": 1.92,
+   "billable_hours": 1.92,
+   "fees_dollars": 469.58
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00010-AshfieldPensionTrust",
+   "entries": 2,
+   "hours": 1.97,
+   "billable_hours": 1.97,
+   "fees_dollars": 481.83
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00011-Shaw",
+   "entries": 11,
+   "hours": 6.13,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00012-Calder",
+   "entries": 11,
+   "hours": 5.72,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Theo Brandt",
+   "engagement": "00013-Mendes",
+   "entries": 2,
+   "hours": 1.18,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Victor Alade",
+   "engagement": "00001-FairmountCommunityFoundation",
+   "entries": 12,
+   "hours": 12.22,
+   "billable_hours": 12.22,
+   "fees_dollars": 3787.17
+  },
+  {
+   "person": "Victor Alade",
+   "engagement": "00002-FairmountCommunityFoundation",
+   "entries": 1,
+   "hours": 0.8,
+   "billable_hours": 0.8,
+   "fees_dollars": 248.0
+  },
+  {
+   "person": "Victor Alade",
+   "engagement": "00003-RivergateHousingTrust",
+   "entries": 11,
+   "hours": 10.6,
+   "billable_hours": 10.6,
+   "fees_dollars": 3286.0
+  },
+  {
+   "person": "Victor Alade",
+   "engagement": "00004-KestrelManufacturing",
+   "entries": 8,
+   "hours": 6.75,
+   "billable_hours": 6.75,
+   "fees_dollars": 2092.5
+  },
+  {
+   "person": "Victor Alade",
+   "engagement": "00005-CardinalRidgeBuilders",
+   "entries": 1,
+   "hours": 1.25,
+   "billable_hours": 1.25,
+   "fees_dollars": 387.5
+  },
+  {
    "person": "Victor Alade",
    "engagement": "00006-NorthwindSoftware",
-   "entries": 16,
-   "hours": 10.6,
-   "billable_hours": 9.85,
-   "fees_dollars": 3053.5
+   "entries": 10,
+   "hours": 10.48,
+   "billable_hours": 10.48,
+   "fees_dollars": 3249.83
   },
   {
    "person": "Victor Alade",
    "engagement": "00007-HarborLightDistribution",
-   "entries": 3,
-   "hours": 1.25,
-   "billable_hours": 1.25,
-   "fees_dollars": 387.5
+   "entries": 4,
+   "hours": 3.88,
+   "billable_hours": 3.88,
+   "fees_dollars": 1203.83
   },
   {
    "person": "Victor Alade",
-   "engagement": "00008-MeridianFamilyHealth",
-   "entries": 2,
-   "hours": 1.25,
-   "billable_hours": 1.25,
-   "fees_dollars": 387.5
+   "engagement": "00009-StonebridgePropertyGroup",
+   "entries": 3,
+   "hours": 2.02,
+   "billable_hours": 2.02,
+   "fees_dollars": 625.17
   },
   {
    "person": "Victor Alade",
    "engagement": "00010-AshfieldPensionTrust",
-   "entries": 1,
-   "hours": 0.47,
-   "billable_hours": 0.47,
-   "fees_dollars": 144.67
+   "entries": 3,
+   "hours": 2.98,
+   "billable_hours": 2.98,
+   "fees_dollars": 924.83
   },
   {
    "person": "Victor Alade",
    "engagement": "00011-Shaw",
-   "entries": 12,
-   "hours": 7.32,
+   "entries": 13,
+   "hours": 10.15,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Victor Alade",
    "engagement": "00012-Calder",
-   "entries": 10,
-   "hours": 6.97,
+   "entries": 8,
+   "hours": 3.78,
    "billable_hours": 0.0,
    "fees_dollars": 0.0
   },
   {
    "person": "Victor Alade",
-   "engagement": "00013-Brandt",
-   "entries": 2,
-   "hours": 0.72,
-   "billable_hours": 0.72,
-   "fees_dollars": 222.17
+   "engagement": "00013-Mendes",
+   "entries": 1,
+   "hours": 0.33,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
+  },
+  {
+   "person": "Victor Alade",
+   "engagement": "00014-Mendes",
+   "entries": 1,
+   "hours": 1.83,
+   "billable_hours": 0.0,
+   "fees_dollars": 0.0
   }
  ]
 }

@@ -1,40 +1,7 @@
 {
- "engagements_reviewed": 13,
- "reopened_count": 4,
- "backward_move_count": 4,
- "never_moved_count": 1,
- "flagged": [
-  {
-   "engagement": "00001-FairmountCommunityFoundation",
-   "status": "In-progress",
-   "status_changes": 4,
-   "backward_moves": 1,
-   "reopened": true,
-   "hours_from_backward_day": 36.92
-  },
-  {
-   "engagement": "00004-KestrelManufacturing",
-   "status": "Review",
-   "status_changes": 3,
-   "backward_moves": 1,
-   "reopened": true,
-   "hours_from_backward_day": 1.8
-  },
-  {
-   "engagement": "00006-NorthwindSoftware",
-   "status": "Closed",
-   "status_changes": 6,
-   "backward_moves": 1,
-   "reopened": true,
-   "hours_from_backward_day": 145.37
-  },
-  {
-   "engagement": "00013-Brandt",
-   "status": "Closed",
-   "status_changes": 6,
-   "backward_moves": 1,
-   "reopened": true,
-   "hours_from_backward_day": 10.83
-  }
- ]
+ "engagements_reviewed": 14,
+ "reopened_count": 0,
+ "backward_move_count": 0,
+ "never_moved_count": 12,
+ "flagged": []
 }
