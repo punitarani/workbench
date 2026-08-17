@@ -117,6 +117,24 @@ Checks that could have said otherwise and did not: the oracle agrees with
 its independent derivation; every value is served; and the two trials
 that failed did not fail alike.
 
+### work-product-review — 0.926 (0.779–1.000) — above band — all misses M
+
+Two of three trials scored 1.000. The third had all 52 rows, invented
+nothing, and got `reached_client` wrong on two of them.
+
+Both are served and both are true. `doc-000024` is attached to
+`msg-000162`, which carries Garrett Poole, external. `doc-000005` is
+attached to three messages — `msg-000122` carries Idris Mensah, external;
+the other two are internal-only. That second one is the interesting
+error: the answer is an OR across every attachment of a document, and an
+agent that checks one send and stops gets False for a document that did
+reach a client. **M**, and a good failure — it is the kind a real
+reviewer makes.
+
+Above the band on the mean, so not a candidate. Kept because a task that
+lands 0.926 with two perfect trials is evidence the suite is fair, not
+evidence it is easy.
+
 ## E-class: the bundle had been accumulating three worlds
 
 Found while building the first task graded on files rather than on a
