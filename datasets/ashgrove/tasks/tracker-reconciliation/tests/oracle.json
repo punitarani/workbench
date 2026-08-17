@@ -1,0 +1,1098 @@
+{
+ "as_of": "2026-01-09",
+ "engagements_on_tracker": 10,
+ "engagements_moved": 5,
+ "effort_lines": 146,
+ "verdict_counts": {
+  "absent_from_tracker": 13,
+  "unchanged": 17,
+  "understated": 116
+ },
+ "hours_understated_total": 345.62,
+ "engagements": [
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "tracker_status": "In progress",
+   "current_status": "In-progress",
+   "moved": false
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "tracker_status": "In progress",
+   "current_status": "Waiting-client",
+   "moved": false
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "tracker_status": "In review",
+   "current_status": "Review",
+   "moved": false
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "tracker_status": "Not started",
+   "current_status": "Review",
+   "moved": true
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "tracker_status": "Not started",
+   "current_status": "Open",
+   "moved": false
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "tracker_status": "In review",
+   "current_status": "Closed",
+   "moved": true
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "tracker_status": "Complete",
+   "current_status": "Closed",
+   "moved": false
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "tracker_status": "In review",
+   "current_status": "Closed",
+   "moved": true
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "tracker_status": "Not started",
+   "current_status": "In-progress",
+   "moved": true
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "tracker_status": "In progress",
+   "current_status": "Closed",
+   "moved": true
+  }
+ ],
+ "effort": [
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Colin Mackey",
+   "tracker_hours": 1.05,
+   "actual_hours": 3.8,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 2.75,
+   "actual_hours": 6.12,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Elias Finch",
+   "tracker_hours": 0.75,
+   "actual_hours": 1.92,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Freya Holt",
+   "tracker_hours": 3.42,
+   "actual_hours": 5.83,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Gabriel Fontes",
+   "tracker_hours": 3.03,
+   "actual_hours": 6.23,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Hana Sato",
+   "tracker_hours": 2.08,
+   "actual_hours": 3.75,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Imogen Carraway",
+   "tracker_hours": 2.58,
+   "actual_hours": 6.92,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Lucia Mendes",
+   "tracker_hours": 1.58,
+   "actual_hours": 3.33,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Maya Lindqvist",
+   "tracker_hours": 2.25,
+   "actual_hours": 5.08,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Nadia Osman",
+   "tracker_hours": 2.4,
+   "actual_hours": 5.48,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Owen Castile",
+   "tracker_hours": 1.87,
+   "actual_hours": 3.9,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Priscilla Wong",
+   "tracker_hours": 1.78,
+   "actual_hours": 3.7,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Raj Malhotra",
+   "tracker_hours": 1.95,
+   "actual_hours": 3.72,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Rosalind Calder",
+   "tracker_hours": 3.33,
+   "actual_hours": 6.37,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 1.7,
+   "actual_hours": 5.45,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Theo Brandt",
+   "tracker_hours": 1.92,
+   "actual_hours": 4.08,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00001-FairmountCommunityFoundation",
+   "person": "Victor Alade",
+   "tracker_hours": 1.75,
+   "actual_hours": 4.42,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Colin Mackey",
+   "tracker_hours": 0.78,
+   "actual_hours": 2.15,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 2.17,
+   "actual_hours": 2.92,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Elias Finch",
+   "tracker_hours": 1.42,
+   "actual_hours": 4.25,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Freya Holt",
+   "tracker_hours": 1.0,
+   "actual_hours": 2.75,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Gabriel Fontes",
+   "tracker_hours": 2.08,
+   "actual_hours": 4.25,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Hana Sato",
+   "tracker_hours": 2.08,
+   "actual_hours": 5.53,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Imogen Carraway",
+   "tracker_hours": 1.58,
+   "actual_hours": 3.7,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Lucia Mendes",
+   "tracker_hours": 2.87,
+   "actual_hours": 4.9,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Maya Lindqvist",
+   "tracker_hours": 3.33,
+   "actual_hours": 6.75,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Nadia Osman",
+   "tracker_hours": 1.7,
+   "actual_hours": 5.37,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Owen Castile",
+   "tracker_hours": 1.08,
+   "actual_hours": 2.67,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Priscilla Wong",
+   "tracker_hours": 1.17,
+   "actual_hours": 2.75,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Raj Malhotra",
+   "tracker_hours": 0.25,
+   "actual_hours": 1.52,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Rosalind Calder",
+   "tracker_hours": 2.23,
+   "actual_hours": 5.48,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 1.62,
+   "actual_hours": 3.03,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Theo Brandt",
+   "tracker_hours": 2.42,
+   "actual_hours": 4.57,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00002-FairmountCommunityFoundation",
+   "person": "Victor Alade",
+   "tracker_hours": 0.92,
+   "actual_hours": 2.9,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Colin Mackey",
+   "tracker_hours": 2.6,
+   "actual_hours": 4.3,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 2.37,
+   "actual_hours": 6.13,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Elias Finch",
+   "tracker_hours": 0.7,
+   "actual_hours": 1.53,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Freya Holt",
+   "tracker_hours": 1.38,
+   "actual_hours": 2.72,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Gabriel Fontes",
+   "tracker_hours": 2.78,
+   "actual_hours": 5.87,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Hana Sato",
+   "tracker_hours": 0.92,
+   "actual_hours": 2.25,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Imogen Carraway",
+   "tracker_hours": 1.75,
+   "actual_hours": 5.67,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Lucia Mendes",
+   "tracker_hours": 0.67,
+   "actual_hours": 2.7,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Maya Lindqvist",
+   "tracker_hours": 2.08,
+   "actual_hours": 3.73,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Nadia Osman",
+   "tracker_hours": 1.7,
+   "actual_hours": 4.03,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Owen Castile",
+   "tracker_hours": 1.5,
+   "actual_hours": 3.75,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Priscilla Wong",
+   "tracker_hours": 0.33,
+   "actual_hours": 2.37,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Raj Malhotra",
+   "tracker_hours": 1.22,
+   "actual_hours": 2.82,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Rosalind Calder",
+   "tracker_hours": 2.08,
+   "actual_hours": 3.17,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 1.95,
+   "actual_hours": 4.23,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Theo Brandt",
+   "tracker_hours": 0.5,
+   "actual_hours": 0.92,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00003-RivergateHousingTrust",
+   "person": "Victor Alade",
+   "tracker_hours": 0.7,
+   "actual_hours": 1.33,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Colin Mackey",
+   "tracker_hours": 0.55,
+   "actual_hours": 1.8,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 1.62,
+   "actual_hours": 4.3,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Elias Finch",
+   "tracker_hours": 1.47,
+   "actual_hours": 3.88,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Freya Holt",
+   "tracker_hours": 0.95,
+   "actual_hours": 2.53,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Gabriel Fontes",
+   "tracker_hours": 2.13,
+   "actual_hours": 3.88,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Hana Sato",
+   "tracker_hours": 2.75,
+   "actual_hours": 6.17,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Imogen Carraway",
+   "tracker_hours": 2.0,
+   "actual_hours": 2.0,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Lucia Mendes",
+   "tracker_hours": 1.13,
+   "actual_hours": 1.8,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Maya Lindqvist",
+   "tracker_hours": 2.83,
+   "actual_hours": 7.12,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Nadia Osman",
+   "tracker_hours": 3.47,
+   "actual_hours": 7.57,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Owen Castile",
+   "tracker_hours": 1.42,
+   "actual_hours": 2.7,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Priscilla Wong",
+   "tracker_hours": 1.5,
+   "actual_hours": 3.53,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Raj Malhotra",
+   "tracker_hours": 1.25,
+   "actual_hours": 2.52,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Rosalind Calder",
+   "tracker_hours": 2.78,
+   "actual_hours": 3.28,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 3.05,
+   "actual_hours": 4.72,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Theo Brandt",
+   "tracker_hours": 2.12,
+   "actual_hours": 3.7,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00004-KestrelManufacturing",
+   "person": "Victor Alade",
+   "tracker_hours": 2.03,
+   "actual_hours": 6.27,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Colin Mackey",
+   "tracker_hours": 0.5,
+   "actual_hours": 0.5,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 1.08,
+   "actual_hours": 6.5,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Elias Finch",
+   "tracker_hours": 0.5,
+   "actual_hours": 1.5,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Gabriel Fontes",
+   "tracker_hours": 1.17,
+   "actual_hours": 1.17,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Hana Sato",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.75,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Lucia Mendes",
+   "tracker_hours": 0.33,
+   "actual_hours": 0.67,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Maya Lindqvist",
+   "tracker_hours": 0.33,
+   "actual_hours": 0.33,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Owen Castile",
+   "tracker_hours": 0.33,
+   "actual_hours": 1.17,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Rosalind Calder",
+   "tracker_hours": 0.25,
+   "actual_hours": 1.67,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 0.5,
+   "actual_hours": 0.5,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00005-CardinalRidgeBuilders",
+   "person": "Victor Alade",
+   "tracker_hours": 0.67,
+   "actual_hours": 0.97,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Colin Mackey",
+   "tracker_hours": 1.92,
+   "actual_hours": 9.58,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 2.33,
+   "actual_hours": 12.03,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Elias Finch",
+   "tracker_hours": 2.62,
+   "actual_hours": 9.9,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Freya Holt",
+   "tracker_hours": 1.83,
+   "actual_hours": 6.45,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Gabriel Fontes",
+   "tracker_hours": 0.75,
+   "actual_hours": 9.17,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Hana Sato",
+   "tracker_hours": 1.0,
+   "actual_hours": 6.25,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Imogen Carraway",
+   "tracker_hours": 2.67,
+   "actual_hours": 10.82,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Lucia Mendes",
+   "tracker_hours": 1.58,
+   "actual_hours": 12.0,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Maya Lindqvist",
+   "tracker_hours": 1.58,
+   "actual_hours": 9.92,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Nadia Osman",
+   "tracker_hours": 1.25,
+   "actual_hours": 9.75,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Owen Castile",
+   "tracker_hours": 1.63,
+   "actual_hours": 7.55,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Priscilla Wong",
+   "tracker_hours": 0.42,
+   "actual_hours": 5.7,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Raj Malhotra",
+   "tracker_hours": 1.5,
+   "actual_hours": 5.5,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Rosalind Calder",
+   "tracker_hours": 1.55,
+   "actual_hours": 9.55,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 1.52,
+   "actual_hours": 9.27,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Theo Brandt",
+   "tracker_hours": 2.0,
+   "actual_hours": 9.78,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00006-NorthwindSoftware",
+   "person": "Victor Alade",
+   "tracker_hours": 3.27,
+   "actual_hours": 10.6,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 2.03,
+   "actual_hours": 2.78,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Elias Finch",
+   "tracker_hours": 2.25,
+   "actual_hours": 2.67,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Freya Holt",
+   "tracker_hours": 0.75,
+   "actual_hours": 0.75,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Gabriel Fontes",
+   "tracker_hours": 2.73,
+   "actual_hours": 2.73,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Hana Sato",
+   "tracker_hours": 3.78,
+   "actual_hours": 6.5,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Imogen Carraway",
+   "tracker_hours": 5.67,
+   "actual_hours": 11.75,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Lucia Mendes",
+   "tracker_hours": 2.45,
+   "actual_hours": 2.45,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Maya Lindqvist",
+   "tracker_hours": 1.75,
+   "actual_hours": 1.75,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Nadia Osman",
+   "tracker_hours": 1.5,
+   "actual_hours": 1.5,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Owen Castile",
+   "tracker_hours": 0.5,
+   "actual_hours": 0.5,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Priscilla Wong",
+   "tracker_hours": 9.97,
+   "actual_hours": 19.13,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Raj Malhotra",
+   "tracker_hours": 1.87,
+   "actual_hours": 1.87,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Rosalind Calder",
+   "tracker_hours": 1.33,
+   "actual_hours": 1.33,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 0.75,
+   "actual_hours": 0.75,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Theo Brandt",
+   "tracker_hours": 9.58,
+   "actual_hours": 23.8,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00007-HarborLightDistribution",
+   "person": "Victor Alade",
+   "tracker_hours": 1.25,
+   "actual_hours": 1.25,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Colin Mackey",
+   "tracker_hours": 2.42,
+   "actual_hours": 5.92,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 0.42,
+   "actual_hours": 0.75,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Elias Finch",
+   "tracker_hours": 1.78,
+   "actual_hours": 2.12,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Freya Holt",
+   "tracker_hours": 0.0,
+   "actual_hours": 1.2,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Gabriel Fontes",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.58,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Hana Sato",
+   "tracker_hours": 0.67,
+   "actual_hours": 1.33,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Imogen Carraway",
+   "tracker_hours": 0.33,
+   "actual_hours": 0.67,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Nadia Osman",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.5,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Owen Castile",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.25,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Priscilla Wong",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.62,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Rosalind Calder",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.25,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 0.97,
+   "actual_hours": 1.8,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00008-MeridianFamilyHealth",
+   "person": "Victor Alade",
+   "tracker_hours": 0.75,
+   "actual_hours": 1.25,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Colin Mackey",
+   "tracker_hours": 3.62,
+   "actual_hours": 9.07,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.47,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Elias Finch",
+   "tracker_hours": 0.88,
+   "actual_hours": 2.72,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Freya Holt",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.67,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Imogen Carraway",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.33,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Lucia Mendes",
+   "tracker_hours": 4.15,
+   "actual_hours": 8.27,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Nadia Osman",
+   "tracker_hours": 0.42,
+   "actual_hours": 1.33,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Owen Castile",
+   "tracker_hours": 0.42,
+   "actual_hours": 1.08,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Raj Malhotra",
+   "tracker_hours": 0.33,
+   "actual_hours": 1.0,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Rosalind Calder",
+   "tracker_hours": 0.33,
+   "actual_hours": 1.58,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00009-StonebridgePropertyGroup",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.58,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Colin Mackey",
+   "tracker_hours": 0.25,
+   "actual_hours": 0.58,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Desmond Ortiz",
+   "tracker_hours": 0.58,
+   "actual_hours": 1.0,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Elias Finch",
+   "tracker_hours": 1.75,
+   "actual_hours": 1.75,
+   "verdict": "unchanged"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Freya Holt",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.25,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Hana Sato",
+   "tracker_hours": 1.5,
+   "actual_hours": 2.33,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Imogen Carraway",
+   "tracker_hours": 0.33,
+   "actual_hours": 0.67,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Owen Castile",
+   "tracker_hours": 0.0,
+   "actual_hours": 0.33,
+   "verdict": "absent_from_tracker"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Rosalind Calder",
+   "tracker_hours": 0.75,
+   "actual_hours": 1.08,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Sylvia Nakamura",
+   "tracker_hours": 0.42,
+   "actual_hours": 0.83,
+   "verdict": "understated"
+  },
+  {
+   "engagement": "00010-AshfieldPensionTrust",
+   "person": "Victor Alade",
+   "tracker_hours": 0.47,
+   "actual_hours": 0.47,
+   "verdict": "unchanged"
+  }
+ ]
+}

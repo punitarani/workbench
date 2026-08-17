@@ -38,6 +38,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from workbench.analysis.world_facts import WorldFacts, load_world
+from workbench.environment.snapshot import status_on
 
 REPO = Path(__file__).resolve().parents[2]
 TASKS = Path(__file__).resolve().parent / "tasks"
@@ -896,9 +897,117 @@ def check_wip_utilization(facts: WorldFacts, oracle: dict) -> list[str]:
     return out
 
 
+def _verdict(on_sheet: bool, actual: float, tracker: float) -> str:
+    if not on_sheet:
+        return "absent_from_tracker"
+    return "unchanged" if abs(actual - tracker) < 0.005 else "understated"
+
+
+def check_tracker_reconciliation(facts: WorldFacts, oracle: dict) -> list[str]:
+    """The week-one sheet against the record, re-derived from the log.
+
+    The generator and the solver sit on opposite sides of the same
+    snapshot: one writes the tracker from the world at the cutoff, the
+    other reads it back and compares with clio. If they ever disagreed
+    about what day four looked like, every row would be wrong together and
+    nothing else here would notice.
+    """
+
+    out: list[str] = []
+    cutoff = 4 * 86_400
+    spoken = {
+        "not started": {"open"},
+        "in progress": {"in-progress", "waiting-client"},
+        "in review": {"review"},
+        "complete": {"closed"},
+    }
+    said = {v: k for k, values in spoken.items() for v in values}
+
+    engagements = []
+    for ticket_id in sorted(facts.tickets):
+        ticket = facts.tickets[ticket_id]
+        if ticket.client_ref is None:
+            continue
+        then = status_on(facts, ticket_id, cutoff).strip().casefold()
+        now = facts.current_status(ticket_id).strip().casefold()
+        word = said.get(then, then)
+        engagements.append(
+            {
+                "engagement": facts.display_number(ticket_id),
+                "moved": now not in spoken.get(word, {then}),
+            }
+        )
+
+    then_minutes: dict[tuple[str, str], int] = defaultdict(int)
+    now_minutes: dict[tuple[str, str], int] = defaultdict(int)
+    for activity in facts.activities:
+        ticket = facts.tickets.get(activity.ticket_id)
+        if ticket is None or ticket.client_ref is None:
+            continue
+        key = (facts.display_number(activity.ticket_id), facts.name(activity.person_id))
+        now_minutes[key] += activity.minutes
+        if activity.at <= cutoff:
+            then_minutes[key] += activity.minutes
+
+    effort = []
+    for key in sorted(set(now_minutes) | set(then_minutes)):
+        tracker_hours = round(then_minutes.get(key, 0) / 60, 2)
+        actual = round(now_minutes.get(key, 0) / 60, 2)
+        effort.append(
+            {
+                "engagement": key[0],
+                "person": key[1],
+                "tracker_hours": tracker_hours,
+                "actual_hours": actual,
+                "verdict": _verdict(key in then_minutes, actual, tracker_hours),
+            }
+        )
+
+    _cmp(
+        "engagements_on_tracker",
+        len(engagements),
+        oracle["engagements_on_tracker"],
+        out,
+    )
+    _cmp(
+        "engagements_moved",
+        sum(1 for r in engagements if r["moved"]),
+        oracle["engagements_moved"],
+        out,
+    )
+    _cmp("effort_lines", len(effort), oracle["effort_lines"], out)
+    counts: dict[str, int] = defaultdict(int)
+    for row in effort:
+        counts[row["verdict"]] += 1
+    _cmp("verdict_counts", dict(sorted(counts.items())), oracle["verdict_counts"], out)
+    _cmp(
+        "hours_understated_total",
+        round(sum(r["actual_hours"] - r["tracker_hours"] for r in effort), 2),
+        oracle["hours_understated_total"],
+        out,
+    )
+    _rows(
+        "effort",
+        effort,
+        oracle["effort"],
+        lambda r: (r["engagement"], r["person"]),
+        out,
+    )
+    _rows(
+        "engagements",
+        engagements,
+        [{"engagement": r["engagement"], "moved": r["moved"]} for r in
+         oracle["engagements"]],
+        lambda r: r["engagement"],
+        out,
+    )
+    return out
+
+
 CHECKS = {
     "commitment-register": check_commitment_register,
     "engagement-closeout-readiness": check_closeout_readiness,
+    "tracker-reconciliation": check_tracker_reconciliation,
     "staffing-leverage-review": check_staffing_leverage,
     "wip-utilization-review": check_wip_utilization,
     "open-items-triage": check_open_items_triage,
