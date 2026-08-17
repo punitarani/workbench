@@ -40,9 +40,18 @@ from workbench.simulation.telemetry import DayRow, SegmentRow, TelemetryWriter
 from workbench.simulation.workplace.compile import compile_workplace
 from workbench.workplaces.ashgrove.epoch import epoch_director, epoch_spec
 
-FAST_MODEL = "deepseek/deepseek-v4-flash-0731"
-DEEP_MODEL = "anthropic/claude-haiku-4.5"
-PROVIDERS = ("deepinfra", "fireworks", "novita", "deepseek")
+# Both tiers moved up one step. The fast model is not a background detail:
+# it writes every document, email and chat message -- about nine calls in
+# ten -- and it was the tier producing the artefact no code fix could
+# touch. Two thirds of the firm's documents were filed under raw database
+# ids (`engagements/tkt-000004/kestrel-401k-audit-status.docx`), and that
+# number moved 68% -> 67% across an engine rewrite, which is what a model
+# limitation looks like rather than a bug.
+FAST_MODEL = "anthropic/claude-haiku-4.5"
+DEEP_MODEL = "anthropic/claude-sonnet-5"
+# Direct `anthropic` is blocked on this key and 404s rather than falling
+# back, so both tiers route through Bedrock, which serves the same weights.
+PROVIDERS = ("amazon-bedrock",)
 DEFAULT_CASSETTE = Path("out/ashgrove/cassette")
 
 
@@ -56,7 +65,7 @@ def build_lm(mode: str, cassette: Path, max_calls: int):
     backend = OpenRouterLM(
         api_key=api_key,
         providers=PROVIDERS,
-        providers_by_model={DEEP_MODEL: ("amazon-bedrock",)},
+        providers_by_model={FAST_MODEL: PROVIDERS, DEEP_MODEL: PROVIDERS},
         max_concurrency=16,
     )
     return BudgetedLM(

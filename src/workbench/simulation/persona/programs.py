@@ -315,6 +315,13 @@ class AuthorDocument(dspy.Signature):
     the real thing — actual numbers, actual names, the substance the
     intent calls for — not a description of what the document would say.
 
+    File it the way a firm files: a top-level area, then the client's own
+    name, then the work. `engagements/kestrel-manufacturing/401k/plan-year-
+    2025-tie-out.xlsx`. Never put an internal id in a path — no `tkt-`,
+    no `doc-`, no row number. Those are database plumbing, they mean
+    nothing to the person who opens the folder next year, and two thirds
+    of this firm's file room was named after them.
+
     Markdown is the exception, not the default. Almost nothing a firm
     delivers is a .md file: a tie-out is a workbook, a memo to a partner
     is a document, an audit committee update is a deck. Reach for
