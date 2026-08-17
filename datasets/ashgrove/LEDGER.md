@@ -59,9 +59,24 @@ task's key collapsed 52 documents to 49 and capped a perfect answer at
 0.94. Re-keyed on iManage's served document number, the ceiling is gone and
 the model reaches it.
 
-## engagement-time-allocation, client-responsiveness-sla
+## engagement-time-allocation — 1.000, client-responsiveness-sla — 1.000
 
-Measured on the previous world at ~1.000 and 1.000. Re-running on r12.
+No misses to classify. 188 rows over 1,260 time entries and 43 threads
+respectively, both perfect. These are the tasks `DIFFICULTY.md` records as
+proof that width does not create difficulty.
+
+## The suite on r12, Opus 5, one trial each
+
+| task | rows | answer |
+|---|---|---|
+| **commitment-register** | 388 | **0.770** |
+| tracker-reconciliation | 139 + 10 | 1.000 |
+| work-product-review | 52 | 1.000 |
+| engagement-time-allocation | 188 | 1.000 |
+| client-responsiveness-sla | 43 | 1.000 |
+
+One task in band; four at ceiling. The one that moved is the one whose
+rule a competent reader is tempted to override.
 
 ## Retired
 
