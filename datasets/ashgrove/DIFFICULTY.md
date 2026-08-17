@@ -280,6 +280,43 @@ the seven accepted forms are narrow. 42 invented rows in 388. The axis
 needs a rule that is much narrower than the thing it names — not merely a
 rule written down.
 
+### Two more hypotheses, both falsified by measurement
+
+**Lexical near-misses do nothing.** `approval-register` admits six words for
+approval and the corpus holds 171 messages saying "agreed", "go ahead",
+"works for me", "no objection" — a temptation for almost every true row,
+against commitment-register's one in nine. Opus 5: **1.000, three times.**
+Agreeing and approving are different acts, so a reader separates them
+without effort.
+
+**Semantic identity does nothing either.** `completion-claims` admits
+`complete` and `completed` and excludes seventy messages saying *finished*,
+*wrapped up*, *closed out*, *finalised*, *delivered*, *issued* — the same
+act, differently spelled, which is exactly the relation "EOW" has to "by the
+end of the week". Opus 5: **1.000, three times.**
+
+So the difference is not what the temptation *means*. Look again at what
+the 42 errors on the commitment register actually were:
+
+```
+34   prose carrying none of the seven forms
+       "wrap end of week"  "early next week"  "Wednesday 14:30 works"
+ 8   a correct row, plus a second copy at a wrongly resolved date
+```
+
+Every one of those required the model to have been *reading for deadlines*
+rather than searching for strings. And that is what the task forces on it:
+a due date cannot be produced by lookup. It has to be derived, per row,
+from what the sentence means relative to the day it was sent.
+
+**The working hypothesis is now the derivation, not the temptation.** A
+whitelist alone is a `grep`, and a model greps perfectly. A whitelist whose
+matches must then be *interpreted* pulls the model into reading — and a
+model that is reading applies the concept, not the list.
+
+`commitment-follow-through` is the direct test: same seven forms, same date
+resolution, plus a forward look in the thread.
+
 ### Correlated error was tried, and it did not work either
 
 `tracker-reconciliation` was built exactly to the specification above: one
