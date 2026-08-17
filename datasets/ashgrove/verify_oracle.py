@@ -634,8 +634,273 @@ def check_open_items_triage(facts: WorldFacts, oracle: dict) -> list[str]:
     return out
 
 
+def check_closeout_readiness(facts: WorldFacts, oracle: dict) -> list[str]:
+    """Client engagements, and which of them are waiting on the firm.
+
+    Clio's `responsible_person` is a ticket's assignee and its
+    `originating_person` is the requester -- the client contact who opened
+    it. The distinction carries the whole task: an engagement is waiting
+    when *that* contact's last word in any thread is still unanswered.
+    """
+
+    out: list[str] = []
+    external = {
+        p.person_id for p in facts.people.values() if p.affiliation == "external"
+    }
+    threads = facts.threads()
+    # Each outside person's oldest unanswered last word.
+    waiting_since: dict[str, int] = {}
+    for messages in threads.values():
+        last = messages[-1]
+        if last.sender in external:
+            waiting_since[last.sender] = min(
+                waiting_since.get(last.sender, last.time), last.time
+            )
+    horizon = max(
+        (m.time for messages in threads.values() for m in messages), default=0
+    )
+
+    hours: dict[str, int] = defaultdict(int)
+    staff: dict[str, set[str]] = defaultdict(set)
+    wip_cents: dict[str, int] = defaultdict(int)
+    for activity in facts.activities:
+        seconds = activity.minutes * 60
+        hours[activity.ticket_id] += seconds
+        staff[activity.ticket_id].add(activity.person_id)
+        if activity.billable and activity.rate_cents:
+            wip_cents[activity.ticket_id] += seconds * activity.rate_cents // 3600
+
+    rows = []
+    for ticket_id in sorted(facts.tickets):
+        ticket = facts.tickets[ticket_id]
+        # An engagement is client work when it has a client. Who opened it
+        # is not the test -- the peer review was opened by the outside
+        # reviewer and is still the firm's own.
+        if ticket.client_ref is None:
+            continue
+        originator = ticket.requester
+        waiting = originator in waiting_since
+        rows.append(
+            {
+                "engagement": facts.display_number(ticket_id),
+                "client_contact": facts.name(originator) if originator else "",
+                "responsible": facts.name(ticket.assignee) if ticket.assignee else "",
+                "total_hours": round(hours.get(ticket_id, 0) / 3600, 2),
+                "staff_count": len(staff.get(ticket_id, ())),
+                "status": "awaiting_firm_reply" if waiting else "clear",
+                "client_waiting_hours": round(
+                    (horizon - waiting_since[originator]) / 3600, 1
+                )
+                if waiting
+                else 0.0,
+                "wip_dollars": round(wip_cents.get(ticket_id, 0) / 100, 2),
+            }
+        )
+
+    _cmp("client_engagements", len(rows), oracle["client_engagements"], out)
+    counts: dict[str, int] = defaultdict(int)
+    for row in rows:
+        counts[row["status"]] += 1
+    _cmp("status_counts", dict(sorted(counts.items())), oracle["status_counts"], out)
+    awaiting = [r for r in rows if r["status"] == "awaiting_firm_reply"]
+    _cmp(
+        "wip_at_risk_dollars",
+        round(sum(r["wip_dollars"] for r in awaiting), 2),
+        oracle["wip_at_risk_dollars"],
+        out,
+    )
+    for name, value in (
+        ("awaiting_firm_reply", sorted(r["engagement"] for r in awaiting)),
+        (
+            "at_risk_over_10k",
+            sorted(r["engagement"] for r in awaiting if r["wip_dollars"] > 10000),
+        ),
+    ):
+        if value != oracle[name]:
+            out.append(f"{name}: log says {value}, oracle says {oracle[name]}")
+    _rows(
+        "engagements", rows, oracle["engagements"], lambda r: r["engagement"], out
+    )
+    return out
+
+
+#  Every internal title, and the delivery tier it belongs to. Support is a
+#  tier of the firm but not of an engagement: an admin coordinator's hours
+#  are real and are neither delivery nor review.
+_TIERS = {
+    "Managing Partner": "partner",
+    "Partner, Client Accounting & Advisory": "partner",
+    "Principal, Assurance": "partner",
+    "Audit Manager": "manager",
+    "Tax Manager": "manager",
+    "Client Accounting Lead": "manager",
+    "Senior Accountant, Assurance": "senior",
+    "Senior Accountant, Tax": "senior",
+    "Staff Accountant": "staff",
+    "Payroll Specialist": "staff",
+    "Office & Billing Manager": "support",
+    "Admin Coordinator": "support",
+    "IT Administrator": "support",
+}
+
+
+def check_staffing_leverage(facts: WorldFacts, oracle: dict) -> list[str]:
+    """How much of each engagement sits with seniors rather than partners."""
+
+    out: list[str] = []
+    tier_of = {
+        p.person_id: _TIERS[p.title]
+        for p in facts.people.values()
+        if p.affiliation == "internal" and p.title in _TIERS
+    }
+    hours: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for activity in facts.activities:
+        ticket = facts.tickets.get(activity.ticket_id)
+        # The firm's own projects have no client and are not engagements.
+        if ticket is None or ticket.client_ref is None:
+            continue
+        tier = tier_of.get(activity.person_id)
+        if tier is None:
+            continue
+        hours[activity.ticket_id][tier] += activity.minutes * 60
+
+    rows = []
+    for ticket_id in sorted(hours, key=facts.display_number):
+        tiers = hours[ticket_id]
+        delivery = tiers.get("senior", 0) + tiers.get("staff", 0)
+        review = tiers.get("partner", 0) + tiers.get("manager", 0)
+        total = sum(v for k, v in tiers.items() if k != "support")
+        rows.append(
+            {
+                "engagement": facts.display_number(ticket_id),
+                "partner_hours": round(tiers.get("partner", 0) / 3600, 2),
+                "manager_hours": round(tiers.get("manager", 0) / 3600, 2),
+                "senior_hours": round(tiers.get("senior", 0) / 3600, 2),
+                "staff_hours": round(tiers.get("staff", 0) / 3600, 2),
+                "support_hours": round(tiers.get("support", 0) / 3600, 2),
+                "leverage_ratio": round(delivery / review, 2) if review else None,
+                "review_share_pct": round(100 * review / total, 1) if total else 0.0,
+            }
+        )
+    _cmp("engagements_reviewed", len(rows), oracle["engagements_reviewed"], out)
+    firm_delivery = sum(h.get("senior", 0) + h.get("staff", 0) for h in hours.values())
+    firm_review = sum(h.get("partner", 0) + h.get("manager", 0) for h in hours.values())
+    _cmp(
+        "firm_leverage_ratio",
+        round(firm_delivery / firm_review, 2) if firm_review else None,
+        oracle["firm_leverage_ratio"],
+        out,
+    )
+    over = sorted(r["engagement"] for r in rows if r["review_share_pct"] > 40.0)
+    if over != oracle["over_supervised"]:
+        out.append(
+            f"over_supervised: log says {over}, oracle says {oracle['over_supervised']}"
+        )
+    _rows(
+        "engagements", rows, oracle["engagements"], lambda r: r["engagement"], out
+    )
+    return out
+
+
+def check_wip_utilization(facts: WorldFacts, oracle: dict) -> list[str]:
+    """Work in progress by engagement, and utilization by person.
+
+    Three rules move many numbers at once, so each is restated rather than
+    assumed: the firm's own projects carry no client and no WIP; an entry
+    with no rate carries no value however many hours it has; and
+    non-billable time counts toward a person's day but never toward WIP.
+    """
+
+    out: list[str] = []
+    per_engagement: dict[str, dict] = defaultdict(
+        lambda: {"billable_seconds": 0, "value_cents": 0, "staff": set()}
+    )
+    per_person: dict[str, dict] = defaultdict(
+        lambda: {"logged_seconds": 0, "billable_seconds": 0, "value_cents": 0}
+    )
+    for activity in facts.activities:
+        seconds = activity.minutes * 60
+        value = seconds * (activity.rate_cents or 0) // 3600 if activity.billable else 0
+        person = per_person[activity.person_id]
+        person["logged_seconds"] += seconds
+        if activity.billable:
+            person["billable_seconds"] += seconds
+            person["value_cents"] += value
+        ticket = facts.tickets.get(activity.ticket_id)
+        if ticket is None or ticket.client_ref is None:
+            continue
+        row = per_engagement[activity.ticket_id]
+        row["staff"].add(activity.person_id)
+        if activity.billable:
+            row["billable_seconds"] += seconds
+            row["value_cents"] += value
+
+    client = [t for t, k in facts.tickets.items() if k.client_ref is not None]
+    internal = len(facts.tickets) - len(client)
+    # Every client engagement appears, quiet ones included: leaving them out
+    # would make the count depend on whether anyone happened to log to it.
+    empty = {"billable_seconds": 0, "value_cents": 0, "staff": ()}
+    engagements = [
+        {
+            "engagement": facts.display_number(t),
+            "billable_hours": round(
+                per_engagement.get(t, empty)["billable_seconds"] / 3600, 2
+            ),
+            "wip_dollars": round(per_engagement.get(t, empty)["value_cents"] / 100, 2),
+            "staff_count": len(per_engagement.get(t, empty)["staff"]),
+        }
+        for t in sorted(client, key=facts.display_number)
+    ]
+    people = [
+        {
+            "name": facts.name(person),
+            "logged_hours": round(row["logged_seconds"] / 3600, 2),
+            "billable_hours": round(row["billable_seconds"] / 3600, 2),
+            "utilization_pct": round(
+                100 * row["billable_seconds"] / row["logged_seconds"], 1
+            )
+            if row["logged_seconds"]
+            else 0.0,
+        }
+        for person, row in sorted(
+            per_person.items(), key=lambda kv: facts.name(kv[0])
+        )
+    ]
+    total_value = sum(r["value_cents"] for r in per_engagement.values())
+    total_billable = sum(r["billable_seconds"] for r in per_engagement.values())
+
+    _cmp("client_engagements", len(client), oracle["client_engagements"], out)
+    _cmp("internal_engagements", internal, oracle["internal_engagements"], out)
+    _cmp(
+        "total_client_wip_dollars",
+        round(total_value / 100, 2),
+        oracle["total_client_wip_dollars"],
+        out,
+    )
+    _cmp(
+        "blended_rate_dollars_per_hour",
+        round(total_value / 100 / (total_billable / 3600), 2)
+        if total_billable
+        else 0.0,
+        oracle["blended_rate_dollars_per_hour"],
+        out,
+    )
+    _rows(
+        "engagements",
+        engagements,
+        oracle["engagements"],
+        lambda r: r["engagement"],
+        out,
+    )
+    _rows("people", people, oracle["people"], lambda r: r["name"], out)
+    return out
+
+
 CHECKS = {
     "commitment-register": check_commitment_register,
+    "engagement-closeout-readiness": check_closeout_readiness,
+    "staffing-leverage-review": check_staffing_leverage,
+    "wip-utilization-review": check_wip_utilization,
     "open-items-triage": check_open_items_triage,
     "engagement-time-allocation": check_time_allocation,
     "work-product-review": check_work_product_review,
