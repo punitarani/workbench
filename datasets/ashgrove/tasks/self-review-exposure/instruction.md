@@ -18,11 +18,7 @@ One file in your workspace: **`self_review.json`**, with exactly these
 fields:
 
 - `documents_total` — how many documents are in the repository.
-- `review_claimed_count` — how many have a review *claimed* (below).
-- `independently_reviewed_count` — how many were *independently reviewed*.
-- `self_review_risk_count` — how many are at risk.
-- `unreviewed_and_unclaimed_count` — how many neither claim a review nor
-  had one.
+- `self_review_risk_count` — how many are at self-review risk.
 - `at_risk` — the `document_number` of every at-risk document, ascending.
 - `documents` — one entry per document, sorted by `document_number`:
   - `document_number` — iManage's own number for it, as an integer. The
@@ -33,8 +29,6 @@ fields:
   - `versions` — the highest version number it has
   - `distinct_authors` — how many different people appear as the author of
     any of its versions
-  - `review_claimed` — true or false
-  - `independently_reviewed` — true or false
   - `self_review_risk` — true or false
 
 ## The three rules, and they are not the same rule

@@ -20,14 +20,8 @@ D = "self_review.json"
 
 rk.scalar(D, "documents_total", T["documents_total"], 0, name="documents_total",
           weight=1.0)
-rk.scalar(D, "review_claimed_count", T["review_claimed_count"], 0,
-          name="review_claimed_count", weight=2.0)
-rk.scalar(D, "independently_reviewed_count", T["independently_reviewed_count"], 0,
-          name="independently_reviewed_count", weight=2.0)
 rk.scalar(D, "self_review_risk_count", T["self_review_risk_count"], 0,
           name="self_review_risk_count", weight=2.5)
-rk.scalar(D, "unreviewed_and_unclaimed_count", T["unreviewed_and_unclaimed_count"], 0,
-          name="unreviewed_and_unclaimed", weight=1.0)
 rk.scalar(D, "at_risk", T["at_risk"], name="at_risk", weight=2.5)
 rk.flagged_f1(D, T["documents"], name="documents.f1", weight=2.0)
 rk.row_fields(
@@ -38,8 +32,6 @@ rk.row_fields(
         "preparer": 0,
         "versions": 0,
         "distinct_authors": 0,
-        "review_claimed": 0,
-        "independently_reviewed": 0,
         "self_review_risk": 0,
     },
     name="row_facts",

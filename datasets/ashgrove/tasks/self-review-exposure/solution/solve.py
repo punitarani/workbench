@@ -70,10 +70,12 @@ def main() -> None:
                 "preparer": names.get(preparer, preparer),
                 "versions": max((v for v, _a, _c in versions), default=0),
                 "distinct_authors": len({author for _v, author, _c in versions}),
-                "review_claimed": claimed,
-                "independently_reviewed": independent,
-                # The finding: the file says it was checked and the chain
-                # says one pair of hands.
+                # One judgement per row, not two. Asking for "claimed" and
+                # "independently reviewed" as separate columns decomposed
+                # the problem in the schema itself: a model that has to
+                # fill both cannot conflate them, and it scored 1.000
+                # three times over. The distinction now has to happen
+                # inside the agent's head.
                 "self_review_risk": claimed and not independent,
             }
         )
@@ -82,16 +84,7 @@ def main() -> None:
         json.dumps(
             {
                 "documents_total": len(rows),
-                "review_claimed_count": sum(r["review_claimed"] for r in rows),
-                "independently_reviewed_count": sum(
-                    r["independently_reviewed"] for r in rows
-                ),
                 "self_review_risk_count": sum(r["self_review_risk"] for r in rows),
-                "unreviewed_and_unclaimed_count": sum(
-                    1
-                    for r in rows
-                    if not r["review_claimed"] and not r["independently_reviewed"]
-                ),
                 "at_risk": sorted(
                     r["document_number"] for r in rows if r["self_review_risk"]
                 ),

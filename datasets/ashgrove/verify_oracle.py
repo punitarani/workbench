@@ -1079,20 +1079,10 @@ def check_self_review(facts: WorldFacts, oracle: dict) -> list[str]:
         )
 
     _cmp("documents_total", len(rows), oracle["documents_total"], out)
-    for name, field in (
-        ("review_claimed_count", "review_claimed"),
-        ("independently_reviewed_count", "independently_reviewed"),
-        ("self_review_risk_count", "self_review_risk"),
-    ):
-        _cmp(name, sum(r[field] for r in rows), oracle[name], out)
     _cmp(
-        "unreviewed_and_unclaimed_count",
-        sum(
-            1
-            for r in rows
-            if not r["review_claimed"] and not r["independently_reviewed"]
-        ),
-        oracle["unreviewed_and_unclaimed_count"],
+        "self_review_risk_count",
+        sum(r["self_review_risk"] for r in rows),
+        oracle["self_review_risk_count"],
         out,
     )
     # Compared as a multiset of claims, for the same reason the documents in
@@ -1104,8 +1094,6 @@ def check_self_review(facts: WorldFacts, oracle: dict) -> list[str]:
             row["preparer"],
             row["versions"],
             row["distinct_authors"],
-            bool(row["review_claimed"]),
-            bool(row["independently_reviewed"]),
             bool(row["self_review_risk"]),
         )
 
