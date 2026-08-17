@@ -163,6 +163,28 @@ it has now been measured, on the same task, same model, same world:
 2.7× the rows and 4.7× the reading, and the model got *better*. Not
 marginally worse, not flat — better.
 
+**Why, mechanically.** Two reasons, and neither is fixable by asking for
+more.
+
+First, arithmetic: independent errors average out. A model that is 99.5%
+accurate per row is still 99.5% accurate at ten times the rows. Volume
+raises cost and leaves the error rate exactly where it was.
+
+Second, the agent does not brute-force the reading at all. Watching a
+rollout's shell history, it paginates each surface once and writes the
+results to disk —
+
+```
+/bin/bash -lc 'ls /home/agent/workspace/data/gmail/ | wc -l'
+20
+thr-000001.json thr-000002.json ...
+```
+
+— and then queries its own local index. Nothing in the environment put that
+directory there; the agent built it. So "the tools hand them back a page at
+a time" is a one-off cost it pays once and engineers away, not a difficulty
+that scales with the record.
+
 So the two levers this file opened with are both spent. Width does not
 work on structured tasks (197 rows / 27 pages / 154 tool calls → ceiling)
 and coverage does not work on prose ones. A frontier model with an
