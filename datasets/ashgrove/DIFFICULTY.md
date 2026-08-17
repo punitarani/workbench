@@ -575,10 +575,26 @@ is 50 events over 11 distinct summaries. An agent answering "false"
 everywhere scores 87-96% on most of these. That is the degeneracy the
 build gate already refuses.
 
-**The resolution is to scope the task, not the world.** Every task in
-this suite sweeps the entire record, so small-and-gradeable and
-large-and-enumerable are the same axis. They need not be: a longer
-recording supplies density, and the task then grades a slice small enough
-that enumeration is never the bottleneck — "the twelve documents in this
-workspace", not "every document in the firm". That is the one design
-move this suite has never tried.
+**Scoping helps; growing the world does not — correcting myself.** The
+first version of this section proposed a longer recording to supply
+"density". That is arithmetically wrong and worth stating plainly: a
+world three times longer has three times the documents and three times
+the attachments, so `reached_client` stays at 13%. **Scale multiplies
+rows and leaves proportions alone.** The skew is a property of how a firm
+works — most working papers are never sent to anyone, most recurring
+invitations are never answered — and no amount of recording changes it.
+
+What scoping does buy is row count without a corpus sweep: one
+engagement's documents go from 7 to ~25 in a longer world, so a task can
+grade a slice that is enumerable in a filtered query. That is worth
+having. It is not a fix for degenerate booleans.
+
+**What actually grades well here** is what the measurements show: not
+booleans but continuous and derived values — hours (0.62 to 45.15 on one
+engagement), dates, counts — together with exact-match aggregate
+criteria, where a single wrong row moves several totals at once.
+`open-items-triage` scores 0.630 for two different models off *one*
+misclassified thread in 49, because four of its eight criteria are exact
+counts. That is the mechanism by which a small, genuine error becomes a
+mid-band score, and it needs a corpus small enough to enumerate and one
+row that is hard for an honest reason.
