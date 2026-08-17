@@ -109,4 +109,9 @@ def row_fields(workspace: Path, path: str, expected: list, spec: dict) -> float:
     # Invented rows cost, but they cannot wipe out work that is correct:
     # a cliff to zero tells the reader nothing about what the agent knew.
     penalty = min(extra * len(spec), checked // 2)
-    return max(0.0, (matched - penalty) / checked) if checked else 0.0
+    # Nothing expected and nothing invented is a correct answer, not a
+    # zero. `flagged_f1` has always said so; this said the opposite, so a
+    # task whose world held no findings failed its own reference answer.
+    if not checked:
+        return 0.0 if mine else 1.0
+    return max(0.0, (matched - penalty) / checked)

@@ -85,4 +85,9 @@ def row_fields(workspace: Path, path: str, expected: list, fields: list) -> floa
                 matched += have == want
     extra = len(set(mine) - {str(r[KEY]).strip().casefold() for r in expected})
     penalty = min(extra * len(fields), checked // 2)
-    return max(0.0, (matched - penalty) / checked) if checked else 0.0
+    # Nothing expected and nothing invented is a correct answer, not a
+    # zero. `flagged_f1` has always said so; this said the opposite, so a
+    # task whose world held no findings failed its own reference answer.
+    if not checked:
+        return 0.0 if mine else 1.0
+    return max(0.0, (matched - penalty) / checked)

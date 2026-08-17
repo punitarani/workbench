@@ -19,7 +19,7 @@ ROWS = "documents"
 # scored 0.976 against this grader, so a perfect answer was capped
 # below full marks and the missing quarter-point was charged to the
 # agent.
-KEY = ("document", "workspace")
+KEY = ("document_number",)
 
 
 def _submitted(workspace: Path, path: str) -> dict | None:
@@ -99,4 +99,9 @@ def row_fields(workspace: Path, path: str, expected: list, fields: list) -> floa
         - {tuple(str(r[k]).strip().casefold() for k in KEY) for r in expected}
     )
     penalty = min(extra * len(fields), checked // 2)
-    return max(0.0, (matched - penalty) / checked) if checked else 0.0
+    # Nothing expected and nothing invented is a correct answer, not a
+    # zero. `flagged_f1` has always said so; this said the opposite, so a
+    # task whose world held no findings failed its own reference answer.
+    if not checked:
+        return 0.0 if mine else 1.0
+    return max(0.0, (matched - penalty) / checked)

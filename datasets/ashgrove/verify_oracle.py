@@ -284,13 +284,41 @@ def check_work_product_review(facts: WorldFacts, oracle: dict) -> list[str]:
         oracle["never_attached_count"],
         out,
     )
-    _rows(
-        "documents",
-        rows,
-        oracle["documents"],
-        lambda r: (r["document"], r["workspace"]),
-        out,
-    )
+    # Compared as a multiset of what each row claims, not on the key.
+    # iManage's document number is minted by the projection and served
+    # verbatim, so an agent copies it and it cannot be a wrong *answer* --
+    # only the facts hanging off it can be. Restating how the number is
+    # assigned would copy the projection, which is the one thing this file
+    # exists not to do.
+    def claim(row: dict) -> tuple:
+        return (
+            row["document"],
+            row["workspace"],
+            row["author"],
+            row["versions"],
+            bool(row["reviewed"]),
+            bool(row["reached_client"]),
+        )
+
+    ours: dict[tuple, int] = defaultdict(int)
+    theirs: dict[tuple, int] = defaultdict(int)
+    for row in rows:
+        ours[claim(row)] += 1
+    for row in oracle["documents"]:
+        theirs[claim(row)] += 1
+    for key in sorted(set(ours) | set(theirs)):
+        if ours[key] != theirs[key]:
+            out.append(
+                f"documents{list(key)}: log counts {ours[key]}, "
+                f"oracle counts {theirs[key]}"
+            )
+    if len({r["document_number"] for r in oracle["documents"]}) != len(
+        oracle["documents"]
+    ):
+        out.append(
+            "documents: the oracle's document numbers are not unique — the "
+            "grader cannot tell those rows apart"
+        )
     return out
 
 

@@ -221,12 +221,12 @@ class TestDocumentDerivation:
             "reached_client_count": 0,
             "never_attached_count": 2,
             "documents": [
-                {"document": "Single Audit Playbook", "workspace": "audit",
-                 "author": "Ada Reyes", "versions": 1, "reviewed": False,
-                 "reached_client": False},
-                {"document": "Single Audit Playbook", "workspace": "tax",
-                 "author": "Ada Reyes", "versions": 1, "reviewed": False,
-                 "reached_client": False},
+                {"document_number": 1, "document": "Single Audit Playbook",
+                 "workspace": "audit", "author": "Ada Reyes", "versions": 1,
+                 "reviewed": False, "reached_client": False},
+                {"document_number": 2, "document": "Single Audit Playbook",
+                 "workspace": "tax", "author": "Ada Reyes", "versions": 1,
+                 "reviewed": False, "reached_client": False},
             ],
         }
         assert check_work_product_review(facts, oracle) == []

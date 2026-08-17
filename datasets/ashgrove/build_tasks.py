@@ -58,7 +58,15 @@ def degenerate(answer: dict) -> list[str]:
 
     reports = []
     for key, rows in answer.items():
-        if not isinstance(rows, list) or not rows:
+        if not isinstance(rows, list):
+            continue
+        if not rows:
+            # The most degenerate answer of all, and the one this check used
+            # to skip: an empty list grades nothing, and every agent that
+            # reports nothing is exactly right. engagement-status-integrity
+            # found no backward move at all in the r12 world and its answer
+            # went out empty, which looked like a passing build.
+            reports.append(f"{key} is EMPTY — there is nothing to find")
             continue
         if not isinstance(rows[0], dict):
             continue

@@ -22,7 +22,10 @@ these fields:
 - `never_attached_count` — how many were never attached to any message at
   all, inside the firm or out.
 - `documents` — **one entry for every document in the repository**, sorted
-  by `document`, each with:
+  by `document_number`, each with:
+  - `document_number` — iManage's own number for it, as an integer. The
+    repository shows a document as `LEGAL!52.1`: `52` is the number and
+    `1` is the version. Give the number.
   - `document` — the document's name, as the repository shows it
   - `workspace` — the workspace it lives in
   - `author` — the full name of the person who wrote **version 1**
@@ -51,10 +54,12 @@ rather than by reading email addresses: the directory says who is
 internal, and that is the answer even when someone writes from an address
 that looks unfamiliar.
 
-**Names are not unique.** The same document name can appear in more
-than one workspace, holding different work by different authors. Each
-is its own entry; the pair of name and workspace is what identifies a
-document here.
+**Nothing but the number identifies a document.** Names repeat across
+workspaces, and they repeat *within* one: this repository holds three
+workpapers sharing a name, a workspace, an author and a path, and they
+are three documents all the same. Only iManage's document number tells
+them apart, so that is what each entry is keyed on — and all three belong
+in the report.
 
 **Every document.** The `documents` list covers the whole repository, not
 only the interesting rows. A document nobody reviewed and nobody sent

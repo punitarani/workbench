@@ -36,7 +36,10 @@ rk.flagged_f1(D, T["documents"], name="documents.f1", weight=2.0)
 rk.row_fields(
     D,
     T["documents"],
-    ["author", "versions", "reviewed", "reached_client"],
+    # The name and workspace are graded as facts now rather than used as
+    # the key: three documents share both, so keying on them scored a
+    # perfect answer 49/52 and called the missing three the model's error.
+    ["document", "workspace", "author", "versions", "reviewed", "reached_client"],
     name="row_facts",
     weight=6.0,
 )

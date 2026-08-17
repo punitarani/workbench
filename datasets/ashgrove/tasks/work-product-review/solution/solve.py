@@ -31,9 +31,17 @@ def main() -> None:
     imanage = sqlite3.connect(f"file:{STATE / 'imanage.db'}?mode=ro", uri=True)
     gmail = sqlite3.connect(f"file:{STATE / 'gmail.db'}?mode=ro", uri=True)
 
+    # Identified by iManage's own document number, because a name is not
+    # an identity here: three workpapers share one title, one workspace,
+    # one author and one path, and are separate documents only by number.
+    # A key that cannot tell them apart caps a perfect answer at 49/52 --
+    # the same defect a composite (name, workspace) key was introduced to
+    # fix, returning in a world that put the duplicates in one workspace.
     documents = {
-        row[0]: {"document": row[1], "workspace": row[2]}
-        for row in imanage.execute("SELECT document_id, name, workspace FROM documents")
+        row[0]: {"document_number": row[1], "document": row[2], "workspace": row[3]}
+        for row in imanage.execute(
+            "SELECT document_id, document_number, name, workspace FROM documents"
+        )
     }
 
     # The version chain, in order, so the first author and every later one
@@ -70,12 +78,13 @@ def main() -> None:
 
     rows = []
     for document_id, document in sorted(
-        documents.items(), key=lambda item: item[1]["document"]
+        documents.items(), key=lambda item: item[1]["document_number"]
     ):
         versions = chain.get(document_id, [])
         first_author = versions[0][1] if versions else ""
         rows.append(
             {
+                "document_number": document["document_number"],
                 "document": document["document"],
                 "workspace": document["workspace"],
                 "author": names.get(first_author, ""),
