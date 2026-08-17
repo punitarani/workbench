@@ -162,9 +162,47 @@ not name a model. On the tier below, the band is real:
 | task | glm-5.2, k=3, corrected oracles | band | verdict |
 |---|---|---|---|
 | engagement-time-allocation | **0.736** (0.473–1.000) | ✅ in | all M |
+| tracker-reconciliation | 0.909 (0.821–1.000) † | above | **T found** — rounding |
 | work-product-review | 0.926 (0.779–1.000) | above | all M |
+| client-responsiveness-sla | 0.994 (0.981–1.000) | above | — |
+| self-review-exposure | 1.000 | ceiling | — |
+| workpaper-open-items | 1.000 | ceiling | — |
+| approval-register | **DNF** (timeout) | — | not a score |
+| completion-claims | **DNF** (timeout) | — | not a score |
+| commitment-follow-through | *measuring* | | |
 
-*(remaining seven tasks measuring; table completed on landing)*
+† measured before the rounding convention was stated; re-running.
+
+**One task in band from eight.** That is the honest count, and it is
+lower than the goal asks for. Two of the eight are not scores at all —
+see below — and one is being re-measured against a corrected
+instruction, so the real denominator is five.
+
+### The two DNFs are the most informative result here
+
+`approval-register` and `completion-claims` are the two corpus-wide prose
+tasks: every one of the firm's 1,585 message bodies, mail and chat. Both
+returned 0.000 on all three trials, and neither is a wrong answer.
+
+| task | MCP tool calls per trial | deliverable |
+|---|---|---|
+| approval-register | 288 / 372 / 500 | none consolidated |
+| completion-claims | 84 / 358 / 418 | none |
+
+The `approval-register` trials left their working files behind, and they
+show the model was not confused. One holds **177 rows of the 235** with
+exactly the right schema — `ref`, `approver`, `sent_date`, `where`, plus
+its own `_form` and `_source` annotations — three-quarters of the way to
+a correct answer when the hour expired.
+
+It paginated the corpus a page at a time for five hundred tool calls.
+Opus 5 pulls the same corpus onto disk once and queries it locally, and
+finishes the task comfortably. **That is a strategy difference, not a
+comprehension difference**, and it is invisible in a score of 0.000.
+
+Both are re-running at eight times the budget. The question a DNF cannot
+answer — is the answer wrong, or merely late? — is the one that decides
+whether these two are band candidates or ceiling tasks.
 
 ### engagement-time-allocation, certified
 
