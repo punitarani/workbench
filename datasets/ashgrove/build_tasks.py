@@ -13,6 +13,7 @@ way to move that line, and it is a deliberate act.
 import argparse
 import datetime
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -134,8 +135,21 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
             "happened to read."
         )
 
+    # Wholesale, because materialize only *writes* files and never removes
+    # them. Three worlds had been recorded into this one directory and it
+    # had accumulated 161 files from a record that holds 52 documents —
+    # every workbook and memo from epoch-r10 and r11 still sitting there,
+    # describing engagements at statuses the live record left behind.
+    #
+    # Nothing noticed for as long as every task read `state/`, which is
+    # rebuilt from scratch each time. The first task to grade the working
+    # papers themselves would have keyed its oracle to two dead worlds.
+    shutil.rmtree(SHARED_BUNDLE / "workspace", ignore_errors=True)
+    shutil.rmtree(SHARED_BUNDLE / "state", ignore_errors=True)
     env = materialize(world_log, SHARED_BUNDLE, seat=None)
     print(f"materialized {env.event_count} events -> {SHARED_BUNDLE}")
+    files = sum(1 for p in (SHARED_BUNDLE / "workspace").rglob("*") if p.is_file())
+    print(f"  workspace: {files} files from {len(facts.documents)} documents")
 
     # A tracker somebody typed up partway through, left in the shared drive
     # the way a real one is. It is a true statement about its own day and a
@@ -170,7 +184,11 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
             check=True,
             env={
                 "WORKBENCH_STATE": str(SHARED_BUNDLE / "state"),
+                # The working papers are files, not a surface. A solver
+                # that grades them needs the same folder the agent gets.
+                "WORKBENCH_WORKSPACE": str(SHARED_BUNDLE / "workspace"),
                 "PATH": "/usr/bin:/bin",
+                "PYTHONPATH": os.environ.get("PYTHONPATH", ""),
             },
         )
         answer = json.loads(produced.read_text())
@@ -191,7 +209,9 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         # An oracle the tools cannot spell is not an answer key, it is a
         # coin flip on which internal vocabulary the agent guesses. This
         # blocks the task rather than letting it produce a plausible score.
-        missing = unreachable(answer, SHARED_BUNDLE / "state")
+        missing = unreachable(
+            answer, SHARED_BUNDLE / "state", SHARED_BUNDLE / "workspace"
+        )
         if missing:
             raise SystemExit(
                 f"{name}: the oracle names {len(missing)} value(s) no tool "

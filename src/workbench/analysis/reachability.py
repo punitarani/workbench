@@ -257,10 +257,72 @@ def _identifiers(oracle: Any, into: set[str]) -> None:
             _identifiers(item, into)
 
 
-def unreachable(oracle: Any, state_dir: Path) -> list[str]:
-    """Identifiers the oracle requires that no discovery tool ever serves."""
+def workspace_vocabulary(workspace: Path) -> set[str]:
+    """Every string an agent can read off the files it was handed.
+
+    The tool surfaces are not the whole environment. The firm's working
+    papers are eighty-five real workbooks sitting in the agent's own
+    workspace — fourteen thousand cells that no MCP server serves and no
+    SQL query reaches, because a practice keeps them the way a practice
+    does, as files. An agent opens them with a shell, which is exactly how
+    the person whose job this is would.
+
+    So a workbook's own path, its sheet names, and its cell values are
+    reachable in the only sense this module cares about: obtainable
+    without guessing. Leaving them out would condemn any task graded on
+    the library as unanswerable while an agent answers it.
+    """
+
+    found: set[str] = set()
+    if not workspace.is_dir():
+        return found
+    for path in sorted(workspace.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(workspace)
+        found.add(str(relative))
+        found.add(path.name)
+        found.update(part for part in relative.parts)
+        if path.suffix.lower() == ".xlsx":
+            try:
+                from openpyxl import load_workbook
+
+                book = load_workbook(path, data_only=True, read_only=True)
+            except Exception:
+                # A workbook that will not open is a materialization
+                # problem, and the gate's job is to report what *is*
+                # reachable rather than to fail the build from here.
+                continue
+            for sheet in book.worksheets:
+                found.add(sheet.title)
+                for row in sheet.iter_rows(values_only=True):
+                    found.update(
+                        str(cell).strip() for cell in row if cell is not None
+                    )
+            book.close()
+        elif path.suffix.lower() in (".md", ".txt", ".csv"):
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            for line in text.splitlines():
+                found.add(line.strip())
+                # Markdown keeps its tables as pipe-delimited rows, so the
+                # cell is the unit an oracle would name, not the line.
+                if "|" in line:
+                    found.update(cell.strip() for cell in line.split("|"))
+    found.discard("")
+    return found
+
+
+def unreachable(
+    oracle: Any, state_dir: Path, workspace: Path | None = None
+) -> list[str]:
+    """Identifiers the oracle requires that nothing the agent has ever serves."""
 
     reachable = served_vocabulary(state_dir)
+    if workspace is not None:
+        reachable = reachable | workspace_vocabulary(workspace)
     wanted: set[str] = set()
     _identifiers(oracle, wanted)
     return sorted(

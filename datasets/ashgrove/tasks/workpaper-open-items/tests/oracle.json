@@ -1,0 +1,450 @@
+{
+ "workbooks_read": 19,
+ "sheets_read": 61,
+ "open_items_total": 55,
+ "workbooks_with_open_items": 9,
+ "top_status": "Pending",
+ "earliest_due_date": "2025-01-13",
+ "open_items": [
+  {
+   "workbook": "engagements/2025-audit-calendar-and-pbc-tracker.xlsx",
+   "sheet": "Outstanding PBC by Engagement",
+   "row": 4,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-02-07"
+  },
+  {
+   "workbook": "engagements/2025-audit-calendar-and-pbc-tracker.xlsx",
+   "sheet": "Outstanding PBC by Engagement",
+   "row": 5,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-02-14"
+  },
+  {
+   "workbook": "engagements/2025-audit-calendar-and-pbc-tracker.xlsx",
+   "sheet": "Outstanding PBC by Engagement",
+   "row": 6,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-02-14"
+  },
+  {
+   "workbook": "engagements/ar-tie-out-aging-2025.xlsx",
+   "sheet": "AR Aging Detail",
+   "row": 2,
+   "status": "Open",
+   "owner": "",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/ar-tie-out-aging-2025.xlsx",
+   "sheet": "AR Aging Detail",
+   "row": 3,
+   "status": "Open",
+   "owner": "",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/ar-tie-out-aging-2025.xlsx",
+   "sheet": "AR Aging Detail",
+   "row": 4,
+   "status": "Open",
+   "owner": "",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/cash-audit-program.xlsx",
+   "sheet": "Cash Testing",
+   "row": 2,
+   "status": "Pending",
+   "owner": "",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/cash-audit-program.xlsx",
+   "sheet": "Cash Testing",
+   "row": 3,
+   "status": "Pending",
+   "owner": "",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/cash-audit-program.xlsx",
+   "sheet": "Cash Testing",
+   "row": 4,
+   "status": "Pending",
+   "owner": "",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/cash-audit-program.xlsx",
+   "sheet": "Cash Testing",
+   "row": 5,
+   "status": "Pending",
+   "owner": "",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/cash-audit-program.xlsx",
+   "sheet": "Cash Testing",
+   "row": 6,
+   "status": "Pending",
+   "owner": "",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/engagement-status-2025-01-13.xlsx",
+   "sheet": "Active Engagements",
+   "row": 3,
+   "status": "Pending",
+   "owner": "Assigned",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/engagement-status-2025-01-13.xlsx",
+   "sheet": "Active Engagements",
+   "row": 9,
+   "status": "Not Started",
+   "owner": "Assigned",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/engagement-status-2025-01-13.xlsx",
+   "sheet": "Critical Path \u2013 Next 48 Hours",
+   "row": 2,
+   "status": "Pending",
+   "owner": "Field Team",
+   "due_date": "1/15/2025"
+  },
+  {
+   "workbook": "engagements/fy2025-audit-calendar-resource-plan.xlsx",
+   "sheet": "Key Dependencies & Blockers",
+   "row": 5,
+   "status": "Pending",
+   "owner": "Engagement Lead",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/fy2025-audit-calendar-resource-plan.xlsx",
+   "sheet": "Key Dependencies & Blockers",
+   "row": 8,
+   "status": "Pending",
+   "owner": "Priscilla Wong",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/fy2025-audit-calendar-resource-plan.xlsx",
+   "sheet": "Key Dependencies & Blockers",
+   "row": 9,
+   "status": "Pending",
+   "owner": "Engagement Lead",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/k1-preparation-checklist-fy2025.xlsx",
+   "sheet": "K-1 Prep",
+   "row": 3,
+   "status": "Pending",
+   "owner": "Lucia Mendes",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/k1-preparation-checklist-fy2025.xlsx",
+   "sheet": "K-1 Prep",
+   "row": 4,
+   "status": "Pending",
+   "owner": "Desmond Ortiz",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/k1-preparation-checklist-fy2025.xlsx",
+   "sheet": "K-1 Prep",
+   "row": 5,
+   "status": "Pending",
+   "owner": "Desmond Ortiz",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/k1-preparation-checklist-fy2025.xlsx",
+   "sheet": "Timeline",
+   "row": 5,
+   "status": "Pending",
+   "owner": "Lucia Mendes",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/k1-preparation-checklist-fy2025.xlsx",
+   "sheet": "Timeline",
+   "row": 6,
+   "status": "Pending",
+   "owner": "Lucia Mendes",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/payroll-reconciliation-blockers.xlsx",
+   "sheet": "Reconciliation Status",
+   "row": 12,
+   "status": "BLOCKED",
+   "owner": "[Assign owner]",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/payroll-reconciliation-blockers.xlsx",
+   "sheet": "Reconciliation Status",
+   "row": 13,
+   "status": "BLOCKED",
+   "owner": "[Assign owner]",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "Key Dates",
+   "row": 3,
+   "status": "Outstanding",
+   "owner": "Client Management",
+   "due_date": ""
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 2,
+   "status": "Outstanding",
+   "owner": "",
+   "due_date": "2025-01-13"
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 3,
+   "status": "Outstanding",
+   "owner": "",
+   "due_date": "2025-01-13"
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 4,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-13"
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 5,
+   "status": "Outstanding",
+   "owner": "",
+   "due_date": "2025-01-17"
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 6,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-17"
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 7,
+   "status": "Outstanding",
+   "owner": "",
+   "due_date": "2025-01-20"
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 8,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-17"
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 9,
+   "status": "Outstanding",
+   "owner": "",
+   "due_date": "2025-01-13"
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 10,
+   "status": "Outstanding",
+   "owner": "",
+   "due_date": "2025-01-17"
+  },
+  {
+   "workbook": "engagements/pbc-tracker-status.xlsx",
+   "sheet": "PBC Tracker",
+   "row": 11,
+   "status": "Outstanding",
+   "owner": "",
+   "due_date": "2025-01-20"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 2,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-17"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 3,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-17"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 4,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-24"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 5,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-20"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 6,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-20"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 7,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-24"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 8,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-24"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 9,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-20"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 10,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-20"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 11,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-24"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 12,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-27"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 13,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-27"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 14,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-24"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 15,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-13"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 16,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-27"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 17,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-27"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 18,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-27"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 19,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-27"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 20,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-02-28"
+  },
+  {
+   "workbook": "engagements/pbc-tracker.xlsx",
+   "sheet": "PBC Index",
+   "row": 21,
+   "status": "Pending",
+   "owner": "",
+   "due_date": "2025-01-24"
+  }
+ ]
+}
