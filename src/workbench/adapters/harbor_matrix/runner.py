@@ -58,6 +58,9 @@ HARTWELL_CODEX_IMPORT_PATH = (
 )
 # Kept as a literal (not imported from opencode_agent) so importing this module
 # never pulls in ``harbor``, which is unavailable in the adapter's test env.
+HARTWELL_HERMES_IMPORT_PATH = (
+    "workbench.adapters.harbor_matrix.hermes_agent:HartwellHermes"
+)
 HARTWELL_OPENCODE_IMPORT_PATH = (
     "workbench.adapters.harbor_matrix.opencode_agent:HartwellOpencode"
 )

@@ -42,6 +42,7 @@ from workbench.adapters.harbor_matrix.runner import (
     CODEX_COMPACTION_MODE,
     CODEX_VERSION,
     HARTWELL_CODEX_IMPORT_PATH,
+    HARTWELL_HERMES_IMPORT_PATH,
     HARTWELL_OPENCODE_IMPORT_PATH,
     OPENCODE_MODEL_PREFIX,
     OPENCODE_VERSION,
@@ -89,7 +90,28 @@ def _harbor_command(
     gateway flags do not.
     """
 
-    if harness == "opencode":
+    if harness == "hermes":
+        # NousResearch's agent, and the reason it is here: gpt-5.6-sol
+        # cannot be measured through either of the others. Codex's router
+        # aborts every call with "tool exec invoked with incompatible
+        # payload" (0 MCP calls, even with unified_exec already dropped),
+        # and opencode dies on the first tool round-trip with an Azure 400,
+        # "No tool call found for function call output with call_id ...".
+        #
+        # Neither is the model's doing. Both APIs handle a full two-turn
+        # tool round-trip for this model when driven directly -- checked,
+        # chat/completions and responses alike -- so the fault is in how
+        # those two harnesses assemble the conversation, and a third
+        # opinion is the only way to find out what Sol can actually score.
+        #
+        # Hermes is a harbor built-in, so no import path: `-a hermes`. Its
+        # `openai` provider reads OPENAI_API_KEY and forwards
+        # OPENAI_BASE_URL from the host environment, which _run_one sets to
+        # the gateway -- no subclass needed, unlike the other two.
+        agent = HARTWELL_HERMES_IMPORT_PATH
+        model_arg = f"{OPENCODE_MODEL_PREFIX}{model}"
+        agent_kwargs = ()
+    elif harness == "opencode":
         agent = HARTWELL_OPENCODE_IMPORT_PATH
         # opencode reaches the gateway through its ``openai`` provider, so the
         # alias travels as ``openai/<alias>``; the gateway strips the segment
@@ -171,6 +193,13 @@ async def _run_one(task: str, args: argparse.Namespace, job_name: str) -> int:
         timeout_multiplier=args.timeout_multiplier,
     )
     environment = dict(os.environ)
+    if args.harness == "hermes":
+        # Hermes reads these off the *host* environment and forwards them
+        # into the container, rather than through harbor's --env-file.
+        environment["OPENAI_API_KEY"] = token
+        environment["OPENAI_BASE_URL"] = (
+            f"http://host.docker.internal:{gateway.port}/v1"
+        )
     paths = [str(REPO / "src"), *filter(None, [environment.get("PYTHONPATH")])]
     environment["PYTHONPATH"] = os.pathsep.join(dict.fromkeys(paths))
     try:
@@ -301,7 +330,9 @@ def main(argv: list[str] | None = None) -> int:
         p = sub.add_parser(name)
         p.add_argument("tasks", nargs="+")
         p.add_argument("--model", default="opus-5")
-        p.add_argument("--harness", choices=("codex", "opencode"), default="codex")
+        p.add_argument(
+            "--harness", choices=("codex", "opencode", "hermes"), default="codex"
+        )
         p.add_argument("--tag", default=None)
         p.add_argument("-k", "--trials", type=int, default=3)
         p.add_argument("-n", "--concurrency", type=int, default=2)

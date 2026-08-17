@@ -54,6 +54,18 @@ allowed_hosts = [
     "nodejs.org",
     "registry.npmjs.org",
     "*.ubuntu.com",
+    # The hermes harness bootstraps `uv` from astral.sh and installs from
+    # PyPI. Setup hosts only -- they gate how the agent is installed, never
+    # what it can read, so no task's data or difficulty moves.
+    "astral.sh",
+    "*.astral.sh",
+    "github.com",
+    "codeload.github.com",
+    "*.githubusercontent.com",
+    "pypi.org",
+    "*.pypi.org",
+    "files.pythonhosted.org",
+    "*.nousresearch.com",
 ]
 
 [environment.healthcheck]

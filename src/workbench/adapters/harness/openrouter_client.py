@@ -32,6 +32,14 @@ MODEL_PROVIDERS: dict[str, tuple[str, ...]] = {
     # keep-alive whitespace instead of erroring. Pin the healthy region first
     # and keep the bare tag as the recovery fallback.
     "anthropic/claude-opus-5": ("amazon-bedrock/us-east-1", "amazon-bedrock"),
+    # Azure, and only Azure. OpenRouter serves this model from `openai` and
+    # `azure` alone -- there is no Bedrock endpoint, and the `openai` tag is
+    # blocked by this account's data-policy guardrail (404 "No endpoints
+    # available matching your guardrail restrictions").
+    #
+    # Do not read tool support off the endpoint listing's
+    # supported_parameters: it omits `tools` for azure, and azure accepts a
+    # tools payload and answers correctly anyway. Checked directly.
     "openai/gpt-5.6-sol": ("azure",),
     "openai/gpt-5.6-luna": ("openai",),
     "z-ai/glm-5.2": (
