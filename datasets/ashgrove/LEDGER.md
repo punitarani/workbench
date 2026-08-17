@@ -87,12 +87,16 @@ rule a competent reader is tempted to override.
 
 The suite separates tiers on r12, which it did not do before.
 
-| task | Opus 5 | glm-5.2 |
-|---|---|---|
-| commitment-register | **0.783** | — (timed out at 50 min on the wider world) |
-| tracker-reconciliation | 1.000 | **0.832** |
-| work-product-review | 1.000 | **0.778** |
-| client-responsiveness-sla | 1.000 | 1.000 |
+| task | Opus 5 | glm-5.2 | gap |
+|---|---|---|---|
+| commitment-register | **0.783** | — (timed out) | — |
+| **engagement-time-allocation** | 1.000 | **0.540** | **0.460** |
+| work-product-review | 1.000 | **0.778** | 0.222 |
+| tracker-reconciliation | 1.000 | **0.832** | 0.168 |
+| client-responsiveness-sla | 1.000 | 1.000 | 0 |
+
+Three of the four discriminate, and all three land in band for the weaker
+model.
 
 Both gaps have the same shape, and it is worth naming: **the weaker model
 finds every row and cannot total them.** `effort.f1` and `documents.f1` are
@@ -120,6 +124,30 @@ All three plainly reached a client, through the mail surface, on messages
 the tools serve. **Verdict M**: the model did not carry the
 attachment-to-recipient join through, and both wrong counts fall out of
 those same three rows.
+
+### engagement-time-allocation, glm-5.2 — 0.540 — all misses M
+
+```
+entries_total  agent 1218, oracle 1260      pairs  agent 173, oracle 188
+total_hours    agent 1093.04, oracle 1125.07
+rows: 188 expected, 15 missing, 0 invented
+wrong fields on shared rows: {'fees_dollars': 36, 'hours': 1, ...}
+```
+
+**All fifteen missing rows are on one engagement.** `00013-Mendes` — "New
+Location Setup – Accounting Records Update", 41 time entries — is returned
+by `list_matters`, the first discovery call clio offers. The model dropped
+it whole, and every firm total is wrong by exactly its contents.
+
+It is the firm's own engagement, carrying no client, which is very likely
+why: "engagement" was read as "client engagement". The instruction asks for
+every person-and-engagement pair *with any logged time*, and says nothing
+about clients.
+
+**Verdict M** — and it is the commitment register's failure in mirror
+image. There the model *added* rows a narrow rule excluded; here it *drops*
+rows a broad rule includes. Both are the same act: substituting its own
+sense of what belongs for the rule it was given.
 
 ### tracker-reconciliation, glm-5.2 — 0.832 — all misses M
 
