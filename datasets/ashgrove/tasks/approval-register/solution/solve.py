@@ -33,7 +33,13 @@ FORMS = (
     ("approved", r"\bapproved\b"),
     ("i approve", r"\bI approve\b"),
     ("signed off", r"\bsigned off\b"),
-    ("sign-off", r"\bsign[- ]off\b"),
+    # Plurals and the closed spelling included. The corpus holds sign-off
+    # 152 times, sign-offs 13, signoff 7 and sign off 7; a word boundary
+    # after "off" quietly admitted one spelling and excluded two, and the
+    # model was marked wrong 13 times for reading "sign-offs" as the word
+    # sign-off. It is the word sign-off. That was a defect in the rule, not
+    # a limitation of the reader.
+    ("sign-off", r"\bsign[- ]?offs?\b"),
     ("authorised", r"\bauthoris(?:e|ed)\b|\bauthoriz(?:e|ed)\b"),
     ("cleared", r"\bcleared\b"),
 )

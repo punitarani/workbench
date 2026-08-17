@@ -22,7 +22,7 @@ matched case-insensitively, anywhere in the text:
 | `approved` | the word *approved* |
 | `i approve` | the phrase *I approve* |
 | `signed off` | the phrase *signed off* |
-| `sign-off` | *sign-off* or *sign off* |
+| `sign-off` | *sign-off*, *sign off* or *signoff*, singular or plural |
 | `authorised` | *authorise*, *authorised*, *authorize*, *authorized* |
 | `cleared` | the word *cleared* |
 
