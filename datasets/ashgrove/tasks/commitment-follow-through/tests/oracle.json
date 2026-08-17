@@ -1,0 +1,807 @@
+{
+ "messages_read": 354,
+ "commitments_total": 114,
+ "followed_up_count": 56,
+ "unanswered_count": 58,
+ "worst_offender": "Imogen Carraway",
+ "commitments": [
+  {
+   "message_id": "msg-000011",
+   "due_date": "2026-01-05",
+   "author": "Tomas Lindgren",
+   "sent_date": "2026-01-05",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000012",
+   "due_date": "2026-01-07",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000014",
+   "due_date": "2026-01-07",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000016",
+   "due_date": "2026-01-06",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-05",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000018",
+   "due_date": "2026-01-05",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-05",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000046",
+   "due_date": "2026-01-08",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000047",
+   "due_date": "2026-01-08",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000058",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000062",
+   "due_date": "2026-01-08",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-06",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000064",
+   "due_date": "2026-01-06",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-06",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000065",
+   "due_date": "2026-01-06",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-06",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000065",
+   "due_date": "2026-01-08",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-06",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000066",
+   "due_date": "2026-01-06",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-06",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000071",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000080",
+   "due_date": "2026-01-07",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-07",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000082",
+   "due_date": "2026-01-07",
+   "author": "Priya Raman",
+   "sent_date": "2026-01-07",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000085",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-07",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000087",
+   "due_date": "2026-01-07",
+   "author": "Colin Mackey",
+   "sent_date": "2026-01-07",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000088",
+   "due_date": "2026-01-08",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-07",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000092",
+   "due_date": "2026-01-07",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-07",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000095",
+   "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000096",
+   "due_date": "2026-01-07",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-07",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000097",
+   "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000097",
+   "due_date": "2026-01-09",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000098",
+   "due_date": "2026-01-07",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-07",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000100",
+   "due_date": "2026-01-07",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-07",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000108",
+   "due_date": "2026-01-07",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-07",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000110",
+   "due_date": "2026-01-07",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-07",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000111",
+   "due_date": "2026-01-10",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-07",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000112",
+   "due_date": "2026-01-10",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-07",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000116",
+   "due_date": "2026-01-08",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-08",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000117",
+   "due_date": "2026-01-08",
+   "author": "Priya Raman",
+   "sent_date": "2026-01-08",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000118",
+   "due_date": "2026-01-08",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-08",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000122",
+   "due_date": "2026-01-08",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-08",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000126",
+   "due_date": "2026-01-09",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-08",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000130",
+   "due_date": "2026-01-08",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-08",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000132",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-08",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000136",
+   "due_date": "2026-01-08",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-08",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000137",
+   "due_date": "2026-01-08",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-08",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000137",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-08",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000139",
+   "due_date": "2026-01-08",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-08",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000139",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-08",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000146",
+   "due_date": "2026-01-09",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-09",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000146",
+   "due_date": "2026-01-15",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-09",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000153",
+   "due_date": "2026-01-16",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-09",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000156",
+   "due_date": "2026-01-12",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-09",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000162",
+   "due_date": "2026-01-12",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-09",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000165",
+   "due_date": "2026-01-12",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-09",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000172",
+   "due_date": "2026-01-16",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-09",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000174",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000176",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000177",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-09",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000183",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000183",
+   "due_date": "2026-01-16",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000184",
+   "due_date": "2026-01-09",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-09",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000184",
+   "due_date": "2026-01-12",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-09",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000185",
+   "due_date": "2026-01-12",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000188",
+   "due_date": "2026-01-15",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000191",
+   "due_date": "2026-01-12",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000192",
+   "due_date": "2026-01-12",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000195",
+   "due_date": "2026-01-16",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000198",
+   "due_date": "2026-01-12",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000199",
+   "due_date": "2026-01-12",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000201",
+   "due_date": "2026-01-12",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000201",
+   "due_date": "2026-01-15",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000203",
+   "due_date": "2026-01-16",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000204",
+   "due_date": "2026-01-12",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000205",
+   "due_date": "2026-01-12",
+   "author": "Maya Lindqvist",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000206",
+   "due_date": "2026-01-12",
+   "author": "Maya Lindqvist",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000207",
+   "due_date": "2026-01-15",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000209",
+   "due_date": "2026-01-12",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000210",
+   "due_date": "2026-01-12",
+   "author": "Maya Lindqvist",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000216",
+   "due_date": "2026-01-12",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000217",
+   "due_date": "2026-01-12",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000218",
+   "due_date": "2026-01-12",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000219",
+   "due_date": "2026-01-12",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000219",
+   "due_date": "2026-01-15",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000220",
+   "due_date": "2026-01-12",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000225",
+   "due_date": "2026-01-12",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000225",
+   "due_date": "2026-01-16",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000226",
+   "due_date": "2026-01-12",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000229",
+   "due_date": "2026-01-12",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000229",
+   "due_date": "2026-01-15",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000230",
+   "due_date": "2026-01-12",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000231",
+   "due_date": "2026-01-12",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000237",
+   "due_date": "2026-01-13",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-13",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000238",
+   "due_date": "2026-01-18",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-13",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000244",
+   "due_date": "2026-01-18",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-13",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000247",
+   "due_date": "2026-01-13",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000247",
+   "due_date": "2026-01-14",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000249",
+   "due_date": "2026-01-13",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000249",
+   "due_date": "2026-01-14",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000253",
+   "due_date": "2026-01-13",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000261",
+   "due_date": "2026-01-13",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000263",
+   "due_date": "2026-01-14",
+   "author": "Desmond Blakely",
+   "sent_date": "2026-01-14",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000263",
+   "due_date": "2026-01-16",
+   "author": "Desmond Blakely",
+   "sent_date": "2026-01-14",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000264",
+   "due_date": "2026-01-14",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-14",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000267",
+   "due_date": "2026-01-17",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-14",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000282",
+   "due_date": "2026-01-14",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-14",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000284",
+   "due_date": "2026-01-14",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-14",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000304",
+   "due_date": "2026-01-15",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-15",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000318",
+   "due_date": "2026-01-16",
+   "author": "Desmond Blakely",
+   "sent_date": "2026-01-16",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000319",
+   "due_date": "2026-01-16",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-16",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000319",
+   "due_date": "2026-01-21",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-16",
+   "followed_up": true
+  },
+  {
+   "message_id": "msg-000321",
+   "due_date": "2026-01-16",
+   "author": "Nora Behrens",
+   "sent_date": "2026-01-16",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000322",
+   "due_date": "2026-01-16",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-16",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000324",
+   "due_date": "2026-01-16",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-16",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000331",
+   "due_date": "2026-01-23",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-16",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000332",
+   "due_date": "2026-01-23",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-16",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000343",
+   "due_date": "2026-01-19",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-19",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000343",
+   "due_date": "2026-01-22",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-19",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000345",
+   "due_date": "2026-01-19",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-19",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000345",
+   "due_date": "2026-01-21",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-19",
+   "followed_up": false
+  },
+  {
+   "message_id": "msg-000350",
+   "due_date": "2026-01-19",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-19",
+   "followed_up": true
+  }
+ ]
+}
