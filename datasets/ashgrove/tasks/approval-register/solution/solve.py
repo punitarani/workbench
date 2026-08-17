@@ -72,6 +72,7 @@ def main() -> None:
         parties[message_id].add(person)
 
     rows = []
+    forms = []
     read = 0
     for message_id, sender, when, body in gmail.execute(
         "SELECT message_id, sender, time, body FROM messages"
@@ -92,7 +93,6 @@ def main() -> None:
         rows.append(
             {
                 "ref": message_id,
-                "form": form,
                 "approver": people[sender]["name"],
                 "sent_date": (
                     epoch + datetime.timedelta(seconds=when)
@@ -100,6 +100,7 @@ def main() -> None:
                 "where": outside[0] if outside else "the firm",
             }
         )
+        forms.append(form)
     for conversation, sender, when, ts, body in slack.execute(
         "SELECT conversation_id, sender, time, ts, body FROM messages"
     ):
@@ -110,7 +111,6 @@ def main() -> None:
         rows.append(
             {
                 "ref": ts,
-                "form": form,
                 "approver": people[sender]["name"],
                 "sent_date": (
                     epoch + datetime.timedelta(seconds=when)
@@ -118,7 +118,14 @@ def main() -> None:
                 "where": channels.get(conversation, conversation),
             }
         )
-    rows.sort(key=lambda r: r["ref"])
+        forms.append(form)
+    order = sorted(range(len(rows)), key=lambda i: rows[i]["ref"])
+    rows = [rows[i] for i in order]
+    forms = [forms[i] for i in order]
+    # form_counts still needs the classification; the row no longer prints
+    # it. Naming which of six words matched, per row, is a checklist handed
+    # to the agent -- the same decomposition that made self-review-exposure
+    # score 1.000 three times over.
 
     # Every listed form, including the two nobody used. Emitting only the
     # forms that occur would make "does a zero belong in the object?" a
@@ -126,8 +133,8 @@ def main() -> None:
     # wrong for guessing it either way.
     by_form: dict[str, int] = {name: 0 for name, _pattern in FORMS}
     by_person: dict[str, int] = defaultdict(int)
-    for row in rows:
-        by_form[row["form"]] += 1
+    for row, form in zip(rows, forms, strict=True):
+        by_form[form] += 1
         by_person[row["approver"]] += 1
     OUT.write_text(
         json.dumps(

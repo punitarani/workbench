@@ -29,7 +29,7 @@ rk.flagged_f1(D, T["approvals"], name="approvals.f1", weight=5.0)
 rk.row_fields(
     D,
     T["approvals"],
-    {"form": 0, "approver": 0, "sent_date": 0, "where": 0},
+    {"approver": 0, "sent_date": 0, "where": 0},
     name="row_facts",
     weight=6.0,
 )

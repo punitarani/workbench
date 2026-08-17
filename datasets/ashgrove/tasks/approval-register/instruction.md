@@ -30,9 +30,10 @@ Nothing else counts. Not *agreed*, not *go ahead*, not *fine by me*, not
 *confirmed*, not *no objection* — however plainly the writer meant to
 approve something.
 
-**One row per message**, however many of the six it contains. Where a
-message carries more than one, its `form` is whichever appears **first in
-the table above**, not first in the text.
+**One row per message**, however many of the six it contains. For
+`form_counts`, a message carrying more than one counts once, under
+whichever form appears **first in the table above** — not first in the
+text.
 
 ## What to produce
 
@@ -51,7 +52,6 @@ fields:
     `msg-000104`. **Chat** has no such id on the wire: Slack addresses a
     message by its timestamp, a string like `1767661500.000003`. Use that,
     unchanged, every digit.
-  - `form` — one of the six names in the left-hand column above
   - `approver` — the full name of whoever wrote the message
   - `sent_date` — the date it was written, `YYYY-MM-DD`
   - `where` — for a **mail** message with anyone from outside Ashgrove Reid
