@@ -43,6 +43,13 @@ A thread is **awaiting the firm** when both hold:
    `can you`, `would you`, `we need`, `i need`, `when will`,
    `let me know`, `waiting on`, `waiting for`.
 
+**The phrase test is textual, not editorial.** A phrase counts wherever
+it occurs, including inside a longer clause and including when the client
+is describing their *own* obligations rather than asking anything of you.
+*"I want to confirm we're aligned on what we need to deliver"* contains
+`we need`, so the thread is awaiting the firm — do not weigh up who
+actually owes whom. Read the words, not the intent.
+
 A thread whose last message is from a client but matches none of those
 is a courtesy close, not an open item. A thread whose last message came
 from inside the firm is not awaiting the firm at all, however unresolved
