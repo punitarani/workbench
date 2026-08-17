@@ -83,6 +83,44 @@ proof that width does not create difficulty.
 One task in band; four at ceiling. The one that moved is the one whose
 rule a competent reader is tempted to override.
 
+## Cross-tier: glm-5.2 on the same world
+
+The suite separates tiers on r12, which it did not do before.
+
+| task | Opus 5 | glm-5.2 |
+|---|---|---|
+| commitment-register | **0.783** | — (timed out at 50 min on the wider world) |
+| tracker-reconciliation | 1.000 | **0.832** |
+| work-product-review | 1.000 | **0.778** |
+| client-responsiveness-sla | 1.000 | 1.000 |
+
+Both gaps have the same shape, and it is worth naming: **the weaker model
+finds every row and cannot total them.** `effort.f1` and `documents.f1` are
+1.000 in both; what it loses are the aggregates that need a second surface.
+
+### work-product-review, glm-5.2 — 0.778 — all misses M
+
+```
+answer.reached_client   0.000   count: agent 4, oracle 7
+answer.never_attached   0.000   count: agent 47, oracle 45
+answer.row_facts        0.990   52 rows, 0 missing, 0 invented
+wrong fields on shared rows: {'reached_client': 3}
+```
+
+Fifty-two rows, none missing, none invented, every field right except
+`reached_client` on three documents. Each was checked against the record:
+
+| document | attached to | outside recipient |
+|---|---|---|
+| 19 — FY2025 Audit Calendar & Resource Plan | 4 messages | Harriet Vance ×3, Benedict Shaw |
+| 24 — Audit Engagement Status Summary | msg-000162 | Garrett Poole |
+| 5 — Standard Rate Sheet 2026 | msg-000122 | Idris Mensah |
+
+All three plainly reached a client, through the mail surface, on messages
+the tools serve. **Verdict M**: the model did not carry the
+attachment-to-recipient join through, and both wrong counts fall out of
+those same three rows.
+
 ## Retired
 
 **engagement-status-integrity.** Its answer on r12 is empty — nothing moved
