@@ -229,7 +229,45 @@ What is left, in order of how much is known about each:
    per row, so one missed join costs a field across many rows rather than
    one row entirely.
 
-### The leading candidate: the firm's own workbooks
+### Correlated error was tried, and it did not work either
+
+`tracker-reconciliation` was built exactly to the specification above: one
+sheet, three bridging decisions, each of which moves all 146 rows at once.
+Opus 5 scored **1.000** — every row, every bridge, the exact hours total —
+in 26 shell commands and 9,409 output tokens. Cheaply.
+
+It did the work honestly: it read the tracker, worked out both vocabularies,
+and wrote a program. That last part is the whole answer, and it generalises:
+
+> **A task is deterministically gradeable exactly when it is programmatically
+> solvable.** The oracle is a program. Its existence is a proof that a
+> program suffices. The agent has a shell, so it writes one — and programs
+> do not make arithmetic errors, do not lose rows on page nine, and do not
+> forget a vocabulary mapping halfway down.
+
+That is why every design in this file has failed the same way. The two
+constraints this project imposes — *state every rule*, so a miss is not a
+task defect, and *serve every fact*, so a miss is not an environment defect
+— together guarantee the task is a program the agent can write.
+
+So the 0.2–0.8 band and "every failure is a genuine model failure on a fair
+task" are in tension, and the tension is structural rather than a matter of
+trying harder. The ways out, honestly stated:
+
+1. **Ground truth that is not derivable from the data.** A hand-authored
+   answer key encoding judgment — which engagements are *actually* at risk,
+   which commitments really matter — stays deterministic to grade while
+   ceasing to be a program the agent can write. It costs the
+   auto-regeneration this pipeline is built on, and it has to be curated per
+   world.
+2. **Accept the weaker tier as the instrument.** glm-5.2 sits at 0.630 on
+   one task; a mid-tier model is where these tasks discriminate.
+3. **Constrain the resources.** No shell, or a turn budget. That measures
+   something real but different, and it is not what "hard task" means.
+4. **Ambiguity.** Sacrifices deterministic grading, which this project has
+   spent its whole effort earning. Not recommended.
+
+### Earlier candidate, kept for the record: the firm's own workbooks
 
 Independent errors average out — that is why volume never worked. What has
 never been tried here is a **correlated** one: a single decision that moves
