@@ -40,6 +40,9 @@ _MAX_PAGES = 60
 # measures a world must not change it.
 _READ_VERBS = ("get_", "list_", "search_", "read_", "find_", "who_", "describe_")
 
+# An ISO calendar date, with or without a time on it.
+_DATE = re.compile(r"\d{4}-\d{2}-\d{2}(?:[T ][\d:.+\-]*)?")
+
 
 def _strings(value: Any, into: set[str]) -> None:
     if isinstance(value, str):
@@ -240,6 +243,19 @@ def _is_identifier(value: str) -> bool:
 
     value = value.strip()
     if not value or len(value) > 120:
+        return False
+    if _DATE.fullmatch(value):
+        # A calendar date is arithmetic, not vocabulary. Nobody guesses
+        # `2026-01-31`; it is what "the end of the month this was sent in"
+        # comes to, and the commitment register's due dates land on
+        # weekends, on month ends, and past the last day the world ran --
+        # so most of them appear in no payload and never could. Treating
+        # them as identifiers condemned a task whose every date is derived
+        # from a served one by a rule the instruction states in full.
+        #
+        # This costs the gate nothing it was built for: `tkt-000005` still
+        # has digits and is still an identifier, and a date an agent must
+        # *copy* is served anyway, so excluding it loses no coverage.
         return False
     if any(character.isdigit() for character in value):
         return True

@@ -86,10 +86,13 @@ class Document:
         Restated from the record rather than imported: a path of
         ``brief.docx`` has no directory, and naming a workspace after the
         file would invent one that no tool ever serves.
+
+        Folded, because the file room is not case-sensitive and this world's
+        authors wrote both ``Engagements/`` and ``engagements/``.
         """
 
         parts = [part for part in self.path.split("/") if part]
-        return parts[0] if len(parts) > 1 else "firm"
+        return parts[0].casefold() if len(parts) > 1 else "firm"
 
 
 @dataclass(frozen=True)

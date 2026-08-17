@@ -1,0 +1,1332 @@
+{
+ "messages_read": 328,
+ "commitments_total": 189,
+ "messages_with_commitment": 160,
+ "busiest_due_date": "2026-01-09",
+ "top_counterparty": "Fairmount Community Foundation",
+ "commitments": [
+  {
+   "message_id": "msg-000002",
+   "due_date": "2026-01-31",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000003",
+   "due_date": "2026-01-09",
+   "author": "Tomas Lindgren",
+   "sent_date": "2026-01-05",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000005",
+   "due_date": "2026-01-09",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-05",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000007",
+   "due_date": "2026-01-08",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-05",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000009",
+   "due_date": "2026-01-08",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-05",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000009",
+   "due_date": "2026-01-09",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-05",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000011",
+   "due_date": "2026-01-08",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-05",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000011",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-05",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000013",
+   "due_date": "2026-01-05",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000013",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000015",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000019",
+   "due_date": "2026-01-05",
+   "author": "Nora Behrens",
+   "sent_date": "2026-01-05",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000020",
+   "due_date": "2026-01-05",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-05",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000021",
+   "due_date": "2026-01-05",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-05",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000022",
+   "due_date": "2026-01-05",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000023",
+   "due_date": "2026-01-05",
+   "author": "Nora Behrens",
+   "sent_date": "2026-01-05",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000025",
+   "due_date": "2026-01-05",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-05",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000028",
+   "due_date": "2026-01-05",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000033",
+   "due_date": "2026-01-05",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-05",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000040",
+   "due_date": "2026-01-05",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000043",
+   "due_date": "2026-01-09",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-06",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000043",
+   "due_date": "2026-01-31",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-06",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000044",
+   "due_date": "2026-01-06",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000045",
+   "due_date": "2026-01-09",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000047",
+   "due_date": "2026-01-09",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000049",
+   "due_date": "2026-01-06",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-06",
+   "counterparty": "Rivergate Housing Trust"
+  },
+  {
+   "message_id": "msg-000050",
+   "due_date": "2026-01-09",
+   "author": "Desmond Blakely",
+   "sent_date": "2026-01-06",
+   "counterparty": "Rivergate Housing Trust"
+  },
+  {
+   "message_id": "msg-000051",
+   "due_date": "2026-01-06",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "counterparty": "Rivergate Housing Trust"
+  },
+  {
+   "message_id": "msg-000060",
+   "due_date": "2026-01-09",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-06",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000062",
+   "due_date": "2026-01-09",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-06",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000066",
+   "due_date": "2026-01-09",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-06",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000067",
+   "due_date": "2026-01-09",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-06",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000074",
+   "due_date": "2026-01-07",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-06",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000074",
+   "due_date": "2026-01-09",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-06",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000076",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-06",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000077",
+   "due_date": "2026-01-09",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000078",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-06",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000079",
+   "due_date": "2026-01-07",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "counterparty": "(none)"
+  },
+  {
+   "message_id": "msg-000080",
+   "due_date": "2026-01-07",
+   "author": "Priya Raman",
+   "sent_date": "2026-01-07",
+   "counterparty": "Northwind Software"
+  },
+  {
+   "message_id": "msg-000080",
+   "due_date": "2026-01-08",
+   "author": "Priya Raman",
+   "sent_date": "2026-01-07",
+   "counterparty": "Northwind Software"
+  },
+  {
+   "message_id": "msg-000080",
+   "due_date": "2026-01-09",
+   "author": "Priya Raman",
+   "sent_date": "2026-01-07",
+   "counterparty": "Northwind Software"
+  },
+  {
+   "message_id": "msg-000081",
+   "due_date": "2026-01-08",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-07",
+   "counterparty": "Northwind Software"
+  },
+  {
+   "message_id": "msg-000083",
+   "due_date": "2026-01-07",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-07",
+   "counterparty": "Northwind Software"
+  },
+  {
+   "message_id": "msg-000083",
+   "due_date": "2026-01-08",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-07",
+   "counterparty": "Northwind Software"
+  },
+  {
+   "message_id": "msg-000085",
+   "due_date": "2026-01-09",
+   "author": "Nora Behrens",
+   "sent_date": "2026-01-07",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000085",
+   "due_date": "2026-01-14",
+   "author": "Nora Behrens",
+   "sent_date": "2026-01-07",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000089",
+   "due_date": "2026-01-07",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-07",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000089",
+   "due_date": "2026-01-08",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-07",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000091",
+   "due_date": "2026-01-07",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000092",
+   "due_date": "2026-01-07",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-07",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000093",
+   "due_date": "2026-01-08",
+   "author": "Colin Mackey",
+   "sent_date": "2026-01-07",
+   "counterparty": "Meridian Family Health"
+  },
+  {
+   "message_id": "msg-000095",
+   "due_date": "2026-01-07",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-07",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000096",
+   "due_date": "2026-01-07",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-07",
+   "counterparty": "Meridian Family Health"
+  },
+  {
+   "message_id": "msg-000098",
+   "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000100",
+   "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000100",
+   "due_date": "2026-01-08",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000101",
+   "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000101",
+   "due_date": "2026-01-08",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000102",
+   "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000102",
+   "due_date": "2026-01-08",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000103",
+   "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000103",
+   "due_date": "2026-01-08",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000104",
+   "due_date": "2026-01-08",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000105",
+   "due_date": "2026-01-07",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000106",
+   "due_date": "2026-01-07",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000107",
+   "due_date": "2026-01-08",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000108",
+   "due_date": "2026-01-08",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000109",
+   "due_date": "2026-01-08",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000110",
+   "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000110",
+   "due_date": "2026-01-08",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000111",
+   "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000111",
+   "due_date": "2026-01-08",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "counterparty": "Shaw & Associates"
+  },
+  {
+   "message_id": "msg-000114",
+   "due_date": "2026-01-09",
+   "author": "Tomas Lindgren",
+   "sent_date": "2026-01-07",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000115",
+   "due_date": "2026-01-07",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-07",
+   "counterparty": "Meridian Family Health"
+  },
+  {
+   "message_id": "msg-000116",
+   "due_date": "2026-01-07",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-07",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000117",
+   "due_date": "2026-01-07",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-07",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000118",
+   "due_date": "2026-01-07",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-07",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000119",
+   "due_date": "2026-01-07",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-07",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000121",
+   "due_date": "2026-01-08",
+   "author": "Colin Mackey",
+   "sent_date": "2026-01-07",
+   "counterparty": "Meridian Family Health"
+  },
+  {
+   "message_id": "msg-000122",
+   "due_date": "2026-01-07",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-07",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000123",
+   "due_date": "2026-01-07",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-07",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000130",
+   "due_date": "2026-01-08",
+   "author": "Priya Raman",
+   "sent_date": "2026-01-08",
+   "counterparty": "Northwind Software"
+  },
+  {
+   "message_id": "msg-000131",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-08",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000131",
+   "due_date": "2026-01-14",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-08",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000132",
+   "due_date": "2026-01-14",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-08",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000137",
+   "due_date": "2026-01-08",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-08",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000139",
+   "due_date": "2026-01-08",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-08",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000142",
+   "due_date": "2026-01-08",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-08",
+   "counterparty": "(none)"
+  },
+  {
+   "message_id": "msg-000145",
+   "due_date": "2026-01-08",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-08",
+   "counterparty": "(none)"
+  },
+  {
+   "message_id": "msg-000146",
+   "due_date": "2026-01-08",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-08",
+   "counterparty": "(none)"
+  },
+  {
+   "message_id": "msg-000146",
+   "due_date": "2026-01-09",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-08",
+   "counterparty": "(none)"
+  },
+  {
+   "message_id": "msg-000148",
+   "due_date": "2026-01-08",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-08",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000150",
+   "due_date": "2026-01-08",
+   "author": "Lucia Arroyo",
+   "sent_date": "2026-01-08",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000151",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-09",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000151",
+   "due_date": "2026-01-10",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-09",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000154",
+   "due_date": "2026-01-09",
+   "author": "Lucia Arroyo",
+   "sent_date": "2026-01-09",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000160",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-09",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000166",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-09",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000170",
+   "due_date": "2026-01-09",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-09",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000176",
+   "due_date": "2026-01-09",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-09",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000177",
+   "due_date": "2026-01-16",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-09",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000181",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "counterparty": "Rivergate Housing Trust"
+  },
+  {
+   "message_id": "msg-000181",
+   "due_date": "2026-01-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "counterparty": "Rivergate Housing Trust"
+  },
+  {
+   "message_id": "msg-000182",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000182",
+   "due_date": "2026-01-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000182",
+   "due_date": "2026-01-16",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000185",
+   "due_date": "2026-01-09",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-09",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000186",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000187",
+   "due_date": "2026-01-09",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-09",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000195",
+   "due_date": "2026-01-09",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-09",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000195",
+   "due_date": "2026-01-16",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-09",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000196",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "counterparty": "Rivergate Housing Trust"
+  },
+  {
+   "message_id": "msg-000196",
+   "due_date": "2026-01-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-09",
+   "counterparty": "Rivergate Housing Trust"
+  },
+  {
+   "message_id": "msg-000206",
+   "due_date": "2026-05-01",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000207",
+   "due_date": "2026-05-01",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-12",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000219",
+   "due_date": "2026-05-01",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000222",
+   "due_date": "2026-05-01",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000223",
+   "due_date": "2026-03-15",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000224",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000224",
+   "due_date": "2026-05-01",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000225",
+   "due_date": "2026-03-15",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000226",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000228",
+   "due_date": "2026-03-15",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000229",
+   "due_date": "2026-03-15",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000230",
+   "due_date": "2026-03-15",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000231",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000232",
+   "due_date": "2026-03-15",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000234",
+   "due_date": "2026-01-13",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-13",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000236",
+   "due_date": "2026-01-13",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000237",
+   "due_date": "2026-01-13",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000238",
+   "due_date": "2026-01-13",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000239",
+   "due_date": "2026-01-13",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-13",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000239",
+   "due_date": "2026-01-15",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-13",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000240",
+   "due_date": "2026-01-13",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-13",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000241",
+   "due_date": "2026-01-13",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000242",
+   "due_date": "2026-01-13",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-13",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000242",
+   "due_date": "2026-01-15",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-13",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000243",
+   "due_date": "2026-01-13",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000244",
+   "due_date": "2026-01-13",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-13",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000245",
+   "due_date": "2026-01-13",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000246",
+   "due_date": "2026-01-13",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000247",
+   "due_date": "2026-01-13",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-13",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000248",
+   "due_date": "2026-01-13",
+   "author": "Tomas Lindgren",
+   "sent_date": "2026-01-13",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000248",
+   "due_date": "2026-01-16",
+   "author": "Tomas Lindgren",
+   "sent_date": "2026-01-13",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000249",
+   "due_date": "2026-01-13",
+   "author": "Freya Holt",
+   "sent_date": "2026-01-13",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000249",
+   "due_date": "2026-01-16",
+   "author": "Freya Holt",
+   "sent_date": "2026-01-13",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000250",
+   "due_date": "2026-01-13",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-13",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000251",
+   "due_date": "2026-01-13",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "counterparty": "(none)"
+  },
+  {
+   "message_id": "msg-000252",
+   "due_date": "2026-01-13",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000253",
+   "due_date": "2026-01-13",
+   "author": "Garrett Poole",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000254",
+   "due_date": "2026-01-13",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000255",
+   "due_date": "2026-01-13",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000257",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-13",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000259",
+   "due_date": "2026-01-14",
+   "author": "Freya Holt",
+   "sent_date": "2026-01-14",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000262",
+   "due_date": "2026-01-15",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-14",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000264",
+   "due_date": "2026-01-15",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-14",
+   "counterparty": "Ashfield Pension Trust"
+  },
+  {
+   "message_id": "msg-000274",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-14",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000275",
+   "due_date": "2026-01-14",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-14",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000276",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-14",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000279",
+   "due_date": "2026-03-15",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-14",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000280",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-15",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000282",
+   "due_date": "2026-03-15",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-15",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000283",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-15",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000285",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-15",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000286",
+   "due_date": "2026-03-15",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-15",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000288",
+   "due_date": "2026-03-15",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-15",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000289",
+   "due_date": "2026-01-16",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-15",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000294",
+   "due_date": "2026-01-16",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-15",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000297",
+   "due_date": "2026-01-16",
+   "author": "Desmond Blakely",
+   "sent_date": "2026-01-15",
+   "counterparty": "Rivergate Housing Trust"
+  },
+  {
+   "message_id": "msg-000298",
+   "due_date": "2026-01-16",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-15",
+   "counterparty": "Rivergate Housing Trust"
+  },
+  {
+   "message_id": "msg-000300",
+   "due_date": "2026-01-21",
+   "author": "Freya Holt",
+   "sent_date": "2026-01-15",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000302",
+   "due_date": "2026-01-17",
+   "author": "Colin Mackey",
+   "sent_date": "2026-01-16",
+   "counterparty": "Meridian Family Health"
+  },
+  {
+   "message_id": "msg-000303",
+   "due_date": "2026-01-16",
+   "author": "Adaeze Okonkwo",
+   "sent_date": "2026-01-16",
+   "counterparty": "Meridian Family Health"
+  },
+  {
+   "message_id": "msg-000304",
+   "due_date": "2026-01-16",
+   "author": "Lucia Arroyo",
+   "sent_date": "2026-01-16",
+   "counterparty": "Stonebridge Property Group"
+  },
+  {
+   "message_id": "msg-000305",
+   "due_date": "2026-01-17",
+   "author": "Colin Mackey",
+   "sent_date": "2026-01-16",
+   "counterparty": "Meridian Family Health"
+  },
+  {
+   "message_id": "msg-000306",
+   "due_date": "2026-01-16",
+   "author": "Adaeze Okonkwo",
+   "sent_date": "2026-01-16",
+   "counterparty": "Meridian Family Health"
+  },
+  {
+   "message_id": "msg-000308",
+   "due_date": "2026-01-23",
+   "author": "Nora Behrens",
+   "sent_date": "2026-01-16",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000309",
+   "due_date": "2026-01-16",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-16",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000311",
+   "due_date": "2026-01-16",
+   "author": "Sylvia Nakamura",
+   "sent_date": "2026-01-16",
+   "counterparty": "Kestrel Manufacturing"
+  },
+  {
+   "message_id": "msg-000315",
+   "due_date": "2026-01-23",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-16",
+   "counterparty": "Meridian Family Health"
+  },
+  {
+   "message_id": "msg-000318",
+   "due_date": "2026-01-19",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-16",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000321",
+   "due_date": "2026-01-21",
+   "author": "Freya Holt",
+   "sent_date": "2026-01-16",
+   "counterparty": "Harbor Light Distribution"
+  },
+  {
+   "message_id": "msg-000322",
+   "due_date": "2026-01-16",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-16",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000325",
+   "due_date": "2026-01-18",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-16",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000326",
+   "due_date": "2026-01-16",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-16",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000327",
+   "due_date": "2026-01-18",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-16",
+   "counterparty": "Cardinal Ridge Builders"
+  },
+  {
+   "message_id": "msg-000329",
+   "due_date": "2026-01-16",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-16",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000330",
+   "due_date": "2026-01-16",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-16",
+   "counterparty": "Fairmount Community Foundation"
+  },
+  {
+   "message_id": "msg-000331",
+   "due_date": "2026-01-16",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-16",
+   "counterparty": "Fairmount Community Foundation"
+  }
+ ]
+}

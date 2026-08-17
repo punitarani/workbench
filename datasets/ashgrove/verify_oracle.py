@@ -29,7 +29,9 @@ has looked.
 """
 
 import argparse
+import datetime
 import json
+import re
 import statistics
 import sys
 from collections import defaultdict
@@ -48,6 +50,52 @@ DEFAULT_LOG = REPO / "out" / "ashgrove" / "epoch" / "world.jsonl"
 # up as a drift of exactly one or two hundredths on a small world, and an
 # epsilon of 0.011 swallows it silently while still looking like a gate.
 EPSILON = 1e-6
+# The world's own start, carried in every projected database's `meta` and in
+# the run.started event. Restated rather than read from the bundle so this
+# stays a check on the log and not on the materialization.
+EPOCH = "2026-01-05T00:00:00-08:00"
+
+_WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
+_MONTHS = (
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december",
+)
+_WORD_DAYS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
+# The task's specification, quoted verbatim in its instruction.
+COMMITMENT_PATTERNS = (
+    ("weekday", r"\bby (?:this |next |)(monday|tuesday|wednesday|thursday|friday)\b"),
+    ("week", r"\bby the end of (?:the |this |next |)week\b"),
+    ("month", r"\bby the end of (?:the |this |next |)month\b"),
+    ("date", rf"\bby ({'|'.join(_MONTHS)}) (\d{{1,2}})\b"),
+    ("day", r"\b(?:eod|cob|end of day|close of business)\b"),
+    ("within", r"\bwithin (\d+|a|two|three|five|ten) (?:business )?days?\b"),
+    ("tomorrow", r"\bby tomorrow\b"),
+)
+
+
+def _commitment_due(kind: str, match, sent: datetime.date) -> datetime.date:
+    """Written from the instruction's table, not from the solver."""
+
+    if kind == "weekday":
+        ahead = (_WEEKDAYS.index(match.group(1).lower()) - sent.weekday()) % 7
+        return sent + datetime.timedelta(days=7 if ahead == 0 else ahead)
+    if kind == "week":
+        return sent + datetime.timedelta(days=(4 - sent.weekday()) % 7)
+    if kind == "month":
+        # The last day of this month, found by walking back from the first
+        # of the next one.
+        following = (sent.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
+        return following - datetime.timedelta(days=1)
+    if kind == "date":
+        month = _MONTHS.index(match.group(1).lower()) + 1
+        return datetime.date(sent.year, month, int(match.group(2)))
+    if kind == "day":
+        return sent
+    if kind == "within":
+        count = match.group(1).lower()
+        days = int(count) if count.isdigit() else _WORD_DAYS[count]
+        return sent + datetime.timedelta(days=days)
+    return sent + datetime.timedelta(days=1)
 
 
 def _cmp(where: str, mine, theirs, out: list[str]) -> None:
@@ -395,7 +443,78 @@ def check_status_integrity(facts: WorldFacts, oracle: dict) -> list[str]:
     return out
 
 
+def check_commitment_register(facts: WorldFacts, oracle: dict) -> list[str]:
+    """Every promised deadline, re-read from the log's own message bodies.
+
+    The seven patterns are the task's specification, so restating them here
+    proves nothing about them — they are quoted in the instruction and an
+    agent is graded on applying exactly those. What this does test is
+    everything around them: that the world's epoch resolves to the same
+    calendar the tools serve, that the counterparty join from mail domain to
+    organisation name holds, and that a message promising one date twice
+    still makes one row.
+    """
+
+    out: list[str] = []
+    epoch = datetime.datetime.fromisoformat(EPOCH)
+    organisations = {
+        "".join(c for c in name.lower() if c.isalnum()): name
+        for name in facts.orgs.values()
+    }
+
+    rows: dict[tuple[str, str], dict] = {}
+    for email in facts.emails.values():
+        sent = (epoch + datetime.timedelta(seconds=email.time)).date()
+        outside = sorted(
+            {
+                organisations.get(domain.split(".")[0], domain)
+                for domain in (
+                    facts.people[p].email_address.split("@")[-1]
+                    for p in (email.sender, *email.to, *email.cc)
+                    if p in facts.people
+                    and facts.people[p].affiliation == "external"
+                )
+            }
+        )
+        for kind, pattern in COMMITMENT_PATTERNS:
+            for match in re.finditer(pattern, email.body, re.IGNORECASE):
+                due = _commitment_due(kind, match, sent)
+                rows[(email.message_id, due.isoformat())] = {
+                    "message_id": email.message_id,
+                    "due_date": due.isoformat(),
+                    "author": facts.name(email.sender),
+                    "sent_date": sent.isoformat(),
+                    "counterparty": outside[0] if outside else "(none)",
+                }
+
+    register = [rows[key] for key in sorted(rows)]
+    _cmp("messages_read", len(facts.emails), oracle["messages_read"], out)
+    _cmp("commitments_total", len(register), oracle["commitments_total"], out)
+    _cmp(
+        "messages_with_commitment",
+        len({r["message_id"] for r in register}),
+        oracle["messages_with_commitment"],
+        out,
+    )
+    for field, name in (("due_date", "busiest_due_date"),
+                        ("counterparty", "top_counterparty")):
+        counts: dict[str, int] = defaultdict(int)
+        for row in register:
+            counts[row[field]] += 1
+        # Most, then earliest -- `max` would break the tie the other way.
+        _cmp(name, min(counts, key=lambda k: (-counts[k], k)), oracle[name], out)
+    _rows(
+        "commitments",
+        register,
+        oracle["commitments"],
+        lambda r: (r["message_id"], r["due_date"]),
+        out,
+    )
+    return out
+
+
 CHECKS = {
+    "commitment-register": check_commitment_register,
     "engagement-time-allocation": check_time_allocation,
     "work-product-review": check_work_product_review,
     "client-responsiveness-sla": check_client_responsiveness,

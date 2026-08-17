@@ -36,10 +36,17 @@ def _workspace(path: str) -> str:
 
     A path with no directory at all has no workspace to name, so it goes to
     the firm's own — never to a workspace named after the file.
+
+    Folded to lower case because authors are not consistent and a file room
+    is not case-sensitive. This world produced both ``Engagements`` and
+    ``engagements``, which the surface served as two separate workspaces
+    holding one engagement's papers between them — and one task keys its
+    rows on ``(document, workspace)``, so the split would have scored two
+    identical filings as two different answers.
     """
 
     segments = [segment for segment in path.strip("/").split("/") if segment]
-    return segments[0] if len(segments) > 1 else _DEFAULT_WORKSPACE
+    return segments[0].casefold() if len(segments) > 1 else _DEFAULT_WORKSPACE
 
 
 # What each format may legitimately be called. A formatted document is a

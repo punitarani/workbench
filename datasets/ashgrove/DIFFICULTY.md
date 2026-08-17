@@ -78,9 +78,74 @@ and people who share a surname.
 
 ### 4. Absence — the fact is that there is no fact
 
-"Engagements with logged time but no workpaper / no client correspondence /
-no closing review." Proving a negative requires reading everything, and one
-missed page flips a row from a finding to a miss.
+Proving a negative requires reading everything, and one missed page flips a
+row from a finding to a miss.
+
+**But the obvious grain does not work, and this was measured rather than
+assumed.** "Engagements with logged time but no workpaper / no client mail /
+no closing review", keyed per engagement × evidence kind, gives 52 rows of
+which three of the four kinds are constant:
+
+```
+  time logged      present=13 absent= 0  <- DEGENERATE
+  workpaper        present= 0 absent=13  <- DEGENERATE
+  client mail      present= 0 absent=13  <- DEGENERATE
+  closing review   present= 7 absent= 6
+```
+
+The two zeros are the reason: **the world has no explicit engagement↔document
+or engagement↔thread link**. The only hard references are activity→ticket and
+attachment→document. Everything else has to be joined by inference, and an
+oracle built on inference is not deterministic.
+
+Two joins that *are* deterministic and do work:
+
+- **Client by email domain.** `fairmountcommunityfoundation.example` ↔
+  `Fairmount Community Foundation`, for all ten organisations. This is how a
+  thread reaches an engagement.
+- **Client named in prose.** Eight of ten organisations are named in message
+  bodies, with real spread and two genuine zeros — variation, not degeneracy:
+
+```
+  Kestrel Manufacturing        email  52  chat 686
+  Harbor Light Distribution    email  18  chat 141
+  Ashfield Pension Trust       email  10  chat   0
+  Cardinal Ridge Builders      email   0  chat   0
+  Northwind Software           email   0  chat   0
+```
+
+So the absence task is built on those, at the person×engagement grain (197
+pairs), not on an engagement↔document link that does not exist.
+
+## Row counts available in this world (10 days; 15 days is ~1.5×)
+
+| axis | grain | rows |
+|---|---|---|
+| prose | (message, commitment phrase) | **536** (200 email + 336 chat) |
+| reconciliation | **status change**, not engagement | **40** (13 engagements is far too thin) |
+| entity | document | 34, over 101 versions, 17 authors, 8 workspaces |
+| absence | person × engagement | 197 |
+
+The reconciliation row is the one to be careful about: keyed per engagement
+it is 13 rows and lands back in the near-binary regime that made six of the
+original tasks useless. Keyed per status change it is 40.
+
+## Two artefacts found while sizing this
+
+**Fixed.** The surface served `Engagements` and `engagements` as two
+workspaces, splitting one engagement's papers across both — and
+`work-product-review` keys rows on `(document, workspace)`, so two identical
+filings would have graded as two different answers. The workspace is now
+folded; a file room is not case-sensitive.
+
+**Recorded, not fixed.** Personas file documents under raw internal ticket
+ids — `engagements/tkt-000004/…`, and two documents sit in a workspace
+literally named `tkt-000004`. Real firms do not name a file room after a
+row id, and `reachability.py` already documents that clio never serves the
+`tkt-` form (it serves `00004-KestrelManufacturing`), which once split one
+model's two rollouts to 1.000 and 0.273 on which vocabulary each found.
+Fixing it means changing the persona prompt, which invalidates every
+cassette — so it waits until a re-record is being paid for anyway.
 
 ## Rules for tuning difficulty
 
