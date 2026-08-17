@@ -10,14 +10,19 @@ it wrong anyway. Only **M** may ship.
 World: `epoch-r12`, 11 workdays, 6,150 events, `validates=True`, coherence
 clean, 0.1% mis-booked time. Model: Opus 5 through codex, one trial each.
 
-## commitment-register — 0.770 — all misses M
+## commitment-register — 0.783 over three trials — all misses M
 
 ```
-answer.commitments.f1             0.949    missing 0, invented 42
-answer.row_facts                  0.892
-answer.commitments_total          0.000    agent 430, oracle 388
-answer.messages_with_commitment   0.000    agent 393, oracle 369
+answer                            0.783    0.770 - 0.808  (k=3)
+answer.commitments.f1             0.961    0.949 - 0.985
+answer.row_facts                  0.918    0.892 - 0.969
+answer.commitments_total          0.000    all three trials
+answer.messages_with_commitment   0.000    all three trials
 ```
+
+Three trials, a spread of 0.038, and the same two counts zeroed in every
+one: the over-matching is systematic, not a lucky draw. The classification
+below is from the first trial, read row by row.
 
 Recall was perfect. **The agent found every one of the 388 rows and added
 42 of its own**, so this is precision, and every one of the 42 was checked
