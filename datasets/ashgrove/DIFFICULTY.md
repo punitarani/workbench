@@ -147,6 +147,47 @@ model's two rollouts to 1.000 and 0.273 on which vocabulary each found.
 Fixing it means changing the persona prompt, which invalidates every
 cassette — so it waits until a re-record is being paid for anyway.
 
+## The finding that shapes everything else
+
+**Coverage is not difficulty either.** This was the pre-registered lever and
+it has now been measured, on the same task, same model, same world:
+
+| | mail only | mail + chat |
+|---|---|---|
+| rows | 189 | **507** |
+| messages the agent must read | 328 | **1,547** |
+| `commitments.f1` | 0.990 | **0.996** |
+| `row_facts` | 0.979 | **0.992** |
+| **answer** | **0.901** | **0.908** |
+
+2.7× the rows and 4.7× the reading, and the model got *better*. Not
+marginally worse, not flat — better.
+
+So the two levers this file opened with are both spent. Width does not
+work on structured tasks (197 rows / 27 pages / 154 tool calls → ceiling)
+and coverage does not work on prose ones. A frontier model with an
+unlimited tool budget does not make execution errors on well-specified
+mechanical work, however much of it there is.
+
+What is left, in order of how much is known about each:
+
+1. **A weaker model already lands in band.** glm-5.2 scored **0.630** on a
+   task Opus 5 scores 1.000 on. The suite discriminates; it is saturated
+   for one tier, not broken.
+2. **Brittle scalars are doing all the current work.** The only thing
+   holding `commitment-register` below 0.99 is `commitments_total`, an
+   exact count that zeroes on two wrong rows in 507. Leaning on that would
+   be making the scoring mean rather than the work hard, which this file
+   forbids, so it is not a lever.
+3. **Untested: adversarial structure.** The entity axis is the one axis
+   never measured, and it is the only one with direct evidence of biting —
+   two documents sharing a title capped a *reference solver* at 0.976.
+   Difficulty from near-misses that punish shallow matching is different in
+   kind from difficulty by volume, and it is what should be tried next.
+4. **Untested: depth per row.** Not more rows, but more independent hops
+   per row, so one missed join costs a field across many rows rather than
+   one row entirely.
+
 ## The one measurement that matters so far
 
 `commitment-register`, mail only, 189 rows, Opus 5, one trial:
