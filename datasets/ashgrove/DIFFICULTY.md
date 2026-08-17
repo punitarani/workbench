@@ -517,3 +517,30 @@ nothing.
   `work-product-review` oracle had `reviewed` false in all 34 rows.
 - **Oracle independence** (`verify_oracle.py`) and the grading guards must
   pass **before** a rollout is spent.
+
+## A surface the world has and no agent can see
+
+The engine convenes a meeting whenever a calendar event's start arrives
+and records what was said: **36 meeting transcripts, 186 turns of
+dialogue, 153 attendance records** in `epoch-r12`'s world log. None of it
+is materialized. An agent asked what was decided in Monday's status call
+cannot discover that Monday's status call happened.
+
+That is the largest untapped surface in this world, and it is exactly the
+shape the three-model band needs — text-rich, naturally joinable to
+people and engagements, and small enough (36 meetings) that every tier can
+read all of it, where the wide message-corpus tasks DNF below Opus.
+
+**It cannot go on the calendar surface.** Projecting the transcripts into
+`calendar.db` and serving `list_meetings` / `get_meeting_transcript` works
+— verified, 36/186/153 rows land correctly — but it fails
+`test_no_invented_tools`: Google's Calendar MCP server has no such tools,
+and the parity suite exists because *an agent trained against an invented
+tool learns a call that fails in the real product*. Reverted.
+
+The right home is **iManage**, where a firm files its minutes and whose
+real surface already serves documents by id, path and workspace — no
+invented tool required. That change moves the document count from 52 to
+88, so it re-bases `work-product-review` and `workpaper-open-items` and
+has to be done deliberately, with those two re-measured, rather than
+folded in beside a running sweep.
