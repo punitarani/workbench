@@ -37,8 +37,8 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from workbench.analysis.snapshot import status_on
 from workbench.analysis.world_facts import WorldFacts, load_world
-from workbench.environment.snapshot import status_on
 
 REPO = Path(__file__).resolve().parents[2]
 TASKS = Path(__file__).resolve().parent / "tasks"

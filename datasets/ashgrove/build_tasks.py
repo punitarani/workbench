@@ -20,9 +20,9 @@ from pathlib import Path
 
 from workbench.analysis.coherence import MISBOOKED_LIMIT, check
 from workbench.analysis.reachability import unreachable
+from workbench.analysis.snapshot import write_tracker
 from workbench.analysis.world_facts import load_world
 from workbench.environment.materialize import materialize
-from workbench.environment.snapshot import write_tracker
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hartwell"))
 

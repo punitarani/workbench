@@ -30,6 +30,13 @@ ever moved one of these scores.
 Generated rather than hand-written so it cannot drift from the world it
 describes: the same seed produces the same sheet, and the sheet is always
 a true statement about the day it claims.
+
+Lives in ``analysis`` rather than ``environment`` because it reads a
+finished world and computes over it, which is what this package is for.
+It was written into ``environment`` first, next to the materializer that
+places its output, and the layering test caught that immediately: nothing
+may depend on ``analysis``, and an environment module importing it is a
+dependency in the wrong direction.
 """
 
 from __future__ import annotations
