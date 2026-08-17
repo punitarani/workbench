@@ -52,20 +52,17 @@ touched the file.
 **A document is at *self-review risk*** when a review is claimed and no
 independent review happened.
 
-These are three separate questions and the repository answers all three on
-the same call: `get_document_versions` returns every version with both its
-`author_description` and its `comment`. A comment saying *"Reviewed by the
-engagement manager and approved for issue"* establishes that the review was
-**claimed**. It establishes nothing whatever about whether it happened —
-for that, look at who the author of that version actually is.
+These are three separate questions. `get_document_versions` returns every
+version of a document with both its `author_description` and its
+`comment`.
 
 Nothing outside the version comments counts as a claim. A review discussed
 in an email, minuted in a meeting, or logged as time does not make a
 document's review claimed here.
 
-## A warning
+## A warning about completeness
 
-The temptation runs one way. The comments are written in the confident
-voice of somebody signing work off, and most of them are telling the truth
-— but not all, and the ones that are not read exactly like the ones that
-are. The author field is the only thing that separates them.
+Every document in the repository belongs in the report, including the ones
+where nothing happened at all — a workpaper nobody revised and nobody
+claimed to review is still a row. The repository hands its documents back a
+page at a time, and every count here is computed from all of them.
