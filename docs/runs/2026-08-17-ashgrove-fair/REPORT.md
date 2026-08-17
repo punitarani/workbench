@@ -185,6 +185,29 @@ called the model's: the task is solvable exactly as written.
 
 Neither failure was shared by any two trials.
 
+## Measurements taken and discarded
+
+A zero is a claim about a model, and it has to be earned. Three sets of
+zeros on this project were not:
+
+* **gpt-5.6-sol, three tasks, 0.000 each.** The trial log shows it never
+  reached the data: `tool exec invoked with incompatible payload`, 3,999
+  output tokens, nothing written. A harness incompatibility between that
+  model and the codex MCP bridge. Discarded.
+* **opencode with opus-5.** MCP tools resolved, but the agent looped
+  repeating its opening line. The harness was abandoned rather than
+  reported as a capability.
+* **deepseek-v4-flash, engagement-time-allocation, 0.000 ×3, this run.**
+  Mine. I launched the third-tier sweep *beside* the glm sweep instead of
+  behind it, and both hit one OpenRouter account. The agent started
+  correctly and made successful MCP calls — `clio.who_am_i` returned —
+  before dying on `RateLimitError: too many requests`, three trials in
+  under a minute. Discarded and re-queued serially.
+
+The tell in all three is the same and worth stating as a rule: **a model
+that scores 0.000 on a task another model scores 1.000 on has usually not
+been measured at all.** Read the trial log before the number.
+
 ## What ships
 
 - 14 tasks, 14 independent derivations, all agreeing.
