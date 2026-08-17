@@ -191,11 +191,30 @@ and coverage does not work on prose ones. A frontier model with an
 unlimited tool budget does not make execution errors on well-specified
 mechanical work, however much of it there is.
 
+**And it is not a frontier-model problem.** Running a weaker model across
+the suite settles that:
+
+| task | rows | Opus 5 | glm-5.2 |
+|---|---|---|---|
+| engagement-time-allocation | 197 | ~1.000 | **1.000** |
+| work-product-review | 34 | ~1.000 | **1.000** |
+| client-responsiveness-sla | 41 | 1.000 | 0.977 |
+| open-items-triage | 4 | 1.000 | **0.630** |
+| commitment-register | 507 | 0.908 | timed out at 50 min |
+
+The 197-row, 27-page, 1,304-entry task built to be the hardest here is a
+1.000 for *both* tiers. The only score that lands in band is the four-row
+task, where a single row swings it — which is a coin flip, not an
+instrument.
+
+So the earlier reading of "saturated for one tier" was too kind. These
+designs do not create difficulty for anybody; they only cost more.
+
 What is left, in order of how much is known about each:
 
-1. **A weaker model already lands in band.** glm-5.2 scored **0.630** on a
-   task Opus 5 scores 1.000 on. The suite discriminates; it is saturated
-   for one tier, not broken.
+1. **The weaker model lands in band on exactly one task**, and only because
+   four rows cannot express a fraction. That is not evidence the suite
+   discriminates.
 2. **Brittle scalars are doing all the current work.** The only thing
    holding `commitment-register` below 0.99 is `commitments_total`, an
    exact count that zeroes on two wrong rows in 507. Leaning on that would

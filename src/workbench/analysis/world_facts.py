@@ -137,6 +137,11 @@ class WorldFacts:
     # conversation_id -> the channel's name, which is what Slack serves and
     # what a task may therefore ask an answer to be spelled in.
     channels: dict[str, str] = field(default_factory=dict)
+    # The instant `time: 0` refers to, as the run recorded it. Every
+    # projected database carries the same string in its `meta` table, so
+    # reading it here keeps a caller from hardcoding a date that is only
+    # true of one world.
+    epoch: str = ""
 
     # --- derived views, each restating a rule the tools also implement ---
 
@@ -212,6 +217,8 @@ def load_world(path: Path) -> WorldFacts:
             payload = event.get("payload") or {}
             tag, when = event.get("tag"), _int(event.get("time"))
             match tag:
+                case "sim.run.started":
+                    facts.epoch = payload.get("epoch", "")
                 case "person.record":
                     facts.people[payload["person_id"]] = Person(
                         person_id=payload["person_id"],

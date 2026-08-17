@@ -11,6 +11,7 @@ way to move that line, and it is a deliberate act.
 """
 
 import argparse
+import datetime
 import json
 import shutil
 import subprocess
@@ -21,6 +22,7 @@ from workbench.analysis.coherence import MISBOOKED_LIMIT, check
 from workbench.analysis.reachability import unreachable
 from workbench.analysis.world_facts import load_world
 from workbench.environment.materialize import materialize
+from workbench.environment.snapshot import write_tracker
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hartwell"))
 
@@ -30,6 +32,13 @@ REPO = Path(__file__).resolve().parents[2]
 TASKS = Path(__file__).resolve().parent / "tasks"
 DEFAULT_LOG = REPO / "out" / "ashgrove" / "epoch" / "world.jsonl"
 SHARED_BUNDLE = REPO / "out" / "ashgrove" / "bundle"
+# Day four of a fifteen-day world: late enough that every engagement has
+# moved and hours are on the board, early enough that most of them move
+# again afterwards. Measured at this cutoff the sheet carries 133 effort
+# lines, 116 of which have since drifted, and misses 13 pairs that only
+# started later.
+TRACKER_CUTOFF = 4 * 86_400
+TRACKER_NAME = "engagement-tracker-week1.md"
 
 
 def degenerate(answer: dict) -> list[str]:
@@ -72,6 +81,13 @@ def degenerate(answer: dict) -> list[str]:
     return reports
 
 
+def _as_of(facts, cutoff: int) -> str:
+    """The snapshot day as a calendar date, read off the world's own epoch."""
+
+    epoch = datetime.datetime.fromisoformat(facts.epoch)
+    return (epoch + datetime.timedelta(seconds=cutoff)).date().isoformat()
+
+
 def build(world_log: Path, names: list[str], refresh: bool) -> int:
     # Before anything is materialized: does the record contradict itself?
     # The materializer has its own integrity check and it caught the same
@@ -79,7 +95,8 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     # facts and says which ticket, which field, and what the record actually
     # held -- and it separates the contradictions, which block, from the
     # ambiguities, which are the raw material the hardest tasks are made of.
-    found = check(load_world(world_log))
+    facts = load_world(world_log)
+    found = check(facts)
     print(found.report())
     if not found.ok:
         reasons = []
@@ -100,6 +117,17 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
 
     env = materialize(world_log, SHARED_BUNDLE, seat=None)
     print(f"materialized {env.event_count} events -> {SHARED_BUNDLE}")
+
+    # A tracker somebody typed up partway through, left in the shared drive
+    # the way a real one is. It is a true statement about its own day and a
+    # false one about now, which is the point: reconciling it is one
+    # judgement that moves every row, and that is the only thing measured
+    # so far that moves a frontier model's score at all.
+    tracker = write_tracker(facts, TRACKER_CUTOFF, _as_of(facts, TRACKER_CUTOFF))
+    tracker_path = SHARED_BUNDLE / "workspace" / "admin" / TRACKER_NAME
+    tracker_path.parent.mkdir(parents=True, exist_ok=True)
+    tracker_path.write_text(tracker)
+    print(f"tracker written -> {tracker_path.relative_to(SHARED_BUNDLE)}")
     if env.skipped_renders:
         for skip in env.skipped_renders:
             print(f"  render skipped: {skip}")

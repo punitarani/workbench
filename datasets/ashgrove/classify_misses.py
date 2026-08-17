@@ -51,8 +51,9 @@ def _trials(job: Path) -> list[Path]:
 def _submitted(trial: Path) -> dict | None:
     """What the agent wrote, if the verifier kept it."""
 
-    root = trial / "artifacts" / "logs" / "artifacts"
-    for path in sorted(root.glob("*.json")) if root.is_dir() else ():
+    # Beside the score, written by test.sh as submitted-<name>.json.
+    root = trial / "verifier"
+    for path in sorted(root.glob("submitted-*.json")) if root.is_dir() else ():
         try:
             loaded = json.loads(path.read_text())
         except ValueError:
