@@ -121,6 +121,28 @@ the tools serve. **Verdict M**: the model did not carry the
 attachment-to-recipient join through, and both wrong counts fall out of
 those same three rows.
 
+### tracker-reconciliation, glm-5.2 — 0.832 — all misses M
+
+```
+answer.verdict_counts     0.000   absent 33/understated 85 against 35/83
+answer.hours_understated  0.000   431.20 against 531.37
+answer.effort_figures     0.981   139 rows, 0 missing, 0 invented
+wrong fields: {'actual_hours': 4, 'tracker_hours': 2, 'verdict': 2}
+```
+
+Eight wrong fields across six rows, out of 139. Two checked against the
+record:
+
+* `00002-Fairmount / Sylvia Nakamura` — the agent credits the tracker with
+  0.75 hours for her. **The sheet has nine lines for `tkt-000002` and she
+  is on none of them.** The invented figure then flips the verdict from
+  `absent_from_tracker` to `understated`.
+* `00007-HarborLight / Priscilla Wong` — the agent totals 27.62 hours.
+  Clio holds **34 entries, 45.15 hours**. It under-summed by a third.
+
+Both facts are served, the oracle passes its independent derivation, and
+the instruction decides both cases. **Verdict M.**
+
 ## Retired
 
 **engagement-status-integrity.** Its answer on r12 is empty — nothing moved

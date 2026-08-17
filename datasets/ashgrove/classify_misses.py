@@ -123,8 +123,22 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
 
     oracle_path = TASKS / task / "tests" / "oracle.json"
     oracle = json.loads(oracle_path.read_text())
+    # The list the grader keys on, not merely the first one in the file.
+    # tracker-reconciliation answers with two: ten engagements and a hundred
+    # and thirty-nine effort lines, and taking the first diffed the narrow
+    # half while the wide half was where every miss lived.
+    def _keyed(value) -> bool:
+        return (
+            isinstance(value, list)
+            and value
+            and isinstance(value[0], dict)
+            and bool(key)
+            and all(field in value[0] for field in key)
+        )
+
     rows_field = next(
-        (k for k, v in oracle.items() if isinstance(v, list) and v), None
+        (k for k, v in oracle.items() if _keyed(v)),
+        next((k for k, v in oracle.items() if isinstance(v, list) and v), None),
     )
 
     print(f"=== {job.name}: {len(trials)} trial(s), task {task}\n")
