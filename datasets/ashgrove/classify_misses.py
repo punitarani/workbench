@@ -35,7 +35,7 @@ import argparse
 import json
 import subprocess
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -178,6 +178,9 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
         if rows_field and key:
             _diff_rows(answer.get(rows_field) or [], oracle[rows_field], key)
 
+    if rows_field and key:
+        _stochastic(trials, oracle[rows_field], rows_field, key)
+
     print(
         "\nVerdict is yours. E if the evidence above shows the fact is not "
         "served or the record contradicts itself; T if the oracle failed its "
@@ -185,6 +188,79 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
         "M only when neither of those holds."
     )
     return 0
+
+
+def _stochastic(
+    trials: list[Path], expected: list, rows_field: str, key: tuple[str, ...]
+) -> None:
+    """Do independent trials miss the same rows? Then it is not the model.
+
+    This is the one mechanical test for T that does not go through the
+    rule, and it is the check whose absence cost this project two wrong
+    verdicts in one day. A model reading fifteen hundred message bodies
+    makes *stochastic* errors: two runs of it drop overlapping but
+    different rows. When two runs drop the byte-identical set, they are
+    not both guessing — they are both reading the corpus correctly and
+    disagreeing with the oracle, and the oracle is what they have in
+    common.
+
+    Both defects found today announce themselves here. Thirteen rows on
+    the approval register, twice, identically: the rule admitted
+    `sign-off` and the pattern dropped `sign-offs`. Thirty on the
+    commitment register, twice, identically: the rule said `by the end of
+    the week` and the firm writes `by end of week`. In each case the
+    agreement between trials was visible before any message was read, and
+    in each case it was not looked at.
+    """
+
+    want = {tuple(str(r[k]).strip().casefold() for k in key) for r in expected}
+    per_trial: list[tuple[str, frozenset, frozenset]] = []
+    for trial in trials:
+        answer = _submitted(trial)
+        if answer is None:
+            continue
+        got = set(_rows_of(answer, rows_field, key))
+        per_trial.append(
+            (trial.name, frozenset(want - got), frozenset(got - want))
+        )
+    if len(per_trial) < 2:
+        return
+
+    print("\n--- do the trials fail the same way? (T)")
+    for label, index in (("missing", 1), ("invented", 2)):
+        groups: dict[frozenset, list[str]] = defaultdict(list)
+        for row in per_trial:
+            if row[index]:
+                groups[row[index]].append(row[0])
+        for rows, names in sorted(groups.items(), key=lambda kv: -len(kv[1])):
+            if len(names) < 2:
+                continue
+            print(
+                f"    !! {len(names)} independent trials {label} the SAME "
+                f"{len(rows)} row(s), byte for byte."
+            )
+            print(
+                "       Genuine model error is stochastic. Identical failures "
+                "are the oracle's, until something that does not share the "
+                "solver's rule says otherwise."
+            )
+            for row in sorted(rows)[:6]:
+                print(f"       {row}")
+            if len(rows) > 6:
+                print(f"       ... and {len(rows) - 6} more")
+        if not any(len(names) >= 2 for names in groups.values()):
+            print(f"    {label}: no two trials agree — consistent with M.")
+
+
+def _rows_of(answer: dict, rows_field: str, key: tuple[str, ...]) -> list[tuple]:
+    rows = answer.get(rows_field)
+    if not isinstance(rows, list):
+        return []
+    return [
+        tuple(str(r.get(k)).strip().casefold() for k in key)
+        for r in rows
+        if isinstance(r, dict)
+    ]
 
 
 def main(argv: list[str] | None = None) -> int:
