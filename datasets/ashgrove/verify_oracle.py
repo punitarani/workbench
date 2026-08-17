@@ -1050,7 +1050,6 @@ CHECKS = {
     "engagement-time-allocation": check_time_allocation,
     "work-product-review": check_work_product_review,
     "client-responsiveness-sla": check_client_responsiveness,
-    "engagement-status-integrity": check_status_integrity,
 }
 
 
