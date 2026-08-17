@@ -188,6 +188,47 @@ What is left, in order of how much is known about each:
    per row, so one missed join costs a field across many rows rather than
    one row entirely.
 
+### The leading candidate: the firm's own workbooks
+
+Independent errors average out — that is why volume never worked. What has
+never been tried here is a **correlated** one: a single decision that moves
+every row at once.
+
+The workspace already holds real multi-sheet spreadsheets nobody has graded
+against, and they assert things the tool surfaces also assert:
+
+| workbook | sheets | the assertion |
+|---|---|---|
+| `2026 Peer Review Readiness.xlsx` | Engagement Status, Peer Review Readiness, Open Items | each engagement's status |
+| `Engagement_Scheduling_Tie-Out.xlsx` | Calendar, Staffing_Load, Key_Dates_2026 | who is staffed where, and when |
+| `access-review-fy2025-audits.xlsx` | AccessReview | each person's role on an engagement |
+
+Comparing the first against clio, all twelve rows differ — and *that number
+is the task*:
+
+```
+tkt-000001  sheet='In progress'   clio='In-progress'      formatting only
+tkt-000002  sheet='In progress'   clio='Waiting-client'   a real divergence
+tkt-000003  sheet='In progress'   clio='Review'           a real divergence
+tkt-000006  sheet='Complete'      clio='Closed'           a synonym
+```
+
+An agent that does not work out the vocabulary mapping reports twelve
+divergences and is completely wrong; one that maps too freely reports none
+and is equally wrong. One decision, every row. That is the shape volume
+could never produce.
+
+It is also honest work. The workbook is a snapshot somebody prepared while
+the system kept moving, and "the tracker is stale, here is where" is what a
+practice administrator is actually for. The engagement is named `tkt-000001`
+in the sheet and `00001-FairmountCommunityFoundation` in clio, so the
+vocabularies have to be bridged — derivable from the shared number, and
+therefore fair.
+
+**The instruction must state the status vocabulary and the precedence rule.**
+Without that this is a contradiction with no stated rule, which this file
+classifies as an environment defect rather than a task.
+
 ## The one measurement that matters so far
 
 `commitment-register`, mail only, 189 rows, Opus 5, one trial:
