@@ -8,33 +8,34 @@ writing.
 These promises are not in a field anywhere. Nobody logs them. They exist
 only inside the text of messages — *"I'll have that to you by Thursday"*,
 *"we'll send the package by the end of next week"*, *"the schedule is
-yours EOD"* — and the only way to build the register is to read the mail.
+yours EOD"* — and the only way to build the register is to read the
+traffic. Both kinds of it: the firm makes as many promises to itself in
+chat as it makes to its clients by mail.
 
-The firm's systems are available through tools: **gmail**, **clio**,
-**slack**, **imanage**, and **calendar**.
+The firm's systems are available through tools: **gmail**, **slack**,
+**clio**, **imanage**, and **calendar**.
 
 ## What to produce
 
 One file in your workspace: **`commitments.json`**, with exactly these
 fields:
 
-- `messages_read` — how many mail messages you examined in total.
+- `messages_read` — how many messages you examined in total, mail and chat
+  together.
 - `commitments_total` — how many rows are in `commitments`.
 - `messages_with_commitment` — how many distinct messages carry at least
   one.
 - `busiest_due_date` — the date the most commitments fall due, as
   `YYYY-MM-DD`. Break a tie by taking the earlier date.
-- `top_counterparty` — the counterparty named on the most rows. Break a
-  tie alphabetically, earlier first.
-- `commitments` — one entry per commitment, sorted by `message_id` then
+- `top_made_to` — the value appearing on the most rows in `made_to`. Break
+  a tie alphabetically, earlier first.
+- `commitments` — one entry per commitment, sorted by `ref` then
   `due_date`, each with:
-  - `message_id` — the message the promise was made in
+  - `ref` — how the message's own system names it (see below)
   - `due_date` — the date promised, resolved to `YYYY-MM-DD`
-  - `author` — the full name of whoever sent that message
-  - `sent_date` — the date the message was sent, `YYYY-MM-DD`
-  - `counterparty` — the outside organisation on the message, by its
-    name as clio records it, or `(none)` if everyone on it works at
-    Ashgrove Reid
+  - `author` — the full name of whoever wrote the message
+  - `sent_date` — the date it was written, `YYYY-MM-DD`
+  - `made_to` — who the promise was made to (see below)
 
 ## What counts as a commitment
 
@@ -63,23 +64,39 @@ Tuesday` does: the next Tuesday strictly after the sent date. The firm's
 people do not use the word consistently and the register does not try to
 read their minds.
 
-## Naming the counterparty
+## Naming a message
 
-A message's counterparty is the outside organisation of anyone on it —
-sender, `to`, or `cc` — who does not work at Ashgrove Reid. Give its name
-as clio records it, not as its mail domain: match by stripping every
-character that is not a letter or a digit from the organisation's name,
-lowercasing it, and comparing that to the first label of the address's
-domain. `shawassociates.example` is therefore **Shaw & Associates**.
+Give each message the name **its own system uses**, exactly as that system
+hands it to you:
 
-If more than one outside organisation appears, take the alphabetically
-earliest name. If everyone on the message works at Ashgrove Reid, the
-counterparty is exactly `(none)`.
+- **Mail** identifies a message by an id like `msg-000104`. Use it.
+- **Chat** has no such id on the wire. Slack addresses a message by its
+  timestamp, a string like `1767661500.000003`. Use that, unchanged —
+  every digit, including the trailing zeros.
+
+## Naming who it was made to
+
+- A **mail** message with anyone from outside Ashgrove Reid on it — sender,
+  `to`, or `cc` — was made to that outside organisation. Give its name as
+  clio records it, not as its mail domain: match by stripping every
+  character that is not a letter or a digit from the organisation's name,
+  lowercasing it, and comparing that to the first label of the address's
+  domain. `shawassociates.example` is therefore **Shaw & Associates**. If
+  more than one outside organisation appears, take the alphabetically
+  earliest name.
+- A **mail** message where everyone works at Ashgrove Reid was made to
+  exactly `the firm`.
+- A **chat** message was made to the channel it was posted in, by that
+  channel's name.
+
+Chat identifies its authors by Slack user id rather than by name. Resolve
+each one through the directory — `author` is the person's full name, never
+the id.
 
 ## A warning about completeness
 
 There is no shortcut. Every figure here depends on having read the body of
 every message in the record — not its subject, not its snippet, the body —
-and the promises are scattered through roughly half of them. A message
-skipped is a row missing, and a row missing costs twice: once in the
-register and once in every total computed from it.
+across both systems, and the promises are scattered through hundreds of
+them. A message skipped is a row missing, and a row missing costs twice:
+once in the register and once in every total computed from it.

@@ -134,6 +134,9 @@ class WorldFacts:
     documents: dict[str, Document] = field(default_factory=dict)
     emails: dict[str, Email] = field(default_factory=dict)
     chats: list[Chat] = field(default_factory=list)
+    # conversation_id -> the channel's name, which is what Slack serves and
+    # what a task may therefore ask an answer to be spelled in.
+    channels: dict[str, str] = field(default_factory=dict)
 
     # --- derived views, each restating a rule the tools also implement ---
 
@@ -291,6 +294,10 @@ def load_world(path: Path) -> WorldFacts:
                             for a in payload.get("attachments", ())
                             if a.get("document_id")
                         ),
+                    )
+                case "chat.conversation.created":
+                    facts.channels[payload["conversation_id"]] = (
+                        payload.get("name") or payload["conversation_id"]
                     )
                 case "chat.message":
                     facts.chats.append(

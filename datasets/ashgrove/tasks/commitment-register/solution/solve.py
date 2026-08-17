@@ -2,19 +2,27 @@
 
 The point of this task is that there is nothing to query. A commitment is
 not a column, a flag, or a field anybody fills in — it is a sentence, and
-the only way to the register is to read all of the mail and resolve what
-each sentence meant on the day it was written.
+the only way to the register is to read all of the traffic and resolve
+what each sentence meant on the day it was written. Mail and chat both:
+the firm makes as many promises to itself as to its clients.
 
 Every rule is stated verbatim in the instruction, so the task measures
-whether an agent can apply seven fixed patterns to three hundred bodies
+whether an agent can apply seven fixed patterns to fifteen hundred bodies
 without missing any, not whether it can guess a grader's taste. The
 resolution is deliberately mechanical: `by Friday` is the next Friday
-strictly after the sent date whether or not the writer said "next", because
-the firm's people do not use that word consistently and a rule that tried
-to read their intent could not be graded.
+strictly after the sent date whether or not the writer said "next",
+because the firm's people do not use that word consistently and a rule
+that tried to read their intent could not be graded.
 
 One row per message and due date. A message that says `by Friday` twice
 promised one thing; a message that says `by Friday` and `EOD` promised two.
+
+A message is named the way its own system names it. Mail has
+``msg-000001``. Slack has no such id on the wire — it addresses a message
+by its timestamp — so a chat row is named by that timestamp, and the
+author has to be resolved from a Slack user id through the directory.
+Asking for the world's internal ``chm-`` id instead would be asking the
+agent to guess a vocabulary no tool ever emits.
 """
 
 import datetime
@@ -44,7 +52,7 @@ PATTERNS = (
     ("within", r"\bwithin (\d+|a|two|three|five|ten) (?:business )?days?\b"),
     ("tomorrow", r"\bby tomorrow\b"),
 )
-NONE = "(none)"
+FIRM = "the firm"
 
 
 def _due(kind: str, match: re.Match, sent: datetime.date) -> datetime.date:
@@ -72,10 +80,11 @@ def _due(kind: str, match: re.Match, sent: datetime.date) -> datetime.date:
 
 def main() -> None:
     gmail = sqlite3.connect(f"file:{STATE / 'gmail.db'}?mode=ro", uri=True)
+    slack = sqlite3.connect(f"file:{STATE / 'slack.db'}?mode=ro", uri=True)
     clio = sqlite3.connect(f"file:{STATE / 'clio.db'}?mode=ro", uri=True)
 
-    # The database dates a message in seconds from the world's epoch, which
-    # it carries; the tools serve the same instant as an ISO timestamp.
+    # The databases date a message in seconds from the world's epoch, which
+    # they carry; the tools serve the same instant as a timestamp.
     epoch = datetime.datetime.fromisoformat(
         dict(gmail.execute("SELECT key, value FROM meta"))["epoch"]
     )
@@ -92,6 +101,9 @@ def main() -> None:
         "".join(c for c in name.lower() if c.isalnum()): name
         for (name,) in clio.execute("SELECT name FROM organizations")
     }
+    channels = dict(
+        slack.execute("SELECT conversation_id, name FROM conversations")
+    )
 
     parties: dict[str, set[str]] = defaultdict(set)
     for message_id, person in gmail.execute(
@@ -100,11 +112,27 @@ def main() -> None:
         parties[message_id].add(person)
 
     rows: dict[tuple[str, str], dict] = {}
-    messages = list(
-        gmail.execute("SELECT message_id, sender, time, body FROM messages")
-    )
-    for message_id, sender, when, body in messages:
+    read = 0
+
+    def collect(ref: str, sender: str, when: int, body: str, made_to: str) -> None:
         sent = (epoch + datetime.timedelta(seconds=when)).date()
+        for kind, pattern in PATTERNS:
+            for match in re.finditer(pattern, body, re.IGNORECASE):
+                due = _due(kind, match, sent)
+                # Keyed on the pair, so a body that promises the same date
+                # twice contributes one row and not two.
+                rows[(ref, due.isoformat())] = {
+                    "ref": ref,
+                    "due_date": due.isoformat(),
+                    "author": people[sender]["name"],
+                    "sent_date": sent.isoformat(),
+                    "made_to": made_to,
+                }
+
+    for message_id, sender, when, body in gmail.execute(
+        "SELECT message_id, sender, time, body FROM messages"
+    ):
+        read += 1
         outside = sorted(
             {
                 organisations.get(
@@ -115,39 +143,36 @@ def main() -> None:
                 if people.get(person, {}).get("affiliation") == "external"
             }
         )
-        for kind, pattern in PATTERNS:
-            for match in re.finditer(pattern, body, re.IGNORECASE):
-                due = _due(kind, match, sent)
-                # Keyed on the pair, so a body that promises the same date
-                # twice contributes one row and not two.
-                rows[(message_id, due.isoformat())] = {
-                    "message_id": message_id,
-                    "due_date": due.isoformat(),
-                    "author": people[sender]["name"],
-                    "sent_date": sent.isoformat(),
-                    "counterparty": outside[0] if outside else NONE,
-                }
+        collect(message_id, sender, when, body, outside[0] if outside else FIRM)
+
+    for conversation, sender, when, ts, body in slack.execute(
+        "SELECT conversation_id, sender, time, ts, body FROM messages"
+    ):
+        read += 1
+        # Slack names a message by its timestamp, which is what the surface
+        # serves and therefore what the register must carry.
+        collect(ts, sender, when, body, channels.get(conversation, conversation))
 
     register = [rows[key] for key in sorted(rows)]
     by_due: dict[str, int] = defaultdict(int)
     by_party: dict[str, int] = defaultdict(int)
     for row in register:
         by_due[row["due_date"]] += 1
-        by_party[row["counterparty"]] += 1
+        by_party[row["made_to"]] += 1
 
     OUT.write_text(
         json.dumps(
             {
-                "messages_read": len(messages),
+                "messages_read": read,
                 "commitments_total": len(register),
-                "messages_with_commitment": len({r["message_id"] for r in register}),
+                "messages_with_commitment": len({r["ref"] for r in register}),
                 # Most, then the earlier date / earlier name -- `min` on a
                 # negated count, because `max` breaks a tie the other way and
                 # the instruction says earlier.
                 "busiest_due_date": min(
                     by_due, key=lambda date: (-by_due[date], date)
                 ),
-                "top_counterparty": min(
+                "top_made_to": min(
                     by_party, key=lambda name: (-by_party[name], name)
                 ),
                 "commitments": register,

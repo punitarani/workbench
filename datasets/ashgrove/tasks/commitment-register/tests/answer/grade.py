@@ -45,9 +45,7 @@ rk.scalar(
 rk.scalar(
     D, "busiest_due_date", T["busiest_due_date"], name="busiest_due_date", weight=1.0
 )
-rk.scalar(
-    D, "top_counterparty", T["top_counterparty"], name="top_counterparty", weight=1.0
-)
+rk.scalar(D, "top_made_to", T["top_made_to"], name="top_made_to", weight=1.0)
 # The register itself: did the agent find the promises. Keyed on message
 # and due date together, because one message can promise two dates and a
 # key on either alone would score half the work as all of it.
@@ -55,7 +53,7 @@ rk.flagged_f1(D, T["commitments"], name="commitments.f1", weight=5.0)
 rk.row_fields(
     D,
     T["commitments"],
-    {"author": 0, "sent_date": 0, "counterparty": 0},
+    {"author": 0, "sent_date": 0, "made_to": 0},
     name="row_facts",
     weight=6.0,
 )

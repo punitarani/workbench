@@ -17,7 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from workbench.analysis.coherence import check
+from workbench.analysis.coherence import MISBOOKED_LIMIT, check
 from workbench.analysis.reachability import unreachable
 from workbench.analysis.world_facts import load_world
 from workbench.environment.materialize import materialize
@@ -82,11 +82,20 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     found = check(load_world(world_log))
     print(found.report())
     if not found.ok:
+        reasons = []
+        if found.contradictions:
+            reasons.append(f"{len(found.contradictions)} contradiction(s)")
+        if found.dangling:
+            reasons.append(f"{len(found.dangling)} dangling reference(s)")
+        if found.misbooked_share > MISBOOKED_LIMIT:
+            reasons.append(
+                f"{found.misbooked_share:.1%} of client time booked against an "
+                "engagement its own note contradicts"
+            )
         raise SystemExit(
-            f"{len(found.contradictions)} contradiction(s) and "
-            f"{len(found.dangling)} dangling reference(s): this world cannot "
-            "be graded, because the answer depends on which of two "
-            "irreconcilable statements the agent happened to read."
+            f"{'; '.join(reasons)}. This world cannot be graded: the answer "
+            "would depend on which of two irreconcilable statements the agent "
+            "happened to read."
         )
 
     env = materialize(world_log, SHARED_BUNDLE, seat=None)

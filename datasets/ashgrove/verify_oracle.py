@@ -463,8 +463,21 @@ def check_commitment_register(facts: WorldFacts, oracle: dict) -> list[str]:
     }
 
     rows: dict[tuple[str, str], dict] = {}
+
+    def collect(ref: str, sender: str, when: int, body: str, made_to: str) -> None:
+        sent = (epoch + datetime.timedelta(seconds=when)).date()
+        for kind, pattern in COMMITMENT_PATTERNS:
+            for match in re.finditer(pattern, body, re.IGNORECASE):
+                due = _commitment_due(kind, match, sent)
+                rows[(ref, due.isoformat())] = {
+                    "ref": ref,
+                    "due_date": due.isoformat(),
+                    "author": facts.name(sender),
+                    "sent_date": sent.isoformat(),
+                    "made_to": made_to,
+                }
+
     for email in facts.emails.values():
-        sent = (epoch + datetime.timedelta(seconds=email.time)).date()
         outside = sorted(
             {
                 organisations.get(domain.split(".")[0], domain)
@@ -476,38 +489,86 @@ def check_commitment_register(facts: WorldFacts, oracle: dict) -> list[str]:
                 )
             }
         )
+        collect(
+            email.message_id,
+            email.sender,
+            email.time,
+            email.body,
+            outside[0] if outside else "the firm",
+        )
+    # Chat is checked on its facts rather than on its key, deliberately.
+    #
+    # Slack names a message by a timestamp whose fractional part is a
+    # within-second counter the projection mints (`1767661500.000003`).
+    # Restating that here would copy the projection's algorithm, which is
+    # the one thing this file exists not to do -- and it would buy nothing,
+    # because the timestamp is served verbatim and the agent copies it. A
+    # `ts` cannot be a *wrong answer*; only the facts attached to it can.
+    # So: the mail rows are matched row by row on their stable ids, and the
+    # chat rows are compared as a multiset of what they claim.
+    chat_rows: dict[tuple[str, str, str, str], int] = defaultdict(int)
+    chat_messages = 0
+    for chat in facts.chats:
+        sent = (epoch + datetime.timedelta(seconds=chat.time)).date()
+        made_to = facts.channels.get(chat.conversation_id, chat.conversation_id)
+        due_dates = set()
         for kind, pattern in COMMITMENT_PATTERNS:
-            for match in re.finditer(pattern, email.body, re.IGNORECASE):
-                due = _commitment_due(kind, match, sent)
-                rows[(email.message_id, due.isoformat())] = {
-                    "message_id": email.message_id,
-                    "due_date": due.isoformat(),
-                    "author": facts.name(email.sender),
-                    "sent_date": sent.isoformat(),
-                    "counterparty": outside[0] if outside else "(none)",
-                }
+            for match in re.finditer(pattern, chat.body, re.IGNORECASE):
+                due_dates.add(_commitment_due(kind, match, sent).isoformat())
+        chat_messages += bool(due_dates)
+        for due in due_dates:
+            key = (facts.name(chat.sender), sent.isoformat(), due, made_to)
+            chat_rows[key] += 1
 
-    register = [rows[key] for key in sorted(rows)]
-    _cmp("messages_read", len(facts.emails), oracle["messages_read"], out)
+    mail_only = [rows[key] for key in sorted(rows)]
+    theirs_chat: dict[tuple[str, str, str, str], int] = defaultdict(int)
+    theirs_mail = []
+    for row in oracle["commitments"]:
+        if row["ref"].startswith("msg-"):
+            theirs_mail.append(row)
+        else:
+            theirs_chat[
+                (row["author"], row["sent_date"], row["due_date"], row["made_to"])
+            ] += 1
+    for key in sorted(set(chat_rows) | set(theirs_chat)):
+        if chat_rows[key] != theirs_chat[key]:
+            out.append(
+                f"chat{list(key)}: log counts {chat_rows[key]}, "
+                f"oracle counts {theirs_chat[key]}"
+            )
+
+    register = mail_only + [
+        {"ref": "chat"} for _ in range(sum(chat_rows.values()))
+    ]
+    _cmp(
+        "messages_read",
+        len(facts.emails) + len(facts.chats),
+        oracle["messages_read"],
+        out,
+    )
     _cmp("commitments_total", len(register), oracle["commitments_total"], out)
     _cmp(
         "messages_with_commitment",
-        len({r["message_id"] for r in register}),
+        len({r["ref"] for r in mail_only}) + chat_messages,
         oracle["messages_with_commitment"],
         out,
     )
-    for field, name in (("due_date", "busiest_due_date"),
-                        ("counterparty", "top_counterparty")):
+    for field, index, name in (
+        ("due_date", 2, "busiest_due_date"),
+        ("made_to", 3, "top_made_to"),
+    ):
         counts: dict[str, int] = defaultdict(int)
-        for row in register:
+        for row in mail_only:
             counts[row[field]] += 1
+        for key, many in chat_rows.items():
+            counts[key[index]] += many
         # Most, then earliest -- `max` would break the tie the other way.
         _cmp(name, min(counts, key=lambda k: (-counts[k], k)), oracle[name], out)
     _rows(
         "commitments",
-        register,
-        oracle["commitments"],
-        lambda r: (r["message_id"], r["due_date"]),
+        mail_only,
+        theirs_mail,
+        lambda r: (r["ref"], r["due_date"]),
         out,
     )
     return out

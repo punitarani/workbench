@@ -17,7 +17,7 @@ ROWS = "commitments"
 # A row is a person *and* an engagement. Keyed on either alone, a
 # hundred and ninety-seven rows collapse to seventeen or to thirteen,
 # and the grader silently marks a fraction of the work as all of it.
-KEY = ("message_id", "due_date")
+KEY = ("ref", "due_date")
 
 
 def _submitted(workspace: Path, path: str) -> dict | None:
