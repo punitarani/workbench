@@ -246,6 +246,24 @@ The tell in all three is the same and worth stating as a rule: **a model
 that scores 0.000 on a task another model scores 1.000 on has usually not
 been measured at all.** Read the trial log before the number.
 
+## Two false signals from my own tooling
+
+Both cost real time and both looked exactly like findings:
+
+* **Rate-limited zeros.** I launched a third-tier sweep beside the glm
+  sweep against one OpenRouter account, got three 0.000 scores, and the
+  available reading was "the weaker model cannot do this". The log said
+  `clio.who_am_i` returned and then `RateLimitError`.
+* **A four-hour deadlock.** Sweeps were chained with
+  `pgrep -f "<name>.sh"` waits. My *monitoring command's own argv*
+  contained that string, so the wait matched the grep loop watching it and
+  a queued sweep waited on its own observer. Replaced with one sequential
+  driver: the ordering is the file, and no script waits on another.
+
+The pattern under both: **the measurement apparatus is part of the
+system being measured.** A watcher that greps for a process name is a
+process with that name in its command line.
+
 ## What ships
 
 - 14 tasks, 14 independent derivations, all agreeing.
