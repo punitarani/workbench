@@ -65,3 +65,10 @@ A thread with no answered client message has `first_reply_hours` and
 
 Threads with no client mail at all — the firm talking to itself — are
 counted in `threads_reviewed` and appear nowhere else.
+
+## How to round
+
+**Round once, at the end.** Each waiting time is the raw interval between
+two messages, rounded only as you write it. Where a median is asked for,
+take it over the unrounded intervals and round the median itself — not the
+other way round.

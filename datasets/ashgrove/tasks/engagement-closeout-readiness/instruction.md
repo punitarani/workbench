@@ -63,3 +63,15 @@ still-unanswered last message to the latest message anywhere in the
 record. A client waiting on one thread makes **every** engagement they
 opened `awaiting_firm_reply`, however much work it has had.
 
+## How to round
+
+**Every figure in hours or dollars is rounded once, at the end.** Add the
+entries' own durations — the raw seconds clio holds — and round the total
+only as you write it. Never add up figures that have already been cut to
+two decimals.
+
+The two orders do not agree here, and not rarely: on this record they give
+different answers for **34% of person-and-engagement pairs, 79% of
+engagements, 88% of people, and every firm-wide total**. `10.78` and
+`10.79` are the same work counted two ways, and only the first is the
+answer.

@@ -53,3 +53,16 @@ An engagement is client work when it has a client. The firm's own
 engagements — peer review, methodology, internal administration — carry
 no client and are excluded entirely. All hours count here, billable or
 not.
+
+## How to round
+
+**Every figure in hours or dollars is rounded once, at the end.** Add the
+entries' own durations — the raw seconds clio holds — and round the total
+only as you write it. Never add up figures that have already been cut to
+two decimals.
+
+The two orders do not agree here, and not rarely: on this record they give
+different answers for **34% of person-and-engagement pairs, 79% of
+engagements, 88% of people, and every firm-wide total**. `10.78` and
+`10.79` are the same work counted two ways, and only the first is the
+answer.

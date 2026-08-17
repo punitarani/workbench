@@ -47,10 +47,14 @@ This is true even for the occasional billable entry with no rate on it.
 **Non-billable time still counts as time.** It belongs in `hours` and in
 `entries`, and stays out of `billable_hours` and `fees_dollars`.
 
-**Round once, at the end.** The four firm totals — `total_hours`,
-`total_billable_hours`, `total_fees_dollars` — are computed from the time
-entries themselves and rounded when they are written, **not** by adding up
-the rounded figures in `allocations`. Adding two hundred numbers that have
+**Round once, at the end — every figure, not only the totals.** Each
+row's `hours`, `billable_hours` and `fees_dollars`, and the firm totals
+`total_hours`, `total_billable_hours` and `total_fees_dollars`, are all
+computed from the time entries themselves and rounded when they are
+written, **not** by adding up figures already cut to two decimals. A row
+is a sum over as many as thirty-four entries, so this decides row figures
+just as it decides totals: the two orders disagree on 34% of the pairs
+here. Adding two hundred numbers that have
 each been cut to two decimals drifts away from the real total: the firm's
 hours come to `817.23` from the entries and `817.27` from the rounded
 rows, and only the first is the answer.

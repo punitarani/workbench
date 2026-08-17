@@ -79,3 +79,16 @@ in `effort` — the ones the sheet lists, and the ones that started work only
 after it was written and appear nowhere on it. Finding that second group
 means working from clio's side rather than the sheet's; there is no line to
 read for a row that was never typed.
+
+## How to round
+
+**Every figure in hours or dollars is rounded once, at the end.** Add the
+entries' own durations — the raw seconds clio holds — and round the total
+only as you write it. Never add up figures that have already been cut to
+two decimals.
+
+The two orders do not agree here, and not rarely: on this record they give
+different answers for **34% of person-and-engagement pairs, 79% of
+engagements, 88% of people, and every firm-wide total**. `10.78` and
+`10.79` are the same work counted two ways, and only the first is the
+answer.
