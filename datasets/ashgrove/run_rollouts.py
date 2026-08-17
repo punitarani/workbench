@@ -32,6 +32,7 @@ from pathlib import Path
 from pydantic import SecretStr
 
 from workbench.adapters.harbor_matrix.gateway import (
+    DIAGNOSTIC_ALIASES,
     MODEL_ALIASES,
     GatewayConfig,
     ProviderGateway,
@@ -258,11 +259,9 @@ async def _main(args: argparse.Namespace) -> int:
     # provider pins needs no entry in the alias table -- which matters,
     # because that table is Hartwell's *frozen* sign-off set and its length
     # sets that suite's batch economics.
-    if args.model not in MODEL_ALIASES and args.model not in MODEL_PROVIDERS:
-        raise SystemExit(
-            f"no provider pins for {args.model!r}; known: "
-            f"{sorted(set(MODEL_ALIASES) | set(MODEL_PROVIDERS))}"
-        )
+    known = set(MODEL_ALIASES) | set(DIAGNOSTIC_ALIASES) | set(MODEL_PROVIDERS)
+    if args.model not in known:
+        raise SystemExit(f"no provider pins for {args.model!r}; known: {sorted(known)}")
     worst = 0
     for task in args.tasks:
         if not (TASKS / task).is_dir():

@@ -17,7 +17,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+from workbench.analysis.coherence import check
 from workbench.analysis.reachability import unreachable
+from workbench.analysis.world_facts import load_world
 from workbench.environment.materialize import materialize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hartwell"))
@@ -71,6 +73,22 @@ def degenerate(answer: dict) -> list[str]:
 
 
 def build(world_log: Path, names: list[str], refresh: bool) -> int:
+    # Before anything is materialized: does the record contradict itself?
+    # The materializer has its own integrity check and it caught the same
+    # class once, but it speaks in sequence numbers. This reads the world as
+    # facts and says which ticket, which field, and what the record actually
+    # held -- and it separates the contradictions, which block, from the
+    # ambiguities, which are the raw material the hardest tasks are made of.
+    found = check(load_world(world_log))
+    print(found.report())
+    if not found.ok:
+        raise SystemExit(
+            f"{len(found.contradictions)} contradiction(s) and "
+            f"{len(found.dangling)} dangling reference(s): this world cannot "
+            "be graded, because the answer depends on which of two "
+            "irreconcilable statements the agent happened to read."
+        )
+
     env = materialize(world_log, SHARED_BUNDLE, seat=None)
     print(f"materialized {env.event_count} events -> {SHARED_BUNDLE}")
     if env.skipped_renders:

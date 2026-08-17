@@ -32,6 +32,18 @@ MODEL_ALIASES: dict[str, str] = {
     "opus-5": "anthropic/claude-opus-5",
     "gpt-5.6-sol": "openai/gpt-5.6-sol",
 }
+# Routable, but not part of the sign-off set, and kept in a separate dict
+# because ``len(MODEL_ALIASES)`` is what sizes a Hartwell matrix batch --
+# adding a diagnostic model there would silently change that suite's cost.
+#
+# Codex normalises a slashed model id to its last segment before the request
+# reaches this gateway, so ``z-ai/glm-5.2`` arrives as ``glm-5.2`` and
+# resolves to "unsupported model" with no pins. These entries put the family
+# back on.
+DIAGNOSTIC_ALIASES: dict[str, str] = {
+    "glm-5.2": "z-ai/glm-5.2",
+    "deepseek-v4-flash-0731": "deepseek/deepseek-v4-flash-0731",
+}
 
 
 # Codex speaks the Responses API; opencode's openai provider speaks Chat
@@ -233,7 +245,9 @@ class ProviderGateway:
             raise GatewayProtocolError(400, "invalid Responses request") from error
         if not isinstance(raw_payload, dict):
             raise GatewayProtocolError(400, "invalid Responses request")
-        full_model = MODEL_ALIASES.get(request.model, request.model)
+        full_model = MODEL_ALIASES.get(
+            request.model, DIAGNOSTIC_ALIASES.get(request.model, request.model)
+        )
         providers = MODEL_PROVIDERS.get(full_model)
         if providers is None:
             raise GatewayProtocolError(400, "unsupported model")
