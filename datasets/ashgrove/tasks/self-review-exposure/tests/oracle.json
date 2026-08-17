@@ -1,0 +1,541 @@
+{
+ "documents_total": 52,
+ "review_claimed_count": 25,
+ "independently_reviewed_count": 15,
+ "self_review_risk_count": 10,
+ "unreviewed_and_unclaimed_count": 27,
+ "at_risk": [
+  14,
+  16,
+  23,
+  26,
+  33,
+  34,
+  36,
+  37,
+  39,
+  40
+ ],
+ "documents": [
+  {
+   "document_number": 1,
+   "document": "Audit Engagement Letter Template",
+   "preparer": "Rosalind Calder",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 2,
+   "document": "Independence & Quality Management Policy",
+   "preparer": "Imogen Carraway",
+   "versions": 2,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 3,
+   "document": "Single Audit Playbook",
+   "preparer": "Imogen Carraway",
+   "versions": 5,
+   "distinct_authors": 3,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 4,
+   "document": "PBC Request Template \u2014 Assurance",
+   "preparer": "Hana Sato",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 5,
+   "document": "Standard Rate Sheet 2026",
+   "preparer": "Theo Brandt",
+   "versions": 5,
+   "distinct_authors": 3,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 6,
+   "document": "Tax Desk Huddle \u2013 Daily Triage",
+   "preparer": "Rosalind Calder",
+   "versions": 2,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 7,
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Audit Preparation Checklist",
+   "preparer": "Nadia Osman",
+   "versions": 7,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 8,
+   "document": "Harbor Light Distribution \u2014 Cash and Accounts Receivable Tie-Out Testing",
+   "preparer": "Priscilla Wong",
+   "versions": 4,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 9,
+   "document": "Kestrel Manufacturing 401(k) \u2014 Plan Year 2025 Audit Tie-Out",
+   "preparer": "Maya Lindqvist",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 10,
+   "document": "Client Accounting Close Check-In Preparation",
+   "preparer": "Gabriel Fontes",
+   "versions": 4,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 11,
+   "document": "Engagement Status & Calendar Coordination \u2013 Week of Current Date",
+   "preparer": "Freya Holt",
+   "versions": 2,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 12,
+   "document": "IT Help Queue Triage \u2014 Daily Ticket Summary",
+   "preparer": "Raj Malhotra",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 13,
+   "document": "Harbor Light Distribution \u2014 FY2025 Audit PBC Tracker",
+   "preparer": "Theo Brandt",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 14,
+   "document": "Fairmount Community Foundation \u2014 FY2025 Accounts Receivable Tie-Out and Aging Schedule",
+   "preparer": "Colin Mackey",
+   "versions": 3,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 15,
+   "document": "Accounts Receivable Tie-Out and Aging Analysis \u2014 Kestrel Manufacturing 401(k) Plan Year 2025",
+   "preparer": "Maya Lindqvist",
+   "versions": 3,
+   "distinct_authors": 3,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 16,
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 Payroll Data Reconciliation",
+   "preparer": "Sylvia Nakamura",
+   "versions": 2,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 17,
+   "document": "Engagement Status & Billing Summary \u2014 Week of January 20, 2025",
+   "preparer": "Owen Castile",
+   "versions": 3,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 18,
+   "document": "Engagement Status & Next Week Priorities",
+   "preparer": "Freya Holt",
+   "versions": 8,
+   "distinct_authors": 3,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 19,
+   "document": "FY2025 Audit Calendar & Resource Plan",
+   "preparer": "Imogen Carraway",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 20,
+   "document": "K-1 Partnership Returns \u2014 FY2025 Preparation Checklist",
+   "preparer": "Lucia Mendes",
+   "versions": 2,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 21,
+   "document": "Kestrel Manufacturing 401(k) \u2014 Plan Year 2025 Audit Tie-Out",
+   "preparer": "Maya Lindqvist",
+   "versions": 4,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 22,
+   "document": "Engagement Status Dashboard \u2014 Week of 14 January 2025",
+   "preparer": "Freya Holt",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 23,
+   "document": "IT Systems Status & Portal Access Audit",
+   "preparer": "Raj Malhotra",
+   "versions": 2,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 24,
+   "document": "Audit Engagement Status Summary \u2013 Week of January 13, 2025",
+   "preparer": "Hana Sato",
+   "versions": 3,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 25,
+   "document": "Tax Engagement Status & Priority Queue \u2013 Week of January 13",
+   "preparer": "Victor Alade",
+   "versions": 2,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 26,
+   "document": "Harbor Light Distribution \u2014 PBC Tracker & Testing Status",
+   "preparer": "Theo Brandt",
+   "versions": 2,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 27,
+   "document": "Kestrel Manufacturing 401(k) \u2014 Plan Year 2025 Audit Tie-Out",
+   "preparer": "Maya Lindqvist",
+   "versions": 3,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 28,
+   "document": "Engagement Status & Next Steps \u2014 Week of 12/16",
+   "preparer": "Freya Holt",
+   "versions": 4,
+   "distinct_authors": 2,
+   "review_claimed": true,
+   "independently_reviewed": true,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 29,
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Audit Tie-Out Schedule",
+   "preparer": "Elias Finch",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 30,
+   "document": "K-1 Partnership Returns \u2014 FY2025 Preparation Checklist",
+   "preparer": "Lucia Mendes",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 31,
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Tie-Out Schedule",
+   "preparer": "Colin Mackey",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 32,
+   "document": "Harbor Light Distribution \u2014 October 2025 Accounts Receivable Detail Testing",
+   "preparer": "Priscilla Wong",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 33,
+   "document": "Cardinal Ridge Builders \u2014 POC Testing Workpaper",
+   "preparer": "Desmond Ortiz",
+   "versions": 4,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 34,
+   "document": "Stonebridge Property Group \u2014 FY2025 Audit: K-1 Partnership Returns Preparation",
+   "preparer": "Lucia Mendes",
+   "versions": 2,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 35,
+   "document": "Riverbend Cleanup \u2014 POC Reconciliation and Testing Workpaper",
+   "preparer": "Colin Mackey",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 36,
+   "document": "Harbor Light Distribution \u2014 FY2025 Audit \u2014 Accounts Receivable Tie-Out and Cutoff Testing",
+   "preparer": "Priscilla Wong",
+   "versions": 2,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 37,
+   "document": "Client Accounting & Advisory \u2014 Weekly Engagement Status & Priority Queue",
+   "preparer": "Elias Finch",
+   "versions": 2,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 38,
+   "document": "Engagement Status & Priority Queue \u2014 Week of 12/16",
+   "preparer": "Victor Alade",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 39,
+   "document": "Riverbend Cleanup \u2014 Environmental Remediation Costs Reconciliation",
+   "preparer": "Colin Mackey",
+   "versions": 3,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 40,
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2013 Payroll Reconciliation & Census Tie-Out",
+   "preparer": "Sylvia Nakamura",
+   "versions": 2,
+   "distinct_authors": 1,
+   "review_claimed": true,
+   "independently_reviewed": false,
+   "self_review_risk": true
+  },
+  {
+   "document_number": 41,
+   "document": "401(k) Plan Year 2025 Audit \u2014 Payroll Reconciliation Status",
+   "preparer": "Rosalind Calder",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 42,
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 - Audit Tie-Out",
+   "preparer": "Nadia Osman",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 43,
+   "document": "Harbor Light Distribution \u2014 FY2025 Audit Program: Cash and Cash Equivalents",
+   "preparer": "Priscilla Wong",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 44,
+   "document": "Monthly Close Status & Next Steps",
+   "preparer": "Gabriel Fontes",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 45,
+   "document": "Audit Schedule & PBC Tracking \u2013 FY2025 Season",
+   "preparer": "Imogen Carraway",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 46,
+   "document": "Harbor Light Distribution \u2014 FY2025 Audit | PBC Tracker & Status Summary",
+   "preparer": "Theo Brandt",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 47,
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Payroll Reconciliation Workpaper",
+   "preparer": "Maya Lindqvist",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 48,
+   "document": "Engagement Status & Next Steps",
+   "preparer": "Freya Holt",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 49,
+   "document": "FY2025 Audit Calendar & PBC Schedule",
+   "preparer": "Imogen Carraway",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 50,
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Audit Testing Workpaper Index",
+   "preparer": "Maya Lindqvist",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 51,
+   "document": "Engagement Status & Calendar Sync \u2014 Week of Dec 16",
+   "preparer": "Freya Holt",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  },
+  {
+   "document_number": 52,
+   "document": "IT Access & Systems Status \u2014 Week of Jan 13",
+   "preparer": "Raj Malhotra",
+   "versions": 1,
+   "distinct_authors": 1,
+   "review_claimed": false,
+   "independently_reviewed": false,
+   "self_review_risk": false
+  }
+ ]
+}

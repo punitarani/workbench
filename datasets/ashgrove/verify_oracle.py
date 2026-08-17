@@ -1040,8 +1040,93 @@ def check_tracker_reconciliation(facts: WorldFacts, oracle: dict) -> list[str]:
     return out
 
 
+def check_self_review(facts: WorldFacts, oracle: dict) -> list[str]:
+    """Claimed review against actual review, re-derived from the log.
+
+    The version comment is prose the persona wrote and the log carries it
+    verbatim; the author of each revision is likewise on the event. So both
+    halves of this task derive from the world directly, and the only thing
+    borrowed from the task is the list of words that count as a claim --
+    which is quoted in its instruction.
+    """
+
+    out: list[str] = []
+    claim = re.compile(
+        r"review|approv|sign.?off|signed off|checked|second pair"
+        r"|quality control|\bQC\b",
+        re.IGNORECASE,
+    )
+    rows = []
+    for document in facts.documents.values():
+        chain = sorted(document.chain)
+        preparer = chain[0][1] if chain else ""
+        rows.append(
+            {
+                "document": document.title,
+                "preparer": facts.name(preparer) if preparer else "",
+                "versions": max((v for v, _a in chain), default=0),
+                "distinct_authors": len({a for _v, a in chain}),
+                "review_claimed": any(
+                    claim.search(c)
+                    for c in facts.revision_comments(document.document_id)
+                ),
+                "independently_reviewed": any(a != preparer for _v, a in chain[1:]),
+            }
+        )
+    for row in rows:
+        row["self_review_risk"] = (
+            row["review_claimed"] and not row["independently_reviewed"]
+        )
+
+    _cmp("documents_total", len(rows), oracle["documents_total"], out)
+    for name, field in (
+        ("review_claimed_count", "review_claimed"),
+        ("independently_reviewed_count", "independently_reviewed"),
+        ("self_review_risk_count", "self_review_risk"),
+    ):
+        _cmp(name, sum(r[field] for r in rows), oracle[name], out)
+    _cmp(
+        "unreviewed_and_unclaimed_count",
+        sum(
+            1
+            for r in rows
+            if not r["review_claimed"] and not r["independently_reviewed"]
+        ),
+        oracle["unreviewed_and_unclaimed_count"],
+        out,
+    )
+    # Compared as a multiset of claims, for the same reason the documents in
+    # work-product-review are: the number is minted by the projection and
+    # served verbatim, so it is copied rather than computed.
+    def claimed(row: dict) -> tuple:
+        return (
+            row["document"],
+            row["preparer"],
+            row["versions"],
+            row["distinct_authors"],
+            bool(row["review_claimed"]),
+            bool(row["independently_reviewed"]),
+            bool(row["self_review_risk"]),
+        )
+
+    ours: dict[tuple, int] = defaultdict(int)
+    theirs: dict[tuple, int] = defaultdict(int)
+    for row in rows:
+        ours[claimed(row)] += 1
+    for row in oracle["documents"]:
+        theirs[claimed(row)] += 1
+    for key in sorted(set(ours) | set(theirs)):
+        if ours[key] != theirs[key]:
+            out.append(
+                f"documents{list(key)}: log counts {ours[key]}, "
+                f"oracle counts {theirs[key]}"
+            )
+    return out
+
+
 CHECKS = {
     "commitment-register": check_commitment_register,
+    "self-review-exposure": check_self_review,
     "engagement-closeout-readiness": check_closeout_readiness,
     "tracker-reconciliation": check_tracker_reconciliation,
     "staffing-leverage-review": check_staffing_leverage,

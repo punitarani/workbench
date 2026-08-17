@@ -142,6 +142,8 @@ class WorldFacts:
     # reading it here keeps a caller from hardcoding a date that is only
     # true of one world.
     epoch: str = ""
+    # document_id -> the comment on each revision, in log order.
+    _comments: dict[str, list[str]] = field(default_factory=dict)
 
     # --- derived views, each restating a rule the tools also implement ---
 
@@ -184,6 +186,16 @@ class WorldFacts:
         for messages in out.values():
             messages.sort(key=lambda m: (m.time, m.message_id))
         return dict(out)
+
+    def revision_comments(self, document_id: str) -> list[str]:
+        """Every comment typed on a document's revisions, in order.
+
+        A separate view because a comment is prose about the work rather
+        than a fact of it: what somebody *said* they did, which is not the
+        same as what the authorship shows.
+        """
+
+        return self._comments.get(document_id, [])
 
     def attached_documents(self) -> dict[str, set[str]]:
         """document_id -> the message ids that carried it."""
@@ -269,6 +281,12 @@ def load_world(path: Path) -> WorldFacts:
                         )
                     )
                 case "document.created":
+                    # Version one carries no note of its own; the file room
+                    # stamps "Created." on it. Kept as the projection writes
+                    # it so the two sides describe the same document.
+                    facts._comments.setdefault(payload["document_id"], []).append(
+                        "Created."
+                    )
                     facts.documents[payload["document_id"]] = Document(
                         document_id=payload["document_id"],
                         title=payload.get("title", ""),
@@ -279,6 +297,13 @@ def load_world(path: Path) -> WorldFacts:
                 case "document.revised":
                     document = facts.documents.get(payload["document_id"])
                     if document is not None:
+                        # The persona types a change summary; the file room
+                        # serves it as the version's comment. Same prose,
+                        # two names, and reading the wrong one made every
+                        # claim look absent.
+                        facts._comments.setdefault(
+                            payload["document_id"], []
+                        ).append(payload.get("change_summary") or "")
                         document.chain.append(
                             (
                                 _int(payload.get("revision"), 0),
