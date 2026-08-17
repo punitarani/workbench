@@ -44,15 +44,21 @@ plus an explicit prompt rule.
 
 Opus 5 through codex, on r12.
 
-| task | rows | answer |
-|---|---|---|
-| **commitment-register** | 388 | **0.783** (k=3, 0.770–0.808) |
-| tracker-reconciliation | 139 + 10 | 1.000 |
-| work-product-review | 52 | 1.000 |
-| engagement-time-allocation | 188 | 1.000 |
-| client-responsiveness-sla | 43 | 1.000 |
-| wip / closeout / staffing | 10 | not re-run (thin) |
-| open-items-triage | 4 | not re-run (thin) |
+| task | rows | Opus 5 | glm-5.2 |
+|---|---|---|---|
+| **commitment-register** | 388 | **0.783** (k=3) | running |
+| engagement-time-allocation | 188 | 1.000 | **0.540** |
+| work-product-review | 52 | 1.000 | **0.778** |
+| tracker-reconciliation | 139 + 10 | 1.000 | **0.832** |
+| client-responsiveness-sla | 43 | 1.000 | 1.000 |
+| wip / closeout / staffing | 10 | not re-run (thin) | — |
+| open-items-triage | 4 | not re-run (thin) | — |
+
+**Three of the four discriminate, and all three put the weaker model in
+band.** Every miss on both models is classified in `LEDGER.md`; all are M.
+The widest gap is one clean mistake — glm dropped `00013-Mendes` entire, an
+engagement `list_matters` returns on the first call, and every firm total is
+then wrong by exactly its 41 entries.
 
 `engagement-status-integrity` was **retired**: its answer on r12 is empty —
 nothing moved backwards anywhere — and a task with no rows grades nothing.
@@ -62,8 +68,12 @@ nothing moved backwards anywhere — and a task with no rows grades nothing.
 Three difficulty hypotheses were tested and two were refuted, both with
 measurements rather than argument.
 
-**Width does not work.** `engagement-time-allocation` costs 1,260 time
-entries across 27 pages and returns 188 rows. Opus 5: 1.000. glm-5.2: 1.000.
+**Width does not work — for a frontier model.** `engagement-time-allocation`
+costs 1,260 time entries across 27 pages and returns 188 rows. Opus 5 scores
+1.000, and did so on the previous world too, at 197 rows over 1,304 entries.
+
+It *does* separate tiers: glm-5.2 scores **0.540** on r12. But not through
+volume — through one clean mistake, and the cross-tier section below has it.
 
 **Coverage does not work.** Widening the commitment register from mail only
 to mail plus chat took it from 189 rows over 328 messages to 507 over 1,547
@@ -160,4 +170,5 @@ the check doing its job rather than a failure.
 - Only `commitment-register` has k=3. The rest are single trials.
 - The Calder acceptance cassette has been missing since the persona prompts
   changed and still needs re-recording; verified pre-existing by stashing.
-- glm-5.2 cross-tier numbers on r12 are still running.
+- `commitment-register` under glm-5.2 is the last cross-tier cell; it timed
+  out at 50 minutes on the wider previous world and is running on r12.
