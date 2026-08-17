@@ -574,8 +574,69 @@ def check_commitment_register(facts: WorldFacts, oracle: dict) -> list[str]:
     return out
 
 
+def check_open_items_triage(facts: WorldFacts, oracle: dict) -> list[str]:
+    """Client threads whose last word is a question the firm has not answered.
+
+    The one task already shown to discriminate: 1.000 for Opus 5 and 0.630
+    for glm-5.2, which is what a working instrument looks like even though
+    it is far too thin to grade partly right.
+    """
+
+    out: list[str] = []
+    markers = (
+        "please send", "please provide", "please confirm", "could you",
+        "can you", "would you", "we need", "i need", "when will",
+        "let me know", "waiting on", "waiting for",
+    )
+
+    def asks(body: str) -> bool:
+        lowered = body.lower()
+        return "?" in body or any(marker in lowered for marker in markers)
+
+    external = {
+        p.person_id for p in facts.people.values() if p.affiliation == "external"
+    }
+    threads = facts.threads()
+    awaiting = []
+    courtesy = 0
+    for thread_id, messages in threads.items():
+        last = messages[-1]
+        if last.sender not in external:
+            continue
+        if asks(last.body):
+            awaiting.append(
+                {
+                    "thread_id": thread_id,
+                    "message_id": last.message_id,
+                    "client": facts.name(last.sender),
+                    "subject": re.sub(r"^(Re|RE|Fwd):\s*", "", last.subject).strip(),
+                    "messages_in_thread": len(messages),
+                }
+            )
+        else:
+            courtesy += 1
+
+    _cmp("threads_reviewed", len(threads), oracle["threads_reviewed"], out)
+    _cmp("awaiting_firm_count", len(awaiting), oracle["awaiting_firm_count"], out)
+    _cmp(
+        "closed_by_client_courtesy",
+        courtesy,
+        oracle["closed_by_client_courtesy"],
+        out,
+    )
+    _rows(
+        "awaiting_firm",
+        awaiting,
+        oracle["awaiting_firm"],
+        lambda r: r["thread_id"],
+        out,
+    )
+    return out
+
+
 CHECKS = {
     "commitment-register": check_commitment_register,
+    "open-items-triage": check_open_items_triage,
     "engagement-time-allocation": check_time_allocation,
     "work-product-review": check_work_product_review,
     "client-responsiveness-sla": check_client_responsiveness,
