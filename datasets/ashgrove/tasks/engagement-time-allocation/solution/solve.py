@@ -68,8 +68,14 @@ def main() -> None:
             }
         )
 
-    busiest = max(
-        rows, key=lambda row: (row["hours"], row["person"], row["engagement"])
+    # Most hours, and on a tie the *earlier* name — which is what the
+    # instruction says, and which `max` on (hours, person) quietly does the
+    # opposite of: it takes the alphabetically last. No two rows tie at the
+    # top of this world, so the two rules agree here and the oracle does not
+    # move; they would not agree in the world where it mattered, and an
+    # agent that followed the instruction would have been marked wrong.
+    busiest = min(
+        rows, key=lambda row: (-row["hours"], row["person"], row["engagement"])
     )
     # Firm totals come off the entries, not off the rounded rows. Adding a
     # hundred and ninety-seven figures that have each been cut to two
