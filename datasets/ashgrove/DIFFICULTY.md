@@ -229,6 +229,37 @@ What is left, in order of how much is known about each:
    per row, so one missed join costs a field across many rows rather than
    one row entirely.
 
+### What did work: rule-literalism under semantic temptation
+
+`commitment-register` scores **0.770** on the r12 world — in band, on a
+frontier model, with every miss verified as a model failure in
+[LEDGER.md](LEDGER.md).
+
+It did not get there by volume. Recall was *perfect*: it found all 388
+rows. It got there by **precision** — it added 42 rows of its own, and 34
+of those came from prose containing none of the seven stated forms:
+
+```
+"Harbor Light and Ashfield wrap end of week"   EOW is not one of the seven
+"Fairmount queues early next week"             not a listed form
+"Wednesday 14:30 works for the GL sync"        a meeting, not "by Wednesday"
+```
+
+The instruction rules these out in as many words. The model overrode it
+anyway, because it *knows* what a commitment is and those are commitments —
+just not by the rule it was given.
+
+That is the axis. Not more data, not harder joins: **a stated rule whose
+literal reading conflicts with what the model can see plainly means.** Prose
+supplies that conflict for free, because real writing is full of near-misses
+the rule excludes. It is fair — the rule is stated, twice, emphatically —
+and it is the one thing measured here that moves a frontier model's score
+without making the scoring mean.
+
+It also explains why the same task scored 0.908 on the earlier world and
+0.770 on this one. The richer the prose, the more temptation, the wider the
+gap between reading the rule and reading the room.
+
 ### Correlated error was tried, and it did not work either
 
 `tracker-reconciliation` was built exactly to the specification above: one
