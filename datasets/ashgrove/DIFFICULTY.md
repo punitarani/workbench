@@ -3,6 +3,44 @@
 Measured, not assumed. Everything here is evidence gathered while seven of
 eight tasks refused to leave 1.000.
 
+## The scoreboard of falsified theories
+
+Five sources of difficulty have now been proposed, built, and measured.
+All five are dead.
+
+| lever | how it was tested | result |
+|---|---|---|
+| **volume** | 1,304 entries, 27 pages, 197 rows | ceiling |
+| **coverage** | 189 → 507 rows, 328 → 1,547 messages | score went **up**, 0.901 → 0.908 |
+| **correlated error** | tracker-reconciliation, built for it | 1.000 in 26 shell commands |
+| **lexical near-miss** | approval-register, 171 temptations | 1.000 |
+| **semantic synonym** | completion-claims, 70 synonyms | 1.000 |
+| **chained derivation** | commitment-follow-through, 3 steps per row | **403 of 403 correct** |
+
+The last one was the live hypothesis and it failed hardest: find the
+promise in prose, resolve what date it meant against the day it was
+written, then look forward in the thread for a reply from the same person
+before that date — three dependent steps, any of which fails the row —
+and Opus 5 got every one right across three trials, with zero wrong
+verdicts and zero invented rows.
+
+**What the five share:** the agent can compute each row *locally and
+mechanically from text it has already pulled onto disk*. Against a written
+script, per-row rules are free no matter how many links the chain has, and
+independent errors average out rather than compounding.
+
+**What has actually cost it rows, every time:** membership. Not one
+measured failure has been a wrong value on a row the agent produced — all
+of them were rows it declined to include, and on inspection every one of
+those traced back to a rule of mine that was narrower than its own prose.
+Once the rule matched what it claimed, the score went to 1.000.
+
+**The untested shape:** an answer that is not in a database at all.
+`workpaper-open-items` grades the firm's working papers — nineteen
+rendered workbooks, sixty-one sheets, no index, no search, nothing in
+SQL. It is the first task here where the enumeration is the work rather
+than a cost paid on the way to it.
+
 ## What does not work: width
 
 | task | work the agent did | Opus 5 |

@@ -1,77 +1,93 @@
 # Why each criterion missed — the E/T/M ledger
 
-> **Correction, and it matters.** The commitment-register figures below were
-> published as 0.783 with all 42 misses certified as model failures. **17 of
-> the 42 were a task defect.** The messages say "audited statements by April
-> 15th"; the stated form is `by <Month> <day>`; and the pattern behind the
-> oracle was `\bby (month) (\d{1,2})\b`, whose word boundary drops every
-> ordinal spelling.
->
-> The certification was circular. Each of the 42 was checked by re-running
-> *the same patterns* over the message it came from, so it could only ever
-> agree with the oracle — and the independence check shares those patterns
-> deliberately, as the task's specification. Two confirmations, one regex.
->
-> The tell was in the data and was read past: the invented dates were
-> 2026-03-31 and 2026-04-15, a quarter end and the US tax deadline. Dates
-> that meaningful are read, not hallucinated. Being outside the world's span
-> was taken as evidence of invention instead of a question about why the
-> model was so specific.
->
-> Ordinals are now admitted everywhere. commitment-register is 400 rows
-> (was 388), commitment-follow-through 126 (was 114), and both scores are
-> being re-measured. Everything below the line is superseded until they
-> land.
-
 Every score below 1.0 is a defect until proved otherwise. **E** is an
 environment defect (the fact is not served, or the record contradicts
-itself with no stated rule), **T** is a task defect (ambiguous instruction,
-wrong oracle, wrong grader, unfair tolerance), and **M** is a model failure
-— reachable, unambiguous, oracle independently confirmed, and the agent got
-it wrong anyway. Only **M** may ship.
+itself with no stated rule), **T** is a task defect (ambiguous
+instruction, wrong oracle, wrong grader, unfair tolerance), and **M** is a
+model failure — reachable, unambiguous, oracle independently confirmed,
+and the agent got it wrong anyway. Only **M** may ship.
 
 World: `epoch-r12`, 11 workdays, 6,150 events, `validates=True`, coherence
-clean, 0.1% mis-booked time. Model: Opus 5 through codex, one trial each.
+clean, 0.1% mis-booked time. Model: Opus 5 through codex.
 
-## commitment-register — 0.783 over three trials — all misses M
+## The correction that reframes everything below
 
-```
-answer                            0.783    0.770 - 0.808  (k=3)
-answer.commitments.f1             0.961    0.949 - 0.985
-answer.row_facts                  0.918    0.892 - 0.969
-answer.commitments_total          0.000    all three trials
-answer.messages_with_commitment   0.000    all three trials
-```
+`commitment-register` was published at **0.783 with all 42 misses
+certified as model failures**. It is **1.000**. Every one of those 42 was
+mine.
 
-Three trials, a spread of 0.038, and the same two counts zeroed in every
-one: the over-matching is systematic, not a lucky draw. The classification
-below is from the first trial, read row by row.
+Two defects, found in sequence:
 
-Recall was perfect. **The agent found every one of the 388 rows and added
-42 of its own**, so this is precision, and every one of the 42 was checked
-against the message it came from:
+1. **Ordinals.** The stated form is `by <Month> <day>`; the pattern was
+   `\bby (month) (\d{1,2})\b`, whose word boundary drops `by April
+   15th`. 17 rows.
+2. **Articles.** The stated form was `by the end of the/this/next week`.
+   The corpus contains that spelling **once**; the firm writes `by end of
+   week` (24) and `by end of next week` (10). The rule admitted 1 of 35
+   end-of-week promises and scored the other 34 as hallucinations. 30
+   rows, in two trials, identically.
 
-**34 contain none of the seven stated forms.** The agent read deadlines out
-of prose the instruction rules out in as many words — *"Exactly these seven
-forms… Nothing else counts, however deadline-like it sounds."*
+Re-grading the three original submissions against the corrected key:
 
-| what the message actually said | why it is not a commitment here |
-|---|---|
-| "Harbor Light and Ashfield wrap **end of week**" | `EOW` is not among the seven; `end of day` is |
-| "Fairmount queues **early next week**" | not a listed form |
-| "**Wednesday 14:30** works for the GL sync" | a meeting time, not `by Wednesday` |
+| trial | rows | false positives | missing | F1 |
+|---|---|---|---|---|
+| 1 | 400 | **0** | 41 | 0.951 |
+| 2 | 430 | **0** | 11 | 0.987 |
+| 3 | 430 | **0** | 11 | 0.987 |
 
-**8 are rows the oracle already has, at the right date, with a second
-wrongly-dated copy attached.** `msg-000122` says `end of day`, which the
-instruction resolves to the sent date, 2026-01-08; the agent also filed it
-under 2026-04-15 — the tax deadline named elsewhere in the same message.
+**Not one invented commitment in three trials.** `commitment-follow-through`
+is the same story and worse for the hypothesis it was built to test: three
+chained derivations per row, **403 of 403 correct**, zero wrong verdicts,
+every loss a membership gap from the same two pattern defects.
 
-**Verdict M.** The oracle passes its independent derivation from the world
-log, every value it names is served, the rule is stated twice and
-emphatically, and the model applied its own judgement about what a
-commitment *is* instead. That is the failure this environment exists to
-measure, and it is worth naming precisely: **rule-literalism under semantic
-temptation**. The model's competence at reading intent is what hurt it.
+### Why nothing caught it
+
+The certification was circular. Each of the 42 was "verified" by
+re-running *the same pattern* over the message it came from, and the
+independence check shares those patterns deliberately, as the task's
+specification. Two confirmations, one regex. A check that cannot fail is
+not a check.
+
+The tell was in the data and was read past: the disputed dates were
+2026-03-31 and 2026-04-15 — a quarter end and the US tax deadline. Dates
+that meaningful are read, not hallucinated.
+
+Two gates now exist that could have said otherwise, and neither shares the
+solver's patterns:
+
+* `tests/analysis/test_stated_rules_match_their_patterns.py` — every rule
+  must accept its own stated phrasings. The instruction's own example is
+  `by March 14th`, and nothing had ever asked whether the pattern matched
+  it. Extended to the approval and completion tables, which survived it.
+* `datasets/ashgrove/adjudicate.py` — a net deliberately wider than the
+  seven forms, asserted a strict superset over the corpus, which prints
+  the sentence so a verdict is read off English.
+
+**Standing rule, learned twice at cost:** identical failures across
+independent trials are a task defect. Genuine model error is stochastic.
+
+## commitment-register — 1.000 (k=3, corrected oracle)
+
+Every trial perfect on 441 rows. Withdrawn as a band candidate.
+
+## E-class: the bundle had been accumulating three worlds
+
+Found while building the first task graded on files rather than on a
+database. `materialize` writes and never removes, and every Ashgrove
+build since epoch-r10 had been pointed at one directory. The staged
+workspace held **161 files for a record containing 52 documents** —
+workbooks and memos from two dead worlds, describing engagements at
+statuses the live record left behind.
+
+Latent, not active: every shipping task read `state/`, which is projected
+from scratch each build. Confirmed by rebuilding with the workspace
+cleaned first — twelve of thirteen oracles came back byte-identical, and
+the only one that moved was the new task, from 169 rows to 55.
+
+Had it not been caught, `workpaper-open-items` would have keyed its answer
+to files that no longer belonged to the world it grades. Fixed in
+`build_tasks.build`, which now clears `workspace/` and `state/` before
+materializing and prints the file count beside the document count.
 
 ## tracker-reconciliation — 1.000
 
