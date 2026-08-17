@@ -611,6 +611,244 @@ def check_commitment_register(facts: WorldFacts, oracle: dict) -> list[str]:
     return out
 
 
+APPROVAL_FORMS = (
+    ("approved", r"\bapproved\b"),
+    ("i approve", r"\bI approve\b"),
+    ("signed off", r"\bsigned off\b"),
+    ("sign-off", r"\bsign[- ]?offs?\b"),
+    ("authorised", r"\bauthoris(?:e|ed)\b|\bauthoriz(?:e|ed)\b"),
+    ("cleared", r"\bcleared\b"),
+)
+
+COMPLETION_FORMS = (
+    ("complete", r"\bcomplete\b"),
+    ("completed", r"\bcompleted\b"),
+)
+
+
+def _register(
+    facts: WorldFacts,
+    oracle: dict,
+    forms: tuple[tuple[str, str], ...],
+    rows_field: str,
+    person_field: str,
+    totals: tuple[str, str, str],
+) -> list[str]:
+    """One row per message carrying a named form, over mail and chat both.
+
+    The approval and completion registers are the same machine with a
+    different word list, so they are derived by the same code: find the
+    form, name the row by whatever its own system calls it, resolve the
+    author and the counterparty. Restating the word list proves nothing —
+    it is the instruction, quoted — but everything wrapped around it is a
+    second derivation: the epoch-to-calendar resolution, the domain join
+    onto an organisation's name, the internal/external split, and the rule
+    that a message carrying three forms is one row under the first.
+    """
+
+    out: list[str] = []
+    epoch = datetime.datetime.fromisoformat(EPOCH)
+    organisations = {
+        "".join(c for c in name.lower() if c.isalnum()): name
+        for name in facts.orgs.values()
+    }
+    total_field, distinct_field, top_field = totals
+
+    def form_of(body: str) -> str | None:
+        for name, pattern in forms:
+            if re.search(pattern, body, re.IGNORECASE):
+                return name
+        return None
+
+    mail: list[dict] = []
+    counts: dict[str, int] = {name: 0 for name, _ in forms}
+    by_person: dict[str, int] = defaultdict(int)
+    people_on_rows: set[str] = set()
+
+    for email in sorted(facts.emails.values(), key=lambda e: e.message_id):
+        form = form_of(email.body)
+        if form is None:
+            continue
+        outside = sorted(
+            {
+                organisations.get(domain.split(".")[0], domain)
+                for domain in (
+                    facts.people[p].email_address.split("@")[-1]
+                    for p in (email.sender, *email.to, *email.cc)
+                    if p in facts.people and facts.people[p].affiliation == "external"
+                )
+            }
+        )
+        name = facts.name(email.sender)
+        counts[form] += 1
+        by_person[name] += 1
+        people_on_rows.add(name)
+        mail.append(
+            {
+                "ref": email.message_id,
+                person_field: name,
+                "sent_date": (
+                    epoch + datetime.timedelta(seconds=email.time)
+                ).date().isoformat(),
+                "where": outside[0] if outside else "the firm",
+            }
+        )
+
+    # Chat on its facts, not its key: the `ts` is minted by the projection
+    # and served verbatim, so restating how it is built would copy the one
+    # thing this file exists not to copy. See check_commitment_register.
+    chat_rows: dict[tuple[str, str, str], int] = defaultdict(int)
+    for chat in facts.chats:
+        form = form_of(chat.body)
+        if form is None:
+            continue
+        name = facts.name(chat.sender)
+        counts[form] += 1
+        by_person[name] += 1
+        people_on_rows.add(name)
+        chat_rows[
+            (
+                name,
+                (epoch + datetime.timedelta(seconds=chat.time)).date().isoformat(),
+                facts.channels.get(chat.conversation_id, chat.conversation_id),
+            )
+        ] += 1
+
+    theirs_mail, theirs_chat = [], defaultdict(int)
+    for row in oracle[rows_field]:
+        if str(row["ref"]).startswith("msg-"):
+            theirs_mail.append(row)
+        else:
+            theirs_chat[
+                (row[person_field], row["sent_date"], row["where"])
+            ] += 1
+    for key in sorted(set(chat_rows) | set(theirs_chat)):
+        if chat_rows[key] != theirs_chat[key]:
+            out.append(
+                f"chat{list(key)}: log counts {chat_rows[key]}, "
+                f"oracle counts {theirs_chat[key]}"
+            )
+
+    _cmp(
+        "messages_read",
+        len(facts.emails) + len(facts.chats),
+        oracle["messages_read"],
+        out,
+    )
+    _cmp(
+        total_field,
+        len(mail) + sum(chat_rows.values()),
+        oracle[total_field],
+        out,
+    )
+    _cmp(distinct_field, len(people_on_rows), oracle[distinct_field], out)
+    _cmp("form_counts", counts, oracle["form_counts"], out)
+    # Most rows, then the earlier name: `max` breaks the tie the other way
+    # and the instruction says alphabetically earliest.
+    _cmp(
+        top_field,
+        min(by_person, key=lambda n: (-by_person[n], n)) if by_person else "",
+        oracle[top_field],
+        out,
+    )
+    _rows(rows_field, mail, theirs_mail, lambda r: r["ref"], out)
+    return out
+
+
+def check_approval_register(facts: WorldFacts, oracle: dict) -> list[str]:
+    return _register(
+        facts,
+        oracle,
+        APPROVAL_FORMS,
+        "approvals",
+        "approver",
+        ("approvals_total", "distinct_approvers", "top_approver"),
+    )
+
+
+def check_completion_claims(facts: WorldFacts, oracle: dict) -> list[str]:
+    return _register(
+        facts,
+        oracle,
+        COMPLETION_FORMS,
+        "claims",
+        "claimant",
+        ("claims_total", "distinct_claimants", "top_claimant"),
+    )
+
+
+def check_commitment_follow_through(facts: WorldFacts, oracle: dict) -> list[str]:
+    """Was the promise answered in its own thread, by the person who made it?
+
+    Mail only, and three derivations deep: find the promise, resolve the
+    date it meant against the day it was written, then look forward in the
+    thread for another message from the same sender on or before that day.
+    The third step is what this check is really for — it is derived here
+    from the log's own thread membership rather than from the materialized
+    `thread_id` column the solver reads, so a projection that mis-threaded
+    a reply would show up as a disagreement instead of as ground truth.
+    """
+
+    out: list[str] = []
+    epoch = datetime.datetime.fromisoformat(EPOCH)
+    threads = facts.threads()
+
+    rows: dict[tuple[str, str], dict] = {}
+    for thread in threads.values():
+        for email in thread:
+            sent = (epoch + datetime.timedelta(seconds=email.time)).date()
+            for kind, pattern in COMMITMENT_PATTERNS:
+                for match in re.finditer(pattern, email.body, re.IGNORECASE):
+                    due = _commitment_due(kind, match, sent)
+                    # The due date itself counts: "by Thursday" is met on
+                    # Thursday, not only before it.
+                    followed = any(
+                        other.sender == email.sender
+                        and other.time > email.time
+                        and (
+                            epoch + datetime.timedelta(seconds=other.time)
+                        ).date() <= due
+                        for other in thread
+                    )
+                    rows[(email.message_id, due.isoformat())] = {
+                        "message_id": email.message_id,
+                        "due_date": due.isoformat(),
+                        "author": facts.name(email.sender),
+                        "sent_date": sent.isoformat(),
+                        "followed_up": followed,
+                    }
+
+    register = [rows[key] for key in sorted(rows)]
+    late = [r for r in register if not r["followed_up"]]
+    by_author: dict[str, int] = defaultdict(int)
+    for row in late:
+        by_author[row["author"]] += 1
+
+    _cmp("messages_read", len(facts.emails), oracle["messages_read"], out)
+    _cmp("commitments_total", len(register), oracle["commitments_total"], out)
+    _cmp(
+        "followed_up_count",
+        sum(r["followed_up"] for r in register),
+        oracle["followed_up_count"],
+        out,
+    )
+    _cmp("unanswered_count", len(late), oracle["unanswered_count"], out)
+    _cmp(
+        "worst_offender",
+        min(by_author, key=lambda n: (-by_author[n], n)) if by_author else "",
+        oracle["worst_offender"],
+        out,
+    )
+    _rows(
+        "commitments",
+        register,
+        oracle["commitments"],
+        lambda r: (r["message_id"], r["due_date"]),
+        out,
+    )
+    return out
+
+
 def check_open_items_triage(facts: WorldFacts, oracle: dict) -> list[str]:
     """Client threads whose last word is a question the firm has not answered.
 
@@ -1123,6 +1361,9 @@ CHECKS = {
     "engagement-time-allocation": check_time_allocation,
     "work-product-review": check_work_product_review,
     "client-responsiveness-sla": check_client_responsiveness,
+    "approval-register": check_approval_register,
+    "completion-claims": check_completion_claims,
+    "commitment-follow-through": check_commitment_follow_through,
 }
 
 

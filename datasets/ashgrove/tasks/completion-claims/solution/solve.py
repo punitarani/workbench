@@ -27,8 +27,11 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("completion_claims.json")
 
 # In this order: the first that matches names the row's form, so a message
 # carrying two of them is still one approval with one name.
-# Both spellings of one word and nothing else. Plurals and inflections of
-# these two are in; every synonym is out.
+# Both spellings of one word and nothing else -- not inflections of it and
+# not synonyms for it. `completes`, `completing` and `completion` are none
+# of the two spellings the instruction names, and the corpus carries 56 of
+# them; the instruction now says so outright rather than leaving a reader
+# to infer it from "the word *complete*".
 FORMS = (
     ("complete", r"\bcomplete\b"),
     ("completed", r"\bcompleted\b"),

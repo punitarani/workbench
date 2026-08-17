@@ -181,3 +181,59 @@ class TestTheAdjudicatorsNetIsWiderThanTheRule:
                     assert NET.search(body), body[:200]
                     checked += 1
         assert checked > 100, f"only {checked} bodies exercised the rule"
+
+
+class TestTheApprovalAndCompletionTablesSayWhatTheyMatch:
+    """The same audit, run over the two other tables that grade prose.
+
+    Both survived it — `signed-off` never appears in the corpus, and
+    *authorization*, *clearance* and *finished* are excluded by rules that
+    exclude them in as many words. These are the assertions that keep it
+    that way, in both directions: the named spellings are admitted, and
+    the near-misses that carry the difficulty stay out.
+    """
+
+    APPROVAL = (
+        (r"\bapproved\b", ["approved", "Approved the memo"], ["approval", "approve"]),
+        (r"\bI approve\b", ["I approve", "i approve this"], ["approves"]),
+        (r"\bsigned off\b", ["signed off", "SIGNED OFF"], ["signing off"]),
+        (
+            r"\bsign[- ]?offs?\b",
+            ["sign-off", "sign off", "signoff", "sign-offs", "signoffs"],
+            ["signed"],
+        ),
+        (
+            r"\bauthoris(?:e|ed)\b|\bauthoriz(?:e|ed)\b",
+            ["authorise", "authorised", "authorize", "authorized"],
+            ["authorisation", "authorization", "authorising"],
+        ),
+        (r"\bcleared\b", ["cleared", "Cleared it"], ["clearance", "clearing"]),
+    )
+
+    @pytest.mark.parametrize("pattern,admitted,excluded", APPROVAL)
+    def test_each_approval_form(
+        self, pattern: str, admitted: list[str], excluded: list[str]
+    ) -> None:
+        for text in admitted:
+            assert re.search(pattern, text, re.IGNORECASE), text
+        for text in excluded:
+            assert not re.search(pattern, text, re.IGNORECASE), text
+
+    @pytest.mark.parametrize(
+        "pattern,admitted,excluded",
+        (
+            (
+                r"\bcomplete\b",
+                ["complete", "is complete."],
+                ["completed", "completion"],
+            ),
+            (r"\bcompleted\b", ["completed", "COMPLETED"], ["complete", "completes"]),
+        ),
+    )
+    def test_each_completion_form(
+        self, pattern: str, admitted: list[str], excluded: list[str]
+    ) -> None:
+        for text in admitted:
+            assert re.search(pattern, text, re.IGNORECASE), text
+        for text in excluded:
+            assert not re.search(pattern, text, re.IGNORECASE), text

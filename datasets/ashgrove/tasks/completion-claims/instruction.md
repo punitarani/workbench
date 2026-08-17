@@ -22,11 +22,17 @@ forms, matched case-insensitively, anywhere in the text:
 | `complete` | the word *complete* |
 | `completed` | the word *completed* |
 
-Nothing else counts. Not *finished*, not *done*, not *wrapped up*, not
+Nothing else counts, and that cuts two ways.
+
+No **synonym** counts. Not *finished*, not *done*, not *wrapped up*, not
 *closed out*, not *finalised*, not *delivered*, not *issued* — however
 plainly the writer is reporting the same thing. Seventy messages in the
 record say one of those and never say *complete*, and every one of them
 stays out.
+
+No **other form of the word** counts either. *Completes*, *completing* and
+*completion* are not the two spellings named above, so a message carrying
+only one of those is not a claim. *Completion* alone appears fifty times.
 
 **One row per message**, however many times either form appears. For
 `form_counts`, a message carrying both counts once, under `complete`.
