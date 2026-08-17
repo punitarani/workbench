@@ -48,6 +48,10 @@ class Activity:
     minutes: int
     rate_cents: int | None
     billable: bool
+    # When the entry was logged. Clio dates an activity and never stamps an
+    # hour on it, so anything graded off this must be counted in whole days
+    # -- an answer keyed to the *moment* is one no agent could recover.
+    at: int = 0
 
 
 @dataclass
@@ -243,6 +247,7 @@ def load_world(path: Path) -> WorldFacts:
                             minutes=_int(payload.get("minutes")),
                             rate_cents=payload.get("rate_cents"),
                             billable=bool(payload.get("billable")),
+                            at=when,
                         )
                     )
                 case "document.created":

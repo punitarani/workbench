@@ -57,6 +57,16 @@ def _cmp(where: str, mine, theirs, out: list[str]) -> None:
                 f"{where}: log says {mine}, oracle says {theirs}"
             )
         return
+    if isinstance(mine, str) and isinstance(theirs, str):
+        # Case-folded, because that is how the answer is actually graded:
+        # every criterion compares `.strip().casefold()`. Clio serves a
+        # status title-cased (`In-progress`) while the log holds what the
+        # persona wrote (`in-progress`), and an agent is right either way.
+        # Reporting that as a disagreement is noise, and noise in a gate is
+        # how a gate stops being read.
+        if mine.strip().casefold() != theirs.strip().casefold():
+            out.append(f"{where}: log says {mine!r}, oracle says {theirs!r}")
+        return
     if mine != theirs:
         out.append(f"{where}: log says {mine!r}, oracle says {theirs!r}")
 
@@ -302,10 +312,94 @@ def check_client_responsiveness(facts: WorldFacts, oracle: dict) -> list[str]:
     return out
 
 
+def check_status_integrity(facts: WorldFacts, oracle: dict) -> list[str]:
+    """Engagements whose status went backwards, and the time logged since.
+
+    The only task here whose evidence was, for a while, unreachable: clio
+    served no matter history at all, so Opus 5 scored 0.067 on an answer the
+    tools could not produce. That was an environment defect, not a model
+    failure, and this derivation is deliberately blind to whether the fix
+    landed -- it reads the world, and the rollout reads the tools.
+    """
+
+    out: list[str] = []
+    # A hold has no rank, so a move into or out of `waiting-client` is a
+    # change without being a step backwards.
+    rank = {"open": 1, "in-progress": 2, "review": 3, "closed": 4}
+
+    changes: dict[str, int] = defaultdict(int)
+    backward: dict[str, int] = defaultdict(int)
+    reopened: set[str] = set()
+    first_backward: dict[str, int] = {}
+    for ticket_id, ticket in facts.tickets.items():
+        for when, _actor, name, old, new in sorted(ticket.changes):
+            if name != "status":
+                continue
+            changes[ticket_id] += 1
+            if old.strip().casefold() == "closed":
+                reopened.add(ticket_id)
+            before = rank.get(old.strip().casefold())
+            after = rank.get(new.strip().casefold())
+            if before is not None and after is not None and after < before:
+                backward[ticket_id] += 1
+                first_backward.setdefault(ticket_id, when)
+
+    flagged = []
+    for ticket_id in facts.tickets:
+        if not backward.get(ticket_id):
+            continue
+        # Whole days: clio dates a change and an entry, and stamps an hour
+        # on neither.
+        since = first_backward[ticket_id] // 86_400
+        seconds = sum(
+            a.minutes * 60
+            for a in facts.activities
+            if a.ticket_id == ticket_id and a.at // 86_400 >= since
+        )
+        flagged.append(
+            {
+                "engagement": facts.display_number(ticket_id),
+                "status": facts.current_status(ticket_id),
+                "status_changes": changes.get(ticket_id, 0),
+                "backward_moves": backward[ticket_id],
+                "reopened": ticket_id in reopened,
+                "hours_from_backward_day": round(seconds / 3600, 2),
+            }
+        )
+
+    _cmp(
+        "engagements_reviewed",
+        len(facts.tickets),
+        oracle["engagements_reviewed"],
+        out,
+    )
+    _cmp(
+        "reopened_count",
+        len(reopened & set(facts.tickets)),
+        oracle["reopened_count"],
+        out,
+    )
+    _cmp(
+        "backward_move_count",
+        sum(backward.values()),
+        oracle["backward_move_count"],
+        out,
+    )
+    _cmp(
+        "never_moved_count",
+        sum(1 for t in facts.tickets if not changes.get(t)),
+        oracle["never_moved_count"],
+        out,
+    )
+    _rows("flagged", flagged, oracle["flagged"], lambda r: r["engagement"], out)
+    return out
+
+
 CHECKS = {
     "engagement-time-allocation": check_time_allocation,
     "work-product-review": check_work_product_review,
     "client-responsiveness-sla": check_client_responsiveness,
+    "engagement-status-integrity": check_status_integrity,
 }
 
 
