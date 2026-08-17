@@ -43,11 +43,15 @@ MONTHS = (
     "july", "august", "september", "october", "november", "december",
 )
 WORD_DAYS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
+# "by April 15th" is the form `by <Month> <day>`; a bare \b after the
+# digits drops every ordinal spelling. That defect certified 17 correct
+# rows as model errors on the commitment register before anyone noticed,
+# because the check that confirmed them used this same pattern.
 PATTERNS = (
     ("weekday", r"\bby (?:this |next |)(monday|tuesday|wednesday|thursday|friday)\b"),
     ("week", r"\bby the end of (?:the |this |next |)week\b"),
     ("month", r"\bby the end of (?:the |this |next |)month\b"),
-    ("date", rf"\bby ({'|'.join(MONTHS)}) (\d{{1,2}})\b"),
+    ("date", rf"\bby ({'|'.join(MONTHS)}) (\d{{1,2}})(?:st|nd|rd|th)?\b"),
     ("day", r"\b(?:eod|cob|end of day|close of business)\b"),
     ("within", r"\bwithin (\d+|a|two|three|five|ten) (?:business )?days?\b"),
     ("tomorrow", r"\bby tomorrow\b"),

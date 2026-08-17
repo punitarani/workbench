@@ -1,5 +1,28 @@
 # Why each criterion missed — the E/T/M ledger
 
+> **Correction, and it matters.** The commitment-register figures below were
+> published as 0.783 with all 42 misses certified as model failures. **17 of
+> the 42 were a task defect.** The messages say "audited statements by April
+> 15th"; the stated form is `by <Month> <day>`; and the pattern behind the
+> oracle was `\bby (month) (\d{1,2})\b`, whose word boundary drops every
+> ordinal spelling.
+>
+> The certification was circular. Each of the 42 was checked by re-running
+> *the same patterns* over the message it came from, so it could only ever
+> agree with the oracle — and the independence check shares those patterns
+> deliberately, as the task's specification. Two confirmations, one regex.
+>
+> The tell was in the data and was read past: the invented dates were
+> 2026-03-31 and 2026-04-15, a quarter end and the US tax deadline. Dates
+> that meaningful are read, not hallucinated. Being outside the world's span
+> was taken as evidence of invention instead of a question about why the
+> model was so specific.
+>
+> Ordinals are now admitted everywhere. commitment-register is 400 rows
+> (was 388), commitment-follow-through 126 (was 114), and both scores are
+> being re-measured. Everything below the line is superseded until they
+> land.
+
 Every score below 1.0 is a defect until proved otherwise. **E** is an
 environment defect (the fact is not served, or the record contradicts
 itself with no stated rule), **T** is a task defect (ambiguous instruction,

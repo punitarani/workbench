@@ -41,7 +41,7 @@ body. Nothing else counts, however deadline-like it sounds:
 | `by Monday` … `by Friday`, with or without `this`/`next` | the **next** such weekday **strictly after** the sent date |
 | `by the end of the/this/next week` | the **Friday of the week the message was sent** |
 | `by the end of the/this/next month` | the **last day of the month the message was sent** |
-| `by <Month> <day>` (`by March 14`) | that date, **in the year the message was sent** |
+| `by <Month> <day>` (`by March 14`, `by March 14th`) | that date, **in the year the message was sent** |
 | `EOD`, `COB`, `end of day`, `close of business` | the **sent date itself** |
 | `within N days` / `within N business days`, where N is a digit or one of `a`, `two`, `three`, `five`, `ten` | the sent date **plus N calendar days** — `business` changes nothing |
 | `by tomorrow` | the **day after** the sent date |

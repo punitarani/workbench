@@ -1,7 +1,7 @@
 {
  "messages_read": 1585,
- "commitments_total": 388,
- "messages_with_commitment": 369,
+ "commitments_total": 400,
+ "messages_with_commitment": 374,
  "busiest_due_date": "2026-01-16",
  "top_made_to": "firm",
  "commitments": [
@@ -1959,6 +1959,20 @@
    "made_to": "Kestrel Manufacturing"
   },
   {
+   "ref": "msg-000044",
+   "due_date": "2026-03-31",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000044",
+   "due_date": "2026-04-15",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
    "ref": "msg-000046",
    "due_date": "2026-01-08",
    "author": "Hana Sato",
@@ -1978,6 +1992,20 @@
    "author": "Hana Sato",
    "sent_date": "2026-01-06",
    "made_to": "Ashfield Pension Trust"
+  },
+  {
+   "ref": "msg-000060",
+   "due_date": "2026-03-31",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000060",
+   "due_date": "2026-04-15",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
   },
   {
    "ref": "msg-000062",
@@ -2015,11 +2043,53 @@
    "made_to": "Shaw & Associates"
   },
   {
+   "ref": "msg-000068",
+   "due_date": "2026-03-31",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000068",
+   "due_date": "2026-04-15",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000069",
+   "due_date": "2026-03-31",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000069",
+   "due_date": "2026-04-15",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
    "ref": "msg-000071",
    "due_date": "2026-01-09",
    "author": "Hana Sato",
    "sent_date": "2026-01-06",
    "made_to": "the firm"
+  },
+  {
+   "ref": "msg-000073",
+   "due_date": "2026-03-31",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000073",
+   "due_date": "2026-04-15",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
   },
   {
    "ref": "msg-000080",
@@ -2162,6 +2232,13 @@
    "made_to": "Cardinal Ridge Builders"
   },
   {
+   "ref": "msg-000122",
+   "due_date": "2026-04-15",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-08",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
    "ref": "msg-000126",
    "due_date": "2026-01-09",
    "author": "Victor Alade",
@@ -2171,6 +2248,13 @@
   {
    "ref": "msg-000130",
    "due_date": "2026-01-08",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-08",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000130",
+   "due_date": "2026-04-15",
    "author": "Desmond Ortiz",
    "sent_date": "2026-01-08",
    "made_to": "Cardinal Ridge Builders"

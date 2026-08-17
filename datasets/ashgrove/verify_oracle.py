@@ -75,7 +75,7 @@ COMMITMENT_PATTERNS = (
     ("weekday", r"\bby (?:this |next |)(monday|tuesday|wednesday|thursday|friday)\b"),
     ("week", r"\bby the end of (?:the |this |next |)week\b"),
     ("month", r"\bby the end of (?:the |this |next |)month\b"),
-    ("date", rf"\bby ({'|'.join(_MONTHS)}) (\d{{1,2}})\b"),
+    ("date", rf"\bby ({'|'.join(_MONTHS)}) (\d{{1,2}})(?:st|nd|rd|th)?\b"),
     ("day", r"\b(?:eod|cob|end of day|close of business)\b"),
     ("within", r"\bwithin (\d+|a|two|three|five|ten) (?:business )?days?\b"),
     ("tomorrow", r"\bby tomorrow\b"),
