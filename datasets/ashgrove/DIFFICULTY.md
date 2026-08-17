@@ -147,6 +147,46 @@ model's two rollouts to 1.000 and 0.273 on which vocabulary each found.
 Fixing it means changing the persona prompt, which invalidates every
 cassette — so it waits until a re-record is being paid for anyway.
 
+## The one measurement that matters so far
+
+`commitment-register`, mail only, 189 rows, Opus 5, one trial:
+
+```
+  answer.commitments.f1             0.990   w5
+  answer.row_facts                  0.979   w6
+  answer.commitments_total          0.000   w1.5   <- 2 missed rows make the count wrong
+  everything else                   1.000
+  ------------------------------------------- 0.901
+```
+
+First well-formed task to come off the ceiling. Recall finally bites — no
+structured task has ever made this model miss a row — but 0.901 is not in
+band, so the pre-registered lever applies.
+
+**The lever: add chat.** Measured on the same world, keying a row on
+(message, due date) and naming the field `made_to` (the outside
+organisation for client mail, `the firm` for internal mail, the channel for
+Slack):
+
+```
+ROWS: 440   (mail only was 189)
+  made_to    distinct= 13  mode=38%
+  author     distinct= 27  mode=15%
+  sent_date  distinct= 10  mode=30%
+  due_date   distinct= 20  mode=22%
+```
+
+2.3× the rows and 4.7× the reading — 1,547 messages instead of 328 — with
+every field still healthy.
+
+**Do it carefully, not quickly.** Slack does not serve the world's internal
+ids. A message is addressed by `ts` (`"1768610400.000000"`) and its author
+is a Slack user id (`U00000025`) that must be resolved through
+`slack_read_user_profile`. Keying chat rows on `chm-000001` would repeat
+the `tkt-` mistake exactly — an answer key spelled in a vocabulary no tool
+emits. The row key must be `(channel, ts)`, and the author join becomes
+part of the work rather than an accident.
+
 ## Rules for tuning difficulty
 
 **Legitimate levers**: how much of the record a task covers, how many
