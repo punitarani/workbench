@@ -154,6 +154,65 @@ class TestDanglingReferencesBlock:
         assert any("doc-nope" in d for d in found.dangling)
 
 
+class TestMisbookedTime:
+    """A little is a firm; a lot is a world three tasks cannot be graded on.
+
+    Measured on two recordings of the same firm: the ten-day world booked
+    164 of one engagement's 200 entries to Kestrel 401(k) work on a
+    Northwind *software* diligence matter — 20.7% of all client time — while
+    the next recording, on the fixed engine, ran 0.8%. The threshold sits
+    between those, so the first is refused and the second is not.
+    """
+
+    def _world(self, tmp_path: Path, notes: list[str]) -> Path:
+        events = list(BASE)
+        events.append(_event(3, "org.record", {"org_id": "org-y",
+                                               "name": "Yarrow Freight",
+                                               "category": "client"}))
+        for index, note in enumerate(notes):
+            events.append(_event(4 + index, "work.time.logged", {
+                "person_id": "per-a", "ticket_id": "tkt-1", "minutes": 30,
+                "note": note, "rate_cents": 1000, "billable": True,
+            }))
+        return _write(tmp_path, events)
+
+    def test_notes_that_match_the_engagement_pass(self, tmp_path: Path) -> None:
+        world = self._world(tmp_path, ["Xenon Works audit fieldwork"] * 10)
+        found = check(load_world(world))
+        assert found.misbooked == 0
+        assert found.ok
+
+    def test_a_stray_entry_is_realism(self, tmp_path: Path) -> None:
+        notes = ["Xenon Works audit fieldwork"] * 39 + ["Yarrow Freight query"]
+        found = check(load_world(self._world(tmp_path, notes)))
+        assert found.misbooked == 1
+        assert found.misbooked_share == 0.025
+        assert found.ok, "one entry in forty is a firm, not a defect"
+
+    def test_an_engagement_full_of_another_client_blocks(
+        self, tmp_path: Path
+    ) -> None:
+        notes = ["Xenon Works audit"] * 4 + ["Yarrow Freight 401(k) census"] * 6
+        found = check(load_world(self._world(tmp_path, notes)))
+        assert found.misbooked == 6
+        assert not found.ok
+        assert "MISBOOKED" in found.report()
+
+    def test_a_note_naming_nobody_is_not_counted_against_it(
+        self, tmp_path: Path
+    ) -> None:
+        """Half the firm's notes name no client at all, and must not count.
+
+        Otherwise "Reviewed the engagement letter" would read as a
+        mis-booking and every world would fail.
+        """
+
+        notes = ["Reviewed the engagement letter"] * 9 + ["Yarrow Freight query"]
+        found = check(load_world(self._world(tmp_path, notes)))
+        assert found.misbooked == 1
+        assert found.time_entries == 10
+
+
 class TestAmbiguitiesAreMaterialNotDefects:
     def test_two_documents_sharing_a_title_do_not_block(self, tmp_path: Path) -> None:
         """The collision that capped a solver at 0.976 — and is now a task.

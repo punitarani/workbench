@@ -48,6 +48,10 @@ class Activity:
     minutes: int
     rate_cents: int | None
     billable: bool
+    # What the entry says it was for. The only place the *subject* of the
+    # work is written down, and so the only way to tell whether the
+    # engagement it was booked to is the one it belongs to.
+    note: str = ""
     # When the entry was logged. Clio dates an activity and never stamps an
     # hour on it, so anything graded off this must be counted in whole days
     # -- an answer keyed to the *moment* is one no agent could recover.
@@ -250,6 +254,7 @@ def load_world(path: Path) -> WorldFacts:
                             minutes=_int(payload.get("minutes")),
                             rate_cents=payload.get("rate_cents"),
                             billable=bool(payload.get("billable")),
+                            note=payload.get("note") or "",
                             at=when,
                         )
                     )

@@ -31,6 +31,14 @@ from dataclasses import dataclass, field
 
 from workbench.analysis.world_facts import WorldFacts
 
+# A firm really does mis-book time, so a few entries whose note names one
+# client while the engagement belongs to another are realism, not damage.
+# A seventh of the firm's day is something else. The ten-day world booked
+# 164 of one engagement's 200 entries to Kestrel work on a Northwind
+# software-diligence matter; the next recording, on the fixed engine, ran
+# 7 in 1,408. The threshold sits between those two facts.
+MISBOOKED_LIMIT = 0.05
+
 
 @dataclass
 class Coherence:
@@ -42,13 +50,31 @@ class Coherence:
     dangling: list[str] = field(default_factory=list)
     # Two things an agent could reasonably confuse. Reported, never failed.
     ambiguities: list[str] = field(default_factory=list)
+    # Time whose note names a client other than the engagement's own.
+    misbooked: int = 0
+    time_entries: int = 0
+
+    @property
+    def misbooked_share(self) -> float:
+        return self.misbooked / self.time_entries if self.time_entries else 0.0
 
     @property
     def ok(self) -> bool:
-        return not self.contradictions and not self.dangling
+        return (
+            not self.contradictions
+            and not self.dangling
+            and self.misbooked_share <= MISBOOKED_LIMIT
+        )
 
     def report(self) -> str:
         lines = []
+        if self.time_entries:
+            verdict = "MISBOOKED" if self.misbooked_share > MISBOOKED_LIMIT else "time"
+            lines.append(
+                f"  {verdict}: {self.misbooked} of {self.time_entries} entries "
+                f"({self.misbooked_share:.1%}) name a client the engagement "
+                "they are booked to does not belong to"
+            )
         for label, items in (
             ("CONTRADICTION", self.contradictions),
             ("DANGLING", self.dangling),
@@ -161,6 +187,36 @@ def _ambiguities(facts: WorldFacts, found: Coherence) -> None:
             found.ambiguities.append(f"{count} engagements display as {display!r}")
 
 
+def _misbooked_time(facts: WorldFacts, found: Coherence) -> None:
+    """Time whose note describes one client and whose engagement is another's.
+
+    A rough measure on purpose — it asks only whether some organisation's
+    first word appears in the note — but rough was enough. It reads 14% on
+    the ten-day world and 0.5% on the next one, and the gap between those
+    is a whole engagement's time being logged against the wrong client:
+    164 of the 200 entries on a Northwind software-diligence matter
+    describing a Kestrel 401(k) audit.
+
+    That is not a fussy point about tidiness. Three tasks report time by
+    engagement, and on a world like that the honest answer and the graded
+    answer are different answers.
+    """
+
+    if not facts.orgs:
+        return
+    leading = {name.split()[0].casefold(): name for name in facts.orgs.values()}
+    for activity in facts.activities:
+        ticket = facts.tickets.get(activity.ticket_id)
+        if ticket is None or ticket.client_ref is None:
+            # The firm's own projects have no client to contradict.
+            continue
+        found.time_entries += 1
+        note = (activity.note or "").casefold()
+        named = {name for word, name in leading.items() if word in note}
+        if named and facts.orgs.get(ticket.client_ref) not in named:
+            found.misbooked += 1
+
+
 def check(facts: WorldFacts) -> Coherence:
     """Read the world once and sort what it says into defect and material."""
 
@@ -168,5 +224,6 @@ def check(facts: WorldFacts) -> Coherence:
     _field_chains(facts, found)
     _dangling_references(facts, found)
     _revision_chains(facts, found)
+    _misbooked_time(facts, found)
     _ambiguities(facts, found)
     return found
