@@ -33,6 +33,7 @@ disagreement in front of them.
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from collections import Counter, defaultdict
@@ -48,17 +49,49 @@ def _trials(job: Path) -> list[Path]:
     )
 
 
-def _submitted(trial: Path) -> dict | None:
-    """What the agent wrote, if the verifier kept it."""
+def _deliverable(task: str) -> str | None:
+    """The file the grader actually reads, named in the task's own criteria."""
 
-    # Beside the score, written by test.sh as submitted-<name>.json.
+    grade = TASKS / task / "tests" / "answer" / "grade.py"
+    if not grade.is_file():
+        return None
+    match = re.search(r'^D\s*=\s*["\']([^"\']+)["\']', grade.read_text(), re.M)
+    return match.group(1) if match else None
+
+
+def _submitted(trial: Path, task: str | None = None) -> dict | None:
+    """What the agent wrote, if the verifier kept it.
+
+    The *deliverable*, not merely the first JSON file lying around. Agents
+    leave their working out: one glm-5.2 trial here shipped
+    `follow_through.json` beside `all_thread_ids.json` and six
+    `messages_part*.json` scratch files, and taking the alphabetically
+    first would have diffed the scratch pad against the oracle and called
+    the result a model failure.
+
+    Falling back to any dict-shaped file is still right when a task has no
+    `D =` line to read, but the named one always wins.
+    """
+
     root = trial / "verifier"
-    for path in sorted(root.glob("submitted-*.json")) if root.is_dir() else ():
+    if not root.is_dir():
+        return None
+    wanted = _deliverable(task) if task else None
+    candidates = sorted(root.glob("submitted-*.json"))
+    if wanted:
+        # `submitted-<name>` is how test.sh preserves it.
+        candidates.sort(key=lambda p: p.name != f"submitted-{wanted}")
+    for path in candidates:
         try:
             loaded = json.loads(path.read_text())
         except ValueError:
             continue
         if isinstance(loaded, dict):
+            if wanted and path.name != f"submitted-{wanted}":
+                print(
+                    f"    (note: {wanted} is absent; reading {path.name}, which "
+                    "is the agent's working file and not its answer)"
+                )
             return loaded
     return None
 
@@ -164,7 +197,7 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
             continue
         for name, value in misses:
             print(f"    {name} = {value:.3f}")
-        answer = _submitted(trial)
+        answer = _submitted(trial, task)
         if answer is None:
             print("    (the agent's answer was not preserved -- rerun with the "
                   "current test.sh, which copies it into /logs/artifacts)")
@@ -179,7 +212,7 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
             _diff_rows(answer.get(rows_field) or [], oracle[rows_field], key)
 
     if rows_field and key:
-        _stochastic(trials, oracle[rows_field], rows_field, key)
+        _stochastic(trials, oracle[rows_field], rows_field, key, task)
 
     print(
         "\nVerdict is yours. E if the evidence above shows the fact is not "
@@ -191,7 +224,8 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
 
 
 def _stochastic(
-    trials: list[Path], expected: list, rows_field: str, key: tuple[str, ...]
+    trials: list[Path], expected: list, rows_field: str,
+    key: tuple[str, ...], task: str,
 ) -> None:
     """Do independent trials miss the same rows? Then it is not the model.
 
@@ -216,7 +250,7 @@ def _stochastic(
     want = {tuple(str(r[k]).strip().casefold() for k in key) for r in expected}
     per_trial: list[tuple[str, frozenset, frozenset]] = []
     for trial in trials:
-        answer = _submitted(trial)
+        answer = _submitted(trial, task)
         if answer is None:
             continue
         got = set(_rows_of(answer, rows_field, key))

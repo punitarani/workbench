@@ -135,6 +135,34 @@ Above the band on the mean, so not a candidate. Kept because a task that
 lands 0.926 with two perfect trials is evidence the suite is fair, not
 evidence it is easy.
 
+### commitment-follow-through — 0.142 (0.000–0.308) — below band — all misses M
+
+Three trials, three shapes, and none of them shared:
+
+| trial | score | wrote `follow_through.json`? |
+|---|---|---|
+| 7iEkxvG | 0.308 | yes, beside 3 working files |
+| a5zTFwx | 0.118 | yes, beside 7 working files |
+| afUktz6 | 0.000 | **no** — only its scratch files |
+
+The best trial read 253 of 354 messages and found 71 of 155 commitments,
+with 91 missing and 7 invented. Two of the invented are the clearest M in
+the whole run: `msg-000108b` is not a message id in this record at all —
+the agent suffixed a real one — and no reachability question arises,
+because the thing it named does not exist.
+
+**The rows it missed close this morning's loop.** `msg-000044` carries
+*"Surety deadline: audited statements by April 15th"* and *"records ready
+by March 31st"*, and both rows are missing from glm-5.2's answer. Those
+are the same two dates — quarter end and the US tax deadline — that the
+broken oracle counted *against* Opus 5 as hallucinations. Corrected, they
+are now doing exactly the work they should: Opus 5 finds them, this tier
+does not.
+
+A defect that penalises the strong model and a real discriminator look
+identical in a score column. They diverge only on which way the error
+points.
+
 ## E-class: the bundle had been accumulating three worlds
 
 Found while building the first task graded on files rather than on a
