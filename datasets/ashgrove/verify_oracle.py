@@ -34,7 +34,7 @@ import json
 import re
 import statistics
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 from workbench.analysis.snapshot import status_on
@@ -860,6 +860,145 @@ def check_commitment_follow_through(facts: WorldFacts, oracle: dict) -> list[str
     return out
 
 
+_OPEN_STATUSES = frozenset(
+    {"open", "outstanding", "pending", "not started", "blocked"}
+)
+
+
+def check_workpaper_open_items(facts: WorldFacts, oracle: dict) -> list[str]:
+    """The working papers, read from the log instead of from the workbooks.
+
+    This is the one task in the suite whose answer is not in a database at
+    all: it is graded on nineteen rendered `.xlsx` files, and the solver
+    opens them with openpyxl. So the second derivation goes the other way
+    round — straight to the spreadsheet content the authors wrote, before
+    the materializer turned it into a workbook. A renderer that dropped a
+    row, shifted a header, or mangled a cell would show up here as a
+    disagreement rather than quietly becoming the answer key.
+
+    The workbook's *path* is not compared, for the same reason a Slack
+    `ts` is not: it is minted by the projection from the document's
+    filing, restating it here would copy the code under test, and it is
+    served verbatim so it cannot be a wrong answer. The facts attached to
+    it can, so those are compared as a multiset.
+    """
+
+    out: list[str] = []
+    mine: Counter[tuple] = Counter()
+    parsed_docs = skipped_docs = 0
+
+    for document in facts.documents.values():
+        if getattr(document, "content_format", None) != "spreadsheet":
+            continue
+        try:
+            book = json.loads(document.content)
+        except (ValueError, TypeError):
+            # Authors sometimes declare a workbook and write prose. The
+            # materializer writes those out as `.txt` instead, so they are
+            # not `.xlsx` files and contribute no rows — the same choice,
+            # reached independently.
+            skipped_docs += 1
+            continue
+        parsed_docs += 1
+        for sheet in book.get("sheets", []):
+            columns = [
+                str(name).strip() if name is not None else ""
+                for name in sheet.get("columns", [])
+            ]
+            if "Status" not in columns:
+                continue
+            at = {
+                field: columns.index(field) if field in columns else None
+                for field in ("Status", "Owner", "Due Date")
+            }
+
+            def cell(row: list, index: int | None) -> str:
+                if index is None or index >= len(row) or row[index] is None:
+                    return ""
+                value = row[index]
+                # A formula cell carries `{"kind": "formula", ...}` and
+                # renders as its expression, never as a status.
+                return "" if isinstance(value, dict) else str(value).strip()
+
+            # Row 1 of the rendered sheet is the header, so the first data
+            # row is 2 — derived from the content's own shape rather than
+            # read off a spreadsheet.
+            for number, row in enumerate(sheet.get("rows", []), start=2):
+                if not isinstance(row, list):
+                    continue
+                status = cell(row, at["Status"])
+                if status.casefold() not in _OPEN_STATUSES:
+                    continue
+                mine[
+                    (
+                        sheet.get("name"),
+                        number,
+                        status,
+                        cell(row, at["Owner"]),
+                        cell(row, at["Due Date"]),
+                    )
+                ] += 1
+
+    theirs: Counter[tuple] = Counter(
+        (
+            row["sheet"],
+            row["row"],
+            row["status"],
+            row["owner"],
+            row["due_date"],
+        )
+        for row in oracle["open_items"]
+    )
+    for key in sorted(set(mine) | set(theirs), key=str):
+        if mine[key] != theirs[key]:
+            out.append(
+                f"open_items{list(key)}: log counts {mine[key]}, "
+                f"oracle counts {theirs[key]}"
+            )
+
+    _cmp("open_items_total", sum(mine.values()), oracle["open_items_total"], out)
+    counts: dict[str, int] = defaultdict(int)
+    for key, many in mine.items():
+        counts[key[2]] += many
+    _cmp(
+        "top_status",
+        min(counts, key=lambda s: (-counts[s], s)) if counts else "",
+        oracle["top_status"],
+        out,
+    )
+    dues = sorted(
+        date
+        for date in (_as_calendar_date(key[4]) for key in mine.elements())
+        if date is not None
+    )
+    _cmp(
+        "earliest_due_date",
+        dues[0].isoformat() if dues else "",
+        oracle["earliest_due_date"],
+        out,
+    )
+    return out
+
+
+_US_DATE = re.compile(r"(\d{1,2})/(\d{1,2})/(\d{4})")
+
+
+def _as_calendar_date(value: str) -> datetime.date | None:
+    """`1/15/2025` and `2025-01-15` are the same day, and the papers hold both."""
+
+    if not value:
+        return None
+    try:
+        return datetime.date.fromisoformat(value)
+    except ValueError:
+        pass
+    match = _US_DATE.fullmatch(value)
+    if not match:
+        return None
+    month, day, year = (int(part) for part in match.groups())
+    return datetime.date(year, month, day)
+
+
 def check_open_items_triage(facts: WorldFacts, oracle: dict) -> list[str]:
     """Client threads whose last word is a question the firm has not answered.
 
@@ -1375,6 +1514,7 @@ CHECKS = {
     "approval-register": check_approval_register,
     "completion-claims": check_completion_claims,
     "commitment-follow-through": check_commitment_follow_through,
+    "workpaper-open-items": check_workpaper_open_items,
 }
 
 

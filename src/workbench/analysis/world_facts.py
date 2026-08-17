@@ -82,6 +82,13 @@ class Document:
     created_at: int
     # (revision, author) in log order; revision 1 is the creation.
     chain: list[tuple[int, str]] = field(default_factory=list)
+    # What the author actually wrote, at the head revision, and in which
+    # form. The materializer renders these into real office files — a
+    # `spreadsheet` becomes an `.xlsx` — and the working-papers task is
+    # graded on the rendered result, so a check that wants to verify the
+    # rendering has to be able to read the source.
+    content: str = ""
+    content_format: str = "markdown"
 
     @property
     def workspace(self) -> str:
@@ -293,6 +300,8 @@ def load_world(path: Path) -> WorldFacts:
                         path=payload.get("path", ""),
                         created_at=when,
                         chain=[(1, payload.get("author", ""))],
+                        content=payload.get("content", "") or "",
+                        content_format=payload.get("content_format", "markdown"),
                     )
                 case "document.revised":
                     document = facts.documents.get(payload["document_id"])
@@ -304,6 +313,11 @@ def load_world(path: Path) -> WorldFacts:
                         facts._comments.setdefault(
                             payload["document_id"], []
                         ).append(payload.get("change_summary") or "")
+                        # Head content wins: the file room serves the
+                        # latest version and that is what was rendered.
+                        # A revision never restates its format.
+                        if payload.get("content") is not None:
+                            document.content = payload["content"]
                         document.chain.append(
                             (
                                 _int(payload.get("revision"), 0),
