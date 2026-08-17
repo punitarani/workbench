@@ -1,16 +1,24 @@
 {
- "documents_total": 34,
- "reviewed_count": 0,
- "unreviewed_count": 34,
- "reached_client_count": 2,
- "never_attached_count": 32,
+ "documents_total": 52,
+ "reviewed_count": 15,
+ "unreviewed_count": 37,
+ "reached_client_count": 7,
+ "never_attached_count": 45,
  "documents": [
   {
-   "document": "2026 Tax Season \u2014 Engagement Status & Next Steps",
-   "workspace": "tax",
-   "author": "Victor Alade",
-   "versions": 2,
+   "document": "401(k) Plan Year 2025 Audit \u2014 Payroll Reconciliation Status",
+   "workspace": "engagements",
+   "author": "Rosalind Calder",
+   "versions": 1,
    "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Accounts Receivable Tie-Out and Aging Analysis \u2014 Kestrel Manufacturing 401(k) Plan Year 2025",
+   "workspace": "engagements",
+   "author": "Maya Lindqvist",
+   "versions": 3,
+   "reviewed": true,
    "reached_client": false
   },
   {
@@ -19,101 +27,213 @@
    "author": "Rosalind Calder",
    "versions": 1,
    "reviewed": false,
-   "reached_client": false
+   "reached_client": true
   },
   {
-   "document": "Audit Methodology Refresh \u2014 FY2026 Implementation Memo",
-   "workspace": "engagements",
+   "document": "Audit Engagement Status Summary \u2013 Week of January 13, 2025",
+   "workspace": "internal-notes",
    "author": "Hana Sato",
-   "versions": 2,
-   "reviewed": false,
-   "reached_client": false
+   "versions": 3,
+   "reviewed": true,
+   "reached_client": true
   },
   {
-   "document": "FY2025 Quarterly Payroll & Employment Tax Filing Confirmation \u2014 Engagement Support",
-   "workspace": "payroll",
-   "author": "Sylvia Nakamura",
+   "document": "Audit Schedule & PBC Tracking \u2013 FY2025 Season",
+   "workspace": "engagements",
+   "author": "Imogen Carraway",
    "versions": 1,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Fairmount Community Foundation \u2014 FY2025 PBC Request List (Standard Template)",
+   "document": "Cardinal Ridge Builders \u2014 POC Testing Workpaper",
    "workspace": "engagements",
+   "author": "Desmond Ortiz",
+   "versions": 4,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Client Accounting & Advisory \u2014 Weekly Engagement Status & Priority Queue",
+   "workspace": "internal",
+   "author": "Elias Finch",
+   "versions": 2,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Client Accounting Close Check-In Preparation",
+   "workspace": "engagements",
+   "author": "Gabriel Fontes",
+   "versions": 4,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "Engagement Status & Billing Summary \u2014 Week of January 20, 2025",
+   "workspace": "firm",
+   "author": "Owen Castile",
+   "versions": 3,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Engagement Status & Calendar Coordination \u2013 Week of Current Date",
+   "workspace": "internal",
+   "author": "Freya Holt",
+   "versions": 2,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "Engagement Status & Calendar Sync \u2014 Week of Dec 16",
+   "workspace": "internal",
    "author": "Freya Holt",
    "versions": 1,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Fairmount Community Foundation \u2014 FY2025 Single Audit PBC Request",
-   "workspace": "engagements",
-   "author": "Lucia Mendes",
+   "document": "Engagement Status & Next Steps",
+   "workspace": "internal",
+   "author": "Freya Holt",
    "versions": 1,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Fairmount Community Foundation \u2014 FY2025 Single Audit Planning Memo",
+   "document": "Engagement Status & Next Steps \u2014 Week of 12/16",
    "workspace": "engagements",
-   "author": "Rosalind Calder",
+   "author": "Freya Holt",
+   "versions": 4,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "Engagement Status & Next Week Priorities",
+   "workspace": "internal",
+   "author": "Freya Holt",
+   "versions": 8,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "Engagement Status & Priority Queue \u2014 Week of 12/16",
+   "workspace": "engagements",
+   "author": "Victor Alade",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Engagement Status Dashboard \u2014 Week of 14 January 2025",
+   "workspace": "internal",
+   "author": "Freya Holt",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "FY2025 Audit Calendar & PBC Schedule",
+   "workspace": "engagements",
+   "author": "Imogen Carraway",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "FY2025 Audit Calendar & Resource Plan",
+   "workspace": "engagements",
+   "author": "Imogen Carraway",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": true
+  },
+  {
+   "document": "Fairmount Community Foundation \u2014 FY2025 Accounts Receivable Tie-Out and Aging Schedule",
+   "workspace": "engagements",
+   "author": "Colin Mackey",
+   "versions": 3,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Harbor Light Distribution \u2014 Cash and Accounts Receivable Tie-Out Testing",
+   "workspace": "engagements",
+   "author": "Priscilla Wong",
+   "versions": 4,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "Harbor Light Distribution \u2014 FY2025 Audit PBC Tracker",
+   "workspace": "engagements",
+   "author": "Theo Brandt",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Harbor Light Distribution \u2014 FY2025 Audit Program: Cash and Cash Equivalents",
+   "workspace": "engagements",
+   "author": "Priscilla Wong",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Harbor Light Distribution \u2014 FY2025 Audit | PBC Tracker & Status Summary",
+   "workspace": "engagements",
+   "author": "Theo Brandt",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Harbor Light Distribution \u2014 FY2025 Audit \u2014 Accounts Receivable Tie-Out and Cutoff Testing",
+   "workspace": "engagements",
+   "author": "Priscilla Wong",
    "versions": 2,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Fairmount Community Foundation \u2014 FY2025 Single Audit Testing Workpaper",
+   "document": "Harbor Light Distribution \u2014 October 2025 Accounts Receivable Detail Testing",
    "workspace": "engagements",
-   "author": "Nadia Osman",
-   "versions": 9,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Fairmount Community Foundation \u2014 Single Audit PBC Request List",
-   "workspace": "engagements",
-   "author": "Maya Lindqvist",
+   "author": "Priscilla Wong",
    "versions": 1,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Harbor Light Distribution \u2014 FY2025 Audit Close-Out Memo",
-   "workspace": "tkt-000007",
-   "author": "Desmond Ortiz",
-   "versions": 1,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Harbor Light Distribution \u2014 FY2025 PBC Tracker (updated)",
+   "document": "Harbor Light Distribution \u2014 PBC Tracker & Testing Status",
    "workspace": "engagements",
    "author": "Theo Brandt",
-   "versions": 5,
+   "versions": 2,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Harbor Light Distribution \u2014 FY2025 Testing Workpaper \u2014 Payroll & Lease/Purchase Tie-Out",
-   "workspace": "engagements",
-   "author": "Priscilla Wong",
-   "versions": 9,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Harbor Light Distribution \u2014 Revenue Cutoff Tie-Out (FY2025)",
-   "workspace": "engagements",
-   "author": "Priscilla Wong",
-   "versions": 1,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "IT Access Review \u2014 FY2025 Audit Engagements",
-   "workspace": "it",
+   "document": "IT Access & Systems Status \u2014 Week of Jan 13",
+   "workspace": "internal",
    "author": "Raj Malhotra",
    "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "IT Help Queue Triage \u2014 Daily Ticket Summary",
+   "workspace": "internal",
+   "author": "Raj Malhotra",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "IT Systems Status & Portal Access Audit",
+   "workspace": "engagements",
+   "author": "Raj Malhotra",
+   "versions": 2,
    "reviewed": false,
    "reached_client": false
   },
@@ -121,110 +241,118 @@
    "document": "Independence & Quality Management Policy",
    "workspace": "firm",
    "author": "Imogen Carraway",
+   "versions": 2,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "K-1 Partnership Returns \u2014 FY2025 Preparation Checklist",
+   "workspace": "engagements",
+   "author": "Lucia Mendes",
+   "versions": 2,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "K-1 Partnership Returns \u2014 FY2025 Preparation Checklist",
+   "workspace": "engagements",
+   "author": "Lucia Mendes",
    "versions": 1,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Kestrel 401(k) Plan Year 2025 \u2014 Lease/Purchase Confirmation Tie-Out",
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 - Audit Tie-Out",
    "workspace": "engagements",
-   "author": "Maya Lindqvist",
-   "versions": 9,
+   "author": "Nadia Osman",
+   "versions": 1,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Kestrel 401(k) \u2014 Tie-out & Corrections Status",
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 Payroll Data Reconciliation",
    "workspace": "engagements",
-   "author": "Owen Castile",
+   "author": "Sylvia Nakamura",
+   "versions": 2,
+   "reviewed": false,
+   "reached_client": true
+  },
+  {
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2013 Payroll Reconciliation & Census Tie-Out",
+   "workspace": "engagements",
+   "author": "Sylvia Nakamura",
+   "versions": 2,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Audit Preparation Checklist",
+   "workspace": "engagements",
+   "author": "Nadia Osman",
+   "versions": 7,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Audit Testing Workpaper Index",
+   "workspace": "engagements",
+   "author": "Maya Lindqvist",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Audit Tie-Out Schedule",
+   "workspace": "engagements",
+   "author": "Elias Finch",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Payroll Reconciliation Workpaper",
+   "workspace": "engagements",
+   "author": "Maya Lindqvist",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Kestrel Manufacturing 401(k) Plan Year 2025 \u2014 Tie-Out Schedule",
+   "workspace": "engagements",
+   "author": "Colin Mackey",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Kestrel Manufacturing 401(k) \u2014 Plan Year 2025 Audit Tie-Out",
+   "workspace": "engagements",
+   "author": "Maya Lindqvist",
+   "versions": 1,
+   "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Kestrel Manufacturing 401(k) \u2014 Plan Year 2025 Audit Tie-Out",
+   "workspace": "engagements",
+   "author": "Maya Lindqvist",
+   "versions": 4,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "Kestrel Manufacturing 401(k) \u2014 Plan Year 2025 Audit Tie-Out",
+   "workspace": "engagements",
+   "author": "Maya Lindqvist",
    "versions": 3,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Kestrel Manufacturing 401(k) \u2014 2025 Census Correction Tracker",
+   "document": "Monthly Close Status & Next Steps",
    "workspace": "engagements",
    "author": "Gabriel Fontes",
-   "versions": 4,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Kestrel Manufacturing 401(k) \u2014 FY2025 Audit Fee Estimate & Billing Schedule",
-   "workspace": "billing",
-   "author": "Owen Castile",
-   "versions": 1,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Kestrel Manufacturing 401(k) \u2014 FY2025 Plan Year Audit \u2014 Payroll & Census Testing Status",
-   "workspace": "tkt-000004",
-   "author": "Raj Malhotra",
-   "versions": 4,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Kestrel Manufacturing 401(k) \u2014 Lease/Purchase Confirmation and IT Access Review Tie-Out",
-   "workspace": "engagements",
-   "author": "Colin Mackey",
-   "versions": 9,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Kestrel Manufacturing 401(k) \u2014 Payroll & Lease/Purchase Confirmation Follow-Up",
-   "workspace": "tkt-000004",
-   "author": "Freya Holt",
-   "versions": 9,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Kestrel Manufacturing 401(k) \u2014 Plan Year 2025 Audit Status and Open Items",
-   "workspace": "engagements",
-   "author": "Lucia Mendes",
-   "versions": 4,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Kestrel Manufacturing 401(k) \u2014 Plan Year 2025 Audit \u2014 Status Memo",
-   "workspace": "engagements",
-   "author": "Gabriel Fontes",
-   "versions": 1,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Kestrel Manufacturing 401(k) \u2014 Plan Year 2025 Lease/Purchase Assessment Memo",
-   "workspace": "engagements",
-   "author": "Desmond Ortiz",
-   "versions": 4,
-   "reviewed": false,
-   "reached_client": true
-  },
-  {
-   "document": "Kestrel Manufacturing \u2014 Deferred Tax & EBITDA Open Item Resolution",
-   "workspace": "engagements",
-   "author": "Elias Finch",
-   "versions": 1,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Kestrel Manufacturing \u2014 Deferred Tax and EBITDA Confirmation",
-   "workspace": "engagements",
-   "author": "Elias Finch",
-   "versions": 1,
-   "reviewed": false,
-   "reached_client": false
-  },
-  {
-   "document": "Meridian Family Health \u2014 FY2025 Review Planning Memo",
-   "workspace": "engagements",
-   "author": "Colin Mackey",
    "versions": 1,
    "reviewed": false,
    "reached_client": false
@@ -235,21 +363,21 @@
    "author": "Hana Sato",
    "versions": 1,
    "reviewed": false,
-   "reached_client": false
+   "reached_client": true
   },
   {
-   "document": "PBC Request \u2014 Fairmount Community Foundation (FY2025 Single Audit)",
+   "document": "Riverbend Cleanup \u2014 Environmental Remediation Costs Reconciliation",
    "workspace": "engagements",
-   "author": "Nadia Osman",
-   "versions": 1,
+   "author": "Colin Mackey",
+   "versions": 3,
    "reviewed": false,
    "reached_client": false
   },
   {
-   "document": "Payroll and Withholding Confirmation Memo \u2014 Quarterly Filings Status",
-   "workspace": "payroll",
-   "author": "Sylvia Nakamura",
-   "versions": 4,
+   "document": "Riverbend Cleanup \u2014 POC Reconciliation and Testing Workpaper",
+   "workspace": "engagements",
+   "author": "Colin Mackey",
+   "versions": 1,
    "reviewed": false,
    "reached_client": false
   },
@@ -257,24 +385,40 @@
    "document": "Single Audit Playbook",
    "workspace": "firm",
    "author": "Imogen Carraway",
-   "versions": 4,
-   "reviewed": false,
+   "versions": 5,
+   "reviewed": true,
    "reached_client": true
-  },
-  {
-   "document": "Single Audit Playbook",
-   "workspace": "engagements",
-   "author": "Victor Alade",
-   "versions": 1,
-   "reviewed": false,
-   "reached_client": false
   },
   {
    "document": "Standard Rate Sheet 2026",
    "workspace": "firm",
    "author": "Theo Brandt",
-   "versions": 1,
+   "versions": 5,
+   "reviewed": true,
+   "reached_client": true
+  },
+  {
+   "document": "Stonebridge Property Group \u2014 FY2025 Audit: K-1 Partnership Returns Preparation",
+   "workspace": "engagements",
+   "author": "Lucia Mendes",
+   "versions": 2,
    "reviewed": false,
+   "reached_client": false
+  },
+  {
+   "document": "Tax Desk Huddle \u2013 Daily Triage",
+   "workspace": "internal",
+   "author": "Rosalind Calder",
+   "versions": 2,
+   "reviewed": true,
+   "reached_client": false
+  },
+  {
+   "document": "Tax Engagement Status & Priority Queue \u2013 Week of January 13",
+   "workspace": "engagements",
+   "author": "Victor Alade",
+   "versions": 2,
+   "reviewed": true,
    "reached_client": false
   }
  ]

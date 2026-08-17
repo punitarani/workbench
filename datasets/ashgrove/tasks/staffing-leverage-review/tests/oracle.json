@@ -1,115 +1,115 @@
 {
  "engagements_reviewed": 10,
- "firm_leverage_ratio": 1.47,
+ "firm_leverage_ratio": 1.45,
  "over_supervised": [
   "00001-FairmountCommunityFoundation",
   "00002-FairmountCommunityFoundation",
   "00003-RivergateHousingTrust",
-  "00004-KestrelManufacturing",
   "00005-CardinalRidgeBuilders",
   "00006-NorthwindSoftware",
+  "00008-MeridianFamilyHealth",
   "00010-AshfieldPensionTrust"
  ],
  "engagements": [
   {
    "engagement": "00001-FairmountCommunityFoundation",
-   "partner_hours": 12.03,
-   "manager_hours": 17.57,
-   "senior_hours": 13.53,
-   "staff_hours": 23.52,
-   "support_hours": 13.45,
-   "leverage_ratio": 1.25,
-   "review_share_pct": 44.4
+   "partner_hours": 36.83,
+   "manager_hours": 39.47,
+   "senior_hours": 29.92,
+   "staff_hours": 49.72,
+   "support_hours": 10.37,
+   "leverage_ratio": 1.04,
+   "review_share_pct": 48.9
   },
   {
    "engagement": "00002-FairmountCommunityFoundation",
-   "partner_hours": 15.27,
-   "manager_hours": 10.85,
-   "senior_hours": 12.38,
-   "staff_hours": 20.05,
-   "support_hours": 6.93,
-   "leverage_ratio": 1.24,
-   "review_share_pct": 44.6
+   "partner_hours": 6.77,
+   "manager_hours": 8.15,
+   "senior_hours": 2.13,
+   "staff_hours": 4.43,
+   "support_hours": 1.7,
+   "leverage_ratio": 0.44,
+   "review_share_pct": 69.4
   },
   {
    "engagement": "00003-RivergateHousingTrust",
-   "partner_hours": 6.95,
-   "manager_hours": 12.87,
-   "senior_hours": 9.75,
-   "staff_hours": 18.67,
-   "support_hours": 9.28,
-   "leverage_ratio": 1.43,
-   "review_share_pct": 41.1
+   "partner_hours": 25.02,
+   "manager_hours": 28.37,
+   "senior_hours": 27.55,
+   "staff_hours": 51.23,
+   "support_hours": 14.2,
+   "leverage_ratio": 1.48,
+   "review_share_pct": 40.4
   },
   {
    "engagement": "00004-KestrelManufacturing",
-   "partner_hours": 13.33,
-   "manager_hours": 12.15,
-   "senior_hours": 9.8,
-   "staff_hours": 24.73,
-   "support_hours": 7.75,
-   "leverage_ratio": 1.36,
-   "review_share_pct": 42.5
+   "partner_hours": 24.4,
+   "manager_hours": 19.25,
+   "senior_hours": 24.0,
+   "staff_hours": 69.27,
+   "support_hours": 11.5,
+   "leverage_ratio": 2.14,
+   "review_share_pct": 31.9
   },
   {
    "engagement": "00005-CardinalRidgeBuilders",
-   "partner_hours": 3.92,
-   "manager_hours": 2.13,
-   "senior_hours": 7.17,
-   "staff_hours": 1.33,
-   "support_hours": 1.17,
-   "leverage_ratio": 1.4,
-   "review_share_pct": 41.6
+   "partner_hours": 6.52,
+   "manager_hours": 5.67,
+   "senior_hours": 12.65,
+   "staff_hours": 1.83,
+   "support_hours": 1.6,
+   "leverage_ratio": 1.19,
+   "review_share_pct": 45.7
   },
   {
    "engagement": "00006-NorthwindSoftware",
-   "partner_hours": 25.7,
-   "manager_hours": 30.58,
-   "senior_hours": 33.82,
-   "staff_hours": 44.22,
-   "support_hours": 19.5,
-   "leverage_ratio": 1.39,
-   "review_share_pct": 41.9
+   "partner_hours": 14.92,
+   "manager_hours": 13.57,
+   "senior_hours": 2.75,
+   "staff_hours": 4.03,
+   "support_hours": 9.2,
+   "leverage_ratio": 0.24,
+   "review_share_pct": 80.8
   },
   {
    "engagement": "00007-HarborLightDistribution",
-   "partner_hours": 10.5,
-   "manager_hours": 15.73,
-   "senior_hours": 29.03,
-   "staff_hours": 23.13,
-   "support_hours": 3.12,
-   "leverage_ratio": 1.99,
-   "review_share_pct": 33.5
+   "partner_hours": 18.12,
+   "manager_hours": 22.47,
+   "senior_hours": 44.22,
+   "staff_hours": 58.87,
+   "support_hours": 5.63,
+   "leverage_ratio": 2.54,
+   "review_share_pct": 28.2
   },
   {
    "engagement": "00008-MeridianFamilyHealth",
-   "partner_hours": 3.7,
-   "manager_hours": 2.5,
-   "senior_hours": 0.75,
-   "staff_hours": 8.83,
-   "support_hours": 1.45,
-   "leverage_ratio": 1.55,
-   "review_share_pct": 39.3
+   "partner_hours": 0.5,
+   "manager_hours": 4.42,
+   "senior_hours": 0.88,
+   "staff_hours": 5.08,
+   "support_hours": 0.32,
+   "leverage_ratio": 1.21,
+   "review_share_pct": 45.2
   },
   {
    "engagement": "00009-StonebridgePropertyGroup",
-   "partner_hours": 4.3,
-   "manager_hours": 0.33,
-   "senior_hours": 8.73,
-   "staff_hours": 10.98,
-   "support_hours": 2.75,
-   "leverage_ratio": 4.26,
-   "review_share_pct": 19.0
+   "partner_hours": 7.37,
+   "manager_hours": 10.58,
+   "senior_hours": 23.08,
+   "staff_hours": 18.45,
+   "support_hours": 5.28,
+   "leverage_ratio": 2.31,
+   "review_share_pct": 30.2
   },
   {
    "engagement": "00010-AshfieldPensionTrust",
-   "partner_hours": 5.17,
-   "manager_hours": 1.13,
-   "senior_hours": 1.0,
-   "staff_hours": 1.42,
-   "support_hours": 0.58,
-   "leverage_ratio": 0.38,
-   "review_share_pct": 72.3
+   "partner_hours": 11.37,
+   "manager_hours": 8.05,
+   "senior_hours": 12.88,
+   "staff_hours": 9.12,
+   "support_hours": 1.87,
+   "leverage_ratio": 1.13,
+   "review_share_pct": 46.9
   }
  ]
 }

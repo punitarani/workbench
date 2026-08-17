@@ -1,35 +1,35 @@
 {
- "threads_reviewed": 47,
+ "threads_reviewed": 49,
  "awaiting_firm_count": 4,
- "closed_by_client_courtesy": 5,
+ "closed_by_client_courtesy": 1,
  "awaiting_firm": [
   {
-   "thread_id": "thr-000011",
-   "message_id": "msg-000054",
-   "client": "Harriet Vance",
-   "subject": "Audit timeline for March board meeting",
-   "messages_in_thread": 1
+   "thread_id": "thr-000022",
+   "message_id": "msg-000151",
+   "client": "Tomas Lindgren",
+   "subject": "Inventory Count Date \u2013 Confirmations on Warehouse Readiness",
+   "messages_in_thread": 4
   },
   {
-   "thread_id": "thr-000040",
-   "message_id": "msg-000286",
-   "client": "Harriet Vance",
-   "subject": "Audited statements \u2014 timing for the bank",
-   "messages_in_thread": 11
+   "thread_id": "thr-000025",
+   "message_id": "msg-000263",
+   "client": "Desmond Blakely",
+   "subject": "Schedule of Expenditures \u2013 Audit Timing \u2013 Friday Delivery Confirmed",
+   "messages_in_thread": 6
   },
   {
-   "thread_id": "thr-000045",
-   "message_id": "msg-000304",
-   "client": "Lucia Arroyo",
-   "subject": "Refreshing the internal controls memo",
-   "messages_in_thread": 1
+   "thread_id": "thr-000047",
+   "message_id": "msg-000332",
+   "client": "Idris Mensah",
+   "subject": "Surety Audit Timeline \u2013 Confirmed for Friday",
+   "messages_in_thread": 3
   },
   {
-   "thread_id": "thr-000049",
-   "message_id": "msg-000331",
+   "thread_id": "thr-000048",
+   "message_id": "msg-000345",
    "client": "Harriet Vance",
-   "subject": "Audited statements timeline for the bank \u2013 final commitment sent",
-   "messages_in_thread": 7
+   "subject": "Grant Ledger Reconciling Item \u2013 Confirming Thursday Delivery",
+   "messages_in_thread": 3
   }
  ]
 }

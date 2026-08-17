@@ -20,6 +20,8 @@ broken task, and this is the gate that says so before it is ever run.
 import asyncio
 import json
 import re
+import shutil
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -200,9 +202,41 @@ async def _served(state_dir: Path) -> set[str]:
 
 
 def served_vocabulary(state_dir: Path) -> set[str]:
-    """Every string an agent can obtain from the tools without knowing an id."""
+    """Every string an agent can obtain from the tools without knowing an id.
 
-    return asyncio.run(_served(state_dir))
+    Cached per state directory and per state mtime. The crawl follows four
+    hundred candidates through every read tool on five surfaces, sixty pages
+    deep, and a build asks the same question once per task — ten identical
+    crawls of one unchanging bundle. The mtime is in the key so a rebuilt
+    bundle is never answered from a stale one.
+    """
+
+    fingerprint = (
+        str(state_dir.resolve()),
+        tuple(
+            sorted(
+                (path.name, path.stat().st_mtime_ns)
+                for path in state_dir.glob("*.db")
+            )
+        ),
+    )
+    if fingerprint not in _VOCABULARY:
+        _VOCABULARY.clear()
+        # Crawled on a copy, because reading this world writes to it.
+        # iManage keeps an access log and every tool call appends a row to
+        # it -- a real feature of the product, and the reason the staged
+        # bundle carried 2,280 file accesses that no person at the firm
+        # ever made. The gate's own contract is that measuring a world must
+        # not change it, and on the original it was breaking that contract
+        # and defeating this cache in the same stroke.
+        with tempfile.TemporaryDirectory() as scratch:
+            mirror = Path(scratch) / "state"
+            shutil.copytree(state_dir, mirror)
+            _VOCABULARY[fingerprint] = asyncio.run(_served(mirror))
+    return _VOCABULARY[fingerprint]
+
+
+_VOCABULARY: dict[tuple, set[str]] = {}
 
 
 def _identifiers(oracle: Any, into: set[str]) -> None:
