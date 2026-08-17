@@ -39,8 +39,19 @@ WORD_DAYS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
 # because the check that confirmed them used this same pattern.
 PATTERNS = (
     ("weekday", r"\bby (?:this |next |)(monday|tuesday|wednesday|thursday|friday)\b"),
-    ("week", r"\bby the end of (?:the |this |next |)week\b"),
-    ("month", r"\bby the end of (?:the |this |next |)month\b"),
+    # The firm writes "by end of week" 24 times and "by end of next week"
+    # 10 times; it writes "by the end of the week" once. A rule that
+    # required the articles admitted 1 of 35 end-of-week promises and
+    # called the other 34 hallucinations -- twice, identically, which is
+    # the tell for a task defect rather than a model one.
+    #
+    # No leading "by", for the same reason the day form does not require
+    # one: `end of day` and `close of business` have always matched bare,
+    # so `end of week` matching only after "by" was an inconsistency a
+    # careful reader would trip on rather than a distinction worth making.
+    # All three "end of X" families now behave alike.
+    ("week", r"\bend of (?:the |this |next )?week\b|\beow\b"),
+    ("month", r"\bend of (?:the |this |next )?month\b|\beom\b"),
     ("date", rf"\bby ({'|'.join(MONTHS)}) (\d{{1,2}})(?:st|nd|rd|th)?\b"),
     ("day", r"\b(?:eod|cob|end of day|close of business)\b"),
     ("within", r"\bwithin (\d+|a|two|three|five|ten) (?:business )?days?\b"),

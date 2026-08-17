@@ -40,13 +40,18 @@ fields:
 ## What counts as a commitment
 
 Exactly these seven forms, matched case-insensitively anywhere in a
-message body. Nothing else counts, however deadline-like it sounds:
+message body. The test is **textual, not editorial**, and it cuts both
+ways: nothing else counts however deadline-like it sounds, and everything
+that does count counts however little it reads like a promise. *"Harbor
+Light closes end of week"* is nobody's commitment to anything, and it goes
+in the register, because the words are there. Do not filter by whether
+someone was promising.
 
 | what appears in the text | when it falls due |
 |---|---|
 | `by Monday` … `by Friday`, with or without `this`/`next` | the **next** such weekday **strictly after** the sent date |
-| `by the end of the/this/next week` | the **Friday of the week the message was sent** |
-| `by the end of the/this/next month` | the **last day of the month the message was sent** |
+| `end of week` or `EOW`, with or without `by`, `the`, `this` or `next` | the **Friday of the week the message was sent** |
+| `end of month` or `EOM`, with or without `by`, `the`, `this` or `next` | the **last day of the month the message was sent** |
 | `by <Month> <day>` (`by March 14`, `by March 14th`) | that date, **in the year the message was sent** |
 | `EOD`, `COB`, `end of day`, `close of business` | the **sent date itself** |
 | `within N days` / `within N business days`, where N is a digit or one of `a`, `two`, `three`, `five`, `ten` | the sent date **plus N calendar days** — `business` changes nothing |

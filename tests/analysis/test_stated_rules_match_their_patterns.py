@@ -49,6 +49,10 @@ ACCEPTED = [
     "by the end of this week",
     "by the end of next week",
     "by the end of the month",
+    "by end of week",
+    "closing end of week",
+    "EOW",
+    "EOM",
     "EOD",
     "eod today",
     "COB Friday",
@@ -92,13 +96,30 @@ class TestTheCommitmentFormsAcceptTheirOwnPhrasings:
     @pytest.mark.parametrize(
         "text",
         [
+            # The rule as it was first written admitted only the first
+            # three. The corpus contains those once between them and the
+            # rest thirty-four times, so the register certified the firm's
+            # ordinary phrasing as a hallucination -- in two independent
+            # trials, identically, which is the tell.
             "by the end of the week",
             "by the end of this week",
             "by the end of next week",
+            "by end of week",
+            "by end of next week",
+            "closing end of week",
+            "End of next week (Friday, close of business)",
+            "Harbor Light and Ashfield EOW",
         ],
     )
     def test_every_qualifier_the_table_names(self, text: str) -> None:
         assert _matches("week", text), text
+
+    @pytest.mark.parametrize(
+        "text",
+        ["by the end of the month", "by end of month", "end of next month", "EOM"],
+    )
+    def test_the_month_form_the_same_way(self, text: str) -> None:
+        assert _matches("month", text), text
 
     @pytest.mark.parametrize(
         "text", ["EOD", "eod today", "COB Friday", "end of day", "close of business"]
@@ -131,7 +152,6 @@ class TestTheFormsStillRefuseWhatTheInstructionExcludes:
     @pytest.mark.parametrize(
         "text",
         [
-            "wrap end of week",          # EOW: no "by the end of"
             "queues early next week",
             "Wednesday 14:30 works",     # a meeting time, not "by Wednesday"
             "sometime in March",
@@ -160,7 +180,12 @@ class TestTheAdjudicatorsNetIsWiderThanTheRule:
     def test_the_net_is_wider_and_not_merely_equal(self) -> None:
         # If these stopped over-reporting the net would have narrowed to
         # the rule, and it would stop being a second opinion.
-        loose = ["sometime in March", "early next week", "wrap end of week", "asap"]
+        loose = [
+            "sometime in March",
+            "early next week",
+            "the report is due soon",
+            "asap",
+        ]
         for text in loose:
             assert NET.search(text), text
             assert not any(_matches(kind, text) for kind in BY_FORM), text

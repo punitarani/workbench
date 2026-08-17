@@ -45,7 +45,7 @@ NET = re.compile(
     r"""
       \bby\s+\w+                      # by Monday, by March, by then, by EOD
     | \bwithin\s+\w+                  # within five days, within the week
-    | \b(?:eod|cob|eow|asap)\b
+    | \b(?:eod|cob|eow|eom|asap)\b
     | \bend\s+of\b | \bclose\s+of\b
     | \b(?:today|tomorrow|tonight|monday|tuesday|wednesday|thursday|friday
         |saturday|sunday)\b

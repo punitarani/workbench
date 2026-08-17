@@ -30,8 +30,19 @@ from harbor_stage import stage  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 TASKS = Path(__file__).resolve().parent / "tasks"
-DEFAULT_LOG = REPO / "out" / "ashgrove" / "epoch" / "world.jsonl"
 SHARED_BUNDLE = REPO / "out" / "ashgrove" / "bundle"
+_SOURCE = SHARED_BUNDLE / "SOURCE"
+# The world the current bundle was built from, as the last build recorded
+# it. A fixed default here meant `--refresh-truth` re-derived every oracle
+# from `epoch/` while the bundle the tasks actually ship came from
+# `epoch-r12` — a fresh answer key against a stale world, and nothing in
+# the pipeline would have said so. The coherence gate happened to refuse
+# (the old world is 20.7% mis-booked), which is luck, not a check.
+DEFAULT_LOG = (
+    Path(_SOURCE.read_text().strip())
+    if _SOURCE.is_file()
+    else REPO / "out" / "ashgrove" / "epoch" / "world.jsonl"
+)
 # Day four of a fifteen-day world: late enough that every engagement has
 # moved and hours are on the board, early enough that most of them move
 # again afterwards. Measured at this cutoff the sheet carries 133 effort

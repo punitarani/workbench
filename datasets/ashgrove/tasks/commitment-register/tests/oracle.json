@@ -1,7 +1,7 @@
 {
  "messages_read": 1585,
- "commitments_total": 400,
- "messages_with_commitment": 374,
+ "commitments_total": 441,
+ "messages_with_commitment": 402,
  "busiest_due_date": "2026-01-16",
  "top_made_to": "firm",
  "commitments": [
@@ -16,6 +16,13 @@
    "ref": "1767659700.000000",
    "due_date": "2026-01-05",
    "author": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "made_to": "engagements"
+  },
+  {
+   "ref": "1767661500.000000",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
    "sent_date": "2026-01-05",
    "made_to": "engagements"
   },
@@ -153,6 +160,34 @@
    "made_to": "engagements"
   },
   {
+   "ref": "1767728100.000001",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "made_to": "assurance"
+  },
+  {
+   "ref": "1767728400.000000",
+   "due_date": "2026-01-09",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-06",
+   "made_to": "assurance"
+  },
+  {
+   "ref": "1767728400.000001",
+   "due_date": "2026-01-09",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-06",
+   "made_to": "assurance"
+  },
+  {
+   "ref": "1767728700.000000",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "made_to": "assurance"
+  },
+  {
    "ref": "1767729000.000000",
    "due_date": "2026-01-06",
    "author": "Freya Holt",
@@ -165,6 +200,13 @@
    "author": "Owen Castile",
    "sent_date": "2026-01-06",
    "made_to": "firm"
+  },
+  {
+   "ref": "1767731700.000003",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "made_to": "assurance"
   },
   {
    "ref": "1767735600.000001",
@@ -202,11 +244,32 @@
    "made_to": "engagements"
   },
   {
+   "ref": "1767742500.000000",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "made_to": "assurance"
+  },
+  {
+   "ref": "1767746100.000000",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "made_to": "assurance"
+  },
+  {
    "ref": "1767810900.000001",
    "due_date": "2026-01-07",
    "author": "Victor Alade",
    "sent_date": "2026-01-07",
    "made_to": "engagements"
+  },
+  {
+   "ref": "1767810900.000002",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-07",
+   "made_to": "assurance"
   },
   {
    "ref": "1767810900.000004",
@@ -221,6 +284,13 @@
    "author": "Owen Castile",
    "sent_date": "2026-01-07",
    "made_to": "engagements"
+  },
+  {
+   "ref": "1767811200.000001",
+   "due_date": "2026-01-09",
+   "author": "Freya Holt",
+   "sent_date": "2026-01-07",
+   "made_to": "assurance"
   },
   {
    "ref": "1767812700.000000",
@@ -265,6 +335,13 @@
    "made_to": "firm"
   },
   {
+   "ref": "1767818100.000001",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-07",
+   "made_to": "assurance"
+  },
+  {
    "ref": "1767818400.000001",
    "due_date": "2026-01-07",
    "author": "Colin Mackey",
@@ -305,6 +382,13 @@
    "author": "Colin Mackey",
    "sent_date": "2026-01-07",
    "made_to": "firm"
+  },
+  {
+   "ref": "1767820200.000003",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-07",
+   "made_to": "assurance"
   },
   {
    "ref": "1767822000.000002",
@@ -1959,6 +2043,20 @@
    "made_to": "Kestrel Manufacturing"
   },
   {
+   "ref": "msg-000042",
+   "due_date": "2026-01-09",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000044",
+   "due_date": "2026-01-09",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
    "ref": "msg-000044",
    "due_date": "2026-03-31",
    "author": "Idris Mensah",
@@ -1987,11 +2085,46 @@
    "made_to": "Kestrel Manufacturing"
   },
   {
+   "ref": "msg-000050",
+   "due_date": "2026-01-09",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-06",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000055",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000057",
+   "due_date": "2026-01-09",
+   "author": "Harriet Vance",
+   "sent_date": "2026-01-06",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
    "ref": "msg-000058",
    "due_date": "2026-01-09",
    "author": "Hana Sato",
    "sent_date": "2026-01-06",
    "made_to": "Ashfield Pension Trust"
+  },
+  {
+   "ref": "msg-000059",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000060",
+   "due_date": "2026-01-09",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
   },
   {
    "ref": "msg-000060",
@@ -2043,6 +2176,20 @@
    "made_to": "Shaw & Associates"
   },
   {
+   "ref": "msg-000067",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000068",
+   "due_date": "2026-01-09",
+   "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
    "ref": "msg-000068",
    "due_date": "2026-03-31",
    "author": "Desmond Ortiz",
@@ -2053,6 +2200,13 @@
    "ref": "msg-000068",
    "due_date": "2026-04-15",
    "author": "Desmond Ortiz",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000069",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
    "sent_date": "2026-01-06",
    "made_to": "Cardinal Ridge Builders"
   },
@@ -2079,6 +2233,13 @@
   },
   {
    "ref": "msg-000073",
+   "due_date": "2026-01-09",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-06",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000073",
    "due_date": "2026-03-31",
    "author": "Elias Finch",
    "sent_date": "2026-01-06",
@@ -2092,6 +2253,20 @@
    "made_to": "Cardinal Ridge Builders"
   },
   {
+   "ref": "msg-000074",
+   "due_date": "2026-01-09",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-07",
+   "made_to": "Shaw & Associates"
+  },
+  {
+   "ref": "msg-000077",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-07",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
    "ref": "msg-000080",
    "due_date": "2026-01-07",
    "author": "Victor Alade",
@@ -2101,6 +2276,13 @@
   {
    "ref": "msg-000082",
    "due_date": "2026-01-07",
+   "author": "Priya Raman",
+   "sent_date": "2026-01-07",
+   "made_to": "Northwind Software"
+  },
+  {
+   "ref": "msg-000082",
+   "due_date": "2026-01-09",
    "author": "Priya Raman",
    "sent_date": "2026-01-07",
    "made_to": "Northwind Software"
@@ -2136,6 +2318,13 @@
   {
    "ref": "msg-000095",
    "due_date": "2026-01-07",
+   "author": "Rosalind Calder",
+   "sent_date": "2026-01-07",
+   "made_to": "Shaw & Associates"
+  },
+  {
+   "ref": "msg-000095",
+   "due_date": "2026-01-09",
    "author": "Rosalind Calder",
    "sent_date": "2026-01-07",
    "made_to": "Shaw & Associates"
@@ -2345,8 +2534,22 @@
   },
   {
    "ref": "msg-000172",
+   "due_date": "2026-01-09",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-09",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000172",
    "due_date": "2026-01-16",
    "author": "Hana Sato",
+   "sent_date": "2026-01-09",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000173",
+   "due_date": "2026-01-09",
+   "author": "Harriet Vance",
    "sent_date": "2026-01-09",
    "made_to": "Fairmount Community Foundation"
   },
@@ -2407,11 +2610,25 @@
    "made_to": "Ashfield Pension Trust"
   },
   {
+   "ref": "msg-000187",
+   "due_date": "2026-01-16",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-12",
+   "made_to": "Ashfield Pension Trust"
+  },
+  {
    "ref": "msg-000188",
    "due_date": "2026-01-15",
    "author": "Sylvia Nakamura",
    "sent_date": "2026-01-12",
    "made_to": "Kestrel Manufacturing"
+  },
+  {
+   "ref": "msg-000189",
+   "due_date": "2026-01-16",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-12",
+   "made_to": "Ashfield Pension Trust"
   },
   {
    "ref": "msg-000191",
@@ -2421,9 +2638,30 @@
    "made_to": "Fairmount Community Foundation"
   },
   {
+   "ref": "msg-000191",
+   "due_date": "2026-01-16",
+   "author": "Hana Sato",
+   "sent_date": "2026-01-12",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
    "ref": "msg-000192",
    "due_date": "2026-01-12",
    "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000192",
+   "due_date": "2026-01-16",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "made_to": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000193",
+   "due_date": "2026-01-16",
+   "author": "Harriet Vance",
    "sent_date": "2026-01-12",
    "made_to": "Fairmount Community Foundation"
   },
@@ -2461,6 +2699,13 @@
    "author": "Victor Alade",
    "sent_date": "2026-01-12",
    "made_to": "Ashfield Pension Trust"
+  },
+  {
+   "ref": "msg-000202",
+   "due_date": "2026-01-16",
+   "author": "Imogen Carraway",
+   "sent_date": "2026-01-12",
+   "made_to": "Fairmount Community Foundation"
   },
   {
    "ref": "msg-000203",
@@ -2510,6 +2755,13 @@
    "author": "Maya Lindqvist",
    "sent_date": "2026-01-12",
    "made_to": "the firm"
+  },
+  {
+   "ref": "msg-000212",
+   "due_date": "2026-01-16",
+   "author": "Benedict Shaw",
+   "sent_date": "2026-01-12",
+   "made_to": "Shaw & Associates"
   },
   {
    "ref": "msg-000216",
@@ -2659,8 +2911,22 @@
    "made_to": "Ashfield Pension Trust"
   },
   {
+   "ref": "msg-000253",
+   "due_date": "2026-01-16",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "made_to": "Ashfield Pension Trust"
+  },
+  {
    "ref": "msg-000261",
    "due_date": "2026-01-13",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-13",
+   "made_to": "Ashfield Pension Trust"
+  },
+  {
+   "ref": "msg-000261",
+   "due_date": "2026-01-16",
    "author": "Victor Alade",
    "sent_date": "2026-01-13",
    "made_to": "Ashfield Pension Trust"
@@ -2687,6 +2953,13 @@
    "made_to": "Ashfield Pension Trust"
   },
   {
+   "ref": "msg-000264",
+   "due_date": "2026-01-16",
+   "author": "Victor Alade",
+   "sent_date": "2026-01-14",
+   "made_to": "Ashfield Pension Trust"
+  },
+  {
    "ref": "msg-000267",
    "due_date": "2026-01-17",
    "author": "Sylvia Nakamura",
@@ -2706,6 +2979,20 @@
    "author": "Imogen Carraway",
    "sent_date": "2026-01-14",
    "made_to": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000302",
+   "due_date": "2026-01-16",
+   "author": "Elias Finch",
+   "sent_date": "2026-01-15",
+   "made_to": "Cardinal Ridge Builders"
+  },
+  {
+   "ref": "msg-000303",
+   "due_date": "2026-01-16",
+   "author": "Idris Mensah",
+   "sent_date": "2026-01-15",
+   "made_to": "Cardinal Ridge Builders"
   },
   {
    "ref": "msg-000304",
