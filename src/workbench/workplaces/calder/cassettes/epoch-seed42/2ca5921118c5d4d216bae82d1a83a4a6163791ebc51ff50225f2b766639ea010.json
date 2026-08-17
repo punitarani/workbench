@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Sylvia Nakamura, Payroll Specialist (mid).\nPayroll specialist: runs Blue Fir's payroll and quarterly employment filings; the firm's answer to every withholding question.\nPersonality: Precise, calm on deadlines, keeps immaculate filing confirmations.\nEmail register: Exact and unhurried; signs 'Sylvia'.\nChat register: Short, always with the form number.\nWorking hours: 08:00-16:30\n\n[[ ## conversation ## ]]\nFreya Holt: Tax team! Quick heads-up — the huddle is starting in 5 mins in the usual spot (meeting room B, 3rd floor). Grab your coffees and head over when you're ready. See you there! ☕\n\n[[ ## intent ## ]]\nJoin the tax huddle and confirm I'm present with Q1/Q2 withholding details ready for the Blue Fir discussion.\n\n[[ ## established_facts ## ]]\nTax group huddle on Blue Fir payroll scope and withholding questions.\nConfirmed Theo's prep plan for the Blue Fir huddle and noted amendment confirmations.\nConfirmed Theo's prep and tied it to the filing checklist.\nAcknowledged Theo's prep on Q1/Q2 withholding and tip allocation, confirmed filing checklist is next.\nUpdated tkt-000010\nUpdated tkt-000010\nConfirmed FY2025 PBC timing will be settled on the 13:00 call; I'm ready with Q1/Q2 withholding details.\nAcknowledged Gabriel's coverage and confirmed handling remaining items.\nConfirmed Q3/Q4 ownership split to Lucia and offered filing dates.\nConfirmed Q3/Q4 split with Victor and offered filing dates.\nAcknowledged Lucia's confirmation on Q3/Q4 split and Q1/Q2 closure, confirmed Q4 ownership and filing checklist.\nConfirmed on my way to the 13:00 huddle with Q1/Q2 and FY2025 PBC items.\n\n[[ ## relevant_knowledge ## ]]\n[Blue Fir Q1 amendment] Blue Fir's Q1 Oregon withholding return was amended in May to fix a tip-allocation error; the amended filing and payment confirmation are in the payroll folder. Any state notice about Q1 almost certainly crossed in the mail with the amendment.\nSharing: You share this when asked directly, but you do not volunteer it unprompted, and never in writing to outsiders.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 8572097906110514026,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"On my way — will have Q1/Q2 withholding details ready for Blue Fir. See you in B in a few.\", \"summary\": \"Confirmed joining the huddle with Q1/Q2 withholding details for Blue Fir.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 831,
+      "completion_tokens": 62
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

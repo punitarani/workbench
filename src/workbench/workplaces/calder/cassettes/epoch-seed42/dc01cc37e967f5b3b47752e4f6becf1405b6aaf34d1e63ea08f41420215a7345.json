@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Dana Whitfield, Controller at Kestrel Manufacturing. Precise and numbers-fluent; expects the same back. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Dana Whitfield\nTo: Gabriel Fontes, Victor Alade\nSubject: Margin clarification needed before Thursday\n\nGabe, Victor –\n\nAhead of Thursday's board discussion, I need the gross margin figure for Q3 explained in plain terms. Specifically, the 41.2% we reported versus the 43.8% from Q2 – what drove the drop? I have my own numbers on COGS and pricing, but I want your read before I put this in front of the board.\n\nPlease send a short note (bullet points are fine) with the key drivers by Wednesday end of day. If you have a supporting schedule, attach it – I’ll pull what I need from that.\n\nThanks,\nDana\n\n---\n\nFrom: Gabriel Fontes\nTo: Dana Whitfield\nSubject: Re: Margin clarification needed before Thursday\n\nHi Dana,\n\nHere's the plain-English read on the Q3 gross margin drop from 43.8% to 41.2%:\n\n- Product mix shift: We sold a higher proportion of lower-margin items in Q3, pulling the blended rate down.\n- Freight and logistics costs were up about 1.1 points on higher fuel surcharges and expedited shipping for two customer orders.\n- One-time vendor rebate credit of roughly $18K was booked in June per our accrual policy (landed after the June statements cut), which flattered Q2's margin slightly. Excluding that, the underlying drop is closer to 2.0 points.\n- Pricing held steady; no broad discounting.\n\nI'm happy to walk through the full COGS bridge if helpful before Thursday.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Victor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 13962192582593886281,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"subject\": \"Re: Margin clarification needed before Thursday\",\n  \"body\": \"Gabe, Victor –\\n\\nThanks for the quick read, Gabe. That tracks with what I have on COGS, but I need one more piece before I finalize for the board. Can you confirm the dollar impact of the product mix shift versus the freight increase? I want to quantify each driver separately, not just points.\\n\\nAlso, if you have the COGS bridge schedule you mentioned, please attach it. I'll use that to build the board slide.\\n\\nNeed this by Wednesday EOD.\\n\\nDana\",\n  \"summary\": \"Requests quantified dollar impact of mix shift vs freight, and asks for the COGS bridge schedule attachment.\",\n  \"to\": [\"Gabriel Fontes\"],\n  \"cc\": [\"Victor Alade\"],\n  \"attachment_refs\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 914,
+      "completion_tokens": 195
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

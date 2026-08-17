@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Sana Qureshi, Founder & CEO at Loop & Ladder Software. Fast, technical, thinks in bullet points. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Sana Qureshi\nTo: Victor Alade\nSubject: R&D credit info for diligence\n\nVictor,\n\nQuick one — our investors have asked about the R&D credit in their diligence process. We haven't pursued it yet, and I want to make sure we have our facts straight.\n\nCan you confirm the following?\n\n1. Are we eligible based on our current engineering spend and software dev activities?\n2. What documentation do we need to have in place to support a claim?\n3. What's a realistic timeline to file if we move forward?\n\nHappy to jump on a call if that's easier. We're on a tight window, so any speed here helps.\n\nBest,\nSana\n\n---\n\nFrom: Victor Alade\nTo: Sana Qureshi\nSubject: Re: R&D credit info for diligence\n\nSana,\n\nGood questions. Here’s where we stand:\n\n1. Eligibility: Based on the engineering spend and software dev activities you described, you would very likely qualify for the federal R&D credit. The work appears to meet the four-part test (permitted purpose, technological uncertainty, process of experimentation, and technological in nature). I’d want to do a quick qualifying-activity scan to confirm, but the initial read is positive.\n\n2. Documentation: To support a claim, we’d need contemporaneous records showing:\n   - Project descriptions and objectives\n   - Time tracking by employee/contractor on qualifying activities\n   - Wage and contractor cost breakdowns\n   - Supply/consumable costs used in R&D\n   - Any notes, design docs, or test logs that evidence the experimentation process\n\n   If your current time records are incomplete, we can reconstruct them, but it takes longer and adds risk. Best to start capturing now.\n\n3. Timeline: If we move forward now, we can file an amended return (if prior years are open) or include it in the current year’s return. A typical study and filing runs 6–10 weeks from kickoff, depending on how clean your records are. If we need to reconstruct time, add 2–4 weeks.\n\nI’ve attached our standard PBC request template that lists exactly what we’d need to gather. Happy to hop on a call tomorrow morning if that helps — just send me a time.\n\nBest,\nV\n\n[[ ## contacts ## ]]\nVictor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 7703704544842149716,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"subject\": \"Re: R&D credit info for diligence\",\n  \"body\": \"Victor,\\n\\nThanks — that's exactly what I needed. \\n\\n- Appreciate the clarity on eligibility; let's assume we're moving forward.\\n- We'll start capturing time tracking this week; I'll have the team log qualifying activities per project.\\n- Can you send the PBC template over? I'll get the docs together ASAP.\\n- Timeline: 6–10 weeks works, but if we can compress to 4–6 by keeping records clean, that's better. Investors want an answer soon.\\n\\nLet's do a quick 15-min call tomorrow at 9 AM my time to kick off the scan — does that work?\\n\\nBest,\\nSana\",\n  \"summary\": \"Confirming next steps to pursue R&D credit, requesting PBC template, and scheduling a call to start the qualifying-activity scan.\",\n  \"to\": [\"Victor Alade\"],\n  \"cc\": [],\n  \"attachment_refs\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1042,
+      "completion_tokens": 232
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

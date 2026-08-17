@@ -135,6 +135,22 @@ trial that keeps the number and throws away the answer makes "why did it
 miss that row" a guess — which is the one thing that may not decide whether
 a miss is a model failure.
 
+## End-to-end, in one command
+
+`pipeline.py` chains audit → build → verify, each stage able to refuse the
+next, and it runs clean on r12 **without** `--refresh-truth` — so every
+solver reproduced its committed oracle byte for byte from a fresh
+materialization rather than rewriting it:
+
+```
+1. audit    validates=True, 8/8 realism gates
+2. build    coherence clean, 9 oracles verified, all reachable through the tools
+3. verify   9 of 9 re-derived from the world log, all agree
+```
+
+The only output is the degeneracy report on the four thin tasks, which is
+the check doing its job rather than a failure.
+
 ## Known gaps
 
 - Four tasks at ceiling. The options are in `DIFFICULTY.md`; the one that

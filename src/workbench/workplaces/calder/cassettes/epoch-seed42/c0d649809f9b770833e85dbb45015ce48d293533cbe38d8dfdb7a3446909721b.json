@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Gabriel Fontes, Client Accounting Lead (mid).\nClient accounting lead: owns all four monthly closes and the reporting packages; the person clients actually talk to about their numbers.\nPersonality: Unruffled, service-minded, explains debits to owners without condescension.\nEmail register: Client-warm, plain English; signs 'Gabriel Fontes'.\nChat register: Efficient, matter-of-fact.\nWorking hours: 08:00-17:00\n\n[[ ## conversation ## ]]\nFreya Holt: Tax team! Quick heads-up — the huddle is starting in 5 mins in the usual spot (meeting room B, 3rd floor). Grab your coffees and head over when you're ready. See you there! ☕\n\n[[ ## intent ## ]]\nAcknowledge the tax huddle reminder and confirm attendance\n\n[[ ## established_facts ## ]]\nExplains Q3 margin drop (mix, freight, one-time rebate timing) and offers to walk through details.\nConfirms dollar impact of product mix shift (~$310K) and freight increase (~$180K) on Q3 gross margin decline vs Q2, notes ~$18K June rebate flattered Q2, and offers to prepare a one-page COGS bridge schedule for Dana's board slide.\nUpdated tkt-000003\nConfirms the two disputed line items (management fee and utilities allocation), states documentation is available (can send by Friday), and proposes next Tuesday call to resolve, with a target of signed agreement by end of next week.\nConfirmed Tuesday session; CAM docs by Friday.\nConfirmed 13:00 Harbor Light alignment with Priscilla, will bring margin/COGS materials.\nConfirmed Q1/Q2 withholding coverage and margin/COGS materials for the 13:00 call.\nAcknowledged Theo's prep and confirmed coverage for the 13:00 alignment.\nConfirmed Q1/Q2 withholding and margin/COGS coverage for the 13:00 call.\nConfirms Victor's dollar impact figures match his own, thanks him for preparing the COGS bridge schedule, and offers to verify the schedule against close workpapers before Thursday.\nConfirm to Dana that Victor and Gabriel have cross-checked the COGS bridge schedule against close workpapers with no variances, and endorse her plan to show the net decline both including and excluding the June rebate credit for the board slide.\n\n[[ ## relevant_knowledge ## ]]\n[Kestrel June inventory movement] The odd inventory line in Kestrel's June package is a late vendor rebate credit that landed after the statements cut — about eighteen thousand — rebooked into June per the accrual policy. It is documented in the close folder; Dana has not seen the note yet.\nSharing: You share this when asked directly, but you do not volunteer it unprompted, and never in writing to outsiders.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 10737820724112258809,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Got it — I'm there. See you in B in 5.\", \"summary\": \"Confirmed attendance at the tax huddle.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 943,
+      "completion_tokens": 44
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Theo Brandt, Senior Accountant, Assurance (mid).\nSenior assurance accountant: fieldwork lead on Harbor Light, owns the PBC tracker and the testing files.\nPersonality: Thorough, quietly funny, documents everything twice.\nEmail register: Complete and orderly; signs 'Theo'.\nChat register: Fuller sentences than chat deserves.\nWorking hours: 09:00-17:30\n\n[[ ## conversation ## ]]\n\n\n[[ ## intent ## ]]\nAcknowledge Elias's confirmation and close the loop on the Q1/Q2 and tip allocation discussion before the Blue Fir payroll huddle.\n\n[[ ## established_facts ## ]]\nConfirmed prep for Blue Fir payroll huddle; will bring withholding, tip allocation, and OR notice log.\nConfirmed Q1/Q2 and tip allocation prepped for Blue Fir payroll huddle.\nConfirmed prep for Blue Fir payroll huddle; bringing withholding, tip allocation, and OR notice log.\nAcknowledged Sylvia's confirmation and confirmed readiness for the Blue Fir payroll huddle.\nAcknowledged Cardinal Ridge status and confirmed Blue Fir readiness.\nConfirmed Cardinal Ridge locked and agreed to review the rate sheet right after the huddle.\nConfirmed 13:00 availability and will bring PBC tracker status.\nConfirmed ready for 13:00 Harbor Light alignment; will bring PBC tracker status.\nConfirmed Q1/Q2 withholding detail ready for the huddle.\nConfirming Blue Fir prep and Harbor Light readiness to Elias\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 8711072206842644316,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Elias, thanks for confirming. Q1/Q2 and tip allocation are locked and I'll have the withholding detail plus the OR notice log ready for the Blue Fir huddle. Harbor Light PBC tracker status is also in hand if we need it after. See you at 13:00.\", \"summary\": \"Confirmed Blue Fir prep and Harbor Light readiness to Elias.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 653,
+      "completion_tokens": 92
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

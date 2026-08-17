@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day being planned\n3. `calendar_today` (str): meetings already on your calendar\n4. `yesterday` (str): yesterday's summary and open loops\n5. `relevant_memories` (str):\nYour output fields are:\n1. `plan` (DayPlanSpec):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## calendar_today ## ]]\n{calendar_today}\n\n[[ ## yesterday ## ]]\n{yesterday}\n\n[[ ## relevant_memories ## ]]\n{relevant_memories}\n\n[[ ## plan ## ]]\n{plan}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"PlanBlock\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"end\": {\"type\": \"integer\", \"exclusiveMinimum\": 0, \"maximum\": 86400, \"title\": \"End\"}, \"focus\": {\"type\": \"string\", \"title\": \"Focus\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"start\": {\"type\": \"integer\", \"exclusiveMaximum\": 86400, \"minimum\": 0, \"title\": \"Start\"}}, \"required\": [\"start\", \"end\", \"focus\"], \"title\": \"PlanBlock\"}}, \"additionalProperties\": false, \"description\": \"The day in time blocks: what gets focused attention and when.\", \"properties\": {\"blocks\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/PlanBlock\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Blocks\"}}, \"required\": [\"blocks\"], \"title\": \"DayPlanSpec\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Lay out your working day in two to six time blocks. Anchor blocks\n        to your real calendar first, then place the work your open items and\n        memories say matters most. Times are seconds since midnight inside\n        working hours; carry the exact world ids (thr-/tkt-/doc-) each block\n        concerns."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Nadia Osman, Staff Accountant (junior).\nStaff accountant, tax: preparation on Kestrel and the Summit owners, close support for Gabriel in the first week of the month.\nPersonality: Diligent, fast learner, asks good questions in DMs before asking them in channels.\nEmail register: Polite and to the point; signs 'Nadia'.\nChat register: Quick, cheerful, emoji-fluent.\nWorking hours: 08:30-17:30\n\n[[ ## day ## ]]\n2026-01-06\n\n[[ ## calendar_today ## ]]\nNothing scheduled.\n\n[[ ## yesterday ## ]]\nHarbor Light meeting scheduled for 13:00 with Priscilla, Theo, Hana, Desmond, Colin, Gabriel, and Imogen to d…\nCardinal Ridge tax prep locked in and confirmed solid by Theo; Rosalind and Desmond signed off on readiness\nQ1/Q2 withholding and tip allocation prep confirmed across team (Theo, Elias, Lucia, Gabriel, Desmond); mater…\nBlue Fir project prep completed by Theo; Elias confirmed solid work\nFY2025 PBC list timing to be settled during 13:00 Harbor Light call; Imogen coordinating with team on hold st…\nGabriel ready to cover Q1/Q2 withholding component; confirmed set for 13:00 call\n\n[[ ## relevant_memories ## ]]\n- [today | !3] Chat from per-sylvia-nakamura: Thanks Imogen — that tracks. I'll have…\n- [today | !3] Chat from per-imogen-carraway: Thanks Elias — that tracks. FY2025 PBC…\n- [today | !7] Gabriel ready to cover Q1/Q2 withholding component; confirmed set for 13:00 call\n- [today | !3] Chat from per-imogen-carraway: Thanks Hana — that works. We'll settle…\n- [today | !3] Chat from per-hana-sato: Thanks Imogen — noted on the FY2025 PBC list…\n- [today | !3] Chat from per-theo-brandt: Thanks Imogen — that all makes sense. I'll…\n- [today | !3] Chat from per-elias-finch: Thanks Imogen — good to know the FY2025 PB…\n- [today | !3] Chat from per-gabriel-fontes: Thanks Theo — that all tracks. I'm set …\n- [today | !3] Chat from per-elias-finch: Theo — thanks, that all tracks. Q1/Q2 and …\n- [today | !3] Chat from per-imogen-carraway: Morning all — quick note for the 13:00…\n- [today | !3] Chat from per-sylvia-nakamura: Thanks Theo — that covers it. Pull the…\n- [today | !8] Harbor Light meeting scheduled for 13:00 with Priscilla, Theo, Hana, Desmond, Colin, Gabriel, and Imogen to d…\n\nRespond with the corresponding output fields, starting with the field `[[ ## plan ## ]]` (must be formatted as a valid Python DayPlanSpec), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 16683699426949574207,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 30600,\n      \"end\": 39600,\n      \"focus\": \"Tax prep support and preparation materials\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 46800,\n      \"focus\": \"Review FY2025 PBC list and prep for Harbor Light call\",\n      \"refs\": []\n    },\n    {\n      \"start\": 46800,\n      \"end\": 47400,\n      \"focus\": \"Lunch break\",\n      \"refs\": []\n    },\n    {\n      \"start\": 47400,\n      \"end\": 48600,\n      \"focus\": \"Harbor Light meeting with team\",\n      \"refs\": []\n    },\n    {\n      \"start\": 48600,\n      \"end\": 62400,\n      \"focus\": \"Post-meeting follow-ups and Q1/Q2 withholding documentation\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1362,
+      "completion_tokens": 262
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

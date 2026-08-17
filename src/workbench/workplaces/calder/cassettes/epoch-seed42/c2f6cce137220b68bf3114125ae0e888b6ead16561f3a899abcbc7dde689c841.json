@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day being planned\n3. `calendar_today` (str): meetings already on your calendar\n4. `yesterday` (str): yesterday's summary and open loops\n5. `relevant_memories` (str):\nYour output fields are:\n1. `plan` (DayPlanSpec):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## calendar_today ## ]]\n{calendar_today}\n\n[[ ## yesterday ## ]]\n{yesterday}\n\n[[ ## relevant_memories ## ]]\n{relevant_memories}\n\n[[ ## plan ## ]]\n{plan}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"PlanBlock\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"end\": {\"type\": \"integer\", \"exclusiveMinimum\": 0, \"maximum\": 86400, \"title\": \"End\"}, \"focus\": {\"type\": \"string\", \"title\": \"Focus\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"start\": {\"type\": \"integer\", \"exclusiveMaximum\": 86400, \"minimum\": 0, \"title\": \"Start\"}}, \"required\": [\"start\", \"end\", \"focus\"], \"title\": \"PlanBlock\"}}, \"additionalProperties\": false, \"description\": \"The day in time blocks: what gets focused attention and when.\", \"properties\": {\"blocks\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/PlanBlock\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Blocks\"}}, \"required\": [\"blocks\"], \"title\": \"DayPlanSpec\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Lay out your working day in two to six time blocks. Anchor blocks\n        to your real calendar first, then place the work your open items and\n        memories say matters most. Times are seconds since midnight inside\n        working hours; carry the exact world ids (thr-/tkt-/doc-) each block\n        concerns."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Sylvia Nakamura, Payroll Specialist (mid).\nPayroll specialist: runs Blue Fir's payroll and quarterly employment filings; the firm's answer to every withholding question.\nPersonality: Precise, calm on deadlines, keeps immaculate filing confirmations.\nEmail register: Exact and unhurried; signs 'Sylvia'.\nChat register: Short, always with the form number.\nWorking hours: 08:00-16:30\n\n[[ ## day ## ]]\n2026-01-05\n\n[[ ## calendar_today ## ]]\nNothing scheduled.\n\n[[ ## yesterday ## ]]\nNo summary on file.\n\n[[ ## relevant_memories ## ]]\n- [today | !3] Chat from per-theo-brandt: Priscilla — just confirming I'm set for th…\n- [today | !3] Chat from per-priscilla-wong: Quick follow-up: for the 13:00 Harbor L…\n- [today | !3] Chat from per-hana-sato: Priscilla — I'll be on the 13:00 Harbor Ligh…\n- [today | !3] Chat from per-theo-brandt: Priscilla — yes, I'm good for the 13:00 Ha…\n- [today | !5] Chat from per-sylvia-nakamura: Thanks Theo — that covers it. Pull the…\n- [today | !3] Chat from per-priscilla-wong: Thanks Theo — I'll prep the Q1/Q2 detai…\n- [today | !3] Chat from per-priscilla-wong: Thanks Theo — works for me. I'll work o…\n- [today | !5] Chat from per-sylvia-nakamura: Thanks Theo — Q1/Q2 withholding and ti…\n- [today | !5] Chat from per-sylvia-nakamura: Thanks Theo — Q1/Q2 withholding and ti…\n- [today | !5] Chat from per-sylvia-nakamura: Morning all — quick huddle on Blue Fir…\n- [today | !3] Chat from per-priscilla-wong: Thanks Hana — noted. I'll have Q1/Q2 de…\n- [today | !3] Chat from per-elias-finch: Thanks Theo — solid work on the Blue Fir p…\n\nRespond with the corresponding output fields, starting with the field `[[ ## plan ## ]]` (must be formatted as a valid Python DayPlanSpec), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 1482815012995081855,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 28800,\n      \"end\": 32400,\n      \"focus\": \"Q1/Q2 withholding review and filing prep\",\n      \"refs\": [\"per-sylvia-nakamura\", \"per-priscilla-wong\"]\n    },\n    {\n      \"start\": 32400,\n      \"end\": 46800,\n      \"focus\": \"Harbor Light 13:00 meeting prep and payroll documentation\",\n      \"refs\": [\"per-theo-brandt\", \"per-hana-sato\", \"per-priscilla-wong\"]\n    },\n    {\n      \"start\": 46800,\n      \"end\": 59400,\n      \"focus\": \"Post-meeting filing confirmations and quarterly records consolidation\",\n      \"refs\": [\"per-sylvia-nakamura\"]\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1189,
+      "completion_tokens": 231
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

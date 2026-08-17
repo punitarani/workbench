@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Imogen Carraway, Audit Manager (senior).\nAudit manager: ran the Harbor Light audit end to end, owns assurance scheduling and the PBC process. Post-season, planning next year's audit calendar.\nPersonality: Methodical, unflappable, keeps the team's morale up with understatement.\nEmail register: Structured and courteous; signs 'Imogen'.\nChat register: Tidy sentences; numbers her questions.\nWorking hours: 08:30-17:00\n\n[[ ## conversation ## ]]\n\n\n[[ ## intent ## ]]\nAcknowledge Elias's confirmation and keep the FY2025 PBC timing on track for the 13:00 debrief discussion.\n\n[[ ## established_facts ## ]]\nConfirmed Harbor Light PBC/tip allocation status; asked about FY2025 PBC list readiness.\nConfirmed Priscilla's plan and noted PBC list question for 13:00 call.\nFY2025 PBC list not ready yet; will discuss timing at the 13:00 call and bring draft.\nAcknowledged Elias; FY2025 PBC timing to be settled at the 13:00 call.\nAcknowledged Hana; confirmed PBC timing will be settled on the 13:00 call.\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 10561674332100608510,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Thanks Elias. Good to have that locked in. On FY2025 PBC timing—we'll settle it at the 13:00 call. I'll bring a draft list to work from. See you both then.\", \"summary\": \"Acknowledged Elias and confirmed FY2025 PBC timing will be finalized at the 13:00 call.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 622,
+      "completion_tokens": 89
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

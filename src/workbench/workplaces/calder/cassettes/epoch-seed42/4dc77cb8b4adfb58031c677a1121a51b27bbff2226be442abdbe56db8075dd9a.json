@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Gabriel Fontes, Client Accounting Lead (mid).\nClient accounting lead: owns all four monthly closes and the reporting packages; the person clients actually talk to about their numbers.\nPersonality: Unruffled, service-minded, explains debits to owners without condescension.\nEmail register: Client-warm, plain English; signs 'Gabriel Fontes'.\nChat register: Efficient, matter-of-fact.\nWorking hours: 08:00-17:00\n\n[[ ## conversation ## ]]\n\n\n[[ ## intent ## ]]\nConfirm Tuesday session and offer to send CAM documentation by Friday as committed\n\n[[ ## established_facts ## ]]\nExplains Q3 margin drop (mix, freight, one-time rebate timing) and offers to walk through details.\nConfirms dollar impact of product mix shift (~$310K) and freight increase (~$180K) on Q3 gross margin decline vs Q2, notes ~$18K June rebate flattered Q2, and offers to prepare a one-page COGS bridge schedule for Dana's board slide.\nUpdated tkt-000003\nConfirms the two disputed line items (management fee and utilities allocation), states documentation is available (can send by Friday), and proposes next Tuesday call to resolve, with a target of signed agreement by end of next week.\n\n[[ ## relevant_knowledge ## ]]\n[Kestrel June inventory movement] The odd inventory line in Kestrel's June package is a late vendor rebate credit that landed after the statements cut — about eighteen thousand — rebooked into June per the accrual policy. It is documented in the close folder; Dana has not seen the note yet.\nSharing: You share this when asked directly, but you do not volunteer it unprompted, and never in writing to outsiders.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 6220724126231245515,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Hi Dana — confirming Tuesday works for me. I'll send the CAM documentation by Friday as promised. Happy to dig into the disputed line items then, and we should be able to get the agreement signed by end of next week.\", \"summary\": \"Confirmed Tuesday session; CAM docs by Friday.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 720,
+      "completion_tokens": 76
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

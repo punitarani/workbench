@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Frank Osei, Owner at Cardinal Ridge Builders. Blunt, margin-obsessed, short sentences. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Frank Osei\nTo: Desmond Ortiz\nSubject: Job 2142 – why we lost money\n\nDesmond,\n\nJob 2142 closed 18% under margin. That's not a blip, that's a leak.\n\nI need the breakdown by Friday: labor, materials, change orders, anything you billed late. If it was a bid mistake, say so. If it was site mismanagement, name it.\n\nWe can't keep eating these. Get me the numbers and your take on what we do different next time.\n\nFrank\n\n---\n\nFrom: Desmond Ortiz\nTo: Frank Osei\nSubject: Job 2142 – breakdown and read on the 18% miss\n\nFrank,\n\nHere's the breakdown you asked for on Job 2142, with my take underneath.\n\n**Where the money went (vs. bid):**\n- **Labor:** +11% over estimate. The crew hours tracked close to plan through week 6, then we added 3 unplanned shifts on the foundation rework after the soil report came back. Overtime premium alone ate ~4 points.\n- **Materials:** +5% over. Steel and concrete prices moved up mid-job; we didn't have escalation clauses in the sub contracts. That's on us.\n- **Change orders:** We billed two, but one was submitted 3 weeks late because the field notes sat in the foreman's truck. We recovered the cost, but not the overhead carry.\n- **Late billing:** One progress invoice went out 10 days late due to a scheduling gap in my review queue. That pushed cash, but it doesn't explain the margin miss directly.\n\n**Root cause, in plain terms:** This was a bid mistake, not site mismanagement. We priced the job off last year's soil assumptions, and we didn't build in material escalation or a contingency for the geotech risk. The field crew performed fine; the estimate was too tight for the actual conditions.\n\n**What we do different next time:**\n1. Require escalation language on any material over a 5% price swing.\n2. Add a 2% contingency line on jobs where the soil report is older than 12 months.\n3. Set a hard 5-business-day deadline from field sign-off to invoice submission — I'll track that on my side.\n\nI can walk through the detailed workpaper if you want — just say the word. Happy to set up a 30-minute call Thursday or Friday.\n\nDes\n\n[[ ## contacts ## ]]\nDesmond Ortiz\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 15472687903218625451,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"subject\": \"Re: Job 2142 – breakdown and read on the 18% miss\", \"body\": \"Des,\\n\\nGood. Numbers line up. Bid mistake, not field — that I can work with.\\n\\nTake the three fixes. Make them policy. Escalation, contingency, and the 5-day invoice deadline — I want them in the next job setup checklist, not just talked about.\\n\\nSet the call for Thursday, 10 AM. Bring the workpaper. We'll close this out.\\n\\nFrank\", \"summary\": \"Frank acknowledges Desmond's breakdown, accepts the bid-mistake root cause, approves the three proposed fixes as policy, and requests a Thursday 10 AM call with the workpaper.\", \"to\": [\"Desmond Ortiz\"], \"cc\": [], \"attachment_refs\": []}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1071,
+      "completion_tokens": 185
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Rosalind Calder, Managing Partner (executive).\nManaging partner and head of tax. Signs every return, owns the biggest client relationships, and decides scope and fee questions. Delegates execution and expects a one-paragraph brief, not a novel.\nPersonality: Calm, decisive, allergic to surprises. Praises publicly, corrects privately.\nEmail register: Short and warm; first names; signs 'R.'\nChat register: One-liners; asks the clarifying question first.\nWorking hours: 08:00-17:30\n\n[[ ## conversation ## ]]\nFreya Holt: Tax team! Quick heads-up — the huddle is starting in 5 mins in the usual spot (meeting room B, 3rd floor). Grab your coffees and head over when you're ready. See you there! ☕\n\n[[ ## intent ## ]]\nJoin the huddle that is starting and confirm attendance\n\n[[ ## established_facts ## ]]\nAcknowledged Theo's readiness and confirmed Cardinal Ridge engagement is on track.\nAcknowledged Theo, confirmed Cardinal Ridge, flagged rate sheet review after huddle.\nAcknowledged Gabriel's Q1/Q2 withholding settlement and confirmed no further action needed.\n\n[[ ## relevant_knowledge ## ]]\n[Kestrel nexus posture] Kestrel triggered income tax nexus in two new states last year; the firm's position is to file voluntarily this year before either state comes asking. Dana knows, her CEO does not yet.\nSharing: You share this when asked directly, but you do not volunteer it unprompted, and never in writing to outsiders.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 253728279658790049,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"On my way — see you there.\", \"summary\": \"Confirmed attendance at the huddle.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 683,
+      "completion_tokens": 36
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

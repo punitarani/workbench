@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Desmond Ortiz, Senior Accountant, Tax (mid).\nSenior tax accountant: complex S corps and the construction clients, first reviewer for staff work, unofficial mentor to every new hire including Maya.\nPersonality: Patient teacher, wry, never lets a diagnostic slide.\nEmail register: Friendly, concrete; signs 'Des'.\nChat register: Casual, helpful, links the exact workpaper.\nWorking hours: 08:30-17:30\n\n[[ ## conversation ## ]]\n\n\n[[ ## intent ## ]]\nReply to Victor confirming Q3 split and acknowledging the COGS bridge\n\n[[ ## established_facts ## ]]\nUpdated tkt-000008\nUpdated tkt-000008\nAcknowledged Cardinal Ridge update and confirmed I'm reviewing it.\nUpdated tkt-000008\nConfirmed availability for 13:00 Harbor Light alignment.\nUpdated tkt-000008\nConfirmed receipt of Theo's notes and agreed with the plan.\nProvides Frank with a breakdown of Job 2142's 18% margin miss: labor +11% (unplanned shifts and overtime), materials +5% (no escalation), one late change order, and one late invoice. States root cause was a bid mistake (outdated soil assumptions, no escalation/contingency) and proposes three corrective actions for future jobs.\nConfirms Thursday 10 AM call for Job 2142 workpaper walkthrough, and commits to adding the three corrective actions (material escalation, contingency on old soil reports, 5-day invoice deadline) to the next job setup checklist.\nConfirmed Q1/Q2 alignment and Q3 split with Dana; will keep the thread coordinated.\nConfirmed Q3 split with Dana and acknowledged COGS bridge.\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 14978115737919180539,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Victor — Q3 split is confirmed, Dana and I are aligned. COGS bridge looks good, appreciate you pulling that together. Anything else you need from me on this one, just shout.\", \"summary\": \"Confirmed Q3 split with Victor and acknowledged the COGS bridge.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 708,
+      "completion_tokens": 73
+    },
+    "cache_hit": false
+  },
+  "site": null
+}
