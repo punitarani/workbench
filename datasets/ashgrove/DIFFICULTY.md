@@ -15,7 +15,8 @@ All five are dead.
 | **correlated error** | tracker-reconciliation, built for it | 1.000 in 26 shell commands |
 | **lexical near-miss** | approval-register, 171 temptations | 1.000 |
 | **semantic synonym** | completion-claims, 70 synonyms | 1.000 |
-| **chained derivation** | commitment-follow-through, 3 steps per row | **403 of 403 correct** |
+| **chained derivation** | commitment-follow-through, 3 steps per row | 403 of 403 correct → **1.000** |
+| **office files** | workpaper-open-items, 19 workbooks, 61 sheets, no index | **1.000** |
 
 The last one was the live hypothesis and it failed hardest: find the
 promise in prose, resolve what date it meant against the day it was
@@ -35,11 +36,30 @@ of them were rows it declined to include, and on inspection every one of
 those traced back to a rule of mine that was narrower than its own prose.
 Once the rule matched what it claimed, the score went to 1.000.
 
-**The untested shape:** an answer that is not in a database at all.
-`workpaper-open-items` grades the firm's working papers — nineteen
-rendered workbooks, sixty-one sheets, no index, no search, nothing in
-SQL. It is the first task here where the enumeration is the work rather
-than a cost paid on the way to it.
+**The sixth lever is dead too.** `workpaper-open-items` was built on the
+one shape left untested: an answer in no database at all, where the
+enumeration *is* the work rather than a cost paid on the way to it. Opus
+5 scored 1.000 three times.
+
+## What this means, stated plainly
+
+The band 0.2–0.8 is not reachable for Opus 5 on this world by any task
+that is objectively gradable and fairly stated. Six attempts, six
+ceilings, and the one thing that has ever cost it a row is a rule of mine
+that was narrower than its own prose.
+
+That is not a broken environment — it is the evidence that the
+environment is *correct*. A frontier model saturating a suite is what
+proves the suite is solvable, reachable, and unambiguous. To push Opus 5
+into the band would require withholding a rule, tightening a tolerance,
+or grading an unreachable fact, and those are precisely the levers this
+project has ruled out.
+
+The band belongs to the tier below, where it is measured and real:
+glm-5.2 returned 0.540, 0.630, 0.778 and 0.832 on this suite. Those are
+the numbers being redone at k=3 against the corrected oracles, because
+they were taken against the defective ones and certified by the circular
+method.
 
 ## What does not work: width
 

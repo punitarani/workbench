@@ -66,9 +66,23 @@ solver's patterns:
 **Standing rule, learned twice at cost:** identical failures across
 independent trials are a task defect. Genuine model error is stochastic.
 
-## commitment-register — 1.000 (k=3, corrected oracle)
+## The three re-measured tasks — all 1.000 (k=3, corrected oracles)
 
-Every trial perfect on 441 rows. Withdrawn as a band candidate.
+| task | rows | was published as | measured, corrected |
+|---|---|---|---|
+| commitment-register | 441 | 0.783, "all misses M" | **1.000** |
+| commitment-follow-through | 155 | 0.607 | **1.000** |
+| workpaper-open-items | 55 | *(new)* | **1.000** |
+
+Every trial perfect, every criterion. Both band candidates are withdrawn:
+neither was ever a measurement of the model.
+
+`workpaper-open-items` is the sixth lever built specifically to break the
+ceiling and the sixth to fail. It grades nineteen rendered workbooks and
+sixty-one sheets with nothing in SQL and no index — and Opus 5 opened all
+of them, applied exact-match against 143 distinct status spellings,
+kept `Pending PBC` out while keeping `Not Started` in, and normalised a
+lone `1/15/2025` among a hundred ISO dates. Three times, without error.
 
 ## E-class: the bundle had been accumulating three worlds
 
