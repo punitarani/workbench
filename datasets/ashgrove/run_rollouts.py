@@ -80,6 +80,7 @@ def _harbor_command(
     gateway_port: int,
     gateway_env_file: Path,
     job_name: str,
+    timeout_multiplier: float = AGENT_TIMEOUT_MULTIPLIER,
 ) -> tuple[str, ...]:
     """The harbor invocation, in the shape the chosen harness expects.
 
@@ -120,7 +121,14 @@ def _harbor_command(
         "--n-concurrent-agents",
         str(concurrency),
         "--agent-timeout-multiplier",
-        str(AGENT_TIMEOUT_MULTIPLIER),
+        # A model that runs out of clock has not answered wrongly; it has
+        # not answered. glm-5.2 spent its hour on completion-claims making
+        # 418 tool calls, paginating fifteen hundred message bodies a page
+        # at a time, and wrote no deliverable at all. Scoring that 0.000
+        # reports "got it wrong" for what is really "did not finish", so
+        # the budget is a knob to be turned deliberately and reported,
+        # rather than a constant that silently decides a capability claim.
+        str(timeout_multiplier),
         *agent_kwargs,
         "--ae",
         f"OPENAI_BASE_URL=http://host.docker.internal:{gateway_port}/v1",
@@ -160,6 +168,7 @@ async def _run_one(task: str, args: argparse.Namespace, job_name: str) -> int:
         gateway_port=gateway.port,
         gateway_env_file=env_file,
         job_name=job_name,
+        timeout_multiplier=args.timeout_multiplier,
     )
     environment = dict(os.environ)
     paths = [str(REPO / "src"), *filter(None, [environment.get("PYTHONPATH")])]
@@ -273,6 +282,17 @@ async def _main(args: argparse.Namespace) -> int:
     return worst
 
 
+def _add_timeout_flag(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--timeout-multiplier",
+        type=float,
+        default=AGENT_TIMEOUT_MULTIPLIER,
+        help="scale each task's agent budget (default %(default)s). Raise it "
+        "when a model is timing out rather than answering: a DNF and a "
+        "wrong answer both score 0.000 and mean different things.",
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -285,6 +305,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--tag", default=None)
         p.add_argument("-k", "--trials", type=int, default=3)
         p.add_argument("-n", "--concurrency", type=int, default=2)
+        _add_timeout_flag(p)
 
     p = sub.add_parser("report")
     p.add_argument("jobs", nargs="+")
