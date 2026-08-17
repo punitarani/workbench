@@ -84,6 +84,39 @@ of them, applied exact-match against 143 distinct status spellings,
 kept `Pending PBC` out while keeping `Not Started` in, and normalised a
 lone `1/15/2025` among a hundred ISO dates. Three times, without error.
 
+## The band, on glm-5.2, corrected oracles, k=3
+
+### engagement-time-allocation — 0.736 (0.473–1.000) — IN BAND — all misses M
+
+188 person-and-engagement rows over 1,260 time entries. One trial scored
+**1.000**, which is the first thing that has to be true before any miss
+here can be called the model's: the task is solvable exactly as written.
+
+Two failure modes, neither shared by any two trials:
+
+**Double-counted entry.** Priscilla Wong on Harbor Light: 34 entries
+totalling 162,540 seconds — exactly 45.15 h. Round-once gives 45.15 and
+sum-of-rounded gives 45.15, so the convention this task was once broken
+by no longer decides anything. The agent wrote 45.90, exactly 45 minutes
+more, and three of the 34 entries are 45 minutes long. It counted one
+twice, and that single row moved `total_hours`, `total_billable_hours`
+and `total_fees` off exact match — 187 of 188 rows right and three
+scalars lost to one entry. **M.**
+
+**A filter the instruction does not authorise.** One trial returned 139
+rows instead of 188 and 810 entries instead of 1,260. Every one of the 49
+missing rows sits on `00011-shaw`, `00012-calder` or `00013-mendes` — the
+firm's four internal matters (peer-review prep, methodology refresh, two
+location setups). The agent decided internal work is not an engagement.
+The instruction says `allocations` carries "one entry per
+person-and-engagement combination **that has any logged time**" and
+`pairs` counts "how many person-and-engagement combinations logged any
+time". No exclusion is stated and none is implied. **M.**
+
+Checks that could have said otherwise and did not: the oracle agrees with
+its independent derivation; every value is served; and the two trials
+that failed did not fail alike.
+
 ## E-class: the bundle had been accumulating three worlds
 
 Found while building the first task graded on files rather than on a
