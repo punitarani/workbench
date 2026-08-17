@@ -260,6 +260,26 @@ It also explains why the same task scored 0.908 on the earlier world and
 0.770 on this one. The richer the prose, the more temptation, the wider the
 gap between reading the rule and reading the room.
 
+**It does not transplant everywhere, and that was measured too.**
+`open-items-triage` has the same shape on paper — a whitelist of request
+markers, applied to prose — so re-graining it from 4 thread-final rows to
+every client message looked like a free second task. It is not:
+
+```
+client inbound messages: 86   asks=81  courtesy=5
+of the 5, only 1 carries a softer ask-like phrase
+```
+
+94% of one class, and almost no near-misses, because a client writing to
+their accountant asks for something in nearly every message. The whitelist
+catches what is really there, so there is nothing to be tempted by.
+
+What makes the commitment register work is the *ratio*: deadline-flavoured
+prose is everywhere ("EOW", "early next week", "Wednesday 14:30") while
+the seven accepted forms are narrow. 42 invented rows in 388. The axis
+needs a rule that is much narrower than the thing it names — not merely a
+rule written down.
+
 ### Correlated error was tried, and it did not work either
 
 `tracker-reconciliation` was built exactly to the specification above: one
