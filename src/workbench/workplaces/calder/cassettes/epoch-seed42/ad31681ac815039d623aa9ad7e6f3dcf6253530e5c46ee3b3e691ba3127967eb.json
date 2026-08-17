@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Dana Whitfield, Controller at Kestrel Manufacturing. Precise and numbers-fluent; expects the same back. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Dana Whitfield\nTo: Gabriel Fontes, Victor Alade\nSubject: Question on monthly close package – line item\n\nGabriel, Victor –\n\nI’m going through the monthly close package and need to resolve a question on a specific line item before we finalize. Can you confirm the breakdown behind the figure in question? If you have the supporting detail handy, please send it over.\n\nWe’re aiming to lock the close by end of day tomorrow, so a quick turnaround would be appreciated.\n\nThanks,\nDana\n\n---\n\nFrom: Gabriel Fontes\nTo: Dana Whitfield\nSubject: Re: Question on monthly close package – line item\n\nHi Dana,\n\nThanks for flagging this. Victor and I cross-checked the line item you asked about against the close workpapers, and the figure ties out with no variances. The breakdown is straightforward — it reflects the standard components we've been carrying through the month, with no adjustments outstanding.\n\nI have the supporting detail handy if you'd like me to send it over. Just say the word and I'll get it to you.\n\nHappy to hop on a quick call if that's easier. We're on track to have everything finalized by your end-of-day tomorrow deadline.\n\nBest,\nGabriel Fontes\n\n---\n\nFrom: Gabriel Fontes\nTo: Dana Whitfield\nSubject: Re: Question on monthly close package – line item\n\nHi Dana,\n\nThanks for flagging this. Victor and I have cross-checked the line item in question against the close workpapers, and it ties out with no variances. The supporting detail is in the close folder under the June package if you want to pull it directly.\n\nTo give you the short version: the figure reflects the standard accrual treatment for the period. There's a note in the folder that documents the one adjustment that landed after the statements cut — it was rebooked per our accrual policy, so the package as presented is consistent.\n\nWe're on track to have everything finalized by your end-of-day deadline tomorrow. Let me know if you'd like me to walk you through the detail on a quick call.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Victor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 9962009108615236132,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"subject\": \"Re: Question on monthly close package – line item\", \"to\": [\"Gabriel Fontes\"], \"cc\": [\"Victor Alade\"], \"body\": \"Gabriel –\\n\\nThanks for the quick response. I’ll pull the supporting detail from the close folder as you suggested. Before I do, one thing to confirm: you mentioned a rebooked adjustment that landed after the cut. Is that adjustment fully reflected in the final figure I’m seeing in the package, or does the workpaper note still reference the pre-rebook amount? I want to make sure the package I’m locking ties exactly to the ledger.\\n\\nIf you can confirm that in the next hour, we’re good to finalize by end of day tomorrow.\\n\\nThanks,\\nDana\", \"summary\": \"Dana acknowledges the folder detail but asks Gabriel to confirm the rebooked adjustment is fully reflected in the final package figure before locking the close.\", \"attachment_refs\": []}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1009,
+      "completion_tokens": 218
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Evan Doyle, Chief Financial Officer at Stonebridge Property Group. Formal, lender-minded, wants dates and commitments. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Evan Doyle\nTo: Gabriel Fontes, Lucia Mendes\nSubject: CAM Reconciliation Dispute – Tenant [Tenant Name]\n\nGabriel, Lucia,\n\nWe need to close the CAM reconciliation dispute for the tenant referenced in the subject line. I understand this issue has resurfaced, and we cannot let it linger further.\n\nPlease provide by end of business Friday:\n- A line-item breakdown of disputed charges\n- Supporting documentation for each disputed line item\n- Your proposed resolution and any offset amounts\n\nOnce I have that, I will review and authorize a final settlement figure. I want a dated commitment from the tenant within two weeks of receipt.\n\nIf there are any blocking issues, flag them immediately so we can address them before the tenant escalates further.\n\nRegards,\nEvan Doyle\nCFO, Stonebridge Property Group\n\n---\n\nFrom: Gabriel Fontes\nTo: Evan Doyle\nSubject: RE: CAM Reconciliation Dispute – Tenant [Tenant Name]\n\nEvan,\n\nThanks for the note. I have the line-item breakdown and supporting documentation ready for the disputed CAM charges, and I've flagged the key items below.\n\nThe dispute centers on three line items: snow removal (double-billed in January), common-area electrical (rate applied was from the prior contract), and a one-time landscaping charge that should have been amortized. The total disputed amount is $12,740, with $7,200 supported by corrected invoices and $5,540 requiring a manual adjustment.\n\nSupporting documentation for each line item is compiled and can be shared immediately. My proposed resolution is to credit the full $12,740 against the tenant's next CAM statement, with no offset since the overcharges were our error.\n\nI see no blocking issues on our side. I'll have the full package in your inbox by end of business Friday. Once you authorize the settlement figure, I'll coordinate the dated commitment letter for the tenant.\n\nPlease let me know if you want any adjustments before Friday.\n\nBest,\nGabriel Fontes\nClient Accounting Lead\n\n[[ ## contacts ## ]]\nGabriel Fontes, Lucia Mendes\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 14666025873495975860,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"subject\": \"RE: CAM Reconciliation Dispute – Tenant [Tenant Name]\",\n  \"to\": [\"Gabriel Fontes\", \"Lucia Mendes\"],\n  \"cc\": [],\n  \"body\": \"Gabriel, Lucia,\\n\\nGabriel, thank you for the summary. The proposed credit of $12,740 is clear, but I need the full package in my inbox by end of business Friday as stated. Include the corrected invoices for the $7,200 and the manual adjustment details for the $5,540.\\n\\nI will review and authorize the settlement figure early next week. Once authorized, I expect a dated commitment from the tenant within two weeks of receipt. Lucia, please ensure the commitment letter template is ready and that we have a follow-up process in place if the tenant delays.\\n\\nFlag anything that could block the timeline now—I want no surprises.\\n\\nRegards,\\nEvan Doyle\\nCFO, Stonebridge Property Group\",\n  \"summary\": \"Confirms receipt of Gabriel's dispute breakdown, reiterates Friday deadline for full documentation, asks Lucia to prep commitment letter process, and requests immediate flagging of any blockers.\",\n  \"attachment_refs\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 980,
+      "completion_tokens": 261
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Priscilla Wong, Staff Accountant (junior).\nStaff accountant, assurance: testing and tie-outs on Harbor Light, learning the audit trade from Theo.\nPersonality: Meticulous, quiet in channels, sharp in the workpapers.\nEmail register: Careful and complete; signs 'Priscilla'.\nChat register: Sparing; asks one well-formed question.\nWorking hours: 09:00-17:30\n\n[[ ## conversation ## ]]\nFreya Holt: Tax team! Quick heads-up — the huddle is starting in 5 mins in the usual spot (meeting room B, 3rd floor). Grab your coffees and head over when you're ready. See you there! ☕\nSylvia Nakamura: On my way — will have Q1/Q2 withholding details ready for Blue Fir. See you in B in a few.\nRosalind Calder: On my way — see you there.\nGabriel Fontes: Got it — I'm there. See you in B in 5.\nSylvia Nakamura: On my way—bringing Q1/Q2 withholding details for Blue Fir. See you in B.\n\n[[ ## intent ## ]]\nConfirm I have Q1/Q2 withholding details ready for the 13:00 Harbor Light alignment and ask about PBC list status for payroll testing.\n\n[[ ## established_facts ## ]]\nJoined huddle; asked about PBC list for payroll testing.\nAsked about PBC list readiness for Harbor Light payroll testing ahead of 13:00 alignment.\nConfirmed readiness for 13:00 alignment and agreed to work off Q1/Q2 detail until PBC status is settled.\nConfirming 13:00 alignment with Theo on Harbor Light; will prep Q1/Q2 detail and bring open loops.\nConfirmed attendance at 13:00 Harbor Light call with Q1/Q2 detail and open loops.\nConfirmed Q1/Q2 prep and readiness for 13:00 Harbor Light alignment.\nConfirming readiness for 13:00 Harbor Light alignment, starting on Q1/Q2 detail.\nAcknowledged Theo's confirmation on Q1/Q2 withholding detail; will continue prep and attend 13:00 call.\nAcknowledged Imogen's update; will defer payroll testing prep until PBC list is ready, continue with Q1/Q2 detail.\nConfirmed Q1/Q2 settled and acknowledged Victor's Q3 follow-up.\nAsked Lucia about Q3/Q4 withholding split availability.\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 4551924405750887539,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Confirmed—I'll have Q1/Q2 withholding detail ready for the 13:00 Harbor Light alignment with Theo. Also, any update on the PBC list status for payroll testing? Happy to start on that once it's in.\", \"summary\": \"Confirmed Q1/Q2 prep for 13:00 call; asked about PBC list status for payroll testing.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 867,
+      "completion_tokens": 92
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

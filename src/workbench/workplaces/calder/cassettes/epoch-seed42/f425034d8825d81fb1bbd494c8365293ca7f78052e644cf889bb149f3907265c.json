@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Lucia Mendes, Senior Accountant, Tax (mid).\nSenior tax accountant: partnerships and the individual returns, K-1 season quarterback, keeps the Stonebridge relationship humming.\nPersonality: Composed under load, dry wit, hates loose ends.\nEmail register: Crisp and cordial; signs 'Lucia'.\nChat register: Short, precise, occasionally deadpan.\nWorking hours: 08:30-17:30\n\n[[ ## conversation ## ]]\nFreya Holt: Tax team! Quick heads-up — the huddle is starting in 5 mins in the usual spot (meeting room B, 3rd floor). Grab your coffees and head over when you're ready. See you there! ☕\nSylvia Nakamura: On my way — will have Q1/Q2 withholding details ready for Blue Fir. See you in B in a few.\nRosalind Calder: On my way — see you there.\nGabriel Fontes: Got it — I'm there. See you in B in 5.\nSylvia Nakamura: On my way—bringing Q1/Q2 withholding details for Blue Fir. See you in B.\nPriscilla Wong: Confirmed—I'll have Q1/Q2 withholding detail ready for the 13:00 Harbor Light alignment with Theo. Also, any update on the PBC list status for payroll testing? Happy to start on that once it's in.\nGabriel Fontes: On my way to the 13:00 Harbor Light alignment with Priscilla — have the margin/COGS materials ready. See you there.\nTheo Brandt: Thanks for the heads-up, Priscilla. I'll have the PBC tracker status with me for the 13:00 Harbor Light call — happy to walk through what's still open on payroll testing after we've had a chance to sync on the Q1/Q2 withholding details. See you in B shortly.\nPriscilla Wong: On my way—Q1/Q2 detail ready for the 13:00. See you there.\nPriscilla Wong: Thanks, Theo—I'll have the Q1/Q2 withholding and tip allocation detail ready for the 13:00. I'll work off that until we settle the PBC tracker status.\n\n[[ ## intent ## ]]\nFollow through on the 13:00 huddle and close the loop on FY2025 PBC coordination so the Stonebridge K-1 work can start without loose ends.\n\n[[ ## established_facts ## ]]\nAcknowledged withholding detail is pulled and confirmed readiness for Stonebridge K-1 work.\nConfirms Tuesday working session attendance, commits to sending documentation package by Friday, and will present exact dollar amounts with calculations for the two disputed line items.\nConfirmed Q1/Q2 withholding detail and committed to Friday delivery of documentation and exact amounts for disputed items.\nFollowing up on Q3/Q4 withholding split ownership to keep FY2025 PBC coordination on track.\nAcknowledges Q1/Q2 settled and approves Q3 margin split.\nConfirmed Q3 split with Dana, Q1/Q2 closed, will keep FY2025 PBC coordination moving.\nConfirmed attendance at the 13:00 huddle and readiness for FY2025 PBC coordination.\nConfirmed Q1/Q2 withholding details received; PBC coordination proceeding.\nConfirmed Q3/Q4 split ownership and clarified that Q1/Q2 detail is available now, with Q3/Q4 following FY2025 PBC timing.\nConfirmed Q3/Q4 split ownership and 13:00 huddle attendance.\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 6994194229967772728,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Heads up — Q1/Q2 withholding is settled and documented. Q3/Q4 split ownership is confirmed (Q3 with Dana). FY2025 PBC coordination is on track; docs package for the two disputed line items goes out Friday with exact amounts and calcs. See you in B for the 13:00.\", \"summary\": \"Confirmed Q1/Q2 settled, Q3/Q4 split ownership locked, and Friday doc delivery for disputed items; ready for 13:00 huddle.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1092,
+      "completion_tokens": 120
+    },
+    "cache_hit": false
+  },
+  "site": null
+}
