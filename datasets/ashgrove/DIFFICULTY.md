@@ -544,3 +544,41 @@ invented tool required. That change moves the document count from 52 to
 88, so it re-bases `work-product-review` and `workpaper-open-items` and
 has to be done deliberately, with those two re-measured, rather than
 folded in beside a running sweep.
+
+## Why nothing lands in a stable band, measured
+
+Two requirements, both now measured, and on this world they conflict.
+
+**Enumerability.** Below Opus the failure is coverage, and it is
+bimodal. gpt-5.6-sol on `work-product-review`: two trials 1.000, one
+trial 21 of 52 documents. On `engagement-time-allocation`: one trial
+1.000, two with no deliverable at all. glm-5.2 times out on the
+message-corpus tasks outright. A score driven by whether the agent
+happened to finish is a coin flip on coverage, not a measure of skill,
+and it produces means that swing between runs.
+
+**Density.** Make the corpus small enough to always enumerate and the
+per-row facts stop discriminating. Measured on the two smallest surfaces
+here:
+
+| candidate field | true on |
+|---|---|
+| calendar: every invitee accepted | 2 of 50 |
+| calendar: has an external invitee | 2 of 50 |
+| document reached a client | 7 of 52 |
+| document revised after reaching a client | 4 of 52 |
+| document sent more than once | 4 of 52 |
+| document reviewed by someone else | 15 of 52 |
+
+45 of 52 documents were never attached to any message, and the calendar
+is 50 events over 11 distinct summaries. An agent answering "false"
+everywhere scores 87-96% on most of these. That is the degeneracy the
+build gate already refuses.
+
+**The resolution is to scope the task, not the world.** Every task in
+this suite sweeps the entire record, so small-and-gradeable and
+large-and-enumerable are the same axis. They need not be: a longer
+recording supplies density, and the task then grades a slice small enough
+that enumeration is never the bottleneck — "the twelve documents in this
+workspace", not "every document in the firm". That is the one design
+move this suite has never tried.
