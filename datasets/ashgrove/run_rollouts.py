@@ -142,6 +142,14 @@ def _harbor_command(
         str(concurrency),
         "--n-concurrent-agents",
         str(concurrency),
+        # Hermes installs itself into every container: uv, a 30 MB Python
+        # 3.11, a git clone and a pip resolve, per trial. At the default
+        # setup budget three concurrent trials lose two to
+        # AgentSetupTimeoutError before either sees the task — which then
+        # reads as a 0.000 the model never earned. Codex and opencode are
+        # npm installs and need none of this.
+        "--agent-setup-timeout-multiplier",
+        "6" if harness == "hermes" else "1",
         "--agent-timeout-multiplier",
         # A model that runs out of clock has not answered wrongly; it has
         # not answered. glm-5.2 spent its hour on completion-claims making
