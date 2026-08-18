@@ -163,7 +163,23 @@ A defect that penalises the strong model and a real discriminator look
 identical in a score column. They diverge only on which way the error
 points.
 
-## opening-days-completion-claims — the first task in band
+## opening-days-completion-claims — 0.774 — IN BAND — all misses M
+
+**Final:** gpt-5.6-sol 0.687 over 8 answered trials of 9 (0.573–0.865),
+Opus 5 1.000, glm-5.2 0.635 over 3 of 3. **Mean 0.774.**
+
+The cleanest certification in the suite: the oracle survives its
+independent derivation, and across eight gpt trials **no row is dropped
+by every trial and the typical pair of miss-sets overlaps 0%** — on both
+the missing rows and the invented ones. Errors that scattered are model
+noise with no systematic cause available to explain them.
+
+Worth noting against the earlier k=3 run on the same task, which answered
+1 of 3 and read 0.627: the abandonment was luck, not a property of the
+task. Nine trials put it at 8 of 9. A completion rate estimated from
+three attempts is not an estimate.
+
+### The earlier account of this task, kept for the record
 
 | tier | score | trials answered |
 |---|---|---|
