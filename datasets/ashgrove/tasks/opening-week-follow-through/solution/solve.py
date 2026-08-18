@@ -155,10 +155,10 @@ def main() -> None:
     OUT.write_text(
         json.dumps(
             {
-                # Every message in the record, not merely those in the window:
-            # the figure says whether the whole mailbox was examined before
-            # the window was applied.
-            "messages_read": len(messages),
+                # Inside the window only. Demanding the whole mailbox is what
+            # made the sibling task unfinishable: the agent set out to read
+            # everything, delegated it, and ended its turn.
+            "messages_read": sum(1 for row in messages if row[3] < CUTOFF),
                 "commitments_total": len(register),
                 "followed_up_count": sum(r["followed_up"] for r in register),
                 "unanswered_count": len(late),

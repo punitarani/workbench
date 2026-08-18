@@ -18,9 +18,9 @@ Report only claims made in messages sent **on or before Tuesday 6 January
 2026** — the firm's first two working days. A message sent on the 7th or
 later makes no row here, however plainly it reports work complete.
 
-`messages_read` still counts **every** message in the record, mail and
-chat, not merely those inside the window: it says whether you examined
-the whole traffic before narrowing it.
+`messages_read` counts the messages **inside the window** — the ones you
+actually had to read. There is no need to open anything sent later; the
+rest of the record is not part of this question.
 
 ## What counts as a completion claim
 

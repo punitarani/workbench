@@ -46,8 +46,8 @@ something. Due dates are resolved as always, against the day the message
 was written, and many of them fall well outside the window; that is
 expected and does not exclude the row.
 
-`messages_read` still counts **every** message in the record, mail and
-chat, not merely those inside the window.
+`messages_read` counts the messages **inside the window** — the ones you
+actually had to read. Nothing sent later needs opening.
 
 ## What counts as a commitment
 

@@ -98,10 +98,15 @@ def main() -> None:
     for message_id, sender, when, body in gmail.execute(
         "SELECT message_id, sender, time, body FROM messages"
     ):
+        if when >= CUTOFF:
+            continue
+        # Counted only inside the window. Requiring the whole record here
+        # is what broke the first version: gpt-5.6-sol set out to
+        # "exhaustively inspect every Slack message", handed that to
+        # subagents and ended its turn, three times out of three. The
+        # bound has to apply to the work, not only to the answer.
         read += 1
-        # The window admits rows; it does not narrow the reading, and
-        # `messages_read` still counts the whole record.
-        form = None if when >= CUTOFF else _form(body)
+        form = _form(body)
         if form is None:
             continue
         outside = sorted(
@@ -127,8 +132,10 @@ def main() -> None:
     for conversation, sender, when, ts, body in slack.execute(
         "SELECT conversation_id, sender, time, ts, body FROM messages"
     ):
+        if when >= CUTOFF:
+            continue
         read += 1
-        form = None if when >= CUTOFF else _form(body)
+        form = _form(body)
         if form is None:
             continue
         rows.append(

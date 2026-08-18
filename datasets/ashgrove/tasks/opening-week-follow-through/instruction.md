@@ -44,9 +44,10 @@ including its messages sent after the 7th. Scoring such a promise
 unanswered because the reply falls outside the window would be an
 artefact of where the window closes, not a fact about the firm.
 
-`messages_read` is the count of **every** message in the record, not just
-those inside the window: it says whether you looked at the whole mailbox
-before narrowing.
+`messages_read` counts the messages **inside the window** — the ones
+carrying the promises. You still follow each promise's own thread past
+the cutoff to see whether it was kept, but you need not read the rest of
+the mailbox.
 
 ## What counts as a commitment
 

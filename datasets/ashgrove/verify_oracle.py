@@ -604,12 +604,16 @@ def _commitment_register(
     register = mail_only + [
         {"ref": "chat"} for _ in range(sum(chat_rows.values()))
     ]
-    _cmp(
-        "messages_read",
-        len(facts.emails) + len(facts.chats),
-        oracle["messages_read"],
-        out,
-    )
+    # Inside the window when there is one. Counting the whole record here
+    # is what made the bounded task unfinishable -- the agent read for the
+    # figure, not for the rows.
+    if cutoff is None:
+        seen = len(facts.emails) + len(facts.chats)
+    else:
+        seen = sum(1 for e in facts.emails.values() if e.time < cutoff) + sum(
+            1 for c in facts.chats if c.time < cutoff
+        )
+    _cmp("messages_read", seen, oracle["messages_read"], out)
     _cmp("commitments_total", len(register), oracle["commitments_total"], out)
     _cmp(
         "messages_with_commitment",
@@ -761,12 +765,16 @@ def _register(
                 f"oracle counts {theirs_chat[key]}"
             )
 
-    _cmp(
-        "messages_read",
-        len(facts.emails) + len(facts.chats),
-        oracle["messages_read"],
-        out,
-    )
+    # Inside the window when there is one. Counting the whole record here
+    # is what made the bounded task unfinishable -- the agent read for the
+    # figure, not for the rows.
+    if cutoff is None:
+        seen = len(facts.emails) + len(facts.chats)
+    else:
+        seen = sum(1 for e in facts.emails.values() if e.time < cutoff) + sum(
+            1 for c in facts.chats if c.time < cutoff
+        )
+    _cmp("messages_read", seen, oracle["messages_read"], out)
     _cmp(
         total_field,
         len(mail) + sum(chat_rows.values()),
@@ -1092,9 +1100,12 @@ def check_opening_week_follow_through(facts: WorldFacts, oracle: dict) -> list[s
     for row in late:
         by_author[row["author"]] += 1
 
-    # Every message in the record, deliberately -- the window narrows the
-    # rows, not the reading.
-    _cmp("messages_read", len(facts.emails), oracle["messages_read"], out)
+    _cmp(
+        "messages_read",
+        sum(1 for e in facts.emails.values() if e.time < _OPENING_WEEK_CUTOFF),
+        oracle["messages_read"],
+        out,
+    )
     _cmp("commitments_total", len(register), oracle["commitments_total"], out)
     _cmp(
         "followed_up_count",

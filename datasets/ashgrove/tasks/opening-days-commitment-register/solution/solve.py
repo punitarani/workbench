@@ -145,8 +145,6 @@ def main() -> None:
     read = 0
 
     def collect(ref: str, sender: str, when: int, body: str, made_to: str) -> None:
-        # The window admits rows. It does not narrow the reading, and
-        # `messages_read` still counts the whole record.
         if when >= CUTOFF:
             return
         sent = (epoch + datetime.timedelta(seconds=when)).date()
@@ -166,7 +164,8 @@ def main() -> None:
     for message_id, sender, when, body in gmail.execute(
         "SELECT message_id, sender, time, body FROM messages"
     ):
-        read += 1
+        if when < CUTOFF:
+            read += 1
         outside = sorted(
             {
                 organisations.get(
@@ -182,7 +181,8 @@ def main() -> None:
     for conversation, sender, when, ts, body in slack.execute(
         "SELECT conversation_id, sender, time, ts, body FROM messages"
     ):
-        read += 1
+        if when < CUTOFF:
+            read += 1
         # Slack names a message by its timestamp, which is what the surface
         # serves and therefore what the register must carry.
         collect(ts, sender, when, body, channels.get(conversation, conversation))
