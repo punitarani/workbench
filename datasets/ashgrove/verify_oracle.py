@@ -74,6 +74,8 @@ _WORD_DAYS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
 # End of Wednesday 7 January 2026 -- the third working day -- as the
 # world counts seconds.
 _OPENING_WEEK_CUTOFF = 3 * 86_400
+# End of Tuesday 6 January 2026, the second working day.
+_OPENING_DAYS_CUTOFF = 2 * 86_400
 
 COMMITMENT_PATTERNS = (
     ("weekday", r"\bby (?:this |next |)(monday|tuesday|wednesday|thursday|friday)\b"),
@@ -648,6 +650,7 @@ def _register(
     rows_field: str,
     person_field: str,
     totals: tuple[str, str, str],
+    cutoff: int | None = None,
 ) -> list[str]:
     """One row per message carrying a named form, over mail and chat both.
 
@@ -681,6 +684,8 @@ def _register(
     people_on_rows: set[str] = set()
 
     for email in sorted(facts.emails.values(), key=lambda e: e.message_id):
+        if cutoff is not None and email.time >= cutoff:
+            continue
         form = form_of(email.body)
         if form is None:
             continue
@@ -714,6 +719,8 @@ def _register(
     # thing this file exists not to copy. See check_commitment_register.
     chat_rows: dict[tuple[str, str, str], int] = defaultdict(int)
     for chat in facts.chats:
+        if cutoff is not None and chat.time >= cutoff:
+            continue
         form = form_of(chat.body)
         if form is None:
             continue
@@ -778,6 +785,30 @@ def check_approval_register(facts: WorldFacts, oracle: dict) -> list[str]:
         "approvals",
         "approver",
         ("approvals_total", "distinct_approvers", "top_approver"),
+    )
+
+
+def check_opening_days_completion_claims(
+    facts: WorldFacts, oracle: dict
+) -> list[str]:
+    """The same word list, bounded to the first two working days.
+
+    What is worth checking independently here is the boundary, not the
+    rule: that the window is applied to the *sending* time, that it ends
+    with the second day rather than starting it, and that `messages_read`
+    still counts the whole record. Narrow the reading along with the rows
+    and that figure silently becomes 213, which would tell an agent the
+    opposite of what the instruction asks for.
+    """
+
+    return _register(
+        facts,
+        oracle,
+        COMPLETION_FORMS,
+        "claims",
+        "claimant",
+        ("claims_total", "distinct_claimants", "top_claimant"),
+        cutoff=_OPENING_DAYS_CUTOFF,
     )
 
 
@@ -1595,6 +1626,7 @@ CHECKS = {
     "commitment-follow-through": check_commitment_follow_through,
     "workpaper-open-items": check_workpaper_open_items,
     "opening-week-follow-through": check_opening_week_follow_through,
+    "opening-days-completion-claims": check_opening_days_completion_claims,
 }
 
 

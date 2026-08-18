@@ -1,0 +1,162 @@
+{
+ "messages_read": 1585,
+ "claims_total": 25,
+ "distinct_claimants": 11,
+ "form_counts": {
+  "complete": 19,
+  "completed": 6
+ },
+ "top_claimant": "Hana Sato",
+ "claims": [
+  {
+   "ref": "1767731700.000005",
+   "claimant": "Freya Holt",
+   "sent_date": "2026-01-06",
+   "where": "assurance"
+  },
+  {
+   "ref": "1767733500.000002",
+   "claimant": "Priscilla Wong",
+   "sent_date": "2026-01-06",
+   "where": "firm"
+  },
+  {
+   "ref": "1767733500.000004",
+   "claimant": "Sylvia Nakamura",
+   "sent_date": "2026-01-06",
+   "where": "firm"
+  },
+  {
+   "ref": "1767735300.000002",
+   "claimant": "Lucia Mendes",
+   "sent_date": "2026-01-06",
+   "where": "firm"
+  },
+  {
+   "ref": "1767735300.000006",
+   "claimant": "Freya Holt",
+   "sent_date": "2026-01-06",
+   "where": "engagements"
+  },
+  {
+   "ref": "1767740700.000001",
+   "claimant": "Sylvia Nakamura",
+   "sent_date": "2026-01-06",
+   "where": "firm"
+  },
+  {
+   "ref": "1767746100.000000",
+   "claimant": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "where": "assurance"
+  },
+  {
+   "ref": "msg-000012",
+   "claimant": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "where": "Harbor Light Distribution"
+  },
+  {
+   "ref": "msg-000014",
+   "claimant": "Hana Sato",
+   "sent_date": "2026-01-05",
+   "where": "Harbor Light Distribution"
+  },
+  {
+   "ref": "msg-000018",
+   "claimant": "Sylvia Nakamura",
+   "sent_date": "2026-01-05",
+   "where": "Kestrel Manufacturing"
+  },
+  {
+   "ref": "msg-000021",
+   "claimant": "Benedict Shaw",
+   "sent_date": "2026-01-05",
+   "where": "Shaw & Associates"
+  },
+  {
+   "ref": "msg-000035",
+   "claimant": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "where": "Shaw & Associates"
+  },
+  {
+   "ref": "msg-000038",
+   "claimant": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "where": "Shaw & Associates"
+  },
+  {
+   "ref": "msg-000039",
+   "claimant": "Rosalind Calder",
+   "sent_date": "2026-01-06",
+   "where": "Shaw & Associates"
+  },
+  {
+   "ref": "msg-000047",
+   "claimant": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "where": "Kestrel Manufacturing"
+  },
+  {
+   "ref": "msg-000053",
+   "claimant": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "where": "Harbor Light Distribution"
+  },
+  {
+   "ref": "msg-000054",
+   "claimant": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "where": "Ashfield Pension Trust"
+  },
+  {
+   "ref": "msg-000055",
+   "claimant": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "where": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000057",
+   "claimant": "Harriet Vance",
+   "sent_date": "2026-01-06",
+   "where": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000058",
+   "claimant": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "where": "Ashfield Pension Trust"
+  },
+  {
+   "ref": "msg-000059",
+   "claimant": "Imogen Carraway",
+   "sent_date": "2026-01-06",
+   "where": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000063",
+   "claimant": "Colin Mackey",
+   "sent_date": "2026-01-06",
+   "where": "Meridian Family Health"
+  },
+  {
+   "ref": "msg-000067",
+   "claimant": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "where": "Fairmount Community Foundation"
+  },
+  {
+   "ref": "msg-000071",
+   "claimant": "Hana Sato",
+   "sent_date": "2026-01-06",
+   "where": "the firm"
+  },
+  {
+   "ref": "msg-000072",
+   "claimant": "Victor Alade",
+   "sent_date": "2026-01-06",
+   "where": "the firm"
+  }
+ ]
+}
