@@ -71,6 +71,10 @@ _MONTHS = (
 )
 _WORD_DAYS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
 # The task's specification, quoted verbatim in its instruction.
+# End of Wednesday 7 January 2026 -- the third working day -- as the
+# world counts seconds.
+_OPENING_WEEK_CUTOFF = 3 * 86_400
+
 COMMITMENT_PATTERNS = (
     ("weekday", r"\bby (?:this |next |)(monday|tuesday|wednesday|thursday|friday)\b"),
     # The firm writes "by end of week" 24 times and "by end of next week"
@@ -999,6 +1003,81 @@ def _as_calendar_date(value: str) -> datetime.date | None:
     return datetime.date(year, month, day)
 
 
+def check_opening_week_follow_through(facts: WorldFacts, oracle: dict) -> list[str]:
+    """The same derivation, bounded, and the bound is what is being checked.
+
+    `commitment-follow-through` already has a second derivation and this
+    reuses it wholesale, because the rule is identical -- what differs is
+    one predicate. So the thing worth verifying independently is the
+    predicate: that the window selects on the *sending* time, that it is
+    end-of-day on the third day rather than the start of it, and that the
+    follow-up lookahead still ranges over the whole thread. Get the last
+    of those wrong and 42 of the 55 rows flip to unanswered, because their
+    threads continue past the cutoff.
+    """
+
+    out: list[str] = []
+    epoch = datetime.datetime.fromisoformat(EPOCH)
+    threads = facts.threads()
+
+    rows: dict[tuple[str, str], dict] = {}
+    for thread in threads.values():
+        for email in thread:
+            if email.time >= _OPENING_WEEK_CUTOFF:
+                continue
+            sent = (epoch + datetime.timedelta(seconds=email.time)).date()
+            for kind, pattern in COMMITMENT_PATTERNS:
+                for match in re.finditer(pattern, email.body, re.IGNORECASE):
+                    due = _commitment_due(kind, match, sent)
+                    followed = any(
+                        other.sender == email.sender
+                        and other.time > email.time
+                        and (
+                            epoch + datetime.timedelta(seconds=other.time)
+                        ).date() <= due
+                        for other in thread
+                    )
+                    rows[(email.message_id, due.isoformat())] = {
+                        "message_id": email.message_id,
+                        "due_date": due.isoformat(),
+                        "author": facts.name(email.sender),
+                        "sent_date": sent.isoformat(),
+                        "followed_up": followed,
+                    }
+
+    register = [rows[key] for key in sorted(rows)]
+    late = [r for r in register if not r["followed_up"]]
+    by_author: dict[str, int] = defaultdict(int)
+    for row in late:
+        by_author[row["author"]] += 1
+
+    # Every message in the record, deliberately -- the window narrows the
+    # rows, not the reading.
+    _cmp("messages_read", len(facts.emails), oracle["messages_read"], out)
+    _cmp("commitments_total", len(register), oracle["commitments_total"], out)
+    _cmp(
+        "followed_up_count",
+        sum(r["followed_up"] for r in register),
+        oracle["followed_up_count"],
+        out,
+    )
+    _cmp("unanswered_count", len(late), oracle["unanswered_count"], out)
+    _cmp(
+        "worst_offender",
+        min(by_author, key=lambda n: (-by_author[n], n)) if by_author else "",
+        oracle["worst_offender"],
+        out,
+    )
+    _rows(
+        "commitments",
+        register,
+        oracle["commitments"],
+        lambda r: (r["message_id"], r["due_date"]),
+        out,
+    )
+    return out
+
+
 def check_open_items_triage(facts: WorldFacts, oracle: dict) -> list[str]:
     """Client threads whose last word is a question the firm has not answered.
 
@@ -1515,6 +1594,7 @@ CHECKS = {
     "completion-claims": check_completion_claims,
     "commitment-follow-through": check_commitment_follow_through,
     "workpaper-open-items": check_workpaper_open_items,
+    "opening-week-follow-through": check_opening_week_follow_through,
 }
 
 
