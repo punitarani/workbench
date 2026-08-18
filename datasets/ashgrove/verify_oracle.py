@@ -498,6 +498,12 @@ def check_status_integrity(facts: WorldFacts, oracle: dict) -> list[str]:
 
 
 def check_commitment_register(facts: WorldFacts, oracle: dict) -> list[str]:
+    return _commitment_register(facts, oracle)
+
+
+def _commitment_register(
+    facts: WorldFacts, oracle: dict, cutoff: int | None = None
+) -> list[str]:
     """Every promised deadline, re-read from the log's own message bodies.
 
     The seven patterns are the task's specification, so restating them here
@@ -519,6 +525,8 @@ def check_commitment_register(facts: WorldFacts, oracle: dict) -> list[str]:
     rows: dict[tuple[str, str], dict] = {}
 
     def collect(ref: str, sender: str, when: int, body: str, made_to: str) -> None:
+        if cutoff is not None and when >= cutoff:
+            return
         sent = (epoch + datetime.timedelta(seconds=when)).date()
         for kind, pattern in COMMITMENT_PATTERNS:
             for match in re.finditer(pattern, body, re.IGNORECASE):
@@ -563,6 +571,8 @@ def check_commitment_register(facts: WorldFacts, oracle: dict) -> list[str]:
     chat_rows: dict[tuple[str, str, str, str], int] = defaultdict(int)
     chat_messages = 0
     for chat in facts.chats:
+        if cutoff is not None and chat.time >= cutoff:
+            continue
         sent = (epoch + datetime.timedelta(seconds=chat.time)).date()
         made_to = facts.channels.get(chat.conversation_id, chat.conversation_id)
         due_dates = set()
@@ -1109,6 +1119,23 @@ def check_opening_week_follow_through(facts: WorldFacts, oracle: dict) -> list[s
     return out
 
 
+def check_opening_days_commitment_register(
+    facts: WorldFacts, oracle: dict
+) -> list[str]:
+    """The register's seven forms, bounded to the first two working days.
+
+    Only the boundary is genuinely under test: the rule already has a
+    second derivation in `check_commitment_register`. So this checks that
+    the window selects on send time, ends with the second day, leaves
+    `messages_read` counting the whole record, and does *not* filter on
+    the due date -- most of these commitments fall due outside the window
+    and excluding them would drop 40-odd rows while still looking
+    plausible.
+    """
+
+    return _commitment_register(facts, oracle, cutoff=_OPENING_DAYS_CUTOFF)
+
+
 def check_open_items_triage(facts: WorldFacts, oracle: dict) -> list[str]:
     """Client threads whose last word is a question the firm has not answered.
 
@@ -1627,6 +1654,7 @@ CHECKS = {
     "workpaper-open-items": check_workpaper_open_items,
     "opening-week-follow-through": check_opening_week_follow_through,
     "opening-days-completion-claims": check_opening_days_completion_claims,
+    "opening-days-commitment-register": check_opening_days_commitment_register,
 }
 
 
