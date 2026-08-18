@@ -203,6 +203,45 @@ instruction defective an hour earlier.
    a model filtered on meaning, which is not a skill anyone should be
    trained to lose.
 
+## commitment-follow-through — 0.576 — IN BAND — all misses M
+
+| tier | score | answered |
+|---|---|---|
+| gpt-5.6-sol | 0.515 (0.414–0.655) | 4 of 9 |
+| opus-5 | 1.000 | 3 of 3 |
+| glm-5.2 | 0.213 | 2 of 3 |
+
+**Mean 0.576.** The first task to clear `band.py`'s own rules, and it is
+the *unbounded* task — no corpus trimming, just k=9 to see through
+gpt's one-in-three abandonment rate.
+
+gpt's misses certified M on every check:
+
+* the oracle survives its independent derivation;
+* **no row is dropped by every trial** — recall runs 136–145 of 155 and
+  the typical pair of miss-sets overlaps 12%, which is scattered;
+* the inventions are wrong date arithmetic on real rows (60 of 87 in the
+  worst trial) plus 27 rows on messages that carry **no time-shaped
+  sentence at all**, under a net deliberately wider than the rule.
+
+### The detector needed three fixes to say that honestly
+
+Each would have produced a false verdict, and each was found by checking
+its answer against a hand computation rather than trusting it:
+
+1. **It reported the worst pairwise overlap.** With four trials there are
+   six pairs; it flagged 64% while five of the six sat between 4% and
+   12%. It now reports rows dropped by *every* trial, which is what a
+   rule the instruction fails to settle actually looks like.
+2. **It read scratch files as answers.** `_submitted` falls back to any
+   dict-shaped JSON so a reader can see what a failed trial was doing —
+   right for the per-trial dump, wrong here, where five abandoned trials
+   fed their working notes into the comparison.
+3. **It excluded trials that had no failures.** `if row[index]` dropped
+   the empty sets, so "dropped by every trial" meant "every trial that
+   had any" — and the trial which invented *nothing*, the strongest
+   evidence against a systematic defect, was the one being filtered out.
+
 ## E-class: the bundle had been accumulating three worlds
 
 Found while building the first task graded on files rather than on a

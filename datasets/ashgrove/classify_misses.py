@@ -248,8 +248,19 @@ def _stochastic(
     """
 
     want = {tuple(str(r[k]).strip().casefold() for k in key) for r in expected}
+    deliverable = _deliverable(task)
     per_trial: list[tuple[str, frozenset, frozenset]] = []
     for trial in trials:
+        # The real deliverable only. `_submitted` falls back to any
+        # dict-shaped file so a reader can still see what a failed trial
+        # was doing, and that is right for the per-trial dump -- but here
+        # it meant a k=9 run with five abandonments fed five scratch pads
+        # into the comparison and reported a row "invented by every
+        # trial" that no trial had invented.
+        if deliverable:
+            kept = trial / "verifier" / f"submitted-{deliverable}"
+            if not kept.is_file():
+                continue
         answer = _submitted(trial, task)
         if answer is None:
             continue
@@ -288,22 +299,46 @@ def _stochastic(
             # 20 and 16 rows from the same 25 on the bounded completion
             # register, overlapping 80%, and the exact-match test stayed
             # silent while the instruction was the thing at fault.
-            sets = [row[index] for row in per_trial if row[index]]
-            worst = 0.0
-            for i, a in enumerate(sets):
-                for b in sets[i + 1:]:
-                    union = len(a | b)
-                    if union:
-                        worst = max(worst, len(a & b) / union)
-            if worst >= 0.5:
+            # Every trial, including those with none of this failure kind.
+            # Filtering the empties made "dropped by every trial" mean
+            # "every trial that had any", which inverts the evidence: a
+            # trial that invented nothing is the strongest argument that
+            # the inventions are not the instruction's fault, and it was
+            # the one being excluded.
+            sets = [row[index] for row in per_trial]
+            # What a systematic defect looks like is a row *every* trial
+            # drops, not a high-water pairwise overlap. With four trials
+            # there are six pairs, and reporting the worst of them flagged
+            # commitment-follow-through at 64% when five of the six sat
+            # between 4% and 12% and no row was missed by all four.
+            # `set.intersection(*sets)` is an unbound method and rejects the
+            # frozensets these are; take it from the first element instead.
+            everywhere = len(sets[0].intersection(*sets[1:])) if len(sets) > 1 else 0
+            pairs = [
+                len(a & b) / len(a | b)
+                for i, a in enumerate(sets)
+                for b in sets[i + 1:]
+                if a | b
+            ]
+            typical = sorted(pairs)[len(pairs) // 2] if pairs else 0.0
+            if everywhere:
                 print(
-                    f"    !! {label}: no two trials agree exactly, but they "
-                    f"overlap {worst:.0%}. Genuine model error is scattered; "
-                    "this concentrated means the rows have something in "
-                    "common. Read a few before calling it M."
+                    f"    !! {label}: {everywhere} row(s) dropped by EVERY "
+                    "trial. That is what a rule the instruction does not "
+                    "settle looks like. Read them before calling it M."
+                )
+            elif typical >= 0.5:
+                print(
+                    f"    !! {label}: no row is dropped by every trial, but "
+                    f"the typical pair overlaps {typical:.0%}. Concentrated "
+                    "enough to look at before calling it M."
                 )
             else:
-                print(f"    {label}: no two trials agree — consistent with M.")
+                extra = f", typical pair overlaps {typical:.0%}" if pairs else ""
+                print(
+                    f"    {label}: no row dropped by every trial{extra} — "
+                    "scattered, consistent with M."
+                )
 
 
 def _rows_of(answer: dict, rows_field: str, key: tuple[str, ...]) -> list[tuple]:
