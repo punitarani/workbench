@@ -14,11 +14,21 @@ drags any task into the band: Opus 1.000 + Sol 0.600 + glm *nothing*
 reads as 0.533, which looks like a well-calibrated task and is really a
 broken measurement wearing one's clothes.
 
-So a task's mean counts only when every model produced a gradeable
-answer in a majority of its trials. Everything else is reported, loudly,
-as incomplete -- with the reason, because "glm timed out" and "glm
-answered badly" call for opposite fixes.
+**But a DNF is not a disqualification either.** How well a model answers
+and how often it manages to answer at all are different facts, and
+collapsing them in either direction loses one of them. gpt-5.6-sol on
+`approval-register`: 47 steps and 0.997 on one trial, 5 and 7 steps and
+no deliverable on the other two. The task is plainly solvable by it, and
+a rule that discards the 0.997 because it is outnumbered reports nothing
+at all about a model that nearly aced the work.
+
+So the score is the mean over **gradeable trials only**, at least two of
+them so it is never a single sample, and the completion rate is printed
+beside it rather than folded into it. Below two, the task is reported
+loudly as incomplete -- with the reason, because "glm timed out" and
+"glm answered badly" call for opposite fixes.
 """
+
 
 import argparse
 import json
@@ -28,6 +38,12 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 JOBS = REPO / "jobs"
 TASKS = Path(__file__).resolve().parent / "tasks"
+
+# Two, not a majority. One gradeable trial is an anecdote; two is an
+# estimate. Requiring a majority threw away a 0.997 on a task the model
+# demonstrably solves, because its other two attempts ended in an
+# orchestration failure that says nothing about the task.
+_MIN_GRADEABLE = 2
 
 # The three the goal names, in the order a report should read.
 MODELS = ("gpt-5.6-sol", "opus-5", "glm-5.2")
@@ -107,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
     print("-" * 92)
     in_band = []
     for task in sorted(p.name for p in TASKS.iterdir() if p.is_dir()):
-        cells, means, blocked = [], [], []
+        cells, means, blocked, rates = [], [], [], []
         for model in MODELS:
             found = measure(task, JOBS / f"ashgrove-{task}-{tags[model]}")
             if found["mean"] is None:
@@ -117,12 +133,21 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 cells.append(f"{found['mean']:.3f}")
                 means.append(found["mean"])
-                # A majority of trials must be gradeable, or the mean is
-                # taken over whichever ones happened to survive.
-                if found["scored"] * 2 <= found["trials"]:
+                if found["scored"] < _MIN_GRADEABLE:
                     blocked.append(
                         f"{model}: only {found['scored']}/{found['trials']} gradeable"
                     )
+                elif found["scored"] < found["trials"]:
+                    # Reported, never averaged in: the score stands on the
+                    # trials that produced an answer, and the reader is told
+                    # how many did.
+                    rates.append(
+                        f"{model} answered {found['scored']}/{found['trials']}"
+                    )
+        if rates and not blocked:
+            note = "  (" + "; ".join(rates) + ")"
+        else:
+            note = ""
         if blocked:
             verdict = "INCOMPLETE — " + "; ".join(blocked)
             mean_text = "     --"
@@ -135,7 +160,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 verdict = "out of band"
         print(f"{task:32s} {cells[0]:>13s} {cells[1]:>10s} {cells[2]:>10s}"
-              f" {mean_text}  {verdict}")
+              f" {mean_text}  {verdict}{note}")
 
     print(f"\n{len(in_band)} task(s) in 0.2-0.8 on the three-model mean")
     for task, mean in sorted(in_band, key=lambda kv: kv[1]):
