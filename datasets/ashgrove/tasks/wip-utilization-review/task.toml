@@ -70,7 +70,7 @@ allowed_hosts = [
 
 [environment.healthcheck]
 command = "sh /home/agent/workspace/.workbench/install.sh"
-timeout_sec = 180.0
+timeout_sec = 600.0
 interval_sec = 2.0
 retries = 2
 

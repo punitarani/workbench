@@ -223,6 +223,61 @@ called the model's: the task is solvable exactly as written.
 
 Neither failure was shared by any two trials.
 
+## Part 5 — The third model, and what it took
+
+The goal became a task scoring 0.2–0.8 **averaged over gpt-5.6-sol, Opus
+5 and glm-5.2**. gpt-5.6-sol had never produced a measurement on this
+project: its whole record was three 0.000 scores from a codex MCP bridge
+failure.
+
+It works now. What it took, in order:
+
+1. **Check the model before blaming it.** Driven directly,
+   `openai/gpt-5.6-sol` completes a full two-turn tool round-trip on
+   *both* the chat-completions and responses APIs, against the same
+   provider the harnesses use. So neither harness failure was capability.
+2. **A wrong turn of my own.** OpenRouter's endpoint listing omits
+   `tools` from `supported_parameters` for azure, so I repinned to
+   Bedrock — which 404s, because no Bedrock endpoint serves this model.
+   Azure advertises no tool support and accepts a tools payload anyway.
+   The listing is not evidence; the request is.
+3. **A third harness.** codex aborts every call with `tool exec invoked
+   with incompatible payload` — the model emits `functions.functions__exec`,
+   double-prefixed, which its router cannot resolve — and dropping
+   `--enable unified_exec` (the fix that worked on Hartwell) does not
+   help. opencode dies on the first round-trip with an Azure 400. Hermes
+   works, after five fixes: install as root, skip the browser and
+   computer-use installs, chown `HERMES_HOME` *after* the root run names
+   `openrouter` rather than harbor's hardcoded `auto`, and forward the
+   gateway under `OPENROUTER_*` because harbor picks credential names
+   from the model prefix.
+
+| task | gpt-5.6-sol, k=3 |
+|---|---|
+| tracker-reconciliation | 1.000 — a task glm-5.2 cannot finish |
+| workpaper-open-items | 1.000 |
+| work-product-review | 0.741 — two trials perfect, one found 21 of 52 |
+| engagement-time-allocation | 1.000 on its one gradeable trial |
+| open-items-triage | 0.630 — a task defect, found and fixed |
+
+**The tiers do not order cleanly**, which is a good sign for the suite:
+it is not measuring one axis of strength. gpt beats glm on
+`tracker-reconciliation` by finishing it at all, and loses to itself on
+`work-product-review` by not enumerating.
+
+### The band's real obstacle
+
+`band.py` computes the three-model mean and refuses to average a DNF,
+because `1.000 + 0.600 + nothing = 0.533` reads as perfect calibration
+and is a broken measurement. That guard immediately paid: gpt's "0.333"
+on `engagement-time-allocation` is 1.000 on the one trial that answered
+and two that produced no deliverable.
+
+Which leaves the difficulty stated precisely: **below Opus, failure is
+bimodal.** Models either enumerate the corpus and score ~1.000, or fail
+to and score ~0.3, and no tier makes the graded, partial errors a mean
+needs. Opus makes partial errors on nothing.
+
 ## Measurements taken and discarded
 
 A zero is a claim about a model, and it has to be earned. Three sets of

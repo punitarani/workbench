@@ -166,8 +166,17 @@ def _harbor_command(
         str(gateway_env_file),
         "--allow-agent-host",
         "host.docker.internal",
+        # Two, not none. Every agent install begins with `apt-get update`
+        # against ports.ubuntu.com, and after a day of sweeps that began
+        # failing outright — exit 100 after fetching 20 MB of indices,
+        # surfaced as NetworkConnectionError or AgentSetupTimeoutError and
+        # indistinguishable downstream from a model scoring zero. Nine
+        # trials were lost to it in twenty minutes, across both harnesses.
+        #
+        # A retry cannot launder a bad answer: harbor retries *errored*
+        # trials, and a trial that ran and scored badly is not an error.
         "--max-retries",
-        "0",
+        "2",
         "-y",
         "-q",
         "-o",
