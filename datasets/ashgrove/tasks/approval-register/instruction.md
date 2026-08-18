@@ -26,6 +26,13 @@ matched case-insensitively, anywhere in the text:
 | `authorised` | *authorise*, *authorised*, *authorize*, *authorized* |
 | `cleared` | the word *cleared* |
 
+**The test is textual, not editorial.** A message counts when one of the
+six words is in it, whatever the sentence is doing with it. *"Sign-off
+protocol once substantive testing wraps"* sets out a procedure; *"for any
+items without documented client sign-off"* reports the absence of one.
+Both carry the form and both are rows here. Do not weigh up whether
+anybody actually approved anything — read the words, not the intent.
+
 Nothing else counts. Not *agreed*, not *go ahead*, not *fine by me*, not
 *confirmed*, not *no objection* — however plainly the writer meant to
 approve something.
