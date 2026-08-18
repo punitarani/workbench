@@ -279,6 +279,34 @@ because every careful reader resolves it identically; real difficulty is
 scattered. That is the whole basis of the identical-across-trials check,
 and this task is the clean example of the first kind.
 
+## opening-week-follow-through — 0.761 — IN BAND
+
+gpt-5.6-sol 0.600, Opus 5 1.000, glm-5.2 0.684 over 7 answered trials of
+9. **Mean 0.761.**
+
+Opus scored 0.773 twice here before the hedged-form clause and 1.000
+after it, which is the defect confirming itself: both trials had dropped
+the identical pair of "within a day or two" rows.
+
+glm's misses are M. The two rows its trials share are found by other
+trials (3 of 8 and 2 of 8), so nothing is systematically blocked, and the
+mechanism is compositional rather than arithmetic: `msg-000082` reads
+*"Investor deadline: End of next week (Friday, close of business)"* and
+carries **two** forms — `close of business` for the sent date and `end of
+next week` for that Friday. Every trial found the first. Two found the
+second. Reading the parenthetical as a description of one deadline rather
+than as a second form is the natural mistake, and the instruction says
+outright that two forms resolving to different dates make two rows.
+
+*A defect blocks everyone; difficulty makes most people miss.* That
+distinction is what separated this from the hedged-form defect, which
+looked identical in the detector.
+
+**One caveat, being re-run:** gpt's number was measured at 03:35 and the
+hedged clause landed at 07:10, so it read a different instruction from
+the other two tiers. The mean is in band either way — the clause moved
+Opus *up* — but a task should be measured on one version of itself.
+
 ## E-class: the bundle had been accumulating three worlds
 
 Found while building the first task graded on files rather than on a
