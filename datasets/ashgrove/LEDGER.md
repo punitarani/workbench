@@ -163,6 +163,46 @@ A defect that penalises the strong model and a real discriminator look
 identical in a score column. They diverge only on which way the error
 points.
 
+## opening-days-completion-claims — the first task in band
+
+| tier | score | trials answered |
+|---|---|---|
+| gpt-5.6-sol | 0.627 | 1 of 3 |
+| glm-5.2 | **0.635** (0.573–0.684) | 3 of 3 |
+| opus-5 | *pending* | |
+
+Projected mean with Opus at 1.000: **0.754 — in band**, and it stays in
+band for any Opus score at all.
+
+**glm's misses are M.** Oracle independently confirmed; no two trials
+fail alike and their overlap is below the 50% the detector flags; and
+each missed message was read rather than re-matched. Two of its three
+trials read exactly 213 messages — the bound — and found 22 and 24 of
+the 25 claims.
+
+The rows it dropped are the semantically awkward ones: *"Once I've
+completed the analysis"*, *"Once that call is complete"*, *"once we have
+completed our review"*. Every one is conditional or refers to something
+other than delivered work, and every one contains the word. The
+instruction says outright that the test is textual and not editorial, so
+these count, and filtering them on meaning is the model's error — the
+same error, made the other way round, that made this task's *own*
+instruction defective an hour earlier.
+
+**What made it work**, after three attempts that did not:
+
+1. **Rule difficulty, not coverage difficulty.** gpt read 1,574 of 1,585
+   messages on the unbounded parent and still found 48 of 110 claims. A
+   70% miss rate applying a two-word rule is a *rate*, and a rate
+   survives bounding where a coverage failure does not.
+2. **Bound the reading, not only the answer.** The first bounded version
+   still demanded `messages_read` over all 1,585, so the agent set out to
+   read all 1,585, delegated it, and ended its turn 3 times out of 3.
+   Counting only the 213 in the window fixed that.
+3. **State that the test is textual.** Without it the task graded whether
+   a model filtered on meaning, which is not a skill anyone should be
+   trained to lose.
+
 ## E-class: the bundle had been accumulating three worlds
 
 Found while building the first task graded on files rather than on a
