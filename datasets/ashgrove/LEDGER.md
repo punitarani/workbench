@@ -242,6 +242,27 @@ its answer against a hand computation rather than trusting it:
    had any" — and the trial which invented *nothing*, the strongest
    evidence against a systematic defect, was the one being filtered out.
 
+## open-items-triage — 1.000 / 1.000 / 1.000 — what ambiguity looks like
+
+It scored 0.630 for gpt-5.6-sol and 0.630 for glm-5.2 before its
+instruction was fixed, and both models missed the *same* thread every
+time. That reads like a discriminating task and was nothing of the kind:
+the rule admits any last client message containing one of twelve
+phrases, and `thr-000022` ends with *"I want to confirm we're aligned on
+what we need to deliver"* — which contains `we need` while asking the
+firm for nothing.
+
+With the instruction saying outright that the phrase test is textual,
+all three tiers score 1.000.
+
+**The lesson is the contrast.** A task made hard by an ambiguity and a
+task made hard by its rule look identical in a score column: both sit
+below ceiling, both discriminate between models. They separate on one
+question — do the trials fail the *same way*? Ambiguity is deterministic
+because every careful reader resolves it identically; real difficulty is
+scattered. That is the whole basis of the identical-across-trials check,
+and this task is the clean example of the first kind.
+
 ## E-class: the bundle had been accumulating three worlds
 
 Found while building the first task graded on files rather than on a
