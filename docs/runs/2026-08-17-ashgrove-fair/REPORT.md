@@ -319,6 +319,63 @@ The pattern under both: **the measurement apparatus is part of the
 system being measured.** A watcher that greps for a process name is a
 process with that name in its command line.
 
+## The three-model band, as measured
+
+The goal became the mean of gpt-5.6-sol, Opus 5 and glm-5.2. Completed
+triples so far:
+
+| task | gpt-5.6-sol | opus-5 | glm-5.2 | mean | |
+|---|---|---|---|---|---|
+| tracker-reconciliation | 1.000 | 1.000 | 0.909 | 0.970 | out |
+| work-product-review | 0.741 | 1.000 | 0.926 | 0.889 | out |
+| engagement-time-allocation | 1.000* | 1.000 | 0.736 | 0.912 | out |
+| commitment-follow-through | *abandons* | 1.000 | **0.213** | — | blocked |
+
+\* one of three trials gradeable; `band.py` refuses to average the rest.
+
+With Opus at 1.000 the arithmetic is unforgiving: a mean of 0.8 needs the
+other two to sum to 1.4, so both weaker tiers have to average 0.7 or
+below. Only `commitment-follow-through` does that — glm scores 0.213 —
+and it is the one task gpt will not finish.
+
+### Why gpt-5.6-sol does not finish it
+
+Not a failure and not a timeout. Nine steps of a ninety-step budget, 142
+mentions of `subagent`, a validation script asserting the deliverable's
+exact schema and field order — then *"Processing all 49 mail threads in
+parallel; I'll produce and validate `follow_through.json` when the
+complete results return"*, and the turn ended with the children
+uncollected. Three trials, same shape.
+
+It is size-triggered: the same model completes `work-product-review` (52
+documents), `tracker-reconciliation` and `workpaper-open-items`, and
+abandons the 354- and 1,585-message corpora. Retries do not touch it —
+harbor retries *errored* trials and this one exits cleanly having written
+nothing.
+
+That is a fifth distinct cause of 0.000, after harness incompatibility,
+rate limiting, the clock, and setup timeout. None of them is the answer
+being wrong.
+
+### The response: bound the corpus, keep the rule
+
+`opening-week-follow-through` is the identical three-step derivation
+restricted to promises made in the first three working days — 41 source
+messages, 11 threads, 114 to scan. Between the 52 gpt finishes and the
+354 it does not.
+
+The window selects which promises are reported and deliberately does not
+bound whether they were kept: 42 of the 55 rows sit in threads that run
+past the cutoff, and judging those unanswered would measure where the
+window closes rather than what the firm did.
+
+**It is an experiment with two ways to fail.** Bounding fixes the
+coverage half of glm's difficulty — it read 253 of 354 messages and found
+71 of 155 rows — which may lift its score out of the range that makes the
+mean work. What should survive is the derivation half: 12 of its 71
+shared rows carried the wrong verdict, a 17% error rate that has nothing
+to do with how much it read.
+
 ## What ships
 
 - 14 tasks, 14 independent derivations, all agreeing.
