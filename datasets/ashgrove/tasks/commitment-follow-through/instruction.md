@@ -51,6 +51,12 @@ promising.
 | `within N days` / `within N business days`, where N is a digit or one of `a`, `two`, `three`, `five`, `ten` | the sent date **plus N calendar days** — `business` changes nothing |
 | `by tomorrow` | the **day after** the sent date |
 
+**A form counts wherever it appears, including inside a longer phrase.**
+*"I can usually sort these within a day or two"* contains `within a day`,
+so it is a commitment due the next day — the hedge that follows does not
+remove the form that precedes it. Match the words that are there; do not
+decide the writer was being approximate.
+
 **One row per message and due date.** A message saying `by Friday` twice
 promised one thing. A message saying `by Friday` *and* `EOD` promised two,
 and gets two rows. Two different forms resolving to the same date in one
