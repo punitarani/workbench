@@ -108,14 +108,18 @@ def measure(task: str, job: Path) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--tag-gpt", default="gpt-k3")
-    parser.add_argument("--tag-opus", default="fair-k3")
-    parser.add_argument("--tag-glm", default="glm-fair")
+    parser.add_argument("--tag-gpt", action="append", default=None)
+    parser.add_argument("--tag-opus", action="append", default=None)
+    parser.add_argument("--tag-glm", action="append", default=None)
     args = parser.parse_args(argv)
+    # Several tags per model, because the k=9 re-samples live under their
+    # own. Requiring the reader to remember which tag holds the best
+    # evidence is how a task that *is* in band gets reported as 0 in band
+    # -- which happened, on the first one that qualified.
     tags = {
-        "gpt-5.6-sol": args.tag_gpt,
-        "opus-5": args.tag_opus,
-        "glm-5.2": args.tag_glm,
+        "gpt-5.6-sol": args.tag_gpt or ["gpt-k9", "gpt-k3"],
+        "opus-5": args.tag_opus or ["fair-k3"],
+        "glm-5.2": args.tag_glm or ["glm-k9", "glm-fair"],
     }
 
     print(f"{'task':32s} {'gpt-5.6-sol':>13s} {'opus-5':>10s} {'glm-5.2':>10s}"
@@ -125,7 +129,16 @@ def main(argv: list[str] | None = None) -> int:
     for task in sorted(p.name for p in TASKS.iterdir() if p.is_dir()):
         cells, means, blocked, rates = [], [], [], []
         for model in MODELS:
-            found = measure(task, JOBS / f"ashgrove-{task}-{tags[model]}")
+            # Best evidence wins: the job with the most gradeable trials,
+            # and the larger sample breaks a tie.
+            candidates = [
+                measure(task, JOBS / f"ashgrove-{task}-{tag}")
+                for tag in tags[model]
+            ]
+            found = max(
+                candidates,
+                key=lambda c: (c["scored"], c["trials"]),
+            )
             if found["mean"] is None:
                 cells.append("  --")
                 why = found["excluded"][0] if found["excluded"] else "not run"
