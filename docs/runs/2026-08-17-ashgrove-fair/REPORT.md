@@ -376,6 +376,38 @@ mean work. What should survive is the derivation half: 12 of its 71
 shared rows carried the wrong verdict, a 17% error rate that has nothing
 to do with how much it read.
 
+## The first task in band
+
+`opening-days-completion-claims` — gpt-5.6-sol 0.627, glm-5.2 0.635
+across three answered trials, Opus pending. Projected mean **0.754**, and
+it stays inside 0.2-0.8 for any Opus score at all.
+
+glm's misses are certified M: the oracle survives its independent
+derivation, no two trials fail alike or overlap enough to trip the
+detector, and every missed message was read rather than re-matched. Two
+of its three trials read exactly the 213 messages the bound asks for and
+found 22 and 24 of the 25 claims.
+
+Getting there took three corrections, each of which I had wrong first:
+
+**1. Rule difficulty, not coverage difficulty.** Every tier-separating
+effect measured before this was enumeration — bimodal, all-or-nothing,
+and destroyed by shrinking the corpus. gpt read 1,574 of 1,585 messages
+on the unbounded parent and still found 48 of 110 claims. A 70% miss rate
+applying a two-word rule is a *rate*, and a rate survives bounding.
+
+**2. Bound the reading, not only the answer.** The first bounded version
+still asked for `messages_read` over all 1,585, so the agent set out to
+read all 1,585, handed it to subagents and ended its turn — three times
+of three. Counting only the 213 inside the window fixed it, and cost
+nothing but a verification nicety that was never worth an unfinishable
+task.
+
+**3. Say that the test is textual.** Before that clause the task graded
+whether a model filtered on meaning, and penalised the more careful
+reader. After it, glm's semantic filtering is a legitimate model failure.
+The same distinction, failing in opposite directions four hours apart.
+
 ## What ships
 
 - 14 tasks, 14 independent derivations, all agreeing.
