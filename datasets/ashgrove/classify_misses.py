@@ -283,7 +283,27 @@ def _stochastic(
             if len(rows) > 6:
                 print(f"       ... and {len(rows) - 6} more")
         if not any(len(names) >= 2 for names in groups.values()):
-            print(f"    {label}: no two trials agree — consistent with M.")
+            # Identical sets are the loud case. Near-identical is the
+            # quiet one and it is just as diagnostic: gpt-5.6-sol dropped
+            # 20 and 16 rows from the same 25 on the bounded completion
+            # register, overlapping 80%, and the exact-match test stayed
+            # silent while the instruction was the thing at fault.
+            sets = [row[index] for row in per_trial if row[index]]
+            worst = 0.0
+            for i, a in enumerate(sets):
+                for b in sets[i + 1:]:
+                    union = len(a | b)
+                    if union:
+                        worst = max(worst, len(a & b) / union)
+            if worst >= 0.5:
+                print(
+                    f"    !! {label}: no two trials agree exactly, but they "
+                    f"overlap {worst:.0%}. Genuine model error is scattered; "
+                    "this concentrated means the rows have something in "
+                    "common. Read a few before calling it M."
+                )
+            else:
+                print(f"    {label}: no two trials agree — consistent with M.")
 
 
 def _rows_of(answer: dict, rows_field: str, key: tuple[str, ...]) -> list[tuple]:

@@ -32,6 +32,13 @@ forms, matched case-insensitively, anywhere in the text:
 | `complete` | the word *complete* |
 | `completed` | the word *completed* |
 
+**The test is textual, not editorial.** A message counts when the word
+is in it, whatever the sentence is doing. *"I'll aim to complete my
+review"* promises a thing rather than reporting it; *"that gives you the
+complete picture"* is not about work at all. Both contain the word and
+both are claims for this register. Do not weigh up whether anything was
+actually finished — read the words, not the intent.
+
 Nothing else counts, and that cuts two ways.
 
 No **synonym** counts. Not *finished*, not *done*, not *wrapped up*, not
