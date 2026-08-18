@@ -598,3 +598,40 @@ misclassified thread in 49, because four of its eight criteria are exact
 counts. That is the mechanism by which a small, genuine error becomes a
 mid-band score, and it needs a corpus small enough to enumerate and one
 row that is hard for an honest reason.
+
+## Two kinds of difficulty, and only one survives bounding
+
+Everything above measures difficulty that turned out to be **coverage**:
+whether the agent enumerated the corpus. Coverage failures are bimodal —
+1.000 or 0.3, nothing between — and they vanish the moment the corpus is
+small enough to finish. That is why "small enough to enumerate" and "hard
+enough to separate tiers" looked like the same axis pulling opposite ways.
+
+`completion-claims` shows the other kind, and the numbers are
+unambiguous. gpt-5.6-sol read **1,574 of 1,585 messages — 99.3%** — and
+found 48 of 110 claims, catching **23 of the 82 occurrences of
+`complete`**. It had the text. It applied a two-word rule to it and
+missed seventy per cent.
+
+| | coverage difficulty | rule difficulty |
+|---|---|---|
+| shape | bimodal, all-or-nothing | a rate |
+| under bounding | disappears | unchanged |
+| example | work-product-review: 1.000, 1.000, 21-of-52 | completion-claims: 0.350 / 0.396 / 0.999 |
+| tier separation | luck | skill |
+
+A rate does not care how much text there is. So a bounded task keeps the
+second kind and loses the first, which is exactly what a three-model band
+needs: small enough that every tier produces an answer, hard enough that
+the answers differ.
+
+**Why the distinction was invisible for so long:** Opus 5 has neither
+problem, and every measurement before this one was Opus-only. Coverage
+and rule application look identical when a model does both perfectly.
+
+Note the asymmetry within one model, too. gpt scores 0.997 on
+`approval-register` (six forms) and 0.582 on `completion-claims` (two).
+The harder rule is the *smaller* word list — because `complete` is a
+common word with inflections a hair away from it (`completion`,
+`completes`, `completed`), and exact matching against near-misses is
+where the errors live. Fewer forms, more temptation.
