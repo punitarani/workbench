@@ -21,17 +21,19 @@ firm that does not exist.
 
 So: read the referee's own rejection notes, and treat a high loss rate as
 a structural finding about the world rather than as noise.
+
+Read them as **fields**, never as prose. The first version of this parsed
+the sentence, and an audit showed what that costs: rewording the
+referee's message zeroed the rate with the whole suite green, and the
+worst case was silent by construction — a timesheet whose entries were
+*all* invalid took a different branch that wrote no matching sentence at
+all, so a world that lost everything measured 0.0%.
 """
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
-
-# The referee's note when it cannot resolve a reference a timesheet names.
-_DROPPED = re.compile(
-    r"dropped (\d+) timesheet entries against unknown engagements \[(.*?)\]"
-)
+from typing import Protocol
 
 # Set between two measured worlds: 16.8% is the known-bad that prompted
 # this, and a world with the codes its people need should sit near zero.
@@ -57,17 +59,32 @@ class AttemptedWork:
         return (self.dropped / self.attempted) if self.attempted else 0.0
 
 
-def measure(notes: list[str], logged: int) -> AttemptedWork:
-    """Count dropped entries out of the referee's notes."""
+class RefereeNote(Protocol):
+    """The part of a referee note this reads. Fields, not prose.
+
+    It used to parse the sentence. Three consequences, all measured: an
+    ordinary rewording of the referee's f-string zeroed the rate with the
+    suite green; the test's "verbatim" copy of that sentence was a
+    transcription that imported nothing; and the two sides disagreed about
+    whether the number meant entries lost or distinct references invented
+    — a fourfold difference that flipped a failing world to passing.
+    """
+
+    dropped_entries: int
+    unknown_refs: tuple[str, ...]
+
+
+def measure(notes: list[RefereeNote], logged: int) -> AttemptedWork:
+    """Total work refused, read off the referee's own fields."""
 
     dropped = 0
     refs: dict[str, int] = {}
     for note in notes:
-        found = _DROPPED.search(note or "")
-        if not found:
+        count = getattr(note, "dropped_entries", 0) or 0
+        if not count:
             continue
-        dropped += int(found.group(1))
-        for ref in re.findall(r"'([^']+)'", found.group(2)):
+        dropped += count
+        for ref in getattr(note, "unknown_refs", ()) or ():
             refs[ref] = refs.get(ref, 0) + 1
     return AttemptedWork(
         logged=logged,

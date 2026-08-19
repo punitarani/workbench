@@ -35,6 +35,15 @@ class SimGmNotePayload(Payload):
     # The entity whose action the note concerns; when set, the note routes
     # back to that entity so agents can correct instead of repeating.
     entity: str | None = None
+    # Work the referee refused because the world does not offer what it
+    # named. Structured rather than left in the prose, because the prose
+    # was being parsed by a gate three files away: rewording the sentence
+    # zeroed the loss rate with the whole suite green, and the two sides
+    # disagreed about whether the count meant entries or distinct
+    # references — a fourfold difference that flipped a failing world to
+    # passing.
+    dropped_entries: int = 0
+    unknown_refs: tuple[str, ...] = ()
 
 
 class SimCuePayload(Payload):

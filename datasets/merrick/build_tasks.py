@@ -166,7 +166,7 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     notes, logged = [], 0
     for event in read_events(world_log):
         if event.tag == "sim.gm.note":
-            notes.append(getattr(event.payload, "note", "") or "")
+            notes.append(event.payload)
         elif event.tag == "work.time.logged":
             logged += 1
     work = attempted_work.measure(notes, logged=logged)

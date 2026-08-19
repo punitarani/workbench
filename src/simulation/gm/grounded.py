@@ -99,9 +99,25 @@ class TicketVocabulary(BaseModel):
 
 
 class IntentRejection(Exception):
-    def __init__(self, reason: str) -> None:
+    """A refusal the actor sees and can correct.
+
+    ``dropped_entries``/``unknown_refs`` carry work the world could not
+    accept, so the note built from this rejection reports it as data. A
+    gate three files away used to recover the same numbers by parsing the
+    prose, which meant rewording a sentence silently zeroed a loss rate.
+    """
+
+    def __init__(
+        self,
+        reason: str,
+        *,
+        dropped_entries: int = 0,
+        unknown_refs: tuple[str, ...] = (),
+    ) -> None:
         super().__init__(reason)
         self.reason = reason
+        self.dropped_entries = dropped_entries
+        self.unknown_refs = unknown_refs
 
 
 class DayPlan(BaseModel):
@@ -622,6 +638,8 @@ class GroundedGm:
                 note=f"Rejected action from {entity}: {rejection.reason}",
                 rejected_intent=_intent_summary(action),
                 entity=entity,
+                dropped_entries=rejection.dropped_entries,
+                unknown_refs=rejection.unknown_refs,
             )
             return ResolutionDecision(
                 drafts=(
@@ -1486,9 +1504,17 @@ class GroundedGm:
                 )
             )
         if unknown and not drafts:
+            # Every entry invalid. This used to raise with no note, so the
+            # loss was invisible: a world whose people had *no* valid code
+            # for a whole day measured 0.0% dropped and passed the gate
+            # that exists to catch exactly that. The bias ran one way —
+            # the worse the structural gap, the likelier a persona has no
+            # valid code at all, so the more of the loss disappeared.
             raise IntentRejection(
                 f"none of these engagements exist: {sorted(set(unknown))}; log "
-                "time against the ids on your own engagement list"
+                "time against the ids on your own engagement list",
+                dropped_entries=len(unknown),
+                unknown_refs=tuple(sorted(set(unknown))),
             )
         if unknown:
             note = SimGmNotePayload(
@@ -1498,6 +1524,8 @@ class GroundedGm:
                     f"engagements {sorted(set(unknown))}"
                 ),
                 entity=entity,
+                dropped_entries=len(unknown),
+                unknown_refs=tuple(sorted(set(unknown))),
             )
             drafts.append(
                 EventDraft(
