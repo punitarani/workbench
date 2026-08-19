@@ -133,6 +133,50 @@ splitting differs between shells; BSD and GNU `sed` disagree on word
 boundaries, so a substitution can silently do nothing. Each of those has
 produced output that looked like a finding.
 
+## Audit your own gates the way you audit a model's answer
+
+A gate is code, written under the same pressure as the thing it guards,
+and it is not covered by the suite it belongs to — a check that cannot
+fail passes every run. An adversarial pass over one day's freshly written
+measurement tooling, with every finding required to reproduce by
+execution, returned **24 confirmed defects in five modules**. The
+instructive part is what kind they were.
+
+**Gates that read clean on the world they exist to reject.** One
+computed a loss rate by parsing the referee's rejection notes — and the
+worst case took a different branch that wrote no matching sentence, so a
+world that lost *everything* measured 0.0% and passed. The bias was
+one-directional: the worse the gap, the more of it disappeared, which
+makes the "known-bad" number the threshold was calibrated against a
+floor rather than a measurement.
+
+**Contracts carried in prose across files that import nothing from each
+other.** The same sentence was written in the referee, parsed in the
+gate, and transcribed into the test as "verbatim". Rewording it zeroed
+the rate with the suite green. Numbers that cross a module boundary
+should cross it as *fields*.
+
+**Fixes that work for the common case.** A truncation dropped shared
+codes for everyone; reserving them fixed juniors and still failed
+partners, because the reservation happened after the person's own
+matters. A fix that works for the common case reads as working.
+
+**Tests that assert on source text.** Two greps for a type name passed
+with every guard clause deleted, because the names survive in the import
+line. Assert on types and behaviour; a grep cannot tell you the name is
+still doing anything.
+
+**Vacuous passes at the top level.** A build with no tasks ran every
+world-level check, skipped every per-task gate, and exited 0 — an audit
+that iterates an empty set, which is the shape the gates below it exist
+to catch.
+
+Two practical rules fall out. Require each finding to be **reproduced by
+execution**, and instruct the verifier to default to refuted without one:
+a good audit refutes some of its own claims with real data. And prefer
+**mutation** over inspection — break the thing and confirm the test
+fails, having first confirmed the break landed.
+
 ## Promote on the third instance
 
 **When a defect class appears a third time, stop fixing instances.**
