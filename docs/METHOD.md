@@ -180,6 +180,30 @@ The world must be *true* before anything cut from it can be *fair*.
   gain's clothes — an agent trained against an invented tool learns a
   call that fails in the real product. When a surface cannot host your
   content, put the content where the real product would.
+- **Artifacts must be the file types the institution exchanges, and the
+  mix must be gated.** A world whose every document is markdown has
+  quietly removed a whole class of work — opening a workbook, reading a
+  deck, pulling a table out of a print form. Format is an *emergent*
+  property, so it drifts: one recorded world produced 19 markdown and 33
+  workbooks with no documents, decks or issued PDFs at all, from an
+  authoring prompt that asked for the real form every time, while a later
+  run of the same firm produced documents and still no decks. Assert the
+  share of each form directly, and treat a form the institution really
+  produces but the world never emits as a failure rather than a
+  preference.
+- **Validate on every write path, not only the first one.** Creation
+  checked that a document declaring a structured format really parsed as
+  one; revision did not, and the revise path drafts prose. A workbook
+  worked forward came back as text, kept its declaration, and
+  materialized as a file claiming a form it did not have — 10 of 52
+  documents, discovered only when something finally read the file room.
+  **An invariant enforced at one entry point is not enforced.**
+- **Which artifact is which is domain knowledge, so it belongs to the
+  world.** A shared authoring prompt can describe form in the abstract;
+  it cannot know that filing a brief is what makes it final. Put that
+  vocabulary in the workplace definition — and where recorded runs key on
+  exact prompt bytes, make it an opt-in field that renders nothing when
+  unset, so every existing recording stays byte-identical.
 
 ---
 
