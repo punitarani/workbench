@@ -58,14 +58,22 @@ from workplaces.merrick.epoch import epoch_director, epoch_spec
 # a law firm. Deep handles planning and reflection, roughly one call in
 # ten.
 FAST_MODEL = "anthropic/claude-sonnet-5"
-DEEP_MODEL = "anthropic/claude-opus-5"
+# Sonnet on both tiers, not Opus on deep. A cohort's wall time is its
+# *slowest* call, so a tier used by one call in ten still sets the pace
+# for the other nine -- and the deep tier plans and reflects, while the
+# fast tier writes every word of the world. The upgrade that buys fidelity
+# is the fast one, and it is kept.
+DEEP_MODEL = "anthropic/claude-sonnet-5"
 # Direct `anthropic` is blocked on this key and 404s rather than falling
 # back, so both tiers route through Bedrock, which serves the same weights.
 PROVIDERS = ("amazon-bedrock",)
 # Recording is latency-bound, not token-bound. Raising this is what makes
 # a six-month window finish in a night instead of a week; it is passed
 # through so a rate-limited key can drop it without a code change.
-DEFAULT_CONCURRENCY = 48
+# Personas wake in cohorts and the whole cast wakes together, so useful
+# concurrency is the cohort width -- measured at exactly 21, the internal
+# headcount. Anything above that is provisioned for nothing.
+DEFAULT_CONCURRENCY = 24
 DEFAULT_CASSETTE = Path("out/merrick/cassette")
 
 

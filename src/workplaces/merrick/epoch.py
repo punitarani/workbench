@@ -631,6 +631,11 @@ def epoch_spec(days: int = FULL_WINDOW_DAYS) -> WorkplaceSpec:
             ) in _MATTERS
         ),
         days=days,
+        # A lawyer is in a deposition, a negotiation or a hearing for
+        # hours at a time; checking mail every ninety minutes is closer to
+        # the truth than every thirty, and the whole cast wakes on each
+        # tick, so tick count is what a six-month window actually costs.
+        wake_grid_minutes=90,
         end_of_day="18:30",
         timesheets=True,
         deliverables=True,
