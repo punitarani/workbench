@@ -187,8 +187,25 @@ def main(argv: list[str] | None = None) -> int:
             out.write_text(json.dumps(config, indent=2), encoding="utf-8")
             print(f"gateway on :{gateway.port}  config -> {out}")
             print(f"running {config['job_name']} at k={args.k}")
+            # Harbor runs in its own tool environment, where this repo
+            # is not installed. It imports the driving agent by module
+            # path, so `src` has to be on the PYTHONPATH it inherits —
+            # the matrix runner does this for subprocesses it spawns, and
+            # invoking `harbor` directly skips that entirely.
+            #
+            # Found by running it, not by reading it: an import check with
+            # PYTHONPATH set by hand passes and proves nothing about what
+            # the child actually inherits. Without this the job dies at
+            # "No module named 'adapters'" before a single trial starts.
+            environment = os.environ.copy()
+            roots = [str(REPO / "src")]
+            if inherited := environment.get("PYTHONPATH"):
+                roots.extend(inherited.split(os.pathsep))
+            environment["PYTHONPATH"] = os.pathsep.join(dict.fromkeys(roots))
             return await asyncio.to_thread(
-                subprocess.call, ["harbor", "run", "-c", str(out)]
+                subprocess.call,
+                ["harbor", "run", "-c", str(out)],
+                env=environment,
             )
 
     return asyncio.run(run())
