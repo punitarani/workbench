@@ -7,15 +7,15 @@ from pathlib import Path
 
 import pytest
 
-from workbench.core.events import Event, EventPayload
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.core.events.documents import (
+from core.events import Event, EventPayload
+from core.events.control import SimRunStartedPayload
+from core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
-from workbench.core.events.people import PersonRecordPayload
-from workbench.tools.framework import build_server, project_system
-from workbench.tools.imanage import SYSTEM
+from core.events.people import PersonRecordPayload
+from tools.framework import build_server, project_system
+from tools.imanage import SYSTEM
 
 # The official iManage Work MCP connector as published 2026-08-14: the nine
 # read tools we already served, plus fetch, the CSV reader, the two recents,
@@ -500,7 +500,7 @@ def test_a_bare_filename_does_not_become_its_own_workspace() -> None:
     the file itself.
     """
 
-    from workbench.tools.imanage.project import _workspace
+    from tools.imanage.project import _workspace
 
     assert _workspace("brief.docx") == "firm"
     assert _workspace("/brief.docx") == "firm"
@@ -517,7 +517,7 @@ def test_a_filename_never_lies_about_its_bytes() -> None:
     that turns a capable model into a failing score.
     """
 
-    from workbench.tools.imanage.project import _extension
+    from tools.imanage.project import _extension
 
     # the author's suffix stands when it is a real form of that content
     assert _extension("wp.xlsx", "spreadsheet") == "xlsx"

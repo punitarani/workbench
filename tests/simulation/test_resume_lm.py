@@ -6,15 +6,15 @@ no WorkbenchLM (no seed counter) and a trivial GM state.
 
 from persona_fixtures import DANIEL, observed_events
 
-from workbench.core.actions import IntentAction, IntentActionSpec
-from workbench.core.intents import EmailDraft, EmailIntent
-from workbench.core.seed import Seed
-from workbench.simulation.entity.entity import ComposedEntity
-from workbench.simulation.gm.grounded import GroundedGm, TicketVocabulary
-from workbench.simulation.lm.dspy_lm import WorkbenchLM
-from workbench.simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
-from workbench.simulation.persona.actor import ProfessionalActorAct
-from workbench.simulation.persona.working_memory import WorkingMemoryComponent
+from core.actions import IntentAction, IntentActionSpec
+from core.intents import EmailDraft, EmailIntent
+from core.seed import Seed
+from simulation.entity.entity import ComposedEntity
+from simulation.gm.grounded import GroundedGm, TicketVocabulary
+from simulation.lm.dspy_lm import WorkbenchLM
+from simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
+from simulation.persona.actor import ProfessionalActorAct
+from simulation.persona.working_memory import WorkingMemoryComponent
 
 DECIDE_IDLE = (
     "[[ ## choice ## ]]\n"

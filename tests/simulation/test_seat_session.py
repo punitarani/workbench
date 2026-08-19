@@ -12,26 +12,26 @@ from pathlib import Path
 import pytest
 from mini_workplace import make_spec
 
-from workbench.core.actions import (
+from core.actions import (
     ActRequest,
     FreeAction,
     FreeActionSpec,
     IntentAction,
 )
-from workbench.core.intents import (
+from core.intents import (
     ChatDraft,
     ChatIntent,
     EmailDraft,
     EmailIntent,
     IdleIntent,
 )
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.errors import ConfigError, SeatProtocolError
-from workbench.simulation.external.session import SeatSession
-from workbench.simulation.lm.fake import FakeLM
-from workbench.simulation.lm.protocol import LMRequest, LMResponse
-from workbench.simulation.run import run_workplace
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.errors import ConfigError, SeatProtocolError
+from simulation.external.session import SeatSession
+from simulation.lm.fake import FakeLM
+from simulation.lm.protocol import LMRequest, LMResponse
+from simulation.run import run_workplace
 
 
 class CountingLM:

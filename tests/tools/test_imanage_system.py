@@ -10,15 +10,15 @@ from pathlib import Path
 
 import pytest
 
-from workbench.core.events import Event, EventPayload
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.core.events.documents import (
+from core.events import Event, EventPayload
+from core.events.control import SimRunStartedPayload
+from core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
-from workbench.core.events.people import PersonRecordPayload
-from workbench.tools.framework import build_server, project_system
-from workbench.tools.imanage import SYSTEM
+from core.events.people import PersonRecordPayload
+from tools.framework import build_server, project_system
+from tools.imanage import SYSTEM
 
 OFFSTAGE_MARKERS = ("sim.", "share_policy", "config_hash", "seed_root")
 

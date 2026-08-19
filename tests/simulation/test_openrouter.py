@@ -3,9 +3,9 @@ import json
 import httpx
 import pytest
 
-from workbench.simulation.errors import LMResponseError, LMTransportError
-from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
-from workbench.simulation.lm.protocol import ChatMessage, LMRequest
+from simulation.errors import LMResponseError, LMTransportError
+from simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
+from simulation.lm.protocol import ChatMessage, LMRequest
 
 
 def request(**overrides) -> LMRequest:

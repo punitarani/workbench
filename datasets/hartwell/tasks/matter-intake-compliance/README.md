@@ -46,7 +46,7 @@ the **compounded (queue) unit**, and Sol is the model it discriminates cleanly.
 The three harness pieces the read-only tasks never required are now in place and
 unit-tested for *generation*:
 
-1. **Serve** — `serve compliance` resolves (`src/workbench/tools/serve.py`);
+1. **Serve** — `serve compliance` resolves (`src/tools/serve.py`);
    the system is kept out of the global `REGISTRY` (it would auto-materialize +
    expose writes in every task) and served opt-in. `build_tasks` generates
    `bundle/mcp.json`.

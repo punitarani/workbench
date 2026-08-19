@@ -16,15 +16,19 @@ file is how to work in the repo.
 ## Layering
 
 ```
-workbench.core  ←  workbench.simulation  ←  workbench.workplaces
-      ↑
-workbench.environment / workbench.tools        workbench.adapters
+core  ←  simulation  ←  workplaces
+  ↑
+environment / tools          adapters
 ```
 
-* Dependencies point inward toward `workbench.core`. Never import outward or sideways.
-* `workbench.core` owns the event vocabulary: the typed primitives of professional work (messages, tickets, documents, calendar, intents). Tools own their presentation schemas; simulation owns behavior; workplaces compose both. New payload kinds are declared in core's closed union, never elsewhere.
-* `workbench.environment` and `workbench.tools` must not import `workbench.simulation` or `workbench.workplaces`.
-* `workbench.adapters` depends on `workbench.core` and task formats — never on a workplace.
+The eight top-level packages live directly under `src/`; there is no
+`workbench` package directory. The distribution is still named
+`workbench` and installs all eight, so `src/core` imports as `core`.
+
+* Dependencies point inward toward `core`. With no shared import prefix, `tests/test_layering.py` is the only thing enforcing this — a new top-level package must be added to its rules, to `[tool.uv.build-backend] module-name`, and to `tests/core/test_core_namespace.py`, which fails until all three exist. Never import outward or sideways.
+* `core` owns the event vocabulary: the typed primitives of professional work (messages, tickets, documents, calendar, intents). Tools own their presentation schemas; simulation owns behavior; workplaces compose both. New payload kinds are declared in core's closed union, never elsewhere.
+* `environment` and `tools` must not import `simulation` or `workplaces`.
+* `adapters` depends on `core` and task formats — never on a workplace.
 * `datasets/` is data plus scripts. It imports nothing from the workspace at task runtime.
 * Layering is enforced by `tests/test_layering.py`.
 
@@ -50,7 +54,7 @@ The agent must never observe simulation internals — personas, hidden state, pr
 * Full annotations. Prefer precise types (`Literal`, `NewType`, discriminated unions, `Protocol`) over `Any` and over defensive `isinstance` checks.
 * Async by default for I/O. Keep sync and async paths separate rather than bridging them.
 * Errors are typed and specific. Fail at the boundary where the bad input arrived.
-* Single distribution: all code lives in `src/workbench/<subpackage>/`, tests in `tests/<subpackage>/`.
+* Single distribution: all code lives in `src/<subpackage>/`, tests in `tests/<subpackage>/`.
 
 ## Style and comments
 

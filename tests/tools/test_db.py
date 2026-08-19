@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 import pytest
 from pydantic import BaseModel
 
-from workbench.tools.db import (
+from tools.db import (
     Id,
     Query,
     Ref,

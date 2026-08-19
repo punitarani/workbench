@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from workbench.adapters.harness.mcp_workspace import McpWorkspace, open_workspace
+from adapters.harness.mcp_workspace import McpWorkspace, open_workspace
 
 TASKS = Path(__file__).parent / "tasks"
 EPOCH = date(2026, 3, 2)

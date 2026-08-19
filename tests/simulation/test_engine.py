@@ -2,8 +2,8 @@ from pathlib import Path
 
 from toy_scenario import build_engine
 
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.engine.engine import StopCondition
+from core.worldlog import read_events, validate_events
+from simulation.engine.engine import StopCondition
 
 
 async def run_toy(tmp_path: Path, name: str = "world.jsonl") -> Path:
@@ -75,7 +75,7 @@ def test_run_is_pythonhashseed_independent(tmp_path: Path) -> None:
         f"sys.path.insert(0, {str(tests_dir)!r})\n"
         "from pathlib import Path\n"
         "from toy_scenario import build_engine\n"
-        "from workbench.simulation.engine.engine import StopCondition\n"
+        "from simulation.engine.engine import StopCondition\n"
         "async def main():\n"
         "    with tempfile.TemporaryDirectory() as d:\n"
         "        p = Path(d) / 'w.jsonl'\n"

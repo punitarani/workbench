@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from workbench.artifacts.render import render_document
-from workbench.core.artifacts import (
+from artifacts.render import render_document
+from core.artifacts import (
     Formula,
     Slide,
     SlideDeck,

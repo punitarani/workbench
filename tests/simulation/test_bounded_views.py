@@ -3,19 +3,19 @@ youngest PENDING_CAP items and conversation rendering keeps only the
 recent tail — while below each cap the views are byte-identical to the
 unbounded forms, which is what keeps recorded cassettes valid."""
 
-from workbench.core.actions import IntentActionSpec
-from workbench.core.events import Event
-from workbench.core.events.chat import (
+from core.actions import IntentActionSpec
+from core.events import Event
+from core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
 )
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.simulation.persona.rendering import (
+from core.events.email import EmailMessagePayload
+from core.events.people import PersonRecordPayload
+from simulation.persona.rendering import (
     CONVERSATION_TAIL,
     render_conversation,
 )
-from workbench.simulation.persona.working_memory import (
+from simulation.persona.working_memory import (
     PENDING_CAP,
     WorkingMemoryComponent,
 )

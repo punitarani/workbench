@@ -7,21 +7,21 @@ from pathlib import Path
 import pytest
 from projection_fixtures import coherent_events
 
-from workbench.core.events import Event, EventPayload
-from workbench.core.events.people import (
+from core.events import Event, EventPayload
+from core.events.people import (
     OrganizationRecordPayload,
     PersonRecordPayload,
 )
-from workbench.core.events.tickets import (
+from core.events.tickets import (
     FieldChange,
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
 )
-from workbench.core.events.work import TimeLoggedPayload
-from workbench.tools.clio import SYSTEM
-from workbench.tools.coherence import check_coherence
-from workbench.tools.framework import build_server, project_system
+from core.events.work import TimeLoggedPayload
+from tools.clio import SYSTEM
+from tools.coherence import check_coherence
+from tools.framework import build_server, project_system
 
 OFFSTAGE_MARKERS = ("sim.", "share_policy", "config_hash", "seed_root")
 

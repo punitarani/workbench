@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from workbench.core.simtime import SimTime, from_datetime, to_datetime
+from core.simtime import SimTime, from_datetime, to_datetime
 
 EPOCH = datetime(2026, 3, 12, 0, 0, tzinfo=UTC)
 

@@ -3,9 +3,9 @@ from pathlib import Path
 import pytest
 from toy_scenario import build_engine, resume_toy_engine
 
-from workbench.simulation.engine.engine import StopCondition
-from workbench.simulation.errors import ConfigMismatchError, SnapshotError
-from workbench.simulation.snapshot import (
+from simulation.engine.engine import StopCondition
+from simulation.errors import ConfigMismatchError, SnapshotError
+from simulation.snapshot import (
     SimulationSnapshot,
     load_snapshot,
     save_snapshot,

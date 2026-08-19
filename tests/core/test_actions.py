@@ -2,7 +2,7 @@ import pydantic
 import pytest
 from payload_samples import sample_payloads
 
-from workbench.core.actions import (
+from core.actions import (
     ActRequest,
     ActResponse,
     ChoiceAction,
@@ -15,8 +15,8 @@ from workbench.core.actions import (
     ResolutionDecision,
     TerminateDecision,
 )
-from workbench.core.events import Event, EventDraft
-from workbench.core.intents import (
+from core.events import Event, EventDraft
+from core.intents import (
     ChatDraft,
     ChatIntent,
     EmailDraft,

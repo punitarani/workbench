@@ -1,0 +1,44 @@
+from typing import Literal
+
+from pydantic import Field, model_validator
+
+from core.events._base import Payload
+from core.ids import ChatMessageId, ConversationId, PersonId
+
+
+class ChatConversationCreatedPayload(Payload):
+    kind: Literal["chat.conversation.created"]
+    conversation_id: ConversationId
+    conversation_type: Literal["channel", "dm"]
+    name: str | None
+    members: tuple[PersonId, ...] = Field(min_length=1)
+    topic: str = ""
+    purpose: str = ""
+
+    @model_validator(mode="after")
+    def _channels_are_named(self) -> ChatConversationCreatedPayload:
+        if self.conversation_type == "channel" and not self.name:
+            raise ValueError("channels must be named")
+        if self.conversation_type == "dm":
+            if self.name is not None:
+                raise ValueError("dms are unnamed")
+            if len(self.members) != 2:
+                raise ValueError("dms have exactly two members")
+        return self
+
+
+class ChatMessagePayload(Payload):
+    kind: Literal["chat.message"]
+    chat_message_id: ChatMessageId
+    conversation_id: ConversationId
+    reply_to: ChatMessageId | None
+    sender: PersonId
+    body: str
+
+
+class ChatReactionAddedPayload(Payload):
+    kind: Literal["chat.reaction.added"]
+    conversation_id: ConversationId
+    chat_message_id: ChatMessageId
+    person_id: PersonId
+    emoji: str = Field(min_length=1, description="Emoji name without colons.")

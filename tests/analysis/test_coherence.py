@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from workbench.analysis.coherence import check
-from workbench.analysis.world_facts import load_world
+from analysis.coherence import check
+from analysis.world_facts import load_world
 
 
 def _event(seq: int, tag: str, payload: dict, time: int = 0) -> dict:

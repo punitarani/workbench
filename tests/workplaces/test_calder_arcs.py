@@ -4,11 +4,11 @@ procedural fabric, and correctly staged around the arrival."""
 from datetime import date
 from pathlib import Path
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.chronicle.builder import Chronicle, TimedDraft
-from workbench.simulation.chronicle.procedural import procedural_day
-from workbench.workplaces.calder import (
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.chronicle.builder import Chronicle, TimedDraft
+from simulation.chronicle.procedural import procedural_day
+from workplaces.calder import (
     ARRIVAL,
     ARRIVAL_DATE,
     VOICE,
@@ -17,7 +17,7 @@ from workbench.workplaces.calder import (
     day_profile,
     procedural_cast,
 )
-from workbench.workplaces.calder.arcs import (
+from workplaces.calder.arcs import (
     PBC_LIST_TITLE,
     WELCOME_SUBJECT,
     CalderDirector,

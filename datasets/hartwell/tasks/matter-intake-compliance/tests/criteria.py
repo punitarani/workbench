@@ -19,14 +19,14 @@ import json
 import os
 from pathlib import Path
 
-from workbench.tools.compliance.tables import (
+from tools.compliance.tables import (
     COMPLIANCE_FLAGS,
     INTAKE_DEADLINES,
     INTAKE_LETTERS,
     INTAKE_MATTERS,
     TRUST_ENTRIES,
 )
-from workbench.tools.db import connect_readonly
+from tools.db import connect_readonly
 
 HERE = Path(__file__).parent
 EXPECTED = json.loads((HERE / "expected.json").read_text())

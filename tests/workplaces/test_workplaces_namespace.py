@@ -1,4 +1,4 @@
 def test_workplaces_imports() -> None:
-    import workbench.workplaces
+    import workplaces
 
-    assert workbench.workplaces.__doc__
+    assert workplaces.__doc__

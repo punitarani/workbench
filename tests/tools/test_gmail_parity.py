@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from workbench.core.events import Event
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.tools.framework import build_server, project_system
-from workbench.tools.gmail import SYSTEM
+from core.events import Event
+from core.events.control import SimRunStartedPayload
+from core.events.email import EmailMessagePayload
+from core.events.people import PersonRecordPayload
+from tools.framework import build_server, project_system
+from tools.gmail import SYSTEM
 
 # The official Gmail MCP server as captured 2026-08-14: 11 documented tools
 # plus the 8 trash/spam tools the live server serves. No send tool exists

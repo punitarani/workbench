@@ -4,9 +4,9 @@ import asyncio
 
 import httpx
 
-from workbench.simulation.lm.openrouter import OpenRouterLM
-from workbench.simulation.lm.permits import PermitPool
-from workbench.simulation.lm.protocol import ChatMessage, LMRequest
+from simulation.lm.openrouter import OpenRouterLM
+from simulation.lm.permits import PermitPool
+from simulation.lm.protocol import ChatMessage, LMRequest
 
 
 async def test_pool_bounds_concurrency() -> None:

@@ -6,11 +6,11 @@ that a test failure instead of a failed run, and pin the properties that
 make Ashgrove a *comparison* rather than a replicate.
 """
 
-from workbench.core.seed import Seed
-from workbench.simulation.workplace.compile import compile_workplace
-from workbench.workplaces.ashgrove.epoch import epoch_director
-from workbench.workplaces.ashgrove.epoch import epoch_spec as ashgrove_spec
-from workbench.workplaces.calder.epoch import epoch_spec as calder_spec
+from core.seed import Seed
+from simulation.workplace.compile import compile_workplace
+from workplaces.ashgrove.epoch import epoch_director
+from workplaces.ashgrove.epoch import epoch_spec as ashgrove_spec
+from workplaces.calder.epoch import epoch_spec as calder_spec
 
 
 class TestReferences:
@@ -91,7 +91,7 @@ class TestSeason:
         )
 
     def test_benefit_plan_work_peaks_before_the_5500_deadline(self) -> None:
-        from workbench.workplaces.ashgrove.season import season_multipliers
+        from workplaces.ashgrove.season import season_multipliers
 
         october = season_multipliers("2026-10-09")
         march = season_multipliers("2026-03-09")
@@ -100,10 +100,10 @@ class TestSeason:
     def test_the_two_firms_peak_in_different_months(self) -> None:
         """Calder crests at April 15; Ashgrove crests in fieldwork season."""
 
-        from workbench.workplaces.ashgrove.season import (
+        from workplaces.ashgrove.season import (
             season_multipliers as ashgrove_season,
         )
-        from workbench.workplaces.calder.season import (
+        from workplaces.calder.season import (
             season_multipliers as calder_season,
         )
 
@@ -156,11 +156,11 @@ class TestCuesReachTheirClients:
     """
 
     def test_every_profile_names_a_real_client_entity(self) -> None:
-        from workbench.core.seed import Seed as _Seed
-        from workbench.simulation.workplace.compile import (
+        from core.seed import Seed as _Seed
+        from simulation.workplace.compile import (
             compile_workplace as _compile,
         )
-        from workbench.workplaces.ashgrove.season import CLIENT_PROFILES
+        from workplaces.ashgrove.season import CLIENT_PROFILES
 
         compiled = _compile(ashgrove_spec(3), _Seed(root=7))
         entities = {name for name, _ in compiled.clients}
@@ -171,11 +171,11 @@ class TestCuesReachTheirClients:
         )
 
     def test_season_multipliers_name_real_client_entities(self) -> None:
-        from workbench.core.seed import Seed as _Seed
-        from workbench.simulation.workplace.compile import (
+        from core.seed import Seed as _Seed
+        from simulation.workplace.compile import (
             compile_workplace as _compile,
         )
-        from workbench.workplaces.ashgrove.season import season_multipliers
+        from workplaces.ashgrove.season import season_multipliers
 
         compiled = _compile(ashgrove_spec(3), _Seed(root=7))
         entities = {name for name, _ in compiled.clients}

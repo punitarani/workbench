@@ -4,12 +4,12 @@ from pathlib import Path
 import pytest
 from toy_scenario import build_engine, make_entities
 
-from workbench.core.actions import ActRequest, ActResponse, FreeAction, FreeActionSpec
-from workbench.simulation.engine.engine import StopCondition
-from workbench.simulation.errors import ScriptExhaustedError
-from workbench.simulation.external.entity import ExternalEntity
-from workbench.simulation.external.stdio import StdioTransport
-from workbench.simulation.external.transport import (
+from core.actions import ActRequest, ActResponse, FreeAction, FreeActionSpec
+from simulation.engine.engine import StopCondition
+from simulation.errors import ScriptExhaustedError
+from simulation.external.entity import ExternalEntity
+from simulation.external.stdio import StdioTransport
+from simulation.external.transport import (
     InProcessTransport,
     ScriptedTransport,
 )

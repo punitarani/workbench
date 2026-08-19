@@ -6,13 +6,13 @@ from collections import Counter
 from pathlib import Path
 from types import ModuleType
 
-from workbench.core.events.chat import ChatConversationCreatedPayload
-from workbench.core.events.documents import DocumentCreatedPayload
-from workbench.core.events.tickets import TicketCreatedPayload
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.tools import check_coherence
-from workbench.workplaces.hartwell import (
+from core.events.chat import ChatConversationCreatedPayload
+from core.events.documents import DocumentCreatedPayload
+from core.events.tickets import TicketCreatedPayload
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from tools import check_coherence
+from workplaces.hartwell import (
     EPOCH_ISO,
     FEDERAL_HOLIDAYS_2026,
     WINDOW,
@@ -21,7 +21,7 @@ from workbench.workplaces.hartwell import (
     day_profile,
     procedural_cast,
 )
-from workbench.workplaces.hartwell.people import (
+from workplaces.hartwell.people import (
     CLIENT_ORGS,
     EMPLOYEES,
     EXTERNALS,

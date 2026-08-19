@@ -3,19 +3,19 @@ mechanical scoring, reflective proposal, and a full generation on fakes."""
 
 from pathlib import Path
 
-from workbench.simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
-from workbench.simulation.optimize.instructions import (
+from simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
+from simulation.optimize.instructions import (
     InstructionSet,
     build_actor,
     current_instructions,
 )
-from workbench.simulation.optimize.loop import evaluate, optimize, propose
-from workbench.simulation.optimize.scenario import (
+from simulation.optimize.loop import evaluate, optimize, propose
+from simulation.optimize.scenario import (
     WEIGHTS,
     optimization_spec,
     score_day,
 )
-from workbench.simulation.persona.programs import DecideNextAction
+from simulation.persona.programs import DecideNextAction
 
 DECIDE_IDLE = (
     "[[ ## choice ## ]]\n"

@@ -5,8 +5,8 @@ Openability is the contract; byte stability is explicitly not.
 
 from pathlib import Path
 
-from workbench.artifacts.render import RenderOutcome, render_document
-from workbench.core.artifacts import (
+from artifacts.render import RenderOutcome, render_document
+from core.artifacts import (
     FormattedDocument,
     HeadingBlock,
     ListBlock,

@@ -1,10 +1,10 @@
 """Structural acceptance for the legal workplace: everything that must hold
 before any model is ever called."""
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import validate_events
-from workbench.simulation.workplace.compile import compile_workplace
-from workbench.workplaces.legal import (
+from core.seed import Seed
+from core.worldlog import validate_events
+from simulation.workplace.compile import compile_workplace
+from workplaces.legal import (
     STANDARD_ARTIFACT_MARKERS,
     UNWRITTEN_STANDARD_PHRASES,
     WORKPLACE,

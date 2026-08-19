@@ -1,18 +1,18 @@
 """A small coherent event sequence used by view and validator tests."""
 
-from workbench.core.events import Event, EventPayload
-from workbench.core.events.chat import (
+from core.events import Event, EventPayload
+from core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
 )
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.core.events.documents import (
+from core.events.control import SimRunStartedPayload
+from core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.core.events.tickets import (
+from core.events.email import EmailMessagePayload
+from core.events.people import PersonRecordPayload
+from core.events.tickets import (
     FieldChange,
     TicketCreatedPayload,
     TicketUpdatedPayload,

@@ -4,10 +4,10 @@ from pathlib import Path
 import dspy
 from pydantic import BaseModel
 
-from workbench.core.seed import Seed
-from workbench.simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
-from workbench.simulation.lm.dspy_lm import WorkbenchLM
-from workbench.simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
+from core.seed import Seed
+from simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
+from simulation.lm.dspy_lm import WorkbenchLM
+from simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
 
 
 class CannedLM:
@@ -135,7 +135,7 @@ async def test_context_isolates_concurrent_entities() -> None:
 
 
 async def test_dspy_component_invokes_under_own_lm() -> None:
-    from workbench.simulation.entity.dspy_component import DSPyComponent
+    from simulation.entity.dspy_component import DSPyComponent
 
     class JudgeState(BaseModel):
         last_label: str = ""

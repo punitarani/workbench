@@ -19,8 +19,8 @@ from pathlib import Path
 
 import pytest
 
-from workbench.analysis import stats
-from workbench.analysis.fidelity import (
+from analysis import stats
+from analysis.fidelity import (
     BANDS_PATH,
     evaluate,
     load_bands,

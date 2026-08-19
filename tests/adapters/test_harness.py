@@ -11,19 +11,19 @@ import httpx
 import pytest
 from workspace_fixtures import coherent_events
 
-from workbench.adapters.harness.agent_loop import (
+from adapters.harness.agent_loop import (
     WorkspaceEscapeError,
     run_episode,
     write_workspace_file,
 )
-from workbench.adapters.harness.grade import GraderError, grade_episode
-from workbench.adapters.harness.mcp_workspace import open_workspace
-from workbench.adapters.harness.openrouter_client import (
+from adapters.harness.grade import GraderError, grade_episode
+from adapters.harness.mcp_workspace import open_workspace
+from adapters.harness.openrouter_client import (
     OpenRouterChatClient,
     OpenRouterError,
 )
-from workbench.core.worldlog import WorldLogWriter
-from workbench.environment import materialize
+from core.worldlog import WorldLogWriter
+from environment import materialize
 
 DELIVERABLE = "clause triage: two-year cap accepted per Daniel's redline\n"
 
@@ -215,7 +215,7 @@ async def test_call_budget_admits_a_finishing_episode(bundle: Path) -> None:
 
 
 def test_read_call_budget_from_task_toml(tmp_path: Path) -> None:
-    from workbench.adapters.harness.cli import read_call_budget
+    from adapters.harness.cli import read_call_budget
 
     assert read_call_budget(tmp_path) is None
     manifest = tmp_path / "task.toml"

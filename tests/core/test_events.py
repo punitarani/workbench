@@ -2,7 +2,7 @@ import pydantic
 import pytest
 from payload_samples import sample_payloads
 
-from workbench.core.events import (
+from core.events import (
     SCHEMA_VERSION,
     TAG_REGISTRY,
     Event,

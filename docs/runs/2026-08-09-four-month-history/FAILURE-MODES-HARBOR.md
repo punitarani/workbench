@@ -44,7 +44,7 @@ Two consequences:
 1. `harbor analyze` can no longer be run on these trajectories. Any future
    trajectory-level work needs a fresh paid run.
 2. The runner's default `jobs_dir` is `repository / "jobs"`
-   (`adapters/src/workbench/adapters/harbor_matrix/cli.py:55`). Running the
+   (`adapters/src/adapters/harbor_matrix/cli.py:55`). Running the
    matrix from a disposable worktree therefore puts the entire paid evidence
    base inside a directory that worktree teardown destroys. This is itself a
    process failure worth fixing.
@@ -481,7 +481,7 @@ everything except two Gmail IDs, and its stated reason for excluding them is a
 timeline claim it could not verify: "The June 18 emails/recap were sent before
 the final Slack move." At revision `b6dd1d3` the Slack `ts` was
 `<simulation-relative seconds>.<counter>`, not a Unix instant — see
-`tools/src/workbench/tools/slack/project.py` before `db07e87`, which emitted
+`tools/src/tools/slack/project.py` before `db07e87`, which emitted
 `ts=f"{int(event.time)}.{len(messages):06d}"`. There was no sound way to order
 `8767500.002917` against `2026-06-12`. The winning DeepSeek cell said so
 outright. A criterion worth 56% of the answer was gated on a chronology the

@@ -1,9 +1,9 @@
-from workbench.core.events import Event
-from workbench.core.events.chat import ChatMessagePayload
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.simtime import SimTime
-from workbench.simulation.engine.attention import AttentionBook, matches_prefix
-from workbench.simulation.engine.timers import EntityTimer, TimerBook
+from core.events import Event
+from core.events.chat import ChatMessagePayload
+from core.events.email import EmailMessagePayload
+from core.simtime import SimTime
+from simulation.engine.attention import AttentionBook, matches_prefix
+from simulation.engine.timers import EntityTimer, TimerBook
 
 
 def chat(seq: int, conversation: str = "cnv-dm-1") -> Event:

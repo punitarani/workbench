@@ -1,0 +1,342 @@
+"""The persona's private fold of everything it has observed.
+
+Grounding, not memory: the fold is the observed events themselves, so every
+derived view is exactly consistent with the world log — a persona cannot
+drift from the record. The facts ledger accumulates what this persona has
+itself said, and drafts must not contradict it.
+
+Snapshots carry event *ids*, not events: the world log is the single copy of
+every event, and a restored component is rehydrated from it. Until
+rehydration happens, reads fail loud rather than acting on empty memory.
+"""
+
+from collections.abc import Mapping
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from core.actions import ActionSpec, EntityAction, IntentAction
+from core.events import Event
+from core.events.calendar import (
+    CalendarEventScheduledPayload,
+    CalendarResponsePayload,
+)
+from core.events.chat import (
+    ChatConversationCreatedPayload,
+    ChatMessagePayload,
+)
+from core.events.documents import DocumentCreatedPayload
+from core.events.email import EmailMessagePayload
+from core.events.tickets import TicketCreatedPayload
+from core.intents import (
+    ChatIntent,
+    DocumentEditIntent,
+    EmailIntent,
+    TicketIntent,
+)
+from simulation.entity.component import BaseComponent
+from simulation.entity.context import ContextBlock
+from simulation.errors import SnapshotError
+
+
+class PendingItem(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    ref: str
+    channel: str
+    summary: str
+    age_minutes: int = Field(ge=0)
+
+
+# A long history accumulates unreplied mail without bound; a real person
+# works from the top of the inbox. The persona sees at most this many
+# pending items — the youngest ones, in stable order. Below the cap the
+# view is exactly the old one, which keeps recorded prompts byte-stable.
+PENDING_CAP = 20
+
+
+class WorkingMemoryState(BaseModel):
+    event_ids: tuple[str, ...] = ()
+    facts: tuple[str, ...] = ()
+
+
+class WorkingMemoryComponent(BaseComponent):
+    state_model = WorkingMemoryState
+
+    def __init__(self, *, person_id: str, start_date: str | None = None) -> None:
+        super().__init__("working-memory")
+        self._person_id = person_id
+        # ISO date of sim day zero: with it, the situation clock renders a
+        # real calendar day instead of a bare offset.
+        self._start_date = start_date
+        self._events: tuple[Event, ...] = ()
+        self._facts: tuple[str, ...] = ()
+        self._awaiting_ids: tuple[str, ...] | None = None
+
+    def _require_hydrated(self) -> tuple[Event, ...]:
+        if self._awaiting_ids is not None:
+            raise SnapshotError(
+                "working memory restored from ids but never rehydrated; "
+                "call rehydrate(events_by_id) with the run's event store"
+            )
+        return self._events
+
+    async def pre_observe(self, event: Event) -> None:
+        self._require_hydrated()
+        self._events = (*self._events, event)
+        return None
+
+    async def pre_act(self, spec: ActionSpec) -> ContextBlock | None:
+        events = self._require_hydrated()
+        now = self.last_time()
+        seconds = now % 86_400
+        clock = f"{seconds // 3600:02d}:{(seconds % 3600) // 60:02d}"
+        # Bounded views: the most recent handful, not a lifetime inventory.
+        documents = self.known_documents()
+        tickets = [
+            f"{e.payload.ticket_id}: {e.payload.title}"
+            for e in events
+            if isinstance(e.payload, TicketCreatedPayload)
+        ][-10:]
+        # Only the ones still outstanding. Listing every invitation meant
+        # personas answered the same standing meeting every day — 44
+        # responses in a world, 40 of them repeats of 4, and not one of the
+        # thirteen meetings people actually scheduled ever got an answer.
+        answered = {
+            e.payload.calendar_event_id
+            for e in events
+            if isinstance(e.payload, CalendarResponsePayload)
+            and e.payload.responder == self._person_id
+        }
+        # And only the ones near enough to matter. A standing meeting
+        # compiles to one event per workday, so the whole fortnight of
+        # them sat in this list at once: personas spent the day RSVPing
+        # to a standup a week out, and the firm's chat fell from 94
+        # messages a day to 9. A calendar shows you this week, not the
+        # quarter.
+        horizon = now + 2 * 86_400
+        invitations = [
+            f"{e.payload.title} ({e.payload.calendar_event_id})"
+            for e in events
+            if isinstance(e.payload, CalendarEventScheduledPayload)
+            and self._person_id in e.payload.attendees
+            and e.payload.calendar_event_id not in answered
+            and int(e.payload.end) >= now
+            and int(e.payload.start) <= horizon
+        ][-8:]
+        # Name *and* id, here and above. Shown a name alone, a persona
+        # asked for a typed ref builds one out of it — `cnv-assurance` —
+        # and every post is rejected. Nothing then reaches the log for
+        # anyone to learn the real id from, so the firm's chat goes silent
+        # from a cold start it cannot recover from.
+        channels = [
+            f"{e.payload.name} ({e.payload.conversation_id})"
+            if e.payload.name
+            else e.payload.conversation_id
+            for e in events
+            if isinstance(e.payload, ChatConversationCreatedPayload)
+            and self._person_id in e.payload.members
+        ]
+        if self._start_date is not None:
+            from datetime import date, timedelta
+
+            day = date.fromisoformat(self._start_date) + timedelta(days=now // 86_400)
+            lines = [f"Current time: {day:%a} {day.isoformat()}, about {clock}."]
+        else:
+            lines = [f"Current time: about {clock}."]
+        if documents:
+            lines.append("Documents you know of: " + "; ".join(documents))
+        if tickets:
+            lines.append("Tickets you know of: " + "; ".join(tickets))
+        if channels:
+            lines.append("Chat channels you can post in: " + "; ".join(channels))
+        # An invitation nobody can see is an invitation nobody answers. The
+        # first RSVPs in this engine's history named events invented out of
+        # their titles, because the id had never been put in front of anyone.
+        if invitations:
+            lines.append("Meetings you are invited to: " + "; ".join(invitations))
+        total = len(self._pending_all())
+        if total > PENDING_CAP:
+            lines.append(
+                f"You have {PENDING_CAP}+ pending item(s) (showing the "
+                f"{PENDING_CAP} most recent)."
+            )
+        else:
+            lines.append(f"You have {total} pending item(s).")
+        return ContextBlock(label="Situation", content="\n".join(lines))
+
+    async def post_act(self, action: EntityAction) -> None:
+        if not isinstance(action, IntentAction):
+            return
+        intent = action.intent
+        fact: str | None = None
+        if isinstance(intent, EmailIntent | ChatIntent):
+            fact = intent.draft.summary
+        elif isinstance(intent, TicketIntent):
+            if intent.create is not None:
+                fact = f"Opened ticket: {intent.create.title}"
+            elif intent.comment:
+                fact = f"Commented on {intent.ticket_ref}: {intent.comment[:80]}"
+            elif intent.changes:
+                fact = f"Updated {intent.ticket_ref}"
+        elif isinstance(intent, DocumentEditIntent):
+            if intent.edit is not None:
+                fact = f"Revised {intent.document_ref}: {intent.edit.change_summary}"
+            elif intent.create is not None:
+                fact = f"Created document: {intent.create.title}"
+        if fact is not None:
+            self._facts = (*self._facts, fact)
+
+    def events(self) -> tuple[Event, ...]:
+        return self._require_hydrated()
+
+    def known_documents(self) -> list[str]:
+        """Work product this person could attach, by path and doc- id.
+
+        The drafting prompt tells personas to attach the file rather than
+        describe it, and for ten days nobody did: four attachments across
+        three hundred emails. The instruction was never the problem — the
+        draft call was simply never shown an id to attach. A firm whose
+        workpapers never travel is not an accounting firm.
+        """
+
+        return [
+            f"{e.payload.path} ({e.payload.document_id})"
+            for e in self._require_hydrated()
+            if isinstance(e.payload, DocumentCreatedPayload)
+        ][-10:]
+
+    def facts(self) -> tuple[str, ...]:
+        return self._facts
+
+    def restore_facts(self, facts: tuple[str, ...]) -> None:
+        """Roll-forward resume: facts are the persona's own action
+        summaries — they appear in no world event, so a rebuild without a
+        snapshot restores them from the run's durable metadata."""
+
+        self._facts = tuple(facts)
+
+    def current_day(self) -> str | None:
+        """ISO date of the current sim day, when a start date is known."""
+
+        if self._start_date is None:
+            return None
+        from datetime import date, timedelta
+
+        day = date.fromisoformat(self._start_date) + timedelta(
+            days=self.last_time() // 86_400
+        )
+        return day.isoformat()
+
+    def last_time(self) -> int:
+        events = self._require_hydrated()
+        if not events:
+            return 0
+        return int(events[-1].time)
+
+    def resolve_thread_ref(self, ref: str) -> str | None:
+        """Accept a thread id or a message id; return the thread id."""
+        for event in self._require_hydrated():
+            payload = event.payload
+            if isinstance(payload, EmailMessagePayload):
+                if payload.thread_id == ref:
+                    return ref
+                if payload.message_id == ref:
+                    return payload.thread_id
+        return None
+
+    def pending_items(self) -> tuple[PendingItem, ...]:
+        """The bounded view every prompt surface consumes."""
+
+        items = self._pending_all()
+        if len(items) <= PENDING_CAP:
+            return items
+        youngest = sorted(
+            range(len(items)), key=lambda index: (items[index].age_minutes, index)
+        )[:PENDING_CAP]
+        return tuple(items[index] for index in sorted(youngest))
+
+    def _pending_all(self) -> tuple[PendingItem, ...]:
+        events = self._require_hydrated()
+        now = self.last_time()
+        items: list[PendingItem] = []
+
+        replied_to = {
+            e.payload.in_reply_to
+            for e in events
+            if isinstance(e.payload, EmailMessagePayload)
+            and e.payload.sender == self._person_id
+            and e.payload.in_reply_to is not None
+        }
+        for event in events:
+            payload = event.payload
+            if (
+                isinstance(payload, EmailMessagePayload)
+                and self._person_id in (*payload.to, *payload.cc)
+                and payload.message_id not in replied_to
+            ):
+                items.append(
+                    PendingItem(
+                        ref=payload.message_id,
+                        channel="email",
+                        summary=payload.subject,
+                        age_minutes=max(0, (now - int(event.time)) // 60),
+                    )
+                )
+
+        my_conversations = {
+            e.payload.conversation_id
+            for e in events
+            if isinstance(e.payload, ChatConversationCreatedPayload)
+            and self._person_id in e.payload.members
+        }
+        for conversation_id in sorted(my_conversations):
+            last_message: ChatMessagePayload | None = None
+            last_time = 0
+            answered = True
+            for event in events:
+                payload = event.payload
+                if (
+                    isinstance(payload, ChatMessagePayload)
+                    and payload.conversation_id == conversation_id
+                ):
+                    if payload.sender == self._person_id:
+                        answered = True
+                    else:
+                        last_message = payload
+                        last_time = int(event.time)
+                        answered = False
+            if last_message is not None and not answered:
+                items.append(
+                    PendingItem(
+                        ref=conversation_id,
+                        channel="chat",
+                        summary=last_message.body[:80],
+                        age_minutes=max(0, (now - last_time) // 60),
+                    )
+                )
+        return tuple(items)
+
+    def get_state(self) -> WorkingMemoryState:
+        events = self._require_hydrated()
+        return WorkingMemoryState(
+            event_ids=tuple(str(e.event_id) for e in events),
+            facts=self._facts,
+        )
+
+    def set_state(self, state: WorkingMemoryState) -> None:
+        self._facts = state.facts
+        self._events = ()
+        # An empty memory needs nothing from the store.
+        self._awaiting_ids = state.event_ids or None
+
+    def rehydrate(self, events_by_id: Mapping[str, Event]) -> None:
+        if self._awaiting_ids is None:
+            return
+        missing = [i for i in self._awaiting_ids if i not in events_by_id]
+        if missing:
+            raise SnapshotError(
+                f"cannot rehydrate working memory: {len(missing)} event id(s) "
+                f"absent from the store, first {missing[0]!r}"
+            )
+        self._events = tuple(events_by_id[i] for i in self._awaiting_ids)
+        self._awaiting_ids = None

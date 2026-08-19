@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 from toy_scenario import build_engine, build_store_engine, resume_store_engine
 
-from workbench.core.store import SqliteRunStore, export_jsonl
-from workbench.simulation.engine.engine import StopCondition
+from core.store import SqliteRunStore, export_jsonl
+from simulation.engine.engine import StopCondition
 
 
 async def test_store_run_exports_byte_identical_log(tmp_path: Path) -> None:

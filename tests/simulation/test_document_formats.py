@@ -3,15 +3,15 @@
 import pytest
 from pydantic import ValidationError
 
-from workbench.core.artifacts import (
+from core.artifacts import (
     Formula,
     Slide,
     SlideDeck,
     SpreadsheetContent,
     SpreadsheetSheet,
 )
-from workbench.core.intents import DocumentCreateSpec
-from workbench.simulation.gm.grounded import IntentRejection, _validated_format
+from core.intents import DocumentCreateSpec
+from simulation.gm.grounded import IntentRejection, _validated_format
 
 
 def _spreadsheet() -> str:

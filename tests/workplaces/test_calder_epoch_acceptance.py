@@ -6,17 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.engine.engine import StopCondition
-from workbench.simulation.lm.cassette import CassetteStore, ReplayLM
-from workbench.simulation.run import resume_workplace, run_compiled
-from workbench.simulation.workplace.compile import compile_workplace
-from workbench.workplaces.calder.epoch import epoch_director, epoch_spec
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.engine.engine import StopCondition
+from simulation.lm.cassette import CassetteStore, ReplayLM
+from simulation.run import resume_workplace, run_compiled
+from simulation.workplace.compile import compile_workplace
+from workplaces.calder.epoch import epoch_director, epoch_spec
 
-CASSETTE = (
-    Path(__file__).parents[2] / "src/workbench/workplaces/calder/cassettes/epoch-seed42"
-)
+CASSETTE = Path(__file__).parents[2] / "src/workplaces/calder/cassettes/epoch-seed42"
 FAST = "deepseek/deepseek-v4-flash-0731"
 DEEP = "anthropic/claude-haiku-4.5"
 SEED = Seed(root=42)

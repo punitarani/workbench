@@ -8,7 +8,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from workbench.core.actions import (
+from core.actions import (
     ActionSpec,
     EntityAction,
     FreeAction,
@@ -17,24 +17,24 @@ from workbench.core.actions import (
     ResolutionDecision,
     TerminateDecision,
 )
-from workbench.core.events import Event, EventDraft
-from workbench.core.events.chat import (
+from core.events import Event, EventDraft
+from core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
 )
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.core.ids import IdMinter
-from workbench.core.simtime import SimDuration, SimTime
-from workbench.core.store import SqliteRunStore
-from workbench.core.worldlog import WorldLogWriter
-from workbench.simulation.engine.attention import AttentionBook
-from workbench.simulation.engine.engine import InterruptEngine
-from workbench.simulation.engine.queue import EventQueue, ScheduledEvent
-from workbench.simulation.entity.component import BaseComponent
-from workbench.simulation.entity.context import ContextBlock
-from workbench.simulation.entity.entity import ComposedEntity
-from workbench.simulation.time_model import EventDrivenTimeModel
+from core.events.control import SimRunStartedPayload
+from core.events.people import PersonRecordPayload
+from core.ids import IdMinter
+from core.simtime import SimDuration, SimTime
+from core.store import SqliteRunStore
+from core.worldlog import WorldLogWriter
+from simulation.engine.attention import AttentionBook
+from simulation.engine.engine import InterruptEngine
+from simulation.engine.queue import EventQueue, ScheduledEvent
+from simulation.entity.component import BaseComponent
+from simulation.entity.context import ContextBlock
+from simulation.entity.entity import ComposedEntity
+from simulation.time_model import EventDrivenTimeModel
 
 ENTITIES = ("ann", "bob", "cat")
 CONVERSATION = "cnv-000001"

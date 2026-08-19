@@ -2,20 +2,20 @@ from pathlib import Path
 
 import pytest
 
-from workbench.simulation.errors import (
+from simulation.errors import (
     CassetteMissError,
     LMBudgetExceededError,
 )
-from workbench.simulation.lm.budget import BudgetedLM
-from workbench.simulation.lm.cassette import (
+from simulation.lm.budget import BudgetedLM
+from simulation.lm.cassette import (
     CallSite,
     CassetteStore,
     RecordingLM,
     ReplayLM,
     cassette_key,
 )
-from workbench.simulation.lm.fake import FakeLM
-from workbench.simulation.lm.protocol import (
+from simulation.lm.fake import FakeLM
+from simulation.lm.protocol import (
     ChatMessage,
     LMRequest,
     LMResponse,

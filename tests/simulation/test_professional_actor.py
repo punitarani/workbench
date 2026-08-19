@@ -2,13 +2,13 @@
 
 from persona_fixtures import DANIEL, observed_events
 
-from workbench.core.actions import IntentAction, IntentActionSpec
-from workbench.core.intents import ChatIntent, EmailIntent, IdleIntent
-from workbench.core.seed import Seed
-from workbench.simulation.lm.dspy_lm import WorkbenchLM
-from workbench.simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
-from workbench.simulation.persona.actor import ProfessionalActorAct
-from workbench.simulation.persona.working_memory import WorkingMemoryComponent
+from core.actions import IntentAction, IntentActionSpec
+from core.intents import ChatIntent, EmailIntent, IdleIntent
+from core.seed import Seed
+from simulation.lm.dspy_lm import WorkbenchLM
+from simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
+from simulation.persona.actor import ProfessionalActorAct
+from simulation.persona.working_memory import WorkingMemoryComponent
 
 
 class SequenceLM:
@@ -145,7 +145,7 @@ DRAFT_TICKET = (
 
 
 async def test_create_ticket_route() -> None:
-    from workbench.core.intents import TicketIntent
+    from core.intents import TicketIntent
 
     actor, inner = await make_actor([DECIDE_CREATE_TICKET, DRAFT_TICKET])
     action = await actor.get_action_attempt((), spec())
@@ -158,7 +158,7 @@ async def test_create_ticket_route() -> None:
 
 
 async def test_ticket_situation_names_real_people() -> None:
-    from workbench.core.intents import TicketIntent
+    from core.intents import TicketIntent
 
     captured: list = []
 
@@ -168,7 +168,7 @@ async def test_ticket_situation_names_real_people() -> None:
             self.calls = 0
 
         async def complete(self, request):
-            from workbench.simulation.lm.protocol import LMResponse, TokenUsage
+            from simulation.lm.protocol import LMResponse, TokenUsage
 
             captured.append(request)
             text = self._texts[self.calls]
@@ -179,10 +179,10 @@ async def test_ticket_situation_names_real_people() -> None:
 
     from persona_fixtures import DANIEL, observed_events
 
-    from workbench.core.seed import Seed
-    from workbench.simulation.lm.dspy_lm import WorkbenchLM
-    from workbench.simulation.persona.actor import ProfessionalActorAct
-    from workbench.simulation.persona.working_memory import WorkingMemoryComponent
+    from core.seed import Seed
+    from simulation.lm.dspy_lm import WorkbenchLM
+    from simulation.persona.actor import ProfessionalActorAct
+    from simulation.persona.working_memory import WorkingMemoryComponent
 
     memory = WorkingMemoryComponent(person_id="per-daniel-reyes")
     for event in observed_events():

@@ -15,7 +15,7 @@ statements so the next one fails here instead of an hour into a recording.
 import inspect
 import re
 
-from workbench.simulation.gm.grounded import GroundedGm
+from simulation.gm.grounded import GroundedGm
 
 
 def _cases(source: str) -> set[str]:
@@ -44,12 +44,12 @@ def test_the_preview_is_documented_as_a_superset() -> None:
 
 
 def test_time_entries_name_their_author() -> None:
-    from workbench.core.events.work import TimeLoggedPayload
+    from core.events.work import TimeLoggedPayload
 
     gm = GroundedGm(
         entity_for_person={"per-ana": "ana"},
         ticket_vocabulary=__import__(
-            "workbench.simulation.gm.grounded", fromlist=["TicketVocabulary"]
+            "simulation.gm.grounded", fromlist=["TicketVocabulary"]
         ).TicketVocabulary(statuses=("Open",), priorities=("N",), ticket_types=("e",)),
     )
     payload = TimeLoggedPayload(
@@ -65,12 +65,12 @@ def test_time_entries_name_their_author() -> None:
 
 
 def test_meeting_turns_name_their_speaker() -> None:
-    from workbench.core.events.meetings import SimMeetingTurnPayload
+    from core.events.meetings import SimMeetingTurnPayload
 
     gm = GroundedGm(
         entity_for_person={"per-ana": "ana"},
         ticket_vocabulary=__import__(
-            "workbench.simulation.gm.grounded", fromlist=["TicketVocabulary"]
+            "simulation.gm.grounded", fromlist=["TicketVocabulary"]
         ).TicketVocabulary(statuses=("Open",), priorities=("N",), ticket_types=("e",)),
     )
     payload = SimMeetingTurnPayload(
@@ -97,7 +97,7 @@ class TestMalformedDraftsDegrade:
     def test_the_boundary_catches_validation_errors(self) -> None:
         import inspect
 
-        from workbench.simulation.persona.actor import ProfessionalActorAct
+        from simulation.persona.actor import ProfessionalActorAct
 
         source = inspect.getsource(ProfessionalActorAct.get_action_attempt)
         assert "except ValidationError" in source
@@ -108,7 +108,7 @@ class TestMalformedDraftsDegrade:
 
         import inspect
 
-        from workbench.simulation.persona import actor
+        from simulation.persona import actor
 
         source = inspect.getsource(actor)
         assert "CassetteMissError" in source
@@ -118,7 +118,7 @@ class TestMalformedDraftsDegrade:
     def test_the_note_names_the_missing_field(self) -> None:
         from pydantic import BaseModel, ValidationError
 
-        from workbench.simulation.persona.actor import _first_missing
+        from simulation.persona.actor import _first_missing
 
         class Draft(BaseModel):
             summary: str

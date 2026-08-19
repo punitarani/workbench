@@ -1,6 +1,6 @@
 from worldlog_fixtures import coherent_events
 
-from workbench.core.worldlog.views import (
+from core.worldlog.views import (
     conversation,
     directory,
     document_head,

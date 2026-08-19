@@ -22,10 +22,10 @@ from pathlib import Path
 
 import pytest
 
-from workbench.core.events import Event
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.tools.framework import build_server, project_system
-from workbench.tools.registry import get_system
+from core.events import Event
+from core.events.control import SimRunStartedPayload
+from tools.framework import build_server, project_system
+from tools.registry import get_system
 
 SNAPSHOTS = Path(__file__).parent / "snapshots"
 REPO = Path(__file__).resolve().parents[2]

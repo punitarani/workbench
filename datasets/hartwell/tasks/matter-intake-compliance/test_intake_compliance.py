@@ -7,8 +7,8 @@ import importlib.util
 import json
 from pathlib import Path
 
-from workbench.tools.compliance import SYSTEM, seed
-from workbench.tools.compliance.tables import (
+from tools.compliance import SYSTEM, seed
+from tools.compliance.tables import (
     COMPLIANCE_FLAGS,
     INTAKE_DEADLINES,
     INTAKE_LETTERS,
@@ -20,7 +20,7 @@ from workbench.tools.compliance.tables import (
     IntakeMatter,
     TrustEntry,
 )
-from workbench.tools.db import create_db
+from tools.db import create_db
 
 TASK = Path(__file__).parent
 SCENARIO = json.loads((TASK / "tests" / "scenario.json").read_text())

@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from workbench.environment.materialize import materialize
+from environment.materialize import materialize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hartwell"))
 

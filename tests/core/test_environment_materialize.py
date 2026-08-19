@@ -8,10 +8,10 @@ from pathlib import Path
 import pytest
 from worldlog_fixtures import coherent_events
 
-from workbench.core.errors import WorldLogIntegrityError
-from workbench.core.worldlog import WorldLogWriter
-from workbench.environment import materialize
-from workbench.tools import REGISTRY, check_coherence
+from core.errors import WorldLogIntegrityError
+from core.worldlog import WorldLogWriter
+from environment import materialize
+from tools import REGISTRY, check_coherence
 
 SYSTEMS = {system.name for system in REGISTRY}
 
@@ -103,7 +103,7 @@ async def test_stdio_server_end_to_end(tmp_path: Path) -> None:
 
     parameters = StdioServerParameters(
         command=sys.executable,
-        args=["-m", "workbench.tools.serve", "gmail", "--db", "state/gmail.db"],
+        args=["-m", "tools.serve", "gmail", "--db", "state/gmail.db"],
         cwd=str(out),
     )
     async with stdio_client(parameters) as (read, write):

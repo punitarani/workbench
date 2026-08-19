@@ -61,7 +61,7 @@ def test_harbor_rewardkit_layout_replaces_legacy_grader() -> None:
 
 
 def test_document_mention_markers_match_storyline_registry() -> None:
-    from workbench.workplaces.hartwell.storylines import DOC_MENTION_MARKERS
+    from workplaces.hartwell.storylines import DOC_MENTION_MARKERS
 
     solution_path = TASK / "solution" / "solve.py"
     spec = importlib.util.spec_from_file_location(
@@ -85,7 +85,7 @@ def _day(timestamp: int) -> str:
 
 @needs_bundle
 def test_reference_revision_ledger_matches_fresh_bundle() -> None:
-    from workbench.workplaces.hartwell.storylines import DOC_MENTION_MARKERS
+    from workplaces.hartwell.storylines import DOC_MENTION_MARKERS
 
     completed = subprocess.run(
         [sys.executable, str(TASK / "solution" / "solve.py")],

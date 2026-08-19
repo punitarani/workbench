@@ -1,10 +1,10 @@
 from persona_fixtures import DANIEL, observed_events
 
-from workbench.core.actions import IntentAction, IntentActionSpec
-from workbench.core.intents import EmailDraft, EmailIntent
-from workbench.core.worldlog.views import inbox
-from workbench.simulation.persona.rendering import render_identity, render_thread
-from workbench.simulation.persona.working_memory import WorkingMemoryComponent
+from core.actions import IntentAction, IntentActionSpec
+from core.intents import EmailDraft, EmailIntent
+from core.worldlog.views import inbox
+from simulation.persona.rendering import render_identity, render_thread
+from simulation.persona.working_memory import WorkingMemoryComponent
 
 
 def spec() -> IntentActionSpec:
@@ -76,8 +76,8 @@ async def test_state_round_trips() -> None:
 
 
 async def test_situation_block_lists_documents_and_pending() -> None:
-    from workbench.core.events import Event
-    from workbench.core.events.documents import DocumentCreatedPayload
+    from core.events import Event
+    from core.events.documents import DocumentCreatedPayload
 
     memory = await make_memory()
     doc = DocumentCreatedPayload(
@@ -100,7 +100,7 @@ async def test_situation_block_lists_documents_and_pending() -> None:
 
 
 async def test_facts_record_ticket_and_document_actions() -> None:
-    from workbench.core.intents import (
+    from core.intents import (
         DocumentEdit,
         DocumentEditIntent,
         TicketCreateSpec,
@@ -140,8 +140,8 @@ async def test_facts_record_ticket_and_document_actions() -> None:
 
 
 async def test_observed_own_reply_clears_pending() -> None:
-    from workbench.core.events import Event
-    from workbench.core.events.email import EmailMessagePayload
+    from core.events import Event
+    from core.events.email import EmailMessagePayload
 
     memory = await make_memory()
     assert any(i.ref == "msg-000001" for i in memory.pending_items())
@@ -168,8 +168,8 @@ async def test_observed_own_reply_clears_pending() -> None:
 async def test_situation_block_lists_chat_channels_for_initiating() -> None:
     """A silent channel must still be visible: the persona needs its name to
     post an update without waiting to be spoken to (GM resolves names)."""
-    from workbench.core.events import Event
-    from workbench.core.events.chat import ChatConversationCreatedPayload
+    from core.events import Event
+    from core.events.chat import ChatConversationCreatedPayload
 
     memory = await make_memory()
     other = ChatConversationCreatedPayload(

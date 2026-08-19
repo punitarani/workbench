@@ -27,18 +27,18 @@ import time
 from collections import Counter
 from pathlib import Path
 
-from workbench.core.seed import Seed
-from workbench.core.store import SqliteRunStore
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.engine.engine import StopCondition
-from workbench.simulation.lm.budget import BudgetedLM
-from workbench.simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
-from workbench.simulation.lm.openrouter import OpenRouterLM
-from workbench.simulation.lm.retry import RetryLM
-from workbench.simulation.run import resume_workplace, run_compiled
-from workbench.simulation.telemetry import DayRow, SegmentRow, TelemetryWriter
-from workbench.simulation.workplace.compile import compile_workplace
-from workbench.workplaces.ashgrove.epoch import epoch_director, epoch_spec
+from core.seed import Seed
+from core.store import SqliteRunStore
+from core.worldlog import read_events, validate_events
+from simulation.engine.engine import StopCondition
+from simulation.lm.budget import BudgetedLM
+from simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
+from simulation.lm.openrouter import OpenRouterLM
+from simulation.lm.retry import RetryLM
+from simulation.run import resume_workplace, run_compiled
+from simulation.telemetry import DayRow, SegmentRow, TelemetryWriter
+from simulation.workplace.compile import compile_workplace
+from workplaces.ashgrove.epoch import epoch_director, epoch_spec
 
 # Both tiers moved up one step. The fast model is not a background detail:
 # it writes every document, email and chat message -- about nine calls in

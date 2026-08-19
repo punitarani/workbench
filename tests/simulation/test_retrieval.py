@@ -1,8 +1,8 @@
 """Retrieval scoring: deterministic scaled integers, ref overlap
 dominant, ties broken by recency then ref."""
 
-from workbench.simulation.persona.memory_stream import MemoryRecord
-from workbench.simulation.persona.retrieval import (
+from simulation.persona.memory_stream import MemoryRecord
+from simulation.persona.retrieval import (
     RetrievalQuery,
     render_memories,
     retrieve,

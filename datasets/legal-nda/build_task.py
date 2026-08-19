@@ -11,7 +11,7 @@ task fixtures.
 import sys
 from pathlib import Path
 
-from workbench.environment import materialize
+from environment import materialize
 
 TASKS = Path(__file__).parent / "tasks"
 

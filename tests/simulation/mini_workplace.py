@@ -3,8 +3,8 @@ counsel (Ann Liu) and one external sender whose 09:40 email wants a reply."""
 
 from persona_fixtures import DANIEL
 
-from workbench.simulation.gm.grounded import TicketVocabulary
-from workbench.simulation.workplace.spec import (
+from simulation.gm.grounded import TicketVocabulary
+from simulation.workplace.spec import (
     ChannelSpec,
     ExogenousEmail,
     PersonSpec,

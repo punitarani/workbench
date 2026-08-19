@@ -69,7 +69,7 @@ retries = 2
 # command is a one-line wrapper installed by the healthcheck:
 #
 #   PYTHONPATH=/opt/workbench-runtime exec run-as-environment \
-#       python3 -m workbench.tools.serve <tool> --db /home/environment/state/<tool>.db
+#       python3 -m tools.serve <tool> --db /home/environment/state/<tool>.db
 #
 # run-as-environment is the setuid helper that drops to the environment user,
 # so the server opens a database the agent cannot. The wrapper exists because

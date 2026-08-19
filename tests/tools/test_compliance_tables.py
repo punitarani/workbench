@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from workbench.tools.compliance.tables import (
+from tools.compliance.tables import (
     ACTION_TABLES,
     ALL_TABLES,
     COMPLIANCE_FLAGS,
@@ -20,7 +20,7 @@ from workbench.tools.compliance.tables import (
     IntakeMatter,
     TrustEntry,
 )
-from workbench.tools.db import connect_readonly, connect_readwrite, create_db
+from tools.db import connect_readonly, connect_readwrite, create_db
 
 
 def _db(tmp_path: Path) -> Path:

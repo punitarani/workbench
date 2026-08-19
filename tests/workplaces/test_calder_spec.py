@@ -5,13 +5,13 @@ wake ladder, and ids continuing past the history."""
 import importlib.util
 from pathlib import Path
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events
-from workbench.simulation.chronicle.minter import minter_from_events
-from workbench.simulation.workplace.compile import compile_workplace
-from workbench.workplaces.calder import LIVE_DAY_OFFSET
-from workbench.workplaces.calder.people import ARRIVAL, EMPLOYEES
-from workbench.workplaces.calder.spec import LIVE_DAY_SPEC
+from core.seed import Seed
+from core.worldlog import read_events
+from simulation.chronicle.minter import minter_from_events
+from simulation.workplace.compile import compile_workplace
+from workplaces.calder import LIVE_DAY_OFFSET
+from workplaces.calder.people import ARRIVAL, EMPLOYEES
+from workplaces.calder.spec import LIVE_DAY_SPEC
 
 _SPEC = importlib.util.spec_from_file_location(
     "calder_build_for_spec_test",

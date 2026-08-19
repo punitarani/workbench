@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from workbench.core.ids import IdMinter
+from core.ids import IdMinter
 
 
 def test_mint_is_sequential_and_zero_padded() -> None:

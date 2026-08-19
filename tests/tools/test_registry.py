@@ -3,10 +3,10 @@
 import pytest
 from pydantic import BaseModel
 
-from workbench.core.errors import WorkbenchError
-from workbench.tools import REGISTRY, build_server, get_system, server_specs
-from workbench.tools.db import Table
-from workbench.tools.framework import ToolContractError, ToolSystem
+from core.errors import WorkbenchError
+from tools import REGISTRY, build_server, get_system, server_specs
+from tools.db import Table
+from tools.framework import ToolContractError, ToolSystem
 
 
 class NoteRow(BaseModel):
@@ -66,7 +66,7 @@ def test_server_specs_cover_the_registry() -> None:
     assert set(specs) == {s.name for s in REGISTRY}
     for name, spec in specs.items():
         assert spec["command"] == "python3"
-        assert spec["args"][:2] == ["-m", "workbench.tools.serve"]
+        assert spec["args"][:2] == ["-m", "tools.serve"]
         assert spec["args"][-2:] == ["--db", f"state/{name}.db"]
 
 

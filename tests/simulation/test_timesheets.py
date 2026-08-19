@@ -2,16 +2,16 @@
 
 import pytest
 
-from workbench.core.actions import TimesheetActionSpec
-from workbench.core.events import Event
-from workbench.core.events.control import SimTimesheetPayload
-from workbench.core.footprint import RULES, footprint_of
-from workbench.core.intents import TimesheetEntry, TimesheetIntent
-from workbench.simulation.gm.grounded import DayPlan, GroundedGm, IntentRejection
+from core.actions import TimesheetActionSpec
+from core.events import Event
+from core.events.control import SimTimesheetPayload
+from core.footprint import RULES, footprint_of
+from core.intents import TimesheetEntry, TimesheetIntent
+from simulation.gm.grounded import DayPlan, GroundedGm, IntentRejection
 
 
 def _gm(tickets: dict[str, tuple[str, str]]) -> GroundedGm:
-    from workbench.simulation.gm.grounded import TicketVocabulary
+    from simulation.gm.grounded import TicketVocabulary
 
     gm = GroundedGm(
         entity_for_person={"per-ana": "ana"},
@@ -152,8 +152,8 @@ class TestTimeflow:
         import inspect
         import typing
 
-        from workbench.core.intents import ActionIntent
-        from workbench.simulation.gm import timeflow
+        from core.intents import ActionIntent
+        from simulation.gm import timeflow
 
         source = inspect.getsource(timeflow.intent_duration)
         members = typing.get_args(typing.get_args(ActionIntent)[0])
@@ -166,7 +166,7 @@ class TestTimeflow:
         assert not missing, f"intents with no duration rule: {missing}"
 
     def test_an_unruled_intent_fails_loudly(self) -> None:
-        from workbench.simulation.gm.timeflow import intent_duration
+        from simulation.gm.timeflow import intent_duration
 
         class Unruled:
             kind = "unruled"
@@ -175,7 +175,7 @@ class TestTimeflow:
             intent_duration(Unruled())
 
     def test_a_timesheet_costs_time_proportional_to_its_lines(self) -> None:
-        from workbench.simulation.gm.timeflow import intent_duration
+        from simulation.gm.timeflow import intent_duration
 
         short = TimesheetIntent(
             entries=(TimesheetEntry(ticket_ref="tkt-1", minutes=30, note="x"),)
@@ -203,7 +203,7 @@ class TestCognitionContract:
 
         import inspect
 
-        from workbench.simulation.persona.actor import ProfessionalActorAct
+        from simulation.persona.actor import ProfessionalActorAct
 
         dispatched = ("_timesheet", "_reflect", "_plan", "_meeting_turn")
         offenders = [
@@ -225,7 +225,7 @@ class TestMalformedIntentsDoNotCrashRuns:
     """
 
     def test_an_email_with_no_recipients_parses_and_is_rejected(self) -> None:
-        from workbench.core.intents import EmailDraft, EmailIntent
+        from core.intents import EmailDraft, EmailIntent
 
         draft = EmailDraft(to=(), subject="s", body="b", summary="x")
         gm = _gm({"tkt-000001": ("Kestrel close", "per-ana")})

@@ -9,14 +9,14 @@ import pytest
 from mcp.server import MCPServer
 from projection_fixtures import coherent_events
 
-from workbench.core.events import Event, EventPayload
-from workbench.core.events.chat import (
+from core.events import Event, EventPayload
+from core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
     ChatReactionAddedPayload,
 )
-from workbench.tools.framework import build_server, project_system
-from workbench.tools.slack import SYSTEM
+from tools.framework import build_server, project_system
+from tools.slack import SYSTEM
 
 OFFSTAGE_MARKERS = ("sim.", "share_policy", "config_hash", "seed_root")
 

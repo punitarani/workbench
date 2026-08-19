@@ -1,13 +1,13 @@
 """Shared persona test fixtures: params and a small observed-event history."""
 
-from workbench.core.events import Event
-from workbench.core.events.chat import (
+from core.events import Event
+from core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
 )
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.simulation.persona.params import (
+from core.events.email import EmailMessagePayload
+from core.events.people import PersonRecordPayload
+from simulation.persona.params import (
     ChannelStyle,
     KnowledgeItem,
     ProfessionalWorkerParams,

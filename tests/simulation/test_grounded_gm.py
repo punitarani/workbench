@@ -1,8 +1,8 @@
 from worldlog_fixtures import coherent_events
 
-from workbench.core.actions import FreeAction, IntentAction, IntentActionSpec
-from workbench.core.events.tickets import FieldChange
-from workbench.core.intents import (
+from core.actions import FreeAction, IntentAction, IntentActionSpec
+from core.events.tickets import FieldChange
+from core.intents import (
     ChatDraft,
     ChatIntent,
     DocumentEdit,
@@ -12,8 +12,8 @@ from workbench.core.intents import (
     IdleIntent,
     TicketIntent,
 )
-from workbench.simulation.gm.grounded import GroundedGm, TicketVocabulary
-from workbench.simulation.gm.timeflow import intent_duration
+from simulation.gm.grounded import GroundedGm, TicketVocabulary
+from simulation.gm.timeflow import intent_duration
 
 ENTITY_FOR_PERSON = {
     "per-meredith-chao": "meredith",
@@ -254,8 +254,8 @@ async def test_email_address_resolves_to_person() -> None:
 
 
 async def test_wake_gives_its_entity_a_turn() -> None:
-    from workbench.core.events import Event
-    from workbench.core.events.control import SimWakePayload
+    from core.events import Event
+    from core.events.control import SimWakePayload
 
     gm = make_gm()
     payload = SimWakePayload(kind="sim.wake", entity="daniel")
@@ -268,8 +268,8 @@ async def test_wake_gives_its_entity_a_turn() -> None:
 
 
 async def test_deep_reply_chains_stop_granting_turns() -> None:
-    from workbench.core.events import Event
-    from workbench.core.events.email import EmailMessagePayload
+    from core.events import Event
+    from core.events.email import EmailMessagePayload
 
     gm = make_gm()
     parent_id = None
@@ -324,8 +324,8 @@ async def test_consecutive_document_edits_get_distinct_revisions() -> None:
 
 
 async def test_actor_observes_own_ticket_and_document_events() -> None:
-    from workbench.core.events import Event
-    from workbench.core.events.tickets import TicketCreatedPayload
+    from core.events import Event
+    from core.events.tickets import TicketCreatedPayload
 
     gm = make_gm()
     payload = TicketCreatedPayload(
@@ -349,8 +349,8 @@ async def test_actor_observes_own_ticket_and_document_events() -> None:
 
 
 async def test_senders_observe_their_own_messages() -> None:
-    from workbench.core.events import Event
-    from workbench.core.events.email import EmailMessagePayload
+    from core.events import Event
+    from core.events.email import EmailMessagePayload
 
     gm = make_gm()
     payload = EmailMessagePayload(
@@ -376,7 +376,7 @@ async def test_senders_observe_their_own_messages() -> None:
 
 
 async def test_reaction_intent_grounds_to_reaction_event() -> None:
-    from workbench.core.intents import ReactionIntent
+    from core.intents import ReactionIntent
 
     gm = make_gm()
     intent = ReactionIntent(chat_message_ref="chm-000001", emoji="thumbsup")
@@ -391,7 +391,7 @@ async def test_reaction_intent_grounds_to_reaction_event() -> None:
 
 
 async def test_reaction_to_unknown_message_is_rejected() -> None:
-    from workbench.core.intents import ReactionIntent
+    from core.intents import ReactionIntent
 
     gm = make_gm()
     intent = ReactionIntent(chat_message_ref="chm-999999", emoji="eyes")
@@ -402,7 +402,7 @@ async def test_reaction_to_unknown_message_is_rejected() -> None:
 
 
 async def test_time_log_intent_uses_persona_rate() -> None:
-    from workbench.core.intents import TimeLogIntent
+    from core.intents import TimeLogIntent
 
     gm = make_gm()
     gm.set_bill_rates({"per-daniel-reyes": 44_500})
@@ -420,7 +420,7 @@ async def test_time_log_intent_uses_persona_rate() -> None:
 
 
 async def test_time_log_against_unknown_ticket_rejected() -> None:
-    from workbench.core.intents import TimeLogIntent
+    from core.intents import TimeLogIntent
 
     gm = make_gm()
     intent = TimeLogIntent(ticket_ref="tkt-999999", minutes=30, note="x")
@@ -431,7 +431,7 @@ async def test_time_log_against_unknown_ticket_rejected() -> None:
 
 
 async def test_calendar_schedule_grounds_to_scheduled_event() -> None:
-    from workbench.core.intents import CalendarIntent, CalendarScheduleSpec
+    from core.intents import CalendarIntent, CalendarScheduleSpec
 
     gm = make_gm()
     intent = CalendarIntent(

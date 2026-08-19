@@ -63,21 +63,21 @@ byte-identical replay   environment bundle: workspace/ + state/*.db + mcp.json
 The layering (enforced by `tests/test_layering.py`):
 
 ```
-workbench.core  ←  workbench.simulation  ←  workbench.workplaces
+core  ←  simulation  ←  workplaces
       ↑
-workbench.environment / workbench.tools        workbench.adapters
+environment / tools        adapters
 ```
 
-`workbench.core` owns the typed event vocabulary; `workbench.simulation`
-is the domain-neutral engine; `workbench.workplaces` holds concrete firms
-as data; `workbench.tools` and `workbench.environment` build the
-agent-facing side from the log alone; `workbench.adapters` runs models
+`core` owns the typed event vocabulary; `simulation`
+is the domain-neutral engine; `workplaces` holds concrete firms
+as data; `tools` and `environment` build the
+agent-facing side from the log alone; `adapters` runs models
 against finished bundles. Domain knowledge exists only in `workplaces/`
 and `datasets/`.
 
 ## The simulation engine
 
-`workbench.simulation` is a clean-room, typed, async, deterministic
+`simulation` is a clean-room, typed, async, deterministic
 rebuild of the generative agent-based modeling pattern DeepMind's
 Concordia introduced — no Concordia code or dependency. The simulation
 is LLM-first: every employee is a generative agent, the outside world is
@@ -85,7 +85,7 @@ LLM-driven client actors, and the deterministic machinery (engine, game
 master, scheduler) exists to ground, order, and replay what the models
 produce. Persona reasoning runs as DSPy programs; the prompt surface is
 exactly signature docstrings and field descriptions, which is what GEPA
-optimizes (`workbench.simulation.optimize`) and what the cassette keys.
+optimizes (`simulation.optimize`) and what the cassette keys.
 
 ### One epoch day
 
@@ -103,7 +103,7 @@ Each workday is minted by a deterministic day chain:
    knowledge; the transcript is a validated world event. Attendee wakes
    are suppressed mid-meeting.
 4. **Client cues**: the season director
-   (`workbench.simulation.director`) stirs client actors on a seeded
+   (`simulation.director`) stirs client actors on a seeded
    quasi-Poisson schedule shaped by the firm's calendar (month-end,
    filing season, estimate weeks); the client actor's model authors the
    inbound mail. Replies ride the standard turn grants and depth caps.
@@ -194,10 +194,10 @@ operation (swap `EventDrivenTimeModel` for a wall-clock model).
 
 ## From world log to environment
 
-`workbench.environment.materialize(world_log, out_dir, seat=...)`
+`environment.materialize(world_log, out_dir, seat=...)`
 validates the log (every reference must resolve — an incoherent log
 never becomes an environment), projects the per-tool databases, renders
-structured artifacts to real office files (`workbench.artifacts`:
+structured artifacts to real office files (`artifacts`:
 spreadsheets with formula cells, formatted documents, slide decks), and
 writes the bundle:
 
@@ -217,7 +217,7 @@ are offstage by construction — `ToolSystem` refuses to handle them.
 
 ## Tool surfaces
 
-`workbench.tools` is a plugin registry: each system is a subpackage
+`tools` is a plugin registry: each system is a subpackage
 (tables, projector, server registrar) assembled into a `ToolSystem`, and
 one line in `registry.py` drives projection, coherence checking,
 `mcp.json` assembly, and the stdio `serve` entry point.
@@ -300,17 +300,17 @@ write workflow) carries its own measured floors, naive scores, and
 frontier failure modes in the
 [four-month-history run records](runs/2026-08-09-four-month-history/REPORT.md).
 
-`workbench.adapters.harness` is the in-repo eval loop: it opens a
+`adapters.harness` is the in-repo eval loop: it opens a
 bundle's MCP servers over stdio, runs a tool-calling model in an episode
 confined to `bundle/workspace`, and grades with the task's own grader.
-`workbench.adapters.harbor_matrix` runs budgeted, fingerprinted Harbor
+`adapters.harbor_matrix` runs budgeted, fingerprinted Harbor
 matrices through a local gateway that keeps the OpenRouter key out of
 containers.
 
 ## Worlds
 
 All four worlds serve their history through the same tool surfaces; each
-is a data package under `src/workbench/workplaces/`. Hartwell's history
+is a data package under `src/workplaces/`. Hartwell's history
 is chronicle-built (procedural structure plus cached, LM-authored
 content — a rebuild makes zero new model calls); the other worlds run
 through the engine.
@@ -332,7 +332,7 @@ LLM-first engine for a full six-month epoch: 140 workdays
 calls, all audit gates green, perfect 140/140 plan/reflection cadence,
 and a flat ~2.2k-token prompt bound from day 1 to day 140. The full
 epoch cassette stays local (355 MB); committed under
-`src/workbench/workplaces/calder/cassettes/` are the two-day acceptance
+`src/workplaces/calder/cassettes/` are the two-day acceptance
 cassette — replayed in CI byte-identically sequential, windowed, and
 killed-then-resumed (`test_calder_epoch_acceptance.py`) — and the
 five-day flagship-week recording. The `h1-billing-audit` task builds
@@ -455,7 +455,7 @@ uv run python datasets/calder/run_epoch.py audit  --out out/calder/epoch-6mo
 ```
 
 `datasets/ashgrove/run_epoch.py` is the identical CLI for the comparison
-firm. The single-day legal demo is `python -m workbench.simulation.demo`
+firm. The single-day legal demo is `python -m simulation.demo`
 (`--mode record|replay --cassette <dir>`).
 
 Measure a world against the bands:
@@ -482,7 +482,7 @@ harness:
 harbor run -p datasets/<dataset>/tasks/<task> -a claude-code -m <model>
 harbor view
 
-OPENROUTER_API_KEY=... uv run python -m workbench.adapters.harness.cli \
+OPENROUTER_API_KEY=... uv run python -m adapters.harness.cli \
     --task datasets/legal-nda/tasks/vantage-triage \
     --model deepseek/deepseek-v4-flash-0731 --attempts 3
 ```

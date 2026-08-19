@@ -37,8 +37,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from workbench.environment import materialize
-from workbench.tools.framework import ToolContractError, read_epoch
+from environment import materialize
+from tools.framework import ToolContractError, read_epoch
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -364,7 +364,7 @@ def build_compliance_task(task: Path) -> None:
     folders, so the agent workspace is empty."""
     import shutil
 
-    from workbench.tools.compliance import build_state
+    from tools.compliance import build_state
 
     bundle = task / "bundle"
     # bundle/ is derived; rebuild it wholesale so a compliance-only bundle never
@@ -383,7 +383,7 @@ def build_compliance_task(task: Path) -> None:
                         "command": "python3",
                         "args": [
                             "-m",
-                            "workbench.tools.serve",
+                            "tools.serve",
                             "compliance",
                             "--db",
                             "state/compliance.db",

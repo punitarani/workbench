@@ -7,14 +7,14 @@ answer that was never written to the record scores zero.
 
 from pathlib import Path
 
-from workbench.tools.compliance import SYSTEM
-from workbench.tools.compliance.grade import (
+from tools.compliance import SYSTEM
+from tools.compliance.grade import (
     ExpectedEndState,
     certified,
     check_end_state,
     coverage,
 )
-from workbench.tools.compliance.tables import (
+from tools.compliance.tables import (
     COMPLIANCE_FLAGS,
     INTAKE_LETTERS,
     INTAKE_MATTERS,
@@ -24,7 +24,7 @@ from workbench.tools.compliance.tables import (
     IntakeMatter,
     TrustEntry,
 )
-from workbench.tools.db import connect_readwrite, create_db
+from tools.db import connect_readwrite, create_db
 
 EXPECTED = ExpectedEndState(
     client="Aldous Renner Holdings LLC",

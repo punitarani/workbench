@@ -3,8 +3,8 @@
 import pytest
 from persona_fixtures import observed_events
 
-from workbench.simulation.errors import SnapshotError
-from workbench.simulation.persona.working_memory import WorkingMemoryComponent
+from simulation.errors import SnapshotError
+from simulation.persona.working_memory import WorkingMemoryComponent
 
 
 async def hydrated() -> WorkingMemoryComponent:

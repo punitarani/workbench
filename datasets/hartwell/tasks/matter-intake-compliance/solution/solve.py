@@ -17,8 +17,8 @@ import json
 import os
 from pathlib import Path
 
-from workbench.tools.compliance import SYSTEM
-from workbench.tools.framework import build_server
+from tools.compliance import SYSTEM
+from tools.framework import build_server
 
 
 async def solve(state_dir: Path) -> None:

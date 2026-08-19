@@ -2,19 +2,19 @@
 
 from pathlib import Path
 
-from workbench.core.artifacts import (
+from core.artifacts import (
     FormattedDocument,
     HeadingBlock,
     ParagraphBlock,
     SpreadsheetContent,
     SpreadsheetSheet,
 )
-from workbench.core.events import Event
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.core.events.documents import DocumentCreatedPayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.core.worldlog import WorldLogWriter
-from workbench.environment import materialize
+from core.events import Event
+from core.events.control import SimRunStartedPayload
+from core.events.documents import DocumentCreatedPayload
+from core.events.people import PersonRecordPayload
+from core.worldlog import WorldLogWriter
+from environment import materialize
 
 FEES = SpreadsheetContent(
     sheets=(

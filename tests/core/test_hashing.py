@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from workbench.core.hashing import canonical_json_bytes, content_hash
+from core.hashing import canonical_json_bytes, content_hash
 
 
 class Point(BaseModel):

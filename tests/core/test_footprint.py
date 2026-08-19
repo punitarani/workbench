@@ -5,12 +5,12 @@ must carry an explicit footprint rule, so adding an event kind without
 deciding its concurrency story fails CI.
 """
 
-from workbench.core.events.chat import ChatMessagePayload
-from workbench.core.events.control import SimGmNotePayload, SimWakePayload
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.payloads import TAG_REGISTRY
-from workbench.core.events.people import PersonRecordPayload
-from workbench.core.footprint import RULES, footprint_of
+from core.events.chat import ChatMessagePayload
+from core.events.control import SimGmNotePayload, SimWakePayload
+from core.events.email import EmailMessagePayload
+from core.events.payloads import TAG_REGISTRY
+from core.events.people import PersonRecordPayload
+from core.footprint import RULES, footprint_of
 
 
 def _email(thread: str, sender: str, to: tuple[str, ...]) -> EmailMessagePayload:

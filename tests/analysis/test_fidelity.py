@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from workbench.analysis.fidelity import (
+from analysis.fidelity import (
     BANDS_PATH,
     Band,
     Result,

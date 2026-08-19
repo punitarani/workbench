@@ -1,22 +1,22 @@
 """One sample instance per payload kind, shared by event/world-log tests."""
 
-from workbench.core.events.agent import (
+from core.events.agent import (
     MemoryBullet,
     PlanBlock,
     SimAgentMemoryPayload,
     SimAgentPlanPayload,
 )
-from workbench.core.events.calendar import (
+from core.events.calendar import (
     CalendarEventScheduledPayload,
     CalendarEventUpdatedPayload,
     CalendarResponsePayload,
 )
-from workbench.core.events.chat import (
+from core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
     ChatReactionAddedPayload,
 )
-from workbench.core.events.control import (
+from core.events.control import (
     SimCheckpointPayload,
     SimCuePayload,
     SimDayEndedPayload,
@@ -29,29 +29,29 @@ from workbench.core.events.control import (
     SimTimesheetPayload,
     SimWakePayload,
 )
-from workbench.core.events.documents import (
+from core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
-from workbench.core.events.email import Attachment, EmailMessagePayload
-from workbench.core.events.meetings import (
+from core.events.email import Attachment, EmailMessagePayload
+from core.events.meetings import (
     MeetingTranscriptPayload,
     SimMeetingConvenePayload,
     SimMeetingTurnPayload,
     TranscriptTurn,
 )
-from workbench.core.events.payloads import EventPayload
-from workbench.core.events.people import (
+from core.events.payloads import EventPayload
+from core.events.people import (
     OrganizationRecordPayload,
     PersonRecordPayload,
 )
-from workbench.core.events.tickets import (
+from core.events.tickets import (
     FieldChange,
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
 )
-from workbench.core.events.work import TimeLoggedPayload
+from core.events.work import TimeLoggedPayload
 
 
 def sample_payloads() -> dict[str, EventPayload]:

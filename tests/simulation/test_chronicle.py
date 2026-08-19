@@ -7,23 +7,23 @@ from pathlib import Path
 
 import pytest
 
-from workbench.core.errors import WorldLogIntegrityError
-from workbench.core.events import Event
-from workbench.core.events.chat import (
+from core.errors import WorldLogIntegrityError
+from core.events import Event
+from core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
 )
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.core.events.tickets import TicketCreatedPayload
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.chronicle.builder import Chronicle, TimedDraft
-from workbench.simulation.chronicle.calendar import SECONDS_PER_DAY, CalendarWindow
-from workbench.simulation.chronicle.minter import minter_from_events
-from workbench.simulation.chronicle.procedural import WORKDAY as WORKDAY_PROFILE
-from workbench.simulation.chronicle.procedural import (
+from core.events.control import SimRunStartedPayload
+from core.events.email import EmailMessagePayload
+from core.events.people import PersonRecordPayload
+from core.events.tickets import TicketCreatedPayload
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.chronicle.builder import Chronicle, TimedDraft
+from simulation.chronicle.calendar import SECONDS_PER_DAY, CalendarWindow
+from simulation.chronicle.minter import minter_from_events
+from simulation.chronicle.procedural import WORKDAY as WORKDAY_PROFILE
+from simulation.chronicle.procedural import (
     CastMember,
     ChatChannel,
     DayProfile,
@@ -35,7 +35,7 @@ from workbench.simulation.chronicle.procedural import (
     fill,
     procedural_day,
 )
-from workbench.simulation.errors import ChronicleError
+from simulation.errors import ChronicleError
 
 PHASE2_WINDOW = CalendarWindow(
     start_date="2026-03-02", end_date="2026-06-30", timezone="America/Los_Angeles"

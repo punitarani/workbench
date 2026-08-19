@@ -31,13 +31,13 @@ from pathlib import Path
 
 from pydantic import SecretStr
 
-from workbench.adapters.harbor_matrix.gateway import (
+from adapters.harbor_matrix.gateway import (
     DIAGNOSTIC_ALIASES,
     MODEL_ALIASES,
     GatewayConfig,
     ProviderGateway,
 )
-from workbench.adapters.harbor_matrix.runner import (
+from adapters.harbor_matrix.runner import (
     AGENT_TIMEOUT_MULTIPLIER,
     CODEX_COMPACTION_MODE,
     CODEX_VERSION,
@@ -48,7 +48,7 @@ from workbench.adapters.harbor_matrix.runner import (
     OPENCODE_VERSION,
     _create_gateway_env_file,
 )
-from workbench.adapters.harness.openrouter_client import MODEL_PROVIDERS
+from adapters.harness.openrouter_client import MODEL_PROVIDERS
 
 REPO = Path(__file__).resolve().parents[2]
 TASKS = Path(__file__).resolve().parent / "tasks"

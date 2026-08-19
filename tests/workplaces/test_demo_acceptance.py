@@ -2,9 +2,9 @@
 
 Needs the recorded cassette committed at CASSETTE below. Record it once:
 
-    OPENROUTER_API_KEY=... uv run python -m workbench.simulation.demo \
+    OPENROUTER_API_KEY=... uv run python -m simulation.demo \
         --seed 42 --mode record --out out/legal-day-record \
-        --cassette src/workbench/workplaces/legal/cassettes/day-seed42
+        --cassette src/workplaces/legal/cassettes/day-seed42
 
 Until then every test here skips; the structural suite in
 test_legal_workplace.py runs regardless.
@@ -15,17 +15,17 @@ from pathlib import Path
 
 import pytest
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.audit.heuristics import (
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.audit.heuristics import (
     knowledge_flow_litmus,
     register_matches_channel,
     replies_address_their_threads,
 )
-from workbench.simulation.lm.cassette import CassetteStore, ReplayLM
-from workbench.simulation.lm.openrouter import DEFAULT_MODEL
-from workbench.simulation.run import run_workplace
-from workbench.workplaces.legal import (
+from simulation.lm.cassette import CassetteStore, ReplayLM
+from simulation.lm.openrouter import DEFAULT_MODEL
+from simulation.run import run_workplace
+from workplaces.legal import (
     STANDARD_ARTIFACT_MARKERS,
     UNWRITTEN_STANDARD_PHRASES,
     WORKPLACE,
@@ -171,9 +171,9 @@ async def test_litmus_and_heuristics(tmp_path: Path) -> None:
     reason="set WORKBENCH_REAL_LM=1 and OPENROUTER_API_KEY to run",
 )
 async def test_real_model_smoke(tmp_path: Path) -> None:
-    from workbench.simulation.lm.budget import BudgetedLM
-    from workbench.simulation.lm.cassette import RecordingLM
-    from workbench.simulation.lm.openrouter import OpenRouterLM
+    from simulation.lm.budget import BudgetedLM
+    from simulation.lm.cassette import RecordingLM
+    from simulation.lm.openrouter import OpenRouterLM
 
     backend = OpenRouterLM(api_key=os.environ["OPENROUTER_API_KEY"])
     inner = BudgetedLM(
@@ -181,7 +181,7 @@ async def test_real_model_smoke(tmp_path: Path) -> None:
         max_calls=60,
     )
     out_dir = tmp_path / "smoke"
-    from workbench.simulation.engine.engine import StopCondition
+    from simulation.engine.engine import StopCondition
 
     await run_workplace(
         WORKPLACE,

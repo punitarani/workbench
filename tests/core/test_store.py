@@ -6,9 +6,9 @@ from pathlib import Path
 import pytest
 from worldlog_fixtures import coherent_events
 
-from workbench.core.events import EventDraft
-from workbench.core.events.chat import ChatMessagePayload
-from workbench.core.store import RunStoreError, SqliteRunStore
+from core.events import EventDraft
+from core.events.chat import ChatMessagePayload
+from core.store import RunStoreError, SqliteRunStore
 
 
 def draft(n: int) -> EventDraft:

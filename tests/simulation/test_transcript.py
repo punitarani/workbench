@@ -1,5 +1,5 @@
-from workbench.simulation.entity.context import ContextBlock
-from workbench.simulation.transcript import TranscriptEntry, TranscriptStore
+from simulation.entity.context import ContextBlock
+from simulation.transcript import TranscriptEntry, TranscriptStore
 
 
 def entry(text: str = "content") -> TranscriptEntry:

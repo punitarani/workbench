@@ -32,7 +32,7 @@ Each is a discover-or-elicit condition where Opus genuinely slips ~1–10%:
 
 ## Architecture
 
-### 1. A `compliance` ToolSystem (`tools/src/workbench/tools/compliance/`)
+### 1. A `compliance` ToolSystem (`tools/src/tools/compliance/`)
 Follows the `ToolSystem` contract (framework.py) with one deviation: it is
 **scenario-seeded**, not world-log-projected. Two table families:
 - **Reference tables** (read-only to the agent), seeded from the scenario fixture:

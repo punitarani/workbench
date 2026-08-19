@@ -12,12 +12,12 @@ from pathlib import Path
 import pytest
 from mini_workplace import make_spec
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.external.seat_server import build_seat_server
-from workbench.simulation.external.session import SeatSession
-from workbench.simulation.lm.fake import FakeLM
-from workbench.simulation.run import run_workplace
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.external.seat_server import build_seat_server
+from simulation.external.session import SeatSession
+from simulation.lm.fake import FakeLM
+from simulation.run import run_workplace
 
 OFFSTAGE_MARKERS = ("sim.", "share_policy", "config_hash", "seed_root")
 ENVELOPE_KEYS = ("seq", "source", "caused_by", "event_id")

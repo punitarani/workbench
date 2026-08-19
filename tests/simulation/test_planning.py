@@ -7,17 +7,17 @@ from mini_workplace import make_spec
 from test_cohort_ladder import _day_started, _gm, _plan
 from test_workplace import DECIDE_IDLE_FALLBACK, SequenceLM
 
-from workbench.core.events import Event
-from workbench.core.events.agent import (
+from core.events import Event
+from core.events.agent import (
     MemoryBullet,
     PlanBlock,
     SimAgentPlanPayload,
 )
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.persona.memory_stream import MemoryStreamComponent
-from workbench.simulation.run import run_workplace
+from core.events.email import EmailMessagePayload
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.persona.memory_stream import MemoryStreamComponent
+from simulation.run import run_workplace
 
 PLAN_COMPLETION = (
     "[[ ## plan ## ]]\n"

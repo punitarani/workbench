@@ -22,22 +22,22 @@ from datetime import date
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from workbench.core.events import Event
-from workbench.core.events.chat import ChatMessagePayload, ChatReactionAddedPayload
-from workbench.core.events.documents import (
+from core.events import Event
+from core.events.chat import ChatMessagePayload, ChatReactionAddedPayload
+from core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.tickets import TicketUpdatedPayload
-from workbench.core.events.work import TimeLoggedPayload
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.environment import materialize
-from workbench.simulation.chronicle.builder import Chronicle
-from workbench.simulation.chronicle.procedural import procedural_day
-from workbench.tools import check_coherence
-from workbench.workplaces.calder import (
+from core.events.email import EmailMessagePayload
+from core.events.tickets import TicketUpdatedPayload
+from core.events.work import TimeLoggedPayload
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from environment import materialize
+from simulation.chronicle.builder import Chronicle
+from simulation.chronicle.procedural import procedural_day
+from tools import check_coherence
+from workplaces.calder import (
     ARRIVAL,
     ARRIVAL_DATE,
     FEDERAL_HOLIDAYS_2026,
@@ -47,7 +47,7 @@ from workbench.workplaces.calder import (
     day_profile,
     procedural_cast,
 )
-from workbench.workplaces.calder.arcs import (
+from workplaces.calder.arcs import (
     DRAFT_FS_TITLE,
     PBC_LIST_TITLE,
     CalderDirector,

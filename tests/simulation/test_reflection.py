@@ -8,9 +8,9 @@ from mini_workplace import make_spec
 from test_cohort_ladder import _day_started, _gm, _plan
 from test_workplace import DECIDE_IDLE_FALLBACK, SequenceLM
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.run import run_workplace
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.run import run_workplace
 
 REFLECT_COMPLETION = (
     "[[ ## reflection ## ]]\n"

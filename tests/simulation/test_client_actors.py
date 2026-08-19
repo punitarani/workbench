@@ -6,12 +6,12 @@ from pathlib import Path
 from mini_workplace import make_spec
 from test_workplace import DECIDE_IDLE_FALLBACK, SequenceLM
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.actors.client import ClientActorParams
-from workbench.simulation.director import PoissonCueSchedule
-from workbench.simulation.director.schedule import ClientProfile
-from workbench.simulation.run import run_workplace
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.actors.client import ClientActorParams
+from simulation.director import PoissonCueSchedule
+from simulation.director.schedule import ClientProfile
+from simulation.run import run_workplace
 
 CLIENT_WRITE = (
     "[[ ## draft ## ]]\n"

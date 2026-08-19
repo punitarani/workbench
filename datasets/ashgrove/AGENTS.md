@@ -30,7 +30,7 @@ each stage can refuse.
 * **`--refresh-truth` reads the world from the bundle's `SOURCE` file**,
   never from a fixed default. A fresh answer key derived from a stale
   world is invisible to every other check.
-* **`verify_oracle.py` derives from `workbench.analysis.world_facts`** —
+* **`verify_oracle.py` derives from `analysis.world_facts`** —
   raw events, no projection code. Where a value is minted by the
   projection (a chat timestamp, a rendered file path) it is compared as a
   multiset of facts rather than restated, because restating it would copy

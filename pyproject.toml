@@ -27,7 +27,21 @@ requires = ["uv_build>=0.11,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "workbench"
+# Eight top-level modules, not one package. The `workbench/` directory
+# level was removed because `src/workbench/core` said the project's name
+# twice; the distribution is still `workbench` and still installs these
+# eight, but they import as `core`, `tools`, `simulation` and so on.
+module-name = [
+    "adapters",
+    "analysis",
+    "artifacts",
+    "core",
+    "environment",
+    "simulation",
+    "tools",
+    "workplaces",
+]
+namespace = true
 
 [tool.uv]
 # litellm (via dspy) >=1.95 ships a Rust module with no macOS cp314 wheel and a
@@ -38,6 +52,11 @@ constraint-dependencies = ["litellm<1.95"]
 [dependency-groups]
 # dspy repeats here so a plain `uv sync` gives a working dev environment; the
 # container path installs the base project without this group.
+# Every renderer the `artifacts` extra ships, because the suite exercises
+# all of them. reportlab was missing here while the other three were
+# present, so a fresh `uv sync` produced an environment where two PDF
+# tests fail -- green on any machine with a stale reportlab, red in CI,
+# which is the worst arrangement of the two.
 dev = [
     "pytest>=8.3",
     "pytest-asyncio>=1.0",
@@ -46,6 +65,7 @@ dev = [
     "openpyxl>=3.1",
     "python-docx>=1.1",
     "python-pptx>=1.0.2",
+    "reportlab>=4.2",
 ]
 
 [tool.pytest.ini_options]
@@ -66,12 +86,12 @@ select = ["E", "F", "W", "I", "UP", "B", "TID"]
 # Determinism is a correctness concern (AGENTS.md): all randomness and time must
 # flow through seeded, explicit constructs. Tests may use these freely.
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
-"random.random".msg = "Seed via workbench.core.seed.derive_seed and use random.Random(seed)."
-"random.randint".msg = "Seed via workbench.core.seed.derive_seed and use random.Random(seed)."
-"random.choice".msg = "Seed via workbench.core.seed.derive_seed and use random.Random(seed)."
-"random.shuffle".msg = "Seed via workbench.core.seed.derive_seed and use random.Random(seed)."
+"random.random".msg = "Seed via core.seed.derive_seed and use random.Random(seed)."
+"random.randint".msg = "Seed via core.seed.derive_seed and use random.Random(seed)."
+"random.choice".msg = "Seed via core.seed.derive_seed and use random.Random(seed)."
+"random.shuffle".msg = "Seed via core.seed.derive_seed and use random.Random(seed)."
 "random.seed".msg = "Never mutate global RNG state; construct random.Random(seed) locally."
-"uuid.uuid4".msg = "Ids are minted deterministically; use workbench.core.ids.IdMinter."
+"uuid.uuid4".msg = "Ids are minted deterministically; use core.ids.IdMinter."
 "time.time".msg = "Simulated time only; use the engine TimeModel."
 "time.sleep".msg = "No wall-clock waits in library code; use the engine TimeModel."
 "datetime.datetime.now".msg = "Simulated time only; render via the scenario epoch."

@@ -26,33 +26,33 @@ from datetime import date
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from workbench.core.events import Event
-from workbench.core.events.calendar import CalendarEventScheduledPayload
-from workbench.core.events.chat import ChatMessagePayload, ChatReactionAddedPayload
-from workbench.core.events.documents import (
+from core.events import Event
+from core.events.calendar import CalendarEventScheduledPayload
+from core.events.chat import ChatMessagePayload, ChatReactionAddedPayload
+from core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.tickets import (
+from core.events.email import EmailMessagePayload
+from core.events.tickets import (
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
 )
-from workbench.core.events.work import TimeLoggedPayload
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.environment import materialize
-from workbench.simulation.chronicle.builder import Chronicle
-from workbench.simulation.chronicle.calendar import CalendarWindow
-from workbench.simulation.chronicle.content import ContentStore
-from workbench.simulation.chronicle.minter import minter_from_events
-from workbench.simulation.chronicle.procedural import ProceduralCast, procedural_day
-from workbench.simulation.lm.budget import BudgetedLM
-from workbench.simulation.lm.fake import FakeLM
-from workbench.simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
-from workbench.tools import check_coherence
-from workbench.workplaces.hartwell import (
+from core.events.work import TimeLoggedPayload
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from environment import materialize
+from simulation.chronicle.builder import Chronicle
+from simulation.chronicle.calendar import CalendarWindow
+from simulation.chronicle.content import ContentStore
+from simulation.chronicle.minter import minter_from_events
+from simulation.chronicle.procedural import ProceduralCast, procedural_day
+from simulation.lm.budget import BudgetedLM
+from simulation.lm.fake import FakeLM
+from simulation.lm.openrouter import DEFAULT_MODEL, OpenRouterLM
+from tools import check_coherence
+from workplaces.hartwell import (
     FEDERAL_HOLIDAYS_2026,
     VOICE,
     WINDOW,
@@ -60,7 +60,7 @@ from workbench.workplaces.hartwell import (
     day_profile,
     procedural_cast,
 )
-from workbench.workplaces.hartwell.storylines import (
+from workplaces.hartwell.storylines import (
     ARCHWAY_NDA_TITLE,
     ARROYO_HEARING_TITLE,
     BAYMARK_NDA_TITLE,

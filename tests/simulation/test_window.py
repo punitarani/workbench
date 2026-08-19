@@ -12,24 +12,24 @@ from mini_workplace import ann_params, make_spec
 from pydantic import BaseModel, ConfigDict
 from test_workplace import DECIDE_IDLE_FALLBACK, SequenceLM
 
-from workbench.core.actions import ActionSpec, EntityAction, IntentActionSpec
-from workbench.core.events import Event, EventDraft
-from workbench.core.events.control import SimRunStartedPayload, SimWakePayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.core.seed import Seed
-from workbench.core.store import SqliteRunStore
-from workbench.simulation.engine.attention import AttentionBook
-from workbench.simulation.engine.engine import InterruptEngine
-from workbench.simulation.engine.queue import EventQueue, ScheduledEvent
-from workbench.simulation.gm.game_master import (
+from core.actions import ActionSpec, EntityAction, IntentActionSpec
+from core.events import Event, EventDraft
+from core.events.control import SimRunStartedPayload, SimWakePayload
+from core.events.people import PersonRecordPayload
+from core.seed import Seed
+from core.store import SqliteRunStore
+from simulation.engine.attention import AttentionBook
+from simulation.engine.engine import InterruptEngine
+from simulation.engine.queue import EventQueue, ScheduledEvent
+from simulation.gm.game_master import (
     NextActingDecision,
     ResolutionDecision,
     TerminateDecision,
 )
-from workbench.simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
-from workbench.simulation.run import run_workplace
-from workbench.simulation.time_model import EventDrivenTimeModel
-from workbench.simulation.workplace.spec import ExogenousEmail, PersonSpec
+from simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
+from simulation.run import run_workplace
+from simulation.time_model import EventDrivenTimeModel
+from simulation.workplace.spec import ExogenousEmail, PersonSpec
 
 
 class _NullState(BaseModel):

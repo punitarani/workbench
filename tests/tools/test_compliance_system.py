@@ -8,14 +8,14 @@ from pathlib import Path
 
 import pytest
 
-from workbench.tools.compliance import SYSTEM, seed
-from workbench.tools.compliance.tables import (
+from tools.compliance import SYSTEM, seed
+from tools.compliance.tables import (
     COMPLIANCE_FLAGS,
     INTAKE_MATTERS,
     TRUST_ENTRIES,
 )
-from workbench.tools.db import connect_readonly, create_db
-from workbench.tools.framework import build_server
+from tools.db import connect_readonly, create_db
+from tools.framework import build_server
 
 SCENARIO = {
     "firm_positions": [

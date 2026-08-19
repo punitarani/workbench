@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from workbench.core.events import Event
-from workbench.core.events.calendar import CalendarEventScheduledPayload
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.tools.calendar import SYSTEM
-from workbench.tools.framework import build_server, project_system
+from core.events import Event
+from core.events.calendar import CalendarEventScheduledPayload
+from core.events.control import SimRunStartedPayload
+from core.events.people import PersonRecordPayload
+from tools.calendar import SYSTEM
+from tools.framework import build_server, project_system
 
 # The official Google Calendar MCP server as captured 2026-08-14.
 OFFICIAL_TOOLS = frozenset(

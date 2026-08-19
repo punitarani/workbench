@@ -52,7 +52,7 @@ task.
 ## Repository layout
 
 ```
-src/workbench/  one Python distribution, one import namespace
+src/  one Python distribution, one import namespace
   core/           typed contracts: events, intents, actions, world log
   simulation/     the LLM-first, deterministic simulation engine
   workplaces/     concrete firms as data (legal, hartwell, calder, ashgrove)
@@ -61,7 +61,7 @@ src/workbench/  one Python distribution, one import namespace
   artifacts/      renderers for spreadsheets, documents, decks
   analysis/       stdlib statistics and the fidelity harness
   adapters/       eval harnesses: models against finished bundles
-tests/          mirrors src/workbench/; parity snapshots under tests/parity/
+tests/          mirrors src/; parity snapshots under tests/parity/
 environment/    container image: Dockerfile, setuid shim
 datasets/       Harbor tasks and their builders, grouped into datasets
 scripts/        fidelity_report.py

@@ -11,11 +11,11 @@ from test_workplace import (
     SequenceLM,
 )
 
-from workbench.core.seed import Seed
-from workbench.simulation.engine.engine import StopCondition
-from workbench.simulation.errors import ConfigMismatchError
-from workbench.simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
-from workbench.simulation.run import resume_workplace, run_workplace
+from core.seed import Seed
+from simulation.engine.engine import StopCondition
+from simulation.errors import ConfigMismatchError
+from simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
+from simulation.run import resume_workplace, run_workplace
 
 
 async def record_straight_run(tmp_path: Path) -> tuple[Path, CassetteStore]:

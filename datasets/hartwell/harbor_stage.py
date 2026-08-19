@@ -18,7 +18,7 @@ after start and before agent setup::
 
 ``install.sh`` puts the databases at ``/home/environment/state`` (0700,
 environment-owned), installs the runtime at ``/opt/workbench-runtime`` with a
-``.pth`` so ``python3 -m workbench.tools.serve`` resolves for every user,
+``.pth`` so ``python3 -m tools.serve`` resolves for every user,
 asserts that the agent user cannot read a database, and only then deletes the
 staging tree. A failure leaves the tree intact, so the healthcheck's retry is
 a clean re-run rather than a half-installed environment.
@@ -69,9 +69,9 @@ HEALTHCHECK_COMMAND = f"sh {CONTAINER_STAGE}/install.sh"
 # The runtime vendors only the subpackages the MCP servers import; the
 # simulation engine (and its dspy stack) never enters a task container.
 SOURCE_PACKAGES = (
-    "src/workbench/core",
-    "src/workbench/tools",
-    "src/workbench/environment",
+    "src/core",
+    "src/tools",
+    "src/environment",
 )
 
 # The runtime's third-party half is resolved from the project metadata, so
@@ -172,7 +172,7 @@ if [ -d "$STAGE" ]; then
         "  $(echo $TOOLS | tr ' ' '|')) ;;" \\
         '  *) echo "unknown tool: $1" >&2; exit 2 ;;' \\
         'esac' \\
-        'exec python3 -m workbench.tools.serve "$1" --db {CONTAINER_STATE}/"$1".db' \\
+        'exec python3 -m tools.serve "$1" --db {CONTAINER_STATE}/"$1".db' \\
         > "$LIBEXEC/serve"
     chown environment:environment "$LIBEXEC/serve"
     chmod 750 "$LIBEXEC/serve"
@@ -360,12 +360,11 @@ def stage(
     _copy_tree(_dependency_tree(repo_root), runtime)
     shutil.rmtree(runtime / "bin", ignore_errors=True)
     (runtime / ".complete").unlink(missing_ok=True)
+    # Flat: each package lands at the runtime root, because the tree has no
+    # `workbench` level any more and the servers are reached as
+    # `python3 -m tools.serve`. There is no top-level __init__ to copy.
     for source in SOURCE_PACKAGES:
-        _copy_tree(repo_root / source, runtime / "workbench" / Path(source).name)
-    shutil.copyfile(
-        repo_root / "src" / "workbench" / "__init__.py",
-        runtime / "workbench" / "__init__.py",
-    )
+        _copy_tree(repo_root / source, runtime / Path(source).name)
 
     # The served tool set follows the databases actually staged: the read-only
     # surfaces a task carries, plus the one write system (compliance) when a task

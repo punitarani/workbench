@@ -1,13 +1,13 @@
-from workbench.core.events import Event
-from workbench.core.events.chat import ChatMessagePayload
-from workbench.core.events.documents import DocumentRevisedPayload
-from workbench.core.events.email import EmailMessagePayload
-from workbench.simulation.audit.heuristics import (
+from core.events import Event
+from core.events.chat import ChatMessagePayload
+from core.events.documents import DocumentRevisedPayload
+from core.events.email import EmailMessagePayload
+from simulation.audit.heuristics import (
     register_matches_channel,
     replies_address_their_threads,
     unwritten_standard_litmus,
 )
-from workbench.simulation.registry import programs
+from simulation.registry import programs
 
 
 def _event(seq: int, payload) -> Event:
@@ -148,7 +148,7 @@ def test_registry_enumerates_named_predictors() -> None:
 
 
 def test_litmus_accepts_artifact_before_statement_when_holder_authored() -> None:
-    from workbench.simulation.audit.heuristics import knowledge_flow_litmus
+    from simulation.audit.heuristics import knowledge_flow_litmus
 
     events = [
         _revision(0, "Capped the confidentiality term at two years."),
@@ -188,7 +188,7 @@ def test_litmus_accepts_artifact_before_statement_when_holder_authored() -> None
 
 
 def test_litmus_still_requires_both_evidence_channels() -> None:
-    from workbench.simulation.audit.heuristics import knowledge_flow_litmus
+    from simulation.audit.heuristics import knowledge_flow_litmus
 
     only_statement = [_chat(0, "per-daniel", "two-year term cap please")]
     result = knowledge_flow_litmus(

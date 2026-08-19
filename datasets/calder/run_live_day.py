@@ -19,22 +19,22 @@ import sys
 import time
 from pathlib import Path
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.chronicle.minter import minter_from_events
-from workbench.simulation.engine.engine import StopCondition
-from workbench.simulation.lm.budget import BudgetedLM
-from workbench.simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
-from workbench.simulation.lm.openrouter import OpenRouterLM
-from workbench.simulation.lm.protocol import LanguageModel
-from workbench.simulation.lm.retry import RetryLM
-from workbench.simulation.run import resume_workplace, run_compiled
-from workbench.simulation.workplace.compile import compile_workplace
-from workbench.workplaces.calder import LIVE_DAY_OFFSET
-from workbench.workplaces.calder.spec import LIVE_DAY_SPEC
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.chronicle.minter import minter_from_events
+from simulation.engine.engine import StopCondition
+from simulation.lm.budget import BudgetedLM
+from simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
+from simulation.lm.openrouter import OpenRouterLM
+from simulation.lm.protocol import LanguageModel
+from simulation.lm.retry import RetryLM
+from simulation.run import resume_workplace, run_compiled
+from simulation.workplace.compile import compile_workplace
+from workplaces.calder import LIVE_DAY_OFFSET
+from workplaces.calder.spec import LIVE_DAY_SPEC
 
 DEFAULT_HISTORY = Path("out/calder/world.jsonl")
-DEFAULT_CASSETTE = Path("src/workbench/workplaces/calder/cassettes/live-2026-07-20")
+DEFAULT_CASSETTE = Path("src/workplaces/calder/cassettes/live-2026-07-20")
 # The model the cassette is recorded against; cassette keys include the
 # model string, so record and replay must agree. The provider list matters
 # only while recording: OpenRouterLM defaults to an openai-only order,

@@ -4,9 +4,9 @@ validates, materializes, and reproduces byte for byte."""
 import importlib.util
 from pathlib import Path
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.environment import materialize
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from environment import materialize
 
 _SPEC = importlib.util.spec_from_file_location(
     "calder_build_history", Path(__file__).parent / "build_history.py"

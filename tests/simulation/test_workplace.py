@@ -3,13 +3,13 @@ from pathlib import Path
 import pytest
 from mini_workplace import make_spec
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, read_manifest, validate_events
-from workbench.simulation.errors import ConfigError
-from workbench.simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
-from workbench.simulation.run import run_workplace
-from workbench.simulation.workplace.compile import compile_workplace, config_hash
-from workbench.simulation.workplace.spec import ChannelSpec, ExogenousEmail
+from core.seed import Seed
+from core.worldlog import read_events, read_manifest, validate_events
+from simulation.errors import ConfigError
+from simulation.lm.protocol import LMRequest, LMResponse, TokenUsage
+from simulation.run import run_workplace
+from simulation.workplace.compile import compile_workplace, config_hash
+from simulation.workplace.spec import ChannelSpec, ExogenousEmail
 
 
 def test_compile_is_deterministic() -> None:

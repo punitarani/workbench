@@ -5,19 +5,19 @@ to the entity that earned them."""
 from test_grounded_gm import last_event, make_gm, spec
 from worldlog_fixtures import coherent_events
 
-from workbench.core.actions import IntentAction
-from workbench.core.events import Event
-from workbench.core.events.agent import MemoryBullet, PlanBlock
-from workbench.core.events.chat import ChatMessagePayload
-from workbench.core.events.control import SimGmNotePayload
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.intents import (
+from core.actions import IntentAction
+from core.events import Event
+from core.events.agent import MemoryBullet, PlanBlock
+from core.events.chat import ChatMessagePayload
+from core.events.control import SimGmNotePayload
+from core.events.email import EmailMessagePayload
+from core.intents import (
     AgentNoteIntent,
     AgentPlanIntent,
     EmailDraft,
     EmailIntent,
 )
-from workbench.simulation.persona.memory_stream import MemoryStreamComponent
+from simulation.persona.memory_stream import MemoryStreamComponent
 
 ME = "per-daniel-reyes"
 MY_ENTITY = "daniel"
@@ -79,7 +79,7 @@ async def test_fold_importance_rules() -> None:
 
 
 async def test_agent_memory_event_folds_per_bullet() -> None:
-    from workbench.core.events.agent import SimAgentMemoryPayload
+    from core.events.agent import SimAgentMemoryPayload
 
     payload = SimAgentMemoryPayload(
         kind="sim.agent.memory",

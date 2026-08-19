@@ -9,16 +9,16 @@ from zoneinfo import ZoneInfo
 import pytest
 from mcp.server import MCPServer
 
-from workbench.core.events import Event
-from workbench.core.events.chat import (
+from core.events import Event
+from core.events.chat import (
     ChatConversationCreatedPayload,
     ChatMessagePayload,
     ChatReactionAddedPayload,
 )
-from workbench.core.events.control import SimRunStartedPayload
-from workbench.core.events.people import PersonRecordPayload
-from workbench.tools.framework import build_server, project_system
-from workbench.tools.slack import SYSTEM
+from core.events.control import SimRunStartedPayload
+from core.events.people import PersonRecordPayload
+from tools.framework import build_server, project_system
+from tools.slack import SYSTEM
 
 # The official Slack MCP server (GA February 2026, mcp.slack.com) as
 # captured 2026-08-14: twelve reads and seven writes.

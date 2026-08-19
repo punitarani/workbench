@@ -8,7 +8,7 @@ This is the implemented runbook, not a proposed migration.
 - Reward Kit 0.1.7, preinstalled in `workbench:dev`.
 - Codex 0.147.0.
 - Custom Harbor agent:
-  `workbench.adapters.harbor_matrix.codex_agent:HartwellCodex`.
+  `adapters.harbor_matrix.codex_agent:HartwellCodex`.
 - Agent timeout multiplier: 2.0.
 - Codex local compaction through custom provider `hartwell_gateway`.
 
@@ -35,7 +35,7 @@ operator used:
 
 ```shell
 uv run --env-file /Users/punit/projects/workbench/.env \
-  python -m workbench.adapters.harbor_matrix \
+  python -m adapters.harbor_matrix \
   --run-id <unique-run-id> \
   --projected-worst-case-batch-usd <full-nine-cell-projection>
 ```

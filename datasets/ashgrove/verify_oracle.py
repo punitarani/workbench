@@ -21,7 +21,7 @@ That has now happened twice:
 
 Both are invisible to any check that reads the same database twice. Both
 fall out immediately from computing the answer a second way. That is all
-this is: a second derivation, from :mod:`workbench.analysis.world_facts`
+this is: a second derivation, from :mod:`analysis.world_facts`
 (raw events, no projection code), compared field by field against the
 committed oracle. Disagreement is not automatically the oracle's fault —
 it means one of the two is wrong and neither may be trusted until someone
@@ -37,8 +37,8 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from workbench.analysis.snapshot import status_on
-from workbench.analysis.world_facts import WorldFacts, load_world
+from analysis.snapshot import status_on
+from analysis.world_facts import WorldFacts, load_world
 
 REPO = Path(__file__).resolve().parents[2]
 TASKS = Path(__file__).resolve().parent / "tasks"

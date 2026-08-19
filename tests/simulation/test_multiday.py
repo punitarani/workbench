@@ -12,12 +12,12 @@ from test_workplace import (
     SequenceLM,
 )
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.engine.engine import StopCondition
-from workbench.simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
-from workbench.simulation.run import resume_workplace, run_workplace
-from workbench.simulation.workplace.compile import compile_workplace
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.engine.engine import StopCondition
+from simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
+from simulation.run import resume_workplace, run_workplace
+from simulation.workplace.compile import compile_workplace
 
 CANNED = [
     DECIDE_IDLE_FALLBACK,

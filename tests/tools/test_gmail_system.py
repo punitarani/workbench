@@ -7,10 +7,10 @@ from pathlib import Path
 import pytest
 from projection_fixtures import coherent_events
 
-from workbench.core.events import Event
-from workbench.core.events.email import Attachment, EmailMessagePayload
-from workbench.tools.framework import build_server, project_system
-from workbench.tools.gmail import SYSTEM
+from core.events import Event
+from core.events.email import Attachment, EmailMessagePayload
+from tools.framework import build_server, project_system
+from tools.gmail import SYSTEM
 
 OFFSTAGE_MARKERS = ("sim.", "seed_root", "config_hash", "share_policy")
 

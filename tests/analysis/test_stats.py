@@ -10,7 +10,7 @@ import math
 
 import pytest
 
-from workbench.analysis import stats
+from analysis import stats
 
 
 class TestSpecialFunctions:

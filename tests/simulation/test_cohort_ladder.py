@@ -9,16 +9,16 @@ from test_grounded_gm import last_event, make_gm
 from test_grounded_gm import spec as intent_spec
 from test_workplace import DECIDE_IDLE_FALLBACK, SequenceLM
 
-from workbench.core.actions import IntentAction
-from workbench.core.events import Event
-from workbench.core.events.control import SimDayStartedPayload
-from workbench.core.intents import EmailDraft, EmailIntent
-from workbench.core.seed import Seed
-from workbench.simulation.chronicle.calendar import CalendarWindow
-from workbench.simulation.gm.grounded import DayPlan, GroundedGm, TicketVocabulary
-from workbench.simulation.gm.timeflow import intent_duration
-from workbench.simulation.run import run_workplace
-from workbench.simulation.workplace.spec import PersonSpec
+from core.actions import IntentAction
+from core.events import Event
+from core.events.control import SimDayStartedPayload
+from core.intents import EmailDraft, EmailIntent
+from core.seed import Seed
+from simulation.chronicle.calendar import CalendarWindow
+from simulation.gm.grounded import DayPlan, GroundedGm, TicketVocabulary
+from simulation.gm.timeflow import intent_duration
+from simulation.run import run_workplace
+from simulation.workplace.spec import PersonSpec
 
 GRID = 30 * 60
 DAY_START = 9 * 3600
@@ -151,7 +151,7 @@ async def test_windowed_mini_run_forms_batches(tmp_path: Path) -> None:
     spec = spec.model_copy(update={"people": (*spec.people, *extra_people)})
 
     batches: list[int] = []
-    import workbench.simulation.run as run_module
+    import simulation.run as run_module
 
     original_run = run_module.InterruptEngine.run
 

@@ -1,17 +1,17 @@
 import pytest
 from pydantic import BaseModel
 
-from workbench.core.actions import ActionSpec, EntityAction, FreeAction, FreeActionSpec
-from workbench.core.events import Event
-from workbench.core.events.chat import ChatMessagePayload
-from workbench.simulation.entity.component import (
+from core.actions import ActionSpec, EntityAction, FreeAction, FreeActionSpec
+from core.events import Event
+from core.events.chat import ChatMessagePayload
+from simulation.entity.component import (
     PHASE_SUCCESSORS,
     BaseComponent,
     check_successor,
 )
-from workbench.simulation.entity.context import ContextBlock, render_prompt
-from workbench.simulation.entity.entity import ComposedEntity
-from workbench.simulation.errors import PhaseError, SnapshotError
+from simulation.entity.context import ContextBlock, render_prompt
+from simulation.entity.entity import ComposedEntity
+from simulation.errors import PhaseError, SnapshotError
 
 
 class CounterState(BaseModel):

@@ -7,7 +7,7 @@ artifacts and never part of any byte-identity guarantee.
 import pytest
 from pydantic import ValidationError
 
-from workbench.core.artifacts import (
+from core.artifacts import (
     FormattedDocument,
     HeadingBlock,
     ListBlock,

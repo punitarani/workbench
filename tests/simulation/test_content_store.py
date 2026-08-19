@@ -3,9 +3,9 @@ prompt/model/seed, and a warmed directory reproduces without any LM."""
 
 from pathlib import Path
 
-from workbench.simulation.chronicle.content import ContentStore, content_key
-from workbench.simulation.lm.fake import FakeLM
-from workbench.simulation.lm.protocol import LMRequest, LMResponse
+from simulation.chronicle.content import ContentStore, content_key
+from simulation.lm.fake import FakeLM
+from simulation.lm.protocol import LMRequest, LMResponse
 
 
 class CountingLM:

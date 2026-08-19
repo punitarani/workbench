@@ -6,12 +6,12 @@ extended vocabulary must never leak into their calls.
 
 from persona_fixtures import DANIEL, observed_events
 
-from workbench.core.actions import IntentAction, IntentActionSpec
-from workbench.core.intents import CalendarIntent, ReactionIntent, TimeLogIntent
-from workbench.core.seed import Seed
-from workbench.simulation.lm.dspy_lm import WorkbenchLM
-from workbench.simulation.persona.actor import ProfessionalActorAct
-from workbench.simulation.persona.working_memory import WorkingMemoryComponent
+from core.actions import IntentAction, IntentActionSpec
+from core.intents import CalendarIntent, ReactionIntent, TimeLogIntent
+from core.seed import Seed
+from simulation.lm.dspy_lm import WorkbenchLM
+from simulation.persona.actor import ProfessionalActorAct
+from simulation.persona.working_memory import WorkingMemoryComponent
 
 
 class CapturingLM:
@@ -20,7 +20,7 @@ class CapturingLM:
         self.requests: list = []
 
     async def complete(self, request):
-        from workbench.simulation.lm.protocol import LMResponse, TokenUsage
+        from simulation.lm.protocol import LMResponse, TokenUsage
 
         self.requests.append(request)
         text = self._texts[len(self.requests) - 1]

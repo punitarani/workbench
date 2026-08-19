@@ -10,20 +10,20 @@ from types import ModuleType
 
 import pytest
 
-from workbench.core.events.calendar import CalendarEventScheduledPayload
-from workbench.core.events.chat import ChatMessagePayload, ChatReactionAddedPayload
-from workbench.core.events.documents import (
+from core.events.calendar import CalendarEventScheduledPayload
+from core.events.chat import ChatMessagePayload, ChatReactionAddedPayload
+from core.events.documents import (
     DocumentCreatedPayload,
     DocumentRevisedPayload,
 )
-from workbench.core.events.email import EmailMessagePayload
-from workbench.core.events.tickets import TicketCommentedPayload, TicketUpdatedPayload
-from workbench.core.events.work import TimeLoggedPayload
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.errors import ConfigError
-from workbench.workplaces.hartwell import WINDOW, build_genesis
-from workbench.workplaces.hartwell.storylines import (
+from core.events.email import EmailMessagePayload
+from core.events.tickets import TicketCommentedPayload, TicketUpdatedPayload
+from core.events.work import TimeLoggedPayload
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.errors import ConfigError
+from workplaces.hartwell import WINDOW, build_genesis
+from workplaces.hartwell.storylines import (
     ARROYO_HEARING_TITLE,
     CASCADIA_LETTER_TITLE,
     CONFORMING_NDA_TITLES,

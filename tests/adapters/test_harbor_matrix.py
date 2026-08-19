@@ -11,17 +11,17 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
-from workbench.adapters.harbor_matrix import provenance as matrix_provenance
-from workbench.adapters.harbor_matrix import runner as matrix_runner
-from workbench.adapters.harbor_matrix.cli import parse_args
-from workbench.adapters.harbor_matrix.gateway import (
+from adapters.harbor_matrix import provenance as matrix_provenance
+from adapters.harbor_matrix import runner as matrix_runner
+from adapters.harbor_matrix.cli import parse_args
+from adapters.harbor_matrix.gateway import (
     MODEL_ALIASES as ALIAS_TO_MODEL_FOR_TEST,
 )
-from workbench.adapters.harbor_matrix.gateway import (
+from adapters.harbor_matrix.gateway import (
     GatewayConfig,
     ProviderGateway,
 )
-from workbench.adapters.harbor_matrix.runner import (
+from adapters.harbor_matrix.runner import (
     AGENT_TIMEOUT_MULTIPLIER,
     CODEX_VERSION,
     HARBOR_VERSION,
@@ -48,7 +48,7 @@ from workbench.adapters.harbor_matrix.runner import (
     validate_batch_outcomes,
     validate_harbor_version,
 )
-from workbench.adapters.harness.openrouter_client import MODEL_PROVIDERS
+from adapters.harness.openrouter_client import MODEL_PROVIDERS
 
 
 @pytest.fixture
@@ -121,7 +121,7 @@ async def test_gateway_restores_alias_and_injects_provider_pin(
             json={"id": "response-1", "status": "completed"},
         )
 
-    caplog.set_level(logging.INFO, logger="workbench.adapters.harbor_matrix.gateway")
+    caplog.set_level(logging.INFO, logger="adapters.harbor_matrix.gateway")
     transport = httpx.MockTransport(upstream)
     gateway = ProviderGateway(gateway_config, upstream_transport=transport)
     async with gateway:
@@ -263,7 +263,7 @@ async def test_gateway_generic_failure_log_never_contains_exception_or_request_s
             "ephemeral-container-secret Authorization"
         )
 
-    caplog.set_level(logging.ERROR, logger="workbench.adapters.harbor_matrix.gateway")
+    caplog.set_level(logging.ERROR, logger="adapters.harbor_matrix.gateway")
     gateway = ProviderGateway(
         gateway_config, upstream_transport=httpx.MockTransport(upstream)
     )
@@ -305,7 +305,7 @@ def test_harbor_command_is_provider_aliased_and_version_pinned(tmp_path: Path) -
 
     assert command[:3] == ("harbor", "run", "-p")
     assert command[command.index("-a") + 1] == (
-        "workbench.adapters.harbor_matrix.codex_agent:HartwellCodex"
+        "adapters.harbor_matrix.codex_agent:HartwellCodex"
     )
     assert command.count("-m") == len(MODEL_ALIASES)
     for alias in MODEL_ALIASES:
@@ -437,7 +437,7 @@ def test_hartwell_opencode_routes_openai_key_through_gateway_token(
     shebang = Path(harbor).resolve().read_text(encoding="utf-8").splitlines()[0]
     if not shebang.startswith("#!"):
         pytest.skip("Harbor launcher has no Python shebang")
-    adapter_root = Path(matrix_runner.__file__).resolve().parents[3]
+    adapter_root = Path(matrix_runner.__file__).resolve().parents[2]
     environment = os.environ.copy()
     environment["PYTHONPATH"] = os.pathsep.join(
         filter(None, (str(adapter_root), environment.get("PYTHONPATH")))
@@ -445,7 +445,7 @@ def test_hartwell_opencode_routes_openai_key_through_gateway_token(
     script = "\n".join(
         (
             "from pathlib import Path",
-            "from workbench.adapters.harbor_matrix.opencode_agent import (",
+            "from adapters.harbor_matrix.opencode_agent import (",
             "    HartwellOpencode,",
             ")",
             "agent = HartwellOpencode(",
@@ -483,7 +483,7 @@ def test_hartwell_codex_uses_local_compaction(tmp_path: Path) -> None:
     shebang = Path(harbor).resolve().read_text(encoding="utf-8").splitlines()[0]
     if not shebang.startswith("#!"):
         pytest.skip("Harbor launcher has no Python shebang")
-    adapter_root = Path(matrix_runner.__file__).resolve().parents[3]
+    adapter_root = Path(matrix_runner.__file__).resolve().parents[2]
     environment = os.environ.copy()
     environment["PYTHONPATH"] = os.pathsep.join(
         filter(None, (str(adapter_root), environment.get("PYTHONPATH")))
@@ -491,7 +491,7 @@ def test_hartwell_codex_uses_local_compaction(tmp_path: Path) -> None:
     script = "\n".join(
         (
             "from pathlib import Path",
-            "from workbench.adapters.harbor_matrix.codex_agent import HartwellCodex",
+            "from adapters.harbor_matrix.codex_agent import HartwellCodex",
             "agent = HartwellCodex(",
             f"    logs_dir=Path({str(tmp_path)!r}),",
             "    model_name='gpt-5.6-sol',",
@@ -542,7 +542,7 @@ def test_hartwell_codex_strips_unified_exec_for_sol_only(tmp_path: Path) -> None
     shebang = Path(harbor).resolve().read_text(encoding="utf-8").splitlines()[0]
     if not shebang.startswith("#!"):
         pytest.skip("Harbor launcher has no Python shebang")
-    adapter_root = Path(matrix_runner.__file__).resolve().parents[3]
+    adapter_root = Path(matrix_runner.__file__).resolve().parents[2]
     environment = os.environ.copy()
     environment["PYTHONPATH"] = os.pathsep.join(
         filter(None, (str(adapter_root), environment.get("PYTHONPATH")))
@@ -554,7 +554,7 @@ def test_hartwell_codex_strips_unified_exec_for_sol_only(tmp_path: Path) -> None
     script = "\n".join(
         (
             "from pathlib import Path",
-            "from workbench.adapters.harbor_matrix.codex_agent import HartwellCodex",
+            "from adapters.harbor_matrix.codex_agent import HartwellCodex",
             f"cmd = {command!r}",
             "for model in ('gpt-5.6-sol', 'anthropic/claude-opus-5'):",
             "    agent = HartwellCodex(",
@@ -613,7 +613,7 @@ async def test_subprocess_runner_exposes_custom_agent_import_root(
 
     environment = captured["env"]
     assert isinstance(environment, dict)
-    adapter_root = Path(matrix_runner.__file__).resolve().parents[3]
+    adapter_root = Path(matrix_runner.__file__).resolve().parents[2]
     assert str(adapter_root) in environment["PYTHONPATH"].split(os.pathsep)
 
 

@@ -1,7 +1,7 @@
 import subprocess
 import sys
 
-from workbench.core.seed import Seed, derive_rng, derive_seed
+from core.seed import Seed, derive_rng, derive_seed
 
 
 def test_derivation_is_stable() -> None:
@@ -30,7 +30,7 @@ def test_derive_rng_is_deterministic() -> None:
 
 def test_derivation_is_pythonhashseed_independent() -> None:
     code = (
-        "from workbench.core.seed import Seed, derive_seed;"
+        "from core.seed import Seed, derive_seed;"
         "print(derive_seed(Seed(root=42), 'entity', 'alice'))"
     )
     outputs = {

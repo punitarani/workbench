@@ -6,21 +6,21 @@ from pathlib import Path
 import pytest
 from toy_scenario import build_engine
 
-from workbench.simulation.engine.engine import StopCondition
-from workbench.simulation.errors import (
+from simulation.engine.engine import StopCondition
+from simulation.errors import (
     LMBudgetExceededError,
     LMResponseError,
     LMTransportError,
 )
-from workbench.simulation.lm.budget import BudgetedLM
-from workbench.simulation.lm.protocol import (
+from simulation.lm.budget import BudgetedLM
+from simulation.lm.protocol import (
     ChatMessage,
     LMRequest,
     LMResponse,
     TokenUsage,
 )
-from workbench.simulation.lm.retry import RetryLM
-from workbench.simulation.telemetry import (
+from simulation.lm.retry import RetryLM
+from simulation.telemetry import (
     DayRow,
     SegmentRow,
     TelemetryWriter,

@@ -2,12 +2,12 @@ import random
 
 import pytest
 
-from workbench.core.events import EventDraft
-from workbench.core.events.chat import ChatMessagePayload
-from workbench.core.simtime import SimTime
-from workbench.simulation.engine.queue import EventQueue, ScheduledEvent
-from workbench.simulation.errors import TimeError
-from workbench.simulation.time_model import EventDrivenTimeModel
+from core.events import EventDraft
+from core.events.chat import ChatMessagePayload
+from core.simtime import SimTime
+from simulation.engine.queue import EventQueue, ScheduledEvent
+from simulation.errors import TimeError
+from simulation.time_model import EventDrivenTimeModel
 
 
 def scheduled(order: int, time: int) -> ScheduledEvent:

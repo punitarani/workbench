@@ -7,8 +7,8 @@ from zoneinfo import ZoneInfo
 
 from projection_fixtures import coherent_events
 
-from workbench.tools import REGISTRY, check_coherence, project_all
-from workbench.tools.framework import read_epoch
+from tools import REGISTRY, check_coherence, project_all
+from tools.framework import read_epoch
 
 DBS = sorted(f"{system.name}.db" for system in REGISTRY)
 
@@ -129,7 +129,7 @@ async def test_servers_render_dates_from_the_workspace_epoch(tmp_path: Path) -> 
     serve calendar dates derived from its own record, not any constant."""
     import json
 
-    from workbench.tools import build_server
+    from tools import build_server
 
     events = coherent_events()
     started = events[0]

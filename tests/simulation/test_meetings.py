@@ -6,10 +6,10 @@ from pathlib import Path
 from mini_workplace import make_spec
 from test_workplace import DECIDE_IDLE_FALLBACK, SequenceLM
 
-from workbench.core.seed import Seed
-from workbench.core.worldlog import read_events, validate_events
-from workbench.simulation.run import run_workplace
-from workbench.simulation.workplace.spec import PersonSpec, SeedCalendarEvent
+from core.seed import Seed
+from core.worldlog import read_events, validate_events
+from simulation.run import run_workplace
+from simulation.workplace.spec import PersonSpec, SeedCalendarEvent
 
 SPEAK = (
     "[[ ## utterance ## ]]\n"

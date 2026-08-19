@@ -3,9 +3,9 @@ from pathlib import Path
 import pytest
 from payload_samples import sample_payloads
 
-from workbench.core.errors import WorldLogOrderingError
-from workbench.core.events import Event
-from workbench.core.worldlog import (
+from core.errors import WorldLogOrderingError
+from core.events import Event
+from core.worldlog import (
     RunManifest,
     WorldLogWriter,
     read_events,

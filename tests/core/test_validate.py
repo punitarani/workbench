@@ -1,11 +1,11 @@
 from worldlog_fixtures import coherent_events
 
-from workbench.core.events import Event
-from workbench.core.events.chat import ChatMessagePayload
-from workbench.core.events.documents import DocumentRevisedPayload
-from workbench.core.events.email import Attachment, EmailMessagePayload
-from workbench.core.events.tickets import FieldChange, TicketUpdatedPayload
-from workbench.core.worldlog.validate import validate_events
+from core.events import Event
+from core.events.chat import ChatMessagePayload
+from core.events.documents import DocumentRevisedPayload
+from core.events.email import Attachment, EmailMessagePayload
+from core.events.tickets import FieldChange, TicketUpdatedPayload
+from core.worldlog.validate import validate_events
 
 
 def _email(seq: int, time: int, **overrides) -> Event:
