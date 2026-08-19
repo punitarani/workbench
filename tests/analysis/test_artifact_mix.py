@@ -150,3 +150,50 @@ def test_total_must_match_the_counts_it_summarises() -> None:
 
     with pytest.raises(ValueError):
         ArtifactMix(total=1, by_suffix=((".md", 999),))
+
+
+def test_a_lying_extension_is_caught_by_its_bytes(tmp_path: Path) -> None:
+    """This module calls corruption the more dangerous failure and used to
+    detect only the benign one.
+
+    A raw-text fallback lands as `.txt`, which is the single case where
+    the extension tells the truth. Prose written into a `.xlsx` — which
+    the document write path permits — passed untouched, and an agent told
+    to open the workbook would have found a memo.
+    """
+
+    (tmp_path / "real.xlsx").write_bytes(b"PK\x03\x04" + b"\x00" * 40)
+    (tmp_path / "liar.xlsx").write_text("# not a workbook at all")
+    (tmp_path / "liar.pdf").write_text("Dear Ms Oyelaran,")
+    (tmp_path / "honest.md").write_text("a note, and it says so")
+
+    mix = measure(tmp_path)
+    assert len(mix.mislabelled) == 2
+    assert all(".md" not in bad for bad in mix.mislabelled)
+    assert any("not the form their name claims" in v for v in violations(mix, FLOORS))
+
+
+def test_shares_over_survivors_are_reported_as_such() -> None:
+    """A document that produces no file leaves the numerator *and* the
+    denominator, so every share rises. The bias runs one way: a world that
+    loses documents reads healthier than one that does not."""
+
+    mix = ArtifactMix(
+        total=17, by_suffix=((".xlsx", 17),), declared=38, distinct_paths=38
+    )
+    problems = violations(mix, FLOORS)
+    assert any("21 produced no file at all" in p for p in problems)
+
+
+def test_a_path_collision_is_named_as_a_collision() -> None:
+    """Two documents at one path and a document that vanished are
+    different failures with different fixes, and the gate has to say
+    which. Measured on a real world: three documents named
+    `closing-checklist.xlsx` in one folder, and the file room shows one."""
+
+    mix = ArtifactMix(
+        total=13, by_suffix=((".xlsx", 13),), declared=15, distinct_paths=13
+    )
+    problems = violations(mix, FLOORS)
+    assert any("already used" in p for p in problems)
+    assert not any("produced no file at all" in p for p in problems)

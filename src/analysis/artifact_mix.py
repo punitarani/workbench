@@ -41,6 +41,50 @@ TABULAR_SUFFIXES = (".xlsx", ".csv")
 # presence is not a style preference; it is a corrupted artifact.
 FALLBACK_SUFFIXES = (".txt",)
 
+# What a file of each form must actually begin with. The office formats
+# are zip containers; a print form has its own marker.
+#
+# Checking the *suffix* only catches the honest failure. A fallback lands
+# as `.txt`, which is the one case where the extension tells the truth —
+# while a prose body written to a `.csv`, or anything else whose declared
+# format and real bytes disagree, passes untouched. This module says
+# corruption is the more dangerous of the two failures and then detected
+# the benign one.
+_MAGIC: dict[str, tuple[bytes, ...]] = {
+    ".docx": (b"PK\x03\x04",),
+    ".xlsx": (b"PK\x03\x04",),
+    ".pptx": (b"PK\x03\x04",),
+    ".pdf": (b"%PDF",),
+}
+
+
+def mislabelled(workspace: Path) -> tuple[str, ...]:
+    """Files whose bytes are not the form their name claims.
+
+    An agent told to open a workbook and handed prose scores zero, and the
+    zero reads as a model failure. Read the first bytes rather than the
+    extension: the extension is the claim being checked.
+    """
+
+    wrong: list[str] = []
+    for path in sorted(workspace.rglob("*")):
+        if not path.is_file():
+            continue
+        expected = _MAGIC.get(path.suffix.lower())
+        if expected is None:
+            continue
+        try:
+            head = path.open("rb").read(8)
+        except OSError:  # pragma: no cover - unreadable file is its own problem
+            wrong.append(f"{path.name}: unreadable")
+            continue
+        if not any(head.startswith(marker) for marker in expected):
+            wrong.append(
+                f"{path.relative_to(workspace)}: named {path.suffix} but its "
+                f"bytes are not {path.suffix}"
+            )
+    return tuple(wrong)
+
 
 @dataclass(frozen=True)
 class ArtifactMix:
@@ -55,6 +99,22 @@ class ArtifactMix:
 
     total: int
     by_suffix: tuple[tuple[str, int], ...]
+    # Files whose bytes contradict their extension. Empty is the normal
+    # case; anything here is a corrupted artifact, not a style choice.
+    mislabelled: tuple[str, ...] = ()
+    # How many documents the record says exist. Every share here is
+    # computed over the files that survived materialization, so a document
+    # that produced no file leaves the numerator *and* the denominator —
+    # which raises every share. The bias runs one way only: a world that
+    # loses documents reads healthier than one that does not. Measured on
+    # a real bundle, 52 declared against 49 on disk moved the office share
+    # from 0.365 to 0.388.
+    declared: int | None = None
+    # How many distinct paths those documents name. Two documents written
+    # to one path is a different failure from a document that produced no
+    # file, and the fix is different too: the first loses work to a name
+    # collision the record still remembers, the second loses it outright.
+    distinct_paths: int | None = None
 
     def __post_init__(self) -> None:
         counted = sum(count for _, count in self.by_suffix)
@@ -96,8 +156,18 @@ class ArtifactMix:
         return tuple(s for s in OFFICE_SUFFIXES if counts.get(s, 0) == 0)
 
 
-def measure(workspace: Path) -> ArtifactMix:
-    """Count files by suffix under a materialized workspace."""
+def measure(
+    workspace: Path,
+    *,
+    declared: int | None = None,
+    distinct_paths: int | None = None,
+) -> ArtifactMix:
+    """Count files by suffix under a materialized workspace.
+
+    ``declared`` is how many documents the record holds. Supply it: without
+    it every share is computed over the survivors, and losing a document
+    improves the numbers.
+    """
 
     counts: Counter[str] = Counter()
     for path in sorted(workspace.rglob("*")):
@@ -108,18 +178,35 @@ def measure(workspace: Path) -> ArtifactMix:
     return ArtifactMix(
         total=sum(counts.values()),
         by_suffix=tuple(sorted(counts.items())),
+        mislabelled=mislabelled(workspace),
+        declared=declared,
+        distinct_paths=distinct_paths,
     )
 
 
 @dataclass(frozen=True)
 class MixFloors:
-    """Thresholds, set between a measured known-bad and a known-good world
-    rather than at a round number. A band picked by intuition either never
-    fires or fires constantly, and in both cases stops being read.
+    """Thresholds set between measured worlds, not at round numbers.
 
-    The known-bad this is set against: a recorded world of 52 documents
-    that materialized 19 markdown, 33 workbooks, zero documents, zero
-    decks, zero issued PDFs, and 10 unparseable `.txt` fallbacks.
+    Every world this tree has produced, measured:
+
+    | world      | files | markdown | office | fallbacks |
+    |------------|-------|----------|--------|-----------|
+    | chronicle  |    36 |   100.0% |   0.0% |         0 |
+    | audit v1   |    49 |    40.8% |  38.8% |        10 |
+    | accounting |    17 |    35.3% |  64.7% |         0 |
+    | law firm   |    13 |     0.0% |  92.3% |         1 |
+
+    A 15% markdown ceiling and a 70% office floor fall between the worst
+    three and the fourth, which is the point — a band that no measured
+    world sits inside is a wall, and one every world clears is decoration.
+
+    `required_forms` is the exception and is deliberately *aspirational*:
+    no recorded world has ever emitted a deck, though the renderer makes a
+    valid 28KB one on demand and the authoring schema has the field. That
+    is a fact about worlds that gave nobody an occasion to present, not
+    about the capability, so the floor states what the institution owes
+    rather than what its predecessors managed.
     """
 
     max_markdown_share: float
@@ -148,6 +235,36 @@ def violations(mix: ArtifactMix, floors: MixFloors) -> tuple[str, ...]:
             f"real office formats are {mix.office_share:.0%}, under the "
             f"{floors.min_office_share:.0%} floor"
         )
+    if mix.declared is not None and mix.total < mix.declared:
+        # Split the shortfall, because the two halves call for different
+        # fixes. Documents sharing a path overwrite each other — the work
+        # exists in the record and the file room shows one of it.
+        # Documents that produced nothing are lost outright.
+        collided = (
+            0
+            if mix.distinct_paths is None
+            else max(0, mix.declared - mix.distinct_paths)
+        )
+        vanished = mix.declared - mix.total - collided
+        parts = []
+        if collided:
+            parts.append(
+                f"{collided} were written to a path another document "
+                "already used, so the file room shows the last one only"
+            )
+        if vanished > 0:
+            parts.append(f"{vanished} produced no file at all")
+        found.append(
+            f"the record holds {mix.declared} documents and the file room "
+            f"has {mix.total}: " + "; ".join(parts) + ". Every share above "
+            "is computed over what survived, so the loss makes the mix read "
+            "better than it is"
+        )
+    if mix.mislabelled:
+        found.append(
+            f"{len(mix.mislabelled)} file(s) are not the form their name "
+            f"claims: {'; '.join(mix.mislabelled[:3])}"
+        )
     if mix.fallback_count > floors.max_fallbacks:
         found.append(
             f"{mix.fallback_count} files are raw-text fallbacks, over the "
@@ -166,6 +283,7 @@ def violations(mix: ArtifactMix, floors: MixFloors) -> tuple[str, ...]:
 
 __all__ = [
     "FALLBACK_SUFFIXES",
+    "mislabelled",
     "OFFICE_SUFFIXES",
     "TABULAR_SUFFIXES",
     "ArtifactMix",

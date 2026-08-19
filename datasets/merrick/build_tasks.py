@@ -180,7 +180,11 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
             "this world lost work it was asked to record:\n  - " + "\n  - ".join(wrong)
         )
 
-    mix = measure(SHARED_BUNDLE / "workspace")
+    mix = measure(
+        SHARED_BUNDLE / "workspace",
+        declared=len(facts.documents),
+        distinct_paths=len({d.path for d in facts.documents.values()}),
+    )
     print(f"  file room: {dict(mix.by_suffix)}")
     wrong = violations(mix, FILE_ROOM)
     if wrong:
