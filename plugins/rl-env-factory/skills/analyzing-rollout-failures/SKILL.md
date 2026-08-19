@@ -30,6 +30,38 @@ against the provider with a minimal two-turn tool round-trip. Harness
 incompatibility and model incapacity are indistinguishable downstream,
 and the round-trip separates them in one call.
 
+## Prove the harness against a known number before trusting a sweep
+
+A rollout harness has many parts in series — a provider gateway, a job
+runner, a container, an agent binary, a model, a grader — and a fault in
+any of them produces the same artifact: a deliverable that is absent and
+a score of 0.000. That is indistinguishable from a model that cannot do
+the task, which is why the taxonomy calls it *not a score at all*.
+
+So run **one trial of an already-measured task** and check the number it
+returns against the number on record. Not "did it error" — a green run
+proves the pipes connect; a run that lands on a previously measured value
+proves they connect *correctly*. A harness returning 0.62 with no
+exceptions looks healthy, and every measurement after it is quietly
+wrong.
+
+Expect the faults to be **chained**, and expect reading not to find them.
+One such path had five, each strictly gating the next: a job name the
+aggregator does not search, a hardcoded port where the gateway binds an
+ephemeral one, an import root the child process never inherited, a
+missing gateway credential, and a model id in the wrong form for the
+driving agent. Four of the five were invisible to inspection, because the
+earlier ones stop the process before the later stages exist.
+
+Two of them had already been *verified* — in a configuration the real code
+path never uses. An import checked with the variable set by hand tests
+your shell, not what the child inherits. **A check that passes for
+reasons unrelated to what it claims to establish is the circularity trap
+wearing a harness.**
+
+While you are there, time a trial. Trials times tiers times k, divided by
+concurrency, is the wall clock of every sweep you are about to plan.
+
 ## Never average a non-answer as a zero
 
 A DNF averaged in as zero drags any task into any band you like:
