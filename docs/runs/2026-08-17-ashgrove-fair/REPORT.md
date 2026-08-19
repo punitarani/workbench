@@ -376,6 +376,45 @@ mean work. What should survive is the derivation half: 12 of its 71
 shared rows carried the wrong verdict, a 17% error rate that has nothing
 to do with how much it read.
 
+## Result: three tasks in band
+
+| task | gpt-5.6-sol | opus-5 | glm-5.2 | mean |
+|---|---|---|---|---|
+| commitment-follow-through | 0.515 (4/9) | 1.000 | 0.213 (2/3) | **0.576** |
+| opening-week-follow-through | 0.600 | 1.000 | 0.684 (7/9) | **0.761** |
+| opening-days-completion-claims | 0.687 (8/9) | 1.000 | 0.635 (3/3) | **0.774** |
+
+Every miss certified **M**: each oracle survives an independent
+derivation from the world log; no miss-set is shared by every trial; and
+each disputed row was read in the source rather than re-matched against
+the rule that produced it.
+
+### What the three have in common
+
+**Difficulty in the rule, not the corpus.** The distinction that made
+this possible: a coverage failure is bimodal — 1.000 or 0.3, decided by
+whether the agent enumerated — and it *vanishes* when the corpus shrinks.
+A rule-application failure is a rate, and a rate survives bounding. gpt
+read 1,574 of 1,585 messages on `completion-claims` and still found 48 of
+110 claims. That 70% miss rate is what these tasks grade.
+
+**Bounded in the work, not only the answer.** The first bounded attempt
+still asked for `messages_read` over all 1,585 messages, so the agent set
+out to read all 1,585, handed it to subagents and ended its turn — three
+times of three. Counting only the messages inside the window fixed it.
+
+**Enough trials to see through the harness.** gpt abandons a share of its
+attempts to uncollected subagents; glm ends its turn early on large
+corpora. Both are completion rates, not capabilities, and k=9 turns them
+into estimates. On one task the k=3 rate of 1-in-3 was 8-in-9 at k=9 —
+the sample was the artefact, not the task.
+
+**Three distinct failure mechanisms**, none of which is enumeration:
+a two-word rule missed at 70% (`complete` beside `completion`); date
+arithmetic and invented rows on messages carrying no time language at
+all; and a compositional miss — *"End of next week (Friday, close of
+business)"* carries two forms, and every trial found one of them.
+
 ## The first task in band
 
 `opening-days-completion-claims` — gpt-5.6-sol 0.627, glm-5.2 0.635
