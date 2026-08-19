@@ -16,10 +16,17 @@ behaviour had been built on it.
 per model, so a re-sample under its own tag is how a task that *is* in
 band stops being reported as out of it.
 
-**The model is pinned to a provider.** A bare model id routes to whatever
-the account's default provider is, which 404s or silently serves
-different weights. The gateway in `adapters.harbor_matrix` exists for
-this, and the agent reaches it over `host.docker.internal`.
+**The model is pinned to a provider, by a gateway this script owns.** A
+bare model id routes to whatever the account's default provider is, which
+404s or silently serves different weights. The gateway in
+`adapters.harbor_matrix` pins it, and the agent reaches it over
+`host.docker.internal`.
+
+Its port is **ephemeral** — bound at start, not configured — so the
+config cannot be written until the gateway is up. Hardcoding a port sends
+every trial to a dead address, and the whole sweep comes back 0.000:
+a harness failure that is indistinguishable downstream from a model that
+cannot do the task.
 
 `--print-config` resolves and prints the job without running it, which is
 the cheap way to find a bad path or a missing task before a sweep spends
@@ -27,13 +34,21 @@ anything.
 """
 
 import argparse
+import asyncio
 import json
 import os
+import secrets
 import subprocess
 import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
+
+from adapters.harbor_matrix.gateway import (  # noqa: E402
+    GatewayConfig,
+    ProviderGateway,
+)
 
 # Alias -> the provider-qualified id the gateway pins.
 MODELS = {
@@ -51,8 +66,6 @@ AGENTS = {
     "opus-5": "adapters.harbor_matrix.codex_agent:HartwellCodex",
     "glm-5.2": "adapters.harbor_matrix.codex_agent:HartwellCodex",
 }
-
-DEFAULT_GATEWAY_PORT = 50341
 
 
 def job_config(
@@ -113,7 +126,6 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="job suffix; defaults to <model>-k<k> so re-samples do not collide",
     )
-    parser.add_argument("--gateway-port", type=int, default=DEFAULT_GATEWAY_PORT)
     parser.add_argument("--concurrency", type=int, default=3)
     parser.add_argument("--print-config", action="store_true")
     args = parser.parse_args(argv)
@@ -125,31 +137,61 @@ def main(argv: list[str] | None = None) -> int:
     from band import TAG_PREFIX
 
     tag = args.tag or f"{TAG_PREFIX[args.model]}-k{args.k}"
-    config = job_config(
-        args.dataset,
-        args.task,
-        args.model,
-        tag,
-        args.k,
-        args.gateway_port,
-        args.concurrency,
-    )
     if args.print_config:
-        print(json.dumps(config, indent=2))
+        # A placeholder port, because there is no gateway to ask. This
+        # path exists to check the task path and the schema, not to be run.
+        print(
+            json.dumps(
+                job_config(
+                    args.dataset,
+                    args.task,
+                    args.model,
+                    tag,
+                    args.k,
+                    0,
+                    args.concurrency,
+                ),
+                indent=2,
+            )
+        )
         return 0
 
-    if not os.environ.get("OPENROUTER_API_KEY"):
+    key = os.environ.get("OPENROUTER_API_KEY")
+    if not key:
         raise SystemExit(
             "OPENROUTER_API_KEY is not set; the gateway cannot pin a provider "
             "without it and every trial would fail identically"
         )
 
-    out = REPO / "jobs" / f"{config['job_name']}.config.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(config, indent=2), encoding="utf-8")
-    print(f"config -> {out}")
-    print(f"running {config['job_name']} at k={args.k}")
-    return subprocess.call(["harbor", "run", "-c", str(out)])
+    async def run() -> int:
+        gateway = ProviderGateway(
+            GatewayConfig(
+                openrouter_api_key=key,
+                gateway_token=secrets.token_urlsafe(24),
+                bind_host="0.0.0.0",
+                port=0,
+            )
+        )
+        async with gateway:
+            config = job_config(
+                args.dataset,
+                args.task,
+                args.model,
+                tag,
+                args.k,
+                gateway.port,
+                args.concurrency,
+            )
+            out = REPO / "jobs" / f"{config['job_name']}.config.json"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(config, indent=2), encoding="utf-8")
+            print(f"gateway on :{gateway.port}  config -> {out}")
+            print(f"running {config['job_name']} at k={args.k}")
+            return await asyncio.to_thread(
+                subprocess.call, ["harbor", "run", "-c", str(out)]
+            )
+
+    return asyncio.run(run())
 
 
 if __name__ == "__main__":
