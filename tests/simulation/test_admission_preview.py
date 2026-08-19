@@ -94,14 +94,81 @@ class TestMalformedDraftsDegrade:
     still raise.
     """
 
-    def test_the_boundary_catches_validation_errors(self) -> None:
+    def test_the_boundary_catches_what_is_actually_raised(self) -> None:
+        """Both arms, by type rather than by source text.
+
+        This assertion used to grep for `except ValidationError` in the
+        source. That is a check that cannot fail for the right reason: a
+        third failure mode walked straight through it. dspy wraps
+        pydantic's error in `AdapterParseError` once its own JSON fallback
+        has also failed, so the guard was catching a type that no longer
+        reached it, and the source still said what the test wanted to see.
+
+        The run died on a model that writes quotation marks — `... as
+        "compliant" until ...` closes the JSON string early, the object
+        loses a field, and both adapters give up.
+        """
+
+        import dspy
+        from dspy.utils.exceptions import AdapterParseError
+        from pydantic import BaseModel, ValidationError
+
+        from simulation.persona.actor import MALFORMED_DRAFT
+
+        class Draft(BaseModel):
+            summary: str
+
+        try:
+            Draft()
+        except ValidationError as error:
+            assert isinstance(error, MALFORMED_DRAFT)
+
+        class Signature(dspy.Signature):
+            draft: str = dspy.OutputField()
+
+        wrapped = AdapterParseError(
+            adapter_name="ChatAdapter",
+            signature=Signature,
+            lm_response='{"body": "as "compliant" until"}',
+            parsed_result=None,
+        )
+        assert isinstance(wrapped, MALFORMED_DRAFT)
+
+    def test_the_boundary_is_wired_around_routing(self) -> None:
         import inspect
 
         from simulation.persona.actor import ProfessionalActorAct
 
         source = inspect.getsource(ProfessionalActorAct.get_action_attempt)
-        assert "except ValidationError" in source
+        assert "except MALFORMED_DRAFT" in source
         assert "self._route(" in source
+
+    def test_the_handler_survives_both_arms(self) -> None:
+        """The rescue must not raise inside itself.
+
+        `_first_missing` called `.errors()`, which only pydantic's error
+        has. Handed dspy's wrapper it would have raised *inside* the
+        handler and taken down the run the handler exists to keep alive —
+        a rescue that works only for the failure it was already catching.
+        """
+
+        import dspy
+        from dspy.utils.exceptions import AdapterParseError
+
+        from simulation.persona.actor import _first_missing
+
+        class Signature(dspy.Signature):
+            draft: str = dspy.OutputField()
+
+        described = _first_missing(
+            AdapterParseError(
+                adapter_name="ChatAdapter",
+                signature=Signature,
+                lm_response='{"body": "as "compliant" until"}',
+                parsed_result=None,
+            )
+        )
+        assert isinstance(described, str) and described
 
     def test_loud_failures_are_still_loud(self) -> None:
         """Only content degrades; the loud-failure contract is intact."""

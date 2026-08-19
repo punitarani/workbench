@@ -1,6 +1,7 @@
 """The acting component: decide, route to one drafter, emit a typed intent."""
 
 import dspy
+from dspy.utils.exceptions import AdapterParseError
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from core.actions import (
@@ -63,6 +64,14 @@ from simulation.persona.retrieval import (
 )
 from simulation.persona.working_memory import WorkingMemoryComponent
 
+# What a malformed draft can arrive as. `ValidationError` is what pydantic
+# raises; `AdapterParseError` is what dspy re-raises it *inside* once its
+# own JSON fallback has also failed. A guard written for the inner type
+# alone never fires, which is how a run died on a model that writes
+# quotation marks: `... as "compliant" until ...` closes the JSON string
+# early, the object loses a field, and both adapters give up.
+MALFORMED_DRAFT = (ValidationError, AdapterParseError)
+
 
 class ActorActState(BaseModel):
     """What the acting component must carry across a resume: the LM call
@@ -74,13 +83,27 @@ class ActorActState(BaseModel):
     deep_lm_calls: int = 0
 
 
-def _first_missing(error: ValidationError) -> str:
-    """The field the model left out, for the note it writes to itself."""
+def _first_missing(error: Exception) -> str:
+    """The field the model left out, for the note it writes to itself.
 
-    for problem in error.errors():
-        location = ".".join(str(part) for part in problem.get("loc", ()))
-        return f"{location or 'field'}: {problem.get('msg', 'invalid')}"
-    return "invalid draft"
+    Takes either arm of ``MALFORMED_DRAFT``. Only pydantic's error carries
+    a structured field list; dspy's wrapper carries the field name and the
+    unparsable text. Calling ``.errors()`` unconditionally would raise
+    *inside* the handler and take down the run the handler exists to keep
+    alive — a rescue that only works for the failure it was already
+    catching.
+    """
+
+    errors = getattr(error, "errors", None)
+    if callable(errors):
+        try:
+            for problem in errors():
+                location = ".".join(str(part) for part in problem.get("loc", ()))
+                return f"{location or 'field'}: {problem.get('msg', 'invalid')}"
+        except Exception:
+            pass
+    field = getattr(error, "field_name", None)
+    return f"{field}: unparsable" if field else "invalid draft"
 
 
 class ProfessionalActorAct:
@@ -498,7 +521,7 @@ class ProfessionalActorAct:
                     facts=facts,
                     knowledge=knowledge,
                 )
-            except ValidationError as error:
+            except MALFORMED_DRAFT as error:
                 # A draft the model filled in badly — a missing summary, an
                 # empty recipient list — used to fail schema parsing and take
                 # the whole run down. Malformed output is the persona's
