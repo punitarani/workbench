@@ -4,7 +4,7 @@ Living document, CI-checked by `tests/parity/`. Every official tool is
 **implemented** or **waived with a reason**; every waiver is a line in the
 vendor's snapshot file, not a silence. Parity is pinned to dated captures
 under `tests/parity/snapshots/` (see the design decisions in
-[`WORKBENCH.md`](../../WORKBENCH.md)) because the official surfaces
+[`WORKBENCH.md`](../WORKBENCH.md)) because the official surfaces
 move — Slack grew from 13 tools to 19 during 2026, Google's live Gmail
 server serves eight tools whose documentation pages 404, and iManage
 publishes descriptions rather than JSON schemas.

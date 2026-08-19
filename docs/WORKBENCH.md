@@ -244,7 +244,7 @@ with provenance and confidence live under `tests/parity/snapshots/`
 CI runs four gates per vendor: every official tool implemented or waived
 with a reason, no invented tools, required parameters present, and
 provenance recorded; a fifth test asserts
-[`PARITY-MATRIX.md`](epochs/v2/PARITY-MATRIX.md) covers every vendor.
+[`PARITY-MATRIX.md`](fidelity/PARITY-MATRIX.md) covers every vendor.
 Refreshing a snapshot is a deliberate commit that updates the matrix in
 the same change.
 
@@ -346,7 +346,7 @@ Five graded tasks build from it (`datasets/ashgrove/build_tasks.py`).
 
 ## Fidelity
 
-Realism is measured, not asserted. `docs/epochs/v2/bands.json` commits
+Realism is measured, not asserted. `docs/fidelity/bands.json` commits
 91 distribution bands (volumes, distribution shapes with
 anti-uniformity KS tests, Gini concentrations, seasonality, cross-surface
 correlation) derived from published CPA-firm benchmarks;
@@ -361,8 +361,8 @@ Current ledger:
 
 | World | Pass | Fail | Absent |
 |---|---|---|---|
-| [v1 baseline](epochs/v2/FIDELITY-BASELINE-V1.md) | 21 | 50 | 20 |
-| [Ashgrove, 10 workdays](epochs/v2/FIDELITY-ASHGROVE.md) | 17 | 46 | 28 |
+| [v1 baseline](fidelity/BASELINE-V1.md) | 21 | 50 | 20 |
+| [Ashgrove, 10 workdays](fidelity/ASHGROVE.md) | 17 | 46 | 28 |
 
 **ABSENT means the surface that metric measures does not exist in the
 world yet** — a finding, not a skip: invoices, realization, AR aging,
@@ -464,7 +464,7 @@ Measure a world against the bands:
 uv run python scripts/fidelity_report.py \
     --state out/ashgrove/bundle/state \
     --log out/ashgrove/epoch/world.jsonl \
-    --out docs/epochs/v2/FIDELITY-ASHGROVE.md
+    --out docs/fidelity/ASHGROVE.md
 ```
 
 Build task environments and oracles:
@@ -530,11 +530,11 @@ The fidelity ledger's ABSENT column is the worklist, measured honestly:
 
 ## Appendices — measurement records
 
-- [`epochs/v2/FIDELITY-ASHGROVE.md`](epochs/v2/FIDELITY-ASHGROVE.md) —
+- [`fidelity/ASHGROVE.md`](fidelity/ASHGROVE.md) —
   Ashgrove against the 91 bands (17/46/28).
-- [`epochs/v2/FIDELITY-BASELINE-V1.md`](epochs/v2/FIDELITY-BASELINE-V1.md)
+- [`fidelity/BASELINE-V1.md`](fidelity/BASELINE-V1.md)
   — the v1 floor the bands were written against (21/50/20).
-- [`epochs/v2/PARITY-MATRIX.md`](epochs/v2/PARITY-MATRIX.md) — living,
+- [`fidelity/PARITY-MATRIX.md`](fidelity/PARITY-MATRIX.md) — living,
   CI-checked implemented/waived matrix per vendor.
 - [`runs/2026-08-13-calder-epoch/`](runs/2026-08-13-calder-epoch/) — the
   LLM-first engine pivot: epoch report, deep realism review (the

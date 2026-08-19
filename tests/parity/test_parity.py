@@ -152,6 +152,6 @@ def test_snapshot_records_its_own_provenance(vendor: str) -> None:
 
 
 def test_parity_matrix_covers_every_vendor() -> None:
-    matrix = (REPO / "docs/epochs/v2/PARITY-MATRIX.md").read_text(encoding="utf-8")
+    matrix = (REPO / "docs/fidelity/PARITY-MATRIX.md").read_text(encoding="utf-8")
     for vendor in VENDORS:
         assert vendor in matrix, f"PARITY-MATRIX.md does not mention {vendor}"

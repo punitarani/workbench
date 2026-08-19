@@ -3,7 +3,7 @@
 The v1 realism review was a pile of one-off SQL. This module is that
 work made repeatable: it reads a materialized bundle's databases (and,
 where a fact only exists upstream, the world log), computes every metric
-named in ``docs/epochs/v2/bands.json``, and reports observed-vs-band with
+named in ``docs/fidelity/bands.json``, and reports observed-vs-band with
 a verdict per metric.
 
 A metric that cannot be computed because its *surface does not exist
@@ -23,7 +23,10 @@ from pydantic import BaseModel, ConfigDict
 
 from analysis import stats
 
-BANDS_PATH = Path("docs/epochs/v2/bands.json")
+# Anchored to this file, not to the process cwd: a bare relative path
+# here resolved only when the caller happened to run from the repo
+# root, which is a property of the invocation and not of the code.
+BANDS_PATH = Path(__file__).resolve().parents[2] / "docs" / "fidelity" / "bands.json"
 BUSY_SEASON_MONTHS = (2, 3, 4)
 SUMMER_MONTHS = (6, 7)
 WORK_START_HOUR = 8

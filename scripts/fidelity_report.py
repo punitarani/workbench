@@ -3,7 +3,7 @@
     uv run python scripts/fidelity_report.py \
         --state out/calder/epoch-6mo/bundle/state \
         --log out/calder/epoch-6mo/world.jsonl \
-        --out docs/epochs/v2/FIDELITY-REPORT.md
+        --out docs/fidelity/FIDELITY-REPORT.md
 
 Exits non-zero when any band fails, so CI can gate on it. Pass
 ``--allow-fail`` to write the report without failing the process (how the

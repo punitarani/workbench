@@ -53,7 +53,7 @@ A second correction to the briefing: the paid diagnostics were **not three
 tasks**. Seven distinct paid Harbor launches touched five tasks, plus a
 `vanished-clause` 3x3 on 2026-08-10 that the briefing omits entirely, and
 three later single-model screens under a further `$12.50` authorization that
-postdate `CHECKPOINT.md`.
+postdate 2026-08-11.
 
 ---
 
@@ -152,7 +152,7 @@ None had written a deliverable.
 
 ### 1e. Post-checkpoint screens under the further `$12.50` authorization
 
-These postdate `CHECKPOINT.md` and are absent from `REPORT.md`.
+These postdate 2026-08-11 and are absent from `REPORT.md`.
 
 | Run | Task | Trial | Model | Answer | Process | Stop |
 |---|---|---|---|---:|---:|---|

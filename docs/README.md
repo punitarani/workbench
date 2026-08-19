@@ -13,7 +13,7 @@ dataset-independent. Extend it whenever a measurement teaches something
 that will hold on the next dataset.
 
 **What happened on a particular day.** [`runs/`](runs/) and
-[`epochs/v2/`](epochs/v2/) — dated, frozen evidence. History.
+[`fidelity/`](fidelity/) — dated, frozen evidence. History.
 
 > The split between the second and third exists because it once did not.
 > Findings that generalized — measured, correct, expensive — were filed
@@ -25,10 +25,14 @@ that will hold on the next dataset.
 
 Measurement records, linked from WORKBENCH.md's appendices:
 
-* [`epochs/v2/`](epochs/v2/) — committed distribution bands
-  (`bands.json`, read by tests), generated fidelity ledgers, and the
-  CI-checked [`PARITY-MATRIX.md`](epochs/v2/PARITY-MATRIX.md).
+* [`fidelity/`](fidelity/) — [`bands.json`](fidelity/bands.json) (91
+  committed bands, read by `analysis.fidelity`), the generated ledgers
+  measured against them, and the CI-checked
+  [`PARITY-MATRIX.md`](fidelity/PARITY-MATRIX.md).
 * [`runs/`](runs/) — dated records of specific runs and evaluations.
+  Reports and analyses only: raw rollout artifacts belong in the
+  gitignored `jobs/`, and plans, checkpoints and migration notes do not
+  belong in the tree at all.
 
 Contributor and agent working rules live in the root
 [`AGENTS.md`](../AGENTS.md) and in per-package `AGENTS.md` files.
