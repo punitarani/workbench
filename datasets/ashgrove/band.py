@@ -70,13 +70,25 @@ def _deliverable(task: str) -> str | None:
 def _outcome(trial: Path, wanted: str | None) -> tuple[float | None, str]:
     """The trial's score, or None with the reason it is not one."""
 
-    if (trial / "exception.txt").is_file():
-        text = (trial / "exception.txt").read_text()
-        if "AgentTimeoutError" in text:
-            return None, "timeout"
     verifier = trial / "verifier"
+    # A timeout is only a DNF when nothing was written. If the deliverable
+    # is there and the grader scored it, the trial answered -- and the
+    # score is what the model produced inside its budget, which is the
+    # thing being measured.
+    #
+    # This was the other way round, and it mattered: on
+    # opening-days-commitment-register the two timed-out trials scored
+    # 0.720 and 0.770 against a 0.655 average for the rest. A truncated
+    # write scores low, not high; those were finished answers whose
+    # harness ran out of clock afterwards. Discarding them moved the task
+    # from 0.802 to 0.795 and across the band boundary, which is a good
+    # reason to get the rule right rather than to keep the one that
+    # flattered the result.
     if wanted and not (verifier / f"submitted-{wanted}").is_file():
         # Working files may be present; the answer is not.
+        exception = trial / "exception.txt"
+        if exception.is_file() and "AgentTimeoutError" in exception.read_text():
+            return None, "timeout, nothing written"
         return None, "no deliverable"
     reward = verifier / "reward.json"
     if not reward.is_file():
