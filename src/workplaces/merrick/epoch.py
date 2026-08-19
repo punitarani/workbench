@@ -661,6 +661,57 @@ def _calendar() -> tuple[SeedCalendarEvent, ...]:
             ),
             recurrence="weekly",
         ),
+        # A presentation is driven by an *occasion*, not by the next unit
+        # of work. The deliverable turn asks what an engagement most needs
+        # next, and that is almost never a deck — which is why no recorded
+        # world in this tree has ever produced one, across three firms,
+        # while the renderer makes a perfectly good 28KB .pptx on demand.
+        #
+        # These two put the occasion on the calendar. Both are real
+        # standing slots for a firm with panel-counsel obligations and
+        # institutional clients, and both are external-facing, which is
+        # what makes the artifact a deck rather than a memo.
+        SeedCalendarEvent(
+            organizer="per-cecile-marchand",
+            title="Cotswold Mutual claims committee",
+            start_clock="14:00",
+            end_clock="15:00",
+            attendees=(
+                "per-cecile-marchand",
+                "per-lucien-abara",
+                "per-bennett-ashworth",
+                "per-desmond-achebe",
+            ),
+            description=(
+                "Standing presentation to the insurer's claims committee: "
+                "reserve adequacy, case posture, and budget against estimate, "
+                "matter by matter. The committee is walked through slides; "
+                "the deck is the deliverable and it goes out beforehand."
+            ),
+            recurrence="weekly",
+        ),
+        SeedCalendarEvent(
+            organizer="per-adaora-nwosu",
+            title="Client board and committee updates",
+            start_clock="15:15",
+            end_clock="16:00",
+            attendees=(
+                "per-adaora-nwosu",
+                "per-dov-reinhardt",
+                "per-bennett-ashworth",
+                "per-gideon-park",
+                "per-fionnuala-doherty",
+                "per-elena-vasquez-reyes",
+            ),
+            description=(
+                "Whichever client boards and investment committees sit this "
+                "week get their update presented. Each relationship partner "
+                "brings the deck they are presenting — case strategy and "
+                "exposure, deal readouts, budget-to-actual — and the group "
+                "reads it before it leaves the firm."
+            ),
+            recurrence="weekly",
+        ),
         SeedCalendarEvent(
             organizer="per-gideon-park",
             title="IP and technology group",
