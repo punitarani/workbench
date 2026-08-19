@@ -52,6 +52,25 @@ The world must be *true* before anything cut from it can be *fair*.
 - **Refresh derived truth from the world you actually shipped.** A
   default path pointing at a different build than the bundle silently
   derives a fresh answer key from a stale world.
+- **Find what actually serializes before provisioning for parallelism.**
+  A generated world's cost is not its total call count, it is the length
+  of its critical path. In one engine, actors wake in cohorts and the
+  whole cast wakes together, so useful concurrency equals the cast size —
+  measured at exactly the internal headcount, with everything provisioned
+  above it doing nothing. Two consequences, and the first is easy to get
+  backwards: **cast size is nearly free**, because a cohort runs in
+  parallel, while **tick count and tail latency are the whole cost**.
+  A rate like "calls per minute" hides this; a histogram of concurrent
+  work does not.
+- **A cohort's wall time is its slowest member.** A model tier used by one
+  call in ten still sets the pace for the other nine. Reach for the fast
+  tier when buying fidelity — it writes the world — and keep the deep tier
+  cheap enough not to dominate the critical path.
+- **Coarsening the simulated clock does not buy wall time.** Widening the
+  wake interval threefold gave each actor threefold more accumulated
+  context per wake, so per-tick work rose and cancelled the tick
+  reduction. The work a simulated day contains is a property of the day,
+  not of how finely it is sliced.
 - **Set thresholds between two measured worlds** — a known-bad and a
   known-good — rather than at a round number. A band picked by intuition
   either never fires or fires constantly, and either way stops being
