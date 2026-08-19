@@ -71,6 +71,26 @@ The world must be *true* before anything cut from it can be *fair*.
   context per wake, so per-tick work rose and cancelled the tick
   reduction. The work a simulated day contains is a property of the day,
   not of how finely it is sliced.
+- **Read what the referee refused, not only what it recorded.** A
+  deterministic referee resolves every reference against world state and
+  rejects what it cannot resolve — that is exactly right, and it means a
+  world can be *structurally incomplete* while every component behaves
+  correctly. The actors reach for something the world does not offer, the
+  referee refuses, and the record simply has less in it than the day did.
+  Measured: 16.8% of one firm's attempted timekeeping vanished because the
+  people had administrative and internal work to book and no code to book
+  it against, so they invented plausible ones and every rejection was
+  correct.
+
+  Nothing else catches this. **Coherence checks look for a fact carrying
+  two values; they cannot see a fact that was never recorded.** The
+  materializer writes what exists, and any figure computed over the
+  survivors is perfectly self-consistent and answers a question about an
+  institution that does not exist. Gate the *loss rate* out of the
+  referee's own rejection notes, and write the gate's message so it blames
+  the world rather than the referee — otherwise the next reader fixes it
+  by making the referee permissive, which trades a visible gap for an
+  invisible one.
 - **Set thresholds between two measured worlds** — a known-bad and a
   known-good — rather than at a round number. A band picked by intuition
   either never fires or fires constantly, and either way stops being
