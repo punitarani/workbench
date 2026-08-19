@@ -56,7 +56,7 @@ FULL_WINDOW_DAYS = 180
 
 
 # (title, description, assignee, requester, status, priority, type, client)
-_MATTERS: tuple[tuple[str, str, str, str, str, str, str, str], ...] = (
+_MATTERS: tuple[tuple[str, str, str, str, str, str, str, str | None], ...] = (
     (
         "Coastal Meridian - regulatory inquiry",
         "Response to the banking regulator's document request concerning "
@@ -304,6 +304,22 @@ _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str], ...] = (
         "Employment",
         "org-brightwell-academy",
     ),
+    # --- non-billable matter codes ---------------------------------------
+    #
+    # Every firm carries these, and without them a sixth of the world's
+    # timekeeping disappears. Measured on the first three recorded days:
+    # personas tried to log admin, internal-meeting and practice-group time,
+    # had nowhere to put it, invented codes (`internal-000001`,
+    # `admin-000001`, `internal-ip-tech-group`), and the referee rejected
+    # every one — **84 of 500 attempted entries, 16.8%, dropped**.
+    #
+    # The referee was right to reject them; the world was wrong not to
+    # offer the codes. A utilisation or realization figure computed over a
+    # record missing a sixth of its hours is not wrong by a little.
+    #
+    # `client_ref` is None on all of these, which is the point: they are the
+    # firm's own time, and a report that folds them into a client's total is
+    # answering a different question than the one the partners asked.
     (
         "Firm - conflicts and new matter intake",
         "Standing matter for conflicts searches, engagement letters, and new "
@@ -313,7 +329,7 @@ _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str], ...] = (
         "Active",
         "Routine",
         "Advisory",
-        "org-coastal-meridian",
+        None,
     ),
     (
         "Firm - billing, WIP and realization",
@@ -324,7 +340,73 @@ _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str], ...] = (
         "Active",
         "Routine",
         "Advisory",
-        "org-coastal-meridian",
+        None,
+    ),
+    (
+        "Firm - administration",
+        "Non-billable. General firm administration, practice management, and "
+        "time that belongs to no client matter.",
+        "per-adaora-nwosu",
+        "per-adaora-nwosu",
+        "Active",
+        "Routine",
+        "Advisory",
+        None,
+    ),
+    (
+        "Firm - internal meetings",
+        "Non-billable. Practice group meetings, partner meetings, docket call, "
+        "and firm-wide standing meetings.",
+        "per-adaora-nwosu",
+        "per-adaora-nwosu",
+        "Active",
+        "Routine",
+        "Advisory",
+        None,
+    ),
+    (
+        "Firm - business development",
+        "Non-billable. Pitches, client entertainment, proposals, and "
+        "relationship work not chargeable to a matter.",
+        "per-dov-reinhardt",
+        "per-adaora-nwosu",
+        "Active",
+        "Routine",
+        "Advisory",
+        None,
+    ),
+    (
+        "Firm - professional development",
+        "Non-billable. Continuing legal education, training, andknowledge "
+        "management contributions.",
+        "per-cecile-marchand",
+        "per-adaora-nwosu",
+        "Active",
+        "Routine",
+        "Advisory",
+        None,
+    ),
+    (
+        "Firm - pro bono",
+        "Non-billable to the firm's clients. Pro bono representation and "
+        "community legal work carried at no charge.",
+        "per-fionnuala-doherty",
+        "per-adaora-nwosu",
+        "Active",
+        "Routine",
+        "Advisory",
+        None,
+    ),
+    (
+        "Firm - recruiting",
+        "Non-billable. Lateral and campus recruiting, interviews, and "
+        "summer programme supervision.",
+        "per-gideon-park",
+        "per-adaora-nwosu",
+        "Active",
+        "Routine",
+        "Advisory",
+        None,
     ),
 )
 

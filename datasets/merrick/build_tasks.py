@@ -18,10 +18,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+from analysis import attempted_work
 from analysis.artifact_mix import MixFloors, measure, violations
 from analysis.coherence import MISBOOKED_LIMIT, check
 from analysis.reachability import unreachable
 from analysis.world_facts import load_world
+from core.worldlog import read_events
 from environment.materialize import materialize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hartwell"))
@@ -156,6 +158,28 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     # holds a single file claiming a form it does not have, is not this
     # firm — and every one of those failures is invisible until an agent
     # opens the folder.
+    # Before the file room: did the record keep what the day actually
+    # contained? A referee that rejects references the world does not
+    # offer is behaving correctly and still leaves the record short, and
+    # nothing downstream can tell the difference — a utilisation figure
+    # over the survivors is self-consistent and describes another firm.
+    notes, logged = [], 0
+    for event in read_events(world_log):
+        if event.tag == "sim.gm.note":
+            notes.append(getattr(event.payload, "note", "") or "")
+        elif event.tag == "work.time.logged":
+            logged += 1
+    work = attempted_work.measure(notes, logged=logged)
+    print(
+        f"  timekeeping: {work.logged} logged, {work.dropped} dropped "
+        f"({work.dropped_share:.1%})"
+    )
+    wrong = attempted_work.violations(work)
+    if wrong:
+        raise SystemExit(
+            "this world lost work it was asked to record:\n  - " + "\n  - ".join(wrong)
+        )
+
     mix = measure(SHARED_BUNDLE / "workspace")
     print(f"  file room: {dict(mix.by_suffix)}")
     wrong = violations(mix, FILE_ROOM)
