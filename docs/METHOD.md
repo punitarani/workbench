@@ -210,6 +210,23 @@ The world must be *true* before anything cut from it can be *fair*.
   the world rather than the referee — otherwise the next reader fixes it
   by making the referee permissive, which trades a visible gap for an
   invisible one.
+- **A bound applied in declaration order encodes a priority nobody
+  chose.** Any list an actor is shown gets capped so it does not flood the
+  prompt, and the cap almost always keeps the first N. But what is
+  declared last is usually the *shared* material — the institution-wide
+  codes, the defaults, the things belonging to nobody in particular — and
+  those are exactly what every actor needs. Measured: standing matter
+  codes fell outside the cap for the whole cast, people invented
+  references for work they genuinely had to record, the referee correctly
+  refused, and 20.7% of attempted timekeeping vanished.
+
+  The trap has a second half worth naming. The obvious fix — *add the
+  missing codes* — made it **worse**, 16.8% to 20.7%, because six more
+  entries pushed the shared ones further past the cap. **Fixing the
+  symptom a rejection names, without measuring the mechanism underneath,
+  can move the number the wrong way.** Reserve the shared slots
+  explicitly, and make the reservation a no-op below the cap so every
+  existing recording stays byte-identical in content *and order*.
 - **Set thresholds between two measured worlds**, a known-bad and a
   known-good, rather than at a round number. A band picked by intuition
   either never fires or fires constantly, and in both cases stops being
