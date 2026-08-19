@@ -179,9 +179,7 @@ def _ambiguities(facts: WorldFacts, found: Coherence) -> None:
 
     # A ticket's display number is built from the client's name with spaces
     # removed, so two clients can collide there while their records do not.
-    displays = Counter(
-        facts.display_number(ticket_id) for ticket_id in facts.tickets
-    )
+    displays = Counter(facts.display_number(ticket_id) for ticket_id in facts.tickets)
     for display, count in sorted(displays.items()):
         if count > 1:
             found.ambiguities.append(f"{count} engagements display as {display!r}")

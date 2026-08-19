@@ -39,9 +39,12 @@ def run(label: str, command: list[str], *, fatal: bool = True) -> int:
     print(f"\n{'=' * 72}\n== {label}\n{'=' * 72}", flush=True)
     code = subprocess.run(command, cwd=REPO).returncode
     if code and fatal:
-        print(f"\n{label}: FAILED ({code}). Stopping here on purpose — every "
-              "later stage would be measuring something this one just said "
-              "cannot be trusted.", file=sys.stderr)
+        print(
+            f"\n{label}: FAILED ({code}). Stopping here on purpose — every "
+            "later stage would be measuring something this one just said "
+            "cannot be trusted.",
+            file=sys.stderr,
+        )
         raise SystemExit(code)
     return code
 
@@ -56,31 +59,34 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--refresh-truth", action="store_true")
     parser.add_argument("--task", action="append", default=[])
     parser.add_argument(
-        "--rollouts", action="store_true",
+        "--rollouts",
+        action="store_true",
         help="also spend money: run every task through every model",
     )
     parser.add_argument("-k", "--trials", type=int, default=3)
     parser.add_argument(
-        "--models", default="opus-5,glm-5.2",
+        "--models",
+        default="opus-5,glm-5.2",
         help="comma-separated. gpt-5.6-sol is deliberately absent: it fails "
-             "tool calling under both codex and opencode and its zeros are "
-             "harness artefacts, not capability.",
+        "tool calling under both codex and opencode and its zeros are "
+        "harness artefacts, not capability.",
     )
     args = parser.parse_args(argv)
 
     python = [sys.executable]
     selected = args.task or task_names()
 
-    run("1. audit the world",
-        [*python, str(HERE / "run_epoch.py"), "audit", "--out", str(args.log.parent)])
+    run(
+        "1. audit the world",
+        [*python, str(HERE / "run_epoch.py"), "audit", "--out", str(args.log.parent)],
+    )
 
     build = [*python, str(HERE / "build_tasks.py"), "--log", str(args.log)]
     if args.refresh_truth:
         build.append("--refresh-truth")
     for name in args.task:
         build += ["--task", name]
-    run("2. build: coherence, materialize, oracles, reachability, degeneracy",
-        build)
+    run("2. build: coherence, materialize, oracles, reachability, degeneracy", build)
 
     verify = [*python, str(HERE / "verify_oracle.py"), "--log", str(args.log)]
     for name in args.task:
@@ -96,19 +102,32 @@ def main(argv: list[str] | None = None) -> int:
     for model in models:
         for name in selected:
             tag = f"{model}-k{args.trials}"
-            run(f"4. rollout {name} x {model} x {args.trials}",
-                [*python, str(HERE / "run_rollouts.py"), "run", name,
-                 "--model", model, "-k", str(args.trials), "--tag", tag],
-                fatal=False)
+            run(
+                f"4. rollout {name} x {model} x {args.trials}",
+                [
+                    *python,
+                    str(HERE / "run_rollouts.py"),
+                    "run",
+                    name,
+                    "--model",
+                    model,
+                    "-k",
+                    str(args.trials),
+                    "--tag",
+                    tag,
+                ],
+                fatal=False,
+            )
             jobs.append((name, f"ashgrove-{name}-{tag}"))
 
     for name, job in jobs:
         path = REPO / "jobs" / job
         if path.is_dir():
-            run(f"5. classify {job}",
-                [*python, str(HERE / "classify_misses.py"), str(path),
-                 "--task", name],
-                fatal=False)
+            run(
+                f"5. classify {job}",
+                [*python, str(HERE / "classify_misses.py"), str(path), "--task", name],
+                fatal=False,
+            )
     return 0
 
 

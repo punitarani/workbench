@@ -310,9 +310,9 @@ def load_world(path: Path) -> WorldFacts:
                         # serves it as the version's comment. Same prose,
                         # two names, and reading the wrong one made every
                         # claim look absent.
-                        facts._comments.setdefault(
-                            payload["document_id"], []
-                        ).append(payload.get("change_summary") or "")
+                        facts._comments.setdefault(payload["document_id"], []).append(
+                            payload.get("change_summary") or ""
+                        )
                         # Head content wins: the file room serves the
                         # latest version and that is what was rendered.
                         # A revision never restates its format.

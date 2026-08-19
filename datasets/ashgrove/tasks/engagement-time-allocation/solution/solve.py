@@ -28,9 +28,7 @@ def main() -> None:
     gmail = sqlite3.connect(f"file:{STATE / 'gmail.db'}?mode=ro", uri=True)
 
     names = dict(gmail.execute("SELECT person_id, name FROM people"))
-    engagements = dict(
-        clio.execute("SELECT ticket_id, display_number FROM matters")
-    )
+    engagements = dict(clio.execute("SELECT ticket_id, display_number FROM matters"))
 
     totals: dict[tuple[str, str], dict] = defaultdict(
         lambda: {"seconds": 0, "billable_seconds": 0, "entries": 0, "cents": 0}

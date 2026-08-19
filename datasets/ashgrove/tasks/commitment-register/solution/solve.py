@@ -39,8 +39,18 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("commitments.json")
 
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 MONTHS = (
-    "january", "february", "march", "april", "may", "june",
-    "july", "august", "september", "october", "november", "december",
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
 )
 WORD_DAYS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
 # "by April 15th" is the form `by <Month> <day>`; a bare \b after the
@@ -81,8 +91,9 @@ def _due(kind: str, match: re.Match, sent: datetime.date) -> datetime.date:
         first_next = (sent.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
         return first_next - datetime.timedelta(days=1)
     if kind == "date":
-        return datetime.date(sent.year, MONTHS.index(match.group(1).lower()) + 1,
-                             int(match.group(2)))
+        return datetime.date(
+            sent.year, MONTHS.index(match.group(1).lower()) + 1, int(match.group(2))
+        )
     if kind == "day":
         return sent
     if kind == "within":
@@ -116,9 +127,7 @@ def main() -> None:
         "".join(c for c in name.lower() if c.isalnum()): name
         for (name,) in clio.execute("SELECT name FROM organizations")
     }
-    channels = dict(
-        slack.execute("SELECT conversation_id, name FROM conversations")
-    )
+    channels = dict(slack.execute("SELECT conversation_id, name FROM conversations"))
 
     parties: dict[str, set[str]] = defaultdict(set)
     for message_id, person in gmail.execute(
@@ -184,12 +193,8 @@ def main() -> None:
                 # Most, then the earlier date / earlier name -- `min` on a
                 # negated count, because `max` breaks a tie the other way and
                 # the instruction says earlier.
-                "busiest_due_date": min(
-                    by_due, key=lambda date: (-by_due[date], date)
-                ),
-                "top_made_to": min(
-                    by_party, key=lambda name: (-by_party[name], name)
-                ),
+                "busiest_due_date": min(by_due, key=lambda date: (-by_due[date], date)),
+                "top_made_to": min(by_party, key=lambda name: (-by_party[name], name)),
                 "commitments": register,
             },
             indent=1,

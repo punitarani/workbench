@@ -18,10 +18,17 @@ import rewardkit as rk
 T = json.loads((Path(__file__).resolve().parent.parent / "oracle.json").read_text())
 D = "self_review.json"
 
-rk.scalar(D, "documents_total", T["documents_total"], 0, name="documents_total",
-          weight=1.0)
-rk.scalar(D, "self_review_risk_count", T["self_review_risk_count"], 0,
-          name="self_review_risk_count", weight=2.5)
+rk.scalar(
+    D, "documents_total", T["documents_total"], 0, name="documents_total", weight=1.0
+)
+rk.scalar(
+    D,
+    "self_review_risk_count",
+    T["self_review_risk_count"],
+    0,
+    name="self_review_risk_count",
+    weight=2.5,
+)
 rk.scalar(D, "at_risk", T["at_risk"], name="at_risk", weight=2.5)
 rk.flagged_f1(D, T["documents"], name="documents.f1", weight=2.0)
 rk.row_fields(

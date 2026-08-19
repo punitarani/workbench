@@ -35,9 +35,7 @@ HARTWELL_HERMES_IMPORT_PATH = (
     "workbench.adapters.harbor_matrix.hermes_agent:HartwellHermes"
 )
 
-_INSTALLER = (
-    "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh"
-)
+_INSTALLER = "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh"
 
 
 class HartwellHermes(Hermes):
@@ -114,8 +112,7 @@ class HartwellHermes(Hermes):
         await self.exec_as_root(
             environment,
             command=(
-                "apt-get update && apt-get install -y "
-                "curl git ripgrep xz-utils ffmpeg"
+                "apt-get update && apt-get install -y curl git ripgrep xz-utils ffmpeg"
             ),
             env={"DEBIAN_FRONTEND": "noninteractive"},
         )

@@ -95,8 +95,7 @@ def row_fields(workspace: Path, path: str, expected: list, fields: list) -> floa
             else:
                 matched += have == want
     extra = len(
-        set(mine)
-        - {tuple(str(r[k]).strip().casefold() for k in KEY) for r in expected}
+        set(mine) - {tuple(str(r[k]).strip().casefold() for k in KEY) for r in expected}
     )
     penalty = min(extra * len(fields), checked // 2)
     # Nothing expected and nothing invented is a correct answer, not a

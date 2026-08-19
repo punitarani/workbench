@@ -56,6 +56,7 @@ def _is_read(name: str) -> bool:
         _READ_VERBS
     )
 
+
 # An ISO calendar date, with or without a time on it.
 _DATE = re.compile(r"\d{4}-\d{2}-\d{2}(?:[T ][\d:.+\-]*)?")
 
@@ -156,11 +157,7 @@ async def _served(state_dir: Path) -> set[str]:
         if not db_path.is_file():
             continue
         server = build_server(system, db_path)
-        tools = [
-            tool
-            for tool in await server.list_tools()
-            if _is_read(tool.name)
-        ]
+        tools = [tool for tool in await server.list_tools() if _is_read(tool.name)]
         discovered: set[str] = set()
         for tool in tools:
             required = (tool.input_schema or {}).get("required") or []
@@ -215,8 +212,7 @@ def served_vocabulary(state_dir: Path) -> set[str]:
         str(state_dir.resolve()),
         tuple(
             sorted(
-                (path.name, path.stat().st_mtime_ns)
-                for path in state_dir.glob("*.db")
+                (path.name, path.stat().st_mtime_ns) for path in state_dir.glob("*.db")
             )
         ),
     )
@@ -296,9 +292,7 @@ def workspace_vocabulary(workspace: Path) -> set[str]:
             for sheet in book.worksheets:
                 found.add(sheet.title)
                 for row in sheet.iter_rows(values_only=True):
-                    found.update(
-                        str(cell).strip() for cell in row if cell is not None
-                    )
+                    found.update(str(cell).strip() for cell in row if cell is not None)
             book.close()
         elif path.suffix.lower() in (".md", ".txt", ".csv"):
             try:

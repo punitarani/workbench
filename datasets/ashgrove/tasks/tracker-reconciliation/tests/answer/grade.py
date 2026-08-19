@@ -41,9 +41,7 @@ rk.scalar(
     weight=2.0,
 )
 rk.scalar(D, "effort_lines", T["effort_lines"], 0, name="effort_lines", weight=1.5)
-rk.scalar(
-    D, "verdict_counts", T["verdict_counts"], name="verdict_counts", weight=1.5
-)
+rk.scalar(D, "verdict_counts", T["verdict_counts"], name="verdict_counts", weight=1.5)
 rk.scalar(
     D,
     "hours_understated_total",
@@ -65,6 +63,4 @@ rk.row_fields(
 )
 # The other list, keyed on the engagement alone -- a person column would
 # collapse ten rows to one.
-rk.engagement_fields(
-    D, T["engagements"], name="engagement_status", weight=3.0
-)
+rk.engagement_fields(D, T["engagements"], name="engagement_status", weight=3.0)

@@ -295,9 +295,7 @@ def report(job: Path) -> int:
     print(f"  {'criterion':<{width}}  {'mean':>6}  {'min':>5}  {'max':>5}  w")
     for name in names:
         values = [trial.get(name, {}).get("value", 0.0) for trial in per_trial]
-        weight = next(
-            (t[name]["weight"] for t in per_trial if name in t), 0.0
-        )
+        weight = next((t[name]["weight"] for t in per_trial if name in t), 0.0)
         mark = "  <-" if statistics.fmean(values) < 1.0 else ""
         print(
             f"  {name:<{width}}  {statistics.fmean(values):>6.3f}  "

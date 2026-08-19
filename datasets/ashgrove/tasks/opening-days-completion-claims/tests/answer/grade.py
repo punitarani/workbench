@@ -19,10 +19,15 @@ T = json.loads((Path(__file__).resolve().parent.parent / "oracle.json").read_tex
 D = "opening_claims.json"
 
 rk.scalar(D, "messages_read", T["messages_read"], 0, name="messages_read", weight=1.0)
-rk.scalar(D, "claims_total", T["claims_total"], 0, name="claims_total",
-          weight=2.0)
-rk.scalar(D, "distinct_claimants", T["distinct_claimants"], 0,
-          name="distinct_claimants", weight=1.0)
+rk.scalar(D, "claims_total", T["claims_total"], 0, name="claims_total", weight=2.0)
+rk.scalar(
+    D,
+    "distinct_claimants",
+    T["distinct_claimants"],
+    0,
+    name="distinct_claimants",
+    weight=1.0,
+)
 rk.scalar(D, "form_counts", T["form_counts"], name="form_counts", weight=2.5)
 rk.scalar(D, "top_claimant", T["top_claimant"], name="top_claimant", weight=1.0)
 rk.flagged_f1(D, T["claims"], name="claims.f1", weight=5.0)

@@ -44,8 +44,18 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("opening_week.json")
 
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 MONTHS = (
-    "january", "february", "march", "april", "may", "june",
-    "july", "august", "september", "october", "november", "december",
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
 )
 WORD_DAYS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
 # End of Wednesday 7 January 2026, the third working day, in the world's
@@ -156,9 +166,9 @@ def main() -> None:
         json.dumps(
             {
                 # Inside the window only. Demanding the whole mailbox is what
-            # made the sibling task unfinishable: the agent set out to read
-            # everything, delegated it, and ended its turn.
-            "messages_read": sum(1 for row in messages if row[3] < CUTOFF),
+                # made the sibling task unfinishable: the agent set out to read
+                # everything, delegated it, and ended its turn.
+                "messages_read": sum(1 for row in messages if row[3] < CUTOFF),
                 "commitments_total": len(register),
                 "followed_up_count": sum(r["followed_up"] for r in register),
                 "unanswered_count": len(late),

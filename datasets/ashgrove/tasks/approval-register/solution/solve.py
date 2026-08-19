@@ -100,9 +100,9 @@ def main() -> None:
             {
                 "ref": message_id,
                 "approver": people[sender]["name"],
-                "sent_date": (
-                    epoch + datetime.timedelta(seconds=when)
-                ).date().isoformat(),
+                "sent_date": (epoch + datetime.timedelta(seconds=when))
+                .date()
+                .isoformat(),
                 "where": outside[0] if outside else "the firm",
             }
         )
@@ -118,9 +118,9 @@ def main() -> None:
             {
                 "ref": ts,
                 "approver": people[sender]["name"],
-                "sent_date": (
-                    epoch + datetime.timedelta(seconds=when)
-                ).date().isoformat(),
+                "sent_date": (epoch + datetime.timedelta(seconds=when))
+                .date()
+                .isoformat(),
                 "where": channels.get(conversation, conversation),
             }
         )

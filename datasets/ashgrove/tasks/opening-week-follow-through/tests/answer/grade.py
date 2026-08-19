@@ -18,12 +18,25 @@ T = json.loads((Path(__file__).resolve().parent.parent / "oracle.json").read_tex
 D = "opening_week.json"
 
 rk.scalar(D, "messages_read", T["messages_read"], 0, name="messages_read", weight=1.0)
-rk.scalar(D, "commitments_total", T["commitments_total"], 0,
-          name="commitments_total", weight=2.0)
-rk.scalar(D, "followed_up_count", T["followed_up_count"], 0,
-          name="followed_up_count", weight=2.0)
-rk.scalar(D, "unanswered_count", T["unanswered_count"], 0,
-          name="unanswered_count", weight=2.0)
+rk.scalar(
+    D,
+    "commitments_total",
+    T["commitments_total"],
+    0,
+    name="commitments_total",
+    weight=2.0,
+)
+rk.scalar(
+    D,
+    "followed_up_count",
+    T["followed_up_count"],
+    0,
+    name="followed_up_count",
+    weight=2.0,
+)
+rk.scalar(
+    D, "unanswered_count", T["unanswered_count"], 0, name="unanswered_count", weight=2.0
+)
 rk.scalar(D, "worst_offender", T["worst_offender"], name="worst_offender", weight=1.0)
 rk.flagged_f1(D, T["commitments"], name="commitments.f1", weight=5.0)
 rk.row_fields(

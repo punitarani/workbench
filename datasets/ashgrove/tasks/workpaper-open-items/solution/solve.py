@@ -114,7 +114,8 @@ def main() -> None:
     for row in rows:
         counts[row["status"]] = counts.get(row["status"], 0) + 1
     dues = sorted(
-        date for date in (_as_date(r["due_date"]) for r in rows if r["due_date"])
+        date
+        for date in (_as_date(r["due_date"]) for r in rows if r["due_date"])
         if date is not None
     )
 

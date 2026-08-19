@@ -66,8 +66,18 @@ EPOCH = "2026-01-05T00:00:00-08:00"
 
 _WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 _MONTHS = (
-    "january", "february", "march", "april", "may", "june",
-    "july", "august", "september", "october", "november", "december",
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
 )
 _WORD_DAYS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
 # The task's specification, quoted verbatim in its instruction.
@@ -127,9 +137,7 @@ def _commitment_due(kind: str, match, sent: datetime.date) -> datetime.date:
 def _cmp(where: str, mine, theirs, out: list[str]) -> None:
     if isinstance(mine, (int, float)) and isinstance(theirs, (int, float)):
         if abs(float(mine) - float(theirs)) > EPSILON:
-            out.append(
-                f"{where}: log says {mine}, oracle says {theirs}"
-            )
+            out.append(f"{where}: log says {mine}, oracle says {theirs}")
         return
     if isinstance(mine, str) and isinstance(theirs, str):
         # Case-folded, because that is how the answer is actually graded:
@@ -301,6 +309,7 @@ def check_work_product_review(facts: WorldFacts, oracle: dict) -> list[str]:
         oracle["never_attached_count"],
         out,
     )
+
     # Compared as a multiset of what each row claims, not on the key.
     # iManage's document number is minted by the projection and served
     # verbatim, so an agent copies it and it cannot be a wrong *answer* --
@@ -554,8 +563,7 @@ def _commitment_register(
                 for domain in (
                     facts.people[p].email_address.split("@")[-1]
                     for p in (email.sender, *email.to, *email.cc)
-                    if p in facts.people
-                    and facts.people[p].affiliation == "external"
+                    if p in facts.people and facts.people[p].affiliation == "external"
                 )
             }
         )
@@ -609,9 +617,7 @@ def _commitment_register(
                 f"oracle counts {theirs_chat[key]}"
             )
 
-    register = mail_only + [
-        {"ref": "chat"} for _ in range(sum(chat_rows.values()))
-    ]
+    register = mail_only + [{"ref": "chat"} for _ in range(sum(chat_rows.values()))]
     # Inside the window when there is one. Counting the whole record here
     # is what made the bounded task unfinishable -- the agent read for the
     # figure, not for the rows.
@@ -729,9 +735,9 @@ def _register(
             {
                 "ref": email.message_id,
                 person_field: name,
-                "sent_date": (
-                    epoch + datetime.timedelta(seconds=email.time)
-                ).date().isoformat(),
+                "sent_date": (epoch + datetime.timedelta(seconds=email.time))
+                .date()
+                .isoformat(),
                 "where": outside[0] if outside else "the firm",
             }
         )
@@ -763,9 +769,7 @@ def _register(
         if str(row["ref"]).startswith("msg-"):
             theirs_mail.append(row)
         else:
-            theirs_chat[
-                (row[person_field], row["sent_date"], row["where"])
-            ] += 1
+            theirs_chat[(row[person_field], row["sent_date"], row["where"])] += 1
     for key in sorted(set(chat_rows) | set(theirs_chat)):
         if chat_rows[key] != theirs_chat[key]:
             out.append(
@@ -814,9 +818,7 @@ def check_approval_register(facts: WorldFacts, oracle: dict) -> list[str]:
     )
 
 
-def check_opening_days_completion_claims(
-    facts: WorldFacts, oracle: dict
-) -> list[str]:
+def check_opening_days_completion_claims(facts: WorldFacts, oracle: dict) -> list[str]:
     """The same word list, bounded to the first two working days.
 
     What is worth checking independently here is the boundary, not the
@@ -877,9 +879,8 @@ def check_commitment_follow_through(facts: WorldFacts, oracle: dict) -> list[str
                     followed = any(
                         other.sender == email.sender
                         and other.time > email.time
-                        and (
-                            epoch + datetime.timedelta(seconds=other.time)
-                        ).date() <= due
+                        and (epoch + datetime.timedelta(seconds=other.time)).date()
+                        <= due
                         for other in thread
                     )
                     rows[(email.message_id, due.isoformat())] = {
@@ -921,9 +922,7 @@ def check_commitment_follow_through(facts: WorldFacts, oracle: dict) -> list[str
     return out
 
 
-_OPEN_STATUSES = frozenset(
-    {"open", "outstanding", "pending", "not started", "blocked"}
-)
+_OPEN_STATUSES = frozenset({"open", "outstanding", "pending", "not started", "blocked"})
 
 
 def check_workpaper_open_items(facts: WorldFacts, oracle: dict) -> list[str]:
@@ -953,7 +952,7 @@ def check_workpaper_open_items(facts: WorldFacts, oracle: dict) -> list[str]:
             continue
         try:
             book = json.loads(document.content)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             # Authors sometimes declare a workbook and write prose. The
             # materializer writes those out as `.txt` instead, so they are
             # not `.xlsx` files and contribute no rows — the same choice,
@@ -1089,9 +1088,8 @@ def check_opening_week_follow_through(facts: WorldFacts, oracle: dict) -> list[s
                     followed = any(
                         other.sender == email.sender
                         and other.time > email.time
-                        and (
-                            epoch + datetime.timedelta(seconds=other.time)
-                        ).date() <= due
+                        and (epoch + datetime.timedelta(seconds=other.time)).date()
+                        <= due
                         for other in thread
                     )
                     rows[(email.message_id, due.isoformat())] = {
@@ -1165,9 +1163,18 @@ def check_open_items_triage(facts: WorldFacts, oracle: dict) -> list[str]:
 
     out: list[str] = []
     markers = (
-        "please send", "please provide", "please confirm", "could you",
-        "can you", "would you", "we need", "i need", "when will",
-        "let me know", "waiting on", "waiting for",
+        "please send",
+        "please provide",
+        "please confirm",
+        "could you",
+        "can you",
+        "would you",
+        "we need",
+        "i need",
+        "when will",
+        "let me know",
+        "waiting on",
+        "waiting for",
     )
 
     def asks(body: str) -> bool:
@@ -1299,9 +1306,7 @@ def check_closeout_readiness(facts: WorldFacts, oracle: dict) -> list[str]:
     ):
         if value != oracle[name]:
             out.append(f"{name}: log says {value}, oracle says {oracle[name]}")
-    _rows(
-        "engagements", rows, oracle["engagements"], lambda r: r["engagement"], out
-    )
+    _rows("engagements", rows, oracle["engagements"], lambda r: r["engagement"], out)
     return out
 
 
@@ -1377,9 +1382,7 @@ def check_staffing_leverage(facts: WorldFacts, oracle: dict) -> list[str]:
         out.append(
             f"over_supervised: log says {over}, oracle says {oracle['over_supervised']}"
         )
-    _rows(
-        "engagements", rows, oracle["engagements"], lambda r: r["engagement"], out
-    )
+    _rows("engagements", rows, oracle["engagements"], lambda r: r["engagement"], out)
     return out
 
 
@@ -1443,9 +1446,7 @@ def check_wip_utilization(facts: WorldFacts, oracle: dict) -> list[str]:
             if row["logged_seconds"]
             else 0.0,
         }
-        for person, row in sorted(
-            per_person.items(), key=lambda kv: facts.name(kv[0])
-        )
+        for person, row in sorted(per_person.items(), key=lambda kv: facts.name(kv[0]))
     ]
     total_value = sum(r["value_cents"] for r in per_engagement.values())
     total_billable = sum(r["billable_seconds"] for r in per_engagement.values())
@@ -1576,8 +1577,10 @@ def check_tracker_reconciliation(facts: WorldFacts, oracle: dict) -> list[str]:
     _rows(
         "engagements",
         engagements,
-        [{"engagement": r["engagement"], "moved": r["moved"]} for r in
-         oracle["engagements"]],
+        [
+            {"engagement": r["engagement"], "moved": r["moved"]}
+            for r in oracle["engagements"]
+        ],
         lambda r: r["engagement"],
         out,
     )
@@ -1629,6 +1632,7 @@ def check_self_review(facts: WorldFacts, oracle: dict) -> list[str]:
         oracle["self_review_risk_count"],
         out,
     )
+
     # Compared as a multiset of claims, for the same reason the documents in
     # work-product-review are: the number is minted by the projection and
     # served verbatim, so it is copied rather than computed.

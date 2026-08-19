@@ -121,8 +121,10 @@ def _diff_rows(mine: list, theirs: list, key: tuple[str, ...]) -> None:
     want = {_row_key(r, key): r for r in theirs if isinstance(r, dict)}
     got = {_row_key(r, key): r for r in mine if isinstance(r, dict)}
     missing, invented = sorted(want.keys() - got), sorted(got.keys() - want)
-    print(f"    rows: oracle {len(want)}, agent {len(got)}, "
-          f"missing {len(missing)}, invented {len(invented)}")
+    print(
+        f"    rows: oracle {len(want)}, agent {len(got)}, "
+        f"missing {len(missing)}, invented {len(invented)}"
+    )
     for label, rows in (("missing", missing), ("invented", invented)):
         for row in rows[:5]:
             print(f"      {label}: {row}")
@@ -156,6 +158,7 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
 
     oracle_path = TASKS / task / "tests" / "oracle.json"
     oracle = json.loads(oracle_path.read_text())
+
     # The list the grader keys on, not merely the first one in the file.
     # tracker-reconciliation answers with two: ten engagements and a hundred
     # and thirty-nine effort lines, and taking the first diffed the narrow
@@ -180,9 +183,15 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
     # is what decides E and T before any individual row is looked at.
     print("--- is the oracle independently confirmed? (T)")
     result = subprocess.run(
-        [sys.executable, str(Path(__file__).parent / "verify_oracle.py"),
-         "--task", task],
-        capture_output=True, text=True, cwd=REPO,
+        [
+            sys.executable,
+            str(Path(__file__).parent / "verify_oracle.py"),
+            "--task",
+            task,
+        ],
+        capture_output=True,
+        text=True,
+        cwd=REPO,
         env={"PYTHONPATH": str(REPO / "src"), "PATH": "/usr/bin:/bin"},
     )
     for line in result.stdout.strip().splitlines()[1:]:
@@ -199,8 +208,10 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
             print(f"    {name} = {value:.3f}")
         answer = _submitted(trial, task)
         if answer is None:
-            print("    (the agent's answer was not preserved -- rerun with the "
-                  "current test.sh, which copies it into /logs/artifacts)")
+            print(
+                "    (the agent's answer was not preserved -- rerun with the "
+                "current test.sh, which copies it into /logs/artifacts)"
+            )
             continue
         for field, expected in oracle.items():
             if isinstance(expected, list):
@@ -224,8 +235,11 @@ def classify(job: Path, task: str, key: tuple[str, ...] | None) -> int:
 
 
 def _stochastic(
-    trials: list[Path], expected: list, rows_field: str,
-    key: tuple[str, ...], task: str,
+    trials: list[Path],
+    expected: list,
+    rows_field: str,
+    key: tuple[str, ...],
+    task: str,
 ) -> None:
     """Do independent trials miss the same rows? Then it is not the model.
 
@@ -265,9 +279,7 @@ def _stochastic(
         if answer is None:
             continue
         got = set(_rows_of(answer, rows_field, key))
-        per_trial.append(
-            (trial.name, frozenset(want - got), frozenset(got - want))
-        )
+        per_trial.append((trial.name, frozenset(want - got), frozenset(got - want)))
     if len(per_trial) < 2:
         return
 
@@ -317,7 +329,7 @@ def _stochastic(
             pairs = [
                 len(a & b) / len(a | b)
                 for i, a in enumerate(sets)
-                for b in sets[i + 1:]
+                for b in sets[i + 1 :]
                 if a | b
             ]
             typical = sorted(pairs)[len(pairs) // 2] if pairs else 0.0

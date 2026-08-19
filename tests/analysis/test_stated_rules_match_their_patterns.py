@@ -76,7 +76,7 @@ class TestTheCommitmentFormsAcceptTheirOwnPhrasings:
         "text",
         [
             "please send it by March 14",
-            "please send it by March 14th",      # the ordinal that cost 17 rows
+            "please send it by March 14th",  # the ordinal that cost 17 rows
             "audited statements by April 15th",  # verbatim from the corpus
             "by December 1st at the latest",
             "by August 22nd",
@@ -153,7 +153,7 @@ class TestTheFormsStillRefuseWhatTheInstructionExcludes:
         "text",
         [
             "queues early next week",
-            "Wednesday 14:30 works",     # a meeting time, not "by Wednesday"
+            "Wednesday 14:30 works",  # a meeting time, not "by Wednesday"
             "sometime in March",
             "in the next few days",
         ],

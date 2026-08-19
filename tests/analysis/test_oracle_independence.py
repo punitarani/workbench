@@ -53,46 +53,96 @@ def world(tmp_path: Path) -> Path:
     """
 
     events = [
-        _event(0, "person.record", {
-            "person_id": "per-a", "name": "Ada Reyes",
-            "email_address": "ada@firm.example", "affiliation": "internal",
-        }),
-        _event(1, "person.record", {
-            "person_id": "per-b", "name": "Bo Nguyen",
-            "email_address": "bo@firm.example", "affiliation": "internal",
-        }),
-        _event(2, "person.record", {
-            "person_id": "per-c", "name": "Cy Okafor",
-            "email_address": "cy@client.example", "affiliation": "external",
-            "department": "Client",
-        }),
-        _event(3, "org.record", {"org_id": "org-x", "name": "Xenon Works",
-                                 "category": "client"}),
-        _event(4, "ticket.created", {
-            "ticket_id": "tkt-1", "actor": "per-a", "title": "Audit",
-            "description": "", "requester": "per-c", "assignee": "per-a",
-            "status": "Open", "priority": "Normal", "ticket_type": "engagement",
-            "client_ref": "org-x", "fields": [],
-        }),
+        _event(
+            0,
+            "person.record",
+            {
+                "person_id": "per-a",
+                "name": "Ada Reyes",
+                "email_address": "ada@firm.example",
+                "affiliation": "internal",
+            },
+        ),
+        _event(
+            1,
+            "person.record",
+            {
+                "person_id": "per-b",
+                "name": "Bo Nguyen",
+                "email_address": "bo@firm.example",
+                "affiliation": "internal",
+            },
+        ),
+        _event(
+            2,
+            "person.record",
+            {
+                "person_id": "per-c",
+                "name": "Cy Okafor",
+                "email_address": "cy@client.example",
+                "affiliation": "external",
+                "department": "Client",
+            },
+        ),
+        _event(
+            3,
+            "org.record",
+            {"org_id": "org-x", "name": "Xenon Works", "category": "client"},
+        ),
+        _event(
+            4,
+            "ticket.created",
+            {
+                "ticket_id": "tkt-1",
+                "actor": "per-a",
+                "title": "Audit",
+                "description": "",
+                "requester": "per-c",
+                "assignee": "per-a",
+                "status": "Open",
+                "priority": "Normal",
+                "ticket_type": "engagement",
+                "client_ref": "org-x",
+                "fields": [],
+            },
+        ),
     ]
     seq = 5
     for person in ("per-a", "per-b"):
         for _ in range(2):
-            events.append(_event(seq, "work.time.logged", {
-                "person_id": person, "ticket_id": "tkt-1", "minutes": 25,
-                "note": "", "rate_cents": 1_000, "billable": True,
-            }))
+            events.append(
+                _event(
+                    seq,
+                    "work.time.logged",
+                    {
+                        "person_id": person,
+                        "ticket_id": "tkt-1",
+                        "minutes": 25,
+                        "note": "",
+                        "rate_cents": 1_000,
+                        "billable": True,
+                    },
+                )
+            )
             seq += 1
     # Two documents with the same title in different workspaces: the exact
     # collision that capped work-product-review's own solver at 0.976.
     for index, workspace in enumerate(("audit", "tax"), start=1):
-        events.append(_event(seq, "document.created", {
-            "document_id": f"doc-{index}", "author": "per-a",
-            "title": "Single Audit Playbook",
-            "path": f"/{workspace}/playbook-{index}.md",
-            "location": "repository", "content_format": "markdown",
-            "content": "x",
-        }))
+        events.append(
+            _event(
+                seq,
+                "document.created",
+                {
+                    "document_id": f"doc-{index}",
+                    "author": "per-a",
+                    "title": "Single Audit Playbook",
+                    "path": f"/{workspace}/playbook-{index}.md",
+                    "location": "repository",
+                    "content_format": "markdown",
+                    "content": "x",
+                },
+            )
+        )
         seq += 1
 
     path = tmp_path / "world.jsonl"
@@ -110,10 +160,22 @@ def _allocation_oracle() -> dict:
         "busiest_person": "Ada Reyes",
         "busiest_engagement": "00001-XenonWorks",
         "allocations": [
-            {"person": "Ada Reyes", "engagement": "00001-XenonWorks", "entries": 2,
-             "hours": 0.83, "billable_hours": 0.83, "fees_dollars": 8.33},
-            {"person": "Bo Nguyen", "engagement": "00001-XenonWorks", "entries": 2,
-             "hours": 0.83, "billable_hours": 0.83, "fees_dollars": 8.33},
+            {
+                "person": "Ada Reyes",
+                "engagement": "00001-XenonWorks",
+                "entries": 2,
+                "hours": 0.83,
+                "billable_hours": 0.83,
+                "fees_dollars": 8.33,
+            },
+            {
+                "person": "Bo Nguyen",
+                "engagement": "00001-XenonWorks",
+                "entries": 2,
+                "hours": 0.83,
+                "billable_hours": 0.83,
+                "fees_dollars": 8.33,
+            },
         ],
     }
 
@@ -128,9 +190,7 @@ class TestTheCheckCatchesTheDefectsThatReachedRollouts:
         """The 0.816: 1.66 from the rounded rows, 1.67 from the seconds."""
 
         oracle = _allocation_oracle()
-        oracle["total_hours"] = round(
-            sum(r["hours"] for r in oracle["allocations"]), 2
-        )
+        oracle["total_hours"] = round(sum(r["hours"] for r in oracle["allocations"]), 2)
         assert oracle["total_hours"] != 1.67
         problems = check_time_allocation(load_world(world), oracle)
         assert any("total_hours" in p for p in problems), problems
@@ -152,9 +212,7 @@ class TestTheCheckCatchesTheDefectsThatReachedRollouts:
 
         later = _allocation_oracle()
         later["busiest_person"] = "Bo Nguyen"
-        assert any(
-            "busiest_person" in p for p in check_time_allocation(facts, later)
-        )
+        assert any("busiest_person" in p for p in check_time_allocation(facts, later))
 
     def test_two_documents_sharing_a_title(self, world: Path) -> None:
         """The 0.976 ceiling: a title-only key cannot tell them apart."""
@@ -190,8 +248,14 @@ class TestTheCheckCatchesOrdinaryCorruption:
     def test_an_invented_row(self, world: Path) -> None:
         oracle = _allocation_oracle()
         oracle["allocations"].append(
-            {"person": "Nobody At All", "engagement": "00001-XenonWorks",
-             "entries": 1, "hours": 1.0, "billable_hours": 1.0, "fees_dollars": 1.0}
+            {
+                "person": "Nobody At All",
+                "engagement": "00001-XenonWorks",
+                "entries": 1,
+                "hours": 1.0,
+                "billable_hours": 1.0,
+                "fees_dollars": 1.0,
+            }
         )
         oracle["pairs"] = 3
         problems = check_time_allocation(load_world(world), oracle)
@@ -221,12 +285,24 @@ class TestDocumentDerivation:
             "reached_client_count": 0,
             "never_attached_count": 2,
             "documents": [
-                {"document_number": 1, "document": "Single Audit Playbook",
-                 "workspace": "audit", "author": "Ada Reyes", "versions": 1,
-                 "reviewed": False, "reached_client": False},
-                {"document_number": 2, "document": "Single Audit Playbook",
-                 "workspace": "tax", "author": "Ada Reyes", "versions": 1,
-                 "reviewed": False, "reached_client": False},
+                {
+                    "document_number": 1,
+                    "document": "Single Audit Playbook",
+                    "workspace": "audit",
+                    "author": "Ada Reyes",
+                    "versions": 1,
+                    "reviewed": False,
+                    "reached_client": False,
+                },
+                {
+                    "document_number": 2,
+                    "document": "Single Audit Playbook",
+                    "workspace": "tax",
+                    "author": "Ada Reyes",
+                    "versions": 1,
+                    "reviewed": False,
+                    "reached_client": False,
+                },
             ],
         }
         assert check_work_product_review(facts, oracle) == []

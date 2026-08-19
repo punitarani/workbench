@@ -29,8 +29,18 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("follow_through.json")
 
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 MONTHS = (
-    "january", "february", "march", "april", "may", "june",
-    "july", "august", "september", "october", "november", "december",
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
 )
 WORD_DAYS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
 # "by April 15th" is the form `by <Month> <day>`; a bare \b after the

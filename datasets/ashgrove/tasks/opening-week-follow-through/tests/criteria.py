@@ -125,8 +125,7 @@ def row_fields(workspace: Path, path: str, expected: list, spec: dict) -> float:
             else:
                 matched += _close(have, want, tol)
     extra = len(
-        set(mine)
-        - {tuple(str(r[k]).strip().casefold() for k in KEY) for r in expected}
+        set(mine) - {tuple(str(r[k]).strip().casefold() for k in KEY) for r in expected}
     )
     # Invented rows cost, but they cannot wipe out work that is correct:
     # a cliff to zero tells the reader nothing about what the agent knew.

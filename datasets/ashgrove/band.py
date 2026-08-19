@@ -29,7 +29,6 @@ loudly as incomplete -- with the reason, because "glm timed out" and
 "glm answered badly" call for opposite fixes.
 """
 
-
 import argparse
 import json
 import statistics
@@ -95,7 +94,7 @@ def _outcome(trial: Path, wanted: str | None) -> tuple[float | None, str]:
         return None, "no reward"
     try:
         return float(json.loads(reward.read_text())["reward"]), "ok"
-    except (ValueError, KeyError, TypeError):
+    except ValueError, KeyError, TypeError:
         return None, "unreadable reward"
 
 
@@ -134,8 +133,10 @@ def main(argv: list[str] | None = None) -> int:
         "glm-5.2": args.tag_glm or ["glm-k9", "glm-fair"],
     }
 
-    print(f"{'task':32s} {'gpt-5.6-sol':>13s} {'opus-5':>10s} {'glm-5.2':>10s}"
-          f" {'mean':>7s}  verdict")
+    print(
+        f"{'task':32s} {'gpt-5.6-sol':>13s} {'opus-5':>10s} {'glm-5.2':>10s}"
+        f" {'mean':>7s}  verdict"
+    )
     print("-" * 92)
     in_band = []
     for task in sorted(p.name for p in TASKS.iterdir() if p.is_dir()):
@@ -144,8 +145,7 @@ def main(argv: list[str] | None = None) -> int:
             # Best evidence wins: the job with the most gradeable trials,
             # and the larger sample breaks a tie.
             candidates = [
-                measure(task, JOBS / f"ashgrove-{task}-{tag}")
-                for tag in tags[model]
+                measure(task, JOBS / f"ashgrove-{task}-{tag}") for tag in tags[model]
             ]
             found = max(
                 candidates,
@@ -184,8 +184,10 @@ def main(argv: list[str] | None = None) -> int:
                 in_band.append((task, mean))
             else:
                 verdict = "out of band"
-        print(f"{task:32s} {cells[0]:>13s} {cells[1]:>10s} {cells[2]:>10s}"
-              f" {mean_text}  {verdict}{note}")
+        print(
+            f"{task:32s} {cells[0]:>13s} {cells[1]:>10s} {cells[2]:>10s}"
+            f" {mean_text}  {verdict}{note}"
+        )
 
     print(f"\n{len(in_band)} task(s) in 0.2-0.8 on the three-model mean")
     for task, mean in sorted(in_band, key=lambda kv: kv[1]):
