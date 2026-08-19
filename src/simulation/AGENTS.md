@@ -1,6 +1,6 @@
 # Working in simulation
 
-Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Engine-specific:
+Root rules in [`AGENTS.md`](../../AGENTS.md) apply. Engine-specific:
 
 * **Determinism is the product.** Same seed, same bytes — across processes
   and PYTHONHASHSEED values. Anything ordered must be ordered explicitly
@@ -20,7 +20,7 @@ Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Engine-specific:
   events) and reproduced offline by replaying the cassette. Fix with a
   failing unit test first; the live model is only for recording, never for
   debugging logic.
-* Subfolder rules: [`lm/`](src/simulation/lm/AGENTS.md),
-  [`engine/`](src/simulation/engine/AGENTS.md),
-  [`gm/`](src/simulation/gm/AGENTS.md),
-  [`persona/`](src/simulation/persona/AGENTS.md).
+* Subfolder rules: [`lm/`](lm/AGENTS.md),
+  [`engine/`](engine/AGENTS.md),
+  [`gm/`](gm/AGENTS.md),
+  [`persona/`](persona/AGENTS.md).

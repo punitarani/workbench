@@ -35,5 +35,5 @@ The container image the bundles run in (`Dockerfile`,
 `run-as-environment.c` setuid shim) lives at the repo root under
 `environment/`.
 
-Start with [`docs/WORKBENCH.md`](../../../docs/WORKBENCH.md) for how
+Start with [`docs/WORKBENCH.md`](../../docs/WORKBENCH.md) for how
 these contracts are used.

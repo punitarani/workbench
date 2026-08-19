@@ -1,6 +1,6 @@
 # Working in tools
 
-Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Package-specific:
+Root rules in [`AGENTS.md`](../../AGENTS.md) apply. Package-specific:
 
 ## Invariants
 

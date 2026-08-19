@@ -1,6 +1,6 @@
 # Working in workplaces
 
-Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Workplace-specific:
+Root rules in [`AGENTS.md`](../../AGENTS.md) apply. Workplace-specific:
 
 * Everything here is **data**: `WorkplaceSpec` values, prose in
   `seed_docs/*.md` package files, recorded cassettes. Logic belongs in the
@@ -15,4 +15,4 @@ Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Workplace-specific:
   acceptance suite, and commit spec + cassette together.
 * Structural invariants (e.g. which phrases must not appear in seed
   content) are enforced by the workplace's test suite — run it before and
-  after content edits. See [`legal/`](src/workplaces/legal/AGENTS.md).
+  after content edits. See [`legal/`](legal/AGENTS.md).

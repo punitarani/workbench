@@ -1,6 +1,6 @@
 # Working in adapters
 
-Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Package-specific:
+Root rules in [`AGENTS.md`](../../AGENTS.md) apply. Package-specific:
 
 * **The harness sees the environment exactly as an agent does**: the
   bundle's stdio servers, and the documents in `bundle/workspace`. Never

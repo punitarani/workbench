@@ -30,7 +30,7 @@ Parity with the official vendors is pinned to dated `tools/list`
 snapshots under `tests/parity/snapshots/` and enforced by
 `tests/parity/` (implemented-or-waived, no invented tools, required
 parameters, provenance); the living implemented/waived matrix is
-[`docs/epochs/v2/PARITY-MATRIX.md`](../../../docs/epochs/v2/PARITY-MATRIX.md).
+[`docs/fidelity/PARITY-MATRIX.md`](../../docs/fidelity/PARITY-MATRIX.md).
 Divergences are declared as snapshot waivers, never silent — e.g.
 iManage `search` spans every document version, so each hit reports
 `matched_versions` and `in_head` rather than passing stale text off as

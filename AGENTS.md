@@ -129,6 +129,6 @@ The image is layered stable-to-volatile so sibling environments share the `base`
 
 * Run servers, long-lived processes, `harbor run`, or a recording epoch unless asked.
 * Add a dependency, package, or abstraction layer for a single caller.
-* Put documentation anywhere but `docs/`, except `README.md`/`AGENTS.md` files: every top-level package carries both, and a subfolder may carry an `AGENTS.md` when it has invariants worth stating where the code lives. There are exactly two narrative documents and they do not overlap — `docs/WORKBENCH.md` describes what exists, `docs/METHOD.md` describes how to build and measure. Extend one of them rather than adding parallel plans, ADRs, or status files.
+* Put documentation anywhere but `docs/`, except `README.md`/`AGENTS.md` files: every top-level package carries both, and a subfolder may carry an `AGENTS.md` when it has invariants worth stating where the code lives. There are exactly two narrative documents and they do not overlap — `docs/WORKBENCH.md` describes what exists, `docs/METHOD.md` describes how to build and measure. Extend one of them rather than adding parallel plans, ADRs, or status files. Links between documents are relative and CI-checked, anchors included — docs are a surface no code imports, so moving or renaming one silently breaks every link into it.
 * Widen an agent-facing surface, weaken a type, or loosen a permission to make a test pass.
 * Loosen a fidelity band or edit a parity snapshot to turn a failure green; both are deliberate, reviewed commits.

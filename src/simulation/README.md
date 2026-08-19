@@ -35,4 +35,4 @@ Run the single-day legal demo with `python -m simulation.demo`
 (`--mode record|replay --cassette <dir>`); full epochs run through
 `datasets/<world>/run_epoch.py`. Architecture, determinism model, and
 the record/replay workflow are in
-[`docs/WORKBENCH.md`](../../../docs/WORKBENCH.md).
+[`docs/WORKBENCH.md`](../../docs/WORKBENCH.md).

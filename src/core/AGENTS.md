@@ -1,6 +1,6 @@
 # Working in workbench (core, environment)
 
-Root rules in [`../AGENTS.md`](../AGENTS.md) apply. Package-specific:
+Root rules in [`AGENTS.md`](../../AGENTS.md) apply. Package-specific:
 
 * **Environment never imports simulation or workplaces.** It sees the world
   only through core events; the world log is its sole input. The tool
@@ -30,4 +30,4 @@ Core-specific:
 * Ids are minted (`IdMinter`) or derived (`event_id_for`), never random.
   Every source of randomness flows through `seed.derive_seed`.
 * The event vocabulary has its own rules: see
-  [`src/core/events/AGENTS.md`](src/core/events/AGENTS.md).
+  [`events/`](events/AGENTS.md).

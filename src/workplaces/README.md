@@ -31,4 +31,4 @@ Current workplaces:
 Epochs run through `datasets/<world>/run_epoch.py`; the single-day legal
 demo through `python -m simulation.demo`. Architecture and the
 record/replay workflow are in
-[`docs/WORKBENCH.md`](../../../docs/WORKBENCH.md).
+[`docs/WORKBENCH.md`](../../docs/WORKBENCH.md).
