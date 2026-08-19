@@ -528,8 +528,14 @@ def _seed_documents() -> tuple[SeedDocument, ...]:
         "sheets": [
             {
                 "name": "Standard Rates",
+                # The header is `columns`, not the first row. A workbook
+                # that folds its header into the data does not parse, and
+                # the renderer then writes the raw JSON beside the intended
+                # name as a `.txt` — a file claiming a form it does not
+                # have, which is exactly what the file-room gate exists to
+                # refuse. It caught this one.
+                "columns": ["Timekeeper", "Title", "Practice", "Standard Rate"],
                 "rows": [
-                    ["Timekeeper", "Title", "Practice", "Standard Rate"],
                     ["Adaora Nwosu", "Managing Partner", "Firm Management", 900],
                     ["Bennett Ashworth", "Partner", "Litigation", 825],
                     ["Cecile Marchand", "Partner", "Litigation", 780],
