@@ -157,6 +157,11 @@ class WorldState:
                     "assignee": payload.assignee,
                     "status": payload.status,
                     "priority": payload.priority,
+                    # No client means the institution's own standing work:
+                    # administration, internal meetings, business
+                    # development. Anyone may book to it, so it must survive
+                    # the truncation below.
+                    "client_ref": payload.client_ref,
                 }
             case TicketUpdatedPayload():
                 values = self.tickets.get(payload.ticket_id)
