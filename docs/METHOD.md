@@ -92,6 +92,12 @@ list does not cover.
 | office files | 19 workbooks, 61 sheets, no index, nothing in SQL | 1.000 |
 | constraint satisfaction | ruled out before building — see below | not fairly buildable |
 
+The mechanism is worth stating because it predicts the next failed
+lever: **deterministic gradeability implies programmatic solvability.**
+The oracle is a program, so a task with a deterministic answer key is by
+construction reducible to a program — and an agent with a shell will
+write it. Scale is then a cost, not a difficulty.
+
 What they share: **the agent computes each row locally and mechanically
 from text it has already pulled onto disk.** Against a written script,
 per-row rules are free however many links the chain has, and independent
@@ -135,6 +141,19 @@ The world must be *true* before anything cut from it can be *fair*.
   no unseeded randomness, no dependence on dict or filesystem ordering.
   Without this, no measurement is repeatable and no defect is
   reproducible.
+- **Every ordering on the replay path is explicit.** Gather concurrent
+  results in declaration order, never completion order; assign sequence
+  numbers at emission rather than at enqueue. Concurrency that reorders
+  is nondeterminism wearing a performance argument.
+- **Split generation by kind.** Structure a real institution's own
+  systems would produce — rosters, engagement records, cycles, calendars
+  — derives deterministically from the seed. Every piece of language or
+  judgment is a model call grounded against that structure. A structural
+  generator that starts emitting prose has crossed into authorship.
+- **The referee is deterministic: zero model calls.** Whatever turns
+  actor intents into world facts resolves each reference against world
+  state or rejects the intent, and rejections become feedback the actor
+  sees. A referee that improvises cannot be replayed.
 - **Loud failure, always.** Cassette misses, budget exhaustion, integrity
   violations and transport errors raise. A world that degrades silently
   produces scores that mean nothing and cannot be traced.
@@ -218,6 +237,21 @@ to, which contact counts as the client — the oracle built on it is not
 deterministic, and the disagreement surfaces as a model failure. Either
 the world records the relation as a field, or the task does not grade it.
 
+### The deliverable's shape must not answer the question
+
+**A schema that names each half of a distinction has given the
+distinction away.** A rule says what the answer *is*; a procedure says
+where to *look*. State the first, never the second, and check that the
+output shape does not decompose the judgment the task exists to measure.
+
+### Every decision the rule leaves open is a coin flip
+
+An agent cannot win an unstated choice by working harder. Enumerate the
+vocabulary of any object-valued field and require every key, including
+the zero-valued ones; fix every tie-break and ordering in the
+instruction; and name the units. If two defensible answers exist, the
+task is measuring which one the agent guessed.
+
 ### Structural floors
 
 | floor | why |
@@ -254,7 +288,27 @@ are guessing about.
 | **Rule-accepts-its-own-phrasings** — assert the pattern matches the examples the instruction itself gives | a regex narrower than the prose it implements |
 | **Textual-test declared** — any task matching forms in prose must say so | the prose-versus-literal class above |
 | **Rounding convention declared** — any task summing quantities must say which order it rounds in | a coin toss between sum-then-round and round-then-sum |
-| **Grading guards** — the reference answer scores 1.000; every criterion resolves, binds and formats | graders that silently score every boolean zero |
+| **Grading guards** — the reference answer scores 1.000 with the criterion *bodies executed*, not merely registered | graders that silently score every boolean zero |
+| **Key uniqueness on both sides** — the grader's row key distinguishes every real row, in the oracle and in the second derivation | a key that collapses two rows caps the achievable score below 1.0 for reasons no agent can fix |
+| **Counts single-sourced** — no figure restated in an instruction, metadata, or docstring that the oracle also computes | restated numbers drift and nothing catches them |
+
+### Two things the independence check must not share with the solver
+
+**The computation, where more than one is defensible.** Sum-then-round
+and round-then-sum are both reasonable; the verifier must use whichever
+the solver did not, or the agreement proves nothing.
+
+**The source of the rule.** Transcribe it from the instruction the agent
+is graded against, never from the solver — copying the solver's
+expression reproduces its bug and then certifies that the two agree.
+This bites hardest on **tie-breaks and orderings**, which rollouts almost
+never exercise because real data rarely ties. Test those on a hand-built
+fixture.
+
+And derive any assumption the generator and solver *both* rest on — a
+cutoff, a snapshot boundary — separately. Their mutual agreement is not
+evidence, and a shifted boundary makes every row wrong together while
+every row-level check stays green.
 
 ### Size tolerances against the defect, not for comfort
 
@@ -310,6 +364,21 @@ is never a single sample; and report the completion rate *beside* the
 score rather than folded into it. **How well a model answers and how
 often it manages to answer are different facts.**
 
+### Two grading shapes that decide what a score means
+
+**Normalize per-row credit by the truth set, never by the submission.**
+Iterating over what the agent sent and skipping unmatched rows makes
+under-reporting free: an agent that returns three perfect rows out of a
+hundred scores 1.000. Iterate the oracle's rows, and cap the
+invented-row penalty so a wrong answer cannot wipe out work that was
+right — a cliff to zero tells the reader nothing about what the agent
+knew.
+
+**Split grading into a reward dimension and a diagnostic dimension**,
+ship only the reward as the score, and assert the dimension set is
+exactly what you expect. Presentation and process checks belong in the
+diagnostic half where they inform without silently moving the number.
+
 ### Sample enough to see through the harness
 
 Abandonment is a *rate*, not a capability. One task measured 1-of-3
@@ -356,6 +425,18 @@ were the answer key. Every miss in them was the author's.
    the row.
 3. **Did anyone find it?** The question from §1. Cheap, and it settles
    most flags.
+
+### Structure in an error is a convention mismatch, not a mistake
+
+Model error is shapeless. When the error has *structure* — a constant
+offset repeated across many rows, values that are far too meaningful to
+be invented, a whole category missing — the oracle's convention differs
+from the agent's, and the agent is usually reading the world correctly.
+
+The clearest instance: rows dismissed as hallucinated dates turned out to
+be a quarter end and a national filing deadline. Dates that meaningful
+are read, not invented. **Ask what would have to be true for the agent to
+be right, before asking why it was wrong.**
 
 ### Reading the signal correctly
 
@@ -448,6 +529,11 @@ checks gets weakened by the next maintainer who finds it inconvenient; a
 gate that says "this cost 30 rows and a wrong verdict about a model" does
 not.
 
+**Stub the grading framework faithfully, not permissively.** A stub that
+accepts what the real runtime would reject turns every guard built on it
+into decoration — reproduce name resolution, argument binding and
+description formatting, and share one registry with the real path.
+
 The same applies to the shell around the experiment. Watchers that grep
 for a process name are themselves processes with that name in their
 command line; parallel sweeps against one account rate-limit each other;
@@ -474,4 +560,14 @@ output that looked like a finding.
    condition** rather than extending the previous plan. Long
    asynchronous work drifts from its goal silently: nothing errors, and
    the runs measure something you have stopped needing.
-8. **Write down what generalizes — here, not in a run record.**
+8. **Write down what generalizes — here, not in a run record.** Record
+   falsified hypotheses with their measurements, including the ones that
+   make a headline result smaller, and correct earlier conclusions **in
+   place** rather than appending a softening note. Date difficulty claims
+   separately from defect claims: a defect is permanent once found, while
+   a difficulty claim is only true of the tiers that were measured, and a
+   later measurement can overturn it.
+
+   When the same defect class appears a third time, stop fixing instances
+   and promote it to a gate with a companion test that fails when a new
+   task of that shape joins uncovered.
