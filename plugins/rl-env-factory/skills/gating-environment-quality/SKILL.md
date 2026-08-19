@@ -52,6 +52,37 @@ It **cannot catch a rule that disagrees with its own prose**, because the
 rule is the specification both derivations share. That is why
 rule-accepts-its-own-phrasings is a different gate and not a duplicate.
 
+## Catch the type that is actually raised, not the one you reasoned about
+
+A guard is written against the exception the failing code *constructs*.
+By the time it propagates, a framework in between has often re-raised it
+wrapped in its own type — after its own fallback also failed. The guard
+then catches something that no longer arrives, and the failure it exists
+to absorb goes straight through.
+
+This is invisible to review and to the obvious test. The one guarding
+this boundary asserted `"except <TypeName>" in source`: a **source grep
+cannot tell whether a guard catches what is thrown**, so the source went
+on saying exactly what the test wanted to see while a third failure mode
+walked past it. Assert on types — construct the real error, including
+the wrapped form, and check `isinstance` against the caught tuple.
+
+Two companions, both of which have bitten:
+
+- **The rescue must not raise inside itself.** A handler that calls a
+  method only one arm of its caught tuple has will take down the run it
+  exists to keep alive — a rescue that works only for the failure it was
+  already catching.
+- **Degrading content is not degrading loudly.** Keep the split explicit:
+  transport, budget and replay-integrity failures raise, because they
+  mean the run is invalid; one actor's one malformed turn becomes that
+  actor doing nothing, which the record shows.
+
+Worth knowing what triggers it: a stronger model writing more natural
+prose. Quotation marks inside a string field — *characterize this as
+"compliant" until* — close the JSON early. Upgrading a model tier changes
+the distribution of outputs, so it re-tests every parser downstream.
+
 ## Size tolerances against the defect, not for comfort
 
 A numeric tolerance must be strictly smaller than the smallest defect the
