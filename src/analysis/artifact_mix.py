@@ -44,10 +44,26 @@ FALLBACK_SUFFIXES = (".txt",)
 
 @dataclass(frozen=True)
 class ArtifactMix:
-    """The measured file-type composition of one materialized workspace."""
+    """The measured file-type composition of one materialized workspace.
+
+    ``total`` must equal the counts it summarises. Without that invariant
+    the type accepts `total=1, by_suffix=(('.md', 999))` and reports a
+    markdown share of 999.0 — and every test in this module used to build
+    its own instances by hand, so a `total` computed wrongly by `measure`
+    was checked by nothing at all.
+    """
 
     total: int
     by_suffix: tuple[tuple[str, int], ...]
+
+    def __post_init__(self) -> None:
+        counted = sum(count for _, count in self.by_suffix)
+        if counted != self.total:
+            raise ValueError(
+                f"total {self.total} does not match the {counted} files "
+                "counted by suffix; every share computed from this would be "
+                "wrong in the same direction"
+            )
 
     @property
     def counts(self) -> dict[str, int]:

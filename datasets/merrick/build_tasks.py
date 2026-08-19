@@ -197,13 +197,37 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         for skip in env.skipped_renders:
             print(f"  render skipped: {skip}")
 
-    selected = names or sorted(p.name for p in TASKS.iterdir() if p.is_dir())
+    available = sorted(p.name for p in TASKS.iterdir() if p.is_dir())
+    if names:
+        unknown = [name for name in names if name not in available]
+        if unknown:
+            # A mistyped selector used to print "no reference solver;
+            # skipping" and exit 0 — a build that gated nothing, reported
+            # success, and looked exactly like a build that gated
+            # everything.
+            raise SystemExit(
+                f"no such task(s): {unknown}. Available: {available or '(none)'}"
+            )
+    selected = names or available
+    if not selected:
+        # An audit that iterates an empty set passes vacuously, and this
+        # one iterates the task directory. With no tasks, oracle
+        # verification, reachability and degeneracy never run, and `build`
+        # returns 0 having checked only the world.
+        raise SystemExit(
+            f"no tasks under {TASKS} — nothing was verified, staged or "
+            "graded. A build with nothing to build is not a passing build."
+        )
+    print(f"building {len(selected)} task(s)")
     for name in selected:
         task = TASKS / name
         solver = task / "solution" / "solve.py"
         if not solver.exists():
-            print(f"{name}: no reference solver; skipping")
-            continue
+            raise SystemExit(
+                f"{name}: no reference solver at {solver}. Its oracle cannot "
+                "be verified, so shipping it would grade against an answer "
+                "key nothing checked."
+            )
         produced = SHARED_BUNDLE / "workspace" / f"{name}-answer.json"
         subprocess.run(
             [sys.executable, str(solver), str(produced)],

@@ -119,3 +119,34 @@ def test_measure_counts_what_is_on_disk(
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("x")
     assert measure(tmp_path).counts == expected
+
+
+def test_measure_and_violations_are_connected(tmp_path: Path) -> None:
+    """The gate is `measure` feeding `violations`, and nothing tested the
+    join. Every case above builds an `ArtifactMix` by hand with a
+    hand-supplied `total`, so two mutations of `measure` left the suite
+    green while disabling the gate entirely: `total = len(counts)` made a
+    49-file workspace report an office share of 6.33 with the floor
+    violation silently gone, and skipping `.md` in the suffix loop made a
+    100%-markdown world report a markdown share of 0.0.
+    """
+
+    for name in ("a/note.md", "a/b/other.md", "a/c/third.md"):
+        target = tmp_path / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("x")
+
+    mix = measure(tmp_path)
+    assert mix.total == 3
+    assert mix.markdown_share == 1.0
+    problems = violations(mix, FLOORS)
+    assert any("markdown" in problem for problem in problems)
+    assert any("office formats" in problem for problem in problems)
+
+
+def test_total_must_match_the_counts_it_summarises() -> None:
+    """A hand-built mix whose total disagrees with its own counts reports
+    a share above 1.0 and every floor derived from it is meaningless."""
+
+    with pytest.raises(ValueError):
+        ArtifactMix(total=1, by_suffix=((".md", 999),))
