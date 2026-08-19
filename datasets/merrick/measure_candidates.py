@@ -85,22 +85,28 @@ _DATE_FORMS: tuple[tuple[str, str], ...] = (
 )
 
 
-def _bodies(state: Path, cutoff: str | None) -> tuple[list[str], list[str]]:
-    """Mail and chat bodies, optionally only those sent on or before a day."""
+def _bodies(state: Path, horizon_seconds: int | None) -> tuple[list[str], list[str]]:
+    """Mail and chat bodies, optionally only those sent within the window.
+
+    ``time`` on a served message is **seconds since the world's epoch**,
+    not a date. Comparing its string form against an ISO date compiles,
+    runs, and windows on nothing: `"48900" <= "2026-01-09"` is a
+    lexicographic accident. It cut a 268-message corpus to 46 and reported
+    that as the window — worse than not filtering at all, because
+    `screen()` was then told the report was windowed and checked the row
+    floor against a number the filter had invented.
+    """
 
     out = []
-    for name, table, when in (
-        ("gmail.db", "messages", "time"),
-        ("slack.db", "messages", "time"),
-    ):
+    for name in ("gmail.db", "slack.db"):
         path = state / name
         if not path.is_file():
             out.append([])
             continue
         conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
-        rows = list(conn.execute(f"SELECT body, {when} FROM {table}"))
-        if cutoff is not None:
-            rows = [r for r in rows if str(r[1])[:10] <= cutoff]
+        rows = list(conn.execute("SELECT body, time FROM messages"))
+        if horizon_seconds is not None:
+            rows = [r for r in rows if int(r[1]) < horizon_seconds]
         out.append([r[0] for r in rows if r[0]])
     return out[0], out[1]
 
@@ -143,8 +149,10 @@ def main(argv: list[str] | None = None) -> int:
     if not args.state.is_dir():
         parser.error(f"no served state at {args.state} — build the bundle first")
 
-    cutoff = None
+    cutoff = horizon = None
     if args.days is not None:
+        # Sim-seconds, because that is what the served rows carry.
+        horizon = args.days * 86_400
         cutoff = (
             date.fromisoformat(args.epoch) + timedelta(days=args.days - 1)
         ).isoformat()
@@ -154,7 +162,7 @@ def main(argv: list[str] | None = None) -> int:
             "floor is calibrated in the rows a task grades, so screen a "
             "window before believing a verdict.\n"
         )
-    mail, chat = _bodies(args.state, cutoff)
+    mail, chat = _bodies(args.state, horizon)
     bodies = mail + chat
     window = f" through {cutoff}" if cutoff else ""
     print(f"corpus{window}: {len(mail)} mail + {len(chat)} chat = {len(bodies)}\n")
