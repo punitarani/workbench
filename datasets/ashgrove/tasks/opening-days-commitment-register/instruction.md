@@ -36,6 +36,11 @@ fields:
   - `author` — the full name of whoever wrote the message
   - `sent_date` — the date it was written, `YYYY-MM-DD`
   - `made_to` — who the promise was made to (see below)
+  - `form` — which of the seven forms produced this row, named exactly as
+    the left column of the table spells it: `weekday`, `week`, `month`,
+    `date`, `day`, `within` or `tomorrow`. Where one message carries two
+    forms that resolve to the **same** date — and so make one row — name
+    whichever appears **first in the table**, reading top to bottom.
 
 ## The window
 
@@ -59,15 +64,15 @@ Light closes end of week"* is nobody's commitment to anything, and it goes
 in the register, because the words are there. Do not filter by whether
 someone was promising.
 
-| what appears in the text | when it falls due |
-|---|---|
-| `by Monday` … `by Friday`, with or without `this`/`next` | the **next** such weekday **strictly after** the sent date |
-| `end of week` or `EOW`, with or without `by`, `the`, `this` or `next` | the **Friday of the week the message was sent** |
-| `end of month` or `EOM`, with or without `by`, `the`, `this` or `next` | the **last day of the month the message was sent** |
-| `by <Month> <day>` (`by March 14`, `by March 14th`) | that date, **in the year the message was sent** |
-| `EOD`, `COB`, `end of day`, `close of business` | the **sent date itself** |
-| `within N days` / `within N business days`, where N is a digit or one of `a`, `two`, `three`, `five`, `ten` | the sent date **plus N calendar days** — `business` changes nothing |
-| `by tomorrow` | the **day after** the sent date |
+| name | what appears in the text | when it falls due |
+|---|---|---|
+| `weekday` | `by Monday` … `by Friday`, with or without `this`/`next` | the **next** such weekday **strictly after** the sent date |
+| `week` | `end of week` or `EOW`, with or without `by`, `the`, `this` or `next` | the **Friday of the week the message was sent** |
+| `month` | `end of month` or `EOM`, with or without `by`, `the`, `this` or `next` | the **last day of the month the message was sent** |
+| `date` | `by <Month> <day>` (`by March 14`, `by March 14th`) | that date, **in the year the message was sent** |
+| `day` | `EOD`, `COB`, `end of day`, `close of business` | the **sent date itself** |
+| `within` | `within N days` / `within N business days`, where N is a digit or one of `a`, `two`, `three`, `five`, `ten` | the sent date **plus N calendar days** — `business` changes nothing |
+| `tomorrow` | `by tomorrow` | the **day after** the sent date |
 
 **A form counts wherever it appears, including inside a longer phrase.**
 *"I can usually sort these within a day or two"* contains `within a day`,

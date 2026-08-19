@@ -528,10 +528,18 @@ def _commitment_register(
         if cutoff is not None and when >= cutoff:
             return
         sent = (epoch + datetime.timedelta(seconds=when)).date()
+        order = [k for k, _ in COMMITMENT_PATTERNS]
         for kind, pattern in COMMITMENT_PATTERNS:
             for match in re.finditer(pattern, body, re.IGNORECASE):
                 due = _commitment_due(kind, match, sent)
+                # First in table order, restated here from the
+                # instruction: two forms resolving to one date make one
+                # row, and the row is named for the earlier form.
+                seen = rows.get((ref, due.isoformat()))
+                if seen and order.index(seen["form"]) <= order.index(kind):
+                    continue
                 rows[(ref, due.isoformat())] = {
+                    "form": kind,
                     "ref": ref,
                     "due_date": due.isoformat(),
                     "author": facts.name(sender),

@@ -53,7 +53,7 @@ rk.flagged_f1(D, T["commitments"], name="commitments.f1", weight=5.0)
 rk.row_fields(
     D,
     T["commitments"],
-    {"author": 0, "sent_date": 0, "made_to": 0},
+    {"author": 0, "sent_date": 0, "made_to": 0, "form": 0},
     name="row_facts",
     weight=6.0,
 )

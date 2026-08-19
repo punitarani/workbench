@@ -153,9 +153,20 @@ def main() -> None:
                 due = _due(kind, match, sent)
                 # Keyed on the pair, so a body that promises the same date
                 # twice contributes one row and not two.
+                # First in table order wins, so a message carrying two
+                # forms that resolve to the same date still yields one row
+                # with a determinate `form`. Without a stated tie-break
+                # this field would grade which of two right answers the
+                # agent happened to pick.
+                existing = rows.get((ref, due.isoformat()))
+                rank = [k for k, _ in PATTERNS].index(kind)
+                if existing and existing["_rank"] <= rank:
+                    continue
                 rows[(ref, due.isoformat())] = {
                     "ref": ref,
                     "due_date": due.isoformat(),
+                    "form": kind,
+                    "_rank": rank,
                     "author": people[sender]["name"],
                     "sent_date": sent.isoformat(),
                     "made_to": made_to,
@@ -187,7 +198,10 @@ def main() -> None:
         # serves and therefore what the register must carry.
         collect(ts, sender, when, body, channels.get(conversation, conversation))
 
-    register = [rows[key] for key in sorted(rows)]
+    register = [
+        {k: v for k, v in rows[key].items() if k != "_rank"}
+        for key in sorted(rows)
+    ]
     by_due: dict[str, int] = defaultdict(int)
     by_party: dict[str, int] = defaultdict(int)
     for row in register:
