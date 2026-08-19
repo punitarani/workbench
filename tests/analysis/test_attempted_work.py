@@ -82,7 +82,15 @@ def test_a_healthy_world_passes() -> None:
 
 
 def test_a_little_drift_is_tolerated() -> None:
-    work = measure([_note(2, ("x",))] * 5, logged=400)
+    """Real drift is *different* people mistyping *different* matters.
+
+    This fixture used to repeat one reference five times and assert it was
+    tolerated — which is not drift at all, it is the index case of the
+    defect, and the persistence rule now correctly refuses it. The old
+    test was encoding the blind spot as the specification.
+    """
+
+    work = measure([_note(1, (f"tkt-00099{n}",)) for n in range(5)], logged=400)
     assert work.dropped_share < MAX_DROPPED_SHARE
     assert violations(work) == ()
 
@@ -103,14 +111,17 @@ def test_notes_about_other_things_are_ignored() -> None:
     assert measure([other, _note(2, ("x",))], logged=100).dropped == 2
 
 
-def test_invented_refs_are_ranked_by_frequency() -> None:
-    """The list is the fix list: the codes the world should have offered."""
+def test_invented_refs_are_ranked_by_entries_lost() -> None:
+    """The list is the fix list: the codes the world should have offered,
+    costliest first. It used to rank by how many *notes* mentioned a
+    reference, which is not what it costs."""
 
     work = measure(
         [_note(2, ("admin-000001", "internal-000001")), _note(2, ("admin-000001",))],
         logged=10,
     )
-    assert work.invented_refs[0] == ("admin-000001", 2)
+    # admin-000001: one entry from the split note, two from the second.
+    assert work.invented_refs[0] == ("admin-000001", 3)
 
 
 @pytest.mark.parametrize("entries", [0, 3])
