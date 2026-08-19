@@ -309,7 +309,7 @@ containers.
 
 ## Worlds
 
-All four worlds serve their history through the same tool surfaces; each
+All five worlds serve their history through the same tool surfaces; each
 is a data package under `src/workplaces/`. Hartwell's history
 is chronicle-built (procedural structure plus cached, LM-authored
 content — a rebuild makes zero new model calls); the other worlds run
@@ -343,6 +343,29 @@ professionals as Calder (the controlled variable) working an
 assurance-led book on a different calendar, run on the v2 engine with
 timesheets and a rate sheet. Current epoch: 10 workdays, 4,151 events.
 Five graded tasks build from it (`datasets/ashgrove/build_tasks.py`).
+
+**Merrick Stanton LLP** — the first law firm, and the first world built
+for artifact realism rather than only for traffic. Twenty-one
+professionals across litigation, corporate, employment and IP; ten client
+organisations with their own contacts, two opposing firms, two courts,
+two vendors; twenty-four client matters and eight non-billable codes.
+Recorded through the engine over a 180-day window at roughly fourteen
+minutes per simulated workday.
+
+Two structures the accounting worlds do not have, and both are what make
+it worth building. **Deadlines are set by somebody else** — a court moves
+a scheduling order and the firm rearranges, so "what the deadline is now"
+is a recorded fact with a history rather than a derived one, which is the
+only kind a task may grade. And **work product becomes final by leaving
+the firm**: a brief that is filed, an agreement executed, an opinion
+issued. That is what makes its document formats load-bearing, and why its
+file-room gate *requires* issued PDFs and decks rather than permitting
+them.
+
+Its calendar runs two clocks deliberately out of phase — a quarterly
+transactional one converging on the last fortnight of March and June, and
+a litigation one belonging to the court, sitting mid-quarter where the
+scheduling orders put the discovery cutoffs.
 
 ## Fidelity
 
@@ -465,6 +488,19 @@ uv run python scripts/fidelity_report.py \
     --state out/ashgrove/bundle/state \
     --log out/ashgrove/epoch/world.jsonl \
     --out docs/fidelity/ASHGROVE.md
+```
+
+Record the law firm's six-month window (resumes on crash, refuses to
+loop past three unproductive restarts):
+
+```bash
+scripts/supervise_epoch.sh merrick out/merrick/epoch out/merrick/cassette 180 24
+```
+
+Ask what a corpus can carry before building a task on it:
+
+```bash
+uv run python datasets/merrick/measure_candidates.py --days 20
 ```
 
 Build task environments and oracles:
