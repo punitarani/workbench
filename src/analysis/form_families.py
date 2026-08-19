@@ -12,8 +12,14 @@ perfectly on paper were dead on the corpus — one second spelling appeared
 in a single message out of 1,585, another in none at all. A rule whose
 second form never fires is a one-form rule with extra words.
 
-**Minority share.** How lopsided the two spellings are. A family where
-one form carries 99% of the hits grades one form.
+**Exclusive minority share.** Whether the second spelling *earns its
+place*. The obvious version of this — each form's share of all form hits
+— answers the wrong question, because a message carrying both forms is
+counted under both. A family where the rarer form appears ten times and
+every one of those messages also carries the commoner form scores 0.33
+and passes a 0.20 floor, while contributing **no row the first form would
+not already have matched**. What matters is how many messages each form
+matches *alone*.
 
 **Off-sense share — the one that matters.** How often the admitted word
 appears meaning something *other* than the thing the register is named
@@ -42,11 +48,13 @@ import re
 from dataclasses import dataclass
 
 
-# Word boundary defined on *letters*, deliberately. Python's `\b` treats a
-# hyphen as a boundary and so does this, which is what a firm means by "a
-# whole word"; but `\b` also fires inside `re-complete`d forms in ways the
-# instruction would have to explain. Stating it as letters is a sentence a
-# professional brief can carry.
+# Word boundary defined on *letters*, not `\b`. The difference is real and
+# is about digits and underscores: `\b` treats `complete2` and
+# `complete_x` as word-boundary matches, and a corpus with reference
+# numbers or identifiers in it will produce rows an instruction cannot
+# justify. Letters-only is also the rule a professional brief can state in
+# one sentence — "no letter immediately before it and no letter
+# immediately after" — which is the version the agent is graded against.
 def _whole_word(word: str) -> re.Pattern[str]:
     return re.compile(rf"(?<![A-Za-z]){re.escape(word)}(?![A-Za-z])", re.IGNORECASE)
 
@@ -65,23 +73,31 @@ class FamilyReport:
     name: str
     messages: int
     per_form: tuple[tuple[str, int], ...]
+    # Messages matched by exactly one form. This, not `per_form`, is what
+    # says whether a spelling grades anything of its own.
+    exclusive_per_form: tuple[tuple[str, int], ...]
     occurrences: int
     exclusion_only_messages: int
     samples: tuple[str, ...] = ()
 
     @property
     def alive(self) -> bool:
-        """Every admitted form fires at least once."""
+        """Every admitted form matches at least one message on its own.
 
-        return all(count > 0 for _, count in self.per_form)
+        Not merely "appears somewhere": a form that only ever occurs
+        alongside the other one is decorative, and a rule naming it is a
+        one-form rule with extra words.
+        """
+
+        return all(count > 0 for _, count in self.exclusive_per_form)
 
     @property
     def minority_share(self) -> float:
-        """The rarer form's share of all form hits, 0.0 when nothing fires."""
+        """The rarer form's share of matched messages, counting only the
+        messages it matches *alone*. 0.0 when nothing matches."""
 
-        counts = [count for _, count in self.per_form]
-        total = sum(counts)
-        return (min(counts) / total) if total else 0.0
+        counts = [count for _, count in self.exclusive_per_form]
+        return (min(counts) / self.messages) if self.messages else 0.0
 
 
 def measure_family(
@@ -98,6 +114,7 @@ def measure_family(
     excluded = [_whole_word(word) for word in family.excluded]
 
     per_form: dict[str, int] = {form: 0 for form in family.forms}
+    exclusive: dict[str, int] = {form: 0 for form in family.forms}
     matched = 0
     exclusion_only = 0
     windows: list[str] = []
@@ -105,18 +122,20 @@ def measure_family(
     for body in bodies:
         if not body:
             continue
-        hit = False
+        here: list[str] = []
         for form, pattern in patterns.items():
             found = list(pattern.finditer(body))
             if found:
-                hit = True
+                here.append(form)
                 per_form[form] += 1
                 for match in found:
                     start = max(0, match.start() - context)
                     end = min(len(body), match.end() + context)
                     windows.append(" ".join(body[start:end].split()))
-        if hit:
+        if here:
             matched += 1
+            if len(here) == 1:
+                exclusive[here[0]] += 1
         elif any(pattern.search(body) for pattern in excluded):
             exclusion_only += 1
 
@@ -128,6 +147,7 @@ def measure_family(
         name=family.name,
         messages=matched,
         per_form=tuple(sorted(per_form.items())),
+        exclusive_per_form=tuple(sorted(exclusive.items())),
         occurrences=len(windows),
         exclusion_only_messages=exclusion_only,
         samples=picked,
@@ -135,16 +155,25 @@ def measure_family(
 
 
 # Set against the family that produced the hardest measured task: 25 rows
-# in its graded window, 25.5% minority share, and 79% off-sense. The first
-# two are floors it barely clears, which is the point — they are hygiene,
-# not the lever. Off-sense is where the margin lives.
+# **in its graded window**, and 79% off-sense there. The row floor is
+# hygiene, not the lever — off-sense is where the margin lives.
+#
+# The units matter and were wrong once. `measure_family` counts whatever
+# bodies it is handed, and handing it the whole corpus produced 110 for
+# the calibration family against a floor derived from its 25-row window —
+# a fourfold mismatch that would pass a family with a quarter of the rows
+# it needs. **Screen the window a task will actually grade**, not the
+# corpus it sits in; `screen()` refuses to guess which it was given.
 MIN_ROWS = 20
 MIN_MINORITY_SHARE = 0.20
 MIN_OFF_SENSE_SHARE = 0.60
 
 
 def screen(
-    report: FamilyReport, *, off_sense_share: float | None = None
+    report: FamilyReport,
+    *,
+    off_sense_share: float | None = None,
+    windowed: bool = False,
 ) -> tuple[str, ...]:
     """Why this family is not the one, as readable sentences.
 
@@ -152,14 +181,34 @@ def screen(
     deliberately not defaulted: a family that has not been read cannot pass,
     and silently treating "unmeasured" as "fine" is how the decoy metric
     won in the first place.
+
+    ``windowed`` asserts the report was built from the bodies a task will
+    actually grade rather than the whole corpus. The floors are calibrated
+    in window rows, and comparing them to a corpus count passes a family
+    with a fraction of the rows it needs.
     """
 
     problems: list[str] = []
-    if not report.alive:
-        dead = [form for form, count in report.per_form if count == 0]
+    if off_sense_share is not None and not 0.0 <= off_sense_share <= 1.0:
+        # A share outside [0,1] is a units error — somebody passed 79
+        # meaning 79%. Silently comparing it to 0.60 passes everything.
+        raise ValueError(
+            f"off_sense_share must be a fraction in [0,1], got {off_sense_share!r}"
+        )
+    if off_sense_share is not None and off_sense_share != off_sense_share:
+        raise ValueError("off_sense_share is NaN; every comparison against it is False")
+    if not windowed:
         problems.append(
-            f"{', '.join(dead)} never occurs — a rule whose second form "
-            "never fires is a one-form rule with extra words"
+            "measured over an unwindowed corpus — the row floor is "
+            "calibrated in the rows a task grades, and a corpus count "
+            "clears it with a fraction of them"
+        )
+    if not report.alive:
+        dead = [form for form, count in report.exclusive_per_form if count == 0]
+        problems.append(
+            f"{', '.join(dead)} never matches a message on its own — a form "
+            "that only ever appears beside the other one adds no row, so "
+            "the rule naming it is a one-form rule with extra words"
         )
     if report.messages < MIN_ROWS:
         problems.append(

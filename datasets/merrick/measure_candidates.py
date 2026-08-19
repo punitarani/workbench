@@ -148,6 +148,12 @@ def main(argv: list[str] | None = None) -> int:
         cutoff = (
             date.fromisoformat(args.epoch) + timedelta(days=args.days - 1)
         ).isoformat()
+    if args.days is None:
+        print(
+            "note: no --days, so this measures the whole corpus. The row "
+            "floor is calibrated in the rows a task grades, so screen a "
+            "window before believing a verdict.\n"
+        )
     mail, chat = _bodies(args.state, cutoff)
     bodies = mail + chat
     window = f" through {cutoff}" if cutoff else ""
@@ -161,7 +167,7 @@ def main(argv: list[str] | None = None) -> int:
     viable = []
     for family in CANDIDATES:
         report = measure_family(bodies, family, sample=args.sample)
-        problems = screen(report)
+        problems = screen(report, windowed=args.days is not None)
         # The off-sense screen always blocks until a human reads the
         # sample, so a family is "viable so far" when nothing else blocks.
         mechanical = [p for p in problems if "off-sense" not in p]

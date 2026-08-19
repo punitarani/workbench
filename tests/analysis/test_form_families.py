@@ -58,7 +58,7 @@ def test_a_dead_second_form_is_reported_as_dead() -> None:
         sample=0,
     )
     assert not report.alive
-    assert any("never occurs" in problem for problem in screen(report))
+    assert any("on its own" in problem for problem in screen(report, windowed=True))
 
 
 def test_a_lopsided_family_is_rejected() -> None:
@@ -69,7 +69,7 @@ def test_a_lopsided_family_is_rejected() -> None:
     report = measure_family(bodies, Family("file", ("file", "filed")), sample=0)
     assert report.alive  # both fire, so liveness alone does not catch it
     assert report.minority_share < 0.05
-    assert any("minority form" in problem for problem in screen(report))
+    assert any("minority form" in problem for problem in screen(report, windowed=True))
 
 
 def test_unmeasured_off_sense_cannot_pass() -> None:
@@ -80,15 +80,17 @@ def test_unmeasured_off_sense_cannot_pass() -> None:
     bodies = ["work is complete"] * 30 + ["she completed it"] * 30
     report = measure_family(bodies, _COMPLETE, sample=0)
     assert report.alive and report.minority_share == 0.5 and report.messages >= 20
-    problems = screen(report)
+    problems = screen(report, windowed=True)
     assert len(problems) == 1 and "off-sense share not measured" in problems[0]
-    assert screen(report, off_sense_share=MIN_OFF_SENSE_SHARE + 0.05) == ()
+    assert (
+        screen(report, windowed=True, off_sense_share=MIN_OFF_SENSE_SHARE + 0.05) == ()
+    )
 
 
 def test_low_off_sense_is_rejected_with_the_reason() -> None:
     bodies = ["work is complete"] * 30 + ["she completed it"] * 30
     report = measure_family(bodies, _COMPLETE, sample=0)
-    problems = screen(report, off_sense_share=0.10)
+    problems = screen(report, windowed=True, off_sense_share=0.10)
     assert len(problems) == 1
     assert "at ceiling" in problems[0]
 
@@ -114,3 +116,58 @@ def test_occurrences_counts_repeats_but_messages_does_not() -> None:
     )
     assert report.messages == 1
     assert report.occurrences == 3
+
+
+def test_a_second_form_that_never_appears_alone_is_dead() -> None:
+    """The metric that matters is not how often a spelling occurs but how
+    often it matches a message *by itself*.
+
+    A family whose rarer form appears ten times, always beside the
+    commoner one, contributes no row the first form would not already
+    have matched — yet the naive share reads 0.33 and clears a 0.20 floor.
+    """
+
+    both_then_alpha = ["alpha and beta"] * 10 + ["alpha only"] * 10
+    report = measure_family(both_then_alpha, Family("t", ("alpha", "beta")), sample=0)
+    assert dict(report.per_form) == {"alpha": 20, "beta": 10}
+    assert dict(report.exclusive_per_form) == {"alpha": 10, "beta": 0}
+    assert not report.alive
+    assert report.minority_share == 0.0
+    assert any("on its own" in problem for problem in screen(report, windowed=True))
+
+
+def test_an_unwindowed_report_cannot_pass() -> None:
+    """The floors are calibrated in the rows a task grades. Handing the
+    whole corpus to the same threshold passed the calibration family at
+    110 rows against a floor derived from its 25-row window."""
+
+    bodies = ["work is complete"] * 30 + ["she completed it"] * 30
+    report = measure_family(bodies, _COMPLETE, sample=0)
+    problems = screen(report, off_sense_share=0.79)
+    assert any("unwindowed" in problem for problem in problems)
+    assert screen(report, windowed=True, off_sense_share=0.79) == ()
+
+
+def test_a_percentage_where_a_fraction_belongs_is_a_hard_error() -> None:
+    """79 meaning 79% silently clears a 0.60 floor, and so does every
+    other family, forever."""
+
+    import pytest as _pytest
+
+    bodies = ["work is complete"] * 30 + ["she completed it"] * 30
+    report = measure_family(bodies, _COMPLETE, sample=0)
+    for bad in (79, -0.1, 1.5, float("nan")):
+        with _pytest.raises(ValueError):
+            screen(report, windowed=True, off_sense_share=bad)
+
+
+def test_samples_carry_the_word_and_its_surroundings() -> None:
+    """The sample exists to be read for sense, so it has to contain enough
+    sentence to judge. A zero-context window is a list of the same word."""
+
+    bodies = ["Once the reconciliation is complete we will circulate the schedule."] * 5
+    report = measure_family(bodies, _COMPLETE, sample=3, context=40)
+    assert report.samples
+    for window in report.samples:
+        assert "complete" in window
+        assert len(window) > len("complete") + 20, window
