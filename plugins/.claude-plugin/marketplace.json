@@ -1,0 +1,13 @@
+{
+  "name": "workbench-marketplace",
+  "owner": {
+    "name": "workbench"
+  },
+  "plugins": [
+    {
+      "source": "./rl-env-factory",
+      "name": "rl-env-factory",
+      "description": "Build simulated worlds, cut graded tasks from them, and prove that a score measured the model rather than the environment."
+    }
+  ]
+}

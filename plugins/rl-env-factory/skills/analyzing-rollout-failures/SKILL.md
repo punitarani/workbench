@@ -1,0 +1,139 @@
+---
+name: analyzing-rollout-failures
+description: Use when reading eval rollouts, trial logs, or trajectories to work out why a model scored below ceiling - covers what a zero actually means, DNF handling, sample size, and certifying a miss as a model failure rather than a task defect. Load before recording any score.
+---
+
+# Reading a rollout without fooling yourself
+
+## A zero is not a score
+
+At least five distinct causes produce 0.000 and only one is a claim about
+capability:
+
+| cause | signature |
+|---|---|
+| wrong answer | a deliverable exists and grades badly |
+| harness incompatibility | tool bridge rejects the model's payload; no tool calls land |
+| rate limiting | tool calls succeed, then a limit error, trials die in seconds |
+| clock | many tool calls, real work in progress, no deliverable, timeout raised |
+| abandoned delegation | a few steps of a large budget, work handed to sub-agents, turn ends with them uncollected |
+
+**Read the trial log before recording the number.** A model scoring 0.000
+where another scores 1.000 has usually not been measured at all.
+
+A timeout is a DNF **only when nothing was written**. If the deliverable
+exists and the grader scored it, the trial answered and the score stands
+however the run ended.
+
+Before attributing any failure to a model, verify that model directly
+against the provider with a minimal two-turn tool round-trip. Harness
+incompatibility and model incapacity are indistinguishable downstream,
+and the round-trip separates them in one call.
+
+## Never average a non-answer as a zero
+
+A DNF averaged in as zero drags any task into any band you like:
+`1.000 + 0.600 + nothing` reads as 0.533 and looks well calibrated.
+
+Score the trials that produced an answer. Require at least two, so the
+estimate is never a single sample. Report the completion rate *beside*
+the score rather than folded into it — **how well a model answers and how
+often it manages to answer are different facts.**
+
+## Sample enough to see through the harness
+
+Abandonment is a *rate*, not a capability. One task measured 1-of-3
+answered at k=3 and 8-of-9 at k=9: the sample was the artefact, and a
+whole account of the model's behaviour had been built on it.
+
+Three samples of a binary outcome cannot distinguish 1-in-3 from 1-in-9.
+Use **k=9 wherever completion is unreliable**, and never describe a
+completion rate estimated from three attempts as a property of the model.
+
+## Measure one version of the task
+
+An instruction edited mid-sweep means tiers were measured on different
+tasks. Timestamp the job against the instruction and re-run any tier that
+read a superseded version. Nothing errors when this happens; only a
+timestamp comparison catches it.
+
+## Two grading shapes that decide what a score means
+
+**Normalize per-row credit by the truth set, never by the submission.**
+Iterating over what the agent sent and skipping unmatched rows makes
+under-reporting free: an agent returning three perfect rows out of a
+hundred scores 1.000. Iterate the oracle's rows, and cap the invented-row
+penalty so a wrong answer cannot wipe out work that was right — a cliff
+to zero tells the reader nothing about what the agent knew.
+
+**Split grading into a reward dimension and a diagnostic dimension**,
+ship only the reward as the score, and assert the dimension set is
+exactly what you expect. Presentation and process checks belong in the
+diagnostic half, where they inform without silently moving the number.
+
+---
+
+# Classifying a miss
+
+## The circularity trap
+
+The most expensive error available: verifying a disputed row by re-running
+*the pattern that produced it* over the source. That check cannot fail. It
+agrees with the oracle by construction — and it agrees just as
+confidently about rows the pattern never produced.
+
+> **A check that cannot fail is not a check.**
+
+Two published scores were certified as model failures this way. Both were
+the answer key. Every miss in them was the author's.
+
+## Three checks that can disagree with you
+
+1. **Identical failures across independent trials.** Genuine model error
+   is stochastic; two runs drop overlapping but different rows. When
+   independent trials drop the *same* set, the oracle is what they have in
+   common. This is the only mechanical test for a task defect that does
+   not go through the rule.
+2. **A net wider than the rule.** Adjudicate a disputed row by matching a
+   deliberately over-broad pattern — an asserted strict superset of the
+   rule, over the whole corpus — and *print the sentence*. The verdict is
+   then read off the source text rather than off the regex that produced
+   the row.
+3. **Did anyone find it?** Cheap, and it settles most flags.
+
+## Structure in an error is a convention mismatch, not a mistake
+
+Model error is shapeless. When the error has *structure* — a constant
+offset repeated across many rows, values far too meaningful to be
+invented, a whole category missing — the oracle's convention differs from
+the agent's, and the agent is usually reading the world correctly.
+
+The clearest instance: rows dismissed as hallucinated dates turned out to
+be a quarter end and a national filing deadline. Dates that meaningful
+are read, not invented.
+
+**Ask what would have to be true for the agent to be right, before asking
+why it was wrong.**
+
+## Reading the signal correctly
+
+- Compare **rows dropped by every trial**, not the worst pairwise
+  overlap. With four trials there are six pairs and the maximum is high
+  by chance; one real case flagged 64% while five of six pairs sat
+  between 4% and 12%.
+- Compare the **actual deliverable**. Agents leave working files behind;
+  a fallback that reads any JSON in the directory will diff a scratch pad
+  against the oracle and call the result a model failure.
+- **Include trials with no failures.** Filtering empty sets turns "dropped
+  by every trial" into "every trial that had any", which excludes the
+  strongest evidence *against* a defect.
+
+## A task at ceiling hides its ambiguities
+
+Only low scores get audited, so a task scoring 1.000 for the strongest
+tier is not thereby clean — the strong model resolved the ambiguity the
+way the oracle happened to, and the defect stays invisible until a model
+careful enough to read semantically meets the same corpus.
+
+**A score that jumps to ceiling when an instruction is clarified was
+never measuring the model.** Audit the class, not just the outliers.

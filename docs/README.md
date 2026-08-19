@@ -34,5 +34,11 @@ Measurement records, linked from WORKBENCH.md's appendices:
   gitignored `jobs/`, and plans, checkpoints and migration notes do not
   belong in the tree at all.
 
+`METHOD.md` also ships as a plugin. [`plugins/rl-env-factory`](../plugins)
+packages it as six loadable skills, with every dataset, vendor and model
+name stripped, so the method travels to the next environment without the
+record of this one. The skills are the operational extract; `METHOD.md`
+carries the reasoning at length. When they disagree, the skills are wrong.
+
 Contributor and agent working rules live in the root
 [`AGENTS.md`](../AGENTS.md) and in per-package `AGENTS.md` files.

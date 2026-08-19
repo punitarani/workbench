@@ -109,8 +109,9 @@ reading a score. Four rules from it that are violated most often:
   difficulty just makes most of them miss.
 
 When a measurement teaches something that will hold on the next dataset,
-add it to `METHOD.md`. Run records under `docs/runs/` are history and are
-not read by the next build.
+add it to `METHOD.md`, and to the skill in
+[`plugins/rl-env-factory`](plugins) that covers that phase. Run records
+under `docs/runs/` are history and are not read by the next build.
 
 ## Tasks and datasets
 

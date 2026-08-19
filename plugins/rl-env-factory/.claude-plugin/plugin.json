@@ -1,0 +1,12 @@
+{
+  "name": "rl-env-factory",
+  "description": "Build simulated worlds, cut graded tasks from them, and prove that a score measured the model rather than the environment.",
+  "version": "1.0.0",
+  "keywords": [
+    "rl-environments",
+    "evaluation",
+    "simulation",
+    "task-design",
+    "failure-analysis"
+  ]
+}
