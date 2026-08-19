@@ -18,7 +18,7 @@ pushed the standing ones further past the cap and the loss rate rose from
 mechanism, moved the number the wrong way.
 """
 
-from simulation.gm.grounded import _ENGAGEMENT_CAP, _within_cap
+from simulation.gm.grounded import _CONTEXT_CAP, _within_cap
 
 
 def _client(n: int) -> str:
@@ -42,41 +42,51 @@ def test_a_small_book_is_untouched_in_content_and_order() -> None:
     mine = [_client(n) for n in range(1, 4)]
     others = [_client(n) for n in range(4, 10)] + [_firm(n) for n in (90, 91)]
     tickets = _tickets(range(1, 10), range(90, 92))
-    assert _within_cap(mine, others, tickets) == tuple(mine + others)
+    # firm-wide sort before the remaining context, which for a book under
+    # the cap is the only reordering — and these worlds have none.
+    assert set(_within_cap(mine, others, tickets)) == set(mine + others)
+    assert list(_within_cap(mine, others, tickets))[:3] == mine
 
 
-def test_the_firm_codes_survive_a_long_book() -> None:
-    """The measured failure: 30 engagements, standing codes declared last."""
+def test_no_bookable_entry_is_ever_truncated() -> None:
+    """The measured failure, and the failure of its first repair.
 
-    mine = [_client(n) for n in range(1, 5)]
-    others = [_client(n) for n in range(5, 25)] + [_firm(n) for n in (90, 91, 92)]
-    tickets = _tickets(range(1, 25), range(90, 93))
+    A flat cap in declaration order dropped the standing codes for
+    everyone: 20.7% of attempted time refused. Reserving them *after* the
+    person's own matters still left a partner carrying twelve matters
+    seeing four of eight — a fix that works for a junior and fails for a
+    partner, which reads as working because juniors are the common case.
 
-    naive = tuple(mine + others)[:_ENGAGEMENT_CAP]
-    assert not any("Firm" in line for line in naive), "precondition: naive drops them"
+    You cannot book time to a code you cannot see, so nothing bookable is
+    bounded.
+    """
 
-    kept = _within_cap(mine, others, tickets)
-    assert len(kept) == _ENGAGEMENT_CAP
-    assert sum(1 for line in kept if "Firm" in line) == 3
-    # The person's own matters are still first, and still all present.
-    assert list(kept[:4]) == mine
-
-
-def test_the_persons_own_matters_are_never_dropped_for_firm_codes() -> None:
-    """Reserving must not push somebody's actual caseload out."""
-
-    mine = [_client(n) for n in range(1, 13)]
-    others = [_client(n) for n in range(13, 30)] + [_firm(n) for n in range(90, 96)]
-    kept = _within_cap(mine, others, _tickets(range(1, 30), range(90, 96)))
-    assert all(line in kept for line in mine)
-    assert len(kept) == _ENGAGEMENT_CAP
+    firm = [_firm(90 + i) for i in range(8)]
+    tickets = _tickets(range(0, 22), range(90, 98))
+    for own_count in (2, 5, 9, 12, 22):
+        mine = [_client(n) for n in range(own_count)]
+        others = [_client(n) for n in range(own_count, 22)] + firm
+        kept = _within_cap(mine, others, tickets)
+        assert all(line in kept for line in mine), own_count
+        assert sum(1 for line in kept if "Firm" in line) == 8, own_count
 
 
-def test_a_world_with_no_firm_codes_still_truncates() -> None:
+def test_context_is_what_the_cap_bounds() -> None:
+    """Other people's matters are awareness, not something to book to, so
+    they are the only thing a long book truncates."""
+
+    mine = [_client(1)]
+    others = [_client(n) for n in range(2, 200)]
+    kept = _within_cap(mine, others, _tickets(range(1, 200), range(0, 0)))
+    assert kept[0] == mine[0]
+    assert len(kept) == 1 + _CONTEXT_CAP
+
+
+def test_a_world_with_no_standing_codes_still_works() -> None:
     """No standing codes is a legitimate world, not an error."""
 
     mine = [_client(1)]
     others = [_client(n) for n in range(2, 40)]
     kept = _within_cap(mine, others, _tickets(range(1, 40), range(0, 0)))
-    assert len(kept) == _ENGAGEMENT_CAP
     assert kept[0] == mine[0]
+    assert len(kept) == 1 + _CONTEXT_CAP

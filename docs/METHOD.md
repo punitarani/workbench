@@ -421,6 +421,15 @@ prose. Quotation marks inside a string field — *characterize this as
 "compliant" until* — close the JSON early. Upgrading a model tier changes
 the distribution of outputs, so it re-tests every parser downstream.
 
+- **Falsify with the same tool you edit with.** A gate is only trusted
+  once you have broken the thing and watched it fail — and the break
+  itself can silently not happen. A `sed` substitution that matches
+  nothing exits 0, the suite stays green, and the honest conclusion
+  ("this test does not catch that") is exactly backwards. Confirm the
+  mutation landed before believing the verdict, and prefer the editor you
+  would use for a real change over a one-liner whose escaping differs
+  between platforms.
+
 ### Size tolerances against the defect, not for comfort
 
 A numeric tolerance must be strictly smaller than the smallest defect the

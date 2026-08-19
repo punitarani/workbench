@@ -181,40 +181,41 @@ def _reject_unless_parsable(content_format: str, content: str, label: str) -> No
         ) from error
 
 
-_ENGAGEMENT_CAP = 16
+# How many *other people's* engagements a turn is shown, for context. The
+# cap is on context only — see below.
+_CONTEXT_CAP = 16
 
 
 def _within_cap(mine: list[str], others: list[str], tickets: dict) -> tuple[str, ...]:
-    """The engagements a timesheet turn is shown, bounded but not lying.
+    """The engagements a timesheet turn is shown.
 
-    The list is capped so a long book does not flood the prompt. The cap
-    used to take the first slots in declaration order, which meant the
-    institution's own standing codes — declared last, because they are
-    nobody's matter in particular — fell off the end for everyone.
+    You cannot book time to a code you cannot see, so the list bounds the
+    wrong thing if it can hide one. Two kinds of entry are *bookable* by
+    the person being asked — their own matters, and the standing codes
+    anybody may book to — and neither may be truncated. Everyone else's
+    matters are context, and that is what the cap limits.
 
-    People still had administration, internal meetings and practice-group
-    time to book. With nowhere to put it they invented plausible
-    references (`internal-admin`, `admin-000001`), the referee correctly
-    rejected every one, and **20.7% of attempted time vanished from the
-    record**. Adding the codes made it worse rather than better: six more
-    matters pushed them further past the cap.
+    This was a flat `(mine + others)[:16]` in declaration order. Standing
+    codes are declared last, because they belong to nobody in particular,
+    so they fell off the end and people invented references for work they
+    genuinely had to record: **20.7% of attempted time refused**.
 
-    So the codes anyone may book to are reserved first, then the person's
-    own matters, then everything else. A world with no more engagements
-    than the cap is unaffected in content *and order*, which is what keeps
-    every existing recording byte-identical.
+    Reserving them was the obvious repair and was still wrong, because it
+    reserved them *after* the person's own matters. Measured on this
+    firm's shape — 8 standing codes, 22 client matters — a partner
+    carrying 12 matters still saw only 4 of the 8, and would still invent
+    the other four. A fix that works for a junior and fails for a partner
+    reads as working, because juniors are the common case.
     """
 
-    if len(mine) + len(others) <= _ENGAGEMENT_CAP:
-        return tuple(mine + others)
     firm_wide = [
         line
         for line in others
         if tickets.get(line.split(" ", 1)[0], {}).get("client_ref") is None
     ]
-    rest = [line for line in others if line not in firm_wide]
-    kept = mine + firm_wide
-    return tuple((kept + rest)[:_ENGAGEMENT_CAP])
+    context = [line for line in others if line not in firm_wide]
+    # Everything bookable, then as much context as the cap allows.
+    return tuple(mine + firm_wide + context[:_CONTEXT_CAP])
 
 
 def _validated_format(create: DocumentCreateSpec) -> str:

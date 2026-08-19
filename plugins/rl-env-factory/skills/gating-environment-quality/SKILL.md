@@ -92,6 +92,15 @@ while its own defect sat underneath it.
 
 **A tolerance chosen for safety is decoration.**
 
+- **Falsify with the same tool you edit with.** A gate is only trusted
+  once you have broken the thing and watched it fail — and the break
+  itself can silently not happen. A `sed` substitution that matches
+  nothing exits 0, the suite stays green, and the honest conclusion
+  ("this test does not catch that") is exactly backwards. Confirm the
+  mutation landed before believing the verdict, and prefer the editor you
+  would use for a real change over a one-liner whose escaping differs
+  between platforms.
+
 ## Guard the guard
 
 A check that matches nothing passes vacuously. Every audit that iterates
