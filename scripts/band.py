@@ -47,6 +47,12 @@ _MIN_GRADEABLE = 2
 # The three the goal names, in the order a report should read.
 MODELS = ("gpt-5.6-sol", "opus-5", "glm-5.2")
 
+# The short prefix each model's job tags carry. Shared with the rollout
+# writer, because a writer and a reader that disagree about a job name
+# fail silently -- the sweep runs, the scores land, and this reports "not
+# run", which is indistinguishable from never having measured.
+TAG_PREFIX = {"gpt-5.6-sol": "gpt", "opus-5": "opus", "glm-5.2": "glm"}
+
 
 def _trials(job: Path) -> list[Path]:
     if not job.is_dir():
