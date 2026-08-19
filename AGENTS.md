@@ -2,7 +2,9 @@
 
 Workbench is a factory for RL environments of realistic professional
 work. [`docs/WORKBENCH.md`](docs/WORKBENCH.md) is the single source of
-truth for what it is and how it is built; this file is how to work in it.
+truth for what it is; [`docs/METHOD.md`](docs/METHOD.md) is how to build
+worlds, cut tasks, and measure models without fooling yourself; this
+file is how to work in the repo.
 
 ## Principles
 
@@ -84,6 +86,28 @@ docker build -f environment/Dockerfile -t workbench:dev environment
 
 Epoch runners, task builders, the fidelity report, and the eval harness are catalogued with their real invocations in [`docs/WORKBENCH.md`](docs/WORKBENCH.md).
 
+## Measuring models
+
+Read [`docs/METHOD.md`](docs/METHOD.md) before building a task or
+reading a score. Four rules from it that are violated most often:
+
+* **Only a model failure may ship.** A score below 1.0 is a defect —
+  environment, data, harness, or task — until proved otherwise. Task
+  defects are the most common and look exactly like model failures.
+* **A check that cannot fail is not a check.** Verifying a disputed row
+  by re-running the pattern that produced it agrees by construction.
+  Falsify every gate once, deliberately, before trusting it.
+* **A zero is not a score.** Harness incompatibility, rate limits, the
+  clock, and abandoned delegation all produce 0.000. Read the trial log
+  before recording the number, and never average a non-answer as a zero.
+* **Identical failures across independent trials are a task defect.**
+  Genuine model error is stochastic. A defect blocks every trial;
+  difficulty just makes most of them miss.
+
+When a measurement teaches something that will hold on the next dataset,
+add it to `METHOD.md`. Run records under `docs/runs/` are history and are
+not read by the next build.
+
 ## Tasks and datasets
 
 A task is `datasets/<dataset>/tasks/<task>/` in Harbor's format: `task.toml`, `instruction.md`, `solution/`, `tests/`.
@@ -101,6 +125,6 @@ The image is layered stable-to-volatile so sibling environments share the `base`
 
 * Run servers, long-lived processes, `harbor run`, or a recording epoch unless asked.
 * Add a dependency, package, or abstraction layer for a single caller.
-* Put documentation anywhere but `docs/`, except `README.md`/`AGENTS.md` files: every top-level package carries both, and a subfolder may carry an `AGENTS.md` when it has invariants worth stating where the code lives. `docs/WORKBENCH.md` stays the one narrative document — extend it rather than adding parallel plans, ADRs, or status files.
+* Put documentation anywhere but `docs/`, except `README.md`/`AGENTS.md` files: every top-level package carries both, and a subfolder may carry an `AGENTS.md` when it has invariants worth stating where the code lives. There are exactly two narrative documents and they do not overlap — `docs/WORKBENCH.md` describes what exists, `docs/METHOD.md` describes how to build and measure. Extend one of them rather than adding parallel plans, ADRs, or status files.
 * Widen an agent-facing surface, weaken a type, or loosen a permission to make a test pass.
 * Loosen a fidelity band or edit a parity snapshot to turn a failure green; both are deliberate, reviewed commits.

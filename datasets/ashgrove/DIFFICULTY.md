@@ -1,645 +1,110 @@
-# Where difficulty actually comes from in this suite
+# Difficulty, as measured on this world
 
-Measured, not assumed. Everything here is evidence gathered while seven of
-eight tasks refused to leave 1.000.
+Dataset-specific evidence. The rules these measurements produced are in
+[`../../docs/METHOD.md`](../../docs/METHOD.md); this file is the numbers
+behind them, kept so the rules can be checked against what actually
+happened here.
 
-## The scoreboard of falsified theories
+**World:** `epoch-r12` — 11 workdays, 6,150 events, 27 people, 14
+matters, 1,260 time entries, 1,585 messages (354 mail, 1,231 chat), 52
+documents, 49 workspace files. Coherence clean at 0.1% mis-booked
+against a 5% limit.
 
-Five sources of difficulty have now been proposed, built, and measured.
-All five are dead.
+## The band, three models
 
-| lever | how it was tested | result |
-|---|---|---|
-| **volume** | 1,304 entries, 27 pages, 197 rows | ceiling |
-| **coverage** | 189 → 507 rows, 328 → 1,547 messages | score went **up**, 0.901 → 0.908 |
-| **correlated error** | tracker-reconciliation, built for it | 1.000 in 26 shell commands |
-| **lexical near-miss** | approval-register, 171 temptations | 1.000 |
-| **semantic synonym** | completion-claims, 70 synonyms | 1.000 |
-| **chained derivation** | commitment-follow-through, 3 steps per row | 403 of 403 correct → **1.000** |
-| **office files** | workpaper-open-items, 19 workbooks, 61 sheets, no index | **1.000** |
+Mean of gpt-5.6-sol, Opus 5 and glm-5.2, over gradeable trials only.
 
-The last one was the live hypothesis and it failed hardest: find the
-promise in prose, resolve what date it meant against the day it was
-written, then look forward in the thread for a reply from the same person
-before that date — three dependent steps, any of which fails the row —
-and Opus 5 got every one right across three trials, with zero wrong
-verdicts and zero invented rows.
+| task | gpt-5.6-sol | opus-5 | glm-5.2 | mean | |
+|---|---|---|---|---|---|
+| commitment-follow-through | 0.515 (4/9) | 1.000 | 0.213 (2/3) | **0.576** | in |
+| opening-days-completion-claims | 0.687 (8/9) | 1.000 | 0.635 (3/3) | **0.774** | in |
+| opening-week-follow-through | 0.686 (9/9) | 1.000 | 0.693 (8/9) | **0.793** | in |
+| opening-days-commitment-register | 0.802 (8/9) | 1.000 | 0.628 (8/9) | 0.810 | out |
+| work-product-review | 0.741 | 1.000 | 0.926 | 0.889 | out |
+| tracker-reconciliation | 1.000 | 1.000 | 0.909 | 0.970 | out |
+| open-items-triage · self-review-exposure · workpaper-open-items | 1.000 | 1.000 | 1.000 | 1.000 | out |
 
-**What the five share:** the agent can compute each row *locally and
-mechanically from text it has already pulled onto disk*. Against a written
-script, per-row rules are free no matter how many links the chain has, and
-independent errors average out rather than compounding.
+Every miss in the three in-band tasks is classified M, on the evidence
+recorded in [`LEDGER.md`](LEDGER.md).
 
-**What has actually cost it rows, every time:** membership. Not one
-measured failure has been a wrong value on a row the agent produced — all
-of them were rows it declined to include, and on inspection every one of
-those traced back to a rule of mine that was narrower than its own prose.
-Once the rule matched what it claimed, the score went to 1.000.
+## Opus 5 scores 1.000 on every fair task here
 
-**The sixth lever is dead too.** `workpaper-open-items` was built on the
-one shape left untested: an answer in no database at all, where the
-enumeration *is* the work rather than a cost paid on the way to it. Opus
-5 scored 1.000 three times.
+Eight difficulty levers were built and measured against it here — width,
+coverage, correlated error, lexical near-miss, semantic synonym, chained
+derivation, office files, and constraint satisfaction — and all returned
+ceiling. Two more, volume and depth, had already been measured on another
+dataset a week earlier with the same result. The full table and the
+reason they share a cause are in `METHOD.md` §2.
 
-## What this means, stated plainly
+The consequence for this suite is arithmetic: with one tier pinned
+at 1.000 the three-model mean has a floor of 0.333 and clears 0.8 only
+when the other two average ≤ 0.7. Every in-band task here is bought by
+how far the weakest tier falls, which is why two of the three sit within
+0.03 of the upper edge and the one with real margin (0.576) is the one
+where glm scores 0.213.
 
-The band 0.2–0.8 is not reachable **for Opus 5 alone** on this world by
-any task that is objectively gradable and fairly stated. Six attempts,
-six ceilings, and the one thing that has ever cost it a row is a rule of
-mine that was narrower than its own prose.
+**A better-centred band needs a rule the frontier tier also misses, or a
+fourth tier below glm-5.2.**
 
-**This is a statement about one model, not about the suite.** On the mean
-of gpt-5.6-sol, Opus 5 and glm-5.2, three tasks do land in band —
-`commitment-follow-through` 0.576, `opening-days-completion-claims`
-0.774, `opening-week-follow-through` 0.793 — and every miss in them is
-certified M. What remains true is that Opus contributes 1.000 to each of
-those means, so the mean has a floor of 0.333 and clears 0.8 only when
-the two weaker tiers average 0.7 or less.
+## What separates the tiers here
 
-That is not a broken environment — it is the evidence that the
-environment is *correct*. A frontier model saturating a suite is what
-proves the suite is solvable, reachable, and unambiguous. To push Opus 5
-into the band would require withholding a rule, tightening a tolerance,
-or grading an unreachable fact, and those are precisely the levers this
-project has ruled out.
+Measured on `completion-claims`: gpt-5.6-sol read **1,574 of 1,585
+messages — 99.3% coverage** — and found 48 of 110 rows, catching 23 of
+the 82 occurrences of a single common word. That is rule application,
+not enumeration, and it is the only effect on this world that survives
+bounding the corpus.
 
-The band belongs to the tier below, where it is measured and real:
-glm-5.2 returned 0.540, 0.630, 0.778 and 0.832 on this suite. Those are
-the numbers being redone at k=3 against the corrected oracles, because
-they were taken against the defective ones and certified by the circular
-method.
+The three in-band tasks fail in three distinct ways, none of which is
+coverage:
 
-## What does not work: width
+- **rule miss at a rate** — a two-word rule missed at ~70% by a model
+  that had read the text
+- **compositional miss** — one sentence carrying two forms that resolve
+  to different dates; every trial found one, two of nine found both
+- **date arithmetic and invention** — wrong due dates on real rows, plus
+  rows asserted on messages carrying no time-shaped sentence at all
 
-| task | work the agent did | Opus 5 |
-|---|---|---|
-| engagement-time-allocation | 1,304 entries, 27 pages, 197 rows | ~1.0 |
-| work-product-review | 154 tool calls, 6.96M input tokens | 0.991 |
-| client-responsiveness-sla | 41 threads | 1.000 |
+## Corpus sizes, for cutting bounded tasks
 
-More rows buys labour, not error. A number sitting in a SQL column is read
-correctly however many pages deep it is. **Volume is a cost multiplier, not
-a difficulty multiplier**, and every attempt to make these tasks harder by
-widening them has come back at ceiling.
+Both weaker tiers stop producing deliverables on the full 1,585-message
+corpus — one times out, the other hands the work to sub-agents and ends
+its turn. Bounded windows over the same corpus:
 
-Two of the sub-1.0 scores were not difficulty either — they were defects:
-`engagement-time-allocation`'s 0.816 was a rounding rule the instruction
-never named, and `engagement-status-integrity`'s 0.067 was clio serving no
-matter history at all.
-
-## What should work: where the fact lives
-
-### 1. Prose — the fact is in no column at all
-
-Measured on the 10-day world (the 15-day world is ~1.5× this):
-
-```
-messages: 328   with >=1 commitment phrase: 160 (49%)
-    92  EOD/COB                   9  end of week
-    64  by <weekday>              7  within N days
-    25  by <month> <day>          2  end of month
-                                  1  tomorrow
-messages with 2+ phrases: 34
-chat messages with a commitment phrase: 274 of 1,219
-```
-
-So roughly **200 graded rows in email alone**, each of which exists only in
-a message body. The agent must read every body through a paginated tool
-surface — about half a megabyte of prose — apply the stated patterns, and
-resolve each relative date against that message's own sent date.
-
-Resolution is deterministic, which is what makes it gradeable. Sampled:
-
-```
-msg-000005  sent Mon 2026-01-05  "by Friday"    -> Fri 2026-01-09
-msg-000007  sent Mon 2026-01-05  "by Thursday"  -> Thu 2026-01-08
-```
-
-The rule — *the next occurrence of that weekday strictly after the sent
-date* — goes in the instruction verbatim, along with the phrase list. The
-agent is not being asked to guess a grader's taste; it is being asked to
-not miss any of two hundred needles while reading everything.
-
-**Expected failure mode: recall.** Missed instances cost F1, which produces
-partial credit naturally instead of the near-binary outcomes a 4-row task
-gives. That is a genuine model failure and the whole point.
-
-### 2. Reconciliation — the fact is recorded twice, differently
-
-The ticket system's status against what the correspondence asserts. The
-instruction must **state the precedence rule and the tie-break, in words**.
-
-This is the line that keeps the axis honest: a contradictory record *with*
-a stated rule is the task; a contradictory record *without* one is an
-environment defect. `engagement-status-integrity` is the seed for this and
-already reads `matter_history`.
-
-### 3. Entity ambiguity — the fact is attached to the wrong twin
-
-The world has already produced this on its own: two documents titled
-"Single Audit Playbook", which capped `work-product-review`'s own reference
-solver at 0.976 until the key became `(document, workspace)`. Also
-available: a client's trading name in email against its legal name in clio,
-and people who share a surname.
-
-### 4. Absence — the fact is that there is no fact
-
-Proving a negative requires reading everything, and one missed page flips a
-row from a finding to a miss.
-
-**But the obvious grain does not work, and this was measured rather than
-assumed.** "Engagements with logged time but no workpaper / no client mail /
-no closing review", keyed per engagement × evidence kind, gives 52 rows of
-which three of the four kinds are constant:
-
-```
-  time logged      present=13 absent= 0  <- DEGENERATE
-  workpaper        present= 0 absent=13  <- DEGENERATE
-  client mail      present= 0 absent=13  <- DEGENERATE
-  closing review   present= 7 absent= 6
-```
-
-The two zeros are the reason: **the world has no explicit engagement↔document
-or engagement↔thread link**. The only hard references are activity→ticket and
-attachment→document. Everything else has to be joined by inference, and an
-oracle built on inference is not deterministic.
-
-Two joins that *are* deterministic and do work:
-
-- **Client by email domain.** `fairmountcommunityfoundation.example` ↔
-  `Fairmount Community Foundation`, for all ten organisations. This is how a
-  thread reaches an engagement.
-- **Client named in prose.** Eight of ten organisations are named in message
-  bodies, with real spread and two genuine zeros — variation, not degeneracy:
-
-```
-  Kestrel Manufacturing        email  52  chat 686
-  Harbor Light Distribution    email  18  chat 141
-  Ashfield Pension Trust       email  10  chat   0
-  Cardinal Ridge Builders      email   0  chat   0
-  Northwind Software           email   0  chat   0
-```
-
-So the absence task is built on those, at the person×engagement grain (197
-pairs), not on an engagement↔document link that does not exist.
-
-## Row counts available in this world (10 days; 15 days is ~1.5×)
-
-| axis | grain | rows |
-|---|---|---|
-| prose | (message, commitment phrase) | **536** (200 email + 336 chat) |
-| reconciliation | **status change**, not engagement | **40** (13 engagements is far too thin) |
-| entity | document | 34, over 101 versions, 17 authors, 8 workspaces |
-| absence | person × engagement | 197 |
-
-The reconciliation row is the one to be careful about: keyed per engagement
-it is 13 rows and lands back in the near-binary regime that made six of the
-original tasks useless. Keyed per status change it is 40.
-
-## Two artefacts found while sizing this
-
-**Fixed.** The surface served `Engagements` and `engagements` as two
-workspaces, splitting one engagement's papers across both — and
-`work-product-review` keys rows on `(document, workspace)`, so two identical
-filings would have graded as two different answers. The workspace is now
-folded; a file room is not case-sensitive.
-
-**Recorded, not fixed.** Personas file documents under raw internal ticket
-ids — `engagements/tkt-000004/…`, and two documents sit in a workspace
-literally named `tkt-000004`. Real firms do not name a file room after a
-row id, and `reachability.py` already documents that clio never serves the
-`tkt-` form (it serves `00004-KestrelManufacturing`), which once split one
-model's two rollouts to 1.000 and 0.273 on which vocabulary each found.
-Fixing it means changing the persona prompt, which invalidates every
-cassette — so it waits until a re-record is being paid for anyway.
-
-## The finding that shapes everything else
-
-**Coverage is not difficulty either.** This was the pre-registered lever and
-it has now been measured, on the same task, same model, same world:
-
-| | mail only | mail + chat |
-|---|---|---|
-| rows | 189 | **507** |
-| messages the agent must read | 328 | **1,547** |
-| `commitments.f1` | 0.990 | **0.996** |
-| `row_facts` | 0.979 | **0.992** |
-| **answer** | **0.901** | **0.908** |
-
-2.7× the rows and 4.7× the reading, and the model got *better*. Not
-marginally worse, not flat — better.
-
-**Why, mechanically.** Two reasons, and neither is fixable by asking for
-more.
-
-First, arithmetic: independent errors average out. A model that is 99.5%
-accurate per row is still 99.5% accurate at ten times the rows. Volume
-raises cost and leaves the error rate exactly where it was.
-
-Second, the agent does not brute-force the reading at all. Watching a
-rollout's shell history, it paginates each surface once and writes the
-results to disk —
-
-```
-/bin/bash -lc 'ls /home/agent/workspace/data/gmail/ | wc -l'
-20
-thr-000001.json thr-000002.json ...
-```
-
-— and then queries its own local index. Nothing in the environment put that
-directory there; the agent built it. So "the tools hand them back a page at
-a time" is a one-off cost it pays once and engineers away, not a difficulty
-that scales with the record.
-
-So the two levers this file opened with are both spent. Width does not
-work on structured tasks (197 rows / 27 pages / 154 tool calls → ceiling)
-and coverage does not work on prose ones. A frontier model with an
-unlimited tool budget does not make execution errors on well-specified
-mechanical work, however much of it there is.
-
-**And it is not a frontier-model problem.** Running a weaker model across
-the suite settles that:
-
-| task | rows | Opus 5 | glm-5.2 |
+| window | messages | commitment rows | completion rows |
 |---|---|---|---|
-| engagement-time-allocation | 197 | ~1.000 | **1.000** |
-| work-product-review | 34 | ~1.000 | **1.000** |
-| client-responsiveness-sla | 41 | 1.000 | 0.977 |
-| open-items-triage | 4 | 1.000 | **0.630** |
-| commitment-register | 507 | 0.908 | timed out at 50 min |
+| 2 days | 213 | 71 | 25 |
+| 3 days | 355 | 123 | 37 |
+| full | 1,585 | 441 | 110 |
 
-The 197-row, 27-page, 1,304-entry task built to be the hardest here is a
-1.000 for *both* tiers. The only score that lands in band is the four-row
-task, where a single row swings it — which is a coin flip, not an
-instrument.
+**355 is where abandonment begins** for gpt-5.6-sol on this world; 213
+is reliably completed by both weak tiers. Task windows here are chosen
+against that boundary, not against a row target.
 
-So the earlier reading of "saturated for one tier" was too kind. These
-designs do not create difficulty for anybody; they only cost more.
+## Grains available
 
-What is left, in order of how much is known about each:
-
-1. **The weaker model lands in band on exactly one task**, and only because
-   four rows cannot express a fraction. That is not evidence the suite
-   discriminates.
-2. **Brittle scalars are doing all the current work.** The only thing
-   holding `commitment-register` below 0.99 is `commitments_total`, an
-   exact count that zeroes on two wrong rows in 507. Leaning on that would
-   be making the scoring mean rather than the work hard, which this file
-   forbids, so it is not a lever.
-3. **Untested: adversarial structure.** The entity axis is the one axis
-   never measured, and it is the only one with direct evidence of biting —
-   two documents sharing a title capped a *reference solver* at 0.976.
-   Difficulty from near-misses that punish shallow matching is different in
-   kind from difficulty by volume, and it is what should be tried next.
-4. **Untested: depth per row.** Not more rows, but more independent hops
-   per row, so one missed join costs a field across many rows rather than
-   one row entirely.
-
-### What did work: rule-literalism under semantic temptation
-
-`commitment-register` scores **0.770** on the r12 world — in band, on a
-frontier model, with every miss verified as a model failure in
-[LEDGER.md](LEDGER.md).
-
-It did not get there by volume. Recall was *perfect*: it found all 388
-rows. It got there by **precision** — it added 42 rows of its own, and 34
-of those came from prose containing none of the seven stated forms:
-
-```
-"Harbor Light and Ashfield wrap end of week"   EOW is not one of the seven
-"Fairmount queues early next week"             not a listed form
-"Wednesday 14:30 works for the GL sync"        a meeting, not "by Wednesday"
-```
-
-The instruction rules these out in as many words. The model overrode it
-anyway, because it *knows* what a commitment is and those are commitments —
-just not by the rule it was given.
-
-That is the axis. Not more data, not harder joins: **a stated rule whose
-literal reading conflicts with what the model can see plainly means.** Prose
-supplies that conflict for free, because real writing is full of near-misses
-the rule excludes. It is fair — the rule is stated, twice, emphatically —
-and it is the one thing measured here that moves a frontier model's score
-without making the scoring mean.
-
-It also explains why the same task scored 0.908 on the earlier world and
-0.770 on this one. The richer the prose, the more temptation, the wider the
-gap between reading the rule and reading the room.
-
-**It does not transplant everywhere, and that was measured too.**
-`open-items-triage` has the same shape on paper — a whitelist of request
-markers, applied to prose — so re-graining it from 4 thread-final rows to
-every client message looked like a free second task. It is not:
-
-```
-client inbound messages: 86   asks=81  courtesy=5
-of the 5, only 1 carries a softer ask-like phrase
-```
-
-94% of one class, and almost no near-misses, because a client writing to
-their accountant asks for something in nearly every message. The whitelist
-catches what is really there, so there is nothing to be tempted by.
-
-What makes the commitment register work is the *ratio*: deadline-flavoured
-prose is everywhere ("EOW", "early next week", "Wednesday 14:30") while
-the seven accepted forms are narrow. 42 invented rows in 388. The axis
-needs a rule that is much narrower than the thing it names — not merely a
-rule written down.
-
-### Two more hypotheses, both falsified by measurement
-
-**Lexical near-misses do nothing.** `approval-register` admits six words for
-approval and the corpus holds 171 messages saying "agreed", "go ahead",
-"works for me", "no objection" — a temptation for almost every true row,
-against commitment-register's one in nine. Opus 5: **1.000, three times.**
-Agreeing and approving are different acts, so a reader separates them
-without effort.
-
-**Semantic identity does nothing either.** `completion-claims` admits
-`complete` and `completed` and excludes seventy messages saying *finished*,
-*wrapped up*, *closed out*, *finalised*, *delivered*, *issued* — the same
-act, differently spelled, which is exactly the relation "EOW" has to "by the
-end of the week". Opus 5: **1.000, three times.**
-
-So the difference is not what the temptation *means*. Look again at what
-the 42 errors on the commitment register actually were:
-
-```
-34   prose carrying none of the seven forms
-       "wrap end of week"  "early next week"  "Wednesday 14:30 works"
- 8   a correct row, plus a second copy at a wrongly resolved date
-```
-
-Every one of those required the model to have been *reading for deadlines*
-rather than searching for strings. And that is what the task forces on it:
-a due date cannot be produced by lookup. It has to be derived, per row,
-from what the sentence means relative to the day it was sent.
-
-**The working hypothesis is now the derivation, not the temptation.** A
-whitelist alone is a `grep`, and a model greps perfectly. A whitelist whose
-matches must then be *interpreted* pulls the model into reading — and a
-model that is reading applies the concept, not the list.
-
-`commitment-follow-through` is the direct test: same seven forms, same date
-resolution, plus a forward look in the thread.
-
-### Correlated error was tried, and it did not work either
-
-`tracker-reconciliation` was built exactly to the specification above: one
-sheet, three bridging decisions, each of which moves all 146 rows at once.
-Opus 5 scored **1.000** — every row, every bridge, the exact hours total —
-in 26 shell commands and 9,409 output tokens. Cheaply.
-
-It did the work honestly: it read the tracker, worked out both vocabularies,
-and wrote a program. That last part is the whole answer, and it generalises:
-
-> **A task is deterministically gradeable exactly when it is programmatically
-> solvable.** The oracle is a program. Its existence is a proof that a
-> program suffices. The agent has a shell, so it writes one — and programs
-> do not make arithmetic errors, do not lose rows on page nine, and do not
-> forget a vocabulary mapping halfway down.
-
-That is why every design in this file has failed the same way. The two
-constraints this project imposes — *state every rule*, so a miss is not a
-task defect, and *serve every fact*, so a miss is not an environment defect
-— together guarantee the task is a program the agent can write.
-
-So the 0.2–0.8 band and "every failure is a genuine model failure on a fair
-task" are in tension, and the tension is structural rather than a matter of
-trying harder. The ways out, honestly stated:
-
-1. **Ground truth that is not derivable from the data.** A hand-authored
-   answer key encoding judgment — which engagements are *actually* at risk,
-   which commitments really matter — stays deterministic to grade while
-   ceasing to be a program the agent can write. It costs the
-   auto-regeneration this pipeline is built on, and it has to be curated per
-   world.
-2. **Accept the weaker tier as the instrument.** glm-5.2 sits at 0.630 on
-   one task; a mid-tier model is where these tasks discriminate.
-3. **Constrain the resources.** No shell, or a turn budget. That measures
-   something real but different, and it is not what "hard task" means.
-4. **Ambiguity.** Sacrifices deterministic grading, which this project has
-   spent its whole effort earning. Not recommended.
-
-### Earlier candidate, kept for the record: the firm's own workbooks
-
-Independent errors average out — that is why volume never worked. What has
-never been tried here is a **correlated** one: a single decision that moves
-every row at once.
-
-The workspace already holds real multi-sheet spreadsheets nobody has graded
-against, and they assert things the tool surfaces also assert:
-
-| workbook | sheets | the assertion |
-|---|---|---|
-| `2026 Peer Review Readiness.xlsx` | Engagement Status, Peer Review Readiness, Open Items | each engagement's status |
-| `Engagement_Scheduling_Tie-Out.xlsx` | Calendar, Staffing_Load, Key_Dates_2026 | who is staffed where, and when |
-| `access-review-fy2025-audits.xlsx` | AccessReview | each person's role on an engagement |
-
-Comparing the first against clio, all twelve rows differ — and *that number
-is the task*:
-
-```
-tkt-000001  sheet='In progress'   clio='In-progress'      formatting only
-tkt-000002  sheet='In progress'   clio='Waiting-client'   a real divergence
-tkt-000003  sheet='In progress'   clio='Review'           a real divergence
-tkt-000006  sheet='Complete'      clio='Closed'           a synonym
-```
-
-An agent that does not work out the vocabulary mapping reports twelve
-divergences and is completely wrong; one that maps too freely reports none
-and is equally wrong. One decision, every row. That is the shape volume
-could never produce.
-
-It is also honest work. The workbook is a snapshot somebody prepared while
-the system kept moving, and "the tracker is stale, here is where" is what a
-practice administrator is actually for. The engagement is named `tkt-000001`
-in the sheet and `00001-FairmountCommunityFoundation` in clio, so the
-vocabularies have to be bridged — derivable from the shared number, and
-therefore fair.
-
-**The instruction must state the status vocabulary and the precedence rule.**
-Without that this is a contradiction with no stated rule, which this file
-classifies as an environment defect rather than a task.
-
-## The one measurement that matters so far
-
-`commitment-register`, mail only, 189 rows, Opus 5, one trial:
-
-```
-  answer.commitments.f1             0.990   w5
-  answer.row_facts                  0.979   w6
-  answer.commitments_total          0.000   w1.5   <- 2 missed rows make the count wrong
-  everything else                   1.000
-  ------------------------------------------- 0.901
-```
-
-First well-formed task to come off the ceiling. Recall finally bites — no
-structured task has ever made this model miss a row — but 0.901 is not in
-band, so the pre-registered lever applies.
-
-**The lever: add chat.** Measured on the same world, keying a row on
-(message, due date) and naming the field `made_to` (the outside
-organisation for client mail, `the firm` for internal mail, the channel for
-Slack):
-
-```
-ROWS: 440   (mail only was 189)
-  made_to    distinct= 13  mode=38%
-  author     distinct= 27  mode=15%
-  sent_date  distinct= 10  mode=30%
-  due_date   distinct= 20  mode=22%
-```
-
-2.3× the rows and 4.7× the reading — 1,547 messages instead of 328 — with
-every field still healthy.
-
-**Do it carefully, not quickly.** Slack does not serve the world's internal
-ids. A message is addressed by `ts` (`"1768610400.000000"`) and its author
-is a Slack user id (`U00000025`) that must be resolved through
-`slack_read_user_profile`. Keying chat rows on `chm-000001` would repeat
-the `tkt-` mistake exactly — an answer key spelled in a vocabulary no tool
-emits. The row key must be `(channel, ts)`, and the author join becomes
-part of the work rather than an accident.
-
-## Rules for tuning difficulty
-
-**Legitimate levers**: how much of the record a task covers, how many
-independent facts per row, how many precedence rules apply, how much of the
-answer is prose-only.
-
-**Never**: tightening tolerances, trick wording, withholding a stated rule,
-grading a fact the tools do not serve. Difficulty must come from the work
-being hard, not from the scoring being mean — otherwise the failure is a
-task defect wearing a model's clothes, and the whole exercise measures
-nothing.
-
-## Floors every task must clear
-
-- **≥12 rows.** Below that a score is a verdict on the rule, not a measure
-  of the work: six of seven tasks answered with 4–10 rows and every rollout
-  came back 1.000 or near zero, with nothing in between.
-- **No constant column.** A field with one value in every row grades
-  nothing — an agent that never looks it up and writes the majority value
-  scores full marks. `build_tasks.degenerate()` reports these. The 10-day
-  `work-product-review` oracle had `reviewed` false in all 34 rows.
-- **Oracle independence** (`verify_oracle.py`) and the grading guards must
-  pass **before** a rollout is spent.
-
-## A surface the world has and no agent can see
-
-The engine convenes a meeting whenever a calendar event's start arrives
-and records what was said: **36 meeting transcripts, 186 turns of
-dialogue, 153 attendance records** in `epoch-r12`'s world log. None of it
-is materialized. An agent asked what was decided in Monday's status call
-cannot discover that Monday's status call happened.
-
-That is the largest untapped surface in this world, and it is exactly the
-shape the three-model band needs — text-rich, naturally joinable to
-people and engagements, and small enough (36 meetings) that every tier can
-read all of it, where the wide message-corpus tasks DNF below Opus.
-
-**It cannot go on the calendar surface.** Projecting the transcripts into
-`calendar.db` and serving `list_meetings` / `get_meeting_transcript` works
-— verified, 36/186/153 rows land correctly — but it fails
-`test_no_invented_tools`: Google's Calendar MCP server has no such tools,
-and the parity suite exists because *an agent trained against an invented
-tool learns a call that fails in the real product*. Reverted.
-
-The right home is **iManage**, where a firm files its minutes and whose
-real surface already serves documents by id, path and workspace — no
-invented tool required. That change moves the document count from 52 to
-88, so it re-bases `work-product-review` and `workpaper-open-items` and
-has to be done deliberately, with those two re-measured, rather than
-folded in beside a running sweep.
-
-## Why nothing lands in a stable band, measured
-
-Two requirements, both now measured, and on this world they conflict.
-
-**Enumerability.** Below Opus the failure is coverage, and it is
-bimodal. gpt-5.6-sol on `work-product-review`: two trials 1.000, one
-trial 21 of 52 documents. On `engagement-time-allocation`: one trial
-1.000, two with no deliverable at all. glm-5.2 times out on the
-message-corpus tasks outright. A score driven by whether the agent
-happened to finish is a coin flip on coverage, not a measure of skill,
-and it produces means that swing between runs.
-
-**Density.** Make the corpus small enough to always enumerate and the
-per-row facts stop discriminating. Measured on the two smallest surfaces
-here:
-
-| candidate field | true on |
+| grain | rows |
 |---|---|
-| calendar: every invitee accepted | 2 of 50 |
-| calendar: has an external invitee | 2 of 50 |
-| document reached a client | 7 of 52 |
-| document revised after reaching a client | 4 of 52 |
-| document sent more than once | 4 of 52 |
-| document reviewed by someone else | 15 of 52 |
+| time entries | 1,260 |
+| chat messages | 1,231 |
+| person × engagement | 188 |
+| mail messages | 354 |
+| calendar invitations | 184 |
+| documents / versions | 52 / 112 |
+| workbook sheets carrying a status column | 96 (755 rows) |
+| threads | 49 |
+| engagements | 14 |
 
-45 of 52 documents were never attached to any message, and the calendar
-is 50 events over 11 distinct summaries. An agent answering "false"
-everywhere scores 87-96% on most of these. That is the degeneracy the
-build gate already refuses.
+## Two structural limits of this world
 
-**Scoping helps; growing the world does not — correcting myself.** The
-first version of this section proposed a longer recording to supply
-"density". That is arithmetically wrong and worth stating plainly: a
-world three times longer has three times the documents and three times
-the attachments, so `reached_client` stays at 13%. **Scale multiplies
-rows and leaves proportions alone.** The skew is a property of how a firm
-works — most working papers are never sent to anyone, most recurring
-invitations are never answered — and no amount of recording changes it.
+**Density does not improve with length.** A world three times longer has
+three times the documents and three times the attachments, so a boolean
+true on 13% of rows stays true on 13%. Scale multiplies rows and leaves
+proportions alone; the skew is a property of how a firm works — most
+working papers are never sent, most recurring invitations are never
+answered. Continuous and derived values (hours, dates, counts) grade well
+here; sparse booleans do not.
 
-What scoping does buy is row count without a corpus sweep: one
-engagement's documents go from 7 to ~25 in a longer world, so a task can
-grade a slice that is enumerable in a filtered query. That is worth
-having. It is not a fix for degenerate booleans.
-
-**What actually grades well here** is what the measurements show: not
-booleans but continuous and derived values — hours (0.62 to 45.15 on one
-engagement), dates, counts — together with exact-match aggregate
-criteria, where a single wrong row moves several totals at once.
-`open-items-triage` scores 0.630 for two different models off *one*
-misclassified thread in 49, because four of its eight criteria are exact
-counts. That is the mechanism by which a small, genuine error becomes a
-mid-band score, and it needs a corpus small enough to enumerate and one
-row that is hard for an honest reason.
-
-## Two kinds of difficulty, and only one survives bounding
-
-Everything above measures difficulty that turned out to be **coverage**:
-whether the agent enumerated the corpus. Coverage failures are bimodal —
-1.000 or 0.3, nothing between — and they vanish the moment the corpus is
-small enough to finish. That is why "small enough to enumerate" and "hard
-enough to separate tiers" looked like the same axis pulling opposite ways.
-
-`completion-claims` shows the other kind, and the numbers are
-unambiguous. gpt-5.6-sol read **1,574 of 1,585 messages — 99.3%** — and
-found 48 of 110 claims, catching **23 of the 82 occurrences of
-`complete`**. It had the text. It applied a two-word rule to it and
-missed seventy per cent.
-
-| | coverage difficulty | rule difficulty |
-|---|---|---|
-| shape | bimodal, all-or-nothing | a rate |
-| under bounding | disappears | unchanged |
-| example | work-product-review: 1.000, 1.000, 21-of-52 | completion-claims: 0.350 / 0.396 / 0.999 |
-| tier separation | luck | skill |
-
-A rate does not care how much text there is. So a bounded task keeps the
-second kind and loses the first, which is exactly what a three-model band
-needs: small enough that every tier produces an answer, hard enough that
-the answers differ.
-
-**Why the distinction was invisible for so long:** Opus 5 has neither
-problem, and every measurement before this one was Opus-only. Coverage
-and rule application look identical when a model does both perfectly.
-
-Note the asymmetry within one model, too. gpt scores 0.997 on
-`approval-register` (six forms) and 0.582 on `completion-claims` (two).
-The harder rule is the *smaller* word list — because `complete` is a
-common word with inflections a hair away from it (`completion`,
-`completes`, `completed`), and exact matching against near-misses is
-where the errors live. Fewer forms, more temptation.
+**Constraint satisfaction is not buildable.** 17 of 27 staff have logged
+time on nearly every engagement, so an independence-constrained reviewer
+assignment has zero feasible solutions on 13 of 14 matters. Making it
+feasible would mean inventing constraints the firm does not have.

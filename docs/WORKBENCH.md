@@ -274,49 +274,26 @@ deliverable. Read tasks grade weighted partial credit against the
 oracle; write-workflow tasks (matter-intake-compliance) grade
 conjunctive outcomes on the mutated action tables at pass^k.
 
-Measured baselines (one `claude-opus-5` rollout through the Harbor
-verifier on the exact committed bundle, recorded in each `task.toml`
-under `[metadata.baseline]`):
+How a task is built and how a score is read are governed by
+[`METHOD.md`](METHOD.md); this section records only what the suites
+measure.
 
-| Task (dataset) | Opus 5 reward | What the number means |
-|---|---|---|
-| open-items-triage (ashgrove) | 1.0 | capability |
-| staffing-leverage-review (ashgrove) | 0.65 | **oracle defect** (see below) |
-| client-responsiveness-sla (ashgrove) | 0.632 | **oracle defect** |
-| wip-utilization-review (ashgrove) | 0.564 | **oracle defect** |
-| engagement-closeout-readiness (ashgrove) | 1.0 / 0.273 | **undefined identifier** |
-| h1-billing-audit (calder) | 1.0 | capability |
+**A measured reward is a claim about a model only after every miss has
+been classified.** Five things take a point away — environment, data,
+harness, task, model — and on a mature suite the task defect is both the
+most common and the one that looks most like a model failure. Ashgrove's
+first published sub-1.0 scores were, without exception, defects in the
+answer key: a pattern narrower than the prose it implemented, a rounding
+order nobody stated, an internal id no tool serves. Each was certified as
+a model failure first, by a check that re-ran the rule that produced the
+row and therefore could not disagree.
 
-**The Ashgrove sub-1.0 numbers do not measure model capability, and must
-not be used to calibrate difficulty.** A 2026-08-15 audit traced every
-zeroed criterion to its cause:
-
-- The WIP and leverage oracles separate client from internal work by
-  `description.startswith("Firm —")`. Two records that are filing chores,
-  not engagements, fall on the client side of that string test. The model
-  counted 10 client engagements against the oracle's 12, agreed on the
-  population of 14, and was right about the boundary. That one
-  disagreement zeroed four of six criteria in WIP and two of four in
-  leverage while per-row figures held at 0.83.
-- The SLA oracle treats every `affiliation='external'` person as a
-  client. The model excluded exactly one — a "Peer Review Captain", the
-  external reviewer of the firm's *own* peer review — and lost three
-  criteria for being correct.
-- `ticket_id` (`tkt-000005`) is an internal world id the clio surface
-  never exposes; clio offers `id` and `display_number`
-  (`00005-Mensah`), while the id leaks into 26 of 65 Slack messages. Two
-  rollouts of the same model on the same task scored 1.0 and 0.273 purely
-  on which vocabulary each guessed. The 0.273 run used the authoritative
-  system of record, flagged the ambiguity in its notes, and computed the
-  money to within $1.20 of the oracle.
-
-The common root cause is that reference solvers read `state/*.db`
-directly and therefore see internal ids, raw description strings, and
-affiliation flags that no agent can observe. **A rule an agent cannot
-evaluate through the tool surface is not a task rule**; oracles should be
-computed through the same MCP surface the agent uses, and distinctions
-the grading depends on (internal vs client, client contact vs other
-external party) belong in the data as explicit fields.
+The suites now ship with an oracle re-derived from raw events, a
+reachability crawl over the real servers, a degeneracy report, grading
+guards, and a miss classifier whose signals do not go through the task's
+own rule. Those gates, and the reasoning behind each, are in
+[`METHOD.md`](METHOD.md); measured scores live in the dataset ledgers and
+in [`runs/`](runs/).
 
 The Hartwell suite (ten tasks, including the matter-intake-compliance
 write workflow) carries its own measured floors, naive scores, and
@@ -524,18 +501,22 @@ The fidelity ledger's ABSENT column is the worklist, measured honestly:
   the 120–200-client procedural book with a dormant tail.
 - **Documents at volume**: persona-created office files with format mix,
   version chains, and announced-and-attached deliverables largely
-  missing from the measured epochs (rendering machinery exists; the
-  behavior is not yet elicited).
+  missing from the measured epochs. The renderer emits `.docx`, `.pdf`
+  and `.pptx` and earlier worlds exercised all three; the current epoch
+  declares only `markdown` and `spreadsheet`, so two of four document
+  types a practice would produce — signed letters, decks — are absent
+  from the world agents are graded on.
 - **Calendar and Slack shape**: RSVP responses, recurring series,
   cancellations, multi-channel Zipf traffic, DMs, off-hours activity —
   all currently failing their bands.
 - **Volume**: firm-wide email is below band (36/day vs 60–120 at the
   committed 3–5× scale).
-- **Oracles see what agents cannot**: reference solvers read `state/*.db`
-  directly, so task rules can depend on internal ids and raw column
-  values that no tool exposes. This produced every Ashgrove sub-1.0
-  score. Until solvers run through the MCP surface, a measured reward is
-  not evidence about a model.
+- **Oracles still read `state/*.db` directly**, so a task rule can in
+  principle depend on a value no tool exposes. The reachability gate now
+  crawls the real servers and refuses any oracle naming an identifier
+  they never serve, which closes the failure mode that produced the early
+  Ashgrove sub-1.0 scores; solvers running *through* the MCP surface
+  would close it by construction instead of by gate.
 - **Referential coherence of authored content**: iManage registers
   "Audit Engagement Letter Template" over a document whose body is a
   change-order summary for "Ridgeview" — a client in no roster and no
