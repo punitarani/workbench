@@ -50,22 +50,35 @@ from adapters.harbor_matrix.gateway import (  # noqa: E402
     ProviderGateway,
 )
 
-# Alias -> the provider-qualified id the gateway pins.
-MODELS = {
-    "opus-5": "anthropic/claude-opus-5",
-    "gpt-5.6-sol": "openai/gpt-5.6-sol",
-    "glm-5.2": "z-ai/glm-5.2",
-}
+# What each tier needs on the wire, and which installed agent drives it.
+#
+# The model name is NOT the same string for both agents, and getting it
+# wrong returns `{"error":{"message":"unsupported model"}}` from the
+# gateway on the container's first turn — a non-zero exit and a 0.000
+# that is not a score.
+#
+# Codex normalises a slashed id to its last segment before the request
+# leaves the container, so `anthropic/claude-opus-5` arrives as
+# `claude-opus-5`, which the gateway's alias table does not know. Codex
+# therefore gets the bare alias, which survives the normalisation and is
+# exactly what the gateway keys on. Hermes does not rewrite the id and
+# takes the qualified form.
+#
+# Read off two job configs that really ran: the codex one scored 1.0 on
+# three trials with `opus-5`, the hermes one with `openai/gpt-5.6-sol`.
+CODEX = "adapters.harbor_matrix.codex_agent:HartwellCodex"
+HERMES = "adapters.harbor_matrix.hermes_agent:HartwellHermes"
 
-# Which installed agent drives the container for which model. The codex
-# bridge rejects some payloads outright — "tool exec invoked with
-# incompatible payload", nothing written, a 0.000 that is not a score —
-# so the tier that hits it uses the hermes agent instead.
-AGENTS = {
-    "gpt-5.6-sol": "adapters.harbor_matrix.hermes_agent:HartwellHermes",
-    "opus-5": "adapters.harbor_matrix.codex_agent:HartwellCodex",
-    "glm-5.2": "adapters.harbor_matrix.codex_agent:HartwellCodex",
+TIERS: dict[str, tuple[str, str]] = {
+    # alias: (driving agent, model name as that agent must send it)
+    "opus-5": (CODEX, "opus-5"),
+    "glm-5.2": (CODEX, "glm-5.2"),
+    # The codex bridge rejects this tier's payloads outright — "tool exec
+    # invoked with incompatible payload", nothing written — so it is
+    # driven by hermes instead.
+    "gpt-5.6-sol": (HERMES, "openai/gpt-5.6-sol"),
 }
+MODELS = TIERS  # name kept for the tag/agreement test
 
 
 def job_config(
@@ -96,8 +109,8 @@ def job_config(
         "retry": {"max_retries": 2},
         "agents": [
             {
-                "name": AGENTS[model],
-                "model_name": MODELS[model],
+                "name": TIERS[model][0],
+                "model_name": TIERS[model][1],
                 "n_concurrent": concurrency,
                 "extra_allowed_hosts": ["host.docker.internal"],
                 "env": {

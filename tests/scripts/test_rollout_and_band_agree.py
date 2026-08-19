@@ -39,10 +39,35 @@ def test_every_measured_model_can_be_rolled_out() -> None:
     )
 
 
-def test_every_model_has_a_tag_prefix_and_an_agent() -> None:
+def test_every_model_has_a_tag_prefix_and_a_tier_entry() -> None:
     for model in band.MODELS:
         assert model in band.TAG_PREFIX, f"{model} has no tag prefix"
-        assert model in rollout.AGENTS, f"{model} has no driving agent"
+        assert model in rollout.TIERS, f"{model} has no driving agent"
+
+
+def test_codex_gets_the_bare_alias_and_hermes_the_qualified_id() -> None:
+    """The wire name differs by agent, and the wrong one returns
+    "unsupported model" on the container's first turn — a non-zero exit
+    and a 0.000 that is not a score.
+
+    Codex strips a slashed id to its last segment before the request
+    leaves the container, so `anthropic/claude-opus-5` arrives as
+    `claude-opus-5`, which the gateway's alias table does not carry.
+    """
+
+    for alias, (agent, wire) in rollout.TIERS.items():
+        if agent == rollout.CODEX:
+            assert "/" not in wire, (
+                f"{alias} is driven by codex, which strips everything before "
+                f"the slash — {wire!r} would arrive as {wire.split('/')[-1]!r} "
+                "and resolve to 'unsupported model'"
+            )
+            assert wire == alias, f"{alias} must go on the wire as its own alias"
+        else:
+            assert "/" in wire, (
+                f"{alias} is driven by hermes, which does not rewrite the id, "
+                "so it needs the provider-qualified form"
+            )
 
 
 def test_the_default_tag_is_one_the_aggregator_searches() -> None:
