@@ -48,6 +48,13 @@ class ProfessionalWorkerParams(_Model):
     # What this firm calls a ticket's states. The GM rejects a status it does
     # not know, so the persona has to be told rather than left to guess.
     ticket_vocabulary: str = "statuses: Open, In Progress, Blocked, Closed"
+    # What forms this institution's work product actually takes, in its own
+    # words. The shared authoring prompt can only describe form in the
+    # abstract; which artifact is a workbook and which is an issued PDF is
+    # a fact about the profession, not about documents in general. Empty
+    # renders nothing, so a persona that does not set it produces the exact
+    # prompt bytes it produced before this field existed.
+    artifact_conventions: str = ""
     check_interval_minutes: int = Field(default=30, ge=1)
     # Hourly billing rate in cents; None for personas whose time is not
     # billed. Applied by the GM when grounding time-log intents.

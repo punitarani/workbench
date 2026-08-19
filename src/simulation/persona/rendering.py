@@ -34,6 +34,8 @@ def render_identity(params: ProfessionalWorkerParams) -> str:
     if params.channel_style.quirks:
         lines.append(f"Quirks: {params.channel_style.quirks}")
     lines.append(f"Working hours: {params.working_hours}")
+    if params.artifact_conventions:
+        lines.append(f"Work product: {params.artifact_conventions}")
     return "\n".join(lines)
 
 

@@ -133,30 +133,42 @@ class DayPlan(BaseModel):
     deliverables: bool = False
 
 
-def _validated_format(create: DocumentCreateSpec) -> str:
-    """The declared format, once the content is known to parse as it.
+_PARSERS = {
+    "spreadsheet": parse_spreadsheet,
+    "formatted": parse_formatted,
+    "slides": parse_slides,
+}
 
-    A persona that says "spreadsheet" and writes prose gets the same
-    instructive rejection as one that invents a ticket id, rather than a
-    document that only fails much later at render time.
+
+def _reject_unless_parsable(content_format: str, content: str, label: str) -> None:
+    """Raise the instructive rejection unless the content really is that form.
+
+    Applied on creation *and* on revision. The asymmetry was a real defect:
+    creation validated, revision did not, and the revise path drafts prose.
+    A workbook worked forward therefore came back as text, kept its
+    ``spreadsheet`` format, and materialized as a ``.txt`` file that claims
+    to be a workbook and is not — 10 of 52 documents in one recorded world.
+    Nothing failed at the time; the corruption surfaced only when something
+    finally read the file room.
     """
 
-    parsers = {
-        "spreadsheet": parse_spreadsheet,
-        "formatted": parse_formatted,
-        "slides": parse_slides,
-    }
-    parser = parsers.get(create.content_format)
+    parser = _PARSERS.get(content_format)
     if parser is None:
-        return create.content_format
+        return
     try:
-        parser(create.content)
+        parser(content)
     except ValueError as error:
         raise IntentRejection(
-            f"{create.path} declares {create.content_format} but its content "
-            f"does not parse as one ({error}); send the structured JSON for "
-            f"that format, or declare markdown and write prose"
+            f"{label} declares {content_format} but its content does not "
+            f"parse as one ({error}); send the structured JSON for that "
+            f"format, or declare markdown and write prose"
         ) from error
+
+
+def _validated_format(create: DocumentCreateSpec) -> str:
+    """The declared format, once the content is known to parse as it."""
+
+    _reject_unless_parsable(create.content_format, create.content, create.path)
     return create.content_format
 
 
@@ -1312,6 +1324,14 @@ class GroundedGm:
                 raise IntentRejection(f"unknown document {intent.document_ref!r}")
             # Bump the head at resolve time: a second edit resolved before the
             # first occurs must still get a distinct revision number.
+            # A revision must still be the form the document is. Without
+            # this, working a workbook forward silently replaces it with
+            # prose that keeps the workbook's declared format.
+            _reject_unless_parsable(
+                self._world.document_formats.get(document_id, "markdown"),
+                intent.edit.new_content,
+                intent.document_ref,
+            )
             revision = self._world.documents[document_id] + 1
             self._world.documents[document_id] = revision
             payload = DocumentRevisedPayload(
