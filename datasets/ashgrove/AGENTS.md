@@ -14,7 +14,7 @@ scripts implement; [`DIFFICULTY.md`](DIFFICULTY.md) and
 | `build_tasks.py` | materializes the bundle, runs every reference solver, stages each task | a solver no longer reproduces its committed oracle, or an oracle names a value no tool serves |
 | `verify_oracle.py` | re-derives every answer from raw events | a derivation disagrees with the committed oracle |
 | `run_rollouts.py` | k trials per task per model, per-criterion aggregation | — |
-| `band.py` | the multi-model mean, over gradeable trials only | fewer than two gradeable trials for any model |
+| [`scripts/band.py`](../../scripts/band.py) | the multi-model mean, over gradeable trials only | fewer than two gradeable trials for any model |
 | `classify_misses.py` | E/T/M evidence for every criterion below 1.0 | — |
 | `adjudicate.py` | prints the source sentence behind a disputed row | — |
 
@@ -35,7 +35,7 @@ each stage can refuse.
   projection (a chat timestamp, a rendered file path) it is compared as a
   multiset of facts rather than restated, because restating it would copy
   the code under test.
-* **`band.py` never averages a non-answer as a zero**, requires two
+* **`scripts/band.py` never averages a non-answer as a zero**, requires two
   gradeable trials before reporting a mean, and prints the completion
   rate beside the verdict rather than folding it in.
 * **`classify_misses.py` reads the deliverable the grader reads**, not

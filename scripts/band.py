@@ -1,7 +1,7 @@
 """The three-model mean per task, and whether it is real.
 
-    uv run python datasets/ashgrove/band.py
-    uv run python datasets/ashgrove/band.py --tag-opus fair-k3 --tag-glm glm-fair
+    uv run python scripts/band.py --dataset <name>
+    uv run python scripts/band.py --dataset <name> --tag-opus fair-k3
 
 The target is a task whose score, averaged over gpt-5.6-sol, Opus 5 and
 glm-5.2, lands in 0.2-0.8. Averaging invites one specific way of cheating
@@ -34,9 +34,9 @@ import json
 import statistics
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[1]
 JOBS = REPO / "jobs"
-TASKS = Path(__file__).resolve().parent / "tasks"
+DATASETS = REPO / "datasets"
 
 # Two, not a majority. One gradeable trial is an anecdote; two is an
 # estimate. Requiring a majority threw away a 0.997 on a task the model
@@ -56,8 +56,8 @@ def _trials(job: Path) -> list[Path]:
     )
 
 
-def _deliverable(task: str) -> str | None:
-    grade = TASKS / task / "tests" / "answer" / "grade.py"
+def _deliverable(tasks_dir: Path, task: str) -> str | None:
+    grade = tasks_dir / task / "tests" / "answer" / "grade.py"
     if not grade.is_file():
         return None
     for line in grade.read_text().splitlines():
@@ -98,9 +98,9 @@ def _outcome(trial: Path, wanted: str | None) -> tuple[float | None, str]:
         return None, "unreadable reward"
 
 
-def measure(task: str, job: Path) -> dict:
+def measure(tasks_dir: Path, task: str, job: Path) -> dict:
     trials = _trials(job)
-    wanted = _deliverable(task)
+    wanted = _deliverable(tasks_dir, task)
     scores, reasons = [], []
     for trial in trials:
         value, why = _outcome(trial, wanted)
@@ -119,10 +119,18 @@ def measure(task: str, job: Path) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--dataset",
+        required=True,
+        help="dataset name under datasets/; job names are <dataset>-<task>-<tag>",
+    )
     parser.add_argument("--tag-gpt", action="append", default=None)
     parser.add_argument("--tag-opus", action="append", default=None)
     parser.add_argument("--tag-glm", action="append", default=None)
     args = parser.parse_args(argv)
+    tasks_dir = DATASETS / args.dataset / "tasks"
+    if not tasks_dir.is_dir():
+        parser.error(f"no tasks under {tasks_dir}")
     # Several tags per model, because the k=9 re-samples live under their
     # own. Requiring the reader to remember which tag holds the best
     # evidence is how a task that *is* in band gets reported as 0 in band
@@ -139,13 +147,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     print("-" * 92)
     in_band = []
-    for task in sorted(p.name for p in TASKS.iterdir() if p.is_dir()):
+    for task in sorted(p.name for p in tasks_dir.iterdir() if p.is_dir()):
         cells, means, blocked, rates = [], [], [], []
         for model in MODELS:
             # Best evidence wins: the job with the most gradeable trials,
             # and the larger sample breaks a tie.
             candidates = [
-                measure(task, JOBS / f"ashgrove-{task}-{tag}") for tag in tags[model]
+                measure(tasks_dir, task, JOBS / f"{args.dataset}-{task}-{tag}")
+                for tag in tags[model]
             ]
             found = max(
                 candidates,
