@@ -495,24 +495,29 @@ class ProfessionalActorAct:
         current_plan = self._current_plan()
 
         with dspy.context(lm=self._lm):
-            if self._params.extra_verbs:
-                decision = await self._actor.decide_extended.acall(
+            try:
+                decision = await self._decide(
                     identity=identity,
                     situation=situation,
                     current_plan=current_plan,
-                    relevant_memories=memories,
+                    memories=memories,
                     pending=pending,
-                    recent_activity=facts,
-                    enabled_extras=", ".join(self._params.extra_verbs),
+                    facts=facts,
                 )
-            else:
-                decision = await self._actor.decide.acall(
-                    identity=identity,
-                    situation=situation,
-                    current_plan=current_plan,
-                    relevant_memories=memories,
-                    pending=pending,
-                    recent_activity=facts,
+            except MALFORMED_DRAFT:
+                # The *decide* call was outside this guard, which made the
+                # guard half a fix: a draft the model filled in badly was
+                # survivable and a decision it filled in badly was not.
+                # Four independent malformations escape here — a verb
+                # outside the enum, a missing required field, a quotation
+                # mark that costs one, prose with no JSON at all — and each
+                # took down the run.
+                #
+                # Same contract as a malformed draft: the persona does
+                # nothing this turn, the world records the absence, and
+                # transport, budget and cassette failures still raise.
+                return IntentAction(
+                    intent=IdleIntent(until_minutes=self._params.check_interval_minutes)
                 )
             try:
                 intent = await self._route(
@@ -522,28 +527,64 @@ class ProfessionalActorAct:
                     knowledge=knowledge,
                 )
             except MALFORMED_DRAFT as error:
-                # A draft the model filled in badly — a missing summary, an
-                # empty recipient list — used to fail schema parsing and take
-                # the whole run down. Malformed output is the persona's
-                # mistake, so it becomes the persona's note: visible in the
-                # log, remembered, and survivable. Transport, budget, and
-                # cassette failures still raise; only content degrades.
-                intent = AgentNoteIntent(
-                    note_kind="note",
-                    day=spec.day if isinstance(spec, PlanActionSpec) else "",
-                    bullets=(
-                        MemoryBullet(
-                            text=(
-                                f"I started to {decision.choice.action} and left "
-                                f"the draft malformed ({_first_missing(error)}); "
-                                "redo it with every field filled."
-                            ),
-                            importance=8,
-                        ),
-                    ),
-                    open_loops=(),
-                )
+                intent = self._malformed_draft_note(decision, error, spec)
         return IntentAction(intent=intent)
+
+    async def _decide(
+        self,
+        *,
+        identity: str,
+        situation: str,
+        current_plan: str,
+        memories: str,
+        pending: list,
+        facts: str,
+    ):
+        """One decision, by whichever decide program this persona uses."""
+
+        if self._params.extra_verbs:
+            return await self._actor.decide_extended.acall(
+                identity=identity,
+                situation=situation,
+                current_plan=current_plan,
+                relevant_memories=memories,
+                pending=pending,
+                recent_activity=facts,
+                enabled_extras=", ".join(self._params.extra_verbs),
+            )
+        return await self._actor.decide.acall(
+            identity=identity,
+            situation=situation,
+            current_plan=current_plan,
+            relevant_memories=memories,
+            pending=pending,
+            recent_activity=facts,
+        )
+
+    def _malformed_draft_note(
+        self, decision, error: Exception, spec
+    ) -> AgentNoteIntent:
+        """A draft the model filled in badly becomes the persona's own note.
+
+        Visible in the log, remembered, and survivable. Transport, budget
+        and cassette failures still raise; only content degrades.
+        """
+
+        return AgentNoteIntent(
+            note_kind="note",
+            day=spec.day if isinstance(spec, PlanActionSpec) else "",
+            bullets=(
+                MemoryBullet(
+                    text=(
+                        f"I started to {decision.choice.action} and left "
+                        f"the draft malformed ({_first_missing(error)}); "
+                        "redo it with every field filled."
+                    ),
+                    importance=8,
+                ),
+            ),
+            open_loops=(),
+        )
 
     async def _route(
         self,

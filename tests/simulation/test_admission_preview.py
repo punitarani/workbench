@@ -171,16 +171,72 @@ class TestMalformedDraftsDegrade:
         assert isinstance(described, str) and described
 
     def test_loud_failures_are_still_loud(self) -> None:
-        """Only content degrades; the loud-failure contract is intact."""
+        """Only content degrades; the loud-failure contract is intact.
+
+        By type, not by source text. This asserted that three class names
+        appeared *somewhere in the module* — which a mutation test showed
+        passes with every guard clause deleted, because the names survive
+        in the import line. A grep for a name cannot tell you that the
+        name is still doing anything.
+        """
+
+        from simulation.errors import (
+            CassetteMissError,
+            LMBudgetExceededError,
+            LMTransportError,
+        )
+        from simulation.persona.actor import MALFORMED_DRAFT
+
+        for loud in (CassetteMissError, LMBudgetExceededError, LMTransportError):
+            assert not issubclass(loud, MALFORMED_DRAFT), (
+                f"{loud.__name__} is caught by the content-degradation "
+                "guard; a run that should have stopped would carry on with "
+                "a persona quietly doing nothing"
+            )
+
+    def test_a_malformed_decision_degrades_like_a_malformed_draft(self) -> None:
+        """The decide call sat *outside* the guard, which made the guard
+        half a fix: a badly filled draft was survivable and a badly filled
+        decision was not.
+
+        Four independent shapes escape — a verb outside the enum, a missing
+        required field, a quotation mark that costs one, and prose with no
+        JSON at all — and each one ended the run.
+        """
 
         import inspect
 
-        from simulation.persona import actor
+        import dspy
+        from dspy.utils.exceptions import AdapterParseError
 
-        source = inspect.getsource(actor)
-        assert "CassetteMissError" in source
-        assert "LMBudgetExceededError" in source
-        assert "LMTransportError" in source
+        from simulation.persona.actor import MALFORMED_DRAFT, ProfessionalActorAct
+
+        class Decision(dspy.Signature):
+            choice: str = dspy.OutputField()
+
+        for payload in (
+            "delegate",
+            "{}",
+            '{"intent": "say "no" now"}',
+            "I think I will answer the email.",
+        ):
+            error = AdapterParseError(
+                adapter_name="ChatAdapter",
+                signature=Decision,
+                lm_response=payload,
+                parsed_result=None,
+            )
+            assert isinstance(error, MALFORMED_DRAFT)
+
+        # And the call really is inside the guard, not merely adjacent.
+        source = inspect.getsource(ProfessionalActorAct.get_action_attempt)
+        guard = source.index("try:")
+        decide = source.index("self._decide(")
+        rescue = source.index("except MALFORMED_DRAFT")
+        assert guard < decide < rescue, (
+            "the decide call must sit inside the guard; adjacent is not "
+            "inside, and that distinction took down a six-month recording"
+        )
 
     def test_the_note_names_the_missing_field(self) -> None:
         from pydantic import BaseModel, ValidationError
