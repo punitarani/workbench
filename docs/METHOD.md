@@ -729,6 +729,31 @@ All five were found the same way: **comparing what the tool printed
 against a hand computation.** None would have been found by running it
 again.
 
+### When you fix a gate, its old tests assert the old defect
+
+Tests written against a gate that could not see something are, by
+construction, a specification of the blind spot. Widen the gate and they
+go red — and they fail in the shape of *"your fix is too aggressive"*,
+which makes loosening the rule the tempting response. That restores the
+blind spot and leaves the suite green.
+
+A worked case. A timekeeping gate could not catch its own index case: one
+actor missing one category of work measures ~1% however long the run,
+because a rate does not accumulate. Adding a persistence rule — the same
+reference invented again and again is a missing code, not a typo — turned
+a test named *"a little drift is tolerated"* red. Its fixture was
+`[note("x")] * 5`: **one** reference, five times. That is not drift, it
+is the defect in miniature, and the test had been holding it in place.
+
+**Read the fixture, not the assertion.** The assertion tells you what
+somebody expected; the fixture tells you what was actually measured, and
+it settles the argument without any appeal to thresholds. Then keep the
+opposite case too — a genuine typo must still pass, or the gate fires
+constantly and stops being read.
+
+And gate the push on the *test result*, not on the commit succeeding.
+`commit && push` runs the push whichever way the suite went.
+
 ### Audit your own gates the way you audit a model's answer
 
 A gate is code, written under the same pressure as the thing it guards,
