@@ -41,6 +41,18 @@ from typing import Protocol
 # worth failing a build over.
 MAX_DROPPED_SHARE = 0.03
 
+# A rate alone cannot see the *index* case of this defect, and a tolerance
+# that cannot catch the smallest instance of what it guards is decoration.
+# Driven through the real referee: twenty clean personas plus one missing
+# two admin codes gives 1.19% — at one day, five days, twenty and a
+# hundred and thirty. Because it is a rate, run length never accumulates
+# past the ceiling, so the gate catches the epidemic and never its seed.
+#
+# Persistence is what separates the two. A reference invented once is a
+# typo; the same reference invented again and again is somebody reaching
+# for a code that ought to exist, which is the whole defect in miniature.
+MAX_REPEATED_REF = 3
+
 
 @dataclass(frozen=True)
 class AttemptedWork:
@@ -84,8 +96,17 @@ def measure(notes: list[RefereeNote], logged: int) -> AttemptedWork:
         if not count:
             continue
         dropped += count
-        for ref in getattr(note, "unknown_refs", ()) or ():
-            refs[ref] = refs.get(ref, 0) + 1
+        named = tuple(getattr(note, "unknown_refs", ()) or ())
+        if not named:
+            continue
+        # Attribute the note's lost entries across the references it
+        # names. Counting *notes* instead ranked the code responsible for
+        # 300 lost entries below six typos costing four each — and this
+        # list is billed as the fix list, so it was omitting the costliest
+        # missing code.
+        share, remainder = divmod(count, len(named))
+        for index, ref in enumerate(named):
+            refs[ref] = refs.get(ref, 0) + share + (1 if index < remainder else 0)
     return AttemptedWork(
         logged=logged,
         dropped=dropped,
@@ -96,8 +117,20 @@ def measure(notes: list[RefereeNote], logged: int) -> AttemptedWork:
 def violations(work: AttemptedWork) -> tuple[str, ...]:
     if work.attempted == 0:
         return ("no time was recorded or attempted at all",)
-    if work.dropped_share <= MAX_DROPPED_SHARE:
+    persistent = [
+        (ref, count) for ref, count in work.invented_refs if count >= MAX_REPEATED_REF
+    ]
+    if work.dropped_share <= MAX_DROPPED_SHARE and not persistent:
         return ()
+    if work.dropped_share <= MAX_DROPPED_SHARE and persistent:
+        named = ", ".join(f"{ref} ({count})" for ref, count in persistent[:4])
+        return (
+            f"the loss rate is only {work.dropped_share:.1%}, but these "
+            f"references were invented again and again: {named}. Once is a "
+            "typo; repeatedly is somebody reaching for a code that ought to "
+            "exist, and a rate cannot see it because the rest of the firm "
+            "books its time correctly",
+        )
     invented = ", ".join(ref for ref, _ in work.invented_refs[:5])
     return (
         f"{work.dropped} of {work.attempted} attempted time entries were "

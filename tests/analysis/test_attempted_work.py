@@ -140,3 +140,52 @@ def test_the_referee_reports_both_branches(entries: int) -> None:
         unknown_refs=rejection.unknown_refs,
     )
     assert measure([carried], logged=entries).dropped == 5
+
+
+def test_the_index_case_a_rate_cannot_see() -> None:
+    """A tolerance that cannot catch the smallest instance of what it
+    guards is decoration.
+
+    Driven through the referee: twenty clean personas plus one missing two
+    admin codes gives 1.19% — at one day, five days, twenty and a hundred
+    and thirty. Because it is a rate, run length never accumulates past
+    the 3% ceiling, so the gate caught the epidemic and never its seed.
+
+    Persistence separates the two. A reference invented once is a typo;
+    the same one invented again and again is somebody reaching for a code
+    that ought to exist.
+    """
+
+    work = measure([_note(2, ("internal-admin", "internal-bd"))] * 5, logged=830)
+    assert work.dropped_share < MAX_DROPPED_SHARE
+    problems = violations(work)
+    assert len(problems) == 1
+    assert "internal-admin" in problems[0]
+    assert "typo" in problems[0]
+
+
+def test_one_mistyped_matter_is_not_a_finding() -> None:
+    """The other half of the same judgement: a genuine typo must not fail
+    a build, or the gate fires constantly and stops being read."""
+
+    assert violations(measure([_note(1, ("tkt-000999",))], logged=800)) == ()
+
+
+def test_refs_rank_by_entries_lost_not_by_notes() -> None:
+    """This list is billed as the fix list — the codes the world should
+    have offered. Ranking by note count put the code responsible for 300
+    lost entries below six typos costing four each, and truncation then
+    dropped the costliest one off the end."""
+
+    notes = [_note(100, ("internal-admin",))] * 3
+    notes += [_note(4, (f"typo-{i}",)) for i in range(6)]
+    work = measure(notes, logged=5000)
+    assert work.invented_refs[0] == ("internal-admin", 300)
+
+
+def test_a_note_naming_several_refs_splits_its_entries() -> None:
+    """A note carries one count and may name several references; the
+    entries are shared out rather than credited to each in full."""
+
+    work = measure([_note(6, ("a", "b", "c"))], logged=100)
+    assert dict(work.invented_refs) == {"a": 2, "b": 2, "c": 2}

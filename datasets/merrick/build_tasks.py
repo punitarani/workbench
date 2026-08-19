@@ -150,6 +150,14 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     shutil.rmtree(SHARED_BUNDLE / "state", ignore_errors=True)
     env = materialize(world_log, SHARED_BUNDLE, seat=None)
     print(f"materialized {env.event_count} events -> {SHARED_BUNDLE}")
+    # Immediately, not after the gates. `materialize` has already rewritten
+    # `workspace/` and `state/` wholesale, so from this line on the bundle
+    # on disk *is* this world — and a gate that raises below would have
+    # left SOURCE naming the previous one. That is exactly the "fresh
+    # answer key against a stale world" state this file's other comment
+    # exists to prevent, reached by a different route.
+    (SHARED_BUNDLE / "SOURCE").write_text(str(world_log.resolve()) + "\n")
+
     files = sum(1 for p in (SHARED_BUNDLE / "workspace").rglob("*") if p.is_file())
     print(f"  workspace: {files} files from {len(facts.documents)} documents")
 
@@ -191,12 +199,6 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         raise SystemExit(
             "the file room is not this firm's:\n  - " + "\n  - ".join(wrong)
         )
-    # Which world this bundle is. Everything downstream -- the independence
-    # check, the miss classifier -- needs the log the oracles were computed
-    # from, and defaulting to a fixed path meant comparing a fresh oracle
-    # against a stale world and reporting 256 disagreements that were only
-    # a wrong filename.
-    (SHARED_BUNDLE / "SOURCE").write_text(str(world_log.resolve()) + "\n")
     if env.skipped_renders:
         for skip in env.skipped_renders:
             print(f"  render skipped: {skip}")
