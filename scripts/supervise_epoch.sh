@@ -28,12 +28,34 @@ RUNNER="datasets/${DATASET}/run_epoch.py"
 PY="./.venv/bin/python"
 
 days_done() {
-    grep -c '"kind": *"day"' "${OUT}/telemetry.jsonl" 2>/dev/null || echo 0
+    # `grep -c` prints 0 *and* exits 1 when nothing matches, so a bare
+    # `|| echo 0` fires as well and the function returns "0\n0". Every
+    # integer test downstream then errors and evaluates false — including
+    # the stall check, which scored a restart that really recorded five
+    # days as no progress and spent patience it had earned.
+    local count
+    count=$(grep -c '"kind": *"day"' "${OUT}/telemetry.jsonl" 2>/dev/null || true)
+    echo "${count:-0}"
 }
 
-# Weekends are skipped by the day chain, so the window's calendar length
-# is not its workday count. Five sevenths, rounded down, is the target.
-target=$(( DAYS * 5 / 7 ))
+# Weekends are skipped by the day chain, so a window's calendar length is
+# not its workday count — and five-sevenths is not either. Counting the
+# actual weekdays from the epoch gives 130 for a 180-day window starting
+# on a Monday, where `DAYS * 5 / 7` gives 128. The script would have
+# announced a complete world two days short, and nothing downstream
+# checks span: the build has no day count and the truncated world would
+# simply have become the graded one.
+target=$(
+    "${PY}" - "${DAYS}" <<'EOF'
+import sys
+from datetime import date, timedelta
+
+# Kept in step with EPOCH_START in the workplace definition.
+start = date.fromisoformat("2026-01-05")
+days = int(sys.argv[1])
+print(sum(1 for i in range(days) if (start + timedelta(days=i)).weekday() < 5))
+EOF
+)
 stalled=0
 
 while :; do
@@ -43,13 +65,20 @@ while :; do
         exit 0
     fi
 
-    if [ "${before}" -eq 0 ]; then
-        echo "[supervise] starting ${DATASET} (${DAYS} days)"
+    # Branch on whether a run *exists*, not on whether it produced a day.
+    # The store is created before the first step and `start` refuses over
+    # an existing one, so a crash before the first day-end — the most
+    # likely failure, and the one with ten minutes of exposure per
+    # attempt — left this issuing `start` three times, being refused
+    # twice, and declaring "not a transient failure". Resume, which works,
+    # was never tried.
+    if [ ! -e "${OUT}/run.db" ]; then
+        echo "[supervise] starting ${DATASET} (${DAYS} days, target ${target} workdays)"
         "${PY}" -u "${RUNNER}" start --days "${DAYS}" --mode record \
             --out "${OUT}" --cassette "${CASSETTE}" \
             --concurrency "${CONCURRENCY}" >> "${LOG}" 2>&1
     else
-        echo "[supervise] resuming from day ${before}"
+        echo "[supervise] resuming at ${before}/${target} workdays"
         "${PY}" -u "${RUNNER}" resume \
             --out "${OUT}" --cassette "${CASSETTE}" \
             --concurrency "${CONCURRENCY}" >> "${LOG}" 2>&1
