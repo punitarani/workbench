@@ -163,7 +163,9 @@ _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str | None], ...] = (
     (
         "Northmoor - Sandhurst platform acquisition",
         "Platform acquisition with a management rollover and an incentive "
-        "equity plan. Quarter-end close targeted.",
+        "equity plan. Quarter-end close targeted. Northmoor's investment "
+        "committee is presented a deal readout before each closing, and "
+        "expects the deck rather than a memo.",
         "per-dov-reinhardt",
         "per-saoirse-mulvaney",
         "Active",
@@ -241,7 +243,8 @@ _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str | None], ...] = (
         "Linden Robotics - Pryor trade secret claim",
         "Claim against a former engineering lead alleging misappropriation of "
         "control-loop source and design files. Expedited discovery and a "
-        "forensic protocol.",
+        "forensic protocol. Linden's board is walked through case strategy "
+        "and exposure at each meeting, as a presentation.",
         "per-bennett-ashworth",
         "per-priyanka-deshmukh",
         "Discovery",
@@ -262,8 +265,10 @@ _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str | None], ...] = (
     ),
     (
         "Cotswold Mutual - Aldworth professional liability",
-        "Panel defence of a professional liability claim, with reserve "
-        "reporting and adherence to the insurer's billing guidelines.",
+        "Panel defence of a professional liability claim. The insurer's "
+        "panel guidelines require a quarterly presentation to its claims "
+        "committee covering reserve adequacy, case posture and "
+        "budget-to-actual; the deck is the deliverable, not a letter.",
         "per-lucien-abara",
         "per-desmond-achebe",
         "Discovery",
@@ -285,7 +290,8 @@ _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str | None], ...] = (
     (
         "Brightwell Academy - employment complaint",
         "Advice on an internal complaint against a long-serving employee, "
-        "including the board's disclosure obligations.",
+        "including the board's disclosure obligations. The Head of School "
+        "presents findings to the board of trustees and needs the deck.",
         "per-petra-kovacs",
         "per-harriet-lindqvist",
         "Active",
@@ -366,8 +372,9 @@ _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str | None], ...] = (
     ),
     (
         "Firm - business development",
-        "Non-billable. Pitches, client entertainment, proposals, and "
-        "relationship work not chargeable to a matter.",
+        "Non-billable. Pitches, proposals and relationship work not "
+        "chargeable to a matter. Pitch decks and capability presentations "
+        "are produced here.",
         "per-dov-reinhardt",
         "per-adaora-nwosu",
         "Active",
