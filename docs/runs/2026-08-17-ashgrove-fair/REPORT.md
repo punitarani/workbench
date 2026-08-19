@@ -378,6 +378,49 @@ to do with how much it read.
 
 ## Result: three tasks in band
 
+**Final, after every correction.** The fourth task was calibrated once and
+still measures outside; it is reported out rather than tuned further.
+
+| task | gpt-5.6-sol | opus-5 | glm-5.2 | mean | |
+|---|---|---|---|---|---|
+| commitment-follow-through | 0.515 (4/9) | 1.000 | 0.213 (2/3) | **0.576** | in |
+| opening-days-completion-claims | 0.687 (8/9) | 1.000 | 0.635 (3/3) | **0.774** | in |
+| opening-week-follow-through | 0.686 (9/9) | 1.000 | 0.693 (8/9) | **0.793** | in |
+| opening-days-commitment-register | 0.802 (8/9) | 1.000 | 0.628 (8/9) | 0.810 | out |
+
+### Why the fourth stays out, and why I stopped
+
+Three independent methodological corrections all landed it between 0.80
+and 0.83 — k=9 sampling (0.808 → 0.825), the corrected timeout rule
+(0.802), and an added graded field (0.810). That is a stable measurement
+of a task just outside the band, not a task fighting noise.
+
+The added field — *which of the seven forms produced this row* — cost
+glm-5.2 0.05 and gpt-5.6-sol nothing, and the asymmetry is the finding.
+Naming the form is a fact gpt already held: it matched the form in order
+to emit the row, so recording which one is free. glm pays, because it was
+reaching rows partly by pattern-guessing rather than by tracking which
+rule fired. **Adding a fact only adds difficulty for a model that did not
+already have it** — it widens the gap between tiers instead of lowering
+all of them.
+
+The levers left are the forbidden ones. Reweighting the criteria would
+make the same work score less without being harder; narrowing the window
+further drops the task under the twelve-row floor and destroys partial
+credit. A task that measures 0.81 three different ways is out, and saying
+so is worth more than a fourth adjustment tuned until it is not.
+
+### The structural ceiling
+
+Opus 5 scores 1.000 on every task in this suite, so the three-model mean
+has a floor of 0.333 and clears 0.8 only when the two weaker tiers
+average ≤0.7. That is a narrow corridor, and it is why two of the three
+in-band tasks sit within 0.03 of the upper edge. The one with real margin
+— 0.576 — earns it from glm scoring 0.213, not from task design. **Band
+membership here is bought mostly by how badly the weakest tier does.** A
+better-centred band needs a rule the frontier tier also misses, or a
+fourth tier below glm.
+
 | task | gpt-5.6-sol | opus-5 | glm-5.2 | mean |
 |---|---|---|---|---|
 | commitment-follow-through | 0.515 (4/9) | 1.000 | 0.213 (2/3) | **0.576** |
