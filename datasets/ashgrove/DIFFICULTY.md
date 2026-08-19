@@ -43,10 +43,18 @@ enumeration *is* the work rather than a cost paid on the way to it. Opus
 
 ## What this means, stated plainly
 
-The band 0.2–0.8 is not reachable for Opus 5 on this world by any task
-that is objectively gradable and fairly stated. Six attempts, six
-ceilings, and the one thing that has ever cost it a row is a rule of mine
-that was narrower than its own prose.
+The band 0.2–0.8 is not reachable **for Opus 5 alone** on this world by
+any task that is objectively gradable and fairly stated. Six attempts,
+six ceilings, and the one thing that has ever cost it a row is a rule of
+mine that was narrower than its own prose.
+
+**This is a statement about one model, not about the suite.** On the mean
+of gpt-5.6-sol, Opus 5 and glm-5.2, three tasks do land in band —
+`commitment-follow-through` 0.576, `opening-days-completion-claims`
+0.774, `opening-week-follow-through` 0.793 — and every miss in them is
+certified M. What remains true is that Opus contributes 1.000 to each of
+those means, so the mean has a floor of 0.333 and clears 0.8 only when
+the two weaker tiers average 0.7 or less.
 
 That is not a broken environment — it is the evidence that the
 environment is *correct*. A frontier model saturating a suite is what

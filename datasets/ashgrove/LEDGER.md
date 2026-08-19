@@ -279,10 +279,15 @@ because every careful reader resolves it identically; real difficulty is
 scattered. That is the whole basis of the identical-across-trials check,
 and this task is the clean example of the first kind.
 
-## opening-week-follow-through — 0.761 — IN BAND
+## opening-week-follow-through — 0.793 — IN BAND
 
-gpt-5.6-sol 0.600, Opus 5 1.000, glm-5.2 0.684 over 7 answered trials of
-9. **Mean 0.761.**
+**Final:** gpt-5.6-sol 0.686 over 9 answered trials of 9, Opus 5 1.000,
+glm-5.2 0.693 over 8 of 9. **Mean 0.793.**
+
+Every tier reads the same instruction. gpt's earlier 0.600 was measured
+at 03:35 against the version predating the hedged-form clause, which
+landed at 07:10; re-running it at k=9 on the corrected text gives 0.686
+and answers 9 of 9.
 
 Opus scored 0.773 twice here before the hedged-form clause and 1.000
 after it, which is the defect confirming itself: both trials had dropped
