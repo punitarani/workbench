@@ -1359,6 +1359,28 @@ class GroundedGm:
         self, entity, sender, intent: DocumentEditIntent, event, delay
     ) -> tuple[EventDraft, ...]:
         if intent.create is not None:
+            # A file room cannot hold two files at one path, and the
+            # materializer does not pretend otherwise: the second write
+            # overwrites the first. So the record said fifteen documents
+            # and the folder held thirteen, with the earlier work invisible
+            # to anything reading the surface — including a task grading
+            # it.
+            #
+            # Rejecting rather than silently versioning is the point: the
+            # persona wanted a document that already exists, and the note
+            # tells it which one to work forward. That is also what the
+            # deliverable turn is for, and one third of those turns are
+            # meant to be revisions rather than first drafts.
+            existing = {
+                path: document_id
+                for document_id, path in self._world.document_paths_by_id.items()
+            }.get(intent.create.path)
+            if existing is not None:
+                raise IntentRejection(
+                    f"{intent.create.path} already exists as {existing}; "
+                    "revise that document instead of writing over it, or "
+                    "file this one under a name of its own"
+                )
             payload = DocumentCreatedPayload(
                 kind="document.created",
                 document_id=self._minter.mint("doc"),
