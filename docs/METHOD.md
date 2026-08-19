@@ -712,6 +712,33 @@ output that looked like a finding.
 
 ---
 
+### Smoke the whole pipeline on one day before recording many
+
+Generating a long history is the most expensive step and the last one you
+can cheaply redo. Every gate downstream of it — coherence, the derived
+rebuild, artifact mix, whatever the world owes its tasks — reads
+something the recording produces, and none of them run until the
+recording is done.
+
+So record **one day**, export it, and run the entire downstream pipeline
+against it before starting the long window. Four separate defects were
+found this way in a single pass, each in minutes, each of which would
+have cost the whole recording had it surfaced at the end: a validator
+missing from one of three write paths, a bound that hid the shared
+codes everyone needs, a format the world could never produce because
+nothing gave anyone a reason to produce it, and a malformed document in
+the world's own definition.
+
+The last one is the sharpest argument for the practice. **It was a defect
+in the spec, not in the engine** — the seeded workbook folded its header
+into the data rows. It is valid JSON and reads correctly to a human, and
+the first thing that would ever have disagreed was the renderer, at
+materialization, at the very end.
+
+A one-day world costs a few minutes and exercises every stage. Order the
+work so the expensive irreversible step is the *last* thing you start,
+not the first.
+
 ## 10. The loop
 
 1. **Record a world.** Determinism, loud failure, coherence green.
