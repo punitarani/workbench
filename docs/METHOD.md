@@ -529,6 +529,31 @@ be right, before asking why it was wrong.**
 
 ## 8. Iterating difficulty
 
+### Do the band's arithmetic before designing for it
+
+A three-model mean with a frontier tier pinned at 1.000 is not a target
+on all three models — it is a budget on the other two. For a ceiling of
+0.8:
+
+    mean = (1.000 + a + b) / 3 <= 0.80   <=>   a + b <= 1.40
+
+Every task measured in band on one suite has the frontier at 1.000; what
+separated in from out was entirely the weaker pair's sum, and the
+boundary is about 0.05 wide. Three in-band tasks summed 0.73, 1.32 and
+1.38; the one that missed summed 1.43.
+
+Two consequences worth internalising before a build:
+
+- **"A frontier model would score 1.000" is not, by itself, a rejection.**
+  It is the expected case, and the design question is what the *named*
+  weaker tiers do. Treat frontier 1.000 as a defect only when the
+  frontier *misses* — because then the miss is far more likely to be a
+  task defect than a capability limit.
+- **The margin is thin, so measure the mechanism before building.** At a
+  0.05-wide boundary, an unmeasured guess about difficulty is a coin
+  flip, and the honest response to landing at 0.81 is to report it rather
+  than to lever it.
+
 ### Legitimate levers
 
 - how much of the record a task covers
@@ -548,12 +573,46 @@ worth.** A task that scores lower without being harder is a scoring
 artifact, and the "calibration" is a property of your grader rather than
 of the world.
 
-### Confusability beats length
+### Confusability beats length — and the operative variable is off-sense share
 
 The hardest rule measured was the *shortest*: two spellings of one common
 word, sitting a hair from its own inflections, missed at 70% by a model
 that had read the text. A seven-form list of distinctive date patterns
 scored far higher for every tier. **Fewer forms, more temptation.**
+
+**Corrected by measurement.** The natural reading of that result — pick
+the family with the densest *excluded* near-misses, the inflections a
+careless matcher would over-admit — is wrong, and it is wrong in a way
+that wastes builds. A machine matching a word boundary is never confused
+by a neighbouring inflection; only a human or a model reading for
+*meaning* is.
+
+What actually predicts the miss is the **off-sense share of the admitted
+form**: how often the required word appears in the corpus meaning
+something other than the thing the register is named after. In the family
+that produced the hardest measured task, a majority of occurrences of the
+admitted word are adjectival (*the complete picture*, *the complete,
+dated calendar*), idiomatic, future (*I can typically complete this
+analysis*), or conditional (*once that call is complete*) — measured at
+79% inside the graded window. Those are precisely the rows the weaker
+tiers dropped: a model reading for sense filters them out, and the rule
+says they count.
+
+So the selection metric is: **for each candidate family, hand-classify a
+sample of admitted-form occurrences as on-sense or off-sense, and choose
+the highest off-sense share.** Exclusion density is a decoy — and worse,
+it is easy to satisfy with a family that is dead on the actual corpus.
+Check both forms are alive before anything else: one family that looked
+ideal on paper had its second spelling appear in a single message out of
+1,585, and another's in none at all.
+
+Two shapes with the same root, both measured:
+
+- **A form inside a longer phrase**, where the rule admits it and a
+  reader hears a hedge (`within a day` inside *"within a day or two"*).
+- **One sentence carrying two forms that resolve to different values**,
+  where the second reads as an explanation of the first. Every trial
+  found the first; two of nine found the second.
 
 ### Adding a fact only adds difficulty for a model that lacks it
 
