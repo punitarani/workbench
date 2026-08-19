@@ -76,6 +76,7 @@ def job_config(
     k: int,
     gateway_port: int,
     concurrency: int,
+    gateway_token: str = "",
 ) -> dict:
     task_path = REPO / "datasets" / dataset / "tasks" / task
     if not task_path.is_dir():
@@ -102,7 +103,16 @@ def job_config(
                 "env": {
                     "OPENAI_BASE_URL": (
                         f"http://host.docker.internal:{gateway_port}/v1"
-                    )
+                    ),
+                    # The agent authenticates to the local gateway with
+                    # this, never with the provider key — which stays on
+                    # this machine. It reads the value under the name
+                    # `OPENAI_API_KEY`, and without it the container's
+                    # first turn fails with "Missing environment variable:
+                    # OPENAI_API_KEY" and the trial exits non-zero having
+                    # produced nothing. That is a harness failure, not a
+                    # score.
+                    "HARTWELL_GATEWAY_TOKEN": gateway_token,
                 },
             }
         ],
@@ -163,11 +173,13 @@ def main(argv: list[str] | None = None) -> int:
             "without it and every trial would fail identically"
         )
 
+    token = secrets.token_urlsafe(24)
+
     async def run() -> int:
         gateway = ProviderGateway(
             GatewayConfig(
                 openrouter_api_key=key,
-                gateway_token=secrets.token_urlsafe(24),
+                gateway_token=token,
                 bind_host="0.0.0.0",
                 port=0,
             )
@@ -181,6 +193,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.k,
                 gateway.port,
                 args.concurrency,
+                gateway_token=token,
             )
             out = REPO / "jobs" / f"{config['job_name']}.config.json"
             out.parent.mkdir(parents=True, exist_ok=True)
