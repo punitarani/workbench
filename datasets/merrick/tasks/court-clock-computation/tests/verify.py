@@ -52,6 +52,23 @@ it is not a `measure()` here only because the instruction states it — where
 it is still a placeholder, and where this file refuses to read the example
 date inside the placeholder's own text rather than guess past it.
 
+## The one failure a second derivation cannot catch
+
+Sharing nothing with the solver does not make this file independent of the
+*brief*. Both derivations were written off the same paragraphs, so a
+paragraph that moves moves neither of them: `instruction.md` could come to
+say a Saturday landing goes back to the Friday, and both files would go on
+computing the Monday, agree on every row, and report a match. That is not
+hypothetical in this tree -- a sibling verifier took its vocabulary from
+the brief's table and hardcoded what each form fell due on, and 20 of 27
+single-phrase flips of its brief went unnoticed.
+
+So every rule this file states in Python is paired, under "Pinning the rule
+to instruction.md" below, with the words `instruction.md` has to still
+carry for that Python to be a reading of it. Nothing is pinned to text
+inside a «MEASURE» placeholder: those are open questions, and the date-form
+placeholder's own example dates would dress a guess up as a reading.
+
 ## What is necessarily shared, and therefore proves nothing
 
 The *rule* — three forms, a date-form table, the first date form as the
@@ -70,7 +87,7 @@ the projection changes and neither notices. `_projection_complete()` goes
 the other way instead: it counts the messages the *world log* recorded and
 fails if the served surfaces are short of them.
 
-## Three known divergences, left in on purpose
+## Four known divergences, left in on purpose
 
 A hyphen does not end a word here, because it must not: *"a 30-day
 extension"* is refused by the instruction, and a scan that split on the
@@ -83,8 +100,19 @@ instruction screens, so it reads as no date form at all rather than as
 words rather than as whitespace, so *"within 10 **business** days"* is one
 form here and is refused by a `\s+`-joined pattern. No body writes that
 today; the corpus is still recording, and a disagreement of any of the
-three kinds is adjudicated against `instruction.md`, never by patching
+four kinds is adjudicated against `instruction.md`, never by patching
 whichever side is easier to change.
+
+Fourth, a date form that runs straight on into a longer word is not that
+form here: `2026-03-14T09:00` reads as no date at all, and the trigger
+falls back to the date the message was sent. The instruction says the
+opposite for *intervals* — "a form counts wherever it appears, including
+inside a longer phrase" — and says nothing either way for dates, because
+the table naming the shapes is still a `«MEASURE»`. So this one is not
+pinned below and cannot be: it is a reading of a sentence the brief has
+not written yet. It is left as it is because it is what keeps the
+`4/5ths` that two of this corpus's bodies write from reading as 5 April,
+and it is written down here because nothing else records it.
 """
 
 import calendar
@@ -513,20 +541,48 @@ def _weekend_move(raw: datetime.date) -> datetime.date:
 # The window, read back out of the prose
 
 
+def _past_words(prose: str, words: tuple[str, ...]) -> int | None:
+    """The index just past `words` in `prose`, whatever whitespace the
+    wrapper happened to put between them, or None.
+
+    `prose.find("on or before")` reads a line break between two of those
+    words as the sentence having gone away, and then this file says the
+    brief never stated the boundary and refuses to grade. Where the line
+    happens to break is not the rule.
+    """
+
+    lowered = prose.lower()
+    for start in range(len(lowered)):
+        if start and lowered[start - 1].isalnum():
+            continue
+        cursor = start
+        for position, word in enumerate(words):
+            if position:
+                spaced = _blank(lowered, cursor)
+                if spaced is None:
+                    break
+                cursor = spaced
+            if not lowered.startswith(word, cursor):
+                break
+            cursor += len(word)
+        else:
+            if cursor >= len(lowered) or not lowered[cursor].isalnum():
+                return cursor
+    return None
+
+
 def _window_last_day(prose: str) -> datetime.date:
     """The instruction states the boundary "in exactly the shape 'Friday 16
     January 2026'", so it is read back out with this file's own date reader
     -- the weekday word is not a date shape and is skipped, the day-month-
     year that follows is."""
 
-    marker = "on or before"
-    at = prose.find(marker)
-    if at < 0:
+    start = _past_words(prose, ("on", "or", "before"))
+    if start is None:
         raise SystemExit(
             f"{INSTRUCTION} never says 'on or before', so the window cannot "
             "be read out of it and nothing derived here is evidence"
         )
-    start = at + len(marker)
     span = prose[start : start + 200]
     if "«MEASURE" in span:
         raise SystemExit(
@@ -685,6 +741,447 @@ def _derive(state: Path, last_day: datetime.date) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Pinning the rule to instruction.md
+#
+# Everything above is the rule written out in Python, because prose cannot be
+# executed. That is the one place a second derivation stops being one, and
+# sharing no code with the solver does not help: both files were written off
+# the same paragraph, so rewriting the paragraph moves neither. Say
+# `instruction.md` came to read that a Saturday landing moves *back* to the
+# Friday. `_weekend_move` would go on walking forward, the solver's offset
+# table would go on adding two days, the two would agree on every row, and
+# this file would report that the oracle matched an independent reading of a
+# brief neither of them had read. Every row wrong together, every row-level
+# comparison green, and no shared literal anywhere to show it.
+#
+# So each rule stated above in Python is paired below with the words the brief
+# has to still carry for that Python to be a reading of it. Reword the brief
+# and this file refuses, naming the sentence that moved, instead of grading
+# the old rule.
+#
+# Three things the pin deliberately does not reach:
+#
+# * Anything inside a «MEASURE» placeholder. Those are open questions whose
+#   text is going to be replaced by whatever the corpus says, and the
+#   date-form placeholder even carries example dates -- pinning to those would
+#   dress a guess up as a reading. `_outside_measures` cuts every placeholder
+#   before a phrase is looked for, so no pin can be satisfied by undecided
+#   text.
+# * The date shapes themselves, for that reason: the table naming them is
+#   still a placeholder, which is why `CORPUS_SHAPES` and
+#   `CORPUS_MONTH_ABBREVIATIONS` are `measure()` calls rather than pins.
+# * `ROW_FLOOR`. The brief states the twelve-row floor *inside* the window
+#   placeholder, and that sentence goes away when the window is measured. It
+#   bounds no row -- `_floors` uses it to refuse a degenerate build -- so it
+#   is a build gate rather than a rule of the answer.
+
+
+def _outside_measures(chunk: str) -> str:
+    """`chunk` with every «MEASURE ...» span taken out."""
+
+    kept: list[str] = []
+    depth = 0
+    for character in chunk:
+        if character == "«":
+            depth += 1
+        elif character == "»":
+            depth = max(0, depth - 1)
+        elif depth == 0:
+            kept.append(character)
+    return "".join(kept)
+
+
+def _flattened(chunk: str) -> str:
+    """A piece of the brief with its emphasis, its backticks, its dashes and
+    its line wrapping taken out, so a phrase can be looked for without
+    caring how the paragraph happened to break.
+
+    The ASCII hyphen *inside a word* deliberately stays. *"a 30-day
+    extension"* and *"the 14 day window"* are two different entries in the
+    brief's own list of near misses, and folding that hyphen would let one
+    pin stand for both. The other two hyphens go, because neither is a word:
+
+    * one with whitespace on either side is a dash somebody spelled `-`
+      rather than `—`, and it is also how every bullet in the brief opens;
+    * one at the end of a line is a wrapper having broken a word in two, so
+      the word is put back together rather than read as two words.
+
+    Both are the same words differently typeset. Without them a pin fires on
+    a re-wrap at a narrower column or on a copy-edit of the dashes, and a
+    guard that fires on edits that changed no rule is a guard somebody
+    deletes.
+    """
+
+    text = _outside_measures(chunk)
+    for character in "*`—–":
+        text = text.replace(character, " ")
+
+    kept: list[str] = []
+    index = 0
+    while index < len(text):
+        if text[index] != "-":
+            kept.append(text[index])
+            index += 1
+            continue
+        before = text[index - 1] if index else " "
+        past = index + 1
+        while past < len(text) and text[past].isspace():
+            past += 1
+        after = text[past] if past < len(text) else " "
+        if not (before.isalnum() and after.isalnum()):
+            kept.append(" ")
+            index += 1
+        else:
+            # Inside a word, whether or not a line break split it.
+            kept.append("-")
+            index = past
+    return " ".join("".join(kept).lower().split())
+
+
+def _section(prose: str, heading: str) -> str:
+    """One `##` section of the brief, by its heading rather than by where it
+    happens to sit in the file.
+
+    Matched a line at a time and stripped, because a heading that picked up
+    a trailing space renders identically, changes no rule, and on an exact
+    `\n## Heading\n` match reads as the whole section having been deleted.
+    """
+
+    lines = prose.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() != heading:
+            continue
+        end = index + 1
+        while end < len(lines) and not lines[end].strip().startswith("## "):
+            end += 1
+        return "\n".join(lines[index + 1 : end])
+    raise SystemExit(f"{INSTRUCTION} has no {heading!r} section")
+
+
+def _ticked(cell: str) -> list[str]:
+    """The backticked spellings in a chunk of the brief, in written order."""
+
+    pieces = cell.split("`")
+    if len(pieces) % 2 == 0:
+        raise SystemExit(f"an unclosed backtick in instruction.md: {cell!r}")
+    return [piece.strip() for piece in pieces[1::2] if piece.strip()]
+
+
+def _insists(where: str, chunk: str, phrases: tuple[str, ...]) -> None:
+    """Refuse unless the brief still states the rule this file computes."""
+
+    flat = _flattened(chunk)
+    for phrase in phrases:
+        if _flattened(phrase) in flat:
+            continue
+        raise SystemExit(
+            f"instruction.md's {where} no longer says {phrase!r}, and this "
+            "file hardcodes that rule rather than reading it. The brief and "
+            "the derivation have gone apart with nothing else to show it: "
+            "both derivations would keep computing the old rule and agree "
+            "perfectly. Read the brief again and move the derivation to "
+            f"match.\n  brief now: {flat[:320]}"
+        )
+
+
+# The table. Left of each group is the section of instruction.md and the part
+# of this file that reads it; right is the words that section has to still
+# carry. Nothing above is hardcoded without a line here, and nothing here is
+# checked anywhere else, so the sentence and the arithmetic cannot drift
+# apart without this failing.
+_STATED: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    (
+        "## The window",
+        "window, which `_window_last_day` reads and `_derive` applies",
+        (
+            "sent **on or before**",
+            "A message sent after that day makes no row here",
+            "`messages_read` counts the messages **inside the window**",
+            "Nothing sent later is part of this question",
+        ),
+    ),
+    (
+        "## What names an interval",
+        "account of what names an interval, which `_intervals` implements",
+        (
+            "Exactly these three forms",
+            "matched case-insensitively",
+            "anywhere in a message body",
+            "either in **digits** or as one of these words, and no others",
+            "The register reads `day` and `days` alike",
+            "carries the same form as *within 10 days*",
+            "accepts **nothing at all**, **`business`**, or **`calendar`**",
+            "are the same form carrying the same number",
+            "Every count in this register is in **calendar days**",
+            "`business` changes the wording and nothing else",
+            "no interval here is ever counted in working days",
+            "Do not weigh up whether a deadline was really being set",
+            "The words that follow do not remove the form that precedes them",
+        ),
+    ),
+    (
+        "## What does not name an interval",
+        "list of near misses, which `_intervals` has to refuse",
+        (
+            "Only the three forms above, only in `days`",
+            "The clock runs forward here",
+            "A form that counts backward is not one of the three",
+            "neither digits nor one of the words listed above, there is no form",
+            "A message that names a date and no interval makes no row",
+            "it is never a row by itself",
+        ),
+    ),
+    (
+        "## What the interval counts from",
+        "account of the trigger, which `_first_date` and `_date_at` implement",
+        (
+            "it is found in the body of the same message",
+            "never in the subject",
+            "never in an earlier message in the thread",
+            "A date form is any of these, matched case-insensitively",
+            "the year is **the year the message was sent**",
+            "When it names no month — it is not a date form",
+            "A form that names **no real date**",
+            "is not a date form either",
+            "Pass over it and take the next one in the body",
+            "if there is no next one, the trigger is the date the message was sent",
+            "**The trigger is the first date form in the body**",
+            "reading left to right: the one that *starts* earliest",
+            "Where two forms start at the same place",
+            "take the **longer** one",
+            "When the body carries no date form at all, the trigger is the date "
+            "the message was sent",
+            "whether or not the resulting deadline has already gone by",
+            "it takes the first one in the body",
+        ),
+    ),
+    (
+        "## Counting",
+        "arithmetic, which `_forward` and `_weekend_move` implement",
+        (
+            "Count **calendar days forward** from the trigger",
+            "**The trigger day is day zero**",
+            "falls due on the **24th** of that month, not the 23rd",
+            "Weekends and holidays are counted like any other day",
+            "That date is **`raw_due_date`**",
+            "Then, and only then, move a weekend landing",
+            "is a **Saturday**, `due_date` is the **Monday two days later**",
+            "is a **Sunday**, `due_date` is the **Monday one day later**",
+            "Otherwise `due_date` is the same date as `raw_due_date`",
+            "`rolled` is **true** when `due_date` differs from `raw_due_date`",
+            "**false** when it does not",
+            "**Only Saturday and Sunday move a date.**",
+            "This register keeps no holiday calendar",
+        ),
+    ),
+    (
+        "## One row per message and per interval",
+        "account of what makes a row, which `_intervals`' keying implements",
+        (
+            "**one row for each distinct number of days its forms name**",
+            "written twice is one row",
+            "in one body are one row — same number, same trigger, same date",
+            "are **two** rows, because 10 and 30 are different numbers",
+        ),
+    ),
+    (
+        "## What to produce",
+        "output section, which `_derive` and `_compare` implement",
+        (
+            # `_compare` refuses an oracle with a field the brief does not
+            # name, and one short of a field it does. That is this word.
+            "with exactly these fields",
+            "how many messages the window holds, mail and chat together",
+            "how many rows are in `deadlines`",
+            "how many different people wrote a message that made at least one row",
+            "how many rows have `rolled` true",
+            "an object with **all three** form names as keys",
+            "**Include a key whose count is zero.**",
+            "count the row under the **first of the three, in the order they are "
+            "listed in the table above**",
+            "the person on the most rows",
+            "Break a tie alphabetically, earlier first",
+            "sorted by `ref` ascending as text, and within one `ref` by "
+            "`interval_days` ascending",
+            "how the message's own system names it",
+            "`sent_date` — the date it was written",
+            "the number the form names, as an integer",
+            "the counted date before any weekend move",
+            "the date after the weekend move",
+            "`author` is a person's full name, never an id",
+        ),
+    ),
+    (
+        "## A warning about completeness",
+        "closing warning, which is why `_served` reads bodies whole",
+        (
+            "a form can sit anywhere in a body",
+            "the trigger is found by reading the body from the beginning",
+        ),
+    ),
+)
+
+# The phrases this file fires at `_intervals`, each beside the words
+# instruction.md has to still carry for that phrase to be a form -- and,
+# because the two lists are checked against two different sections, beside
+# the verdict the brief gives it. Moving a spelling from one section to the
+# other flips its verdict, and that is caught here rather than in a rollout.
+#
+# The three forms' own table rows are not repeated here: `_forms_pinned`
+# reads them straight out of the brief and fires those.
+_ADMITTED: tuple[tuple[str, str, int, str], ...] = (
+    # phrase fired, form it must read as, number, words the brief must state
+    (
+        "within 10 days of service",
+        "within N days",
+        10,
+        '*"within 10 days of service"* contains `within 10 days`',
+    ),
+    (
+        "due in 14 days or sooner",
+        "due in N days",
+        14,
+        '*"due in 14 days or sooner"* contains `due in 14 days`',
+    ),
+    (
+        "we should be able to turn this around within 5 days if the vendor cooperates",
+        "within N days",
+        5,
+        "turn this around within 5 days if the vendor cooperates",
+    ),
+    (
+        "the standard clause gives them 30 days after notice",
+        "N days after",
+        30,
+        "the standard clause gives them 30 days after notice",
+    ),
+    (
+        "respond within 10 business days",
+        "within N days",
+        10,
+        "*within 10 business days*",
+    ),
+    (
+        "respond within 10 calendar days",
+        "within N days",
+        10,
+        "*within 10 calendar days*",
+    ),
+    ("file the notice within 1 day", "within N days", 1, "*within 1 day*"),
+)
+_REFUSED: tuple[tuple[str, str], ...] = (
+    # phrase fired, words the brief must state to make it a near miss
+    ("produce within 2 weeks", "`within 2 weeks`"),
+    ("produce within 3 months", "`within 3 months`"),
+    ("we need 30 days' notice", "`30 days' notice` written without `after`"),
+    (
+        "responses are due 30 days before the hearing",
+        "**`N days before`.**",
+    ),
+    (
+        "I'll have it in 10 days",
+        '*"I\'ll have it in 10 days"* is not `due in 10 days`',
+    ),
+    ("we agreed a 30-day extension", '*"a 30-day extension"*'),
+    ("the 14 day window has closed", '*"the 14 day window"*'),
+    ("produce within a couple of days", "`within a couple of days`"),
+    ("produce within the week", "`within the week`"),
+    # The brief's own date examples all sit inside the date-form «MEASURE»,
+    # so this one is pinned on the rule rather than on a spelling.
+    ("the deposition is on 14 March", "A date is what an interval counts **from**"),
+)
+
+
+def _forms_pinned(prose: str) -> None:
+    """The three form names, their order, and the spelling the brief shows
+    for each, read out of the brief's own table rather than typed here.
+
+    `FORM_ORDER` is not just a list of names: it is the precedence that
+    settles a body naming two forms for the same number, and `form_counts`
+    reports in it. A table reordered upstream would leave both derivations
+    attributing rows the old way, in agreement.
+    """
+
+    grid = []
+    for line in _section(prose, "## What names an interval").splitlines():
+        line = line.strip()
+        if line.startswith("|") and line.endswith("|"):
+            grid.append([cell.strip() for cell in line[1:-1].split("|")])
+    if len(grid) < 3:
+        raise SystemExit("instruction.md's form table has no header, ruler or rows")
+    header, ruler, *rows = grid
+    if len(header) != 2 or set("".join(ruler)) - set("-: "):
+        raise SystemExit("instruction.md's form table is not the two-column table")
+    if any(len(row) != 2 for row in rows):
+        raise SystemExit("a row of instruction.md's form table is not two cells wide")
+
+    named = tuple(name for row in rows for name in _ticked(row[0]))
+    if named != FORM_ORDER:
+        raise SystemExit(
+            f"instruction.md's table now names the forms {list(named)}; this "
+            f"file is written for {list(FORM_ORDER)}, in that order, and that "
+            "order is what settles a body naming two forms for the same "
+            "number and what `form_counts` reports in"
+        )
+    for name, cell in zip(named, (row[1] for row in rows), strict=True):
+        got = _intervals(cell)
+        if len(got) != 1 or next(iter(got.values())) != name:
+            raise SystemExit(
+                f"instruction.md shows {cell!r} as what `{name}` looks like in "
+                f"the traffic, and this file reads it as {got or 'no form'}. "
+                "The brief's own example of a form is not matched by the "
+                "transcription of it, so that form would count zero here with "
+                "nothing else complaining"
+            )
+
+
+def _fields_pinned(prose: str) -> None:
+    """Every field name this file compares is still a field the brief asks
+    for. The schema is not the rule, but a renamed column silently drops out
+    of `_compare` and grades nothing.
+
+    Read as the brief's own backticked spellings rather than looked for as
+    substrings of the section. Four of these names sit inside another one --
+    `due_date` inside `raw_due_date`, `rolled` inside `rolled_count`,
+    `deadlines` inside `deadlines_total`, `author` inside `busiest_author`
+    -- so on a substring test each of the four is satisfied by a *different*
+    field's name and renaming it passes. `due_date` is the one with nothing
+    else covering it: renamed, this file would go on grading a column the
+    brief no longer asks anybody for.
+    """
+
+    asked = set(_ticked(_section(prose, "## What to produce")))
+    for where, names in (("top-level", TOP_FIELDS), ("row", ROW_FIELDS)):
+        missing = sorted(name for name in names if name not in asked)
+        if missing:
+            raise SystemExit(
+                f"instruction.md's output section no longer asks for the "
+                f"{where} field(s) {missing}, which this file compares. A "
+                "column nobody asked for is graded against an oracle nobody "
+                "produced"
+            )
+
+
+def _pinned(prose: str) -> None:
+    """Refuse unless instruction.md still states every rule above."""
+
+    for heading, where, phrases in _STATED:
+        _insists(where, _section(prose, heading), phrases)
+    _forms_pinned(prose)
+    _fields_pinned(prose)
+    _insists(
+        "account of what names an interval",
+        _section(prose, "## What names an interval"),
+        tuple(stated for *_read, stated in _ADMITTED),
+    )
+    _insists(
+        "list of near misses",
+        _section(prose, "## What does not name an interval"),
+        tuple(stated for _phrase, stated in _REFUSED),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Gates no comparison with the oracle can make
 
 
@@ -724,42 +1221,21 @@ def _prose_examples() -> list[str]:
     refuses every phrase it calls a near miss.
 
     A pattern narrower or wider than the prose it implements fails here,
-    rather than in a rollout where it would read as a model error.
+    rather than in a rollout where it would read as a model error. The
+    phrases are in `_ADMITTED` and `_REFUSED`, each beside the words the
+    brief has to still carry for it, so a phrase cannot outlive the sentence
+    that put it in the list. The three forms' own table rows are fired by
+    `_forms_pinned`, straight out of the brief.
     """
 
-    admitted = (
-        ("produce the privilege log within 10 days", "within N days", 10),
-        ("objections are due 30 days after service", "N days after", 30),
-        ("the opposition brief is due in 14 days", "due in N days", 14),
-        ("within 10 days of service", "within N days", 10),
-        ("due in 14 days or sooner", "due in N days", 14),
-        ("turn this around within 5 days if the vendor helps", "within N days", 5),
-        ("the standard clause gives them 30 days after notice", "N days after", 30),
-        ("respond within 10 business days", "within N days", 10),
-        ("respond within 10 calendar days", "within N days", 10),
-        ("file the notice within 1 day", "within N days", 1),
-    )
-    refused = (
-        "produce within 2 weeks",
-        "produce within 3 months",
-        "we need 30 days' notice",
-        "responses are due 30 days before the hearing",
-        "I'll have it in 10 days",
-        "we agreed a 30-day extension",
-        "the 14 day window has closed",
-        "produce within a couple of days",
-        "produce within the week",
-        "the deposition is on 14 March",
-    )
-
     problems = []
-    for phrase, form, days in admitted:
+    for phrase, form, days, _stated in _ADMITTED:
         got = _intervals(phrase)
         if got.get(days) != form:
             problems.append(
                 f"instruction example not read as {form}/{days}: {phrase!r} -> {got}"
             )
-    for phrase in refused:
+    for phrase, _stated in _REFUSED:
         got = _intervals(phrase)
         if got:
             problems.append(f"near miss admitted: {phrase!r} -> {got}")
@@ -1000,10 +1476,15 @@ def _report(problems: list[str], headline: str) -> int:
 
 
 def main() -> int:
-    # The measured values before anything reads them, then the rule against
-    # its own prose. A derivation from a rule that disagrees with
-    # instruction.md is not evidence about the oracle; it is a second copy
-    # of the same mistake.
+    # The brief first. Every rule this file computes is written out above in
+    # Python, and a rule the brief has stopped stating is one both
+    # derivations would go on computing, in agreement, with every row-level
+    # check green. Then the measured values, then the rule against the
+    # brief's own examples: a derivation from a rule that disagrees with
+    # instruction.md is not evidence about the oracle; it is a second copy of
+    # the same mistake.
+    prose = INSTRUCTION.read_text()
+    _pinned(prose)
     _measured()
     if problems := _prose_examples() + _prose_arithmetic():
         return _report(problems, "disagreement(s) with instruction.md's own examples")
@@ -1017,7 +1498,7 @@ def main() -> int:
     if not ORACLE.is_file():
         raise SystemExit(f"no oracle at {ORACLE} -- run build_tasks.py first")
 
-    last_day = _window_last_day(INSTRUCTION.read_text())
+    last_day = _window_last_day(prose)
     if last_day >= datetime.date(2026, 3, 8):
         print(
             "  note: this window reaches past 8 March 2026, when New York "

@@ -55,6 +55,13 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("promise_clock.json")
 # it rather than a second source. `verify.py` reads the dates back out of
 # the brief and converts them the other way.
 #
+# «MEASURE: DISJOINT — this window must not overlap the one
+# `one-sentence-two-dates` uses. Both extract the same seven forms from
+# mail, so a shared window makes them one measurement reported twice:
+# the base extraction is the hard part, and the extra graded facts each
+# adds only widen the gap between tiers. The record holds roughly 130
+# workdays; take the two windows from different months.
+#
 # «MEASURE: the window. Pick the Monday-to-Friday week whose mail carries
 # at least twelve rows, whose `followed_up` is not constant, and whose
 # `sent_date` is not constant. `measure_candidates.py --days N` prints

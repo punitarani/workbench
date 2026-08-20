@@ -26,7 +26,18 @@ boundary the generator and the solver both rest on is not checked by
 their agreeing. A window shifted by one day makes every row wrong
 together while every row-level check stays green.
 
-Four things this file asserts that no per-row comparison can:
+**Sharing no code with the solver is not independence.** Every rule this
+file expresses differently is still a rule it *hardcodes*, and so does
+`solve.py`. Change the brief — say that `end of week` means the Sunday,
+that a tie goes to the later name, that the window's last day is out —
+and both derivations go on computing the old rule, agree perfectly, and
+report an independent reading. So each hardcoded rule is written down
+beside the words it was read off, in one table (`PINS`), and the run
+stops when the brief stops saying them. What the brief states only inside
+a «MEASURE» placeholder is not pinned: that text is a question, not an
+answer, and it will be replaced wholesale.
+
+Five things this file asserts that no per-row comparison can:
 
 * **The key distinguishes every real row.** Not by counting rows before
   and after keying — rows are *built* by grouping on the key, on both
@@ -48,6 +59,10 @@ Four things this file asserts that no per-row comparison can:
   decoration and the window or the grain is wrong.
 * **The structural floors hold**: twelve rows or more, and no graded
   column carrying one value in every row.
+* **The deliverable is shaped the way the brief bullets it.** The field
+  names are read out of `## What to produce`, not restated: a field the
+  brief renames would otherwise leave this file and the oracle agreeing
+  on a key the agent was never given.
 
 The key and the tolerances are read out of `criteria.py` rather than
 restated, so the thing asserted here is the thing that grades.
@@ -69,12 +84,393 @@ from collections import Counter, defaultdict
 from decimal import ROUND_HALF_UP, Decimal
 from fractions import Fraction
 from pathlib import Path
+from typing import NamedTuple, NoReturn
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
 ORACLE = Path(__file__).resolve().parent / "oracle.json"
+BRIEF = Path(__file__).resolve().parents[1] / "instruction.md"
+DELIVERABLE = "prebill_screen.json"
+BRIEF_TEXT = BRIEF.read_text(encoding="utf-8")
+
+
+def refuse(message: str) -> NoReturn:
+    """Stop the run.
+
+    Kept apart from `bad` on purpose. `bad` collects a disagreement
+    between this derivation and the oracle, which is a finding. This is a
+    disagreement between this derivation and the *brief*, which is not a
+    finding but a broken instrument: every number below it was computed
+    from a rule the agent is no longer being given.
+    """
+
+    raise SystemExit(f"verify: {message}")
+
+
+def flattened(chunk: str) -> str:
+    """A piece of the brief with its emphasis, its backticks and its line
+    wrapping taken out, so a phrase can be looked for without caring how
+    the paragraph happened to break.
+
+    Reflowing a paragraph, bolding a clause or putting a field name in
+    backticks must not fire a pin; changing what the sentence says must.
+
+    The delimiters are *deleted* rather than turned into spaces. Markdown
+    emphasis abuts the words it marks, so italicising one word before a
+    comma — `read the *words*, not the intent` — leaves a space in front
+    of that comma under the substituting version, and a pin quoting the
+    sentence stops matching a sentence that has not changed.
+    """
+
+    return " ".join(chunk.replace("*", "").replace("`", "").lower().split())
+
+
+def section(heading: str) -> str:
+    """One heading's worth of the brief, up to the next heading.
+
+    Sections are found by their words, never by line number: the brief is
+    still being written and every line in it will move.
+    """
+
+    found = re.search(re.escape(heading), BRIEF_TEXT, re.IGNORECASE)
+    if not found:
+        refuse(f"the brief has no {heading!r} section")
+    return BRIEF_TEXT[found.end() :].split("\n## ", 1)[0]
+
+
+def bulleted(chunk: str, indent: str) -> tuple[str, ...]:
+    """The backticked field names the brief bullets at one indent, in
+    written order.
+
+    Only the head of the bullet — the part before its em dash — so the
+    prose describing a field never contributes a name of its own.
+    """
+
+    names: list[str] = []
+    for line in chunk.splitlines():
+        if line.startswith(f"{indent}- `"):
+            names.extend(re.findall("`([a-z_]+)`", line.split("—")[0]))
+    return tuple(names)
+
+
+def nested_under(chunk: str) -> str:
+    """The name of the field whose bullet owns the nested row columns —
+    the brief's name for the list `criteria.py` grades row by row."""
+
+    owner = ""
+    for line in chunk.splitlines():
+        if line.startswith("- `"):
+            named = re.findall("`([a-z_]+)`", line.split("—")[0])
+            owner = named[-1] if named else owner
+        elif line.startswith("  - `"):
+            return owner
+    refuse("the brief bullets no field with row columns nested under it")
+
+
+def form_rows(chunk: str) -> list[list[str]]:
+    """The rows of the brief's form table, header and ruler dropped.
+
+    How many rows it has is how many admitted forms this file must carry.
+    Counting them here rather than writing `2` means a third row added to
+    the brief becomes a third question this file refuses to run without,
+    instead of a form it silently never looks for.
+    """
+
+    grid = [
+        [cell.strip() for cell in line.strip()[1:-1].split("|")]
+        for line in chunk.splitlines()
+        if line.strip().startswith("|") and line.strip().endswith("|")
+    ]
+    if len(grid) < 3:
+        refuse("the brief's form table has no header, no ruler or no rows")
+    header, ruler, *rows = grid
+    if [cell.lower() for cell in header] != ["form", "matches"]:
+        refuse(f"the brief's form table is headed {header}, not | form | matches |")
+    if set("".join(ruler)) - set("-: "):
+        refuse("the brief's form table has no ruler under its header")
+    if any(len(row) != len(header) for row in rows):
+        refuse("a row of the brief's form table is not two cells wide")
+    return rows
+
+
+class Pin(NamedTuple):
+    """One rule of the brief, paired with what this file does about it.
+
+    `heading` locates the sentence, `computes` names the arithmetic that
+    only exists because the sentence says what it says, and `phrases` are
+    the words that have to still be there.
+    """
+
+    heading: str
+    computes: str
+    phrases: tuple[str, ...]
+
+
+# --- the phrase-to-code pairing, in one table ------------------------------
+#
+# Sharing nothing with the solver is not independence. This file and
+# `solve.py` use different matchers, different arithmetic and different
+# groupings, and they would still agree perfectly on every row if the
+# brief changed the rule underneath both of them: the brief could start
+# saying that a form only counts when the narrative means it, or that a
+# tie goes to the *later* timekeeper, and both derivations would go on
+# computing the old rule together while every row-level comparison stayed
+# green. A second derivation cannot catch that by being a second
+# derivation.
+#
+# So every rule this file hardcodes is written down here beside the words
+# it was read off, in one table rather than scattered through the code,
+# because a pin that lives away from what it pins is a pin that drifts.
+# The pairing is checked before the first figure is computed.
+#
+# What is deliberately *not* pinned: the window's two dates, its
+# working-day count, the admitted forms themselves, and the share of rows
+# on which the two rounding orders must disagree. The brief states all
+# five only inside «MEASURE» placeholders — text that is a question, not
+# an answer, and that will be replaced wholesale when the corpus is
+# measured. Anchoring on it would pin this file to wording that is
+# guaranteed to change. They stay `measure()` calls, which refuse loudly
+# on their own.
+PINS: tuple[Pin, ...] = (
+    Pin(
+        "# The prebill narrative screen",
+        "reading clio's `activities` and no other surface",
+        (
+            "the screen reads time entries and nothing else",
+            "is not a time entry and makes no row here",
+        ),
+    ),
+    Pin(
+        "## The window",
+        "requiring both endpoints to be weekdays and counting a working "
+        "day as `weekday() < 5`",
+        ("screen only time recorded on the working days from",),
+    ),
+    Pin(
+        "## The window",
+        "`FIRST <= day <= LAST`, with both endpoints inside the window",
+        (
+            "the window is its two endpoints",
+            "inclusive",
+            "on or after the first day and on or before the last day is in scope",
+            "a single day either side of the span is out",
+        ),
+    ),
+    Pin(
+        "## The window",
+        "no weekday test at all on an entry that falls inside the span",
+        ("whatever weekday it carries",),
+    ),
+    Pin(
+        "## The window",
+        "`read += 1` only after the window filter, never before it",
+        (
+            "entries_read counts the time entries inside the window",
+            "there is no need to open the rest of the firm's timekeeping",
+        ),
+    ),
+    Pin(
+        "## What the screen admits",
+        "lowercasing both sides and testing membership anywhere in the note",
+        ("matched case-insensitively", "anywhere in the text"),
+    ),
+    Pin(
+        "## What the screen admits",
+        "`whole_words`, which splits the narrative into runs of letters",
+        (
+            "a form is a whole word",
+            "no letter immediately before it and no letter immediately after it",
+            "a digit, a hyphen, a slash or a punctuation mark is not a letter",
+        ),
+    ),
+    Pin(
+        "## What the screen admits",
+        "no sense test — an off-sense narrative is flagged like any other",
+        ("the test is textual, not editorial", "read the words, not the intent"),
+    ),
+    Pin(
+        "## What the screen admits",
+        "set membership, which cannot be vetoed by the words around the form",
+        (
+            "a form inside a longer phrase still counts",
+            "the words around it do not remove it",
+        ),
+    ),
+    Pin(
+        "## What the screen admits",
+        "membership in `ADMITTED` alone — no synonym, no other inflection",
+        (
+            "nothing else counts",
+            "no synonym counts",
+            "no other form of the word counts",
+            "a narrative carrying only one of those is not flagged",
+        ),
+    ),
+    Pin(
+        "## What the screen admits",
+        "one `flagged` row and one `forms[...] += 1` per time entry",
+        (
+            "one flagged entry per time entry",
+            "however many admitted forms its narrative carries and however many times",
+        ),
+    ),
+    Pin(
+        "## What the screen admits",
+        "`carried[0]`, which resolves a multi-form narrative to the "
+        "earliest row of the table",
+        ("under whichever form is listed first in the table above",),
+    ),
+    Pin(
+        "## Which matters are in scope",
+        "no matter filter — the firm's own standing codes screen like any client's",
+        (
+            "every matter the firm records time to",
+            "time booked to them is time, it is screened the same way",
+        ),
+    ),
+    Pin(
+        "## The arithmetic",
+        "`Fraction(quantity, 3600)`",
+        ("quantities are recorded in seconds", "hours are seconds ÷ 3600"),
+    ),
+    Pin(
+        "## The arithmetic",
+        "`Fraction(rate_cents, 100) * hours`, computed entry by entry",
+        (
+            "rates are dollars per hour",
+            "recorded against the individual entry",
+            "an entry's fee is the rate on that entry times that entry's hours",
+            "fees are per entry, not per person and not per matter",
+        ),
+    ),
+    Pin(
+        "## The arithmetic",
+        "the fee predicate `billable and rate_cents is not None`, and both "
+        "of its clauses",
+        (
+            "an entry contributes to fees_dollars only when it is billable and has a rate",
+            "some time is recorded non-billable",
+            "some timekeepers carry no rate at all",
+            "this holds even for an entry marked billable that has no rate on it",
+        ),
+    ),
+    Pin(
+        "## The arithmetic",
+        "hours and entry counts taken over every flagged entry, rated or not",
+        (
+            "everything flagged contributes to entries and to hours",
+            "it belongs in entries and in hours",
+            "their entries belong in entries and in hours too",
+        ),
+    ),
+    Pin(
+        "## The arithmetic",
+        "exact `Fraction` accumulation and a single `Decimal.quantize` at write time",
+        (
+            "round once, at the end — every figure, not only the totals",
+            "are computed from the time entries themselves",
+            "rounded to two decimal places only when they are written",
+            "not computed by adding up figures that have already been cut to two decimals",
+        ),
+    ),
+    Pin(
+        "## What to produce",
+        "`read`, incremented for every entry in the window whatever its note says",
+        ("every entry inside the window, whatever its narrative says",),
+    ),
+    Pin(
+        "## What to produce",
+        "`pairs` as `len(rows)`",
+        ("how many matter-and-timekeeper combinations appear in screened",),
+    ),
+    Pin(
+        "## What to produce",
+        "`{form: forms.get(form, 0) for form in admitted}`, zeros included",
+        (
+            "an object with every form in the table above as a key",
+            "including any that no narrative in the window uses",
+        ),
+    ),
+    Pin(
+        "## What to produce",
+        "`min(rows, key=(-hours, matter, timekeeper))` — most hours, then "
+        "the earlier name in each tie column",
+        (
+            "the single row in screened with the most hours",
+            "break a tie by taking the earlier matter",
+            "then the earlier timekeeper",
+            "alphabetically",
+        ),
+    ),
+    Pin(
+        "## What to produce",
+        "grouping on `(matter, timekeeper)` and emitting only groups with a flag",
+        (
+            "one entry per matter-and-timekeeper combination with at least one flagged entry",
+            "makes no row",
+        ),
+    ),
+    Pin(
+        "## What to produce",
+        "`flagged.sort(key=(matter, timekeeper))` before `groupby`",
+        ("sorted by matter then timekeeper",),
+    ),
+    Pin(
+        "## What to produce",
+        "keying rows on clio's `display_number` and the person's `name`",
+        (
+            "the matter's display number, exactly as clio shows it",
+            "the person's full name",
+            "how many flagged entries they recorded on that matter",
+        ),
+    ),
+)
+
+
+def insists(pin: Pin) -> None:
+    """Refuse unless the brief still states the rule this file computes.
+
+    Prose cannot be executed: `whole_words` splits on letters because the
+    brief says a form is bounded by letters, and nothing here reads that
+    sentence and works the split out. What *can* be checked is that the
+    sentence has not moved out from under the arithmetic — which is the
+    one failure a second derivation cannot catch by being a second
+    derivation, because the solver hardcodes the same rule and the two go
+    on agreeing with each other while both disagree with the brief.
+    """
+
+    flat = flattened(section(pin.heading))
+    missing = [phrase for phrase in pin.phrases if flattened(phrase) not in flat]
+    if missing:
+        refuse(
+            f"the brief's {pin.heading!r} no longer says {missing[0]!r}.\n"
+            f"This file computes {pin.computes} because that sentence said "
+            "so, and it does not read the sentence — so does solve.py, which "
+            "is why the oracle would still agree with this derivation on "
+            "every row while both disagreed with the brief the agent is "
+            "graded against. Read the brief again and move the derivation "
+            f"to match.\n  brief now: {flat[:280]}"
+        )
+
+
+for _pin in PINS:
+    insists(_pin)
+
+if DELIVERABLE not in BRIEF_TEXT:
+    refuse(f"the brief never names {DELIVERABLE}")
+
+# The deliverable's shape, read off the brief's own bullets rather than
+# restated here. A field the brief renames is otherwise invisible: this
+# file and the oracle would keep the old name, agree, and grade an agent
+# on a key it was never given.
+REPORT_FIELDS: tuple[str, ...] = bulleted(section("## What to produce"), "")
+ROW_FIELDS: tuple[str, ...] = bulleted(section("## What to produce"), "  ")
+ROW_LIST: str = nested_under(section("## What to produce"))
+
+# How many rows the brief's form table carries. Not `2`: see `form_rows`.
+FORMS_STATED = len(form_rows(section("## What the screen admits")))
 
 # --- transcribed from instruction.md, "The window" -------------------------
 # The two calendar dates the brief names, as ISO. Written here as dates and
@@ -88,9 +484,13 @@ WORKING_DAYS = measure("the working-day count instruction.md states for that spa
 # The table's rows, in the table's order. The instruction fixes the
 # multi-form tie by "whichever form is listed first in the table above",
 # so the order is part of the rule and not presentation.
-ADMITTED: tuple[str, ...] = (
-    measure("instruction.md's admitted form 1"),
-    measure("instruction.md's admitted form 2"),
+#
+# One question per row the brief actually shows, counted above rather than
+# written out here. A form the brief adds and this file never asks for
+# would count zero in `form_counts` with nothing complaining.
+ADMITTED: tuple[str, ...] = tuple(
+    measure(f"instruction.md's admitted form {number}")
+    for number in range(1, FORMS_STATED + 1)
 )
 
 _PENDING = [
@@ -341,11 +741,36 @@ def main() -> int:
     }
 
     # --- the checks a per-row comparison cannot make -----------------------
+    # The brief's own bullets, against the dict written just above. A
+    # renamed field is invisible to every other check in this file: the
+    # oracle carries the old name too, and the two agree.
+    #
+    # `refuse` and not `bad`, for two reasons. It is a broken instrument
+    # rather than a finding, and everything below reaches into a row by
+    # the column names read off the brief — collecting the problem and
+    # carrying on turns a clear message into a `KeyError` twenty lines
+    # later.
+    if tuple(mine) != REPORT_FIELDS:
+        refuse(
+            f"instruction.md asks for {REPORT_FIELDS}; this derivation writes "
+            f"{tuple(mine)}"
+        )
+    if rows and tuple(rows[0]) != ROW_FIELDS:
+        refuse(
+            f"instruction.md's row columns are {ROW_FIELDS}; this derivation "
+            f"writes {tuple(rows[0])}"
+        )
     key = KEY
-    if ROWS != "screened":
-        bad(f"criteria.py grades rows named {ROWS!r}; the deliverable has 'screened'")
-    if set(key) - {"matter", "timekeeper"}:
-        bad(f"criteria.py keys rows on {key}, which is not the row grain here")
+    # Also `refuse`: `key` indexes every row from here down, and `ROWS`
+    # names the list the oracle is read out of. Collecting either and
+    # carrying on reaches a `KeyError`, or an empty oracle list that
+    # looks like a real disagreement.
+    if ROWS != ROW_LIST:
+        refuse(
+            f"criteria.py grades rows named {ROWS!r}; the brief bullets {ROW_LIST!r}"
+        )
+    if set(key) - set(ROW_FIELDS):
+        refuse(f"criteria.py keys rows on {key}, which the brief does not bullet")
 
     # Counting `rows` before and after keying proves nothing: `rows` is
     # built by grouping on `key`, so the two counts are equal by
@@ -380,7 +805,7 @@ def main() -> int:
             )
     if len(rows) < 12:
         bad(f"only {len(rows)} rows — too thin to express partial credit")
-    for field in ("entries", "hours", "fees_dollars", "matter", "timekeeper"):
+    for field in ROW_FIELDS:
         if rows and len({row[field] for row in rows}) == 1:
             bad(f"screened.{field} carries one value in all {len(rows)} rows")
     if sum(mine["form_counts"].values()) != len(flagged):

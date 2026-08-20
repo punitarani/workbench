@@ -26,7 +26,7 @@ matched. Printing `end of week` beside the date hands the agent the
 checklist the task exists to withhold -- the same decomposition that made
 `self-review-exposure` score 1.000 three times over.
 
-measure("once the window is fixed, record here how many of its messages carry two forms resolving to different dates, and how many of those sit in one sentence. Twelve and four are the floors; below them this shape has nothing to measure")
+measure("once the window is fixed, record here how many of its messages carry two forms resolving to different dates, and how many of those sit in one sentence. Twelve and four are the floors; below them this shape has nothing to measure DISJOINT: this window must not overlap the one `deadline-week-promise-clock` uses. Both extract the same seven forms from mail, so a shared window makes them one measurement reported twice — the base extraction is the hard part and the extra graded facts only widen the gap between tiers. The record holds roughly 130 workdays; take windows from different months.")
 
 measure("the bound. messages_read counts only the window's messages, never the whole corpus: a figure over everything makes the agent read everything, and on a large record that alone turns a good score into no deliverable at all")
 """
