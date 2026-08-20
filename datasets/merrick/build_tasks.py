@@ -299,17 +299,19 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         answer = json.loads(produced.read_text())
         produced.unlink()
         oracle_path = task / "tests" / "oracle.json"
-        if refresh or not oracle_path.exists():
-            oracle_path.parent.mkdir(parents=True, exist_ok=True)
-            oracle_path.write_text(json.dumps(answer, indent=1) + "\n")
-            print(f"{name}: oracle written")
-        elif json.loads(oracle_path.read_text()) != answer:
+        # Compared now, written at the very end. Writing here left the file on
+        # disk when any later gate raised, and the next build found it,
+        # compared it equal to the same solver output, and printed "oracle
+        # verified" -- a key that had never passed reachability, degeneracy or
+        # the second derivation, wearing the word verified.
+        fresh = refresh or not oracle_path.exists()
+        if not fresh and json.loads(oracle_path.read_text()) != answer:
             raise SystemExit(
                 f"{name}: the reference solver no longer reproduces its oracle. "
                 "Rebuild the world or pass --refresh-truth deliberately."
             )
-        else:
-            print(f"{name}: oracle verified")
+
+        _refuse_empty_answer(answer, name)
 
         # An oracle the tools cannot spell is not an answer key, it is a
         # coin flip on which internal vocabulary the agent guesses. This
@@ -328,8 +330,7 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         for report in degenerate(answer):
             print(f"{name}: DEGENERATE {report}")
 
-        _run_second_derivation(task, name, oracle_path)
-        _ship_grading_base(task, name)
+        _commit_oracle(task, name, answer, oracle_path, fresh)
 
         bundle = task / "bundle"
         shutil.rmtree(bundle, ignore_errors=True)
@@ -383,6 +384,68 @@ def _calendar_units(world_log: Path) -> None:
         )
 
 
+def _commit_oracle(
+    task: Path, name: str, answer: dict, oracle_path: Path, fresh: bool
+) -> None:
+    """Write the answer key only if every remaining gate accepts it.
+
+    The verifier reads the oracle off disk, so it has to be written before
+    the gates that check it. It must not *survive* a gate that refuses:
+    previously the file was written early and left behind by any later raise,
+    so the next build found it, compared it equal to the same solver output,
+    and announced "oracle verified" for a key that had never passed
+    reachability or a second derivation.
+
+    Restoring the previous contents rather than always deleting matters when
+    a rebuild fails: an existing, good answer key should not be destroyed by
+    a run that could not finish.
+    """
+
+    oracle_path.parent.mkdir(parents=True, exist_ok=True)
+    existing = oracle_path.read_text() if oracle_path.exists() else None
+    oracle_path.write_text(json.dumps(answer, indent=1) + "\n")
+    try:
+        _run_second_derivation(task, name, oracle_path)
+        _ship_grading_base(task, name)
+    except BaseException:
+        if existing is None:
+            oracle_path.unlink(missing_ok=True)
+        else:
+            oracle_path.write_text(existing)
+        raise
+    print(f"{name}: oracle {'written' if fresh else 'verified'}")
+
+
+def _refuse_empty_answer(answer: dict, name: str) -> None:
+    """A task whose oracle has no rows passes every other gate.
+
+    Reachability finds no unserved identifier because there are no
+    identifiers. The second derivation agrees, because both sides produce
+    nothing and nothing equals nothing. Degeneracy reports no constant field
+    because there are no fields. Every check is satisfied and the task grades
+    an empty register, where a model that writes `[]` scores 1.0 and a model
+    that finds anything at all scores less.
+
+    That is not hypothetical here: three tasks were retired for producing
+    0-3 rows, and each was caught by measuring on purpose rather than by the
+    build refusing.
+    """
+
+    rows = [value for value in answer.values() if isinstance(value, list)]
+    if len(rows) != 1:
+        raise SystemExit(
+            f"{name}: expected exactly one list of rows in the oracle, found "
+            f"{len(rows)} — the emptiness gate cannot tell what to count."
+        )
+    if not rows[0]:
+        raise SystemExit(
+            f"{name}: the oracle has no rows. Every other gate passes on an "
+            "empty answer key — nothing is unreachable, both derivations "
+            "agree, no field is constant — and the task then rewards an "
+            "agent for reporting nothing. Widen the window or retire the rule."
+        )
+
+
 def _run_second_derivation(task: Path, name: str, oracle_path: Path) -> None:
     """Actually execute the task's independent verifier.
 
@@ -428,10 +491,20 @@ def _run_second_derivation(task: Path, name: str, oracle_path: Path) -> None:
         },
     )
     if result.returncode:
+        # Exit 1 is the verifier's considered disagreement; anything else is
+        # it failing to run. Reporting a crash as "the two derivations
+        # disagree" sends the reader looking for a rule mismatch that is not
+        # there.
+        crashed = result.returncode != 1
+        headline = (
+            f"{name}: the independent verifier could not run (exit {result.returncode})"
+            if crashed
+            else f"{name}: the independent verifier disagrees with the "
+            "reference solver, so one of the two is wrong and the oracle is "
+            "not an answer key"
+        )
         raise SystemExit(
-            f"{name}: the independent verifier disagrees with the reference "
-            f"solver, so one of the two is wrong and the oracle is not an "
-            f"answer key.\n{(result.stdout + result.stderr).strip()[-1200:]}"
+            f"{headline}.\n{(result.stdout + result.stderr).strip()[-1200:]}"
         )
     print(f"{name}: second derivation agrees")
 
@@ -478,7 +551,11 @@ def _ship_grading_base(task: Path, name: str) -> None:
 
     tests = task / "tests"
     if not (tests / "criteria.py").is_file():
-        return
+        raise SystemExit(
+            f"{name}: no tests/criteria.py, so nothing grades this task. "
+            "Returning quietly here made a task with no criteria a clean "
+            "pass, which is the loudest kind of silence."
+        )
     shutil.copyfile(CRITERIA_BASE, tests / CRITERIA_BASE.name)
 
     # Reproduce the grader's environment by *subtraction*, not by rebuilding
