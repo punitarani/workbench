@@ -219,6 +219,48 @@ still implements it. Say so in the failure message, and say not to paste
 the new digest in to make the check pass — because that is exactly what
 the next person will reach for.
 
+## A gate against a world you cannot regenerate must refuse on impact
+
+Two gates written in one session both had to be rewritten, for the same
+reason, and the second one was written after the first was fixed.
+
+Both refused on a **property of the generator**: one on the share of records
+whose timestamps were malformed, one on the presence of files the generator
+had left empty. Both were true measurements of real defects. Both would have
+blocked the only build available, because the generator was frozen mid-run
+and could not be corrected — so the gate's demand could not be met by any
+action anyone could take.
+
+The tempting repair is to raise the threshold until it passes. That is
+relaxing a gate because it fires, and it teaches everyone downstream that
+this gate means nothing. The real repair is to notice the gate is aimed at
+the wrong question.
+
+> Not *how much did the generator get wrong*, but **did any of it reach
+> something that ships**.
+
+Rewritten that way, both became stronger rather than weaker:
+
+- the timestamp gate reports the rate at any level and refuses only if a
+  malformed record survived into the **served** state, which the projection
+  quarantines — a check that cannot be satisfied by moving a number;
+- the empty-file gate reports, and blocks only if a task grades the content
+  that is missing — which the measurement cannot know and the caller can.
+
+**The distinction that decides it:** can a rebuild fix this? A file room
+that is 40% notes, a document lost to a name collision, an oracle naming an
+identifier no tool serves — all of those are shape problems, and the fix is
+to rebuild. Missing content, or a corrupt field the writer keeps writing, is
+not fixable downstream at all. Gate the first on presence. Gate the second
+on whether it reaches a score, and record the rest where the writer gets
+fixed.
+
+A related trap in the same family: a threshold calibrated while the world is
+still being written is calibrated against a moving number. One of these
+gates was set at 2% when the defect measured 8% and rising; it read 15% two
+weeks later. If a limit must be a number, derive it at build time from the
+finished record rather than freezing yesterday's reading into the source.
+
 ## Spot-checking your own work samples the case you built most carefully
 
 Eight mutations against the newest task, eight catches, conclusion: the
