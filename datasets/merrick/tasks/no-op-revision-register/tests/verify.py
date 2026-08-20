@@ -64,6 +64,18 @@ insists(
 )
 insists("not by UTC" in BRIEF, "dates are read in the firm's time zone, not UTC")
 insists(
+    "version's own id, exactly as iManage gives it" in BRIEF.replace("**", ""),
+    "the row key is the served version id, not an internal document id -- an "
+    "audit found the register keyed on `doc-000012`, which no tool emits, so "
+    "a perfect answer would have scored zero on every row",
+)
+insists(
+    "first version is its creation, not a revision, so" in BRIEF,
+    "versions_read excludes first versions. Left unstated, a literal reading "
+    "of the brief gave 133 where the oracle gives 86, and BOTH derivations "
+    "silently shared the exclusion -- so the cross-check could never see it",
+)
+insists(
     "cosmetic only" in BRIEF and "typo fix" in BRIEF,
     "the trivial-revision wordings are named as NOT admitting a row",
 )
@@ -104,6 +116,14 @@ def recompute(state: Path, window_days: int) -> dict:
     limit = window_days * 86_400
     who = dict(imanage.execute("SELECT person_id, name FROM people"))
     titled = dict(imanage.execute("SELECT document_id, name FROM documents"))
+    # Independently: read the library and number off the profile columns and
+    # rebuild the served id, rather than trusting the solver's formatting.
+    numbered = {
+        doc: f"LEGAL!{number}"
+        for doc, number in imanage.execute(
+            "SELECT document_id, document_number FROM documents"
+        )
+    }
 
     rows, read = [], 0
     for doc, number, author, comment, at in imanage.execute(
@@ -116,8 +136,7 @@ def recompute(state: Path, window_days: int) -> dict:
             continue
         rows.append(
             {
-                "document_ref": doc,
-                "version": number,
+                "document_ref": f"{numbered[doc]}.{number}",
                 "author": who.get(author, author),
                 "revised_date": (epoch + datetime.timedelta(seconds=at))
                 .date()
@@ -125,7 +144,7 @@ def recompute(state: Path, window_days: int) -> dict:
                 "document_name": titled.get(doc, ""),
             }
         )
-    rows.sort(key=lambda r: (r["document_ref"], r["version"]))
+    rows.sort(key=lambda r: r["document_ref"])
     return {"versions_read": read, "no_op_revisions": rows}
 
 

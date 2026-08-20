@@ -24,8 +24,10 @@ from criteria_base import *  # noqa: F401,F403
 
 # The list in the deliverable carrying one entry per no-op revision.
 ROWS = "no_op_revisions"
-# A version is named by its document and its number. Nothing else is unique.
-KEY = ("document_ref", "version")
+# The served version id names a version uniquely on its own -- `LEGAL!12.3`
+# is version 3 of document 12 -- so no separate version column is graded.
+# Grading one would be a free point: it is derivable from the key.
+KEY = ("document_ref",)
 # Author, date and document name are strings the record states outright.
 # Exact is the only defensible tolerance for any of them.
 FIELDS: dict[str, float] = {

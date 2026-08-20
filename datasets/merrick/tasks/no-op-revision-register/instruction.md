@@ -84,8 +84,7 @@ Write `no_op_revisions.json` to the workspace root:
   "versions_read": 0,
   "no_op_revisions": [
     {
-      "document_ref": "doc-000012",
-      "version": 3,
+      "document_ref": "LEGAL!12.3",
       "author": "Rosalie Duchamp",
       "revised_date": "2026-01-21",
       "document_name": "Standard rates card"
@@ -95,14 +94,21 @@ Write `no_op_revisions.json` to the workspace root:
 ```
 
 One row per no-op version. A document revised nine times can contribute
-several rows, and `version` is what tells them apart.
+several rows.
+
+`document_ref` is the **version's own id, exactly as iManage gives it** —
+`LEGAL!12.3` is version 3 of document 12, and it is the `id` field on every
+profile and every row `get_document_versions` returns. It already names the
+version, so there is no separate version column to fill in.
 
 `author` is the person's full name as the firm's records give it, not the
 internal identifier. `document_name` is the document's own name as iManage
 holds it.
 
-`versions_read` counts the version comments inside the window — the ones
-you actually had to read.
+`versions_read` counts the **revisions** inside the window — the ones you
+had to read. A document's first version is its creation, not a revision, so
+it is not counted here any more than it makes a row. Every later version
+is counted whatever its comment says.
 
 ## What is being measured
 

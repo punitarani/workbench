@@ -77,6 +77,12 @@ def main() -> None:
         dict(imanage.execute("SELECT key, value FROM meta"))["epoch"]
     )
     people = dict(imanage.execute("SELECT person_id, name FROM people"))
+    # The row key has to be an id the tools actually emit. `doc-000012` is
+    # internal: no iManage surface returns it as a field, so an agent has no
+    # way to write it and a perfect answer would score zero on every row.
+    # `LEGAL!{number}.{version}` is what `get_document_versions` returns and
+    # what every profile carries as `id`.
+    served = dict(imanage.execute("SELECT document_id, document_number FROM documents"))
     names = dict(imanage.execute("SELECT document_id, name FROM documents"))
 
     rows = []
@@ -98,8 +104,7 @@ def main() -> None:
             continue
         rows.append(
             {
-                "document_ref": document_id,
-                "version": version,
+                "document_ref": f"LEGAL!{served[document_id]}.{version}",
                 "author": people.get(author, author),
                 "revised_date": (epoch + datetime.timedelta(seconds=when))
                 .date()
