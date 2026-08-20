@@ -50,3 +50,6 @@ datasets/**/.workbench/
 # Harbor job output (trajectories, rewards, artifacts)
 jobs/
 datasets/*/tasks/*/tests/criteria_base.py
+datasets/merrick/tasks/*/tests/answer/
+datasets/merrick/tasks/*/tests/process/
+datasets/merrick/tasks/*/tests/test.sh

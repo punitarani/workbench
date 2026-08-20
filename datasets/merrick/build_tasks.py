@@ -41,6 +41,12 @@ TASKS = Path(__file__).resolve().parent / "tasks"
 # `tests/` directory on `sys.path` and imports this by name, so a copy has
 # to sit beside it in the staged task -- see `_ship_grading_base`.
 CRITERIA_BASE = Path(__file__).resolve().parent / "criteria_base.py"
+# The invocation layer. Declaring a criterion and registering one are
+# different acts: the decorators in `criteria_base` make `rk.row_f1(...)`
+# available, and something has to call it with this task's oracle before
+# Reward Kit has a reward to compute. Without these three files a task
+# discovers **zero** rewards and every trial returns no score at all.
+GRADING = Path(__file__).resolve().parent / "grading"
 SHARED_BUNDLE = REPO / "out" / "merrick" / "bundle"
 _SOURCE = SHARED_BUNDLE / "SOURCE"
 # The world the current bundle was built from, as the last build recorded
@@ -591,6 +597,18 @@ def _ship_grading_base(task: Path, name: str) -> None:
     """
 
     tests = task / "tests"
+    # answer/ and process/ are Reward Kit's two dimensions; test.sh is the
+    # entrypoint that runs it. All three were missing from every task in this
+    # dataset, so nothing invoked the criteria at all.
+    for source, destination in (
+        (GRADING / "grade.py", tests / "answer" / "grade.py"),
+        (GRADING / "method.py", tests / "process" / "method.py"),
+        (GRADING / "test.sh", tests / "test.sh"),
+    ):
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+    (tests / "test.sh").chmod(0o755)
+
     if not (tests / "criteria.py").is_file():
         raise SystemExit(
             f"{name}: no tests/criteria.py, so nothing grades this task. "

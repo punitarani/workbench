@@ -21,6 +21,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from criteria_base import *  # noqa: F401,F403
 
+# The file the agent writes. Named here because the grading invocation
+# reads it from this module -- it is the one thing about a task's
+# grading that its criteria cannot derive from the oracle.
+DELIVERABLE = "promise_clock.json"
+
 # The list in the deliverable that carries one entry per resolved promise.
 ROWS = "promises"
 # The fields that together name exactly one row.
