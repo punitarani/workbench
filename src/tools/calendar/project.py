@@ -15,6 +15,7 @@ from core.events.calendar import (
     CalendarEventUpdatedPayload,
     CalendarResponsePayload,
 )
+from core.simtime import misread_unit
 from tools.calendar.tables import (
     ATTENDEES,
     CALENDAR_EVENTS,
@@ -42,8 +43,41 @@ RESPONSE_STATUS = {
 def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
     scheduled: dict[str, CalendarEvent] = {}
     attendees: dict[str, dict[str, Attendee]] = {}
+    # Starts written in the wrong unit are dropped rather than served.
+    #
+    # One recorded world put two wrong units through this one field: a
+    # wall-clock time of day that had lost its date, and absolute Unix
+    # timestamps landing in 2081. Neither raises -- each is a plausible
+    # integer projecting into a plausible row -- and the served diary then
+    # holds meetings before the firm opened.
+    #
+    # The test is causal rather than by magnitude, because with a midnight
+    # epoch a first-day 08:45 meeting and a lost wall-clock time are the
+    # same number. `core.simtime.misread_unit` compares the start against
+    # the moment the scheduling was recorded; judging by size alone dropped
+    # eight legitimate first-day meetings here.
+    #
+    # This removes provably corrupt rows; it never invents a replacement.
+    # Which day a wall-clock time meant is not recoverable, so repairing one
+    # would put a guess where an agent reads a fact. Responses and attendee
+    # rows for a dropped event go with it, because a reference to an event
+    # the calendar does not serve is worse than the absence of both.
+    #
+    # The writer is the real fix -- the referee grounding these accepts any
+    # integer that is merely larger than the one before it. This is what a
+    # downstream layer can do while a recording is in flight.
+    quarantined: set[str] = set()
     for event in events:
         payload = event.payload
+        if isinstance(payload, CalendarEventScheduledPayload) and misread_unit(
+            int(payload.start), int(event.time)
+        ):
+            quarantined.add(payload.calendar_event_id)
+
+    for event in events:
+        payload = event.payload
+        if getattr(payload, "calendar_event_id", None) in quarantined:
+            continue
         if isinstance(payload, CalendarEventScheduledPayload):
             scheduled[payload.calendar_event_id] = CalendarEvent(
                 calendar_event_id=payload.calendar_event_id,

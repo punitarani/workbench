@@ -367,7 +367,7 @@ def _calendar_units(world_log: Path) -> None:
     """
 
     starts = [
-        (event.payload.calendar_event_id, int(event.payload.start))
+        (event.payload.calendar_event_id, int(event.payload.start), int(event.time))
         for event in read_events(world_log)
         if event.tag == "calendar.event.scheduled"
     ]

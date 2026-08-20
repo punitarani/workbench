@@ -4,12 +4,17 @@ A simulated world keeps time as seconds from the run's epoch. Three
 incompatible units turned up in one recorded calendar, all written by the
 same field:
 
-* **seconds from epoch** — correct, 716 of 782 events;
-* **seconds from midnight** — 45 events, where an author wrote a wall-clock
-  time (`31500` = 08:45) into an offset field. Every one of them lands on
-  day zero;
-* **absolute Unix timestamps** — 21 events, which land fifty-four years
+* **a wall-clock time that lost its date** — 40 events, written as
+  `31500` (08:45) into a field holding an offset, so each lands on the
+  epoch's own day;
+* **an absolute Unix timestamp** — 23 events, landing fifty-four years
   past the epoch.
+
+Judging these by magnitude does not work: with a midnight epoch, `31500` is
+also exactly what a legitimate 08:45 meeting on the first day looks like,
+and 8 such events in this world are real. The discriminator is causal —
+a start earlier than the moment the event was recorded was scheduled into
+the past.
 
 Neither wrong unit raises. Both produce a plausible integer, project into a
 plausible row, and serve a plausible event, so nothing in the pipeline
@@ -34,15 +39,11 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-# A start below one day is a time-of-day that lost its date. This is safe
-# because a legitimate event on the epoch's own first day still carries the
-# epoch offset for that day, which is at minimum the working day's start.
-TIME_OF_DAY = 86_400
+from core.simtime import misread_unit
 
-# Unix timestamps for any plausible present are far above any offset a
-# simulated run of months could reach; a decade of simulated seconds is
-# ~3.2e8, and 1e9 is comfortably clear of it.
-ABSOLUTE_EPOCH = 1_000_000_000
+# The rule itself lives in `core.simtime`: the projection that drops
+# corrupt rows and this gate that reports them have to agree, and two copies
+# of a boundary drift the first time one is tuned.
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,35 +82,35 @@ class Report:
         )
 
 
-def classify(start: int) -> str | None:
-    """The unit a start was probably written in, or None when it is right."""
+def classify(start: int, recorded_at: int) -> str | None:
+    """Why a start cannot be simulated time, or None when it is fine."""
 
-    if start < 0:
-        return "negative"
-    if start < TIME_OF_DAY:
-        return "seconds-from-midnight"
-    if start >= ABSOLUTE_EPOCH:
-        return "absolute-unix"
-    return None
+    return misread_unit(start, recorded_at)
 
 
-def inspect(events: Iterable[tuple[str, int]]) -> Report:
-    """Classify every `(event_id, start)` pair."""
+def inspect(events: Iterable[tuple[str, int, int]]) -> Report:
+    """Classify every `(event_id, start, recorded_at)` triple.
+
+    `recorded_at` is required rather than optional: it is the whole reason
+    this is a measurement and not a restatement of the threshold. An earlier
+    version took only the start, judged it by magnitude, and could not tell
+    a first-day morning meeting from a wall-clock time that had lost its
+    date -- and the "verification" of that version filtered the world by the
+    same threshold that defined the fault.
+    """
 
     rows = list(events)
     return Report(
         total=len(rows),
         suspects=tuple(
             Suspect(event_id, start, unit)
-            for event_id, start in rows
-            if (unit := classify(start)) is not None
+            for event_id, start, recorded_at in rows
+            if (unit := classify(start, recorded_at)) is not None
         ),
     )
 
 
 __all__ = [
-    "ABSOLUTE_EPOCH",
-    "TIME_OF_DAY",
     "Report",
     "Suspect",
     "classify",
