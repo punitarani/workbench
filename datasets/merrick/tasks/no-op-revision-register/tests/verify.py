@@ -1,0 +1,150 @@
+"""Second derivation of the no-op register, read out of the brief.
+
+An independent verifier exists so the answer key is derived twice. A
+verifier that copies the solver's regexes reproduces the solver's bugs and
+then certifies that the two agree, which is a check that cannot fail; two
+published scores in this repo were certified exactly that way.
+
+So this file shares no rule literal with `solve.py`. The admitted phrases
+are **parsed out of `instruction.md`** -- the prose the agent is graded
+against -- and matched with plain string containment rather than a second
+regex. A brief that changes what it admits changes what this verifier
+admits, in the same edit.
+
+Zero shared code is still not enough on its own: two files can hardcode the
+same reading of a spec and never disagree. `insists` is the guard. Every
+assumption the arithmetic makes is asserted against the brief's text, so
+flipping the brief fails here instead of passing quietly. That guard earned
+its place on a sibling task, where an anchor straddled a line break, matched
+nothing, and would have left the verifier checking an empty rule and
+passing everything.
+"""
+
+import json
+import sqlite3
+import sys
+from pathlib import Path
+
+TASK = Path(__file__).resolve().parents[1]
+BRIEF = (TASK / "instruction.md").read_text(encoding="utf-8")
+
+
+class BriefChanged(AssertionError):
+    """The brief no longer says what this file's arithmetic assumes."""
+
+
+def insists(condition: object, what: str) -> None:
+    if not condition:
+        raise BriefChanged(
+            f"instruction.md no longer states: {what}. The verifier's "
+            "arithmetic assumes it. Re-read the brief and this file together "
+            "-- do not relax the assertion."
+        )
+
+
+def _admitted_phrases() -> list[str]:
+    head = BRIEF.split("carries one of exactly these", 1)
+    insists(len(head) == 2, "the sentence introducing the admitted phrases")
+    body = head[1].split("Case does not matter", 1)[0]
+    lines = [ln.strip() for ln in body.splitlines() if ln.startswith("    ")]
+    found = [w.strip() for ln in lines for w in ln.split(",") if w.strip()]
+    insists(found, "the admitted phrases as an indented, comma-separated block")
+    return found
+
+
+PHRASES = _admitted_phrases()
+
+insists(len(PHRASES) == 6, f"six admitted phrases (found {len(PHRASES)})")
+insists(
+    "first version is its creation" in BRIEF,
+    "a document's first version is a creation and never makes a row",
+)
+insists("not by UTC" in BRIEF, "dates are read in the firm's time zone, not UTC")
+insists(
+    "cosmetic only" in BRIEF and "typo fix" in BRIEF,
+    "the trivial-revision wordings are named as NOT admitting a row",
+)
+# The brief names these as excluded. If one ever appears among the admitted
+# phrases the rule has collapsed, and both files would collapse together.
+for trap in ("only formatting", "typo fix", "minor cleanup", "cosmetic only"):
+    insists(
+        not any(trap in phrase.lower() for phrase in PHRASES),
+        f"{trap!r} stays out of the admitted list",
+    )
+
+
+def admits(comment: str) -> bool:
+    folded = " ".join(comment.lower().split())
+    return any(" ".join(phrase.lower().split()) in folded for phrase in PHRASES)
+
+
+def recompute(state: Path, window_days: int) -> dict:
+    import datetime
+
+    imanage = sqlite3.connect(f"file:{state / 'imanage.db'}?mode=ro", uri=True)
+    epoch = datetime.datetime.fromisoformat(
+        dict(imanage.execute("SELECT key, value FROM meta"))["epoch"]
+    )
+    limit = window_days * 86_400
+    who = dict(imanage.execute("SELECT person_id, name FROM people"))
+    titled = dict(imanage.execute("SELECT document_id, name FROM documents"))
+
+    rows, read = [], 0
+    for doc, number, author, comment, at in imanage.execute(
+        "SELECT document_id, version, author, comment, time FROM versions"
+    ):
+        if at >= limit or number <= 1:
+            continue
+        read += 1
+        if not admits(comment):
+            continue
+        rows.append(
+            {
+                "document_ref": doc,
+                "version": number,
+                "author": who.get(author, author),
+                "revised_date": (epoch + datetime.timedelta(seconds=at))
+                .date()
+                .isoformat(),
+                "document_name": titled.get(doc, ""),
+            }
+        )
+    rows.sort(key=lambda r: (r["document_ref"], r["version"]))
+    return {"versions_read": read, "no_op_revisions": rows}
+
+
+def main() -> int:
+    if len(sys.argv) != 4:
+        print("usage: verify.py <state-dir> <window-days> <oracle.json>")
+        return 2
+    mine = recompute(Path(sys.argv[1]), int(sys.argv[2]))
+    theirs = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
+    ok = True
+    if mine["versions_read"] != theirs.get("versions_read"):
+        print(
+            f"versions_read: {mine['versions_read']} vs {theirs.get('versions_read')}"
+        )
+        ok = False
+    left = {(r["document_ref"], r["version"]): r for r in mine["no_op_revisions"]}
+    right = {
+        (r["document_ref"], r["version"]): r for r in theirs.get("no_op_revisions", [])
+    }
+    for key in sorted(set(left) | set(right)):
+        if key not in right:
+            print(f"only the verifier admits {key}")
+            ok = False
+        elif key not in left:
+            print(f"only the solver admits {key}")
+            ok = False
+        elif left[key] != right[key]:
+            print(f"{key} differs: {left[key]} vs {right[key]}")
+            ok = False
+    print(
+        f"{'agree' if ok else 'DISAGREE'}: "
+        f"{len(left)} verifier rows, {len(right)} solver rows"
+    )
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

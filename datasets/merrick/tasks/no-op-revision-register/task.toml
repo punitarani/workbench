@@ -1,0 +1,106 @@
+schema_version = "1.3"
+
+# Merrick Stanton LLP: litigation and transactions, 21 professionals, six
+# months of recorded working days. The agent reads the firm's own record
+# through five tool surfaces and delivers one JSON register; grading is
+# outcome-based against an oracle computed from the same world state.
+
+[task]
+name = "workbench/merrick-no-op-revision-register"
+description = """Find the document revisions that changed nothing, from \
+version comments that spend seventy words describing the document and one \
+clause admitting no substantive edit was made."""
+authors = [{ name = "Workbench" }]
+keywords = [
+    "legal",
+    "agentic",
+    "prose-extraction",
+    "rule-literalism",
+    "minority-class",
+    "outcome-graded",
+    "mcp",
+]
+
+[metadata]
+dataset = "merrick"
+difficulty = "hard"
+skills = [
+    "rule-literalism",
+    "prose-extraction",
+    "precision-under-temptation",
+    "completeness",
+]
+agent_data_scope = "Firm-wide Gmail, Slack, Clio, Calendar and iManage records from the recorded six-month epoch."
+
+[metadata.evidence]
+primary_field = "no_op_revisions.json"
+source_surfaces = ["imanage"]
+
+[environment]
+docker_image = "workbench:dev"
+os = "linux"
+workdir = "/home/agent/workspace"
+memory_mb = 4096
+network_mode = "allowlist"
+allowed_hosts = [
+    "openrouter.ai",
+    "raw.githubusercontent.com",
+    "objects.githubusercontent.com",
+    "nodejs.org",
+    "registry.npmjs.org",
+    "*.ubuntu.com",
+    # The hermes harness bootstraps `uv` from astral.sh and installs from
+    # PyPI. Setup hosts only -- they gate how the agent is installed, never
+    # what it can read, so no task's data or difficulty moves.
+    "astral.sh",
+    "*.astral.sh",
+    "github.com",
+    "codeload.github.com",
+    "*.githubusercontent.com",
+    "pypi.org",
+    "*.pypi.org",
+    "files.pythonhosted.org",
+    "*.nousresearch.com",
+]
+
+[environment.healthcheck]
+command = "sh /home/agent/workspace/.workbench/install.sh"
+timeout_sec = 600.0
+interval_sec = 2.0
+retries = 2
+
+[[environment.mcp_servers]]
+name = "gmail"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-gmail"
+
+[[environment.mcp_servers]]
+name = "slack"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-slack"
+
+[[environment.mcp_servers]]
+name = "imanage"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-imanage"
+
+[[environment.mcp_servers]]
+name = "clio"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-clio"
+
+[[environment.mcp_servers]]
+name = "calendar"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-calendar"
+
+[agent]
+user = "agent"
+timeout_sec = 1800.0
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
+
+[verifier]
+user = "verifier"
+timeout_sec = 900.0
+network_mode = "no-network"
