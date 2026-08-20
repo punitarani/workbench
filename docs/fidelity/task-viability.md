@@ -252,3 +252,51 @@ on exactly that standard. A confirmation is still a claim. Applying the same
 scepticism in the other direction cost one measurement and saved a viable
 task from retirement — and, since it is the fifth, saved authoring a
 replacement for it.
+
+## The dry-run ceiling was the expected result, and the real question is elsewhere
+
+Six frontier-class attempts across two briefs all returned F1 = 1.000. Read
+alone that looks like two tasks with no difficulty in them. It is not what it
+looks like.
+
+The band is a **mean over three tiers** and a budget on the weak pair: with
+the frontier at 1.000, the other two must sum to ≤ 1.40. Frontier 1.000 is
+the precondition, not the failure — a task is defective when the frontier
+*misses*, because then nobody can do it. The three tasks that landed in band
+on the comparison world scored 0.576, 0.761 and 0.774 on that mean.
+
+What the in-band task actually measured is recorded and worth restating: the
+weak model **read 1,574 of 1,585 messages and still produced 48 of 110
+rows.** It was not failing to find the text. It caught 23 of 82 occurrences
+of the admitted word — applying the stated rule to prose it had already read.
+That is rule difficulty, it is a rate, and it survives bounding. Its lever
+was an off-sense share of **79%**.
+
+So the useful question the dry run raises is not "are these too easy" but
+**"does each task have an off-sense lever at all?"**
+
+| task | lever | off-sense share |
+|---|---|---|
+| `off-sense-register` | the admitted word means something else | 66%, measured |
+| `no-op-revision-register` | admitted phrases against near-misses the record actually writes | present — `no edits were made`, `no edit was made`, `no edit made` all occur and are all excluded |
+| `deadline-week-promise-clock` | date forms, four live of seven | partial: 62% of hits are one form needing no arithmetic |
+| `prebill-narrative-screen` | a family over time-entry notes | **not found** — best probe 53% and misread upward |
+| `unanswered-question-register` | — | **none. The admission test is a literal `?`, which is unambiguous.** |
+
+The last row is the finding. Every other task asks a reader to resist a
+plausible second reading; this one asks whether a character is present. A
+weak tier that reads the threads will get the rows, because there is nothing
+to be wrong about except the working-day arithmetic — and that is a small,
+checkable computation rather than a judgement repeated across every row.
+
+It may still land: the three-working-day boundary, the Cc-versus-To
+distinction and the four late replies are all places to lose a row. But they
+are *few* places, not a rate applied to every row, and the difference between
+those two is exactly what eight failed levers on the comparison world
+established.
+
+**Measure it first in the real sweep rather than pre-emptively rebuilding
+it.** If the weak pair sums well above 1.40, the honest repair is an
+admission rule with an off-sense lever — for instance admitting only
+questions carrying a specific interrogative form rather than any `?` — and
+that is a rewrite of the rule, not a tuning of the window.
