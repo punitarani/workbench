@@ -14,7 +14,9 @@ This skill is the index. Load the one that matches your phase.
 | phase | skill |
 |---|---|
 | generating a world, its records, its documents | `building-simulated-worlds` |
-| turning that world into a graded task | `authoring-graded-tasks` |
+| keeping a multi-hour recording alive without corrupting it | `running-recorded-simulations` |
+| checking a task idea against what the world actually holds | `validating-task-premises` |
+| turning a surviving premise into a graded task | `authoring-graded-tasks` |
 | proving the task is fair before spending a rollout | `gating-environment-quality` |
 | reading trials and classifying what went wrong | `analyzing-rollout-failures` |
 | the score is out of band and you need to move it | `iterating-task-difficulty` |
@@ -46,22 +48,32 @@ suspect yourself first.
 
 ## The loop
 
-1. **Record a world.** Deterministic, fails loudly, coherence green.
+1. **Record a world.** Deterministic, fails loudly, coherence green. A
+   recording measured in hours needs a supervisor that resumes rather
+   than restarts, and a freeze on anything that changes what is being
+   written — see `running-recorded-simulations`.
 2. **Rebuild derived state wholesale** and reconcile counts against the
    source of truth.
-3. **Cut a task.** Brief, stated rule, declared rule-kind, structural
+3. **Measure the premise before cutting the task.** Does the pattern
+   occur at all, is it spread rather than piled at one edge of the
+   window, can the agent reach it through a tool, and does the rule
+   discriminate? Premises written from a reasonable picture of the domain
+   fail often enough that this pays for itself immediately, and a starved
+   premise produces rows nobody can find — which reads as model failure.
+   See `validating-task-premises`.
+4. **Cut a task.** Brief, stated rule, declared rule-kind, structural
    floors met.
-4. **Gate it.** Falsify each gate once — break the thing deliberately and
+5. **Gate it.** Falsify each gate once — break the thing deliberately and
    confirm the gate fails.
-5. **Measure at k≥3, and k=9 wherever completion is unreliable.** Read
+6. **Measure at k≥3, and k=9 wherever completion is unreliable.** Read
    every trial log before recording a number.
-6. **Classify every miss.** Anything not M is a defect: fix it and return
-   to step 4.
-7. **When the numbers move, re-derive the queue from the blocking
+7. **Classify every miss.** Anything not M is a defect: fix it and return
+   to step 5.
+8. **When the numbers move, re-derive the queue from the blocking
    condition** rather than extending the previous plan. Long asynchronous
    work drifts silently: nothing errors, and the runs keep measuring
    something you have stopped needing.
-8. **Write down what generalizes** — as guidance, not as a run record.
+9. **Write down what generalizes** — as guidance, not as a run record.
 
 ## Where findings go
 

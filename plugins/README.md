@@ -18,7 +18,9 @@ Then `claude plugin install rl-env-factory@workbench-marketplace`.
 |---|---|
 | `measuring-model-limits` | entry point — the E/D/H/T/M taxonomy and the loop |
 | `building-simulated-worlds` | generating a world, its records, its documents |
-| `authoring-graded-tasks` | turning a world into a graded task |
+| `running-recorded-simulations` | supervising a run measured in hours, without corrupting it |
+| `validating-task-premises` | checking a task idea against what the world actually holds |
+| `authoring-graded-tasks` | turning a surviving premise into a graded task |
 | `gating-environment-quality` | adding a check, or deciding whether to trust one |
 | `analyzing-rollout-failures` | reading trials, classifying a miss |
 | `iterating-task-difficulty` | the score is out of band and must move |
