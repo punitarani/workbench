@@ -289,6 +289,7 @@ def compile_workplace(
                 priority=ticket.priority,
                 ticket_type=ticket.ticket_type,
                 client_ref=ticket.client_ref,
+                standing=ticket.standing,
             )
         )
 

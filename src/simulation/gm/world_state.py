@@ -60,6 +60,7 @@ class WorldStateModel(BaseModel):
     document_formats: tuple[tuple[str, str], ...] = ()
     document_authors: tuple[tuple[str, str], ...] = ()
     document_heads: tuple[tuple[str, str], ...] = ()
+    standing_tickets: tuple[str, ...] = ()
     tickets: tuple[tuple[str, tuple[tuple[str, str | None], ...]], ...] = Field(
         default=()
     )
@@ -95,6 +96,10 @@ class WorldState:
         self.document_authors: dict[str, str] = {}
         self.document_heads: dict[str, str] = {}
         self.tickets: dict[str, dict[str, str | None]] = {}
+        # Institution-wide codes anybody may book to, declared by the
+        # world rather than inferred from a ticket having no client — a
+        # persona's runtime tickets have no client either.
+        self.standing_tickets: set[str] = set()
         self.plan_revisions: dict[str, int] = {}
         self.meetings: dict[str, MeetingProgress] = {}
         # Invitations can only be answered for meetings that exist.
@@ -151,6 +156,11 @@ class WorldState:
                     self.documents[payload.document_id] = payload.revision
                     self.document_heads[payload.document_id] = payload.content
             case TicketCreatedPayload():
+                if payload.standing:
+                    # Kept beside the ticket dict rather than inside it:
+                    # that dict serialises as `str | None` values, and a
+                    # bool in there breaks every snapshot restore.
+                    self.standing_tickets.add(payload.ticket_id)
                 self.tickets[payload.ticket_id] = {
                     "title": payload.title,
                     "description": payload.description,
@@ -213,6 +223,7 @@ class WorldState:
             document_formats=tuple(sorted(self.document_formats.items())),
             document_authors=tuple(sorted(self.document_authors.items())),
             document_heads=tuple(sorted(self.document_heads.items())),
+            standing_tickets=tuple(sorted(self.standing_tickets)),
             tickets=tuple(
                 (ticket_id, tuple(sorted(values.items())))
                 for ticket_id, values in sorted(self.tickets.items())
@@ -251,6 +262,7 @@ class WorldState:
         state.document_authors = dict(model.document_authors)
         state.document_heads = dict(model.document_heads)
         state.tickets = {ticket_id: dict(values) for ticket_id, values in model.tickets}
+        state.standing_tickets = set(model.standing_tickets)
         state.plan_revisions = dict(model.plan_revisions)
         state.meetings = {m.meeting_id: m for m in model.meetings}
         state.dm_streaks = dict(model.dm_streaks)

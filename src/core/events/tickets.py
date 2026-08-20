@@ -31,6 +31,22 @@ class TicketCreatedPayload(Payload):
     priority: str
     ticket_type: str
     client_ref: OrgId | None = None
+    # An institution-wide code anybody may book to — administration,
+    # internal meetings, business development. Declared, never inferred.
+    #
+    # It was inferred, from `client_ref is None`, and that is also the
+    # default for every ticket a persona opens at runtime: the grounding
+    # path does not set a client. So real matters people created were
+    # classified as standing codes, hoisted to the head of every bookable
+    # list, and — because the snapshot drops client-less tickets from
+    # tracker and effort rows — the time booked to them left the client
+    # record silently. Measured on a live world at day nine: two runtime
+    # tickets, 97 of 1,323 entries, 3,038 minutes.
+    #
+    # Defaulting False means a lookup miss errs toward "not standing",
+    # which is the safe direction: the cost is a code that gets bounded
+    # away, not work that disappears.
+    standing: bool = False
     fields: tuple[TicketField, ...] = ()
 
 

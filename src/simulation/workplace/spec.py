@@ -63,6 +63,9 @@ class SeedTicket(_Model):
     priority: str
     ticket_type: str
     client_ref: str | None = None
+    # True for the institution's own standing codes. Anyone may book to
+    # them, so they are never bounded out of a timesheet turn's list.
+    standing: bool = False
 
 
 class SeedCalendarEvent(_Model):

@@ -764,6 +764,10 @@ def epoch_spec(days: int = FULL_WINDOW_DAYS) -> WorkplaceSpec:
                 priority=priority,
                 ticket_type=ticket_type,
                 client_ref=client_ref,
+                # The firm's own standing codes, declared rather than
+                # inferred from the absence of a client — a persona's
+                # runtime tickets carry no client either.
+                standing=client_ref is None,
             )
             for (
                 title,

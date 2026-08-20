@@ -29,10 +29,33 @@ def _firm(n: int) -> str:
     return f"tkt-{n:06d} Firm - standing code {n}"
 
 
-def _tickets(client_ids: range, firm_ids: range) -> dict:
-    out = {f"tkt-{n:06d}": {"client_ref": f"org-{n}"} for n in client_ids}
-    out.update({f"tkt-{n:06d}": {"client_ref": None} for n in firm_ids})
-    return out
+def _tickets(client_ids: range, firm_ids: range) -> set[str]:
+    """The ids the world *declares* standing. Anything absent is not."""
+
+    return {f"tkt-{n:06d}" for n in firm_ids}
+
+
+def test_a_runtime_ticket_is_not_a_standing_code() -> None:
+    """The class was inferred from a missing client, and the grounding
+    path does not set one — so every matter a persona opened at runtime
+    was swept in, hoisted to the head of every bookable list, and its time
+    dropped from the client record by the snapshot. Measured on a live
+    world at day nine: two such tickets, 97 of 1,323 entries.
+
+    A lookup miss must err toward *not* standing. The cost of that
+    direction is a code bounded away; the cost of the other is work that
+    disappears.
+    """
+
+    mine = [_client(1)]
+    # A ticket with no client and no declaration — exactly a runtime one.
+    others = [_client(n) for n in range(2, 30)] + ["tkt-000031 Okafor write-down"]
+    # No declaration for the runtime ticket, which is the whole point.
+    kept = _within_cap(mine, others, _tickets(range(1, 30), range(0, 0)))
+    assert "tkt-000031 Okafor write-down" not in kept[: 1 + 0], kept
+    # It may appear as ordinary context, but never as an unbounded
+    # bookable entry ahead of everything else.
+    assert len(kept) == 1 + _CONTEXT_CAP
 
 
 def test_a_small_book_is_untouched_in_content_and_order() -> None:

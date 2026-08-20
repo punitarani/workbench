@@ -186,7 +186,9 @@ def _reject_unless_parsable(content_format: str, content: str, label: str) -> No
 _CONTEXT_CAP = 16
 
 
-def _within_cap(mine: list[str], others: list[str], tickets: dict) -> tuple[str, ...]:
+def _within_cap(
+    mine: list[str], others: list[str], standing_ids: set[str]
+) -> tuple[str, ...]:
     """The engagements a timesheet turn is shown.
 
     You cannot book time to a code you cannot see, so the list bounds the
@@ -208,14 +210,17 @@ def _within_cap(mine: list[str], others: list[str], tickets: dict) -> tuple[str,
     reads as working, because juniors are the common case.
     """
 
-    firm_wide = [
-        line
-        for line in others
-        if tickets.get(line.split(" ", 1)[0], {}).get("client_ref") is None
-    ]
-    context = [line for line in others if line not in firm_wide]
-    # Everything bookable, then as much context as the cap allows.
-    return tuple(mine + firm_wide + context[:_CONTEXT_CAP])
+    # Declared standing codes only. Inferring them from a missing client
+    # swept up every ticket a persona opened at runtime, because the
+    # grounding path does not set one — and those are ordinary matters
+    # whose time then vanished from the client record.
+    standing = [line for line in others if line.split(" ", 1)[0] in standing_ids]
+    context = [line for line in others if line not in standing]
+    # Everything bookable, then as much context as the cap allows. The
+    # bookable half is bounded too — by how many standing codes the world
+    # declares, which is a fixed small number — where inferring the class
+    # let it grow without limit as people opened matters.
+    return tuple(mine + standing + context[:_CONTEXT_CAP])
 
 
 def _validated_format(create: DocumentCreateSpec) -> str:
@@ -534,7 +539,7 @@ class GroundedGm:
                 for ticket_id, values in self._world.tickets.items()
                 if values.get("assignee") != person
             ]
-            engagements = _within_cap(mine, others, self._world.tickets)
+            engagements = _within_cap(mine, others, self._world.standing_tickets)
             return TimesheetActionSpec(
                 day=event.payload.day,
                 engagements=engagements,
