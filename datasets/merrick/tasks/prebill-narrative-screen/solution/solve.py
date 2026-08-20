@@ -70,6 +70,42 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("prebill_screen.json")
 # way — from the calendar dates the instruction names — precisely so that
 # a shifted boundary cannot pass unnoticed. A boundary the solver and the
 # oracle share is not checked by their agreeing.
+# --- the family screen over notes, probed at day 30 of 130 -----------
+#
+# This task inherits a 60% off-sense bar from a pure-literalism register.
+# A first pass over 2,663 time-entry notes did not find a family that
+# clearly clears it:
+#
+#   review   944 sentences    ~2% off-sense
+#   draft    576             ~3%
+#   file     262            ~13%
+#   call     209            ~53%   <- best, and misread; see below
+#
+# `call` leads only because the probe counted "Call with client re Renwick
+# non-compete" as off-sense. It is not: a call with a client is the
+# timekeeper performing the act, which is exactly the register's idea. The
+# genuine off-sense for `call` is the noun standing for an event rather than
+# an act -- "per the call", "call notes", "ahead of the call" -- and that is
+# a smaller set. Treat 53% as an upper bound that has not been earned.
+#
+# **The bar may be the wrong question here.** 60% was set for a register
+# whose entire difficulty is refusing to generalise a closed word set. This
+# task carries a second axis the other does not: it aggregates hours and
+# fees by (matter, timekeeper), so a reader who admits the right sentences
+# can still get the arithmetic wrong, and one who admits the wrong ones
+# produces totals that are wrong twice. A task with two independent sources
+# of difficulty does not need either to carry the whole band.
+#
+# So before lowering it, measure the aggregation half: how much of the score
+# moves on the sums alone, holding admission perfect. If that half is
+# substantial, a family in the 40-50% range is defensible and should be
+# argued for in writing rather than quietly accepted. If it is not, this
+# task is a coverage screen wearing a literalism rule and should retire.
+#
+# Timekeeper notes are a different corpus from message bodies -- shorter,
+# written to be billed, and far more uniform. A family that clears 60% in
+# mail (`confirm` does, at 66%) says nothing about what clears it here.
+
 WINDOW_FIRST_DAY = measure("zero-based day index of the window's first working day")
 WINDOW_LAST_DAY = measure("zero-based day index of the window's last working day")
 
