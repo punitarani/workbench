@@ -17,72 +17,15 @@ compute.
 """
 
 import ast
-import inspect
 import json
 import re
 import sys
-import types
 from pathlib import Path
 
 import pytest
+import rewardkit_stub  # noqa: E402
 
 TASKS = sorted(p for p in (Path("datasets/ashgrove/tasks")).iterdir() if p.is_dir())
-
-
-def _stub(calls: list) -> types.ModuleType:
-    """A stand-in for rewardkit that registers criteria the way it does.
-
-    Faithful on purpose. A permissive stub — one that accepts any name
-    with any arguments — passes every grading script ever written, and
-    three separate rollouts were spent discovering what it would have
-    caught in a second: a criterion called under a name nobody defined,
-    a call carrying one more positional argument than the criterion
-    takes, and a description template naming a parameter that had been
-    removed. Each is an import-time death in the verifier, so Harbor
-    reports RewardFileNotFoundError rather than a score, and the run is
-    paid for in full before anyone learns anything.
-
-    So this mimics the three things rewardkit does at registration:
-    resolve the name against the shared criteria, bind the caller's
-    arguments to the signature (less `workspace`, which the runner
-    injects), and format the description against that binding.
-    """
-
-    module = types.ModuleType("rewardkit")
-    registered: dict[str, tuple] = {}
-
-    def criterion(*_args, description: str | None = None, **_kwargs):
-        def decorate(fn):
-            registered[fn.__name__] = (fn, description)
-            return fn
-
-        return decorate
-
-    def __getattr__(name: str):
-        if name not in registered:
-            raise AttributeError(f"module 'rewardkit' has no attribute {name!r}")
-        fn, description = registered[name]
-        signature = inspect.Signature(
-            [
-                parameter
-                for parameter in inspect.signature(fn).parameters.values()
-                if parameter.name != "workspace"
-            ]
-        )
-
-        def register(*args, **kwargs):
-            own = {k: v for k, v in kwargs.items() if k not in ("name", "weight")}
-            bound = signature.bind_partial(*args, **own)
-            if description:
-                description.format(**{**kwargs, **bound.arguments})
-            calls.append((name, args, kwargs))
-
-        return register
-
-    module.criterion = criterion
-    module.__getattr__ = __getattr__
-    module.registered = registered
-    return module
 
 
 def _exec(path: Path, namespace: dict | None = None) -> dict:
@@ -95,7 +38,7 @@ def _exec(path: Path, namespace: dict | None = None) -> dict:
 def _run(path: Path, calls: list) -> dict:
     """Execute one grading file against a stub that knows nothing yet."""
 
-    sys.modules["rewardkit"] = _stub(calls)
+    sys.modules["rewardkit"] = rewardkit_stub.registering(calls)
     try:
         return _exec(path)
     finally:
@@ -106,7 +49,7 @@ def _load(task: Path) -> tuple[dict, list, dict]:
     """Criteria namespace, the calls its scripts made, and the functions."""
 
     calls: list = []
-    module = _stub(calls)
+    module = rewardkit_stub.registering(calls)
     sys.modules["rewardkit"] = module
     try:
         criteria = _exec(task / "tests/criteria.py")
@@ -127,7 +70,7 @@ def _run_task(task: Path, calls: list) -> dict:
     ever checked.
     """
 
-    sys.modules["rewardkit"] = _stub(calls)
+    sys.modules["rewardkit"] = rewardkit_stub.registering(calls)
     try:
         criteria = _exec(task / "tests/criteria.py")
         for script in (*_answer_scripts(task), *(task / "tests/process").glob("*.py")):
