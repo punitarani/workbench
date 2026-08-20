@@ -68,3 +68,42 @@ The first row is worth noting on its own: it starts at
 magnitude-based version of the unit rule would have deleted as a "wall-clock
 time that lost its date", and the causal rule correctly keeps. The
 difference between the two rules is visible in the served data.
+
+## "resuming at 0/130" is a stale line, not a stuck counter
+
+Every monitor event carries `[supervise] resuming at 0/130 workdays` while the
+world is demonstrably on day 25. That reads like a progress counter wedged at
+zero, which would be serious: the supervisor spends patience when a resume
+advances nothing and stops after three, so a counter stuck at 0 would kill a
+healthy run.
+
+It is not stuck. Checked directly:
+
+```
+$ grep -c '"kind": *"day"' out/merrick/epoch/telemetry.jsonl
+25
+```
+
+The supervisor prints that line **once, before invoking the runner**, and the
+single `resume` it started has been running for hours without crashing. There
+has been no second iteration, so there is no second line. The monitor is
+showing the most recent thing the supervisor said, which is also the first.
+
+Worth writing down because the failure it resembles and the health it actually
+indicates look identical from outside. The distinguishing check is whether the
+counter *reads* zero now, not whether the log *says* zero.
+
+Two related facts, confirmed while looking:
+
+**`world.jsonl` does not exist mid-run.** The store is the source of truth and
+the log is exported by `_finish` when a segment completes. Nothing is at risk —
+`export_jsonl(store, path)` can rebuild it from `run.db` — but materialization,
+the build, and the supervisor's acceptance test all read the exported log, so
+none of them can run until a segment ends.
+
+**All four office formats are supported.** `artifacts/render` has
+`_render_docx`, `_render_xlsx`, `_render_pptx` and `_render_pdf`. The bundle on
+disk holds only .docx and .xlsx because it was built when the world had 30
+documents and no deck; the world now records a .pptx and two .pdf. Absence in
+a stale bundle is not absence of capability — check the mtime before drawing
+the conclusion.
