@@ -27,6 +27,18 @@ LOG="/tmp/${DATASET}-epoch.log"
 RUNNER="datasets/${DATASET}/run_epoch.py"
 PY="./.venv/bin/python"
 
+# The artifact, not the progress log. `telemetry.jsonl` gains a day row
+# during the run; `world.jsonl` is written once per segment at the very
+# end, and it is the only thing anything downstream reads. A kill between
+# the two leaves telemetry claiming a day the world does not contain —
+# reproduced: eight telemetry rows, seven days in the world, supervisor
+# prints "done" and exits 0.
+world_days() {
+    local count
+    count=$(grep -c '"tag": *"sim.day.ended"' "${OUT}/world.jsonl" 2>/dev/null || true)
+    echo "${count:-0}"
+}
+
 days_done() {
     # `grep -c` prints 0 *and* exits 1 when nothing matches, so a bare
     # `|| echo 0` fires as well and the function returns "0\n0". Every
@@ -60,8 +72,8 @@ stalled=0
 
 while :; do
     before=$(days_done)
-    if [ "${before}" -ge "${target}" ]; then
-        echo "[supervise] ${before} workdays recorded, target ${target} — done"
+    if [ "${before}" -ge "${target}" ] && [ "$(world_days)" -ge "${target}" ]; then
+        echo "[supervise] $(world_days) workdays in world.jsonl — done"
         exit 0
     fi
 
@@ -87,8 +99,16 @@ while :; do
 
     after=$(days_done)
     if [ "${after}" -ge "${target}" ]; then
-        echo "[supervise] ${after} workdays recorded — done"
-        exit 0
+        # Accept on the artifact and on a clean exit, never on the
+        # progress log alone. `status` was captured and used only in an
+        # echo, so a segment that returned non-zero still ended the run.
+        exported=$(world_days)
+        if [ "${status}" -eq 0 ] && [ "${exported}" -ge "${target}" ]; then
+            echo "[supervise] ${exported} workdays in world.jsonl — done"
+            exit 0
+        fi
+        echo "[supervise] telemetry says ${after} but world.jsonl holds" \
+             "${exported} and the segment exited ${status}; resuming"
     fi
 
     # Progress resets patience; no progress spends it. Three dead restarts
