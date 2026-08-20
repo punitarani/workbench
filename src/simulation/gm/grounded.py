@@ -67,6 +67,7 @@ from core.events.tickets import (
     TicketUpdatedPayload,
 )
 from core.events.work import TimeLoggedPayload
+from core.filing import filed_name
 from core.ids import IdMinter
 from core.intents import (
     ActionIntent,
@@ -1376,19 +1377,30 @@ class GroundedGm:
             # tells it which one to work forward. That is also what the
             # deliverable turn is for, and one third of those turns are
             # meant to be revisions rather than first drafts.
-            existing = {
-                path: document_id
-                for document_id, path in self._world.document_paths_by_id.items()
-            }.get(intent.create.path)
+            # Key on the file this will actually become, not on the path
+            # the author typed. The file room keeps only the top-level
+            # segment, so two documents differing in an intermediate
+            # directory produce one file — and the guard compared declared
+            # paths, which are distinct. Measured: 32 documents, 32
+            # distinct declared paths, 30 files.
+            filed = filed_name(intent.create.path, intent.create.content_format)
+            existing = self._world.documents_by_filed_name.get(filed)
             if existing is not None:
                 raise IntentRejection(
-                    f"{intent.create.path} already exists as {existing}; "
-                    "revise that document instead of writing over it, or "
-                    "file this one under a name of its own"
+                    f"{intent.create.path} files as {filed}, which "
+                    f"{existing} already holds; revise that document "
+                    "instead of writing over it, or file this one under a "
+                    "name of its own"
                 )
+            # Reserve at resolve time. Creates in one cohort all resolve
+            # before any draft lands, so three documents reached one path
+            # with no rejection at all — the revision branch below already
+            # bumps its head for exactly this reason.
+            document_id = self._minter.mint("doc")
+            self._world.documents_by_filed_name[filed] = document_id
             payload = DocumentCreatedPayload(
                 kind="document.created",
-                document_id=self._minter.mint("doc"),
+                document_id=document_id,
                 author=sender,
                 title=intent.create.title,
                 path=intent.create.path,

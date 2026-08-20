@@ -24,6 +24,7 @@ from core.events.meetings import (
 )
 from core.events.people import PersonRecordPayload
 from core.events.tickets import TicketCreatedPayload, TicketUpdatedPayload
+from core.filing import filed_name
 
 
 class MeetingProgress(BaseModel):
@@ -100,6 +101,11 @@ class WorldState:
         # world rather than inferred from a ticket having no client — a
         # persona's runtime tickets have no client either.
         self.standing_tickets: set[str] = set()
+        # Filed name -> the document that holds it. Reserved when a create
+        # is *resolved*, not when its event lands: a cohort's creates all
+        # resolve before any draft is applied, so keying off applied state
+        # let three documents reach one file with no rejection.
+        self.documents_by_filed_name: dict[str, str] = {}
         self.plan_revisions: dict[str, int] = {}
         self.meetings: dict[str, MeetingProgress] = {}
         # Invitations can only be answered for meetings that exist.
@@ -149,6 +155,10 @@ class WorldState:
                 self.document_paths[payload.path] = payload.document_id
                 self.document_paths_by_id[payload.document_id] = payload.path
                 self.document_formats[payload.document_id] = payload.content_format
+                self.documents_by_filed_name.setdefault(
+                    filed_name(payload.path, payload.content_format),
+                    payload.document_id,
+                )
                 self.document_authors[payload.document_id] = payload.author
                 self.document_heads[payload.document_id] = payload.content
             case DocumentRevisedPayload():
@@ -263,6 +273,14 @@ class WorldState:
         state.document_heads = dict(model.document_heads)
         state.tickets = {ticket_id: dict(values) for ticket_id, values in model.tickets}
         state.standing_tickets = set(model.standing_tickets)
+        # Rebuilt rather than serialised: it is a pure function of the
+        # paths and formats already restored above, so it cannot drift.
+        state.documents_by_filed_name = {}
+        for document_id, path in state.document_paths_by_id.items():
+            state.documents_by_filed_name.setdefault(
+                filed_name(path, state.document_formats.get(document_id, "markdown")),
+                document_id,
+            )
         state.plan_revisions = dict(model.plan_revisions)
         state.meetings = {m.meeting_id: m for m in model.meetings}
         state.dm_streaks = dict(model.dm_streaks)

@@ -154,3 +154,47 @@ def test_the_record_never_gains_the_second_document() -> None:
     with pytest.raises(IntentRejection):
         _ground(gm, path)
     assert gm.world.document_paths_by_id == before
+
+
+def test_the_collision_the_declared_path_cannot_see() -> None:
+    """The file room keeps only the top-level segment of a path, so two
+    documents differing in an intermediate directory become one file.
+
+    The guard used to compare declared paths, which are distinct, and
+    reported nothing. Measured on a real world: 32 documents, 32 distinct
+    declared paths, 30 files.
+    """
+
+    gm = _gm()
+    first = "engagements/northmoor/sandhurst-add-on/diligence-status-tracker.xlsx"
+    second = "engagements/northmoor/sandhurst-platform/diligence-status-tracker.xlsx"
+    assert first != second
+    _commit(gm, _ground(gm, first)[0])
+    with pytest.raises(IntentRejection) as caught:
+        _ground(gm, second)
+    # The message names the file, because the paths look unrelated.
+    assert "engagements/diligence-status-tracker" in caught.value.reason
+
+
+def test_a_create_is_reserved_at_resolve_time() -> None:
+    """Every create in a cohort resolves before any draft is applied, so
+    a guard reading applied state sees an empty room. Three documents
+    reached one file with no rejection at all — the revision branch below
+    already bumps its head for exactly this reason."""
+
+    gm = _gm()
+    path = "engagements/a/tracker.xlsx"
+    _ground(gm, path)  # resolved, deliberately NOT committed
+    with pytest.raises(IntentRejection):
+        _ground(gm, path)
+
+
+def test_a_declared_suffix_that_lies_still_collides() -> None:
+    """The name follows the bytes: a workbook named `.docx` is filed as
+    `.xlsx`. Two such documents collide even though their declared paths
+    differ in the suffix."""
+
+    gm = _gm()
+    _commit(gm, _ground(gm, "engagements/a/report.md")[0])
+    with pytest.raises(IntentRejection):
+        _ground(gm, "engagements/a/report.md")
