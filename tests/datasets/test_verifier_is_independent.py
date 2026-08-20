@@ -111,3 +111,40 @@ def test_the_verifier_is_not_a_stub(task: Path) -> None:
     assert len(verifier.splitlines()) > 30, (
         f"{task.name}: verify.py is too short to be a second derivation"
     )
+
+
+# A verifier is only a check on the rules it actually reads from the
+# brief. Anything it hardcodes, it hardcodes identically to the solver —
+# and then the two agree about a rule neither of them re-derived.
+_PINS = (
+    "insists(",  # assert the brief still carries a phrase
+    "_STATED",  # the phrase table
+    "_fields_pinned",
+    "_hardcoded",
+    "_past_words",
+)
+
+
+@pytest.mark.parametrize("task", PAIRS, ids=lambda p: p.name)
+def test_the_verifier_pins_its_assumptions_to_the_brief(task: Path) -> None:
+    """Zero shared code is not enough: two files can hardcode the same
+    reading of a spec and never disagree.
+
+    Measured on one task here — a verifier sharing nothing with its
+    solver, gate clean, that read two of the instruction table's three
+    columns and hardcoded the third. The brief could say `end of week`
+    means the Sunday and both would compute the Friday, agree, and report
+    an independent reading. **20 of 27 brief mutations went unnoticed.**
+
+    The repair is to assert the brief still states what the arithmetic
+    assumes. This checks the repair is present; only mutating the brief
+    checks that it works, which is what the task's own suite does.
+    """
+
+    verifier = (task / "tests" / "verify.py").read_text()
+    assert any(pin in verifier for pin in _PINS), (
+        f"{task.name}: verify.py reads the brief but never asserts it still "
+        "says what the arithmetic assumes. A rule the verifier hardcodes is "
+        "a rule the second derivation does not check — flip it in the brief "
+        "and nothing fails."
+    )

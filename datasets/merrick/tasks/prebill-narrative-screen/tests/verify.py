@@ -37,6 +37,17 @@ stops when the brief stops saying them. What the brief states only inside
 a «MEASURE» placeholder is not pinned: that text is a question, not an
 answer, and it will be replaced wholesale.
 
+**A pin holds on a sentence, never on a layout.** The brief is still
+being edited, and a guard that fires when a paragraph is rewrapped, a
+clause is bolded, a heading is recapitalised, a list is written with `*`
+or its nested bullets indented four spaces is a guard that fires on every
+honest edit and gets deleted for crying wolf — taking the rule it was
+protecting with it. Everything read out of the brief therefore goes
+through `flattened` or `_bullets` first, and the same is true of what is
+read out of the deliverable's shape: `criteria_base` grades field names
+as a set, so this file compares them as a set and a reordered bullet list
+is not a finding.
+
 Five things this file asserts that no per-row comparison can:
 
 * **The key distinguishes every real row.** Not by counting rows before

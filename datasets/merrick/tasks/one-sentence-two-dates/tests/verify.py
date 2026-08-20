@@ -129,7 +129,72 @@ def brief() -> str:
             f"the brief still holds {len(left)} unmeasured value(s):\n  - "
             + "\n  - ".join(left[:6])
         )
+    # Every rule this file computes rather than reads must still be the
+    # brief's rule. Checked here, at the single point the brief enters.
+    pinned(text)
     return text
+
+
+def _flattened_brief(chunk: str) -> str:
+    """A chunk of the brief with emphasis, backticks and wrapping removed.
+
+    Pins key on meaning-bearing words, never on layout: a guard that
+    fires when a paragraph is rewrapped gets deleted by the next person
+    who rewraps a paragraph.
+    """
+
+    out = chunk.replace("*", "").replace("`", "")
+    out = out.replace("\u2014", " ").replace("\u2013", " ")
+    return " ".join(out.split()).lower()
+
+
+def insists(where: str, chunk: str, phrases: tuple[str, ...]) -> None:
+    """Refuse unless the brief still says what the arithmetic assumes.
+
+    Zero shared code with the solver is not independence. Both files can
+    hardcode the same reading of a rule and never disagree — measured on
+    a sibling task, 20 of 27 single-phrase brief mutations went unnoticed
+    because the verifier read the form spellings from the table and
+    hardcoded what each form falls due on.
+
+    So every rule this file computes rather than reads is anchored to the
+    sentence that states it. Flip the sentence and this fails, which is
+    the whole point of a second derivation.
+    """
+
+    flat = _flattened_brief(chunk)
+    missing = [phrase for phrase in phrases if phrase.lower() not in flat]
+    if missing:
+        _fail(
+            f"the brief's {where} no longer says {missing!r}, but this file's "
+            "arithmetic still assumes it. Either the rule moved and this "
+            "derivation is stale, or the brief lost a rule it needs."
+        )
+
+
+# Each rule this file computes, paired with the words the brief must
+# still carry for that computation to be the stated one. One table, so
+# the two cannot drift apart.
+_STATED: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("weekday rule", ("next such weekday", "strictly after")),
+    ("end-of-week rule", ("friday of the week",)),
+    ("end-of-month rule", ("last day of the month",)),
+    ("end-of-day rule", ("the sent date itself",)),
+    ("tomorrow rule", ("day after",)),
+    # Pins must be *distinctive*. "two rows" alone survived deleting the
+    # rule, because the phrase also occurs capitalised elsewhere and
+    # flattening lowercases it — a pin satisfied by an unrelated sentence
+    # is a pin that cannot fail.
+    ("row-splitting rule", ("falling on different dates are two rows",)),
+    ("same-date rule", ("falling on the same date are one row",)),
+)
+
+
+def pinned(text: str) -> None:
+    """Check every rule this file hardcodes is still the brief's rule."""
+
+    for where, phrases in _STATED:
+        insists(where, text, phrases)
 
 
 def last_day(text: str) -> datetime.date:
