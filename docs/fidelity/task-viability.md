@@ -281,22 +281,38 @@ So the useful question the dry run raises is not "are these too easy" but
 | `no-op-revision-register` | admitted phrases against near-misses the record actually writes | present — `no edits were made`, `no edit was made`, `no edit made` all occur and are all excluded |
 | `deadline-week-promise-clock` | date forms, four live of seven | partial: 62% of hits are one form needing no arithmetic |
 | `prebill-narrative-screen` | a family over time-entry notes | **not found** — best probe 53% and misread upward |
-| `unanswered-question-register` | — | **none. The admission test is a literal `?`, which is unambiguous.** |
+| `unanswered-question-register` | a plain request that carries no `?` | 29% one way, 24% the other — measured below |
 
-The last row is the finding. Every other task asks a reader to resist a
-plausible second reading; this one asks whether a character is present. A
-weak tier that reads the threads will get the rows, because there is nothing
-to be wrong about except the working-day arithmetic — and that is a small,
-checkable computation rather than a judgement repeated across every row.
+**Correcting the line above.** This table first said the task had no lever
+at all, on the reasoning that a literal `?` is unambiguous so there is
+nothing to be wrong about. That was looking for the lever in one direction
+only. Measured on 258 mail messages with a To recipient:
 
-It may still land: the three-working-day boundary, the Cc-versus-To
-distinction and the four late replies are all places to lose a row. But they
-are *few* places, not a rate applied to every row, and the difference between
-those two is exactly what eight failed levers on the comparison world
-established.
+| | count | |
+|---|---|---|
+| plainly asking the addressee for something | 91 | |
+| ...carrying a `?` | 65 | admitted |
+| ...carrying none | **26 (29%)** | **excluded, and plainly an ask** |
+| carrying a `?` | 85 | |
+| ...not plainly asking anything | **20 (24%)** | **admitted, and not an ask** |
 
-**Measure it first in the real sweep rather than pre-emptively rebuilding
-it.** If the weak pair sums well above 1.40, the honest repair is an
-admission rule with an off-sense lever — for instance admitting only
-questions carrying a specific interrogative form rather than any `?` — and
-that is a rewrite of the rule, not a tuning of the window.
+The excluded ones read exactly like the rows a partner would want chased:
+
+> *"I need you (or HR) to pull it and send it to me today"*
+> *"Adaora — can you pull together a one-pager tonight covering:"*
+
+Both are unmistakable requests to a named addressee. Neither carries a
+question mark. A reader working from meaning takes them; the stated rule does
+not. That is the same lever as every other task in this suite, arriving from
+the other side: not *the admitted form means something else*, but *the
+register's own idea appears constantly without the admitted form*.
+
+So the honest ranking is that this lever is **weaker, not absent** — roughly
+41% of the decision points are cases where meaning and spelling disagree,
+against 66% for `confirm` and 79% on the in-band comparison task. Weaker in
+the same units, which is a measurement rather than a verdict.
+
+**Measure it in the real sweep rather than rebuilding it now.** If the weak
+pair sums well above 1.40 the repair is to strengthen this lever rather than
+invent one — the corpus supports it, and `can/could you` without a `?` on
+that clause runs at 68% on its own.
