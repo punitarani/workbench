@@ -219,6 +219,57 @@ still implements it. Say so in the failure message, and say not to paste
 the new digest in to make the check pass — because that is exactly what
 the next person will reach for.
 
+## Declaring a criterion and registering one are different acts
+
+The worst defect this method has produced was invisible because the
+declaration looks like the whole job.
+
+Every task in a suite shipped a criteria file naming its rows, its key and
+its graded fields, and a shared module holding the criterion bodies behind a
+`@criterion` decorator. Nothing ever **called** them. The decorator makes a
+criterion *available*; something has to invoke it with that task's answer key
+before the harness has a reward to compute. A task with only declarations
+discovers **zero** rewards, the harness writes an empty set, and downstream
+that reads as a score rather than as a failure — so every trial of every
+model returns nothing, and the transcript looks like total model collapse.
+
+It survived two adversarial audits and a careful structural comparison
+against a sibling suite that worked. The comparison asked *where the
+decorators live* and concluded a star-import carried them, which was true and
+beside the point. What the working suite had and this one never did was the
+invocation itself, in files the broken suite had no copy of.
+
+The check that found it was not a code reading. It was running the harness's
+own discovery against both suites and comparing the counts:
+
+```python
+from rewardkit.runner import discover
+len(discover(f"{task}/tests"))    # working suite: 2.  broken suite: 0.
+```
+
+**Ask the harness what it found, not the source what it declares.** Any
+system with a registry — rewards, plugins, routes, fixtures, migrations —
+can be fully specified and entirely unregistered, and the source will read
+correctly the whole time.
+
+## Test the entry point, not the parts
+
+Three defects in one session had the same shape: a component built
+carefully, verified in isolation, and never connected to the path that runs.
+
+- A verifier's `recompute()` was updated when a field was dropped, along with
+  its sort and its brief pins. `main()` was not, and raised `KeyError` on
+  every invocation. Three separate verifications passed; the build calls
+  `main()`.
+- A module for checking one artefact against another was written, tested
+  standalone, and never imported by the thing it was written for.
+- A grading module was factored out and stopped being shipped beside the file
+  importing it.
+
+Every one of these passes a review that reads functions, and fails the first
+time anything runs end to end. If a check has never been exercised through
+the entrance the system actually uses, it is not verified — it is drafted.
+
 ## A gate against a world you cannot regenerate must refuse on impact
 
 Two gates written in one session both had to be rewritten, for the same
