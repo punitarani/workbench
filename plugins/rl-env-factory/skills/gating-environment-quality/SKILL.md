@@ -158,6 +158,70 @@ splitting differs between shells; BSD and GNU `sed` disagree on word
 boundaries, so a substitution can silently do nothing. Each of those has
 produced output that looked like a finding.
 
+## A gate that never runs agrees with everything
+
+Before trusting any check, confirm something executes it.
+
+An audit of a mature suite found the obvious thing nobody had looked for:
+every task shipped an independent second derivation of its answer key, a
+test forbade that file from sharing rule literals with the solver, the
+independence was real — and **no code path ever ran it**. It had been
+decorative for the life of the project. The gate protecting the gate was
+present; the gate itself was never invoked.
+
+This is cheap to check and almost never checked:
+
+```bash
+grep -rl "verify.py" --include=*.py --include=*.sh --include=*.yml . \
+  | grep -v "tests/verify.py$"      # who *runs* it, not who *is* it
+```
+
+The same question applies to a shared module that must ship beside the
+thing importing it. One suite factored twenty-eight copies of its grading
+logic into a single file and stopped shipping it: every grader raised
+`ModuleNotFoundError` on load, every task scored zero, and a total wipeout
+across all models reads as catastrophic model failure rather than a
+missing file. The unit tests passed throughout, because they add the
+project root to the path and the grader does not. **The suite and the
+runtime import the same file through different doors.**
+
+## A substring pin cannot see an exception added
+
+Pinning a verifier's assumptions to the brief with
+`insists("Cc recipients are not addressees" in brief)` catches that
+sentence being removed or reworded. It is blind, by construction, to a
+sentence being **added**. The brief gains *"...unless the sender copied
+themselves"*, every pinned string is still present, and every pin passes.
+
+Measured on one suite: 17 of 18 and 12 of 16 brief mutations went
+unnoticed, including full inversions of a rule and of a tie-break. The
+pins were not weak individually. They answered *"is this sentence still
+here"* when the question is *"does this section still say only what I
+think it says"*.
+
+Answer the second question with a digest of the whole normalised rule
+section — strip emphasis and collapse whitespace, since rewrapping happens
+constantly and means nothing, then hash the rest. Any edit breaks it,
+addition included.
+
+It is deliberately coarse: rewording a rule without changing its meaning
+fails too. That is the behaviour you want. A rule the agent is graded
+against should not change without someone confirming the second derivation
+still implements it. Say so in the failure message, and say not to paste
+the new digest in to make the check pass — because that is exactly what
+the next person will reach for.
+
+## Spot-checking your own work samples the case you built most carefully
+
+Eight mutations against the newest task, eight catches, conclusion: the
+approach works. The same approach on the older tasks in the same suite
+caught almost nothing. The sample was the file written most recently, with
+the most attention, by someone who had just been thinking about exactly
+these failures.
+
+An independent pass over the whole suite is not redundancy. It is the only
+thing that samples the work you were not careful about.
+
 ## Two files can hardcode the same wrong reading and never disagree
 
 An independence check with **zero shared code** can still be circular.
