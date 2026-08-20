@@ -339,6 +339,43 @@ def _copy_tree(source: Path, target: Path) -> None:
     )
 
 
+def _refuse_undeclared_gap(environment_dir: Path, served: tuple[str, ...]) -> None:
+    """Refuse to stage a task that declares a server this bundle cannot serve.
+
+    The tool set follows the databases actually present, which is right: a
+    task carrying only one surface should serve only that one. What is wrong
+    is doing it *silently* when the task's own `task.toml` still declares the
+    others. The wrapper is never written, the server cannot spawn, and the
+    agent simply has no such tools -- an environment defect that presents as
+    a model ignoring an entire surface.
+
+    That already happened here once, from the other direction: every task
+    declared a calendar server and the stager's tool tuple omitted it, so the
+    executable never existed. A static test now compares the declarations
+    against that tuple. This is the runtime half, and it catches the case the
+    static test cannot see -- a bundle that simply lacks the database.
+    """
+
+    manifest = environment_dir.parent / "task.toml"
+    if not manifest.is_file():
+        return
+    declared = {
+        entry.get("name")
+        for entry in tomllib.loads(manifest.read_text(encoding="utf-8"))
+        .get("environment", {})
+        .get("mcp_servers", [])
+    }
+    missing = sorted(name for name in declared if name and name not in served)
+    if missing:
+        raise SystemExit(
+            f"{manifest.parent.name}: task.toml declares MCP server(s) this "
+            f"bundle cannot serve: {missing}. Their databases are not in the "
+            f"staged state ({sorted(served)}), so no wrapper is written, the "
+            "servers cannot spawn, and the agent silently gets no such tools. "
+            "Either stage the databases or stop declaring the servers."
+        )
+
+
 def stage(
     bundle: Path, environment_dir: Path, *, repo_root: Path | None = None
 ) -> Path:
@@ -392,6 +429,8 @@ def stage(
     served = present + (
         ("compliance",) if (stage_dir / "state" / "compliance.db").exists() else ()
     )
+    _refuse_undeclared_gap(environment_dir, served)
+
     install = stage_dir / "install.sh"
     install.write_text(_install_sh(served))
     install.chmod(0o755)
