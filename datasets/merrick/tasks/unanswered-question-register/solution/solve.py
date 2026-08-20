@@ -47,7 +47,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 STATE = Path(os.environ["WORKBENCH_STATE"])
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("unanswered.json")
 
-# «MEASURE: working days in the window. ~5 questions and ~1.5 unanswered per
+# «MEASURE: **calendar** days in the window, not working days -- the
+# cutoff below is `WINDOW_DAYS * 86_400` and counts every day. The
+# brief quotes a working-day figure because that is what a reader
+# thinks in, and the two differ by every weekend inside the window;
+# `measure_windows.py` prints both on one line so they are taken as a
+# matched pair. Filling this from the working-day figure shortens the
+# corpus silently, and the verifier takes the same integer so the
+# cross-check cannot see it.
+#
+# Sizing: ~5 questions and ~1.5 unanswered per
 # working day, so four weeks gives ~100 read for ~30 rows. MUST also close at
 # least three working days before the record's last day -- see the solver
 # docstring and the brief.»

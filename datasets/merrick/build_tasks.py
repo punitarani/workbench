@@ -567,12 +567,23 @@ def _declared_window(task: Path) -> int:
 
     source = (task / "solution" / "solve.py").read_text(encoding="utf-8")
     found = re.search(r"^WINDOW_DAYS[^=]*=\s*(\d+)", source, re.M)
-    if not found:
-        raise SystemExit(
-            f"{task.name}: no concrete WINDOW_DAYS in its solver, so the "
-            "verifier cannot be told which window to re-derive."
-        )
-    return int(found.group(1))
+    if found:
+        return int(found.group(1))
+
+    # Not every solver names its window the same way, and demanding one name
+    # made the build refuse a task for a naming convention the build itself
+    # invented. A window stated as an inclusive last-day index is the same
+    # window, one off: day 0 through day N is N+1 days.
+    last = re.search(r"^WINDOW_LAST_DAY[^=]*=\s*(\d+)", source, re.M)
+    if last:
+        return int(last.group(1)) + 1
+
+    raise SystemExit(
+        f"{task.name}: its solver states no concrete window -- neither "
+        "WINDOW_DAYS nor WINDOW_LAST_DAY -- so the verifier cannot be told "
+        "which window to re-derive. If it names the window some third way, "
+        "teach this function that name rather than renaming the solver."
+    )
 
 
 def _ship_grading_base(task: Path, name: str) -> None:

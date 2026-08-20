@@ -29,6 +29,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from brief_boundary import (  # noqa: E402
+    check_reported,
+    stated_boundary,
+)
 from brief_pins import unchanged  # noqa: E402
 
 TASK = Path(__file__).resolve().parents[1]
@@ -212,12 +216,42 @@ def recompute(state: Path, window_days: int) -> dict:
     return {"questions_read": read, "unanswered": out}
 
 
+def boundary_agrees(oracle: dict) -> None:
+    """The brief's stated boundary must be the one the oracle was built on.
+
+    Nothing compared these. The verifier took its window from `argv`, the
+    build supplied that from the solver's own constant, and the brief's
+    boundary sentence -- the thing the agent actually reads and windows on --
+    was never in the loop. A brief saying one date while the oracle was cut
+    on another grades every row against a window nobody was told about, and
+    every row-level comparison stays green because both derivations share the
+    integer.
+
+    Skipped while the task is staged: the boundary is still a «MEASURE»
+    placeholder, so there is no date to disagree with. It arms itself the
+    moment one is written.
+    """
+
+    if "«MEASURE" in BRIEF:
+        return
+    reported = str(oracle.get("window_end", ""))
+    try:
+        stated = datetime.date.fromisoformat(reported)
+    except ValueError:
+        raise BriefChanged(
+            f"the oracle's window_end is {reported!r}, which is not a date"
+        ) from None
+    stated_boundary(BRIEF, stated, "## The window")
+    check_reported(oracle, stated)
+
+
 def main() -> int:
     if len(sys.argv) != 4:
         print("usage: verify.py <state-dir> <window-days> <oracle.json>")
         return 2
     mine = recompute(Path(sys.argv[1]), int(sys.argv[2]))
     theirs = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
+    boundary_agrees(theirs)
     ok = True
     if mine["questions_read"] != theirs.get("questions_read"):
         print(

@@ -41,7 +41,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 STATE = Path(os.environ["WORKBENCH_STATE"])
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("no_op_revisions.json")
 
-# «MEASURE: working days in the window. At the recorded rate -- ~7.4
+# «MEASURE: **calendar** days in the window, not working days -- the
+# cutoff below is `WINDOW_DAYS * 86_400` and counts every day. The
+# brief quotes a working-day figure because that is what a reader
+# thinks in, and the two differ by every weekend inside the window;
+# `measure_windows.py` prints both on one line so they are taken as a
+# matched pair. Filling this from the working-day figure shortens the
+# corpus silently, and the verifier takes the same integer so the
+# cross-check cannot see it.
+#
+# Sizing: At the recorded rate -- ~7.4
 # revisions per working day, about one in five a no-op -- four weeks puts
 # ~150 comments in front of the reader for ~28 rows. Re-measure on the
 # finished record.»
