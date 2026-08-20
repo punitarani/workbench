@@ -25,6 +25,9 @@ import sqlite3
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from brief_pins import unchanged  # noqa: E402
+
 TASK = Path(__file__).resolve().parents[1]
 BRIEF = (TASK / "instruction.md").read_text(encoding="utf-8")
 
@@ -71,6 +74,19 @@ for trap in ("only formatting", "typo fix", "minor cleanup", "cosmetic only"):
         not any(trap in phrase.lower() for phrase in PHRASES),
         f"{trap!r} stays out of the admitted list",
     )
+
+
+# Every `insists` above is a substring test, so none of them can see an
+# exception ADDED to a rule -- the brief could gain "...unless the sender
+# copied themselves" and each pinned sentence would still be present. An
+# audit measured that blind spot at 17-of-18 and 12-of-16 unnoticed
+# mutations on this dataset's older verifiers.
+#
+# The digest closes it: any edit to the rule section at all breaks this,
+# including a pure addition. When it fires, re-read the section against
+# the code below and confirm the second derivation still implements it
+# before re-pinning -- do not paste the new value in to make it pass.
+unchanged(BRIEF, "## What makes a row", "e36082c26e1a8d8f")
 
 
 def admits(comment: str) -> bool:

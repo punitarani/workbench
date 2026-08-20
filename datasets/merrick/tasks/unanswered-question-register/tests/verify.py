@@ -28,6 +28,9 @@ import sqlite3
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from brief_pins import unchanged  # noqa: E402
+
 TASK = Path(__file__).resolve().parents[1]
 BRIEF = (TASK / "instruction.md").read_text(encoding="utf-8")
 _FLAT = " ".join(BRIEF.replace("**", "").split())
@@ -110,6 +113,19 @@ insists(
 )
 insists("mail only" in _FLAT, "chat is out of scope")
 insists("not by UTC" in _FLAT, "dates are read in the firm's own time zone")
+
+
+# Every `insists` above is a substring test, so none can see an exception
+# ADDED to a rule -- the brief could gain "...unless the sender copied
+# themselves" and each pinned sentence would still be present. An audit
+# measured that blind spot at 17-of-18 and 12-of-16 unnoticed mutations on
+# this dataset's older verifiers.
+#
+# The digest closes it: any edit to the rule section breaks this, including
+# a pure addition. When it fires, re-read the section against the code
+# below and confirm the second derivation still implements it before
+# re-pinning -- do not paste the new value in to make it pass.
+unchanged(BRIEF, "## What makes a row", "ecc1e141883dcbb5")
 
 
 def counting_dates(sent: datetime.date, working_days: int = GRACE) -> set:
