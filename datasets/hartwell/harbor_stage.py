@@ -90,7 +90,20 @@ PLATFORM_TAGS = {
 PYTHON_VERSION = "3.14"
 """Ubuntu 26.04's interpreter, asserted by the image build."""
 
-TOOLS = ("clio", "gmail", "imanage", "slack")
+TOOLS = ("calendar", "clio", "gmail", "imanage", "slack")
+"""Read surfaces that get an MCP wrapper installed.
+
+`calendar` was missing here while every task's `[[environment.mcp_servers]]`
+declared it and pointed at `/usr/local/bin/workbench-mcp-calendar`. The
+database was staged, the projection ran, the task declared the server -- and
+the executable was never written, so the server could not spawn and the
+agent silently had no calendar tools. Nothing failed loudly; the agent
+simply could not see the firm's diary.
+
+A tool declared by a task and absent from this tuple is unreachable, which
+is why `test_declared_servers_are_installed` compares the two rather than
+trusting them to stay in step.
+"""
 
 MCP_WRAPPER_PREFIX = "/usr/local/bin/workbench-mcp-"
 """One argument-free executable per tool system.
