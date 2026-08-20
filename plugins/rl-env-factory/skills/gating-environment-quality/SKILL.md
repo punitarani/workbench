@@ -243,7 +243,7 @@ The check that found it was not a code reading. It was running the harness's
 own discovery against both suites and comparing the counts:
 
 ```python
-from rewardkit.runner import discover
+from your_harness.runner import discover
 len(discover(f"{task}/tests"))    # working suite: 2.  broken suite: 0.
 ```
 
