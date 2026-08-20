@@ -62,10 +62,17 @@ nobody in To makes no row however plainly it asks.
 later message **in the same thread** within **three working days** of the
 day the question was sent.
 
-Three working days means weekends do not count. A question asked on a
-Thursday is answered in time by a reply on the following Tuesday; the same
-reply to a Monday question is two days late. The day the question was sent
-is day zero.
+Three working days means weekends do not count, and the day the question
+was sent is day zero. Worked through, with dates:
+
+- asked **Thursday 8 January** — the three working days are Friday the 9th,
+  Monday the 12th and Tuesday the 13th, so a reply any time up to the end of
+  **Tuesday the 13th** is in time, and Wednesday the 14th is late.
+- asked **Monday 12 January** — the three are Tuesday, Wednesday and
+  Thursday, so the deadline is the end of **Thursday the 15th**.
+
+A weekend reply is not late for being on a weekend: it simply does not
+consume one of the three.
 
 **A reply from someone who was only in Cc does not answer it.** Neither does
 a reply from the asker. Neither does a message in a different thread, however
@@ -80,9 +87,13 @@ the one being asked, and it gives a different list.
 
 Write `unanswered.json` to the workspace root:
 
+The shape, with values shown only to fix the *format* — the boundary and
+the counts are whatever the window above and your reading produce, not
+these:
+
 ```json
 {
-  "window_end": "2026-02-06",
+  "window_end": "<the boundary this brief states, as YYYY-MM-DD>",
   "questions_read": 0,
   "unanswered": [
     {
@@ -105,6 +116,10 @@ them, not internal identifiers.
 
 **`addressees` is sorted alphabetically**, and holds every person who was in
 To — including any who did reply, as long as no addressee replied in time.
+
+The **rows themselves** are sorted by `message_ref`. Nothing depends on it —
+the register is compared as a set — but leaving it unsaid invites three
+readers to pick three orders and wonder which was wanted.
 
 `subject` is the message's own subject line, exactly as it stands.
 

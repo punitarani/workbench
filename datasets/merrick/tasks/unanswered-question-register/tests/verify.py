@@ -80,8 +80,12 @@ insists(
     "the day the question was sent is day zero",
 )
 insists(
-    "Thursday is answered in time by a reply on the following Tuesday" in _FLAT,
-    "the worked weekend example, which fixes how working days are counted",
+    "Friday the 9th, Monday the 12th and Tuesday the 13th" in _FLAT,
+    "the worked weekend example, which fixes how working days are counted. "
+    "The first version said a Monday question replied to on the following "
+    "Tuesday was 'two days late' -- 6 working days out, so three late, and "
+    "ambiguous besides. A worked example that does not work is worse than "
+    "none in a task whose whole difficulty is this arithmetic",
 )
 insists(
     "People in Cc are not asked" in _FLAT,
@@ -125,7 +129,7 @@ insists("not by UTC" in _FLAT, "dates are read in the firm's own time zone")
 # a pure addition. When it fires, re-read the section against the code
 # below and confirm the second derivation still implements it before
 # re-pinning -- do not paste the new value in to make it pass.
-unchanged(BRIEF, "## What makes a row", "ecc1e141883dcbb5")
+unchanged(BRIEF, "## What makes a row", "c19f2700dfe31f37")
 
 
 def counting_dates(sent: datetime.date, working_days: int = GRACE) -> set:
