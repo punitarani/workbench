@@ -30,12 +30,17 @@ depends on. Not the ones you would write; the ones the world wrote.
 
 A date-handling task needed interval phrasings (`within N days`) and
 calendar dates in one message. Both were **zero** across hundreds of
-messages. Another needed meetings that name the project they concern:
-**zero of ninety-three**. Neither task was hard. Both were impossible.
+messages. Another needed each meeting to name the matter it concerned, and matched
+the matter list against the title of every transcribed meeting: **zero of
+ninety-three**. Every meeting in that world was a standing one — a docket
+call, a practice huddle — and standing meetings are named after the
+recurrence, not the work. Neither task was hard. Both were impossible.
 
 Expect a heavy skew. In one corpus a single deadline form carried 74% of
 all occurrences and three of seven forms carried none. A rule listing all
-seven would score four-sevenths of its own vocabulary against nothing.
+seven scores **three sevenths** of its own vocabulary against nothing, and
+the four that survive are not evenly matched either — one of them is three
+quarters of every hit.
 
 ### 2. Read the rows, not the count
 

@@ -172,13 +172,21 @@ present; the gate itself was never invoked.
 This is cheap to check and almost never checked:
 
 ```bash
-grep -rl "verify.py" --include=*.py --include=*.sh --include=*.yml . \
-  | grep -v "tests/verify.py$"      # who *runs* it, not who *is* it
+grep -rl verify.py --include='*.py' --include='*.sh' --include='*.yml' . \
+  | grep -v 'tests/verify.py$'      # who *runs* it, not who *is* it
 ```
 
+Quote the globs. Unquoted, zsh expands `*.py` against the current directory
+before `grep` ever sees it and the whole command dies with `no matches
+found` — while the pipeline still exits 0, so it reads as "nobody runs it".
+A command that fails into the answer you were looking for is the same trap
+this section is about, and the first version of this line had it.
+
 The same question applies to a shared module that must ship beside the
-thing importing it. One suite factored twenty-eight copies of its grading
-logic into a single file and stopped shipping it: every grader raised
+thing importing it. One project's older suites had accumulated
+twenty-eight near-identical copies of the same grading logic, each inlined
+beside the task that used it. A newer suite factored them into one shared
+module and stopped shipping it: every grader raised
 `ModuleNotFoundError` on load, every task scored zero, and a total wipeout
 across all models reads as catastrophic model failure rather than a
 missing file. The unit tests passed throughout, because they add the

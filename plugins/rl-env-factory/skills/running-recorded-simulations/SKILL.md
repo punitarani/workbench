@@ -150,7 +150,7 @@ scripts/supervise.sh \
   --start   "python run.py start --days 180 --out $OUT" \
   --resume  "python run.py resume --out $OUT" \
   --progress "grep -c '\"kind\": *\"day\"' $OUT/telemetry.jsonl" \
-  --artifact "grep -c '\"tag\": *\"day.ended\"' $OUT/world.jsonl" \
+  --artifact "grep -c '\"tag\":\"sim.day.ended\"' $OUT/world.jsonl" \
   --target 130
 ```
 
