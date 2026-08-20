@@ -15,6 +15,7 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -126,7 +127,7 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     # held -- and it separates the contradictions, which block, from the
     # ambiguities, which are the raw material the hardest tasks are made of.
     facts = load_world(world_log)
-    _calendar_units(world_log)
+    _calendar_units(world_log, SHARED_BUNDLE / "state")
     found = check(facts)
     print(found.report())
     if not found.ok:
@@ -340,31 +341,35 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     return 0
 
 
-# A few malformed starts are a nuisance; a lot of them silently invent
-# structure. Past this share the calendar is a different object from the one
-# the world meant to record, and any task reading dates is measuring the
-# defect. Set where it is: the recorded world sits at 8.7%.
-CALENDAR_UNIT_LIMIT = 0.02
+# The raw rate is reported at any level and refused at none. The writer is
+# frozen mid-recording and cannot be fixed, so a world with malformed starts
+# is the world there is; what has to hold is that none of them reaches
+# anything that ships. That is checked directly below rather than proxied by
+# a threshold, because a threshold can be satisfied by moving it.
 
 
-def _calendar_units(world_log: Path) -> None:
-    """Refuse a world whose calendar mixes time units.
+def _calendar_units(world_log: Path, state_dir: Path) -> None:
+    """Report malformed calendar starts, and refuse if any reached the surface.
 
-    Three units turned up in one field of one recorded calendar: seconds
-    from epoch, seconds from midnight, and absolute Unix timestamps. None of
-    them raises -- each is a plausible integer that projects into a
-    plausible row -- and the result is a diary holding meetings before the
-    firm opened and meetings in 2081.
+    Two wrong units turn up in this world's calendar: a wall-clock time of
+    day that lost its date, and an absolute Unix timestamp. Neither raises --
+    each is a plausible integer that projects into a plausible row -- and the
+    served diary would otherwise hold meetings before the firm opened and
+    meetings in 2081.
 
-    The count understates the harm. The 5.8% of events that lost their date
-    collapse onto a single day, and there they caused **96% of every
-    scheduling conflict in the world**: a task was built on that signal,
-    measured a healthy-looking trap ratio, and was retired only once its
-    conflicts were grouped by date.
+    An earlier version of this gate refused any world above a 2% raw rate.
+    That was aimed wrongly on two counts. The rate is a property of a
+    generator that cannot be changed while it runs, so refusing on it blocks
+    the only build available rather than fixing anything. And the projection
+    already quarantines these events, so the raw rate says nothing about what
+    an agent can see: measured on this world at 14.9% raw, the served
+    calendar held 723 events, every one inside the window, with the coherence
+    checker finding nothing.
 
-    Refusing rather than repairing is deliberate. Which day a wall-clock
-    time was meant for is not recoverable, so inventing one would put a
-    guess into the answer key.
+    So the question is not "how many did the generator write" but "did any
+    survive into the state that ships". The first is reported because it is a
+    real defect someone must fix; the second is refused because it is the one
+    that would reach a score.
     """
 
     starts = [
@@ -374,14 +379,42 @@ def _calendar_units(world_log: Path) -> None:
     ]
     report = inspect_calendar_units(starts)
     print(f"calendar units: {report.summary()}")
-    if report.share > CALENDAR_UNIT_LIMIT:
+    if not report.suspects:
+        return
+
+    served = state_dir / "calendar.db"
+    if not served.is_file():
         raise SystemExit(
-            f"{report.summary()}. A start written in the wrong unit does not "
-            "raise -- it lands on day zero or fifty years out and serves as a "
-            "real event, so every task reading a date grades the defect. Fix "
-            "the writer; the day a wall-clock time meant is not recoverable "
-            "from the record."
+            f"{report.summary()}, and there is no served calendar to check "
+            "them against. Project the state before gating it."
         )
+    connection = sqlite3.connect(f"file:{served}?mode=ro", uri=True)
+    try:
+        survivors = sorted(
+            {suspect.event_id for suspect in report.suspects}
+            & {
+                row[0]
+                for row in connection.execute(
+                    "SELECT calendar_event_id FROM calendar_events"
+                )
+            }
+        )
+    finally:
+        connection.close()
+
+    if survivors:
+        raise SystemExit(
+            f"{len(survivors)} calendar event(s) with a start that is not "
+            f"seconds-from-epoch reached the served state: {survivors[:6]}. "
+            "The projection is meant to quarantine these; a start in the "
+            "wrong unit does not raise, it lands on day zero or fifty years "
+            "out and serves as a real event, so every task reading a date "
+            "would grade the defect."
+        )
+    print(
+        f"calendar units: all {len(report.suspects)} quarantined before the "
+        "served state — see docs/fidelity/post-freeze-fixes.md for the writer"
+    )
 
 
 def _commit_oracle(

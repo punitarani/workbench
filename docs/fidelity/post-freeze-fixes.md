@@ -25,6 +25,12 @@ straight through, because both are integers larger than the one before them.
 any horizon the run could reach. Those events caused **96% of every
 scheduling conflict in the world** and killed a task built on that signal.
 
+**And the rate is rising.** Twelve working days later the same measurement
+reads **127 of 850, 14.9%**. It is not a fixed share of a growing calendar —
+the malformed events are accumulating faster than the sound ones, so a
+figure quoted from any single day understates where the finished world lands.
+Re-measure at the end rather than trusting 8% or 15%.
+
 The fix belongs beside the existing check and should reject rather than
 repair, with the reason in the rejection so the persona can rewrite it:
 compare `start` against the event's own recorded time, and against a
