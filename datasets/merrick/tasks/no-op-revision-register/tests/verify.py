@@ -176,10 +176,13 @@ def main() -> int:
             f"versions_read: {mine['versions_read']} vs {theirs.get('versions_read')}"
         )
         ok = False
-    left = {(r["document_ref"], r["version"]): r for r in mine["no_op_revisions"]}
-    right = {
-        (r["document_ref"], r["version"]): r for r in theirs.get("no_op_revisions", [])
-    }
+    # Keyed on the served id alone. `LEGAL!12.3` already names the version,
+    # which is why the separate `version` column was dropped -- and this line
+    # went on reading it, so `main()` raised KeyError on every invocation
+    # while `recompute()` and the brief pins were both exercised and both
+    # fine. The build calls `main()`. Test the entry point, not the parts.
+    left = {r["document_ref"]: r for r in mine["no_op_revisions"]}
+    right = {r["document_ref"]: r for r in theirs.get("no_op_revisions", [])}
     for key in sorted(set(left) | set(right)):
         if key not in right:
             print(f"only the verifier admits {key}")
