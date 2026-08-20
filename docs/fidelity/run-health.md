@@ -38,3 +38,33 @@ The general shape is worth remembering. A rate near a threshold is only
 worrying if it is *that* threshold's rate. Two plausible numerators over the
 same denominator will happily produce a number that looks like the metric
 you care about.
+
+## The calendar server, verified at the protocol rather than the file
+
+Enabling a tool that was previously absent is not obviously safe: before the
+fix the wrapper did not exist and the server never spawned, and the tasks
+ran anyway. Now it spawns, so a server that crashes on start would be a
+regression introduced by the repair.
+
+Driven exactly as the installed wrapper does — `python -m tools.serve
+calendar --db calendar.db`, speaking JSON-RPC over stdio:
+
+```
+initialize  -> workbench-calendar
+tools/list  -> create_event, delete_event, get_event, list_calendars,
+               list_events, respond_to_event, search_events, suggest_time,
+               update_event          (9, matching the official surface)
+list_events -> real rows, America/New_York, stderr clean
+```
+
+The quarantine holds where it matters, which is the surface an agent
+queries rather than the table underneath it. Asked for everything between
+2020 and 2099: **250 events, all in 2026, none outside.** 250 is the page
+size the official API also caps at, with `pageToken` to continue — parity,
+not a ceiling.
+
+The first row is worth noting on its own: it starts at
+`2026-01-05T08:45:00-05:00`. That is the `31500` event — the one the first,
+magnitude-based version of the unit rule would have deleted as a "wall-clock
+time that lost its date", and the causal rule correctly keeps. The
+difference between the two rules is visible in the served data.
