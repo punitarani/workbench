@@ -59,6 +59,20 @@ claims it** before a single message is read. A form the brief names and
 this file cannot match would be a silent zero in `form_counts`, and no
 row-level check would ever mention it.
 
+**Where the rule can only be hardcoded, the sentence it was read off is
+checked.** The table's third column cannot be parsed: `friday_of` walks
+to a Friday because the cell says Friday, and nothing here reads that
+cell and works the walk out. The same goes for the window's
+inclusivity, the collapse of two forms onto one date, the precedence
+that settles which form owns a row, the four clauses of `followed_up`,
+the sort key and the tie-break. Every one of them is arithmetic in this
+file *and* arithmetic in the solver, so the two agree no matter what the
+brief says -- which is the one failure a second derivation cannot catch
+by being a second derivation. So each is paired with the words it was
+transcribed from, and a brief that stops saying them stops the run. That
+pairing is the difference between a rule read off `instruction.md` and a
+rule that merely once was.
+
 It also asserts what row F1 structurally cannot show: that `("ref",
 "due_date")` separates every row. A key that collapses two rows caps the
 ceiling below 1.0 for a reason no agent can fix, and F1 still reads 1.000

@@ -754,6 +754,43 @@ constantly and stops being read.
 And gate the push on the *test result*, not on the commit succeeding.
 `commit && push` runs the push whichever way the suite went.
 
+### Two files can hardcode the same wrong reading and never disagree
+
+An independence check with **zero shared code** can still be circular.
+Shared *literals* are the visible half; shared *assumptions* are the half
+a diff cannot see.
+
+A worked case. A verifier was rewritten to share nothing with its solver
+— different matcher, different arithmetic, zero common expressions, and
+it passed a shared-literal gate cleanly. It read the rule's vocabulary
+out of the instruction's own table. But it read only two of the table's
+three columns: the spellings and the key. The third column, *what each
+form falls due on*, it hardcoded — identically to the solver.
+
+So the brief could say `end of week` means the **Sunday**, and both
+derivations would go on computing the Friday, agree with each other
+perfectly, and report that the oracle matched an independent reading of
+the instruction. Mutation-tested against the brief, **20 of 27
+single-phrase rule flips went unnoticed**: every due-date cell, the
+tie-break direction, the sort order, three of the four clauses defining
+the follow-up, and the window's inclusivity.
+
+**The test is to mutate the specification, not the code.** Change one
+stated rule in the instruction and require the verifier to fail. If it
+passes, that rule is pinned to nothing and the second derivation cannot
+be a check on it.
+
+The repair is cheap: before using a value the brief states, assert the
+brief still states it. Flatten the relevant chunk — drop emphasis,
+backticks, line wrapping — and refuse unless the phrases the arithmetic
+rests on are still present. Keep the phrase-to-code pairing in one table
+so the two cannot drift apart, and key on meaning-bearing words rather
+than on layout, so reflowing a paragraph does not fire it.
+
+One companion, found in the same pass: a structural check run against
+the verifier's **own** output is arithmetic restated against itself. Run
+consistency checks against the oracle, where they can fail.
+
 ### Mutate the thing under test before believing the test
 
 Three tests written in one day contained a copy of the code they tested —

@@ -1,4 +1,4 @@
-"""An independent derivation of the court-clock register.
+r"""An independent derivation of the court-clock register.
 
     WORKBENCH_STATE=out/merrick/bundle/state python3 tests/verify.py
 
@@ -30,7 +30,9 @@ regex-and-`timedelta` reading naturally takes, and the route taken here:
 * **The window.** Not a bound in seconds from the epoch: the date read back
   out of `instruction.md`'s own sentence, by this file's date reader.
 * **The date a message was sent.** Not `epoch + timedelta(seconds=t)`: the
-  epoch's own date, walked forward `t // 86_400` days.
+  epoch's own date, walked forward `t // 86_400` days. The two agree while
+  the epoch is midnight and diverge once it is not, so `_derive()` says so
+  when it is not.
 * **The busiest author.** Not one sort on a negated count: the largest
   count, then the earliest name among those tied for it.
 
@@ -68,7 +70,7 @@ the projection changes and neither notices. `_projection_complete()` goes
 the other way instead: it counts the messages the *world log* recorded and
 fails if the served surfaces are short of them.
 
-## Two known divergences, left in on purpose
+## Three known divergences, left in on purpose
 
 A hyphen does not end a word here, because it must not: *"a 30-day
 extension"* is refused by the instruction, and a scan that split on the
@@ -77,8 +79,12 @@ wrote. The cost runs the other way — a body written *"within 10
 days-of-service"* is refused here and would be admitted by a `\b`-anchored
 regex. Likewise a two-digit year (`3/14/26`) is not among the shapes the
 instruction screens, so it reads as no date form at all rather than as
-`3/14`. A disagreement of either kind is adjudicated against
-`instruction.md`, never by patching whichever side is easier to change.
+`3/14`. Third, what stands between the number and `days` is read as
+words rather than as whitespace, so *"within 10 **business** days"* is one
+form here and is refused by a `\s+`-joined pattern. No body writes that
+today; the corpus is still recording, and a disagreement of any of the
+three kinds is adjudicated against `instruction.md`, never by patching
+whichever side is easier to change.
 """
 
 import calendar
@@ -547,7 +553,7 @@ def _open(state: Path, name: str) -> sqlite3.Connection:
     return sqlite3.connect(f"file:{state / name}?mode=ro", uri=True)
 
 
-def _epoch_day(gmail, slack) -> datetime.date:
+def _epoch_stamp(gmail, slack) -> datetime.datetime:
     """The epoch, as both surfaces state it. They have to agree: a
     `sent_date` that depends on which tool you asked is not a date."""
 
@@ -557,7 +563,7 @@ def _epoch_day(gmail, slack) -> datetime.date:
     }
     if len(set(stated.values())) != 1:
         raise SystemExit(f"the surfaces disagree about the epoch: {stated}")
-    return datetime.datetime.fromisoformat(stated["gmail"]).date()
+    return datetime.datetime.fromisoformat(stated["gmail"])
 
 
 def _directory(gmail, slack) -> dict[str, str]:
@@ -604,7 +610,21 @@ def _sent_on(epoch_day: datetime.date, seconds: int) -> datetime.date:
 def _derive(state: Path, last_day: datetime.date) -> dict:
     gmail = _open(state, "gmail.db")
     slack = _open(state, "slack.db")
-    epoch_day = _epoch_day(gmail, slack)
+    epoch = _epoch_stamp(gmail, slack)
+    epoch_day = epoch.date()
+    # Walking whole days from the epoch's date and adding the seconds to the
+    # stamp itself agree exactly while the stamp is midnight, whatever its
+    # zone does later in the year -- the offset cancels. They part company
+    # only once the epoch carries a time of day, and then for every message
+    # whose own time of day pushes it over the next midnight. So the note is
+    # on that, not on a daylight-saving boundary neither derivation crosses.
+    if (epoch.hour, epoch.minute, epoch.second, epoch.microsecond) != (0, 0, 0, 0):
+        print(
+            f"  note: the epoch is {epoch.time()}, not midnight, so a "
+            "`sent_date` here and one taken by adding seconds to the stamp "
+            "disagree for any message late enough in its own day. A row "
+            "below may be that rather than a disagreement about the rule."
+        )
     names = _directory(gmail, slack)
     months = _months(bool(CORPUS_MONTH_ABBREVIATIONS))
 
@@ -668,6 +688,37 @@ def _derive(state: Path, last_day: datetime.date) -> dict:
 # Gates no comparison with the oracle can make
 
 
+def _measured() -> None:
+    """The three `measure()` answers are hand-written, and only one of them
+    fails loudly on its own.
+
+    `CORPUS_SHAPES` naming a shape this file does not implement is caught
+    below. `SPELLED_NUMBERS` is not caught anywhere: a key written `Ten`, or
+    `twenty one` with the space left in, never equals a token this file's
+    own scanner produces, so it admits nothing and every instance the firm
+    wrote is scored as a hallucination -- the defect the comment above the
+    constants warns about, and the one no example in `_prose_examples()`
+    would find, because every example there writes its number in digits.
+    """
+
+    if unknown := sorted(set(CORPUS_SHAPES) - set(SHAPES)):
+        raise SystemExit(f"CORPUS_SHAPES names no such shape: {unknown}")
+    if not isinstance(SPELLED_NUMBERS, dict):
+        raise SystemExit(f"SPELLED_NUMBERS is not a mapping: {SPELLED_NUMBERS!r}")
+    for word, value in sorted(SPELLED_NUMBERS.items(), key=str):
+        if not isinstance(word, str) or _words(word) != [word]:
+            raise SystemExit(
+                f"SPELLED_NUMBERS key {word!r} is not one lowercase word as "
+                "this file cuts words, so no body can ever match it and "
+                "every instance of it would score as a hallucination"
+            )
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            raise SystemExit(
+                f"SPELLED_NUMBERS[{word!r}] is {value!r}; `interval_days` is "
+                '"the number the form names, as an integer"'
+            )
+
+
 def _prose_examples() -> list[str]:
     """The transcription admits every phrase instruction.md calls a form and
     refuses every phrase it calls a near miss.
@@ -712,6 +763,23 @@ def _prose_examples() -> list[str]:
         got = _intervals(phrase)
         if got:
             problems.append(f"near miss admitted: {phrase!r} -> {got}")
+
+    # Every example above writes its number in digits, so none of them
+    # touches SPELLED_NUMBERS at all. Each measured word is put through all
+    # three forms here: a spelling the scanner cannot reach is a silent
+    # under-count of exactly the instances the measurement was taken for.
+    for word, value in sorted(SPELLED_NUMBERS.items()):
+        for phrase, form in (
+            (f"produce the log within {word} days", "within N days"),
+            (f"objections are due {word} days after service", "N days after"),
+            (f"the brief is due in {word} calendar days", "due in N days"),
+        ):
+            got = _intervals(phrase)
+            if got.get(value) != form:
+                problems.append(
+                    f"measured spelling unreachable as {form}/{value}: "
+                    f"{phrase!r} -> {got}"
+                )
     return problems
 
 
@@ -750,8 +818,12 @@ def _prose_arithmetic() -> list[str]:
 
     sent = datetime.date(2026, 3, 12)
     for text, wanted in (
-        # The longer form wins where two start at the same place.
-        ("filed March 14, 2026 and served March 20", datetime.date(2026, 3, 14)),
+        # The longer form wins where a shorter shape opens it, and the
+        # earlier start wins over the later. The year is deliberately not
+        # the sent year: with 2026 here, reading only the `March 14` inside
+        # `March 14, 2025` lands on the same date and the case proves
+        # nothing.
+        ("filed March 14, 2025 and served March 20", datetime.date(2025, 3, 14)),
         # A trigger may be in the past, and is still the first one.
         ("The order issued 3 March; produce within 10 days", datetime.date(2026, 3, 3)),
         # A trigger may have nothing to do with the interval.
@@ -928,14 +1000,13 @@ def _report(problems: list[str], headline: str) -> int:
 
 
 def main() -> int:
-    # The rule against its own prose first. A derivation from a rule that
-    # disagrees with instruction.md is not evidence about the oracle; it is
-    # a second copy of the same mistake.
+    # The measured values before anything reads them, then the rule against
+    # its own prose. A derivation from a rule that disagrees with
+    # instruction.md is not evidence about the oracle; it is a second copy
+    # of the same mistake.
+    _measured()
     if problems := _prose_examples() + _prose_arithmetic():
         return _report(problems, "disagreement(s) with instruction.md's own examples")
-
-    if unknown := sorted(set(CORPUS_SHAPES) - set(SHAPES)):
-        raise SystemExit(f"CORPUS_SHAPES names no such shape: {unknown}")
 
     where = os.environ.get("WORKBENCH_STATE")
     if not where:
