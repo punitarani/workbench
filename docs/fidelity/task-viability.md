@@ -349,6 +349,41 @@ it needs an interval form *and* a calendar date in one body, and `within N
 days` remains at zero — but the reason has narrowed from "neither half
 exists" to "one half exists".
 
+### Is there a better family at day 61? No — and the number moves with the classifier
+
+The corpus has grown enough that families dead at day 16 now clear the row
+floor: `resolve` 170 messages, `agree` 296, `complete` 79. Screened over all
+2,795 messages, with the minority-form share the task's own script reports
+and an off-sense share from the same sentence-scoped classifier used above:
+
+| family | minority form | off-sense | verdict |
+|---|---|---|---|
+| `confirm` | 39.8% | 60% | best available, sitting on the gate |
+| `file` | 33.0% | 58% | |
+| `review` | **6.6%** | 66% | highest off-sense, fails the minority-form floor |
+| `agree` | 26.7% | 49% | |
+| `resolve` | 23.5% | 52% | |
+| `complete` | 15.2% | 58% | |
+
+`review` is the only family clearing 60% off-sense and it fails the other
+hygiene check — its minority spelling is 6.6% of hits, well under the 20%
+floor, so the two admitted forms would be one form wearing two hats. Nothing
+beats `confirm`, which now sits exactly on its gate rather than comfortably
+above it.
+
+**The number moves with the classifier, and that matters more than the
+ranking.** The same corpus and the same question gave 56% and 60% for
+`confirm`, four points apart, differing only in whether the off-sense
+patterns included `should`, `before` and `un-` prefixes. Neither reading is
+wrong; the boundary between "asking someone to confirm" and "confirming" is
+genuinely fuzzy at the edges, which is exactly why the task's own screen
+says the off-sense test "always blocks until a human reads the sample".
+
+So: do not settle this with a regex. A four-point classifier swing straddles
+the gate, and the decision it feeds — whether this task ships as written —
+deserves a hand-classified sample of the finished corpus, not a third
+automated estimate.
+
 ### What this means for the fills
 
 Do not fill any `«MEASURE»` from a number in this document. Every one of
