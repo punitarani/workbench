@@ -173,3 +173,49 @@ the calendar would find them.
 `Meet-and-Confer — Motion to Compel` against itself. Personas are creating
 duplicate calendar entries for one meeting rather than finding the existing
 one. Realistic in small doses; twenty-one is generation, not behaviour.
+
+## The suite measures fewer skills than it has tasks
+
+An audit lens raised this and it survives checking. Classifying the five
+survivors by what a model must actually *do*:
+
+| task | primary demand | secondary |
+|---|---|---|
+| `off-sense-register` | admit only a closed set of literal strings in prose | completeness over a corpus |
+| `no-op-revision-register` | admit only a closed set of literal phrases in prose | precision on a minority class |
+| `deadline-week-promise-clock` | admit only a closed set of date forms | a forward join |
+| `prebill-narrative-screen` | admit only a closed word screen | rounding arithmetic |
+| `unanswered-question-register` | walk a thread graph | working-day arithmetic |
+
+**Four of five turn on the same skill**: resisting the urge to generalise a
+closed literal set to what the sentence obviously means. That skill is worth
+measuring — it is the lever that reliably lands a task in band here, and it
+is a real failure mode. But a suite of five tasks that grades it four times
+carries roughly the signal of a suite of two.
+
+This is not an argument for weakening the levers that work. It is an
+argument about what the *next* task should target, and there is a natural
+opportunity: `deadline-week-promise-clock` is under review for retirement
+because its forward join decides 0–3 rows. If it retires, its replacement
+should be chosen for the gap rather than for the mechanism that is easiest
+to land.
+
+**Uncovered, in rough order of value:**
+
+*Cross-surface reconciliation.* Two records of the same fact that disagree,
+where the rule states which one governs. Nothing in the suite currently
+requires holding two surfaces against each other; the closest is a forward
+join within one surface. The world supports it — timekeeping, documents and
+correspondence all describe the same matters.
+
+*Numeric aggregation with a stated convention.* Not rounding as a trap, but
+a total a reader must assemble from many rows under a rule about what is
+included. `prebill` touches this and is dominated by its word screen.
+
+*Negative space.* Every register here asks what is present. Asking what is
+**absent** — a required step nobody took, a person nobody assigned — is a
+different search, and one this record can answer deterministically.
+
+Recording it here rather than acting now, because the choice depends on
+whether `deadline-week` survives its measurement at the full corpus, and
+that measurement does not exist yet.
