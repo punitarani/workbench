@@ -33,7 +33,7 @@ the one an arithmetic solver would not:
   in the same thread landed on or before the due date -- every message
   considered, nothing bisected.
 * **the form of a row** is the smallest table index among the forms that
-  landed on that date, taken after all seven have run.
+  landed on that date, taken after every form in the table has run.
 
 Four things the solver and the brief both rest on are derived here rather
 than assumed, because their agreement is not evidence: a boundary off by
@@ -45,7 +45,8 @@ name different weeks, every row is wrong and the solver still agrees with
 itself perfectly. The count the brief's closing warning names is checked
 against the messages this reading finds inside that week.
 
-**The seven `form_counts` keys come out of the brief's table**, in the
+**The `form_counts` keys come out of the brief's table**, however many
+there are, in the
 brief's own order, which is also the precedence the brief states.
 
 **The vocabulary the brief marks as variable is read off the table
@@ -247,8 +248,21 @@ def form_table(text: str) -> list[list[str]]:
     header, ruler, *forms = grid
     if len(header) != 3 or set("".join(ruler)) - set("-: "):
         fail("the brief's form table is not the three-column table expected")
-    if len(forms) != 7:
-        fail(f"the brief names {len(forms)} forms; this clock has seven")
+    # Deliberately not a fixed count. This asserted seven, which is the
+    # number the table was drafted with -- and a measurement of the record
+    # says three of those seven never occur and the table must narrow to
+    # four. Doing the correct thing would therefore have failed here, with a
+    # message blaming the brief for the change it was supposed to receive.
+    #
+    # What must hold is that the brief and the deliverable agree, not that
+    # either matches a number this file remembers. `form_counts` is checked
+    # against these rows elsewhere, so a table that grows or shrinks carries
+    # the deliverable with it.
+    if len(forms) < 2:
+        fail(
+            f"the brief names {len(forms)} form(s); a register whose rule is "
+            "a closed set of forms needs at least two to be a rule"
+        )
     if any(len(row) != 3 for row in forms):
         fail("a row of the brief's form table is not three cells wide")
     return forms

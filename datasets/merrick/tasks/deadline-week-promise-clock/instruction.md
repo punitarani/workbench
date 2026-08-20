@@ -40,7 +40,7 @@ promise are not part of this question, whenever they run.
 
 ## What counts as a promise
 
-Exactly these seven forms, matched case-insensitively in the **body** of a
+Exactly the forms in this table, matched case-insensitively in the **body** of a
 mail message. Nothing else counts, however deadline-like it sounds. Where a
 form runs to more than one word, any run of whitespace between its words is
 the space: two spaces, or a line break, and the form is still the form.
@@ -127,9 +127,10 @@ fields:
 - `answered_in_time` — how many of those rows have `followed_up` true.
 - `distinct_authors` — how many different people wrote a message that
   produced a row. Every row, not only the answered ones.
-- `form_counts` — an object carrying **all seven** keys from the table
-  above, each mapped to how many rows it accounts for, **including the forms
-  that turn out to be zero**. Attribute a row to the form listed **first in
+- `form_counts` — an object carrying **one key per row of the table above**,
+  each mapped to how many rows it accounts for, **including the forms that
+  turn out to be zero**. Every form in the table gets a key whether or not
+  the week contains one. Attribute a row to the form listed **first in
   the table**, among the forms in that message that resolve to that row's
   due date.
 - `most_unanswered` — the author with the most rows whose `followed_up` is
