@@ -20,9 +20,17 @@ about the weekend move loses exactly one field of three.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+_HERE = Path(__file__).resolve()
+# `criteria_base.py` lives at the dataset root. Both that and this directory
+# go on the path, because the file is imported from two places: from the
+# tree, where the root is three levels up and nothing has been copied yet,
+# and from a built bundle, where `tests/` has been lifted out and the
+# dataset root is not there at all. With only one of the two, the import
+# dies before a single criterion runs and the whole task reads as a build
+# failure rather than as a grader that never loaded.
+sys.path[:0] = [str(_HERE.parent), str(_HERE.parents[3])]
 
-from criteria_base import *  # noqa: F401,F403
+from criteria_base import *  # noqa: E402,F401,F403
 
 # The list in the deliverable that carries one entry per deadline.
 ROWS = "deadlines"

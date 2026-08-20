@@ -25,7 +25,12 @@ judgment the task exists to measure -- the same decomposition that made
 `self-review-exposure` score 1.000 three times over. `form_counts` still
 needs the classification; the row does not print it.
 
-measure("the difficulty argument. Once the window is fixed, record here the corpus fi…")
+«MEASURE: the difficulty argument. Once the window is fixed, record here
+the corpus figures that justify it -- mail in the window, rows produced,
+share of rows whose form is not the first form in their message, and the
+share of rows whose `followed_up` is answered by a message sent *after*
+the window. A window whose rows are all single-form and all answered
+inside the week is a different, easier task than this docstring claims.»
 """
 
 import calendar
@@ -38,7 +43,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
@@ -50,9 +55,20 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("promise_clock.json")
 # it rather than a second source. `verify.py` reads the dates back out of
 # the brief and converts them the other way.
 #
-# measure("the window. Pick the Monday-to-Friday week whose mail carries # at least t…")
-WINDOW_START = measure("the Monday, YYYY-MM-DD")
-WINDOW_END = measure("the Friday of the same week, YYYY-MM-DD")
+# «MEASURE: the window. Pick the Monday-to-Friday week whose mail carries
+# at least twelve rows, whose `followed_up` is not constant, and whose
+# `sent_date` is not constant. `measure_candidates.py --days N` prints
+# date-form density per surface; run it on candidate weeks before fixing
+# this, because a week chosen for its calendar position rather than its
+# traffic is how a register comes out with four rows.»
+WINDOW_START = measure(
+    "the Monday of the graded week, YYYY-MM-DD, written identically into "
+    "instruction.md -- verify.py reads the week back out of the brief and "
+    "refuses a disagreement"
+)
+WINDOW_END = measure(
+    "the Friday of that same week, YYYY-MM-DD, written identically into instruction.md"
+)
 
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 MONTHS = (
@@ -112,7 +128,15 @@ def _by_date(sent: datetime.date, match: re.Match) -> datetime.date:
         # The year the message was sent, even where the date has gone by.
         return datetime.date(sent.year, month, day)
     except ValueError:
-        # measure("whether the window carries a date that is not a date -- # `by Febr…")
+        # «MEASURE: whether the window carries a date that is not a date
+        # -- `by February 30`, `by June 31`. If it does, the brief has to
+        # say what such a message produces, because "skip it" and "clamp
+        # it to the month's end" are both defensible and the task would
+        # otherwise measure which one the agent guessed. The sibling task
+        # `one-sentence-two-dates` settles the same question in one line
+        # ("a date the calendar does not have is not a date"); if this
+        # brief takes that answer, this branch drops the row instead of
+        # refusing the build.»
         raise SystemExit(
             f"a message names {match.group(0)!r}, which is not a date in "
             f"{sent.year}. The brief does not say what that produces."
@@ -218,13 +242,9 @@ FORMS: tuple[tuple[str, re.Pattern[str], object], ...] = (
 
 
 def _window() -> tuple[datetime.date, datetime.date]:
-    if "MEASURE" in WINDOW_START or "MEASURE" in WINDOW_END:
-        raise SystemExit(
-            "the window is unmeasured. Choose the Monday-to-Friday week from "
-            "the corpus, fill WINDOW_START and WINDOW_END, and write the same "
-            "two dates into instruction.md -- verify.py reads them back out "
-            "of the brief and will refuse a disagreement."
-        )
+    # No unmeasured-value guard here: `measure()` raises on import, so a
+    # window nobody has chosen never reaches this function. A second check
+    # for the string "MEASURE" would read as protection and could not fire.
     start = datetime.date.fromisoformat(WINDOW_START)
     end = datetime.date.fromisoformat(WINDOW_END)
     if start.weekday() != 0 or end.weekday() != 4 or (end - start).days != 4:

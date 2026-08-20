@@ -59,7 +59,7 @@ from collections import Counter
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pending import measure  # noqa: E402
 
 STATE = Path(os.environ.get("WORKBENCH_STATE", ""))

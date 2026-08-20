@@ -171,6 +171,47 @@ def ticked(cell: str) -> list[str]:
     return [piece.strip().lower() for piece in pieces[1::2] if piece.strip()]
 
 
+# --------------------------------------------------------------------
+# The brief's own words, wherever this file can only hardcode the rule
+# --------------------------------------------------------------------
+
+
+def flattened(chunk: str) -> str:
+    """A piece of the brief with its emphasis, its backticks and its line
+    wrapping taken out, so a phrase can be looked for without caring how
+    the paragraph happened to break."""
+
+    return " ".join(chunk.replace("*", " ").replace("`", " ").lower().split())
+
+
+def insists(where: str, chunk: str, phrases: tuple) -> None:
+    """Refuse unless the brief still states the rule this file computes.
+
+    Some of the brief is arithmetic, and no amount of reading turns an
+    English sentence into arithmetic: `friday_of` walks to a Friday
+    because the table's due column says Friday, not because anything here
+    can read that cell and work it out. What can be checked is that the
+    sentence has not moved out from under the arithmetic.
+
+    That check is not decoration. A brief reworded to say `end of week`
+    means the Sunday, or that a tie goes to the later name, leaves this
+    file and the solver both computing the old rule, in perfect
+    agreement: every row wrong together, and every row-level comparison
+    green. This is the one failure the second derivation cannot catch by
+    being a second derivation.
+    """
+
+    flat = flattened(chunk)
+    missing = [phrase for phrase in phrases if flattened(phrase) not in flat]
+    if missing:
+        fail(
+            f"the brief's {where} no longer says {missing[0]!r}, and this "
+            "file hardcodes that rule rather than reading it. The two have "
+            "gone apart with nothing else to show it: read the brief again "
+            f"and move the derivation to match.\n  brief now: {flat[:280]}"
+        )
+
+
 def cell_parts(cell: str, marker: str) -> tuple[list[str], list[str]]:
     """A table cell's spellings, and the words it lists after `marker` as
     admissible alongside them -- "with or without", "one of"."""
@@ -292,6 +333,8 @@ def spelt(spelling: str) -> tuple[tuple, tuple]:
     """
 
     words, gaps = split_words(spelling)
+    if not words:
+        fail(f"the brief shows {spelling!r} as a spelling, which has no words")
     return tuple(words), tuple(gap.strip() for gap in gaps[1:])
 
 
@@ -399,8 +442,10 @@ def weekday_form(key: str, cell: str) -> Form:
                 day += datetime.timedelta(days=1)
             yield day
 
-    probes = tuple(f"{head} {name}" for name in span) + tuple(
-        f"{head} {word} {name}" for word in sorted(loose) for name in span
+    probes = (
+        tuple(spelling for spelling in shown if "<" not in spelling)
+        + tuple(f"{head} {name}" for name in span)
+        + tuple(f"{head} {word} {name}" for word in sorted(loose) for name in span)
     )
     return Form(key, find, probes)
 
@@ -466,6 +511,14 @@ def dated_form(key: str, cell: str) -> Form:
             figure = words[index + 2]
             if number is None or not figure.isdigit() or len(figure) > 2:
                 continue
+            # The cell shows `by March 14th`, so letters may be welded to
+            # the figure -- but only an ordinal's. `by March 14x` is not a
+            # spelling the cell shows, and taking it would be reading a
+            # date out of something that is not one.
+            tail = index + 3
+            if tail < len(words) and gaps[tail] == "":
+                if words[tail] not in ("st", "nd", "rd", "th"):
+                    continue
             # "that day of that month, in the year the message was sent"
             try:
                 yield datetime.date(sent.year, number, int(figure))
@@ -558,26 +611,115 @@ def within_form(key: str, cell: str) -> Form:
     return Form(key, find, probes)
 
 
+# Each form of the brief's table: the walker to build for it, and the
+# words its "when it falls due" cell has to still carry for the date
+# arithmetic paired with it above to be the arithmetic the brief states.
+#
+# The spellings column is read; the due column cannot be -- `friday_of`
+# is a walk to a Friday because the cell says Friday, and no parser here
+# turns that sentence into that walk. Pairing the two in one table is
+# what keeps the unread column from drifting: a cell reworded to name the
+# Sunday stops matching and the run refuses, where otherwise this file
+# and the solver would go on computing the Friday in agreement.
+BUILDERS = {
+    "by weekday": (
+        weekday_form,
+        ("next", "strictly after", "the date the message was sent"),
+    ),
+    "end of week": (
+        lambda key, cell: phrase_form(key, cell, friday_of),
+        (
+            "friday of the week the message was sent",
+            "weeks running monday to sunday",
+        ),
+    ),
+    "end of month": (
+        lambda key, cell: phrase_form(key, cell, month_end),
+        ("last calendar day of the month the message was sent",),
+    ),
+    "by date": (
+        dated_form,
+        ("that day of that month", "in the year the message was sent"),
+    ),
+    "end of day": (
+        lambda key, cell: phrase_form(key, cell, day_of),
+        ("the date the message was sent",),
+    ),
+    "within days": (
+        within_form,
+        ("the sent date plus n calendar days", "business changes nothing"),
+    ),
+    "by tomorrow": (
+        lambda key, cell: phrase_form(key, cell, tomorrow_of),
+        ("the day after the sent date",),
+    ),
+}
+
+
 def clock(rows: list[list[str]]) -> list[Form]:
     """The brief's seven forms, in the brief's own table order, which is
     the precedence the brief states for attributing a row."""
 
-    builders = {
-        "by weekday": weekday_form,
-        "end of week": lambda key, cell: phrase_form(key, cell, friday_of),
-        "end of month": lambda key, cell: phrase_form(key, cell, month_end),
-        "by date": dated_form,
-        "end of day": lambda key, cell: phrase_form(key, cell, day_of),
-        "within days": within_form,
-        "by tomorrow": lambda key, cell: phrase_form(key, cell, tomorrow_of),
-    }
     keys = [row[1].strip("`") for row in rows]
-    if sorted(keys) != sorted(builders):
+    if sorted(keys) != sorted(BUILDERS):
         fail(
             f"the brief's table keys {sorted(keys)} are not the seven forms "
-            f"this derivation knows how to build: {sorted(builders)}"
+            f"this derivation knows how to build: {sorted(BUILDERS)}"
         )
-    return [builders[key](key, row[0]) for key, row in zip(keys, rows, strict=True)]
+    made = []
+    for key, row in zip(keys, rows, strict=True):
+        build, stated = BUILDERS[key]
+        insists(f"{key!r} row, in its 'when it falls due' cell", row[2], stated)
+        made.append(build(key, row[0]))
+    return made
+
+
+def hardcoded(text: str) -> None:
+    """The rest of what this file decides in Python because prose cannot
+    be executed, checked against the sentences it was read off.
+
+    Which days the window admits, when one message makes two rows rather
+    than one, which of several forms owns a row, what counts as coming
+    back, how the register is ordered and how its tie breaks. Each is a
+    whole column of the answer, and each is written here as arithmetic
+    that agrees with the solver's arithmetic whatever the brief says.
+    """
+
+    insists(
+        "week",
+        section(text, "## The week"),
+        ("sent on or between", "inclusive", "sent inside those five days"),
+    )
+    insists(
+        "account of what a promise is",
+        section(text, "## What counts as a promise"),
+        (
+            "matched case-insensitively in the body",
+            "one row per message and per due date",
+            "resolve to the same date make one row",
+        ),
+    )
+    insists(
+        "account of coming back",
+        section(text, "## What counts as coming back"),
+        (
+            "the same author sent another message in the same thread",
+            "at a later time",
+            "on or before the due date",
+        ),
+    )
+    insists(
+        "output section",
+        section(text, "## What to produce"),
+        (
+            "including the forms that turn out to be zero",
+            "listed first in the table",
+            "break a tie alphabetically, earlier first",
+            "if every row was answered in time, null",
+            "sorted by ref and then by due_date",
+            "compared as text, ascending",
+        ),
+    )
 
 
 def audit(forms: list[Form], sent: datetime.date) -> None:
@@ -692,7 +834,7 @@ def derive(state: Path, days: list[datetime.date], forms: list[Form]) -> dict:
     }
 
 
-def structural(answer: dict, keys: list[str]) -> None:
+def structural(answer: dict) -> None:
     """What row F1 cannot show, whatever the rows say."""
 
     rows = answer["promises"]
@@ -715,23 +857,55 @@ def structural(answer: dict, keys: list[str]) -> None:
                 f"every row carries the same {field}. A constant column grades "
                 "nothing: an agent that never looks scores full marks on it."
             )
-    if sorted(answer["form_counts"]) != sorted(keys):
-        fail(
-            f"form_counts carries {sorted(answer['form_counts'])}; the brief's "
-            f"table names {sorted(keys)}"
+
+
+def coherent(truth: dict, keys: list[str]) -> None:
+    """The oracle's summary figures against the oracle's own rows.
+
+    Run on the answer key rather than on the derivation above, where the
+    same four checks restate the arithmetic that just produced the
+    figures and could not fire. The field-by-field diff that follows
+    would catch the same breakage, but it reports six disagreeing fields
+    where this reports the one line that is actually inconsistent.
+    """
+
+    missing = [
+        field
+        for field in (
+            "promises",
+            "promises_total",
+            "answered_in_time",
+            "distinct_authors",
+            "form_counts",
         )
-    if sum(answer["form_counts"].values()) != answer["promises_total"]:
-        fail("form_counts does not add up to promises_total")
-    if answer["answered_in_time"] != sum(1 for row in rows if row["followed_up"]):
-        fail("answered_in_time disagrees with the rows it summarises")
-    if answer["distinct_authors"] != len({row["author"] for row in rows}):
-        fail("distinct_authors disagrees with the rows it summarises")
+        if field not in truth
+    ]
+    if missing:
+        fail(f"the oracle carries no {missing}")
+    rows = truth["promises"]
+    if truth["promises_total"] != len(rows):
+        fail(
+            f"the oracle calls itself {truth['promises_total']} rows and "
+            f"carries {len(rows)}"
+        )
+    if sorted(truth["form_counts"]) != sorted(keys):
+        fail(
+            f"the oracle's form_counts carries {sorted(truth['form_counts'])}; "
+            f"the brief's table names {sorted(keys)}"
+        )
+    if sum(truth["form_counts"].values()) != truth["promises_total"]:
+        fail("the oracle's form_counts does not add up to its promises_total")
+    if truth["answered_in_time"] != sum(1 for row in rows if row["followed_up"]):
+        fail("the oracle's answered_in_time disagrees with the rows it summarises")
+    if truth["distinct_authors"] != len({row["author"] for row in rows}):
+        fail("the oracle's distinct_authors disagrees with the rows it summarises")
 
 
 def main() -> int:
     if "WORKBENCH_STATE" not in os.environ:
         fail("set WORKBENCH_STATE to the served state of the built bundle")
     text = brief_text()
+    hardcoded(text)
     forms = clock(form_table(text))
     days = week(text)
     audit(forms, days[0])
@@ -739,7 +913,7 @@ def main() -> int:
     print(f"brief: {days[0]} to {days[-1]}, forms {keys}")
 
     answer = derive(Path(os.environ["WORKBENCH_STATE"]), days, forms)
-    structural(answer, keys)
+    structural(answer)
     stated = promised_volume(text)
     if stated is None:
         print("note: the brief's closing warning names no single mail count")
@@ -758,6 +932,7 @@ def main() -> int:
     if not ORACLE.is_file():
         fail(f"no oracle at {ORACLE}; run build_tasks.py first")
     truth = json.loads(ORACLE.read_text())
+    coherent(truth, keys)
     if truth != answer:
         apart = sorted(
             field

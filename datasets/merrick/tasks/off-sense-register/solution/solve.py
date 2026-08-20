@@ -27,6 +27,11 @@ does not print it. Naming which of the two spellings matched, per row,
 hands the agent a checklist -- the decomposition that made
 `self-review-exposure` score 1.000 three times over.
 """
+# ruff: noqa: E501
+# Long lines are the «MEASURE» questions: written out in full because
+# an abbreviated one gets guessed at instead of measured. Truncating
+# them once already destroyed what they were for. They go when the
+# values land.
 
 import datetime
 import json
@@ -49,7 +54,7 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("word_register.json")
 # every weekend in the window and shortens the corpus silently -- the row
 # count still looks plausible, so nothing downstream says so.
 #
-# measure("the window, in calendar days from the epoch. Set so the register # carries…")
+# measure("the window, in calendar days from the epoch, set so the register carries at least 20 rows. Calendar days, not workdays: the two differ by every weekend and using the wrong one shortens the corpus silently")
 WINDOW_DAYS: int | None = None
 
 # In this order: the first that matches names the row's form, so a message
@@ -75,7 +80,7 @@ FORMS: tuple[tuple[str, str], ...] = (
 # belong in the object?" a judgement the instruction never settles, and an
 # answer can be marked wrong for guessing it either way.
 #
-# measure("read this off `people.department` in the built state -- # `SELECT DISTINCT…")
+# measure("read this off people.department in the built state: SELECT DISTINCT department FROM people. Every department gets a key including the zero-valued ones, or a zero becomes a judgement the instruction never settles")
 DEPARTMENTS: tuple[str, ...] = ()
 
 

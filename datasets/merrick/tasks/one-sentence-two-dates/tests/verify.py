@@ -52,25 +52,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-# Written-out counts the instruction admits inside `within N days`. Kept
-# here rather than imported from the solver: sharing the table would
-# share any omission in it, and an omission is exactly the kind of bug a
-# second derivation exists to catch.
-_NUMBERS: dict[str, int] = {
-    "a": 1,
-    "two": 2,
-    "three": 3,
-    "five": 5,
-    "ten": 10,
-}
-
-# The window's last day, as `instruction.md` states it. Deliberately
-# unmeasured: the world is still recording, and a plausible date written
-# here is indistinguishable from a measured one the moment it is in the
-# file.
-LAST_DAY: str | None = None
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 HERE = Path(__file__).resolve().parent
 STATE = Path(os.environ["WORKBENCH_STATE"])
@@ -391,14 +373,9 @@ def _found(body: str, sent: datetime.date, numbers: dict[str, int]) -> dict[str,
 
 
 def derive() -> dict:
-    if LAST_DAY is None:
-        raise SystemExit(
-            "LAST_DAY is unmeasured. Transcribe the window from "
-            "instruction.md as an ISO date. Deriving it from the solver "
-            "instead would make this file agree with the solver by "
-            "construction, which is the one thing it exists not to do."
-        )
-    last = datetime.date.fromisoformat(LAST_DAY)
+    text = brief()
+    last = last_day(text)
+    numbers = numerals(text)
     gmail = sqlite3.connect(f"file:{STATE / 'gmail.db'}?mode=ro", uri=True)
     settings = dict(gmail.execute("SELECT key, value FROM meta"))
     epoch_day = datetime.datetime.fromisoformat(settings["epoch"]).date()
@@ -417,7 +394,7 @@ def derive() -> dict:
         if sent > last:
             continue
         read += 1
-        leftmost = _found(body, sent)
+        leftmost = _found(body, sent, numbers)
         if not leftmost:
             continue
         with_dates += 1

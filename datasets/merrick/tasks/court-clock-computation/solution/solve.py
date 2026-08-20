@@ -7,11 +7,12 @@ makes it hard in the one place that matters: the anchor. A model that finds
 `within 10 days` and counts from the day the mail was sent gets a row that
 is present, keyed correctly, and wrong in all three computed fields.
 
-**This file does not parse until every «MEASURE» below is replaced.** That
-is deliberate. Every one of them is a number or a vocabulary that has to be
-counted against the recorded corpus, and the failure this dataset pays for
-most is an author supplying one from intuition. A syntax error is a cheap
-way to make that impossible; a plausible default is not.
+**This file will not import until every `measure()` below is answered.**
+That is deliberate. Every one of them is a number or a vocabulary that has
+to be counted against the recorded corpus, and the failure this dataset
+pays for most is an author supplying one from intuition. A call that raises
+with the open question attached is a cheap way to make that impossible; a
+plausible default is not.
 
 Run `datasets/merrick/measure_candidates.py --state out/merrick/bundle/state
 --days N` for the date-form density, and extend it with the three interval
@@ -31,12 +32,16 @@ the trigger, and must be in the same body rather than in the thread or the
 subject; the sent date stands in when the body names none.** That is what
 `instruction.md` says, and it is how a docket clerk actually reads a
 letter. Requiring both instead is one predicate in `_rows_for` and one
-paragraph in the instruction — the count that decides it is measure("how many in-window bodies carry an admitted interval form and no date form. If that is a small share, the fallback is dead prose and the conjunction is the better rule; if it is a large one, the conjunction throws away most of the register").
+paragraph in the instruction. The count that decides it is how many
+in-window bodies carry an admitted interval form and no date form: if that
+is a small share the fallback is dead prose and the conjunction is the
+better rule, and if it is a large one the conjunction throws away most of
+the register.
 """
-# ruff: noqa: E501
-# Long lines are the «MEASURE» notes: the question a corpus has not
-# been asked yet, written out in full because an abbreviated one gets
-# guessed at instead of measured. They go when the values land.
+# The `measure()` questions below are written out whole, and wrapped as
+# implicitly concatenated strings rather than shortened to fit a line. An
+# abbreviated question gets guessed at instead of measured, which is the one
+# thing this mechanism exists to refuse. They go when the values land.
 
 import datetime
 import json
@@ -47,7 +52,11 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+# The dataset root, which is where `pending.py` is. `parents[2]` is the
+# `tasks/` directory and has no module in it, so importing from there raises
+# ModuleNotFoundError instead of the `Unmeasured` that names the question
+# still open — the failure the sentinel exists to produce.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
@@ -63,7 +72,10 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("court_clock.json")
 # assumption the solver and the verifier both rest on, so `tests/verify.py`
 # re-derives it from the instruction's prose rather than from this constant.
 CUTOFF = (
-    measure("the window's length in calendar days from 2026-01-05, the same day `inst…")
+    measure(
+        "the window's length in calendar days from 2026-01-05, the same day "
+        "`instruction.md` names as its last"
+    )
     * 86_400
 )
 
@@ -72,7 +84,12 @@ CUTOFF = (
 # nothing, and a list missing one it writes often scores every instance of
 # that word as a hallucination — which is how one register admitted 1 of 35
 # real instances and reported the other 34 as inventions.
-SPELLED: dict[str, int] = measure("the spelled-out numbers that actually appear insid…")
+SPELLED: dict[str, int] = measure(
+    "the spelled-out numbers that actually appear inside one of the three "
+    "interval forms in this corpus, mapped to their integer value. Screen at "
+    "least: a, one, two, three, four, five, seven, ten, fourteen, twenty, "
+    "thirty, sixty, ninety"
+)
 
 # The three forms, in the order `form_counts` reports them. First match in
 # this order names a row's form, so a body carrying two forms for the same
@@ -87,12 +104,24 @@ FORM_TEMPLATES: tuple[tuple[str, str], ...] = (
     ("due in N days", r"\bdue\s+in\s+({n})\s+(?:business\s+|calendar\s+)?days?\b"),
 )
 
-# Before anything else is filled in: measure("how many in-window bodies carry # each…")
+# Before anything else is filled in, count how many in-window bodies carry
+# each of these three forms. A literalism register is only hard where the
+# near-misses are dense, and it is only a *task* where the admitted form is
+# live at all. Measured on the partial worlds available while this was
+# written, two of the three were dead and the third was close to it, against
+# a corpus that writes its deadlines as a weekday and a numeric date with a
+# parenthetical countdown beside them. If that holds on the finished record,
+# the three forms above are the wrong three and the register should be cut
+# from the shapes the firm actually writes -- changing the rule, not the
+# window, is what fixes a dead vocabulary.
 
 # Month spellings this corpus writes, mapped to month number. Abbreviations
 # are a separate count from the full names and are only in this table if the
 # firm actually uses them.
-MONTHS: dict[str, int] = measure("the month spellings that appear in this corpus, ful…")
+MONTHS: dict[str, int] = measure(
+    "the month spellings that appear in this corpus, full and abbreviated, "
+    "lowercased, mapped to 1-12"
+)
 
 # Every date shape the register recognises, as a regex. The contract each
 # one must satisfy: named groups `month` and `day`, optionally `year`, and a
@@ -109,7 +138,20 @@ MONTHS: dict[str, int] = measure("the month spellings that appear in this corpus
 # Order does not decide anything here — the trigger is chosen by position in
 # the body and then by length, not by which pattern is listed first — so
 # this tuple may be written in whatever order reads best.
-DATE_FORMS: tuple[str, ...] = measure("the written date shapes this corpus actually u…")
+DATE_FORMS: tuple[str, ...] = measure(
+    "the written date shapes this corpus actually uses, as regexes exposing "
+    "named `month`, `day` and optional `year`, each bounded by a word "
+    "boundary at both ends. Screen `March 14`, `March 14th`, `14 March`, "
+    "`March 14, 2026`, `2026-03-14`, `3/14` and `3/14/2026` separately; a "
+    "shape the firm never writes costs nothing to omit, and one it writes "
+    "often and the list omits turns every such message into a wrong trigger "
+    "rather than a missing row. Numeric `M/D` needs its own look before it "
+    "goes in: this firm's traffic uses the same characters for item "
+    "numbering (`#15/16`), for score-like pairs, and for a docket date. The "
+    "month-range check in `_trigger` is what keeps `15/16` out, and it is "
+    "load-bearing rather than defensive -- count how many `M/D` tokens in "
+    "the corpus are not dates before deciding the shape is safe"
+)
 
 
 def _number_alternation() -> str:

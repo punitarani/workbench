@@ -43,6 +43,8 @@ The guard beneath them refuses to run rather than let a guessed window
 or a guessed word family produce an oracle that looks exactly like a
 measured one — which is the defect this tree has paid for most.
 """
+# ruff: noqa: E501
+# Long lines are the «MEASURE» questions, written out in full.
 
 import json
 import os
@@ -52,7 +54,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
@@ -77,7 +79,7 @@ WINDOW_LAST_DAY = measure("zero-based day index of the window's last working day
 # they must not drift apart, because the instruction fixes the tie that
 # way and an agent can only follow what it was told.
 #
-# measure("the admitted forms. Run the family screen over # `activities.note` inside…")
+# measure("the admitted forms. Run the family screen over activities.note inside the window and take the family whose hand-classified off-sense share is highest, and at least 60%")
 FORMS: tuple[tuple[str, str], ...] = (
     (measure("admitted form 1"), measure("admitted form 1")),
     (measure("admitted form 2"), measure("admitted form 2")),

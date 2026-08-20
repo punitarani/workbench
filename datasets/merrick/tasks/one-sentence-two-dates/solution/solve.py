@@ -26,10 +26,15 @@ matched. Printing `end of week` beside the date hands the agent the
 checklist the task exists to withhold -- the same decomposition that made
 `self-review-exposure` score 1.000 three times over.
 
-measure("the difficulty argument. Once the window is fixed, record here what the corp…")
+measure("once the window is fixed, record here how many of its messages carry two forms resolving to different dates, and how many of those sit in one sentence. Twelve and four are the floors; below them this shape has nothing to measure")
 
-measure("the bound. `messages_read` must count only the window, or the agent reads th…")
+measure("the bound. messages_read counts only the window's messages, never the whole corpus: a figure over everything makes the agent read everything, and on a large record that alone turns a good score into no deliverable at all")
 """
+# ruff: noqa: E501
+# Long lines are the «MEASURE» questions: written out in full because
+# an abbreviated one gets guessed at instead of measured. Truncating
+# them once already destroyed what they were for. They go when the
+# values land.
 
 import calendar
 import datetime
@@ -41,7 +46,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("date_register.json")
@@ -51,7 +56,7 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("date_register.json")
 # be a real answer key over an imaginary window. `main` refuses to run
 # until it is measured, loudly, rather than writing a plausible oracle.
 #
-# measure("the number of calendar days in the window. Take the smallest # window whos…")
+# measure("the number of calendar days in the window. Take the smallest window holding 180-260 messages, measured with datasets/merrick/measure_candidates.py --days N")
 #
 # The window in full, since the line above no longer carries it: take the
 # smallest window whose mail carries >=12 rows and >=12 second-or-later
@@ -89,7 +94,7 @@ _MONTHS = (
     "november",
     "december",
 )
-# `a` and the spelled numbers the instruction lists. measure("which of # these the co…")
+# `a` and the spelled numbers the instruction lists. measure("which of these spelled numbers the corpus actually writes after 'within'. A word the firm never uses adds a form nothing can match; one it uses and this omits drops real rows")
 _NUMBER_WORDS = {"a": 1, "two": 2, "three": 3, "five": 5, "ten": 10}
 
 
