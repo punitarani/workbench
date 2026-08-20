@@ -32,12 +32,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from brief_boundary import (  # noqa: E402
     check_reported,
     stated_boundary,
+    stated_working_days,
 )
 from brief_pins import unchanged  # noqa: E402
 
 TASK = Path(__file__).resolve().parents[1]
 BRIEF = (TASK / "instruction.md").read_text(encoding="utf-8")
 _FLAT = " ".join(BRIEF.replace("**", "").split())
+
+
+# The world's first day, pinned. It is only used to count weekdays for the
+# working-day cross-check, and this dataset's epoch is fixed -- a world
+# starting elsewhere is a different world, not a different window. Written
+# out rather than read from the served meta table because that would need a
+# state path this check does not otherwise take, and an argument threaded
+# through for one assertion is a worse trade than a constant with a reason.
+EPOCH_DATE = datetime.date(2026, 1, 5)
 
 
 class BriefChanged(AssertionError):
@@ -242,6 +252,10 @@ def boundary_agrees(oracle: dict) -> None:
             f"the oracle's window_end is {reported!r}, which is not a date"
         ) from None
     stated_boundary(BRIEF, stated, "## The window")
+    # The working-day figure beside the date is free -- nothing windows on
+    # it -- but the two are transcribed as a pair from one measured line, so
+    # a disagreement means one was typed rather than copied.
+    stated_working_days(BRIEF, EPOCH_DATE, stated, "## The window")
     check_reported(oracle, stated)
 
 

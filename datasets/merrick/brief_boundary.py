@@ -91,6 +91,51 @@ def stated_boundary(brief: str, transcribed: datetime.date, section: str) -> Non
             )
 
 
+def stated_working_days(
+    brief: str, epoch: datetime.date, last_day: datetime.date, section: str
+) -> None:
+    """If the window section quotes a working-day count, make it true.
+
+    Every brief restates its window twice: once as the boundary date, which
+    is operative, and once as "the firm's N working days", which is the way a
+    reader actually thinks about a span. The second is a free number — it can
+    say anything and nothing notices, because only the date is windowed on.
+
+    It is worth checking anyway. The two are meant to be transcribed as a
+    matched pair from one printed line, so a disagreement means one of them
+    was typed rather than copied, and the one that was typed might have been
+    the date.
+
+    Silent when the passage quotes no count: not every brief carries one, and
+    a check that invents a requirement is worse than no check.
+    """
+
+    at = brief.find(section)
+    if at < 0:
+        raise BoundaryDisagreement(f"the brief has no {section!r} section")
+    rest = brief[at + len(section) :]
+    nxt = rest.find("\n## ")
+    passage = (rest if nxt < 0 else rest[:nxt]).replace("*", "")
+
+    found = re.search(r"\b(\d{1,3})\s+working days\b", passage)
+    if not found:
+        return
+    claimed = int(found.group(1))
+    actual = sum(
+        1
+        for offset in range((last_day - epoch).days + 1)
+        if (epoch + datetime.timedelta(days=offset)).weekday() < 5
+    )
+    if claimed != actual:
+        raise BoundaryDisagreement(
+            f"the brief says {claimed} working days and {epoch.isoformat()} "
+            f"through {last_day.isoformat()} is {actual}. The date and the "
+            "count are meant to come from one measured line as a pair; if "
+            "they disagree, one was typed rather than copied — and it may "
+            "have been the date."
+        )
+
+
 def window_days(epoch: datetime.date, last_day: datetime.date) -> int:
     """Calendar days from the epoch through `last_day`, inclusive.
 
@@ -122,6 +167,7 @@ def check_reported(oracle: dict, transcribed: datetime.date) -> None:
 
 __all__ = [
     "BoundaryDisagreement",
+    "stated_working_days",
     "check_reported",
     "stated_boundary",
     "window_days",
