@@ -4,6 +4,19 @@ Written at day 30 of 130 with everything corpus-independent complete, so the
 work resumes from the blocking condition rather than from whatever was most
 recently on someone's mind.
 
+## How long it takes, measured rather than guessed
+
+At day 37 the store had been open 9.0 hours: **14.7 minutes per recorded
+working day**, steady across the run with no degradation. That puts the
+remaining 93 days at roughly **23 hours**, not the "about 17" this note
+previously implied — an estimate made early, from a shorter sample, and
+repeated without being re-derived.
+
+Two things follow. The recording spans more than a full day of wall clock,
+so whoever picks it up will not be whoever started it, which is the reason
+this file exists. And the pace is worth re-deriving rather than trusting:
+divide the store's mtime minus its birth time by the day count.
+
 ## How you know it finished
 
 The supervisor accepts only when **both** the telemetry count and the
