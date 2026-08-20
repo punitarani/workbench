@@ -4,9 +4,8 @@ You are the practice manager at **Merrick Stanton LLP**, a litigation and
 transactions firm.
 
 Before this quarter's bills go out, the billing partner wants to know which
-document revisions were **no-ops** — a new version saved, filed and
-recorded against a matter, where the person who saved it says in the
-version comment that nothing substantive changed.
+document revisions were **no-ops** — a new version saved, where the person
+who saved it says in the version comment that nothing substantive changed.
 
 These are not misconduct. A document gets reopened, reviewed, and closed
 again with nothing to alter, and the honest thing to do is say so in the
@@ -53,6 +52,14 @@ phrases:
 
 Case does not matter. Nothing else admits a row.
 
+**The list is exact, and it is deliberately not symmetric.** `no changes
+were made` admits a row; `no edits were made` does not, and neither does any
+singular form. That is not a typo to be repaired — it is the rule. Read the
+list as given.
+
+Every document in the system is in scope, whether or not it belongs to a
+matter. There is no matter filter.
+
 Two things this rule will tempt you to do, and neither is right.
 
 **It will not read like a rule while you are applying it.** These comments
@@ -78,15 +85,19 @@ makes a row.
 
 Write `no_op_revisions.json` to the workspace root:
 
+The values below fix the *shape* only. `window_end` is the boundary stated
+in **The window** above, and every `revised_date` falls on or before it —
+do not copy these.
+
 ```json
 {
-  "window_end": "2026-01-30",
+  "window_end": "<the boundary this brief states, as YYYY-MM-DD>",
   "versions_read": 0,
   "no_op_revisions": [
     {
       "document_ref": "LEGAL!12.3",
       "author": "Rosalie Duchamp",
-      "revised_date": "2026-01-21",
+      "revised_date": "<a date inside the window>",
       "document_name": "Standard rates card"
     }
   ]

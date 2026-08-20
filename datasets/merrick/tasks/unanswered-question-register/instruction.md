@@ -100,7 +100,7 @@ these:
       "message_ref": "msg-000318",
       "thread_ref": "thr-000042",
       "asker": "Bennett Ashworth",
-      "asked_date": "2026-01-21",
+      "asked_date": "<a date inside the window>",
       "subject": "Northmoor closing checklist — two open items",
       "addressees": ["Cecile Marchand", "Rosalie Duchamp"]
     }

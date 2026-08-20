@@ -64,6 +64,22 @@ insists(
 )
 insists("not by UTC" in BRIEF, "dates are read in the firm's time zone, not UTC")
 insists(
+    "deliberately not symmetric" in BRIEF.replace("**", ""),
+    "the phrase list is exact and asymmetric ON PURPOSE. A dry run found "
+    "this one charitable model away from a five-row false-positive burst: "
+    "the record carries `no edits were made`, `no edit was made` and `no "
+    "edit made`, and a reader who repairs the apparent typo emits 15 rows "
+    "for 10 -- F1 0.80 from second-guessing the author, not from misreading "
+    "the rule",
+)
+insists(
+    "There is no matter filter" in BRIEF,
+    "every document is in scope. The framing paragraph once said revisions "
+    "were 'filed and recorded against a matter', which reads as a membership "
+    "condition the rule never states and the oracle never applies -- taking "
+    "it as one drops the rate card and two firm-administration documents",
+)
+insists(
     "version's own id, exactly as iManage gives it" in BRIEF.replace("**", ""),
     "the row key is the served version id, not an internal document id -- an "
     "audit found the register keyed on `doc-000012`, which no tool emits, so "
@@ -98,7 +114,7 @@ for trap in ("only formatting", "typo fix", "minor cleanup", "cosmetic only"):
 # including a pure addition. When it fires, re-read the section against
 # the code below and confirm the second derivation still implements it
 # before re-pinning -- do not paste the new value in to make it pass.
-unchanged(BRIEF, "## What makes a row", "e36082c26e1a8d8f")
+unchanged(BRIEF, "## What makes a row", "aa60c143b1eb57a1")
 
 
 def admits(comment: str) -> bool:
