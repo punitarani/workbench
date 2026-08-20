@@ -542,17 +542,42 @@ def _run_second_derivation(task: Path, name: str, oracle_path: Path) -> None:
         # it failing to run. Reporting a crash as "the two derivations
         # disagree" sends the reader looking for a rule mismatch that is not
         # there.
-        crashed = result.returncode != 1
-        headline = (
-            f"{name}: the independent verifier could not run (exit {result.returncode})"
-            if crashed
-            else f"{name}: the independent verifier disagrees with the "
-            "reference solver, so one of the two is wrong and the oracle is "
-            "not an answer key"
+        # Three outcomes, not two. A verifier that pins its assumptions to
+        # the brief raises at *import* time when the brief has moved, and an
+        # uncaught exception exits 1 -- indistinguishable from a considered
+        # disagreement unless the output is read. Reporting a moved brief as
+        # "the two derivations disagree" sends the reader hunting a rule
+        # mismatch between two files that in fact agree with each other.
+        output = (result.stdout + result.stderr).strip()
+        pinned = any(
+            marker in output
+            for marker in (
+                "no longer states",
+                "BriefChanged",
+                "BoundaryDisagreement",
+                "RuleChanged",
+                "has changed: pinned",
+            )
         )
-        raise SystemExit(
-            f"{headline}.\n{(result.stdout + result.stderr).strip()[-1200:]}"
-        )
+        if pinned:
+            headline = (
+                f"{name}: the brief no longer says what its verifier assumes. "
+                "The two derivations were never compared -- this failed before "
+                "they ran. Re-read the brief against tests/verify.py, then "
+                "re-pin deliberately"
+            )
+        elif result.returncode != 1:
+            headline = (
+                f"{name}: the independent verifier could not run "
+                f"(exit {result.returncode})"
+            )
+        else:
+            headline = (
+                f"{name}: the independent verifier disagrees with the reference "
+                "solver, so one of the two is wrong and the oracle is not an "
+                "answer key"
+            )
+        raise SystemExit(f"{headline}.\n{output[-1200:]}")
     print(f"{name}: second derivation agrees")
 
 
