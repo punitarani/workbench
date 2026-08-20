@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 
 from analysis import attempted_work
-from analysis.artifact_mix import MixFloors, measure, violations
+from analysis.artifact_mix import MixFloors, emptiness, measure, violations
 from analysis.calendar_units import inspect as inspect_calendar_units
 from analysis.coherence import MISBOOKED_LIMIT, check
 from analysis.reachability import unreachable
@@ -220,6 +220,14 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         raise SystemExit(
             "the file room is not this firm's:\n  - " + "\n  - ".join(wrong)
         )
+    # Reported, not refused. An empty file is content the generator never
+    # wrote and a projection cannot invent it, so while the writer is frozen
+    # this would block the only build available without fixing anything --
+    # the same mistake a raw-rate calendar gate made here before it was
+    # re-aimed at what actually reaches the served state. No task grades
+    # document content today; one that did would have to check this itself.
+    for lost in emptiness(mix):
+        print(f"  file room: {lost}")
     if env.skipped_renders:
         for skip in env.skipped_renders:
             print(f"  render skipped: {skip}")

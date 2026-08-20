@@ -228,18 +228,38 @@ class MixFloors:
     required_forms: tuple[str, ...]
 
 
+def emptiness(mix: ArtifactMix) -> tuple[str, ...]:
+    """Files that exist and hold nothing, reported separately from the rest.
+
+    Separate because the caller has to treat it differently. The other
+    findings here are shape problems a build can fix by rebuilding: a file
+    room too full of notes, a document lost to a name collision. An empty
+    file is content the *generator* never wrote, and a projection cannot
+    invent it — so while the generator is frozen this is a defect to record
+    rather than a reason to refuse the only build available.
+
+    It becomes blocking the moment a task grades document content, and
+    nothing here can know whether one does. The caller does.
+    """
+
+    if not mix.empty:
+        return ()
+    return (
+        f"{len(mix.empty)} file(s) hold no content at all: "
+        f"{list(mix.empty[:3])} — a count by suffix cannot see this, and an "
+        "empty file is work product that was registered and lost",
+    )
+
+
 def violations(mix: ArtifactMix, floors: MixFloors) -> tuple[str, ...]:
-    """Every way this workspace falls short, as readable sentences."""
+    """Every way this workspace's *shape* falls short, as readable sentences.
+
+    Emptiness is deliberately not here — see `emptiness`.
+    """
 
     found: list[str] = []
     if mix.total == 0:
         return ("the workspace is empty",)
-    if mix.empty:
-        found.append(
-            f"{len(mix.empty)} file(s) hold no content at all: "
-            f"{list(mix.empty[:3])} — a count by suffix cannot see this, and "
-            "an empty file is work product that was registered and lost"
-        )
     if mix.markdown_share > floors.max_markdown_share:
         found.append(
             f"markdown is {mix.markdown_share:.0%} of {mix.total} files, "
@@ -298,6 +318,7 @@ def violations(mix: ArtifactMix, floors: MixFloors) -> tuple[str, ...]:
 
 
 __all__ = [
+    "emptiness",
     "FALLBACK_SUFFIXES",
     "mislabelled",
     "OFFICE_SUFFIXES",
