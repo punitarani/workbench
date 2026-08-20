@@ -754,6 +754,33 @@ constantly and stops being read.
 And gate the push on the *test result*, not on the commit succeeding.
 `commit && push` runs the push whichever way the suite went.
 
+### Keep the failure-mode list where you will read it before reviewing
+
+The cheapest defect I found in a day of finding defects cost one
+sentence. Writing an audit prompt meant enumerating the failure modes to
+look for — and one of them, *"does the test drive the real code or a copy
+of it"*, answered itself about a test I had written an hour earlier. The
+audit had not started yet.
+
+That test defined a local helper reimplementing the rule and asserted
+against it, so the real code could have stopped enforcing entirely with
+every assertion still green. The same shape had been caught and fixed and
+written up **that morning**, in a different file.
+
+So the mechanism worth keeping is not the audit; it is the *list*. Read
+the failure modes before reviewing your own work, in the order they cost
+you:
+
+- Does this test drive the real code, or a copy of it?
+- Does this check pass for the reason it claims, or for another one?
+- Is the fixture the case the name describes?
+- Does the guard trust a number something upstream computed?
+- If I broke the thing right now, would this fail — and did my break land?
+- Is the fix aimed at the demonstrated case, or at the mechanism?
+
+An audit is how you find what the list does not cover yet. The list is
+how you stop paying for the same discovery twice.
+
 ### Audit your own gates the way you audit a model's answer
 
 A gate is code, written under the same pressure as the thing it guards,
