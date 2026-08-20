@@ -122,6 +122,22 @@ a document dated 2025 filed against a 2026 matter. The document-writing turn
 does not carry the world's current date into the content it asks for, while
 the message-writing turn never needs one because it writes relatively.
 
+## 5. Internal identifiers leak into work product
+
+Thirteen of 79 materialized files carry database ids in their prose --
+`tkt-000010`, `doc-000042` -- inside documents a client could be shown. The
+firm's staff would write "the Northmoor closing checklist", not a row key.
+
+It is cosmetic against the graded surfaces and it is not cosmetic to the
+fiction. It also has a second cost worth noting: those ids are the internal
+vocabulary, and a task keyed on something an agent can actually spell had to
+be fixed for exactly this confusion — an oracle named `doc-000012`, which no
+tool emits, while the tools serve `LEGAL!12.3`. Prose that shows the
+internal form teaches an agent to use it.
+
+The persona's authoring turn is given documents by reference and repeats the
+reference. It should be given the name.
+
 ## How to verify each fix afterwards
 
 Re-record a short window and check:
@@ -132,5 +148,7 @@ Re-record a short window and check:
 3. No document has empty content, and `analysis.artifact_mix.measure(...)`
    reports zero markdown as a consequence rather than as a separate rule.
 4. Dates written into document bodies fall inside the world's window.
+5. No materialized file contains an internal id -- grep the workspace for
+   the id prefixes.
 
 None of these needs the full 130 days; a five-day run exercises all three.

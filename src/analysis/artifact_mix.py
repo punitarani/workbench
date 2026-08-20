@@ -115,6 +115,12 @@ class ArtifactMix:
     # file, and the fix is different too: the first loses work to a name
     # collision the record still remembers, the second loses it outright.
     distinct_paths: int | None = None
+    # Files that exist and hold nothing. A count by suffix cannot see these:
+    # a 0-byte `.docx` is one `.docx`, exactly like a 1,600-word one, so a
+    # world with empty work product measures as healthy as one without.
+    # Measured on a real bundle: three documents registered under full
+    # professional titles, with named authors and matters, and no body.
+    empty: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         counted = sum(count for _, count in self.by_suffix)
@@ -170,17 +176,21 @@ def measure(
     """
 
     counts: Counter[str] = Counter()
+    empty: list[str] = []
     for path in sorted(workspace.rglob("*")):
         if not path.is_file():
             continue
         suffix = path.suffix.lower()
         counts[suffix or "(none)"] += 1
+        if path.stat().st_size == 0:
+            empty.append(str(path.relative_to(workspace)))
     return ArtifactMix(
         total=sum(counts.values()),
         by_suffix=tuple(sorted(counts.items())),
         mislabelled=mislabelled(workspace),
         declared=declared,
         distinct_paths=distinct_paths,
+        empty=tuple(empty),
     )
 
 
@@ -224,6 +234,12 @@ def violations(mix: ArtifactMix, floors: MixFloors) -> tuple[str, ...]:
     found: list[str] = []
     if mix.total == 0:
         return ("the workspace is empty",)
+    if mix.empty:
+        found.append(
+            f"{len(mix.empty)} file(s) hold no content at all: "
+            f"{list(mix.empty[:3])} — a count by suffix cannot see this, and "
+            "an empty file is work product that was registered and lost"
+        )
     if mix.markdown_share > floors.max_markdown_share:
         found.append(
             f"markdown is {mix.markdown_share:.0%} of {mix.total} files, "

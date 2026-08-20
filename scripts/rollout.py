@@ -81,6 +81,36 @@ TIERS: dict[str, tuple[str, str]] = {
 MODELS = TIERS  # name kept for the tag/agreement test
 
 
+def _refuse_unbuilt(task_path: Path, task: str) -> None:
+    """Refuse to launch a task the build never finished.
+
+    A directory existing was the only precondition, so a sweep could be
+    started against a task with no oracle, no staged environment and no
+    grading module beside its criteria. Every trial then runs, the agent
+    works, and the score is zero for reasons the model had no part in --
+    which is the exact confusion this whole pipeline exists to prevent, paid
+    for at k trials times however many models.
+
+    Checked here rather than trusted from the build, because the build and
+    the sweep are separate commands run hours apart, and the thing that
+    makes them agree should not be somebody's memory.
+    """
+
+    required = {
+        "oracle": task_path / "tests" / "oracle.json",
+        "grading criteria": task_path / "tests" / "criteria.py",
+        "shared grading module": task_path / "tests" / "criteria_base.py",
+        "staged environment": task_path / "environment",
+    }
+    absent = sorted(what for what, where in required.items() if not where.exists())
+    if absent:
+        raise SystemExit(
+            f"{task}: not built — missing {absent}. Run the dataset's "
+            "build_tasks.py first. Launching now would spend every trial "
+            "producing zeros that look like model failure."
+        )
+
+
 def job_config(
     dataset: str,
     task: str,
@@ -94,6 +124,7 @@ def job_config(
     task_path = REPO / "datasets" / dataset / "tasks" / task
     if not task_path.is_dir():
         raise SystemExit(f"no task at {task_path}")
+    _refuse_unbuilt(task_path, task)
     return {
         "job_name": f"{dataset}-{task}-{tag}",
         "jobs_dir": str(REPO / "jobs"),
