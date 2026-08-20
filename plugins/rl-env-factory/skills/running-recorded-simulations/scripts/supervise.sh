@@ -2,8 +2,16 @@
 # Keep a long run alive until it finishes, without resetting it or lying
 # about whether it did.
 #
-#   supervise.sh --start CMD --resume CMD --progress CMD --artifact CMD \
-#                --target N [--patience 3] [--pause 60] [--log PATH]
+#   supervise.sh --start CMD --resume CMD --exists CMD \
+#                --progress CMD --artifact CMD --target N \
+#                [--patience 3] [--pause 60] [--log PATH]
+#
+# --exists is a command whose EXIT STATUS says whether a run is already
+# under way (typically `test -e out/run.db`). It is a separate predicate
+# rather than something inferred, because the one thing that must not decide
+# it is progress: a run that died before its first checkpoint has a store and
+# zero progress, and that is precisely the case where `start` is refused and
+# only `resume` works.
 #
 # --progress and --artifact are commands that print a number on stdout.
 # `progress` is the cheap running count (a telemetry log). `artifact` is the
@@ -12,11 +20,12 @@
 # does not hold, and accepting on progress alone ships a truncated result.
 set -uo pipefail
 
-START= RESUME= PROGRESS= ARTIFACT= TARGET= PATIENCE=3 PAUSE=60 LOG=/dev/null
+START= RESUME= EXISTS= PROGRESS= ARTIFACT= TARGET= PATIENCE=3 PAUSE=60 LOG=/dev/null
 while [ $# -gt 0 ]; do
     case "$1" in
         --start)    START=$2;    shift 2 ;;
         --resume)   RESUME=$2;   shift 2 ;;
+        --exists)   EXISTS=$2;   shift 2 ;;
         --progress) PROGRESS=$2; shift 2 ;;
         --artifact) ARTIFACT=$2; shift 2 ;;
         --target)   TARGET=$2;   shift 2 ;;
@@ -26,12 +35,20 @@ while [ $# -gt 0 ]; do
         *) echo "unknown argument: $1" >&2; exit 2 ;;
     esac
 done
-for required in START RESUME PROGRESS ARTIFACT TARGET; do
-    if [ -z "${!required}" ]; then
-        echo "missing --${required,,}" >&2
-        exit 2
-    fi
-done
+# Written out rather than looped over variable names: `${!name}` and
+# `${name,,}` are bash 4 features, and on the bash 3.2 that ships with macOS
+# the guard itself errors before it can report anything.
+missing=
+[ -z "${START}" ]    && missing="${missing} --start"
+[ -z "${RESUME}" ]   && missing="${missing} --resume"
+[ -z "${EXISTS}" ]   && missing="${missing} --exists"
+[ -z "${PROGRESS}" ] && missing="${missing} --progress"
+[ -z "${ARTIFACT}" ] && missing="${missing} --artifact"
+[ -z "${TARGET}" ]   && missing="${missing} --target"
+if [ -n "${missing}" ]; then
+    echo "missing required argument(s):${missing}" >&2
+    exit 2
+fi
 
 # A counting command prints 0 *and* exits non-zero when it matches nothing.
 # Written as `$(cmd || echo 0)` both fire and the result is "0\n0", which
@@ -57,12 +74,18 @@ stalled=0
 while :; do
     before=$(count "${PROGRESS}")
 
-    # Branch on whether a run EXISTS, not on whether it has progressed. The
-    # store is created before the first checkpoint and `start` refuses to
+    # Branch on whether a run EXISTS, never on whether it has progressed.
+    # The store is created before the first checkpoint and `start` refuses to
     # overwrite it, so a crash in the first minutes leaves a store that only
-    # `resume` can continue. Branching on progress issues `start`, gets
+    # `resume` can continue. Deciding by progress issues `start`, gets
     # refused, and calls a recoverable run unrecoverable.
-    if [ "${before}" -eq 0 ] && ! eval "${RESUME} --dry-run" >/dev/null 2>&1; then
+    #
+    # The first version of this script said exactly that in this comment and
+    # then tested `before -eq 0`, which is progress -- the defect the whole
+    # file exists to prevent, one line under its own warning. It softened it
+    # with a `--dry-run` probe, which most runners do not accept, and which
+    # would have *executed the resume command* to find out.
+    if ! eval "${EXISTS}" >/dev/null 2>&1; then
         echo "[supervise] starting (target ${TARGET})"
         eval "${START}" >>"${LOG}" 2>&1
     else

@@ -169,7 +169,7 @@ banding — over plain lists and dicts, so it works against any world:
 ```python
 from premise_checks import liveness, concentration, degeneracy, admission
 
-concentration(rows, key=lambda r: r["date"])   # -> flags a 47-of-54 day
+concentration(rows, key=lambda r: r["date"])  # -> flags a 47-of-54 day
 degeneracy(rows, fields=["author", "logged"])  # -> flags the 98/98 column
 ```
 

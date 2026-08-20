@@ -4,6 +4,13 @@ These operate on plain lists of dicts and callables, so they work against
 any world regardless of its schema. Each returns a small report rather
 than printing, so callers can assert on them in a gate.
 
+**Nothing measured is not the same as nothing wrong.** Every report's `ok`
+is False when it had no rows to look at, because a helper that returns
+"clean" for an empty list is exactly the check-that-cannot-fail this method
+warns about — and an empty list is the most common way a premise check goes
+wrong, since a mistyped field name yields one silently. `empty` says which
+of the two happened.
+
 The one thing they cannot do for you is read the matched rows. A count
 agreeing with your premise is not evidence for it -- see the skill.
 """
@@ -23,8 +30,12 @@ class Liveness:
     dominant: tuple[str, float] | None
 
     @property
+    def empty(self) -> bool:
+        return not any(self.counts.values())
+
+    @property
     def ok(self) -> bool:
-        return not self.dead
+        return not self.dead and not self.empty
 
 
 def liveness(
@@ -61,8 +72,12 @@ class Concentration:
     buckets_with_any: int
 
     @property
+    def empty(self) -> bool:
+        return self.total == 0
+
+    @property
     def ok(self) -> bool:
-        return self.worst is None
+        return self.worst is None and not self.empty
 
 
 def concentration(
@@ -103,8 +118,12 @@ class Degeneracy:
     near_constant: tuple[str, ...] = field(default=())
 
     @property
+    def empty(self) -> bool:
+        return not self.shares
+
+    @property
     def ok(self) -> bool:
-        return not self.constant and not self.near_constant
+        return not self.constant and not self.near_constant and not self.empty
 
 
 def degeneracy(

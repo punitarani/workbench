@@ -34,20 +34,42 @@ def _module_file(root: Path, name: str) -> Path | None:
     return None
 
 
-def _imports(path: Path) -> set[str]:
+def _imports(path: Path, root: Path) -> set[str]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
+    # Parenthesised deliberately: the bare form is Python 3.14 only, and a
+    # script bundled with a skill has to run on whatever the reader has.
     except OSError, SyntaxError:
         return set()
     found: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             found |= {alias.name for alias in node.names}
-        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
-            # Both forms: `from pkg.mod import thing` may name a module or a
-            # symbol, and only trying both resolves it without guessing.
-            found.add(node.module)
-            found |= {f"{node.module}.{alias.name}" for alias in node.names}
+        elif isinstance(node, ast.ImportFrom):
+            # Relative imports (`from . import x`, `from ..pkg import y`) were
+            # skipped here, and skipping them fails in the dangerous
+            # direction: a package reached only through relative imports is
+            # reported "not reached -- safe to edit" while the runner is
+            # executing it. Resolve them against the importing module's own
+            # position in the tree.
+            base = node.module or ""
+            if node.level:
+                try:
+                    here = path.resolve().relative_to(root).parts
+                except ValueError:
+                    continue
+                # One dot means "the package this module lives in", which is
+                # the parent directory whether the file is `__init__.py` or an
+                # ordinary module. Each extra dot climbs one more level.
+                package = list(here[:-1])
+                climb = node.level - 1
+                if climb:
+                    package = package[:-climb] if climb <= len(package) else []
+                base = ".".join([*package, base]) if base else ".".join(package)
+            if not base:
+                continue
+            found.add(base)
+            found |= {f"{base}.{alias.name}" for alias in node.names}
     return found
 
 
@@ -59,7 +81,7 @@ def closure(entry: Path, root: Path) -> set[Path]:
         if current in seen:
             continue
         seen.add(current)
-        for name in _imports(current):
+        for name in _imports(current, root):
             found = _module_file(root, name)
             if found and found not in seen:
                 queue.append(found)
