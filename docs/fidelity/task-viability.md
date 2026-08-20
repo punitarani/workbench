@@ -316,3 +316,49 @@ the same units, which is a measurement rather than a verdict.
 pair sums well above 1.40 the repair is to strengthen this lever rather than
 invent one — the corpus supports it, and `can/could you` without a `?` on
 that clause runs at 68% on its own.
+
+## Re-measured at day 61: three of four rates moved, and one crossed its gate
+
+Every viability number in this document was measured between days 12 and 35.
+At day 61 the corpus is roughly four times larger. Re-run with the same
+classifiers, so the comparison is like for like:
+
+| rate | when first measured | at day 61 |
+|---|---|---|
+| off-sense share of `confirm` | 66% (day 30) | **56%** |
+| no-op revisions, share of versions | 18% (day 16) | **9%** |
+| EOD share of mail date-forms | 62% (day 30) | 56% |
+| questions unanswered in 3 working days | 35% (day 22) | 39% |
+| date forms with zero occurrences | 3 of 7 | **2 of 7** |
+
+**`off-sense-register` no longer clears its own 60% gate.** An audit claimed
+at day 30 that no family in this corpus cleared it; I refuted that with a
+66% measurement and the refutation was correct *then*. The claim is becoming
+true as the corpus grows. That is not the auditor being right by luck — it
+is a rate measured on a fifth of a corpus, quoted as a property of the
+corpus.
+
+**`no-op-revision-register`'s minority class halved.** 18% was comfortably
+inside the 15–40% band where both precision and recall bite; 9% is heading
+toward the needle-hunt end, where scores go bimodal. The audit said "one in
+ten on the record" and was closer than I was.
+
+**A retired task's premise partly revived.** `by <Month> <day>` had zero
+occurrences and now has six. `court-clock-computation` still stays retired —
+it needs an interval form *and* a calendar date in one body, and `within N
+days` remains at zero — but the reason has narrowed from "neither half
+exists" to "one half exists".
+
+### What this means for the fills
+
+Do not fill any `«MEASURE»` from a number in this document. Every one of
+them is a reading of a smaller corpus. The three re-measured downward are
+the ones that decide whether two tasks are viable at all, and both need to
+be re-run on the finished record before their windows are chosen.
+
+The direction is not random. Both rates that fell are **minority-class
+shares**, and a minority class dilutes as the majority accumulates: more
+messages carrying `confirm` in its ordinary sense, more revisions that
+really did change something. A rate that is a *proportion of a growing
+population* should be expected to drift; a rate that is a *count per working
+day* should not. Worth checking which kind a number is before quoting it.
