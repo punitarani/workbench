@@ -1,0 +1,229 @@
+"""Reference solver: what the two-spelling search term hits.
+
+UNBUILT. The word family is not chosen. `FORMS`, `WINDOW_DAYS` and
+`DEPARTMENTS` below are placeholders, and `main()` refuses to run while any
+of them still is. Fill them from
+`uv run python datasets/merrick/measure_candidates.py --days N`, never from
+intuition -- the screen prints liveness, minority share and a sample to
+classify by hand, and the number that decides is the **off-sense share of
+the admitted form**: how often the word appears meaning something other
+than the register's own idea. Below 60% there is no task here, because the
+literal rule and the editorial one return nearly the same set and a model
+that reads for meaning is never punished for it.
+
+What makes the shape work, when it works: the admitted form is a word a law
+firm uses constantly for something other than the act the term names, so
+excluding a synonym that plainly means the act -- and admitting a sentence
+that plainly does not -- is a decision about spelling made against
+everything the reader knows the sentence says, once per near miss.
+
+Two structural notes for whoever fills this in:
+
+**One row per message.** `ref` is the message's own id, so the row key
+distinguishes every row on both sides.
+
+**No per-row form field.** `form_counts` needs the classification; the row
+does not print it. Naming which of the two spellings matched, per row,
+hands the agent a checklist -- the decomposition that made
+`self-review-exposure` score 1.000 three times over.
+"""
+
+import datetime
+import json
+import os
+import re
+import sqlite3
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+STATE = Path(os.environ["WORKBENCH_STATE"])
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("word_register.json")
+
+# **Calendar** days, not working days. The cutoff below is
+# `WINDOW_DAYS * 86_400` and `measure_candidates.py --days N` counts the same
+# way, but instruction.md also prints a *working-day* figure for the same
+# window and that is a different number. Filling this in from that one drops
+# every weekend in the window and shortens the corpus silently -- the row
+# count still looks plausible, so nothing downstream says so.
+#
+# measure("the window, in calendar days from the epoch. Set so the register # carries…")
+WINDOW_DAYS: int | None = None
+
+# In this order: the first that matches names the row's form, so a message
+# carrying both is still one hit with one name -- which is what the
+# instruction says, under «FORM_A».
+#
+# The family is chosen by measurement, not by ear. Both spellings of one
+# word and nothing else: not its other endings, not its synonyms. The
+# whole-word rule the instruction states is letters-based — letters,
+# digits and underscore continue a word, so a hyphenated compound counts
+# and a longer word containing the letters does not.
+#
+# «MEASURE: run datasets/merrick/measure_candidates.py against the graded
+# window and take the family with the highest hand-classified off-sense
+# share, which must be at least 60%.»
+FORMS: tuple[tuple[str, str], ...] = (
+    ("«FORM_A»", r"\b«FORM_A»\b"),
+    ("«FORM_B»", r"\b«FORM_B»\b"),
+)
+
+# Every department the served directory records, including the ones no row
+# lands in. Emitting only the departments that occur would make "does a zero
+# belong in the object?" a judgement the instruction never settles, and an
+# answer can be marked wrong for guessing it either way.
+#
+# measure("read this off `people.department` in the built state -- # `SELECT DISTINCT…")
+DEPARTMENTS: tuple[str, ...] = ()
+
+
+def _unbuilt() -> str | None:
+    if WINDOW_DAYS is None:
+        return "WINDOW_DAYS"
+    if any("«" in name for name, _pattern in FORMS):
+        return "FORMS"
+    if not DEPARTMENTS:
+        return "DEPARTMENTS"
+    return None
+
+
+def _form(body: str) -> str | None:
+    # `re.ASCII` deliberately. Without it `\b` is Unicode-aware, so a form
+    # sitting against an accented letter is a non-boundary here and a
+    # boundary to tests/verify.py, which splits on `[^0-9A-Za-z_]+`. Two
+    # derivations of one stated rule may differ in expression; they may not
+    # differ on which characters are letters.
+    for name, pattern in FORMS:
+        if re.search(pattern, body, re.IGNORECASE | re.ASCII):
+            return name
+    return None
+
+
+def main() -> None:
+    if (missing := _unbuilt()) is not None:
+        raise SystemExit(
+            f"off-sense-register: {missing} is still a placeholder. Run "
+            "datasets/merrick/measure_candidates.py and classify the sample "
+            "before building this task."
+        )
+
+    gmail = sqlite3.connect(f"file:{STATE / 'gmail.db'}?mode=ro", uri=True)
+    slack = sqlite3.connect(f"file:{STATE / 'slack.db'}?mode=ro", uri=True)
+
+    # End of the last day in the window, in the world's own
+    # seconds-from-epoch. `time` on a served message is seconds, not a date:
+    # comparing its string form against an ISO date compiles, runs, and
+    # windows on a lexicographic accident.
+    cutoff = WINDOW_DAYS * 86_400
+
+    epoch = datetime.datetime.fromisoformat(
+        dict(gmail.execute("SELECT key, value FROM meta"))["epoch"]
+    )
+    people = {
+        person_id: {"name": name, "department": department}
+        for person_id, name, department in gmail.execute(
+            "SELECT person_id, name, department FROM people"
+        )
+    }
+    # Channels only. A one-to-one conversation has no name for `where`, and
+    # the instruction puts direct messages out of scope rather than leaving
+    # the reader to invent a label for them.
+    channels = dict(
+        slack.execute(
+            "SELECT conversation_id, name FROM conversations WHERE kind = 'channel'"
+        )
+    )
+
+    rows = []
+    forms = []
+    read = 0
+    for message_id, sender, when, subject, body in gmail.execute(
+        "SELECT message_id, sender, time, subject, body FROM messages"
+    ):
+        if when >= cutoff:
+            continue
+        # Counted only inside the window. Requiring the whole record here is
+        # what turns a task into no deliverable at all: the bound has to
+        # apply to the work, not only to the answer.
+        read += 1
+        form = _form(body)
+        if form is None:
+            continue
+        rows.append(
+            {
+                "ref": message_id,
+                "author": people[sender]["name"],
+                "sent_date": (epoch + datetime.timedelta(seconds=when))
+                .date()
+                .isoformat(),
+                "where": subject,
+            }
+        )
+        forms.append(form)
+    for conversation, sender, when, ts, body in slack.execute(
+        "SELECT conversation_id, sender, time, ts, body FROM messages"
+    ):
+        if when >= cutoff or conversation not in channels:
+            continue
+        read += 1
+        form = _form(body)
+        if form is None:
+            continue
+        rows.append(
+            {
+                "ref": ts,
+                "author": people[sender]["name"],
+                "sent_date": (epoch + datetime.timedelta(seconds=when))
+                .date()
+                .isoformat(),
+                "where": channels[conversation],
+            }
+        )
+        forms.append(form)
+
+    order = sorted(range(len(rows)), key=lambda i: rows[i]["ref"])
+    rows = [rows[i] for i in order]
+    forms = [forms[i] for i in order]
+
+    by_form: dict[str, int] = {name: 0 for name, _pattern in FORMS}
+    by_department: dict[str, int] = {name: 0 for name in DEPARTMENTS}
+    by_person: dict[str, int] = defaultdict(int)
+    name_to_department = {p["name"]: p["department"] for p in people.values()}
+    for row, form in zip(rows, forms, strict=True):
+        by_form[form] += 1
+        department = name_to_department[row["author"]]
+        if department not in by_department:
+            # A stale roster is silent otherwise: the missing department's
+            # rows vanish from the object and every other key still reads
+            # right, so the report is wrong in the one place nobody checks.
+            raise SystemExit(
+                f"off-sense-register: {department!r} is recorded on "
+                f"{row['author']} and missing from DEPARTMENTS -- re-read "
+                "the roster off the built state."
+            )
+        by_department[department] += 1
+        by_person[row["author"]] += 1
+
+    OUT.write_text(
+        json.dumps(
+            {
+                "messages_read": read,
+                "hits_total": len(rows),
+                "distinct_authors": len(by_person),
+                "form_counts": dict(sorted(by_form.items())),
+                "department_counts": dict(sorted(by_department.items())),
+                # Most, then the earlier name -- `max` breaks a tie the other
+                # way and the instruction says earlier.
+                "top_author": min(by_person, key=lambda name: (-by_person[name], name)),
+                "hits": rows,
+            },
+            indent=1,
+        )
+        + "\n"
+    )
+
+
+if __name__ == "__main__":
+    main()

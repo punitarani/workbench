@@ -23,6 +23,7 @@ from analysis.artifact_mix import MixFloors, measure, violations
 from analysis.coherence import MISBOOKED_LIMIT, check
 from analysis.reachability import unreachable
 from analysis.world_facts import load_world
+from core.filing import filed_name
 from core.worldlog import read_events
 from environment.materialize import materialize
 
@@ -191,7 +192,18 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     mix = measure(
         SHARED_BUNDLE / "workspace",
         declared=len(facts.documents),
-        distinct_paths=len({d.path for d in facts.documents.values()}),
+        # Distinct *filed names*, not distinct declared paths. The file
+        # room keeps only the top-level segment, so two documents can
+        # declare different paths and produce one file — counting declared
+        # paths reported those as "produced no file at all", which sends
+        # the reader hunting a renderer bug in a world whose renderer is
+        # fine.
+        distinct_paths=len(
+            {
+                filed_name(d.path, getattr(d, "content_format", "markdown"))
+                for d in facts.documents.values()
+            }
+        ),
     )
     print(f"  file room: {dict(mix.by_suffix)}")
     wrong = violations(mix, FILE_ROOM)
@@ -229,6 +241,30 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
             f"no tasks under {TASKS} — nothing was verified, staged or "
             "graded. A build with nothing to build is not a passing build."
         )
+    # A staged task is not a task. Its corpus-dependent values are
+    # `measure(...)` calls that raise and `«MEASURE»` notes in the brief,
+    # both deliberate — but a build that stages one produces an oracle
+    # from a solver that cannot run, or an instruction with a placeholder
+    # where a rule belongs, and the agent is graded against it anyway.
+    unfilled = []
+    for name in selected:
+        task = TASKS / name
+        brief = task / "instruction.md"
+        if brief.is_file() and "\u00abMEASURE" in brief.read_text():
+            unfilled.append(f"{name}: instruction.md still has a placeholder")
+        for source in sorted(task.rglob("*.py")):
+            body = source.read_text()
+            # A call, not a mention: docstrings describing what to measure
+            # are how the task says what it still needs.
+            if 'measure("' in body.replace('# measure("', ""):
+                unfilled.append(f"{name}: {source.name} still calls measure()")
+                break
+    if unfilled:
+        raise SystemExit(
+            "these tasks are staged, not finished — their corpus "
+            "measurements have not been made:\n  - " + "\n  - ".join(unfilled)
+        )
+
     print(f"building {len(selected)} task(s)")
     for name in selected:
         task = TASKS / name
