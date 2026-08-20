@@ -30,11 +30,23 @@ depends on. Not the ones you would write; the ones the world wrote.
 
 A date-handling task needed interval phrasings (`within N days`) and
 calendar dates in one message. Both were **zero** across hundreds of
-messages. Another needed each meeting to name the matter it concerned, and matched
-the matter list against the title of every transcribed meeting: **zero of
-ninety-three**. Every meeting in that world was a standing one — a docket
-call, a practice huddle — and standing meetings are named after the
-recurrence, not the work. Neither task was hard. Both were impossible.
+messages. Another needed each meeting to name the matter it concerned. Matching the
+matter list against every transcribed meeting title gave **zero of
+ninety-three** — every meeting was a standing one, a docket call or a
+practice huddle, and standing meetings are named after the recurrence
+rather than the work.
+
+Re-run later on the same world, still recording, it gave **11 of 157**, and
+the difference is worth more than either number. Eight of the eleven are one
+standing meeting that happens to carry a client's name in its title; three
+are genuinely matter-specific, scheduled ad hoc by someone who needed a
+meeting about a thing. The structural finding held. The absolute count did
+not, because rare events accumulate.
+
+**Write the window into the claim.** A corpus measurement is true of the
+corpus you measured, and a world that is still growing will invalidate any
+count stated as though it were a property. "Zero" became "2% of meetings,
+ad hoc" without anything changing about the task. Neither task was hard. Both were impossible.
 
 Expect a heavy skew. In one corpus a single deadline form carried 74% of
 all occurrences and three of seven forms carried none. A rule listing all
