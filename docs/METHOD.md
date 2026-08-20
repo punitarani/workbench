@@ -754,6 +754,34 @@ constantly and stops being read.
 And gate the push on the *test result*, not on the commit succeeding.
 `commit && push` runs the push whichever way the suite went.
 
+### Mutate the thing under test before believing the test
+
+Three tests written in one day contained a copy of the code they tested —
+two of them *after* the same shape had been found, fixed and written up.
+One's docstring read "drive the real grounding code" above a body that
+constructed the expected output by hand.
+
+The mechanism is worth naming because intention does not fix it. When a
+test needs a fixture that is awkward to build, hand-constructing the
+output is the path of least resistance, and the result reads exactly like
+a real test. Nothing in review distinguishes them; the docstring will
+even assert the thing that is not true.
+
+So the check is mechanical, not attentional. **Break the behaviour and
+confirm the test fails.** Strip the fields, delete the guard clause,
+return a constant — then run. A test that stays green was testing its own
+fixture.
+
+Two riders, both learned the hard way:
+
+- **Confirm the mutation landed.** A substitution that matches nothing
+  exits zero, and the honest-looking conclusion is that a correct test is
+  inadequate — exactly backwards.
+- **Mutate in the direction of the defect you fear**, not an arbitrary
+  one. Deleting a whole function fails everything and proves little;
+  removing the single field a gate reads is the question you actually
+  have.
+
 ### Two numbers that should agree and don't
 
 The cheapest defect detector available, and it needs no audit. Find a
