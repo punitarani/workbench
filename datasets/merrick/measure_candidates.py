@@ -32,6 +32,8 @@ Nothing here writes a task. It says which tasks the world can carry.
 """
 
 import argparse
+import datetime
+import os
 import re
 import sqlite3
 from collections import Counter
@@ -133,7 +135,19 @@ def _date_density(bodies: list[str]) -> tuple[int, int, Counter]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--state", type=Path, default=DEFAULT_STATE)
+    # `WORKBENCH_STATE` is how every other file in this dataset finds the
+    # served world -- eleven of them -- and this script alone defaulted to
+    # the committed bundle. Passing the env var did nothing, so a screen run
+    # against a fresh projection silently measured a bundle built forty-five
+    # recorded days earlier and returned numbers that looked entirely
+    # plausible because they were: they were last month's answer.
+    parser.add_argument(
+        "--state",
+        type=Path,
+        default=Path(os.environ["WORKBENCH_STATE"])
+        if os.environ.get("WORKBENCH_STATE")
+        else DEFAULT_STATE,
+    )
     parser.add_argument(
         "--epoch", default="2026-01-05", help="first day of the recorded window"
     )
@@ -164,6 +178,18 @@ def main(argv: list[str] | None = None) -> int:
         )
     mail, chat = _bodies(args.state, horizon)
     bodies = mail + chat
+    # Say which state was read and how fresh it is. A screen that prints only
+    # its findings cannot be told apart from the same screen run last month.
+    newest = max(
+        (path.stat().st_mtime for path in args.state.glob("*.db")), default=0.0
+    )
+    print(
+        f"state: {args.state} "
+        f"(last built {datetime.datetime.fromtimestamp(newest):%Y-%m-%d %H:%M})"
+        if newest
+        else f"state: {args.state} (no databases found)"
+    )
+
     window = f" through {cutoff}" if cutoff else ""
     print(f"corpus{window}: {len(mail)} mail + {len(chat)} chat = {len(bodies)}\n")
     if not bodies:
