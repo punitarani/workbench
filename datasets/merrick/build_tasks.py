@@ -13,6 +13,7 @@ way to move that line, and it is a deliberate act.
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -325,6 +326,7 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         for report in degenerate(answer):
             print(f"{name}: DEGENERATE {report}")
 
+        _run_second_derivation(task, name, oracle_path)
         _ship_grading_base(task, name)
 
         bundle = task / "bundle"
@@ -333,6 +335,78 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         staged = stage(bundle, task / "environment", repo_root=REPO)
         print(f"{name}: staged -> {staged}")
     return 0
+
+
+def _run_second_derivation(task: Path, name: str, oracle_path: Path) -> None:
+    """Actually execute the task's independent verifier.
+
+    Every task ships a `tests/verify.py` that derives the answer a second
+    time, and a gate forbids it sharing rule literals with the solver. An
+    audit then found the obvious thing nobody had checked: **nothing in the
+    repository ever ran it.** The independence was real and entirely
+    decorative -- a second derivation that never executes agrees with
+    everything.
+
+    Verifiers come in two shapes and both are driven the same way here. The
+    longer ones read their state from the environment and ignore `argv`;
+    the shorter ones take state, window and oracle as arguments. Passing
+    all three satisfies the second and is harmless to the first.
+
+    A disagreement fails the build. That is the whole point of deriving the
+    answer twice: if the two derivations differ, one of them is wrong and
+    neither should be shipped as an answer key.
+    """
+
+    verifier = task / "tests" / "verify.py"
+    if not verifier.is_file():
+        raise SystemExit(
+            f"{name}: no second derivation at {verifier}. An oracle checked "
+            "only by the code that produced it is not checked."
+        )
+    window = _declared_window(task)
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(verifier),
+            str(SHARED_BUNDLE / "state"),
+            str(window),
+            str(oracle_path),
+        ],
+        capture_output=True,
+        text=True,
+        env={
+            "WORKBENCH_STATE": str(SHARED_BUNDLE / "state"),
+            "WORKBENCH_WORKSPACE": str(SHARED_BUNDLE / "workspace"),
+            "PATH": "/usr/bin:/bin",
+            "PYTHONPATH": os.environ.get("PYTHONPATH", ""),
+        },
+    )
+    if result.returncode:
+        raise SystemExit(
+            f"{name}: the independent verifier disagrees with the reference "
+            f"solver, so one of the two is wrong and the oracle is not an "
+            f"answer key.\n{(result.stdout + result.stderr).strip()[-1200:]}"
+        )
+    print(f"{name}: second derivation agrees")
+
+
+def _declared_window(task: Path) -> int:
+    """The solver's own window, read without importing it.
+
+    Importing would execute a staged solver's `measure()` calls and raise
+    for a reason unrelated to verification, so the value is read off the
+    source. A task whose window is still a placeholder never reaches here:
+    the staged-task guard upstream refuses the build first.
+    """
+
+    source = (task / "solution" / "solve.py").read_text(encoding="utf-8")
+    found = re.search(r"^WINDOW_DAYS[^=]*=\s*(\d+)", source, re.M)
+    if not found:
+        raise SystemExit(
+            f"{task.name}: no concrete WINDOW_DAYS in its solver, so the "
+            "verifier cannot be told which window to re-derive."
+        )
+    return int(found.group(1))
 
 
 def _ship_grading_base(task: Path, name: str) -> None:

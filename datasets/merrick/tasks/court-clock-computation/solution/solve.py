@@ -1,4 +1,11 @@
-"""Reference solver: the clock each named deadline runs on.
+"""RETIRED. Do not build this task; the corpus carries neither half of its rule.
+
+It needs an interval form (`within N days`) and a calendar date in one
+body. Measured across the record: **zero and zero**. Not hard --
+impossible, and a model finding none of the rows would have read as a
+model that could not do date arithmetic.
+
+Reference solver: the clock each named deadline runs on.
 
 Three interval forms, an anchor taken from the first date the same body
 names, and a weekend landing moved to the Monday after it. The register is

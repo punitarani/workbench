@@ -1,4 +1,14 @@
-"""Reference solver: every date the opening days' mail put in writing.
+"""RETIRED. Do not build this task; its eighteen hits were one date each.
+
+The detector found eighteen messages carrying two date forms, which
+matched the premise exactly. Reading them refuted it: fourteen were
+compound spellings of a single deadline (`by tomorrow EOD`), and the
+rest were multi-item lists sharing one due date.
+
+A count that agrees with your premise has told you nothing until you read
+what it matched.
+
+Reference solver: every date the opening days' mail put in writing.
 
 The rule is the same seven date forms the in-band Ashgrove register uses,
 and the composition is the part that is new. There, a message was a row.

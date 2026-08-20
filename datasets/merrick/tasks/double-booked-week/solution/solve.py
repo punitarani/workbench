@@ -1,32 +1,29 @@
-"""Reference solver: genuine diary clashes, not back-to-back meetings.
+"""RETIRED. Do not build this task; it grades a seeding artifact.
 
-STAGED. `WINDOW_DAYS` is not chosen; `main()` refuses while it is None.
-Fill it from a measurement of the finished record, never from intuition.
+Kept as a worked example of a measurement that was correct and useless.
 
-**The difficulty is one boundary, and it was measured before the task was
-written.** Over sixteen recorded working days this world produces 54 pairs
-that genuinely overlap and **240 pairs that touch exactly** -- one ends at
-the moment the next begins. A reader who treats touching as clashing
-reports 294 rows where 54 are right, and precision falls to 18%. Four
-traps for every signal is the whole task; everything else here is
-bookkeeping.
+The justification was 54 genuine diary clashes against 240 pairs that
+merely touch -- a 4.4:1 trap ratio, and a loose reader scoring 16%
+precision. Every one of those numbers is right. Grouped by date, **47 of
+the 54 fall on the first recorded day**, where the world seeds an order of
+magnitude more events than it later creates. Outside that burst the firm
+produced one clash in seventeen working days.
 
-That ratio is not an accident of this world and would not survive a
-different one. It comes from scheduling on a fixed grid, which is what
-makes adjacency the common case and simultaneity the exception. Re-measure
-it before trusting the band: if back-to-back pairs ever stop outnumbering
-overlaps, this task has lost its difficulty and should be retired rather
-than propped up.
+An independent audit reached the same verdict from three directions and
+added two more: the register's `date` column is constant within any usable
+window, which hands over a quarter of the per-row score for free; and the
+task had already met the retirement condition written into this very
+docstring -- "retire it rather than prop it up if adjacency ever stops
+outnumbering overlap".
 
-**Ordering the pair is not cosmetic.** On a fixed grid many events start at
-the same moment, so "earlier first" leaves ties, and an unordered pair keys
-two ways -- the same clash then reads as one miss and one invention, and
-row F1 scores it twice. The brief fixes the tie-break to the smaller id as
-text and this follows it.
+The replacement is `unanswered-question-register`, which was measured by
+date *before* it was written. That check found the mirror-image artifact
+at the other end of the record and turned it into a rule, rather than
+discovering it after the task was built.
 
-One trap that is *not* here, deliberately: declined invitations. The record
-holds 147 accepts against 4 declines, so a rule turning on declines would
-be starved, and a starved clause reads as difficulty while grading noise.
+The lesson, which is now in the `validating-task-premises` skill: a rate
+computed over a window can be dominated by what happens at one edge of it,
+and a total will never show you. It is one line to check.
 """
 
 import datetime

@@ -44,7 +44,20 @@ TASKS = HERE / "tasks"
 TARGET_READ = 213
 TARGET_ROWS = 30
 
-RETIRED = {"court-clock-computation", "one-sentence-two-dates"}
+
+def is_retired(task: Path) -> bool:
+    """A task is retired when its own solver says so, in its first line.
+
+    This was a hand-kept set of names living in one file while the reason
+    lived in another, and a third task was retired without the set hearing
+    about it. Two lists maintained by hand do not stay in step -- the same
+    drift left every task declaring a tool the stager never installed.
+    """
+
+    solver = task / "solution" / "solve.py"
+    return solver.is_file() and solver.read_text(encoding="utf-8").lstrip().startswith(
+        '"""RETIRED'
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -186,7 +199,7 @@ def main() -> int:
         for p in TASKS.iterdir()
         if p.is_dir()
         and not p.name.startswith("_")
-        and p.name not in RETIRED
+        and not is_retired(p)
         and (not wanted or p.name in wanted)
     )
     if not tasks:
