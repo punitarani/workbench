@@ -170,7 +170,7 @@ FORMS: tuple[tuple[str, re.Pattern[str], object], ...] = (
     (
         "end of week",
         re.compile(
-            r"\b(?:by\s+)?(?:the\s+|this\s+|next\s+)?(?:end of week|eow)\b",
+            r"\b(?:by\s+)?(?:the\s+|this\s+|next\s+)?(?:end\s+of\s+week|eow)\b",
             re.IGNORECASE,
         ),
         _end_of_week,
@@ -178,7 +178,7 @@ FORMS: tuple[tuple[str, re.Pattern[str], object], ...] = (
     (
         "end of month",
         re.compile(
-            r"\b(?:by\s+)?(?:the\s+|this\s+|next\s+)?(?:end of month|eom)\b",
+            r"\b(?:by\s+)?(?:the\s+|this\s+|next\s+)?(?:end\s+of\s+month|eom)\b",
             re.IGNORECASE,
         ),
         _end_of_month,
@@ -195,13 +195,15 @@ FORMS: tuple[tuple[str, re.Pattern[str], object], ...] = (
     ),
     (
         "end of day",
-        re.compile(r"\b(?:eod|cob|end of day|close of business)\b", re.IGNORECASE),
+        re.compile(
+            r"\b(?:eod|cob|end\s+of\s+day|close\s+of\s+business)\b", re.IGNORECASE
+        ),
         lambda sent, _match: sent,
     ),
     (
         "within days",
         re.compile(
-            r"\bwithin\s+(?P<count>\d+|" + "|".join(NUMBER_WORDS) + r")"
+            r"\bwithin\s+(?P<count>\d+|" + "|".join(_COUNTS) + r")"
             r"\s+(?:business\s+)?days?\b",
             re.IGNORECASE,
         ),

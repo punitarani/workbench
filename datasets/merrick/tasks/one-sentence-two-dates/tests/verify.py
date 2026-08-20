@@ -302,9 +302,7 @@ def _end_of_month(sent: datetime.date) -> datetime.date:
     return first_of_next - datetime.timedelta(days=1)
 
 
-def _found(
-    body: str, sent: datetime.date, numbers: dict[str, int]
-) -> dict[str, int]:
+def _found(body: str, sent: datetime.date, numbers: dict[str, int]) -> dict[str, int]:
     """Each date the body names, and the leftmost form that names it.
 
     One entry per distinct date: two forms on the same date are one row,
@@ -351,7 +349,7 @@ def _found(
             tail = token[len(digits) :]
             if tail[:2] in ("st", "nd", "rd", "th"):
                 tail = tail[2:]
-            if tail[:1].isalnum():
+            if _wordish(tail[:1]):
                 continue
             try:
                 hits.append((index[at], datetime.date(sent.year, number, int(digits))))
@@ -370,13 +368,13 @@ def _found(
             continue
         parts = rest[1:].split(" ")
         raw = parts[0] if parts else ""
-        count = _NUMBERS.get(raw, int(raw) if raw.isdigit() else None)
+        count = numbers.get(raw, int(raw) if raw.isdigit() else None)
         if count is None:
             continue
         tail = parts[1:]
         if tail and tail[0] == "business":
             tail = tail[1:]
-        if not tail or _leading_alpha(tail[0]) not in ("day", "days"):
+        if not tail or _word(tail[0]) not in ("day", "days"):
             continue
         hits.append((index[at], sent + datetime.timedelta(days=count)))
 
