@@ -158,6 +158,28 @@ splitting differs between shells; BSD and GNU `sed` disagree on word
 boundaries, so a substitution can silently do nothing. Each of those has
 produced output that looked like a finding.
 
+## Two numbers that should agree and don't
+
+The cheapest defect detector available, and it needs no audit. Find a
+quantity the system reports twice by different routes, and compare them.
+Three of one day's findings came from nothing else:
+
+- the event log said 44 messages a workday; the five-day window said 46
+  in total. **A window filter comparing sim-seconds to an ISO date.**
+- the record declared 15 documents; the file room held 13. **Two
+  documents written to one path, the second overwriting the first.**
+- the corpus mentioned decks thirteen times; it contained none. **The
+  occasion reached conversation and never reached the authoring turn.**
+
+Each disagreement is free to notice and points at a specific mechanism.
+None would have been caught by re-running the thing that produced either
+number, which is the usual response to a figure that looks odd.
+
+Build the pairs in deliberately: a count of what was *attempted* beside
+what was *recorded*, of what is *declared* beside what is *on disk*, of
+what is *discussed* beside what is *produced*. A system that can only
+report one of each pair cannot tell you it is losing anything.
+
 ## Keep the failure-mode list where you will read it before reviewing
 
 The cheapest defect I found in a day of finding defects cost one
