@@ -244,7 +244,8 @@ own discovery against both suites and comparing the counts:
 
 ```python
 from your_harness.runner import discover
-len(discover(f"{task}/tests"))    # working suite: 2.  broken suite: 0.
+
+len(discover(f"{task}/tests"))  # working suite: 2.  broken suite: 0.
 ```
 
 **Ask the harness what it found, not the source what it declares.** Any
