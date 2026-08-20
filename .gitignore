@@ -49,3 +49,4 @@ datasets/**/.workbench/
 
 # Harbor job output (trajectories, rewards, artifacts)
 jobs/
+datasets/*/tasks/*/tests/criteria_base.py

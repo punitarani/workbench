@@ -16,6 +16,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from analysis import attempted_work
@@ -33,6 +34,10 @@ from harbor_stage import stage  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 TASKS = Path(__file__).resolve().parent / "tasks"
+# The shared grading module. Every task's `criteria.py` puts its own
+# `tests/` directory on `sys.path` and imports this by name, so a copy has
+# to sit beside it in the staged task -- see `_ship_grading_base`.
+CRITERIA_BASE = Path(__file__).resolve().parent / "criteria_base.py"
 SHARED_BUNDLE = REPO / "out" / "merrick" / "bundle"
 _SOURCE = SHARED_BUNDLE / "SOURCE"
 # The world the current bundle was built from, as the last build recorded
@@ -320,12 +325,87 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         for report in degenerate(answer):
             print(f"{name}: DEGENERATE {report}")
 
+        _ship_grading_base(task, name)
+
         bundle = task / "bundle"
         shutil.rmtree(bundle, ignore_errors=True)
         shutil.copytree(SHARED_BUNDLE, bundle)
         staged = stage(bundle, task / "environment", repo_root=REPO)
         print(f"{name}: staged -> {staged}")
     return 0
+
+
+def _ship_grading_base(task: Path, name: str) -> None:
+    """Put the shared grading module beside the criteria that imports it,
+    then prove the import actually works from a bare task directory.
+
+    `criteria.py` does `sys.path.insert(0, <its own tests/ dir>)` and then
+    `from criteria_base import *`. The module lives one directory up, in the
+    dataset root, which is not on the grader's path -- so every criterion in
+    every task raised `ModuleNotFoundError` on load. Nothing in the suite
+    noticed, because the unit tests add the dataset root to `sys.path`
+    themselves and import through a door the grader does not have.
+
+    The consequence is the worst kind available here: no criterion loads, so
+    every task scores zero, and a total wipeout reads as catastrophic model
+    failure rather than as a missing file.
+
+    The copy alone is not the fix. The check is, and it runs the import the
+    way the grader will -- a subprocess whose path holds only the task's own
+    `tests/` directory. A copy that silently stops happening is exactly the
+    kind of thing that comes back.
+    """
+
+    tests = task / "tests"
+    if not (tests / "criteria.py").is_file():
+        return
+    shutil.copyfile(CRITERIA_BASE, tests / CRITERIA_BASE.name)
+
+    # Reproduce the grader's environment by *subtraction*, not by rebuilding
+    # `sys.path`. The first attempt kept only site-packages and lost the
+    # standard library with it, so the probe failed on `import pathlib` and
+    # said nothing about the defect it was written for. Dropping PYTHONPATH
+    # and running from the task's own directory is the whole difference
+    # between this repo's layout and a bare staged task.
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+
+    # The grading decorator lives in the container, not here, so without a
+    # stand-in this probe fails on every build for a reason that has nothing
+    # to do with what it checks -- and a gate that always fails gets deleted
+    # rather than heeded. The shim is *appended* to the path, so a real
+    # installation always wins.
+    shim = Path(tempfile.mkdtemp(prefix="grading-probe-"))
+    (shim / "rewardkit.py").write_text(
+        "def criterion(*a, **k):\n"
+        "    def wrap(fn):\n"
+        "        return fn\n"
+        "    return wrap if not (a and callable(a[0])) else a[0]\n"
+    )
+    probe = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import importlib.util, sys;"
+            "sys.path.append(sys.argv[1]);"
+            "spec = importlib.util.spec_from_file_location('criteria', 'criteria.py');"
+            "m = importlib.util.module_from_spec(spec);"
+            "spec.loader.exec_module(m)",
+            str(shim),
+        ],
+        capture_output=True,
+        text=True,
+        cwd=tests,
+        env=env,
+    )
+    shutil.rmtree(shim, ignore_errors=True)
+    if probe.returncode:
+        raise SystemExit(
+            f"{name}: tests/criteria.py does not import from a bare task "
+            f"directory, which is the only path the grader has. Every "
+            f"criterion would fail to load and the task would score zero "
+            f"for reasons no model can fix.\n{probe.stderr.strip()[-600:]}"
+        )
+    print(f"{name}: grading module ships and imports standalone")
 
 
 def main(argv: list[str] | None = None) -> int:
