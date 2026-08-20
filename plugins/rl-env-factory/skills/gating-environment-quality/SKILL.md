@@ -252,6 +252,35 @@ system with a registry — rewards, plugins, routes, fixtures, migrations —
 can be fully specified and entirely unregistered, and the source will read
 correctly the whole time.
 
+## A stale copy answers a question you did not ask
+
+Four times in one session a check produced a confident result about the
+wrong artefact, and every one looked like a verdict on the code:
+
+- a materialized bundle built when the world had thirty documents, read as
+  proof that two file formats were never produced — the renderer had always
+  produced them;
+- a world log exported nine hundred events earlier, compared against a live
+  document count, reported as "one document produced no file";
+- a brief resolved before a worked example was corrected, whose pin then
+  fired and looked like the pin was wrong;
+- a task copied to scratch before the very change under test, so the
+  falsification passed and the fix looked ineffective.
+
+None of these is a subtle bug. Each is a snapshot that was correct when
+taken, used after the thing it snapshotted moved. They are hard to notice
+precisely because the artefact is real and the check runs cleanly — nothing
+errors, and the number that comes back is a true fact about a world that no
+longer exists.
+
+**Check the mtime before believing a derived artefact, and copy after
+editing rather than before.** When testing a change, prefer running against
+the real path over a copy; if isolation is genuinely needed, make the copy
+the last step before the run, not the first step of the setup.
+
+The tell is a result that disagrees with something you just did. That is
+usually not a discovery.
+
 ## Test the entry point, not the parts
 
 Three defects in one session had the same shape: a component built
