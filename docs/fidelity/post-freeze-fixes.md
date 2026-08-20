@@ -59,20 +59,68 @@ the moment it chooses a format. The fix is in the deliverable turn — when
 the day's context includes a presentation the persona attends, `slides`
 should be the offered default rather than one option among four.
 
-## 3. Markdown is still an available format in a firm that should not write it
+## 3. The format guard's escape hatch accepts empty documents
 
-Three of 82 documents are markdown, filed as `.md`. The stated goal for this
-environment was few or none, and the mix floor tolerates 15% so nothing
-objects at 3.7%.
+Three of 84 documents have **no content at all**, registered under full
+professional titles — a management-incentive-plan memo, an OEM licence
+status, a counterclaim strategy. They materialize as empty `.md` files.
 
-They are not markdown because a template chose it — each is a document whose
-author picked `markdown` and gave a path with no suffix. As long as the
-format is offered, some authors will take it.
+The markdown set and the empty set are the same three documents, 3 of 3, and
+the mechanism explains why. `_reject_unless_parsable` in
+`src/simulation/gm/grounded.py` validates a document's content against its
+declared format:
 
-For an institution that produces Word, Excel, PowerPoint and PDF, the format
-should not be on the menu at all. That is a change to the intent schema in
-`core` rather than to a prompt, which is why it waits: `core` is inside the
-recorder's import closure.
+```python
+parser = _PARSERS.get(content_format)
+if parser is None:
+    return                      # markdown has no parser
+```
+
+Spreadsheets, formatted documents and decks must parse as structured JSON.
+**Markdown has no parser, so it accepts anything, including nothing.** And
+the rejection the guard raises for the others says:
+
+> *"...send the structured JSON for that format, or declare markdown and
+> write prose"*
+
+So the guard's own error message routes a failing author into the single
+format the guard does not check, and an author who could not produce
+structured content is not well placed to produce prose either. The result is
+a document that exists, is registered, has a title and an author and a
+matter, and is empty.
+
+Two things to fix, and the order matters:
+
+**Require content.** Whatever the format, a document with empty content
+should be rejected. This is the cheap half and it stops the bad artifact
+reaching the file room.
+
+**Stop advertising the unvalidated path.** The suggestion should be to
+retry in the declared format, not to fall back to the one with no
+validation. For an institution producing Word, Excel, PowerPoint and PDF,
+markdown arguably should not be offered at all — but removing it while it is
+the advertised escape hatch would turn these three documents into three
+rejections, not three real documents, so the content check comes first.
+
+Earlier notes here described this as "authors choosing markdown". That was
+wrong: nobody chose it, they were sent there.
+
+## 4. Every explicit date in a document body predates the world
+
+341 ISO dates across document bodies, spread over 2018–2025, and **none in
+2026** — the year the world runs in. 214 are in 2025 alone.
+
+This does not reach the graded surfaces, which is why it is fourth rather
+than first. Mail carries **zero** ISO dates across 481 messages, chat one
+across 697, and the single date in a time-entry note is correctly 2026.
+Messages express time the way people do — `EOD`, `by Friday`, `end of week`
+— which is also why a task needing `<Month> <day>` dates in mail found none
+and retired.
+
+It is still a fidelity defect: an agent reading the firm's work product sees
+a document dated 2025 filed against a 2026 matter. The document-writing turn
+does not carry the world's current date into the content it asks for, while
+the message-writing turn never needs one because it writes relatively.
 
 ## How to verify each fix afterwards
 
@@ -81,6 +129,8 @@ Re-record a short window and check:
 1. `analysis.calendar_units.inspect(...)` reports zero suspects.
 2. Slide decks appear for the presentation matters — the floor to argue about
    is a rate, not presence.
-3. `analysis.artifact_mix.measure(...)` reports zero markdown.
+3. No document has empty content, and `analysis.artifact_mix.measure(...)`
+   reports zero markdown as a consequence rather than as a separate rule.
+4. Dates written into document bodies fall inside the world's window.
 
 None of these needs the full 130 days; a five-day run exercises all three.
