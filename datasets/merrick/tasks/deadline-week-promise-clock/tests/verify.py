@@ -194,9 +194,19 @@ def ticked(cell: str) -> list[str]:
 def flattened(chunk: str) -> str:
     """A piece of the brief with its emphasis, its backticks and its line
     wrapping taken out, so a phrase can be looked for without caring how
-    the paragraph happened to break."""
+    the paragraph happened to break.
 
-    return " ".join(chunk.replace("*", " ").replace("`", " ").lower().split())
+    The markers are deleted rather than spaced out. Markdown sets them
+    against the words they mark, so `**Mail**,` spaced out is `mail ,` and
+    the bold and the plain spelling of one sentence no longer flatten
+    alike. That is the whole job of this function, and getting it wrong
+    hands a pin an opinion about emphasis: bolding the word in front of
+    the comma in `break a tie alphabetically, earlier first` -- an
+    editorial pass, no rule touched -- is enough to make the pin below
+    refuse a brief that still says exactly what it said.
+    """
+
+    return " ".join(chunk.replace("*", "").replace("`", "").lower().split())
 
 
 def insists(where: str, chunk: str, phrases: tuple) -> None:
@@ -273,6 +283,13 @@ def week(text: str) -> list[datetime.date]:
     a pair of bounds."""
 
     stamps = []
+    # A space here, where `flattened` deletes. Nothing is being matched
+    # against a phrase: this cuts the section into whitespace tokens and
+    # keeps the ones shaped like a date, and the strip below does not
+    # carry `*`, so the markers have to go somewhere. Deleted, a range
+    # written `**2024-03-04**-**2024-03-08**` closes up into one token
+    # that is no date at all and the week comes back empty; spaced, the
+    # emphasis cannot glue two dates together.
     for token in section(text, "## The week").replace("*", " ").split():
         token = token.strip("`,.;:()[]")
         if len(token) == 10 and token[4:5] == "-":
