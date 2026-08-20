@@ -140,19 +140,47 @@ def section(heading: str) -> str:
     return BRIEF_TEXT[found.end() :].split("\n## ", 1)[0]
 
 
-def bulleted(chunk: str, indent: str) -> tuple[str, ...]:
-    """The backticked field names the brief bullets at one indent, in
-    written order.
+_BULLET = re.compile(r"^(?P<indent>[ \t]*)[-*+][ \t]+(?P<body>.*)$")
 
-    Only the head of the bullet — the part before its em dash — so the
-    prose describing a field never contributes a name of its own.
+
+def _bullets(chunk: str) -> list[tuple[int, tuple[str, ...]]]:
+    """Every bullet of one section, as (depth, the field names it heads).
+
+    Depth is 0 for the outermost bullets and 1 for anything indented
+    under them, worked out from the indents the section actually uses
+    rather than from a literal two spaces. A brief that indents its
+    nested bullets four spaces, or writes `*` for `-`, or bolds the field
+    name inside the bullet, is the same brief saying the same thing — and
+    a reader that only recognises ``"- `"`` at column zero answers `()`
+    to all three, silently, so the refusal that follows names the wrong
+    problem.
+
+    Only the head of the bullet is read — the part before its em dash —
+    and only backticked names in it, so neither the prose describing a
+    field nor a field mentioned in that prose contributes a name.
     """
 
-    names: list[str] = []
+    found: list[tuple[int, tuple[str, ...]]] = []
     for line in chunk.splitlines():
-        if line.startswith(f"{indent}- `"):
-            names.extend(re.findall("`([a-z_]+)`", line.split("—")[0]))
-    return tuple(names)
+        marked = _BULLET.match(line)
+        if not marked:
+            continue
+        head = marked["body"].split("—")[0].replace("*", "")
+        found.append(
+            (
+                len(marked["indent"].expandtabs(4)),
+                tuple(re.findall("`([a-z_]+)`", head)),
+            )
+        )
+    outermost = min((depth for depth, _names in found), default=0)
+    return [(0 if depth == outermost else 1, names) for depth, names in found]
+
+
+def bulleted(chunk: str, depth: int) -> tuple[str, ...]:
+    """The backticked field names the brief bullets at one depth, in
+    written order."""
+
+    return tuple(name for at, names in _bullets(chunk) if at == depth for name in names)
 
 
 def nested_under(chunk: str) -> str:
@@ -160,11 +188,10 @@ def nested_under(chunk: str) -> str:
     the brief's name for the list `criteria.py` grades row by row."""
 
     owner = ""
-    for line in chunk.splitlines():
-        if line.startswith("- `"):
-            named = re.findall("`([a-z_]+)`", line.split("—")[0])
-            owner = named[-1] if named else owner
-        elif line.startswith("  - `"):
+    for at, names in _bullets(chunk):
+        if at == 0:
+            owner = names[-1] if names else owner
+        elif owner:
             return owner
     refuse("the brief bullets no field with row columns nested under it")
 
@@ -186,7 +213,7 @@ def form_rows(chunk: str) -> list[list[str]]:
     if len(grid) < 3:
         refuse("the brief's form table has no header, no ruler or no rows")
     header, ruler, *rows = grid
-    if [cell.lower() for cell in header] != ["form", "matches"]:
+    if [flattened(cell) for cell in header] != ["form", "matches"]:
         refuse(f"the brief's form table is headed {header}, not | form | matches |")
     if set("".join(ruler)) - set("-: "):
         refuse("the brief's form table has no ruler under its header")
@@ -236,9 +263,12 @@ class Pin(NamedTuple):
 PINS: tuple[Pin, ...] = (
     Pin(
         "# The prebill narrative screen",
-        "reading clio's `activities` and no other surface",
+        "opening clio's `clio.db` and screening the `note` column of "
+        "`activities`, and no other surface and no other column",
         (
+            "tools: clio (matters, users and time entries)",
             "the screen reads time entries and nothing else",
+            "the narrative is the note recorded on the entry",
             "is not a time entry and makes no row here",
         ),
     ),
@@ -377,8 +407,30 @@ PINS: tuple[Pin, ...] = (
     ),
     Pin(
         "## What to produce",
+        "comparing the keys of `mine` against every field the brief "
+        "bullets, with nothing missing and nothing unasked-for",
+        ("one file in your workspace", "with exactly these fields"),
+    ),
+    Pin(
+        "## What to produce",
         "`read`, incremented for every entry in the window whatever its note says",
         ("every entry inside the window, whatever its narrative says",),
+    ),
+    Pin(
+        "## What to produce",
+        "`entries_flagged` as `len(flagged)` — flagged entries, not "
+        "flagged matters and not flagged occurrences",
+        ("how many of those the screen admits",),
+    ),
+    Pin(
+        "## What to produce",
+        "`hours_total` summed over every flagged entry and "
+        "`fees_total_dollars` over the billable-and-rated ones, both from "
+        "the exact per-row figures",
+        (
+            "the flagged hours, all of them, 2 dp",
+            "what the flagged time comes to, 2 dp",
+        ),
     ),
     Pin(
         "## What to produce",
@@ -391,6 +443,7 @@ PINS: tuple[Pin, ...] = (
         (
             "an object with every form in the table above as a key",
             "including any that no narrative in the window uses",
+            "how many flagged entries carry it",
         ),
     ),
     Pin(
@@ -465,8 +518,8 @@ if DELIVERABLE not in BRIEF_TEXT:
 # restated here. A field the brief renames is otherwise invisible: this
 # file and the oracle would keep the old name, agree, and grade an agent
 # on a key it was never given.
-REPORT_FIELDS: tuple[str, ...] = bulleted(section("## What to produce"), "")
-ROW_FIELDS: tuple[str, ...] = bulleted(section("## What to produce"), "  ")
+REPORT_FIELDS: tuple[str, ...] = bulleted(section("## What to produce"), 0)
+ROW_FIELDS: tuple[str, ...] = bulleted(section("## What to produce"), 1)
 ROW_LIST: str = nested_under(section("## What to produce"))
 
 # How many rows the brief's form table carries. Not `2`: see `form_rows`.
@@ -750,15 +803,22 @@ def main() -> int:
     # the column names read off the brief — collecting the problem and
     # carrying on turns a clear message into a `KeyError` twenty lines
     # later.
-    if tuple(mine) != REPORT_FIELDS:
+    # Compared as sets and not as ordered tuples: `criteria_base.schema_ok`
+    # grades `set(got) == TOP`, and `row_fields` looks each column up by
+    # name, so the order a field is written in is graded nowhere. Ordered
+    # comparison would refuse over a reordered bullet list — a change to
+    # how the brief reads and not to what it asks for.
+    absent = [field for field in REPORT_FIELDS if field not in mine]
+    surplus = [field for field in mine if field not in REPORT_FIELDS]
+    if absent or surplus:
         refuse(
-            f"instruction.md asks for {REPORT_FIELDS}; this derivation writes "
-            f"{tuple(mine)}"
+            f"instruction.md bullets {list(REPORT_FIELDS)}; this derivation "
+            f"writes {list(mine)} — missing {absent}, unasked-for {surplus}"
         )
-    if rows and tuple(rows[0]) != ROW_FIELDS:
+    if rows and set(rows[0]) != set(ROW_FIELDS):
         refuse(
-            f"instruction.md's row columns are {ROW_FIELDS}; this derivation "
-            f"writes {tuple(rows[0])}"
+            f"instruction.md's row columns are {list(ROW_FIELDS)}; this "
+            f"derivation writes {list(rows[0])}"
         )
     key = KEY
     # Also `refuse`: `key` indexes every row from here down, and `ROWS`

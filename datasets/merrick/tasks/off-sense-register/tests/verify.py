@@ -523,13 +523,17 @@ def enumerated(text: str) -> list[str]:
     at = _ROSTER_AT.search(chunk)
     if at is None:
         return []
-    names: list[str] = []
+    region: list[str] = []
     for line in chunk[at.end() :].splitlines()[1:]:
         marker = _BULLET.match(line)
         if marker and not marker.group(1):
             break
-        names.extend(backticked(line))
-    return names
+        region.append(line)
+    # Backticks are read over the joined region, not line by line: a name
+    # is a code span and a code span may wrap, so reading each line alone
+    # would call a wrapped name an unclosed backtick and refuse a brief
+    # that says exactly what it should.
+    return backticked("\n".join(region))
 
 
 def stated_roster(text: str, departments: tuple[str, ...]) -> None:

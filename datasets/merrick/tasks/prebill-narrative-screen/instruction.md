@@ -22,7 +22,7 @@ that uses the same word is not a time entry and makes no row here.
 Screen only time recorded on the working days from
 **«MEASURE: window first day — the calendar date of the Monday the window
 opens, written as e.g. "Monday 2 February 2026". Choose it early enough in
-the six-month epoch that an agent paging `list_activities` in time order
+the six months of history that an agent paging `list_activities` in time order
 can reach the end of the window without walking the whole record, and
 report the page count it costs.»**
 through
