@@ -203,7 +203,12 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         for skip in env.skipped_renders:
             print(f"  render skipped: {skip}")
 
-    available = sorted(p.name for p in TASKS.iterdir() if p.is_dir())
+    # `_template` is the shape a task takes, not a task. Leading
+    # underscore rather than a name on a list, so a second one cannot be
+    # forgotten.
+    available = sorted(
+        p.name for p in TASKS.iterdir() if p.is_dir() and not p.name.startswith("_")
+    )
     if names:
         unknown = [name for name in names if name not in available]
         if unknown:
