@@ -91,6 +91,38 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("promise_clock.json")
 # date-form density per surface; run it on candidate weeks before fixing
 # this, because a week chosen for its calendar position rather than its
 # traffic is how a register comes out with four rows.»
+# --- viability, measured on the record at 23 workdays -----------------
+#
+# An audit rated this task high-severity dead: "3 of 7 forms are dead, the
+# dominant form needs no date arithmetic, and the forward join decides 0-3
+# rows." Two of those three hold. **The third does not reproduce.**
+#
+#   week      rows   followed   not
+#   2026-W02    12      4        8
+#   2026-W03    38     20       18
+#   2026-W04    26     12       14
+#   2026-W05    11      3        8
+#
+# Eleven to thirty-eight rows in a graded week, with `followed_up` splitting
+# roughly evenly. Neither the row count nor the join is degenerate, and a
+# constant column would have shown up immediately in that table.
+#
+# What does hold, and matters:
+#
+#   * Three of the seven date forms never occur. The table below must be
+#     narrowed to the four the firm writes, or the rule scores three
+#     sevenths of its own vocabulary against nothing.
+#   * `EOD`/`COB` is 62% of all form hits and resolves to the send date, so
+#     most rows need no arithmetic at all. **38% require it** -- roughly ten
+#     rows in a twenty-six-row week -- which is real but is not what the
+#     task's name implies. Either accept that the clock is a minority of the
+#     work, or bound the window to a week whose mix is richer, and say which
+#     in the brief.
+#
+# So: this task ships, on four forms rather than seven. Re-run the table
+# above on the finished record before fixing the window -- these are 23
+# workdays of 130.
+
 WINDOW_START = measure(
     "the Monday of the graded week, YYYY-MM-DD, written identically into "
     "instruction.md -- verify.py reads the week back out of the brief and "

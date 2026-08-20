@@ -219,3 +219,36 @@ different search, and one this record can answer deterministically.
 Recording it here rather than acting now, because the choice depends on
 whether `deadline-week` survives its measurement at the full corpus, and
 that measurement does not exist yet.
+
+## A confirmed audit finding that does not reproduce
+
+`deadline-week-promise-clock` was rated high-severity dead by one lens and
+**confirmed by its adversarial verifier**: *"3 of 7 forms are dead, the
+dominant form needs no date arithmetic, and the forward join decides 0–3
+rows."*
+
+Measured independently on the same record:
+
+| graded week | rows | followed up | not |
+|---|---|---|---|
+| 2026-W02 | 12 | 4 | 8 |
+| 2026-W03 | 38 | 20 | 18 |
+| 2026-W04 | 26 | 12 | 14 |
+| 2026-W05 | 11 | 3 | 8 |
+
+Eleven to thirty-eight rows per graded week and a follow-up column that
+splits roughly evenly. The join is not degenerate and the register is not
+starved. **The task ships.**
+
+The other two claims hold and both are recorded in the solver: three of the
+seven date forms never occur and the table must be narrowed to four, and
+`EOD`/`COB` is 62% of hits and resolves to the send date, so only 38% of
+rows need any date arithmetic — real, but a minority of the work in a task
+whose name promises a clock.
+
+**The point worth keeping is about the audit, not the task.** The verifiers
+were told to refute by default and they killed ten of forty-three findings
+on exactly that standard. A confirmation is still a claim. Applying the same
+scepticism in the other direction cost one measurement and saved a viable
+task from retirement — and, since it is the fifth, saved authoring a
+replacement for it.
