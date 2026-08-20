@@ -5,9 +5,19 @@ Kept as a worked example of a measurement that was correct and useless.
 The justification was 54 genuine diary clashes against 240 pairs that
 merely touch -- a 4.4:1 trap ratio, and a loose reader scoring 16%
 precision. Every one of those numbers is right. Grouped by date, **47 of
-the 54 fall on the first recorded day**, where the world seeds an order of
-magnitude more events than it later creates. Outside that burst the firm
+the 54 fall on the first recorded day**. Outside that pile-up the firm
 produced one clash in seventeen working days.
+
+The first reading of that was a seeding burst -- a world that schedules
+many events at the epoch and few afterwards. It is not. **Zero events are
+genuinely scheduled on day zero.** Forty-five of them have a wall-clock
+time of day in a field that holds seconds-from-epoch (`31500` = 08:45), so
+they all collapse onto the epoch's own date, and collapsing onto one day
+makes each of them overlap every other. 96% of every conflict in the world
+involves one of those events.
+
+So this task was never measuring a scheduling pattern. It was measuring a
+unit bug, faithfully, in a register that would have graded models on it.
 
 An independent audit reached the same verdict from three directions and
 added two more: the register's `date` column is constant within any usable

@@ -127,9 +127,13 @@ did not compute is the one that mattered:
 | dated 2080–2081 | 5 |
 | between two *identically titled* events | 21 |
 
-Day one schedules 26 events against roughly three a day afterwards, so 87%
-of the signal is a seeding burst. Outside it the firm produced **one**
-genuine diary clash in seventeen working days — about eight over the whole
+Day one carries 87% of the signal. The first reading was a seeding burst;
+it is not one. **No event is genuinely scheduled on day zero** — 45 of them
+carry a wall-clock time of day (`31500` = 08:45) in a field holding
+seconds-from-epoch, so they collapse onto the epoch's date and each overlaps
+every other. 96% of every conflict in the world involves one of them, and
+outside that pile-up the firm produced **one** genuine diary clash in
+seventeen working days — about eight over the whole
 window. Including day one grades a startup artifact; excluding it leaves a
 register with eight rows that needs the entire epoch as its window, which
 destroys the bounding the task depends on.
@@ -156,8 +160,11 @@ Found while sizing the above, both left alone because the engine is frozen
 until the recording completes and restarting has already cost this project
 nine resets to day zero.
 
-**Eleven events are dated 2080–2081**, fifty-four years past the epoch, out
-of 752. No windowed task can see them — every window is at most 130 days
+**Sixty-eight of 784 calendar starts (8.7%) are not seconds-from-epoch** —
+47 carry a time of day and 21 carry an absolute Unix timestamp, fifty-four
+years past the epoch. The earlier note here said eleven, which counted only
+what fell outside a 200-day horizon and missed the larger and more damaging
+class entirely. No windowed task can see them — every window is at most 130 days
 and these sit billions of seconds beyond the cutoff — but a law firm whose
 diary holds a meeting in 2081 is a fidelity defect, and an agent browsing
 the calendar would find them.

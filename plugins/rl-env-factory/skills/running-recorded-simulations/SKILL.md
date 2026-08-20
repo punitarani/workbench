@@ -100,14 +100,28 @@ Downstream layers are safe. A projection that reads a finished log and
 builds serving state can be rebuilt any time — re-running it reproduces
 whatever the log says. So can analysis, gates, and task code.
 
-**Verify the boundary against the running process, not against the
-source.** Imports can be lazy or routed through a registry, so reading
-the code tells you what *should* be loaded. Ask the process what it
-actually holds open:
+**Verify the boundary by computing the import closure. Do not try to ask
+the running process.** Reading one file's imports understates reach —
+imports are transitive and can be routed through a registry — but the
+obvious remedy does not work either. CPython opens a source file, compiles
+it, and closes it, so `lsof` on the running process shows **no** `.py`
+files at all, including the ones it is certainly executing. It reports
+nothing for every package, which reads as "not reached" for every package.
+A check that always passes is worse than no check, because you act on it.
+
+Walk the imports statically instead, transitively, from the runner:
 
 ```bash
-lsof -p "$(pgrep -f my_runner)" | grep -c src/serving_layer   # expect 0
+python scripts/import_closure.py run.py --src src --check serving_layer analysis
+#   core             31 modules
+#   simulation       39 modules
+#   serving_layer: not reached -- safe to edit
+#   analysis: not reached -- safe to edit
 ```
+
+Anything inside the closure is frozen. Anything outside it is downstream:
+it reads a finished log, so rebuilding it later reproduces whatever the log
+says, and it can be changed while the run continues.
 
 When you find a frozen-side defect, write it down where the fix will be
 made and keep going. A defect recorded is cheaper than a restart, and a

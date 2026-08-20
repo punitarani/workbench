@@ -22,6 +22,7 @@ from pathlib import Path
 
 from analysis import attempted_work
 from analysis.artifact_mix import MixFloors, measure, violations
+from analysis.calendar_units import inspect as inspect_calendar_units
 from analysis.coherence import MISBOOKED_LIMIT, check
 from analysis.reachability import unreachable
 from analysis.world_facts import load_world
@@ -125,6 +126,7 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     # held -- and it separates the contradictions, which block, from the
     # ambiguities, which are the raw material the hardest tasks are made of.
     facts = load_world(world_log)
+    _calendar_units(world_log)
     found = check(facts)
     print(found.report())
     if not found.ok:
@@ -335,6 +337,50 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
         staged = stage(bundle, task / "environment", repo_root=REPO)
         print(f"{name}: staged -> {staged}")
     return 0
+
+
+# A few malformed starts are a nuisance; a lot of them silently invent
+# structure. Past this share the calendar is a different object from the one
+# the world meant to record, and any task reading dates is measuring the
+# defect. Set where it is: the recorded world sits at 8.7%.
+CALENDAR_UNIT_LIMIT = 0.02
+
+
+def _calendar_units(world_log: Path) -> None:
+    """Refuse a world whose calendar mixes time units.
+
+    Three units turned up in one field of one recorded calendar: seconds
+    from epoch, seconds from midnight, and absolute Unix timestamps. None of
+    them raises -- each is a plausible integer that projects into a
+    plausible row -- and the result is a diary holding meetings before the
+    firm opened and meetings in 2081.
+
+    The count understates the harm. The 5.8% of events that lost their date
+    collapse onto a single day, and there they caused **96% of every
+    scheduling conflict in the world**: a task was built on that signal,
+    measured a healthy-looking trap ratio, and was retired only once its
+    conflicts were grouped by date.
+
+    Refusing rather than repairing is deliberate. Which day a wall-clock
+    time was meant for is not recoverable, so inventing one would put a
+    guess into the answer key.
+    """
+
+    starts = [
+        (event.payload.calendar_event_id, int(event.payload.start))
+        for event in read_events(world_log)
+        if event.tag == "calendar.event.scheduled"
+    ]
+    report = inspect_calendar_units(starts)
+    print(f"calendar units: {report.summary()}")
+    if report.share > CALENDAR_UNIT_LIMIT:
+        raise SystemExit(
+            f"{report.summary()}. A start written in the wrong unit does not "
+            "raise -- it lands on day zero or fifty years out and serves as a "
+            "real event, so every task reading a date grades the defect. Fix "
+            "the writer; the day a wall-clock time meant is not recoverable "
+            "from the record."
+        )
 
 
 def _run_second_derivation(task: Path, name: str, oracle_path: Path) -> None:
