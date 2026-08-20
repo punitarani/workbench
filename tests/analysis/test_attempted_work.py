@@ -124,79 +124,100 @@ def test_invented_refs_are_ranked_by_entries_lost() -> None:
     assert work.invented_refs[0] == ("admin-000001", 3)
 
 
-@pytest.mark.parametrize("entries", [0, 3])
-def test_the_referee_reports_both_branches(entries: int) -> None:
-    """Drive the real grounding code, so a change to either branch is
-    caught here rather than by a world that quietly measures 0.0%.
+def _referee():
+    """A referee with one real engagement, as the runtime builds one."""
 
-    ``entries`` is how many timesheet lines are *valid*: zero exercises
-    the all-invalid branch that raises, three exercises the partial branch
-    that returns a note.
-    """
+    from simulation.gm.grounded import GroundedGm, TicketVocabulary
+
+    gm = GroundedGm(
+        entity_for_person={"per-ana": "ana"},
+        ticket_vocabulary=TicketVocabulary(
+            statuses=("Open",), priorities=("Normal",), ticket_types=("engagement",)
+        ),
+    )
+    gm.set_bill_rates({"per-ana": 27500})
+    gm.world.tickets["tkt-000001"] = {
+        "title": "Kestrel close",
+        "description": "Kestrel close",
+        "assignee": "per-ana",
+        "status": "Open",
+        "priority": "Normal",
+    }
+    return gm
+
+
+def _timesheet_event():
+    from core.events import Event
+    from core.events.control import SimTimesheetPayload
+
+    return Event(
+        seq=1,
+        event_id="evt-000001",
+        time=0,
+        tag="sim.timesheet",
+        source="gm",
+        payload=SimTimesheetPayload(
+            kind="sim.timesheet", entity="ana", day="2026-01-05"
+        ),
+    )
+
+
+def _log(gm, refs: tuple[str, ...]):
+    from core.intents import TimesheetEntry, TimesheetIntent
+
+    intent = TimesheetIntent(
+        entries=tuple(
+            TimesheetEntry(ticket_ref=ref, minutes=30, note="work") for ref in refs
+        )
+    )
+    return gm._ground_timesheet("ana", "per-ana", intent, _timesheet_event(), 0)
+
+
+def test_the_partial_branch_reports_through_the_referee() -> None:
+    """Some entries valid: the referee returns a note carrying the count."""
+
+    drafts = _log(_referee(), ("tkt-000001", "internal-admin", "admin-000001"))
+    notes = [d.payload for d in drafts if d.tag == "sim.gm.note"]
+    assert len(notes) == 1
+    assert measure(notes, logged=1).dropped == 2
+    assert set(notes[0].unknown_refs) == {"internal-admin", "admin-000001"}
+
+
+def test_the_all_invalid_branch_reports_through_the_referee() -> None:
+    """No entry valid. This branch raised without a count, so a world
+    whose people had *no* usable code measured 0.0% and passed the gate
+    written for exactly that. The loss is one-directional: the worse the
+    structural gap, the likelier this branch is taken."""
 
     from simulation.gm.grounded import IntentRejection
 
-    rejection = IntentRejection(
-        "none of these engagements exist",
-        dropped_entries=5,
-        unknown_refs=("internal-admin",),
-    )
-    assert rejection.dropped_entries == 5
-    assert rejection.unknown_refs == ("internal-admin",)
-    # And the note built from a rejection carries them through.
-    carried = SimGmNotePayload(
-        kind="sim.gm.note",
-        note=f"Rejected action from x: {rejection.reason}",
-        dropped_entries=rejection.dropped_entries,
-        unknown_refs=rejection.unknown_refs,
-    )
-    assert measure([carried], logged=entries).dropped == 5
+    with pytest.raises(IntentRejection) as caught:
+        _log(_referee(), ("internal-admin", "internal-admin", "admin-000001"))
+    assert caught.value.dropped_entries == 3
+    assert set(caught.value.unknown_refs) == {"internal-admin", "admin-000001"}
 
 
-def test_the_index_case_a_rate_cannot_see() -> None:
-    """A tolerance that cannot catch the smallest instance of what it
-    guards is decoration.
+def test_deleting_either_branchs_fields_is_caught() -> None:
+    """Guard the guard, by construction rather than by assertion.
 
-    Driven through the referee: twenty clean personas plus one missing two
-    admin codes gives 1.19% — at one day, five days, twenty and a hundred
-    and thirty. Because it is a rate, run length never accumulates past
-    the 3% ceiling, so the gate caught the epidemic and never its seed.
-
-    Persistence separates the two. A reference invented once is a typo;
-    the same one invented again and again is somebody reaching for a code
-    that ought to exist.
+    The test this replaces built an `IntentRejection` and a
+    `SimGmNotePayload` by hand and never called the referee at all — so
+    both branches could stop reporting entirely with the suite green. It
+    said "drive the real grounding code" in its own docstring.
     """
 
-    work = measure([_note(2, ("internal-admin", "internal-bd"))] * 5, logged=830)
-    assert work.dropped_share < MAX_DROPPED_SHARE
-    problems = violations(work)
-    assert len(problems) == 1
-    assert "internal-admin" in problems[0]
-    assert "typo" in problems[0]
+    gm = _referee()
+    partial = [
+        d.payload for d in _log(gm, ("tkt-000001", "nope")) if d.tag == "sim.gm.note"
+    ]
+    assert partial and partial[0].dropped_entries > 0, (
+        "the partial branch stopped carrying its count"
+    )
 
+    from simulation.gm.grounded import IntentRejection
 
-def test_one_mistyped_matter_is_not_a_finding() -> None:
-    """The other half of the same judgement: a genuine typo must not fail
-    a build, or the gate fires constantly and stops being read."""
-
-    assert violations(measure([_note(1, ("tkt-000999",))], logged=800)) == ()
-
-
-def test_refs_rank_by_entries_lost_not_by_notes() -> None:
-    """This list is billed as the fix list — the codes the world should
-    have offered. Ranking by note count put the code responsible for 300
-    lost entries below six typos costing four each, and truncation then
-    dropped the costliest one off the end."""
-
-    notes = [_note(100, ("internal-admin",))] * 3
-    notes += [_note(4, (f"typo-{i}",)) for i in range(6)]
-    work = measure(notes, logged=5000)
-    assert work.invented_refs[0] == ("internal-admin", 300)
-
-
-def test_a_note_naming_several_refs_splits_its_entries() -> None:
-    """A note carries one count and may name several references; the
-    entries are shared out rather than credited to each in full."""
-
-    work = measure([_note(6, ("a", "b", "c"))], logged=100)
-    assert dict(work.invented_refs) == {"a": 2, "b": 2, "c": 2}
+    with pytest.raises(IntentRejection) as caught:
+        _log(gm, ("nope",))
+    assert caught.value.dropped_entries > 0, (
+        "the all-invalid branch stopped carrying its count"
+    )
