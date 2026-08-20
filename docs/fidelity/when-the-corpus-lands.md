@@ -28,7 +28,7 @@ say so in their first line. These five ship:
 |---|---|
 | `off-sense-register` | the off-sense share of the admitted word family. The task's own gate wants 60%; an audit found no family in this corpus clears it. If none does, the difficulty is coverage rather than rule, and coverage does not survive bounding. |
 | `deadline-week-promise-clock` | the form table narrows from seven to the four the firm writes. `EOD` is ~62% of hits and needs no arithmetic, so say in the brief whether the clock is the point. |
-| `prebill-narrative-screen` | keep it bounded — 2.1% over ~23,000 entries is a needle hunt otherwise. **And settle the 60% bar first:** no family in the notes corpus clearly clears it (best probe 53%, and misread upward). This task has a second difficulty axis the others lack, so measure how much score moves on the aggregation alone before lowering it. |
+| `prebill-narrative-screen` | keep it bounded — 2.1% over ~23,000 entries is a needle hunt otherwise. **The 60% bar is settled and it was aimed the wrong way.** The row key is (matter, timekeeper), so a misadmitted entry lands inside an otherwise-correct pair and moves `hours` and `fees_dollars` — and the tolerance on hours is forty seconds, so essentially any error fails two of three graded fields. Scoring amplifies admission error here. Take the best family the notes offer (~50%), state the measured share, and read the first sweep for scores too **low**, not too high. |
 | `no-op-revision-register` | row count at the intended window; the brief plans for more rows than the measured rate produces. |
 | `unanswered-question-register` | the window must close **at least three working days before the record's last day**, or it grades the edge. |
 

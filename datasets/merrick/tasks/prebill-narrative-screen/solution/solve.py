@@ -96,11 +96,37 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("prebill_screen.json")
 # produces totals that are wrong twice. A task with two independent sources
 # of difficulty does not need either to carry the whole band.
 #
-# So before lowering it, measure the aggregation half: how much of the score
-# moves on the sums alone, holding admission perfect. If that half is
-# substantial, a family in the 40-50% range is defensible and should be
-# argued for in writing rather than quietly accepted. If it is not, this
-# task is a coverage screen wearing a literalism rule and should retire.
+# **Measured, and it points the other way.** The two halves are not
+# independent, so they cannot be traded against each other -- the sums are
+# computed *from* the admitted set, and the row key is (matter, timekeeper)
+# rather than the entry. One misadmitted entry therefore does not add or drop
+# a row the way it would in a per-row register. It lands inside a pair that
+# is otherwise correct and moves that pair's `hours` and `fees_dollars`.
+#
+#   283 (matter, timekeeper) pairs over 2,663 entries
+#   entries per pair: median 7, mean 9.4, max 78
+#   one entry as a share of its pair's hours: median 12%, p25 6.9%
+#   tolerance on `hours`: 0.011 -- forty seconds
+#
+# At that tolerance essentially **any** misadmission fails `hours`, and
+# `fees_dollars` with it: two of the three graded fields on a row the reader
+# got right. A fifth of pairs hold a single entry, where the same error also
+# moves the row set and so row F1 as well.
+#
+# So the scoring here amplifies admission error rather than diluting it, and
+# the inherited 60% bar is not merely unnecessary -- it is aimed the wrong
+# way. A family at 40-50% off-sense will produce more score movement in this
+# task than a 60% family produces in a per-row register. The live risk is the
+# opposite of the one the bar guards against: too *hard*, landing under 0.2,
+# because a model with good-but-imperfect admission loses two fields on every
+# pair it touches.
+#
+# What to do with that: take the best family the notes actually offer, state
+# the measured share in the brief rather than a bar it did not clear, and
+# read the first sweep for scores that are too low rather than too high. If
+# they are, the lever is the tolerance on `hours` -- forty seconds is a
+# rounding rule, not a difficulty knob, and widening it to something like a
+# tenth of an hour restores partial credit for a nearly-right pair.
 #
 # Timekeeper notes are a different corpus from message bodies -- shorter,
 # written to be billed, and far more uniform. A family that clears 60% in
