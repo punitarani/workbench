@@ -107,3 +107,62 @@ written.
 
 **What this costs:** the richest untapped prose in the world stays
 unreadable, and one replacement task had to be designed elsewhere.
+
+## A third retirement, and the check that would have caught it in one line
+
+`double-booked-week` was built, verified against an independent second
+derivation, and retired within the hour. The measurement that justified it
+was this:
+
+> 54 pairs genuinely overlap, **240 touch exactly**. A reader who treats
+> touching as clashing scores 16% precision. Four traps per signal.
+
+Every number there is correct. The task is still dead, because the number I
+did not compute is the one that mattered:
+
+| clashes | count |
+|---|---|
+| on 2026-01-05, day one | **47** |
+| later, inside 2026 | **2** — one pair, counted for two attendees |
+| dated 2080–2081 | 5 |
+| between two *identically titled* events | 21 |
+
+Day one schedules 26 events against roughly three a day afterwards, so 87%
+of the signal is a seeding burst. Outside it the firm produced **one**
+genuine diary clash in seventeen working days — about eight over the whole
+window. Including day one grades a startup artifact; excluding it leaves a
+register with eight rows that needs the entire epoch as its window, which
+destroys the bounding the task depends on.
+
+**The lesson is new and it is one line of code.** This is not the
+coverage-versus-rule distinction and not a vocabulary miss. It is that *a
+rate computed over a window can be dominated by a boundary artifact*, and a
+total will never show it. Group by date before believing a count:
+
+```python
+collections.Counter(day_of(row) for row in signal)
+```
+
+Applied immediately afterwards to the replacement task, the same check found
+the mirror-image artifact at the *other* end of the record: questions asked
+on the last recorded day are 4-for-4 "unanswered" because the world stopped
+before anyone could reply. That one shapes the rule instead of killing the
+task — the register needs a fixed response window and must close several
+working days before the record does.
+
+## Two defects in the recorded world, neither fatal
+
+Found while sizing the above, both left alone because the engine is frozen
+until the recording completes and restarting has already cost this project
+nine resets to day zero.
+
+**Eleven events are dated 2080–2081**, fifty-four years past the epoch, out
+of 752. No windowed task can see them — every window is at most 130 days
+and these sit billions of seconds beyond the cutoff — but a law firm whose
+diary holds a meeting in 2081 is a fidelity defect, and an agent browsing
+the calendar would find them.
+
+**Twenty-one clashes are between two events with identical titles**, mostly
+`Meet-and-Confer — Motion to Compel` against itself. Personas are creating
+duplicate calendar entries for one meeting rather than finding the existing
+one. Realistic in small doses; twenty-one is generation, not behaviour.
