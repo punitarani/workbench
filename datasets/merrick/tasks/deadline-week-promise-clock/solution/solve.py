@@ -55,6 +55,29 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("promise_clock.json")
 # it rather than a second source. `verify.py` reads the dates back out of
 # the brief and converts them the other way.
 #
+# --- measured on the recording in progress, day 12 of 130 -------------
+#
+# 523 messages (185 mail, 338 chat). Form-carrying messages by form:
+#
+#   EOD / COB / close of business   104
+#   by <weekday>                     14
+#   end of week                      12
+#   by tomorrow                      11
+#   end of month                      0
+#   by <Month> <day>                  0
+#   within N days                     0
+#
+# Three of the seven are **dead**, and one form carries three quarters of
+# the hits. That is the defect this file's MEASURE notes exist to catch —
+# a rule whose vocabulary was guessed admits a fraction of the real
+# instances and scores the rest as hallucinations. Ashgrove's version of
+# this cost 34 of 35 rows.
+#
+# This is 9% of the window and the litigation calendar peaks mid-quarter,
+# so the dead forms may yet appear. Re-run before fixing the table; do
+# not widen the rule to rescue a form the firm does not write, because
+# that trades a vocabulary defect for rows nobody can find.
+
 # «MEASURE: DISJOINT — this window must not overlap the one
 # `one-sentence-two-dates` uses. Both extract the same seven forms from
 # mail, so a shared window makes them one measurement reported twice:

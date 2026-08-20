@@ -38,6 +38,24 @@ is a small share the fallback is dead prose and the conjunction is the
 better rule, and if it is a large one the conjunction throws away most of
 the register.
 """
+
+# --- viability, measured on the recording in progress -----------------
+#
+# **This task has no rows yet.** Day 12 of 130, 523 messages: `within N
+# days`, `N days after`, `N days from` and `due in N days` occur **zero**
+# times, and so does any `<Month> <day>` date. Both halves of a row are
+# absent, not just one.
+#
+# If that holds at 130 days this task **retires**. It does not get
+# widened: admitting `a month` or `two weeks` to manufacture rows trades
+# a task whose rule the firm does not write for a task whose rule nobody
+# stated, and the register would be measuring the author's vocabulary
+# rather than the model.
+#
+# The replacement should use a mechanism this corpus demonstrably
+# carries. `EOD`/`COB`/`close of business` appears in 104 of 523
+# messages — three quarters of all form hits — which is a real
+# concentration and a different shape from anything else in the suite.
 # The `measure()` questions below are written out whole, and wrapped as
 # implicitly concatenated strings rather than shortened to fit a line. An
 # abbreviated question gets guessed at instead of measured, which is the one
