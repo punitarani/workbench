@@ -70,6 +70,46 @@ WINDOW_DAYS: int | None = None
 # «MEASURE: run datasets/merrick/measure_candidates.py against the graded
 # window and take the family with the highest hand-classified off-sense
 # share, which must be at least 60%.»
+# --- off-sense share, measured at day 30 of 130 ----------------------
+#
+# An audit rated this task dead: "the corpus carries no word family that
+# clears the task's own 60% off-sense gate, so only coverage difficulty
+# remains." **That does not hold, and the reasoning behind it is worth
+# knowing.**
+#
+# It read the `minority` column of `measure_candidates.py` -- 36.1% for
+# `confirm` -- as the off-sense share. It is not. That column is the share
+# of hits carried by the minority *spelling* of the family, a mechanical
+# number. The off-sense share is how often the word means something other
+# than the register's idea, and the script says outright that this "always
+# blocks until a human reads the sample".
+#
+# Read against the register's idea -- a confirmation actually given by the
+# writer -- and scoped to the sentence carrying the form:
+#
+#   asking someone else to confirm    46   16%
+#   absent / negated / not yet       100   36%
+#   promised for later                39   14%
+#   a confirmation actually given     96   34%
+#   ---------------------------------------------
+#   off-sense share                  185/281 = 66%
+#
+# **The residual error runs one way.** Sentences still in the ON bucket
+# include "Pull his file and confirm." -- an instruction to someone else --
+# so the true share is above 66%, not below. A first attempt at this used a
+# character window rather than a sentence and reported 40%, because "I'll
+# pull the executed agreement and any amendments from the file and confirm"
+# put its `I'll` sixty characters from the verb. Two classifiers, 26 points
+# apart, differing only in where they drew the frame.
+#
+# So the family is `confirm` and the difficulty is rule literalism, not
+# coverage: two thirds of the hits are the word doing something other than
+# confirming, and every one of them reads like a confirmation to a model
+# that admits by meaning rather than by spelling.
+#
+# Re-measure on the finished record before fixing the forms -- this is 30
+# workdays of 130, and a corpus count is true of the window measured.
+
 FORMS: tuple[tuple[str, str], ...] = (
     ("«FORM_A»", r"\b«FORM_A»\b"),
     ("«FORM_B»", r"\b«FORM_B»\b"),
