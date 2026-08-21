@@ -48,9 +48,14 @@ def test_prose_in_a_workbooks_place_is_rejected() -> None:
             "wip.xlsx",
         )
     # The rejection has to tell the persona what to do instead, or it is
-    # just a failure with extra steps.
-    assert "structured JSON" in str(caught.value)
-    assert "wip.xlsx" in str(caught.value)
+    # just a failure with extra steps -- and it has to do so in the words
+    # a colleague would use, because it becomes a memory at importance 10.
+    assert "workbook" in caught.value.reason
+    assert "rows and columns" in caught.value.reason
+    assert "json" not in caught.value.reason.lower()
+    assert "wip.xlsx" in caught.value.reason
+    # The parser's own words survive for whoever is reading the run.
+    assert caught.value.detail
 
 
 def test_the_malformation_that_actually_occurred_is_rejected() -> None:

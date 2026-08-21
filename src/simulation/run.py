@@ -535,6 +535,13 @@ _ENGINE_SURFACE = (
     "simulation/persona/programs.py",
     "simulation/persona/actor.py",
     "simulation/persona/working_memory.py",
+    # `filed_name` decides which documents collide, and both the referee
+    # and the world state call it. Editing it changes what a recording
+    # accepts while every digest above stays identical, so a run could be
+    # stopped, its filing rule changed, and resumed with nothing recording
+    # the seam -- which is the exact splice this fingerprint exists to
+    # refuse. The hole was found by changing that file.
+    "core/filing.py",
 )
 
 

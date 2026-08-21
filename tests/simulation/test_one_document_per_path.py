@@ -156,24 +156,46 @@ def test_the_record_never_gains_the_second_document() -> None:
     assert gm.world.document_paths_by_id == before
 
 
-def test_the_collision_the_declared_path_cannot_see() -> None:
-    """The file room keeps only the top-level segment of a path, so two
-    documents differing in an intermediate directory become one file.
+def test_two_matters_may_each_have_their_own_tracker() -> None:
+    """Documents differing in an intermediate directory are two documents.
 
-    The guard used to compare declared paths, which are distinct, and
-    reported nothing. Measured on a real world: 32 documents, 32 distinct
-    declared paths, 30 files.
+    This test used to assert the opposite, and its docstring described the
+    defect as the design: `filed_name` kept only the top-level segment, so
+    every matter in the firm shared one flat namespace and the second
+    `diligence-status-tracker.xlsx` was refused.
+
+    What that cost, measured on a six-month world: 304 of 308 documents
+    were not at the path iManage served for them, so an agent that read a
+    path and opened it failed 98.7% of the time. And because the obvious
+    names collided, personas invented new ones until **24 of those 308
+    documents were the same WIP report under twenty-four different names**.
     """
 
     gm = _gm()
     first = "engagements/northmoor/sandhurst-add-on/diligence-status-tracker.xlsx"
     second = "engagements/northmoor/sandhurst-platform/diligence-status-tracker.xlsx"
+    _commit(gm, _ground(gm, first)[0])
+    _commit(gm, _ground(gm, second)[0])  # must not raise
+
+
+def test_the_collision_the_declared_path_cannot_see() -> None:
+    """The extension is decided by the format, not by the name.
+
+    So two distinct declared paths still become one file when they differ
+    only in a suffix the format overrides — a workbook called `.docx` is
+    filed as `.xlsx` like every other workbook. The declared paths are
+    different strings and the file is the same file, which is why the
+    guard keys on `filed_name` rather than on what the author wrote.
+    """
+
+    gm = _gm()
+    first = "engagements/northmoor/sandhurst/closing-checklist.xlsx"
+    second = "engagements/northmoor/sandhurst/closing-checklist.docx"
     assert first != second
     _commit(gm, _ground(gm, first)[0])
     with pytest.raises(IntentRejection) as caught:
         _ground(gm, second)
-    # The message names the file, because the paths look unrelated.
-    assert "engagements/diligence-status-tracker" in caught.value.reason
+    assert "engagements/northmoor/sandhurst/closing-checklist" in caught.value.reason
 
 
 def test_a_create_is_reserved_at_resolve_time() -> None:

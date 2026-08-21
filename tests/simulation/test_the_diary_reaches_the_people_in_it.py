@@ -95,6 +95,26 @@ async def test_an_invitation_reaches_everyone_invited() -> None:
     assert set(await gm.route(_event(payload))) == {"ana", "cecile", "dev"}
 
 
+async def _booked(gm, event_id: str = "cal-000001", organizer: str = "per-ana"):
+    """Put a real meeting in the world, so the organizer is known."""
+
+    await gm.route(
+        _event(
+            CalendarEventScheduledPayload(
+                kind="calendar.event.scheduled",
+                calendar_event_id=event_id,
+                organizer=organizer,
+                title="Vantage redline walkthrough",
+                start=200_000,
+                end=203_600,
+                attendees=(organizer, "per-cecile", "per-dev"),
+                description="Walk the redlines together.",
+            ),
+            seq=80,
+        )
+    )
+
+
 async def test_a_person_observes_their_own_rsvp() -> None:
     """The loop that made 203 of 278 responses redundant.
 
@@ -103,11 +123,45 @@ async def test_a_person_observes_their_own_rsvp() -> None:
     """
 
     gm = _gm()
+    await _booked(gm)
     payload = CalendarResponsePayload(
         kind="calendar.response",
         calendar_event_id="cal-000001",
         responder="per-cecile",
         response="decline",
+    )
+    assert "cecile" in await gm.route(_event(payload))
+
+
+async def test_the_organizer_hears_the_answer() -> None:
+    """A decline nobody hears is not a decline.
+
+    Without this the firm records the answer and the person who booked the
+    meeting never learns it, so nothing is ever moved and no task can ask
+    what was rescheduled or why. Measured in a sample of 278 responses:
+    29 declines, none of which reached an organizer.
+    """
+
+    gm = _gm()
+    await _booked(gm, organizer="per-ana")
+    payload = CalendarResponsePayload(
+        kind="calendar.response",
+        calendar_event_id="cal-000001",
+        responder="per-cecile",
+        response="decline",
+    )
+    assert set(await gm.route(_event(payload))) == {"cecile", "ana"}
+
+
+async def test_an_answer_to_a_meeting_the_world_forgot_still_reaches_its_author() -> None:
+    """No organizer on record must degrade, not crash."""
+
+    gm = _gm()
+    payload = CalendarResponsePayload(
+        kind="calendar.response",
+        calendar_event_id="cal-999999",
+        responder="per-cecile",
+        response="accept",
     )
     assert await gm.route(_event(payload)) == ("cecile",)
 
@@ -190,3 +244,32 @@ async def test_someone_outside_the_firm_is_not_routed_to() -> None:
         description="d",
     )
     assert set(await gm.route(_event(payload))) == {"ana"}
+
+
+async def test_the_organizer_map_survives_a_resume() -> None:
+    """A seventeen-hour recording resumes from a checkpoint.
+
+    `calendar_organizers` lives in world state, which is serialised at
+    every one. A resume that dropped it would keep routing RSVPs to the
+    responder and stop routing them to the organizer from that point on —
+    a world where declines reach somebody for forty days and nobody
+    afterwards, with nothing in the record marking the seam.
+
+    This is the mutation the other tests in this file missed: removing the
+    restore line left all of them green.
+    """
+
+    gm = _gm()
+    await _booked(gm, event_id="cal-000001", organizer="per-ana")
+
+    restored = _gm()
+    restored.set_state(gm.get_state())
+    assert restored.world.calendar_organizers["cal-000001"] == "per-ana"
+
+    payload = CalendarResponsePayload(
+        kind="calendar.response",
+        calendar_event_id="cal-000001",
+        responder="per-cecile",
+        response="decline",
+    )
+    assert set(await restored.route(_event(payload, seq=91))) == {"cecile", "ana"}

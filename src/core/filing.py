@@ -87,16 +87,42 @@ def extension_of(path: str, content_format: str) -> str:
 
 
 def filed_name(path: str, content_format: str) -> str:
-    """The file this document will actually become: `workspace/stem.ext`.
+    """The file this document will actually become, directories and all.
 
-    **This, not the declared path, is what can collide.** Two documents
-    differing only in an intermediate directory produce one file, and a
-    guard comparing declared paths sees two distinct strings.
+    **This, not the declared path, is what can collide**, because the
+    extension is decided by the format rather than by the name: a workbook
+    called `.docx` and a memo called `.docx` filed side by side are one
+    file, and a guard comparing declared paths sees two distinct strings.
+
+    This used to return `workspace_of(path)/stem.ext` — the TOP-LEVEL
+    SEGMENT ONLY. Measured on a six-month world: 304 of 308 documents were
+    not at the path iManage served for them. The record said
+    `engagements/pellumbra/ravenna-collaboration-agreement/ip-issues-memo.docx`
+    and the file was at `engagements/ip-issues-memo.docx`, so an agent that
+    read a path from the document system and opened it failed 98.7% of the
+    time. Every document id resolved, so no referential check could see it.
+
+    It cost the file room its shape as well. With every matter sharing one
+    flat namespace, the obvious filenames collided, the referee refused the
+    second, and personas answered by inventing new ones — **24 of those 308
+    documents were the same WIP report under twenty-four different names**,
+    eight percent of the firm's papers. A real firm has one, in a folder,
+    with versions.
+
+    Case-folded per segment for the reason `workspace_of` gives: one world
+    produced both `Engagements` and `engagements` and served them as two
+    workspaces holding one matter's papers between them.
     """
 
-    basename = path.rsplit("/", 1)[-1]
+    segments = [segment for segment in path.strip("/").split("/") if segment]
+    basename = segments[-1] if segments else path
     stem = basename.rsplit(".", 1)[0] if "." in basename else basename
-    return f"{workspace_of(path)}/{stem}.{extension_of(path, content_format)}"
+    directories = [segment.casefold() for segment in segments[:-1]] or [
+        DEFAULT_WORKSPACE
+    ]
+    return "/".join(
+        (*directories, f"{stem}.{extension_of(path, content_format)}")
+    )
 
 
 __all__ = [

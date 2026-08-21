@@ -58,6 +58,10 @@ class WorldStateModel(BaseModel):
     chat_message_conversations: tuple[tuple[str, str], ...] = ()
     documents: tuple[tuple[str, int], ...] = ()
     calendar_events: tuple[str, ...] = ()
+    # Who called each meeting. Kept so an RSVP can reach the person it is
+    # an answer to; defaulted so a state recorded before this existed
+    # still loads.
+    calendar_organizers: tuple[tuple[str, str], ...] = ()
     document_paths: tuple[tuple[str, str], ...] = ()
     document_formats: tuple[tuple[str, str], ...] = ()
     document_authors: tuple[tuple[str, str], ...] = ()
@@ -112,6 +116,7 @@ class WorldState:
         self.meetings: dict[str, MeetingProgress] = {}
         # Invitations can only be answered for meetings that exist.
         self.calendar_events: set[str] = set()
+        self.calendar_organizers: dict[str, str] = {}
         self.chat_streaks: dict[str, int] = {}
         self.chat_message_senders: dict[str, str] = {}
         self.last_chat_message: dict[str, str] = {}
@@ -216,6 +221,7 @@ class WorldState:
                 self.chat_streaks.clear()
             case CalendarEventScheduledPayload():
                 self.calendar_events.add(payload.calendar_event_id)
+                self.calendar_organizers[payload.calendar_event_id] = payload.organizer
             case SimMeetingConvenePayload():
                 self.meetings[payload.meeting_id] = MeetingProgress(
                     meeting_id=payload.meeting_id,
@@ -249,6 +255,7 @@ class WorldState:
             ),
             documents=tuple(sorted(self.documents.items())),
             calendar_events=tuple(sorted(self.calendar_events)),
+            calendar_organizers=tuple(sorted(self.calendar_organizers.items())),
             document_paths=tuple(sorted(self.document_paths.items())),
             document_formats=tuple(sorted(self.document_formats.items())),
             document_authors=tuple(sorted(self.document_authors.items())),
@@ -285,6 +292,7 @@ class WorldState:
         state.chat_message_conversations = dict(model.chat_message_conversations)
         state.documents = dict(model.documents)
         state.calendar_events = set(model.calendar_events)
+        state.calendar_organizers = dict(model.calendar_organizers)
         state.document_paths = dict(model.document_paths)
         state.document_paths_by_id = {
             document_id: path for path, document_id in model.document_paths

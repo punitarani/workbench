@@ -189,6 +189,30 @@ _PARSERS = {
 }
 
 
+# What a persona is told they filed, and what to do about it. The reason
+# reaches them as a memory at importance 10, so it has to be a sentence a
+# colleague would say.
+#
+# This read "send the structured JSON for that format" and cost a lawyer's
+# reflection: Cecile Marchand wrote "doc-000003 is malformed: it declares a
+# structured format but the underlying content is not actually structured
+# JSON". She was paraphrasing the referee. A partner does not know what
+# structured JSON is, and the vocabulary check that was supposed to catch
+# this had every type name and action verb in it and not the word `json`.
+_WORK_PRODUCT = {
+    "spreadsheet": "a workbook",
+    "formatted": "a document",
+    "slides": "a deck",
+    "markdown": "a note",
+}
+_HOW_TO_FIX = {
+    "spreadsheet": "set the figures out in rows and columns",
+    "formatted": "set it out in headings and paragraphs",
+    "slides": "set it out as slides, each with a title and its points",
+    "markdown": "write it as prose",
+}
+
+
 def _reject_unless_parsable(content_format: str, content: str, label: str) -> None:
     """Raise the instructive rejection unless the content really is that form.
 
@@ -222,9 +246,9 @@ def _reject_unless_parsable(content_format: str, content: str, label: str) -> No
         parsed = parser(content)
     except ValueError as error:
         raise IntentRejection(
-            f"{label} declares {content_format} but its content is not in "
-            f"that form; send the structured JSON for that format, or "
-            f"declare markdown and write prose",
+            f"{label} is filed as {_WORK_PRODUCT[content_format]} and what "
+            f"is in it is not one; {_HOW_TO_FIX[content_format]}, or call it "
+            "a note and write it as prose",
             # The parser's own words, for the operator. Interpolated into
             # the reason, this read "(1 validation error for
             # SpreadsheetContent review_note Extra inputs are not
@@ -468,7 +492,19 @@ class GroundedGm:
             case CalendarEventScheduledPayload():
                 return self._entities_for((payload.organizer, *payload.attendees))
             case CalendarResponsePayload():
-                return self._entities_for((payload.responder,))
+                # The organizer too. An answer nobody hears is not an
+                # answer: without this the firm records 29 declines in a
+                # sample of 278 and not one of them reaches the person who
+                # booked the meeting, so nothing is ever moved and no task
+                # can ask what was rescheduled or why.
+                return self._entities_for(
+                    (
+                        payload.responder,
+                        self._world.calendar_organizers.get(
+                            payload.calendar_event_id
+                        ),
+                    )
+                )
             case MeetingTranscriptPayload():
                 return self._entities_for(payload.attendees)
             case SimMeetingTurnPayload():
@@ -555,7 +591,19 @@ class GroundedGm:
             case CalendarEventScheduledPayload():
                 return self._entities_for((payload.organizer, *payload.attendees))
             case CalendarResponsePayload():
-                return self._entities_for((payload.responder,))
+                # The organizer too. An answer nobody hears is not an
+                # answer: without this the firm records 29 declines in a
+                # sample of 278 and not one of them reaches the person who
+                # booked the meeting, so nothing is ever moved and no task
+                # can ask what was rescheduled or why.
+                return self._entities_for(
+                    (
+                        payload.responder,
+                        self._world.calendar_organizers.get(
+                            payload.calendar_event_id
+                        ),
+                    )
+                )
             case MeetingTranscriptPayload():
                 return self._entities_for(payload.attendees)
             case _:

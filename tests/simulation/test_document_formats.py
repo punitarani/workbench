@@ -82,10 +82,19 @@ class TestDeclaredFormats:
         with pytest.raises(IntentRejection) as caught:
             _validated_format(create)
         reason = caught.value.reason
-        assert declared in reason
-        # The rejection has to tell the persona what to do instead, the way
-        # the thread-cap and unknown-ref rejections do.
-        assert "structured JSON" in reason and "markdown" in reason
+        # Named in workplace words, not by the enum value. "spreadsheet"
+        # and "structured JSON" are what the machine calls these; a
+        # partner reading their own memory calls them a workbook and a
+        # note. Cecile Marchand paraphrased the old wording into her
+        # reflection as "the underlying content is not actually structured
+        # JSON", which is not a sentence anyone at a law firm has said.
+        assert {"spreadsheet": "workbook", "formatted": "document", "slides": "deck"}[
+            declared
+        ] in reason
+        # And it still has to say what to do instead, the way the
+        # thread-cap and unknown-ref rejections do.
+        assert "note" in reason and ("rows" in reason or "headings" in reason or "slides" in reason)
+        assert "json" not in reason.lower()
 
     def test_a_spreadsheet_with_ragged_rows_is_rejected(self) -> None:
         create = DocumentCreateSpec(

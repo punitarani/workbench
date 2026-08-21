@@ -68,6 +68,18 @@ _ENGINE_WORDS = (
     "intent",
     "payload",
     "schema",
+    # `json` was missing, and that is exactly how the last one got out:
+    # the reason said "send the structured JSON for that format", the
+    # vocabulary list had every type name and action verb in it, and a
+    # partner wrote "the underlying content is not actually structured
+    # JSON" into her own reflection.
+    "json",
+    "xml",
+    "csv",
+    "serialize",
+    "serialized",
+    "parse",
+    "parsed",
     "spec",
     "referee",
     "cassette",
