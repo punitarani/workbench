@@ -24,6 +24,14 @@ keywords = [
 ]
 
 [metadata]
+# Retired on measured evidence, kept for the record rather than
+# deleted: the compositional shape it needed is rare and mail-weighted; the corpus did not carry enough messages naming two forms that resolve to different dates to make twelve rows.
+#
+# Read by scripts/band.py, which iterates every directory here and
+# would otherwise report a task nobody intends to run -- or, once it
+# started refusing tasks whose deliverable it cannot name, stop on
+# one.
+retired = true
 dataset = "merrick"
 difficulty = "hard"
 skills = [
