@@ -51,7 +51,7 @@ MAX_DROPPED_SHARE = 0.03
 # Persistence is what separates the two. A reference invented once is a
 # typo; the same reference invented again and again is somebody reaching
 # for a code that ought to exist, which is the whole defect in miniature.
-MAX_REPEATED_REF = 10**9
+MAX_REPEATED_REF = 3
 
 
 @dataclass(frozen=True)
