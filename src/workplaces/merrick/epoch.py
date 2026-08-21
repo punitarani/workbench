@@ -442,24 +442,18 @@ def _direct_message_pairs() -> tuple[tuple[str, str], ...]:
         for p in PEOPLE
         if p.affiliation == "internal" and p.manager in internal
     }
+    # Thirty-two pairs put 46.5% of the firm's chat in private, against a
+    # band of 0.15-0.35 — a firm talking to itself mostly one-to-one. The
+    # reporting lines are structural and stay; these were invented, so
+    # these are what gets cut. The docket manager keeps hers because the
+    # dates she chases are genuinely chased person to person, and she
+    # reports to nobody in litigation.
     _OPERATIONAL = (
         # Docket manager with the litigators whose dates she keeps.
         ("per-thandiwe-mokoena", "per-cecile-marchand"),
         ("per-thandiwe-mokoena", "per-hyunwoo-bae"),
         ("per-thandiwe-mokoena", "per-lucien-abara"),
         ("per-thandiwe-mokoena", "per-rosalie-duchamp"),
-        # Billing manager with the partners who own the prebills.
-        ("per-ulrich-bergmann", "per-bennett-ashworth"),
-        ("per-ulrich-bergmann", "per-dov-reinhardt"),
-        ("per-ulrich-bergmann", "per-elena-vasquez-reyes"),
-        ("per-ulrich-bergmann", "per-gideon-park"),
-        ("per-ulrich-bergmann", "per-fionnuala-doherty"),
-        # Paralegals with the associates they actually work beside, which
-        # the reporting line does not capture — both report upward, not
-        # to each other.
-        ("per-rosalie-duchamp", "per-noor-haddad"),
-        ("per-samir-bhatt", "per-mira-chandrasekhar"),
-        ("per-samir-bhatt", "per-quentin-sarr"),
     )
     pairs.update(tuple(sorted(pair)) for pair in _OPERATIONAL)
     return tuple(sorted(pairs))

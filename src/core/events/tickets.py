@@ -27,8 +27,8 @@ PERSON_TICKET_FIELDS = frozenset({"assignee"})
 
 
 def collapse_field_changes(
-    changes: "tuple[FieldChange, ...]",
-) -> "tuple[FieldChange, ...]":
+    changes: tuple[FieldChange, ...],
+) -> tuple[FieldChange, ...]:
     """Two changes to one field in a single update are one change.
 
     A recorded law firm produced this, once in 377 updates:

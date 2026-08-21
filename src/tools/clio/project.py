@@ -16,9 +16,9 @@ from core.events.people import (
     PersonRecordPayload,
 )
 from core.events.tickets import (
+    FOLDED_TICKET_FIELDS,
     TicketCommentedPayload,
     TicketCreatedPayload,
-    FOLDED_TICKET_FIELDS,
     TicketUpdatedPayload,
     collapse_field_changes,
 )
@@ -36,7 +36,6 @@ from tools.clio.tables import (
     Organization,
     clio_status,
 )
-
 
 
 class _TicketState(BaseModel):

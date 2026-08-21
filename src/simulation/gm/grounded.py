@@ -65,10 +65,10 @@ from core.events.meetings import (
 from core.events.people import PersonRecordPayload
 from core.events.tickets import (
     PERSON_TICKET_FIELDS,
-    collapse_field_changes,
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
+    collapse_field_changes,
 )
 from core.events.work import TimeLoggedPayload
 from core.filing import filed_name
@@ -484,13 +484,21 @@ class GroundedGm:
             case ChatMessagePayload():
                 members = self._world.conversations.get(payload.conversation_id, ())
                 body = payload.body.casefold()
+                # A hot conversation eventually needs a reason to continue:
+                # after six straight messages the auto-grant stops until the
+                # day moves (any wake resets the streaks).
+                #
+                # Hoisted above the two-person split so it guards the
+                # channel reply path below as well. It guarded DMs alone,
+                # and the email branch caps chains at depth 3 with the note
+                # that "without this cap, courteous personas acknowledge
+                # each other forever" — the channel path had neither, which
+                # cost nothing while replying to a channel message was
+                # effectively impossible and became a runaway the moment
+                # pending items began naming a message to reply to.
+                if self._world.chat_streaks.get(payload.conversation_id, 0) >= 6:
+                    return NextActingDecision(entities=())
                 if len(members) == 2:
-                    # A hot DM burst eventually needs a reason to continue:
-                    # after six straight messages the auto-grant stops until
-                    # the day moves (any wake resets the streaks).
-                    streak = self._world.dm_streaks.get(payload.conversation_id, 0)
-                    if streak >= 6:
-                        return NextActingDecision(entities=())
                     others = self._entities_for(
                         m for m in members if m != payload.sender
                     )
@@ -1071,15 +1079,36 @@ class GroundedGm:
     _MINTED_ID = re.compile(r"\b[a-z]{3}-\d{6}\b")
 
     def _human_label(self, ref: str) -> str | None:
-        """What a person would call the thing this id names."""
+        """What a person would call the thing this id names.
 
+        The filename comes from `core.filing`, not from the declared path.
+        A name must never lie about its bytes: an author who declares a
+        workbook and calls it `.docx` gets a file the room serves as
+        `.xlsx`, and taking the declared basename here would put a
+        filename into prose that no surface answers to. That rule already
+        has one home precisely so its readers cannot drift -- and this was
+        a fifth reader quietly reimplementing it.
+
+        A label that still carries a minted id is refused. `re.sub` does
+        not rescan its replacement, so a ticket titled "Timestamp
+        inconsistency on tkt-000001 ..." would put an id straight back
+        into the sentence this exists to clean. Returning None leaves the
+        bare id in place, which is the same visible, honest outcome an
+        unresolvable id already gets.
+        """
+
+        label: str | None = None
         if ref.startswith("doc-"):
             path = self._world.document_paths_by_id.get(ref)
-            return path.rsplit("/", 1)[-1] if path else None
-        if ref.startswith("tkt-"):
+            if path is not None:
+                content_format = self._world.document_formats.get(ref, "markdown")
+                label = filed_name(path, content_format).rsplit("/", 1)[-1]
+        elif ref.startswith("tkt-"):
             values = self._world.tickets.get(ref)
-            return values.get("title") if values else None
-        return None
+            label = values.get("title") if values else None
+        if label and self._MINTED_ID.search(label):
+            return None
+        return label
 
     def _dereference(self, text: str) -> str:
         """Replace internal ids in prose with the names of what they point at.
@@ -1293,11 +1322,35 @@ class GroundedGm:
         if intent.reply_to_ref is not None:
             if intent.reply_to_ref not in self._world.chat_messages:
                 raise IntentRejection(f"unknown chat message {intent.reply_to_ref!r}")
+        # A chat thread is one level deep in the product these surfaces
+        # mirror: every reply carries the *root's* timestamp and there is
+        # no reply-to-a-reply. The persona replies to whatever it was
+        # shown, which is the newest message, so replies chained --
+        # measured on four recorded days, 44 of 84 replies had a parent
+        # that was itself a reply, with chains nine deep.
+        #
+        # Two things were wrong with that. The served surface set
+        # `thread_ts` to the immediate parent, so a message three deep
+        # named another reply as its thread root, which no real workspace
+        # can represent; and a chain gives every root exactly one direct
+        # reply, so a four-message exchange reads as no thread at all
+        # (threaded_reply_share 0.089 against a floor of 0.30).
+        #
+        # Flattened here, at the source, so the log is right and the
+        # surface derives correctly. The tool's own write path already
+        # states this rule -- "a reply addressed at a reply belongs to
+        # that thread's parent, as in Slack" -- and its single level of
+        # resolution becomes sufficient once nothing nests deeper.
+        reply_to = (
+            self._world.chat_thread_roots.get(intent.reply_to_ref, intent.reply_to_ref)
+            if intent.reply_to_ref is not None
+            else None
+        )
         payload = ChatMessagePayload(
             kind="chat.message",
             chat_message_id=self._minter.mint("chm"),
             conversation_id=conversation_id,
-            reply_to=intent.reply_to_ref,
+            reply_to=reply_to,
             sender=sender,
             body=self._dereference(intent.draft.body),
         )
@@ -1333,8 +1386,8 @@ class GroundedGm:
                 kind="ticket.created",
                 ticket_id=self._minter.mint("tkt"),
                 actor=sender,
-                title=create.title,
-                description=create.description,
+                title=self._dereference(create.title),
+                description=self._dereference(create.description),
                 requester=requester,
                 assignee=assignee,
                 status=create.status,

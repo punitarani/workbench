@@ -54,6 +54,7 @@ class WorldStateModel(BaseModel):
     conversations: tuple[tuple[str, tuple[str, ...]], ...] = ()
     conversation_names: tuple[tuple[str, str], ...] = ()
     chat_messages: tuple[str, ...] = ()
+    chat_thread_roots: tuple[tuple[str, str], ...] = ()
     chat_message_conversations: tuple[tuple[str, str], ...] = ()
     documents: tuple[tuple[str, int], ...] = ()
     calendar_events: tuple[str, ...] = ()
@@ -69,7 +70,7 @@ class WorldStateModel(BaseModel):
     plan_revisions: tuple[tuple[str, int], ...] = ()
     meetings: tuple[MeetingProgress, ...] = ()
     # conversation_id -> consecutive auto-granted chat run length.
-    dm_streaks: tuple[tuple[str, int], ...] = ()
+    chat_streaks: tuple[tuple[str, int], ...] = ()
     chat_message_senders: tuple[tuple[str, str], ...] = ()
     last_chat_message: tuple[tuple[str, str], ...] = ()
 
@@ -85,6 +86,7 @@ class WorldState:
         self.conversations: dict[str, tuple[str, ...]] = {}
         self.conversation_names: dict[str, str] = {}  # "#legal" -> id
         self.chat_messages: set[str] = set()
+        self.chat_thread_roots: dict[str, str] = {}
         self.chat_message_conversations: dict[str, str] = {}
         self.documents: dict[str, int] = {}  # id -> head revision
         self.document_paths: dict[str, str] = {}  # path -> id
@@ -110,7 +112,7 @@ class WorldState:
         self.meetings: dict[str, MeetingProgress] = {}
         # Invitations can only be answered for meetings that exist.
         self.calendar_events: set[str] = set()
-        self.dm_streaks: dict[str, int] = {}
+        self.chat_streaks: dict[str, int] = {}
         self.chat_message_senders: dict[str, str] = {}
         self.last_chat_message: dict[str, str] = {}
 
@@ -138,6 +140,16 @@ class WorldState:
                     self.conversation_names[payload.name] = payload.conversation_id
             case ChatMessagePayload():
                 self.chat_messages.add(payload.chat_message_id)
+                # Which thread this message belongs to. A chat thread is
+                # one level deep in the product these surfaces mirror:
+                # every reply carries the *root's* timestamp, and there is
+                # no reply-to-a-reply. Keeping the root here is what lets
+                # the referee flatten a chain before it reaches the log.
+                self.chat_thread_roots[payload.chat_message_id] = (
+                    self.chat_thread_roots.get(payload.reply_to, payload.reply_to)
+                    if payload.reply_to
+                    else payload.chat_message_id
+                )
                 self.chat_message_conversations[payload.chat_message_id] = (
                     payload.conversation_id
                 )
@@ -145,11 +157,18 @@ class WorldState:
                 self.last_chat_message[payload.conversation_id] = (
                     payload.chat_message_id
                 )
-                members = self.conversations.get(payload.conversation_id, ())
-                if len(members) == 2:
-                    self.dm_streaks[payload.conversation_id] = (
-                        self.dm_streaks.get(payload.conversation_id, 0) + 1
-                    )
+                # Counted for every conversation, not only two-person
+                # ones. The brake this feeds guarded DMs alone, and the
+                # channel reply path had no cap of any kind -- harmless
+                # while replying was effectively impossible (3 replies in
+                # 3,177 messages), and a runaway the moment pending items
+                # started naming a message to reply to. Two personas in a
+                # channel volley with nothing to stop them, and a chat
+                # delay of 30s + body/30 admits hundreds of exchanges in
+                # one simulated day.
+                self.chat_streaks[payload.conversation_id] = (
+                    self.chat_streaks.get(payload.conversation_id, 0) + 1
+                )
             case DocumentCreatedPayload():
                 self.documents[payload.document_id] = 1
                 self.document_paths[payload.path] = payload.document_id
@@ -194,7 +213,7 @@ class WorldState:
                 self.plan_revisions[key] = payload.revision
             case SimWakePayload():
                 # A wake is a beat in the day: chat bursts end, streaks reset.
-                self.dm_streaks.clear()
+                self.chat_streaks.clear()
             case CalendarEventScheduledPayload():
                 self.calendar_events.add(payload.calendar_event_id)
             case SimMeetingConvenePayload():
@@ -224,6 +243,7 @@ class WorldState:
             conversations=tuple(sorted(self.conversations.items())),
             conversation_names=tuple(sorted(self.conversation_names.items())),
             chat_messages=tuple(sorted(self.chat_messages)),
+            chat_thread_roots=tuple(sorted(self.chat_thread_roots.items())),
             chat_message_conversations=tuple(
                 sorted(self.chat_message_conversations.items())
             ),
@@ -240,7 +260,7 @@ class WorldState:
             ),
             plan_revisions=tuple(sorted(self.plan_revisions.items())),
             meetings=tuple(self.meetings[key] for key in sorted(self.meetings)),
-            dm_streaks=tuple(sorted(self.dm_streaks.items())),
+            chat_streaks=tuple(sorted(self.chat_streaks.items())),
             chat_message_senders=tuple(sorted(self.chat_message_senders.items())),
             last_chat_message=tuple(sorted(self.last_chat_message.items())),
         )
@@ -261,6 +281,7 @@ class WorldState:
         }
         state.conversation_names = dict(model.conversation_names)
         state.chat_messages = set(model.chat_messages)
+        state.chat_thread_roots = dict(model.chat_thread_roots)
         state.chat_message_conversations = dict(model.chat_message_conversations)
         state.documents = dict(model.documents)
         state.calendar_events = set(model.calendar_events)
@@ -283,7 +304,7 @@ class WorldState:
             )
         state.plan_revisions = dict(model.plan_revisions)
         state.meetings = {m.meeting_id: m for m in model.meetings}
-        state.dm_streaks = dict(model.dm_streaks)
+        state.chat_streaks = dict(model.chat_streaks)
         state.chat_message_senders = dict(model.chat_message_senders)
         state.last_chat_message = dict(model.last_chat_message)
         return state

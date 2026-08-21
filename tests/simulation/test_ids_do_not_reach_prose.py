@@ -17,8 +17,8 @@ methods; nothing here reimplements the substitution.
 """
 
 from core.events import Event
-from core.events.control import SimDeliverablePayload
 from core.events.chat import ChatConversationCreatedPayload
+from core.events.control import SimDeliverablePayload
 from core.events.people import PersonRecordPayload
 from core.intents import (
     ChatDraft,
@@ -178,7 +178,10 @@ def test_a_document_id_becomes_the_filename() -> None:
     drafts = _send_email(gm, "Diligence", f"Please see {document_id} attached.")
     body = drafts[0].payload.body
     assert document_id not in body
-    assert "closing-checklist.xlsx" in body, body
+    # Declared `.xlsx`, written as markdown — the room files it as `.md`,
+    # and prose names the file that exists rather than the one the author
+    # typed.
+    assert "closing-checklist.md" in body, body
 
 
 def test_a_ticket_id_becomes_the_matter_name() -> None:
@@ -248,3 +251,107 @@ def test_ordinary_prose_is_untouched() -> None:
     body = "The 2026-0114 matter and the pre-2026 filings are unaffected."
     drafts = _send_email(gm, "Subject", body)
     assert drafts[0].payload.body == body
+
+
+def test_the_filename_is_the_one_the_file_room_serves() -> None:
+    """A name must never lie about its bytes.
+
+    The declared path said `.md`; the format says markdown, so the room
+    serves `.md` — but an author who declares a *workbook* and names it
+    `.docx` gets a file served as `.xlsx`, and the declared basename would
+    put a filename into prose that no surface answers to. `core.filing`
+    owns that rule and this was a fifth reader reimplementing it.
+    """
+
+    gm = _gm()
+    drafts = gm._ground_document(
+        "ana",
+        "per-ana",
+        DocumentEditIntent(
+            document_ref=None,
+            create=DocumentCreateSpec(
+                title="Diligence tracker",
+                # Declares a workbook, names it .docx. The format wins.
+                path="engagements/sandhurst/diligence-tracker.docx",
+                content=(
+                    '{"sheets": [{"name": "Diligence", "columns": ["Item"], '
+                    '"rows": [["Open items"]]}]}'
+                ),
+                content_format="spreadsheet",
+            ),
+        ),
+        _event(),
+        0,
+    )
+    _commit(gm, drafts, 600)
+    document_id = drafts[0].payload.document_id
+
+    sent = _send_email(gm, "Tracker", f"See {document_id}.")
+    body = sent[0].payload.body
+    assert "diligence-tracker.xlsx" in body, body
+    assert "diligence-tracker.docx" not in body
+
+
+def test_a_label_carrying_an_id_is_refused_rather_than_spliced() -> None:
+    """`re.sub` does not rescan its replacement.
+
+    A ticket whose own title names another id would put that id straight
+    back into the prose this exists to clean — so the substitution would
+    report 0% leaked while leaking.
+    """
+
+    gm = _gm()
+    first = _a_ticket(gm)
+    drafts = gm._ground_ticket(
+        "ana",
+        "per-ana",
+        TicketIntent(
+            ticket_ref=None,
+            create=TicketCreateSpec(
+                title=f"Timestamp inconsistency on {first} needs investigation",
+                description="Raised by the billing manager.",
+                requester_ref="Ana Reyes",
+                assignee_ref="Ana Reyes",
+                status="Open",
+                priority="Normal",
+                ticket_type="engagement",
+            ),
+        ),
+        _event(),
+        0,
+    )
+    _commit(gm, drafts, 700)
+    second = drafts[0].payload.ticket_id
+
+    sent = _send_email(gm, "Query", f"Can you look at {second} before Friday?")
+    body = sent[0].payload.body
+    assert not __import__("re").search(r"\b[a-z]{3}-\d{6}\b", body), body
+
+
+def test_a_tickets_own_title_is_cleaned_on_the_way_in() -> None:
+    """Closing the source, not only the symptom: a title that carries an
+    id is prose too, and it becomes the label every later mention uses."""
+
+    gm = _gm()
+    first = _a_ticket(gm)
+    drafts = gm._ground_ticket(
+        "ana",
+        "per-ana",
+        TicketIntent(
+            ticket_ref=None,
+            create=TicketCreateSpec(
+                title=f"Follow-up to {first}",
+                description=f"Continues {first}.",
+                requester_ref="Ana Reyes",
+                assignee_ref="Ana Reyes",
+                status="Open",
+                priority="Normal",
+                ticket_type="engagement",
+            ),
+        ),
+        _event(),
+        0,
+    )
+    payload = drafts[0].payload
+    assert first not in payload.title, payload.title
+    assert "Sandhurst platform acquisition" in payload.title

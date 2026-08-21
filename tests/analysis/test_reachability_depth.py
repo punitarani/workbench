@@ -26,6 +26,7 @@ from core.events import Event
 from core.events.control import SimRunStartedPayload
 from core.events.documents import DocumentCreatedPayload, DocumentRevisedPayload
 from core.events.people import PersonRecordPayload
+
 pytest.importorskip("mcp.server")
 
 # Enough documents that the one under test does not have a number small
@@ -106,8 +107,8 @@ def _events() -> list[Event]:
 
 @pytest.fixture
 def state(tmp_path):
-    from tools.imanage import SYSTEM
     from tools.framework import project_system
+    from tools.imanage import SYSTEM
 
     state_dir = tmp_path / "state"
     project_system(SYSTEM, _events(), state_dir / "imanage.db")
