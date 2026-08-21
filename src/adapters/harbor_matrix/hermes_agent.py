@@ -94,12 +94,40 @@ class HartwellHermes(Hermes):
 
         merged = dict(env or {})
         for source, target in (
+            # The gateway token first, because nothing sets
+            # `OPENAI_API_KEY` for this agent. Codex reaches the same place
+            # by overriding `_get_env` to answer `OPENAI_API_KEY` with the
+            # gateway token; hermes had the mapping below and no such
+            # override, so it mapped a variable that was never populated
+            # and the container reached the gateway carrying whatever
+            # `OPENROUTER_API_KEY` the host had exported — a real
+            # OpenRouter key, which the gateway is not. `gateway.py`
+            # answers a Bearer mismatch with exactly `401 unauthorized`,
+            # which is what every trial got.
             ("OPENAI_API_KEY", "OPENROUTER_API_KEY"),
             ("OPENAI_BASE_URL", "OPENROUTER_BASE_URL"),
         ):
             value = merged.get(source) or self._get_env(source)
             if value:
                 merged.setdefault(target, value)
+        # The gateway token *overwrites*, and that distinction is the whole
+        # fix. Everything above uses `setdefault`, which is right for a
+        # fallback and wrong for a credential: the container already
+        # carries whatever `OPENROUTER_API_KEY` the host exported — a real
+        # OpenRouter key — so a `setdefault` here is a no-op and hermes
+        # presents the wrong bearer to a gateway that is not OpenRouter.
+        # `gateway.py` answers a mismatch with exactly `401 unauthorized`,
+        # which is what every trial got, install bug or no install bug.
+        #
+        # Codex reaches the same place differently, by overriding
+        # `_get_env` so that a request for `OPENAI_API_KEY` returns the
+        # gateway token. Hermes has no such override, so it is done here.
+        if token := (
+            merged.get("HARTWELL_GATEWAY_TOKEN")
+            or self._get_env("HARTWELL_GATEWAY_TOKEN")
+        ):
+            merged["OPENROUTER_API_KEY"] = token
+            merged["OPENAI_API_KEY"] = token
         return await super().exec_as_agent(
             environment, command, env=merged, cwd=cwd, timeout_sec=timeout_sec
         )
