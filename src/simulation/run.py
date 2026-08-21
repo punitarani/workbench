@@ -472,6 +472,7 @@ async def run_compiled(
     for item in compiled.scheduled:
         store.queue_add(time=item.time, order=item.order, draft=item.draft)
     store.set_meta("config_hash", compiled.config_hash)
+    store.set_meta("engine_fingerprint", engine_fingerprint())
     store.set_meta("seed_root", str(seed.root))
     store.set_meta("workplace_id", compiled.workplace_id)
     # The run's length, so a resume can recompile the spec it was started
@@ -522,6 +523,53 @@ async def run_compiled(
     return _finish(store, out_dir, compiled, seed, result)
 
 
+# The modules whose behaviour decides what a recorded world contains: the
+# referee's rules, the state it keeps, the intent shapes it accepts, and
+# the prompts the personas answer with. A change to any of them changes
+# the event stream, and a resume is the one moment that change can happen
+# invisibly.
+_ENGINE_SURFACE = (
+    "simulation/gm/grounded.py",
+    "simulation/gm/world_state.py",
+    "core/intents.py",
+    "simulation/persona/programs.py",
+    "simulation/persona/actor.py",
+    "simulation/persona/working_memory.py",
+)
+
+
+def engine_fingerprint() -> str:
+    """A digest of the rules a recording is running under.
+
+    `config_hash` covers the compiled spec, the seed and the compiler
+    version — everything about *what world* is being recorded, and nothing
+    about *how*. So a 130-workday run can be stopped, its grounding rules
+    edited, and resumed: the hash still matches, nothing raises, and the
+    world is flat for forty days and nested afterwards with no record that
+    anything changed.
+
+    That is not hypothetical. It happened here — a document-emptiness rule
+    was added at day 4 of a live run, and only the fact that the run was
+    stopped for other reasons kept the world uniform.
+
+    Deliberately a source digest rather than a hand-bumped version
+    constant: a constant is exactly the thing somebody forgets. A
+    comment-only edit trips it too, which is the right side to err on —
+    resuming a day-long recording after *any* edit to these files deserves
+    a person looking, and `--allow-engine-change` is one flag away.
+    """
+
+    import hashlib
+
+    src = Path(__file__).resolve().parents[1]
+    digest = hashlib.sha256()
+    for relative in _ENGINE_SURFACE:
+        path = src / relative
+        digest.update(relative.encode())
+        digest.update(path.read_bytes() if path.is_file() else b"<absent>")
+    return digest.hexdigest()
+
+
 async def resume_workplace(
     spec: WorkplaceSpec,
     *,
@@ -537,6 +585,7 @@ async def resume_workplace(
     actor_factory: Callable[[], ProfessionalActor] | None = None,
     checkpoint_every: int = 1,
     window: int = 1,
+    allow_engine_change: bool = False,
 ) -> RunResult:
     """Continue a run from its latest committed state."""
 
@@ -549,6 +598,18 @@ async def resume_workplace(
         raise ConfigMismatchError(
             f"run.db was created under config {stored_hash}, "
             f"resume compiled {compiled.config_hash}"
+        )
+    stored_engine = store.get_meta("engine_fingerprint")
+    current_engine = engine_fingerprint()
+    if stored_engine and stored_engine != current_engine and not allow_engine_change:
+        store.close()
+        raise ConfigMismatchError(
+            "the engine's grounding rules changed since this run started: "
+            f"recorded under {stored_engine[:12]}, resuming under "
+            f"{current_engine[:12]}. Continuing would splice one world out "
+            "of two rule sets, with nothing in the log saying where the "
+            "seam is. Re-record, or pass allow_engine_change to say the "
+            "change is safe for this run."
         )
 
     runtime = _build_runtime(

@@ -173,17 +173,41 @@ def _reject_unless_parsable(content_format: str, content: str, label: str) -> No
     finally read the file room.
     """
 
+    # Empty is its own rejection, and what "empty" means depends on the
+    # format. Nine documents in a six-month world were created blank and
+    # materialized as zero-byte files -- work product the record registers
+    # and the folder loses, invisible to any check that counts documents.
+    #
+    # Here rather than on the create path alone, so revision gets the same
+    # rule. That asymmetry is the defect this function already exists to
+    # fix, arrived at from a second direction.
+    if not (content or "").strip():
+        raise IntentRejection(
+            f"{label} has no content; a document with nothing in it is not "
+            "work product — write it, or choose an action other than "
+            "creating or revising a document"
+        )
     parser = _PARSERS.get(content_format)
     if parser is None:
         return
     try:
-        parser(content)
+        parsed = parser(content)
     except ValueError as error:
         raise IntentRejection(
             f"{label} declares {content_format} but its content does not "
             f"parse as one ({error}); send the structured JSON for that "
             f"format, or declare markdown and write prose"
         ) from error
+    # A workbook of column headings and no rows parses cleanly and is
+    # empty in the only sense that matters -- `formatted` and `slides`
+    # already refuse their equivalents, so this is the one format where a
+    # document can be well-formed and hold nothing.
+    sheets = getattr(parsed, "sheets", None)
+    if sheets is not None and not any(getattr(sheet, "rows", ()) for sheet in sheets):
+        raise IntentRejection(
+            f"{label} is a workbook whose sheets have no rows; put the "
+            "figures in it, or write the note as prose instead"
+        )
 
 
 # How many *other people's* engagements a turn is shown, for context. The
@@ -1538,12 +1562,6 @@ class GroundedGm:
             # collision below is: the rejection reaches the persona, which
             # can write the document or pick another action. Silently not
             # creating it would leave the persona believing it had.
-            if not (intent.create.content or "").strip():
-                raise IntentRejection(
-                    f"{intent.create.path} has no content; a document with "
-                    "nothing in it is not work product — write it, or choose "
-                    "an action other than creating a document"
-                )
             # A file room cannot hold two files at one path, and the
             # materializer does not pretend otherwise: the second write
             # overwrites the first. So the record said fifteen documents
@@ -1562,7 +1580,15 @@ class GroundedGm:
             # directory produce one file — and the guard compared declared
             # paths, which are distinct. Measured: 32 documents, 32
             # distinct declared paths, 30 files.
-            filed = filed_name(intent.create.path, intent.create.content_format)
+            # Validated before anything is reserved. `_validated_format`
+            # parses the content and refuses an empty or malformed
+            # document, and every one of those rejections used to happen
+            # *after* the filed name was claimed — so a persona whose
+            # workbook JSON was malformed burned that filename for the
+            # rest of the run, and its retry with correct content
+            # collided with a document that had never been created.
+            content_format = _validated_format(intent.create)
+            filed = filed_name(intent.create.path, content_format)
             existing = self._world.documents_by_filed_name.get(filed)
             if existing is not None:
                 raise IntentRejection(
@@ -1584,7 +1610,7 @@ class GroundedGm:
                 title=intent.create.title,
                 path=intent.create.path,
                 location="repository",
-                content_format=_validated_format(intent.create),
+                content_format=content_format,
                 content=intent.create.content,
             )
         else:

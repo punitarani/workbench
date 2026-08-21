@@ -257,3 +257,59 @@ def test_a_refused_empty_document_reserves_no_path() -> None:
         gm._ground_document("ana", "per-ana", empty, _event(), 0)
     drafts = _ground(gm, path)
     assert [d.tag for d in drafts] == ["document.created"]
+
+
+def test_a_workbook_with_no_rows_is_refused() -> None:
+    """`formatted` and `slides` already refuse their empty equivalents;
+    a spreadsheet of column headings and no rows parses cleanly and is
+    empty in the only sense that matters."""
+
+    gm = _gm()
+    headers_only = DocumentEditIntent(
+        document_ref=None,
+        create=DocumentCreateSpec(
+            title="Diligence tracker",
+            path="engagements/a/tracker.xlsx",
+            content='{"sheets": [{"name": "Items", "columns": ["Item"], "rows": []}]}',
+            content_format="spreadsheet",
+        ),
+    )
+    with pytest.raises(IntentRejection) as caught:
+        gm._ground_document("ana", "per-ana", headers_only, _event(), 0)
+    assert "no rows" in caught.value.reason
+
+
+def test_a_malformed_document_does_not_burn_its_filename() -> None:
+    """Every content rejection used to happen after the filed name was
+    claimed, so a persona whose JSON was malformed lost that filename for
+    the rest of the run — and its retry, with correct content, collided
+    with a document that had never been created."""
+
+    gm = _gm()
+    path = "engagements/a/tracker.xlsx"
+    broken = DocumentEditIntent(
+        document_ref=None,
+        create=DocumentCreateSpec(
+            title="Diligence tracker",
+            path=path,
+            content="not json at all",
+            content_format="spreadsheet",
+        ),
+    )
+    with pytest.raises(IntentRejection):
+        gm._ground_document("ana", "per-ana", broken, _event(), 0)
+
+    fixed = DocumentEditIntent(
+        document_ref=None,
+        create=DocumentCreateSpec(
+            title="Diligence tracker",
+            path=path,
+            content=(
+                '{"sheets": [{"name": "Items", "columns": ["Item"], '
+                '"rows": [["Open items"]]}]}'
+            ),
+            content_format="spreadsheet",
+        ),
+    )
+    drafts = gm._ground_document("ana", "per-ana", fixed, _event(), 0)
+    assert [d.tag for d in drafts] == ["document.created"]
