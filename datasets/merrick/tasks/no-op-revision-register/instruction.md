@@ -86,7 +86,7 @@ do not copy these.
   "versions_read": 0,
   "no_op_revisions": [
     {
-      "document_ref": "LEGAL!12.3",
+      "document_ref": "LEGAL!0.1",
       "author": "Rosalie Duchamp",
       "revised_date": "<a date inside the window>",
       "document_name": "Standard rates card"
@@ -99,7 +99,9 @@ One row per no-op version. A document revised nine times can contribute
 several rows.
 
 `document_ref` is the **version's own id, exactly as iManage gives it** —
-`LEGAL!12.3` is version 3 of document 12, and it is the `id` field on every
+`LEGAL!0.1` reads as version 1 of document 0 — the shape is what matters,
+and the library issues no document 0, so nothing named in this brief is a
+row of the answer. It is the `id` field on every
 profile and every row `get_document_versions` returns. It already names the
 version, so there is no separate version column to fill in.
 

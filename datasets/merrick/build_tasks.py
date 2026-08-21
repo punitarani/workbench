@@ -353,6 +353,7 @@ def build(
             )
 
         _refuse_empty_answer(answer, name)
+        _refuse_leaked_rows(task, answer, name)
 
         # An oracle the tools cannot spell is not an answer key, it is a
         # coin flip on which internal vocabulary the agent guesses. This
@@ -418,6 +419,69 @@ _STRUCTURAL_BANDS = (
     "slack.dm_share",
     "slack.threaded_reply_share",
 )
+
+
+def _refuse_leaked_rows(task: Path, answer: dict, name: str) -> None:
+    """A brief must not print a row key the oracle scores.
+
+    `no-op-revision-register` illustrated its output shape with
+    `"document_ref": "LEGAL!12.3"`, and `LEGAL!12.3` was one of the twenty
+    true rows. Row F1 keys on `document_ref` alone, so the brief handed
+    every reader one row of recall and its three graded fields, for
+    reading the example.
+
+    A worked example is worth having and the fix is not to drop it — it is
+    to make sure the example names nothing real. The author cannot check
+    that by eye, because the oracle is re-derived every time the world is,
+    and a value that was safe last month is a row this month.
+
+    Only row *keys* are checked. Scalars are a different question with a
+    different answer: `window_end` appears in the brief because the brief
+    states the window, which is why it is graded in the diagnostic
+    dimension rather than the reward -- see `RESTATED_FROM_BRIEF`.
+    """
+
+    brief = task / "instruction.md"
+    criteria = task / "tests" / "criteria.py"
+    if not brief.is_file() or not criteria.is_file():
+        return
+    rows_key = _literal_in(criteria, "ROWS")
+    key_fields = _literal_in(criteria, "KEY") or ()
+    rows = answer.get(rows_key) if rows_key else None
+    if not isinstance(rows, list) or not key_fields:
+        return
+    text = brief.read_text(encoding="utf-8")
+    leaked = sorted(
+        {
+            str(row[field])
+            for row in rows
+            if isinstance(row, dict)
+            for field in key_fields
+            if field in row and str(row[field]) and str(row[field]) in text
+        }
+    )
+    if leaked:
+        raise SystemExit(
+            f"{name}: instruction.md prints {len(leaked)} row key(s) the "
+            f"oracle scores: {leaked[:5]}. A worked example must name "
+            "nothing the answer contains, or the brief is worth marks."
+        )
+
+
+def _literal_in(path: Path, name: str):
+    """One module-level literal, read without importing the module."""
+
+    import ast
+
+    for node in ast.parse(path.read_text(encoding="utf-8")).body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == name:
+                    try:
+                        return ast.literal_eval(node.value)
+                    except ValueError:
+                        return None
+    return None
 
 
 def _structural_absences(results, *, report: bool = True) -> list[str]:
