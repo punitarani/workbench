@@ -729,7 +729,7 @@ def _refuse_empty_answer(answer: dict, name: str) -> None:
 def _run_second_derivation(task: Path, name: str, oracle_path: Path) -> None:
     """Actually execute the task's independent verifier.
 
-    Every task ships a `tests/verify.py` that derives the answer a second
+    Every task carries a `checks/verify.py` that derives the answer a second
     time, and a gate forbids it sharing rule literals with the solver. An
     audit then found the obvious thing nobody had checked: **nothing in the
     repository ever ran it.** The independence was real and entirely
@@ -746,7 +746,7 @@ def _run_second_derivation(task: Path, name: str, oracle_path: Path) -> None:
     neither should be shipped as an answer key.
     """
 
-    verifier = task / "tests" / "verify.py"
+    verifier = task / "checks" / "verify.py"
     if not verifier.is_file():
         raise SystemExit(
             f"{name}: no second derivation at {verifier}. An oracle checked "
@@ -796,7 +796,7 @@ def _run_second_derivation(task: Path, name: str, oracle_path: Path) -> None:
             headline = (
                 f"{name}: the brief no longer says what its verifier assumes. "
                 "The two derivations were never compared -- this failed before "
-                "they ran. Re-read the brief against tests/verify.py, then "
+                "they ran. Re-read the brief against checks/verify.py, then "
                 "re-pin deliberately"
             )
         elif result.returncode != 1:
