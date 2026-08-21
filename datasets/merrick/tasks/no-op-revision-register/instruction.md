@@ -24,16 +24,7 @@ histories are on **imanage**.
 
 ## The window
 
-Register revisions saved **on or before «MEASURE: the last day of the
-window, as a weekday and a date — e.g. "Friday 30 January 2026". At the
-recorded rate this world saves ~7.4 revisions per working day and about one
-in five is a no-op, so a four-week window puts ~150 version comments in
-front of the reader for ~28 rows. Comments run ~69 words, so 150 of them is
-a read comparable to the 213 messages the in-band comparison task settled
-on. Re-measure on the finished record.»** — the firm's «MEASURE: how many
-working days that window is, counted as weekdays from the record's first
-day to the boundary above, inclusive. This is *not* a calendar-day count;
-the two differ by every weekend inside the window.» working days.
+Register revisions saved **on or before Thursday 19 February 2026** — the firm's first 34 working days.
 
 A revision saved after that boundary makes no row.
 

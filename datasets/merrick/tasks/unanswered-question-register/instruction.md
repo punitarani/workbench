@@ -20,22 +20,8 @@ unanswered here.
 
 ## The window
 
-Register questions asked **on or before «MEASURE: the last day of the
-window, as a weekday and a date — e.g. "Friday 6 February 2026". Two
-constraints, and the second one is easy to miss.
-
-(1) Size: the record carries ~5 questions and ~1.5 unanswered per working
-day, so four weeks puts ~100 questions in front of the reader for ~30 rows,
-near the 213-message load the in-band comparison task settled on.
-
-(2) **The window must close at least three working days before the record's
-last day.** A question asked on the final recorded day is unanswered only
-because the world stopped: measured on the record, the last day runs
-4-for-4 unanswered and the day before 3-of-5, against 1-2 a day everywhere
-else. Ending the window at the record's edge grades the edge.»** — the
-firm's «MEASURE: how many working days that window is, counted as weekdays
-from the record's first day to the boundary above, inclusive. This is *not*
-a calendar-day count; the two differ by every weekend inside the window.»
+Register questions asked **on or before Friday 30 January 2026** — the
+firm's first 20
 working days.
 
 A question asked after that boundary makes no row.

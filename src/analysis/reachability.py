@@ -33,6 +33,11 @@ from tools.registry import REGISTRY
 # them (directly or through the ids they hand out), it is not discoverable.
 _MAX_FOLLOW = 400
 
+# How many times the crawl opens what the previous round named. Two was
+# one short: iManage needs workspace -> document -> versions before a
+# non-head version id appears anywhere.
+_MAX_DEPTH = 3
+
 # Pagination is navigation, not a special case: a message on page nine is
 # every bit as reachable as one on page one.
 _MAX_PAGES = 60
@@ -142,6 +147,66 @@ async def _collect(server, name: str, arguments: dict, into: set[str]) -> None:
         arguments[token_arg] = token
 
 
+async def _follow(server, tools, discovered: set[str]) -> set[str]:
+    """Open what the previous round named, until nothing new turns up.
+
+    This was a single round, and one round short of the surface it gates.
+    On iManage an agent goes workspace -> document -> versions:
+    `get_container_children` needs a workspace id, and only its result
+    names the documents whose version lists carry every id but the head.
+    Following step one alone, a six-month world's crawl discovered 105
+    `LEGAL!` ids and not one bare document reference, so `LEGAL!24.6` --
+    which `get_document_versions("24")` returns without complaint -- was
+    reported unservable and blocked a task whose answer key was correct.
+
+    A false positive here is not a small thing. The gate's whole job is to
+    say "no agent could produce this", and when it says so wrongly, the
+    obvious response is to rewrite a rule that was right.
+
+    Shortest first, then alphabetical. The cap bounds a walk that is
+    otherwise quadratic, but truncating it alphabetically sorted
+    seventeen-character timestamps ahead of nine-character channel ids and
+    cut every channel out of the follow -- so two messages in a
+    543-message room were reported as unservable while the tool returned
+    them happily when asked.
+
+    Each round follows only what it has not followed already, so the cost
+    is rounds x cap rather than the square of everything seen.
+    """
+
+    followers = [
+        tool
+        for tool in tools
+        if len((tool.input_schema or {}).get("required") or []) == 1
+    ]
+    reached: set[str] = set()
+    frontier = discovered
+    followed: set[str] = set()
+    for _ in range(_MAX_DEPTH):
+        candidates = sorted(
+            (
+                value
+                for value in frontier
+                if value
+                and len(value) < 64
+                and " " not in value
+                and value not in followed
+            ),
+            key=lambda value: (len(value), value),
+        )[:_MAX_FOLLOW]
+        if not candidates:
+            break
+        followed.update(candidates)
+        found: set[str] = set()
+        for tool in followers:
+            required = (tool.input_schema or {}).get("required") or []
+            for value in candidates:
+                await _collect(server, tool.name, {required[0]: value}, found)
+        reached |= found
+        frontier = found
+    return reached
+
+
 async def _served(state_dir: Path) -> set[str]:
     """Everything two steps of honest navigation can reach.
 
@@ -173,28 +238,7 @@ async def _served(state_dir: Path) -> set[str]:
                 await _collect(server, tool.name, {"query": ""}, discovered)
         reachable |= discovered
 
-        # Step two: open what step one named.
-        # Shortest first, then alphabetical. The cap bounds a crawl that is
-        # otherwise quadratic, but truncating it alphabetically sorted
-        # seventeen-character timestamps ahead of nine-character channel ids
-        # and cut every channel out of the follow -- so two messages in a
-        # 543-message room were reported as unservable while the tool
-        # returned them happily when asked.
-        candidates = sorted(
-            (
-                value
-                for value in discovered
-                if value and len(value) < 64 and " " not in value
-            ),
-            key=lambda value: (len(value), value),
-        )[:_MAX_FOLLOW]
-        for tool in tools:
-            schema = tool.input_schema or {}
-            required = schema.get("required") or []
-            if len(required) != 1:
-                continue
-            for value in candidates:
-                await _collect(server, tool.name, {required[0]: value}, reachable)
+        reachable |= await _follow(server, tools, discovered)
     return reachable
 
 
