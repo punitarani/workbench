@@ -21,25 +21,28 @@ import sys
 import tempfile
 from pathlib import Path
 
+import baselines
+
 from analysis import attempted_work
 from analysis.artifact_mix import MixFloors, emptiness, measure, violations
 from analysis.calendar_units import inspect as inspect_calendar_units
+from analysis.coherence import MISBOOKED_LIMIT, check
 from analysis.fidelity import (
     evaluate,
     load_bands,
     summarize,
 )
+
 # Aliased: `analysis.artifact_mix.measure` is already imported above under
 # that name, and importing this one plainly shadowed it -- the artifact
 # check then failed with an unexpected keyword rather than a name error,
 # which reads like the caller is wrong.
 from analysis.fidelity import measure as measure_bands
-from analysis.coherence import MISBOOKED_LIMIT, check
 from analysis.reachability import unreachable
 from analysis.world_facts import load_world
+from core.errors import WorldLogIntegrityError
 from core.filing import filed_name
 from core.worldlog import read_events
-from core.errors import WorldLogIntegrityError
 from environment.materialize import materialize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hartwell"))
@@ -584,6 +587,12 @@ def _commit_oracle(
             oracle_path.write_text(existing)
         raise
     print(f"{name}: oracle {'written' if fresh else 'verified'}")
+    # What this task pays for answers that demonstrate nothing. A band is
+    # only meaningful against its floor: measured on this dataset's own
+    # shape, reporting every candidate with no comprehension at all scores
+    # 0.427, which is inside the 0.2-0.8 band the tasks target. Printed
+    # here so a rollout number is never read without it.
+    print("  " + baselines.render(name, baselines.measure(task, answer)))
 
 
 def _refuse_empty_answer(answer: dict, name: str) -> None:

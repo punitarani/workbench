@@ -199,9 +199,9 @@ distribution bands correctly, and the only thing that called them was a
 realism suite that (a) pointed at a *different* firm's world and (b) was
 marked `xfail` against the baseline it found there. Both facts are
 defensible in isolation and neither is visible from the import graph. The
-world under construction shipped with `slack.dm_share` at 0.0 against a
-committed band of 0.15-0.35 — a number computed correctly, by code in the
-repository, read by nobody.
+world under construction shipped with its chat surface's `dm_share` at
+0.0 against a committed band of 0.15-0.35 — a number computed correctly,
+by code in the repository, read by nobody.
 
 So ask the two-part question: **what invokes this, and against what?**
 Treat all three of these as "no caller": a test that is skipped, a test
