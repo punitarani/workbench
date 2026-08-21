@@ -113,6 +113,51 @@ The world must be *true* before anything cut from it can be *fair*.
   either never fires or fires constantly, and either way stops being
   read.
 
+## Never ask a model for arithmetic, then record the answer as world data
+
+Three defects in one world turned out to be one mistake repeated: an
+intent asked a language model for something models are unreliable at, got
+unreliable output, and wrote it into the record as a property of the
+firm. Each was then *measured* as a data defect and worked around.
+
+The worst was a calendar. The intent took `start` and `end` as raw
+seconds on the simulation clock. Seven persona-scheduled meetings in one
+recorded day:
+
+    1717609200   a real-world Unix timestamp — reads as June 2080
+          1717   00:28
+          1200   00:20
+       1400400   05:00
+       1300000   01:06
+         37800   10:30   a meeting
+         33300   09:15   a meeting
+
+Two of seven. Across six months, 42.4% of calendar starts were not
+seconds-from-epoch at all; half the diary was quarantined before serving
+and a whole task was retired for want of a calendar to read. None of that
+is a model failure — a person books a meeting by day and wall clock, and
+the arithmetic belongs to the referee. The intent now takes a bounded
+`day_offset` and two `HH:MM` clocks, and the shape that produced June
+2080 has no field it fits in.
+
+The same shape twice more in the same world: internal ids written into
+prose because the persona was shown ids and had to be trusted not to use
+them, and reply threading pointed at whatever message the persona was
+last shown rather than at the thread root.
+
+**The test.** For every field an intent asks a persona to fill, ask what
+it would take to get it right. If the answer involves arithmetic on an
+epoch, resolving an identifier, or holding a structure the prompt never
+showed, the field is in the wrong place. Move the work to the referee and
+leave the persona the part a person actually does.
+
+Corollary worth its own line: **a validator that only catches the
+causally impossible is not enough here.** The one guarding those calendar
+starts refused negatives, dates before the run, and dates past any
+horizon — so the 2080 timestamp was caught and the 01:06 meeting was
+served. Bad output that lands inside the plausible range is exactly what
+this kind of defect produces.
+
 ## Realism of the served surface
 
 **Vendor parity constrains realism.** Adding *content* a real product
