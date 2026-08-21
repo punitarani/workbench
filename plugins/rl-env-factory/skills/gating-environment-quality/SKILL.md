@@ -193,6 +193,66 @@ missing file. The unit tests passed throughout, because they add the
 project root to the path and the grader does not. **The suite and the
 runtime import the same file through different doors.**
 
+`grep -rl` answers "is there a caller", which is one question short. A
+caller can exist and still be unable to fail. A mature tree measured 91
+distribution bands correctly, and the only thing that called them was a
+realism suite that (a) pointed at a *different* firm's world and (b) was
+marked `xfail` against the baseline it found there. Both facts are
+defensible in isolation and neither is visible from the import graph. The
+world under construction shipped with `slack.dm_share` at 0.0 against a
+committed band of 0.15-0.35 — a number computed correctly, by code in the
+repository, read by nobody.
+
+So ask the two-part question: **what invokes this, and against what?**
+Treat all three of these as "no caller": a test that is skipped, a test
+that is xfail, and a test pointed at a fixture other than the artefact you
+are shipping.
+
+## An empty column is legal, so nothing raises
+
+Referential integrity cannot see a missing capability. Every check of the
+form *does this reference resolve* passes perfectly against a surface that
+is empty, because there is nothing there to be wrong. A `NULL` in a
+nullable column is legal; a table with no rows is legal; a code path that
+never fires leaves no trace at all.
+
+Four defects found in one session, all invisible to every integrity check
+in the tree and all obvious in one query each:
+
+| what was wrong | what it looked like | how it was found |
+|---|---|---|
+| chat threading never fired | `reply_to` non-null in 3 of 3,177 | share of non-null |
+| DMs impossible to create | `conversations` all `kind='channel'` | value counts of an enum |
+| ids leaked into prose | 26.1% of bodies matched `\b[a-z]{3}-\d{6}\b` | regex share over a text column |
+| documents created empty | 9 zero-byte files among 308 | length distribution, not a count |
+
+The recipe is the same each time and it is not clever: for every column
+that is *allowed* to be empty, and every enum, report the **distribution**
+rather than the integrity. Non-null share, value counts, length
+percentiles. A count of documents cannot see nine empty ones; nine
+zero-byte `.docx` files are nine real documents to anything that counts by
+suffix.
+
+### Absence rounds into presence
+
+When you turn that into a gate, do not test `observed == 0`. The world
+that motivated this had `threaded_reply_share` at **0.000315** — three
+replies in 3,177 messages, each one a fluke of a code path that could not
+fire deliberately — and it slipped past a gate whose entire subject was
+missing capabilities. It was caught only because a *second* metric
+happened to land on exactly `0.0`.
+
+Set the line at a small fraction of the band's floor (a tenth works) so it
+separates *the engine cannot do this* from *the firm was quiet*. And keep
+the refusing set small and explicitly declared: **refuse on a declared
+absence, report on shape**. Most bands in a mature file describe some
+earlier world — porting an accounting firm's `book.clients: 120-200` to a
+ten-client law firm produces 37 failures that are all category error — and
+at least one will have no implementation behind it at all
+(`calendar.cancellation_share`, in a world whose engine has no cancel
+verb). A blanket gate on all of them can never pass, and a gate that
+cannot pass is a gate the next person deletes in a hurry.
+
 ## A substring pin cannot see an exception added
 
 Pinning a verifier's assumptions to the brief with
