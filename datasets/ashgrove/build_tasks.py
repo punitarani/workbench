@@ -17,6 +17,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from analysis.coherence import MISBOOKED_LIMIT, check
@@ -31,6 +32,9 @@ from harbor_stage import stage  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 TASKS = Path(__file__).resolve().parent / "tasks"
+# The shared grading module. Every task's `criteria.py` names its own rows
+# and row key and imports the bodies from here, so a correction lands once.
+CRITERIA_BASE = Path(__file__).resolve().parent / "criteria_base.py"
 SHARED_BUNDLE = REPO / "out" / "ashgrove" / "bundle"
 _SOURCE = SHARED_BUNDLE / "SOURCE"
 # The world the current bundle was built from, as the last build recorded
@@ -106,6 +110,69 @@ def _as_of(facts, cutoff: int) -> str:
 
     epoch = datetime.datetime.fromisoformat(facts.epoch)
     return (epoch + datetime.timedelta(seconds=cutoff)).date().isoformat()
+
+
+def ship_grading_base(task: Path, name: str) -> None:
+    """Put the shared grading module beside the criteria that imports it,
+    then prove the import works from a bare task directory.
+
+    `criteria.py` puts its own `tests/` directory and the dataset root on
+    `sys.path` and imports `criteria_base`. Only the first of those exists
+    inside a container: Harbor stages `tests/` on its own, and the dataset
+    root is not there at all. Without the copy every criterion in every
+    task raises `ModuleNotFoundError` on load, no criterion runs, and a
+    total wipeout reads as catastrophic model failure rather than as a
+    missing file.
+
+    The copy alone is not the fix; the probe is. It runs the import the way
+    the grader will -- a subprocess whose working directory is the task's
+    own `tests/` and whose environment carries no PYTHONPATH -- because a
+    copy that silently stops happening is exactly the kind of thing that
+    comes back.
+    """
+
+    tests = task / "tests"
+    if not (tests / "criteria.py").is_file():
+        raise SystemExit(f"{name}: no tests/criteria.py, so nothing grades this task.")
+    shutil.copyfile(CRITERIA_BASE, tests / CRITERIA_BASE.name)
+
+    # The grading decorator lives in the verifier image, not here, so
+    # without a stand-in this probe fails on every build for a reason that
+    # has nothing to do with what it checks -- and a gate that always fails
+    # gets deleted rather than heeded. Appended to the path, so a real
+    # installation always wins.
+    shim = Path(tempfile.mkdtemp(prefix="ashgrove-grading-probe-"))
+    (shim / "rewardkit.py").write_text(
+        "def criterion(*a, **k):\n"
+        "    def wrap(fn):\n"
+        "        return fn\n"
+        "    return wrap if not (a and callable(a[0])) else a[0]\n"
+    )
+    probe = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import importlib.util, sys;"
+            "sys.path.append(sys.argv[1]);"
+            "spec = importlib.util.spec_from_file_location('criteria', 'criteria.py');"
+            "m = importlib.util.module_from_spec(spec);"
+            "spec.loader.exec_module(m)",
+            str(shim),
+        ],
+        capture_output=True,
+        text=True,
+        cwd=tests,
+        env={k: v for k, v in os.environ.items() if k != "PYTHONPATH"},
+    )
+    shutil.rmtree(shim, ignore_errors=True)
+    if probe.returncode:
+        raise SystemExit(
+            f"{name}: tests/criteria.py does not import from a bare task "
+            "directory, which is the only path the grader has. Every "
+            "criterion would fail to load and the task would score zero "
+            f"for reasons no model can fix.\n{probe.stderr.strip()[-600:]}"
+        )
+    print(f"{name}: grading module ships and imports standalone")
 
 
 def build(world_log: Path, names: list[str], refresh: bool) -> int:
@@ -222,6 +289,8 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
 
         for report in degenerate(answer):
             print(f"{name}: DEGENERATE {report}")
+
+        ship_grading_base(task, name)
 
         bundle = task / "bundle"
         shutil.rmtree(bundle, ignore_errors=True)

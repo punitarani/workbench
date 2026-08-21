@@ -99,7 +99,7 @@ declared format:
 ```python
 parser = _PARSERS.get(content_format)
 if parser is None:
-    return                      # markdown has no parser
+    return  # markdown has no parser
 ```
 
 Spreadsheets, formatted documents and decks must parse as structured JSON.
