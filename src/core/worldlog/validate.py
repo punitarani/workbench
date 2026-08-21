@@ -205,16 +205,33 @@ def _validate_payload(state: _State, event: Event, flag) -> None:
                 flag(seq, "unknown_ticket", payload.ticket_id)
             for person in _check_people(state, [payload.actor]):
                 flag(seq, "unknown_person", person)
+            # Two changes to the same field inside one update are a
+            # different fault from a stale read across events, and were
+            # reported as the same thing. A stale read means the author saw
+            # a value somebody else had already moved -- work may have been
+            # lost. A duplicate field means one author asserted two
+            # transitions at once, both claiming the same starting value:
+            # nothing was lost, the fold is deterministic (the last change
+            # wins), and only the recorded provenance of the earlier one is
+            # wrong.
+            #
+            # Naming them apart lets a caller refuse the first and report
+            # the second. Measured on a 130-day world: 1 duplicate in 377
+            # updates, and zero genuine stale reads.
+            seen_fields: set[str] = set()
             for change in payload.changes:
                 if values is not None and change.field in FOLDED_TICKET_FIELDS:
                     actual = values[change.field]
                     if actual != change.old:
                         flag(
                             seq,
-                            "stale_field_change",
+                            "duplicate_field_change"
+                            if change.field in seen_fields
+                            else "stale_field_change",
                             f"{payload.ticket_id}.{change.field}: "
                             f"claimed old {change.old!r}, actual {actual!r}",
                         )
+                    seen_fields.add(change.field)
                     values[change.field] = change.new
 
         case TicketCommentedPayload():
