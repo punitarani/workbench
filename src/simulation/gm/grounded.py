@@ -446,6 +446,31 @@ class GroundedGm:
                 # they preview as nobody's business, land in one batch, and
                 # ask one person to act several times at the same instant.
                 return self._entities_for((payload.person_id,))
+            # The diary. Every one of these already has a handler waiting
+            # in `memory_stream` -- "Meeting scheduled: {title}" at
+            # importance 5, "Meeting held with N turns" at importance 8 --
+            # and nothing delivered them, so a firm whose days are meetings
+            # remembered none of them. Only the genesis seed calendar was
+            # ever visible, because genesis is observed wholesale rather
+            # than routed.
+            #
+            # The responder observes their own RSVP for exactly the reason
+            # the ticket comment above gives. Measured without it: 203 of
+            # 278 responses across two recorded days were the same person
+            # answering the same invitation again, one of them fifteen
+            # times, because `_pending_all` clears an invitation on seeing
+            # the response and the response never arrived. That loop then
+            # crowded out chat, which is how it was noticed at all.
+            #
+            # Not the organizer, though they should hear it: `world_state`
+            # keeps calendar events as a set of ids with no organizer, and
+            # widening that is a change to another frozen file.
+            case CalendarEventScheduledPayload():
+                return self._entities_for((payload.organizer, *payload.attendees))
+            case CalendarResponsePayload():
+                return self._entities_for((payload.responder,))
+            case MeetingTranscriptPayload():
+                return self._entities_for(payload.attendees)
             case SimMeetingTurnPayload():
                 # Turns are minted one at a time today, but the same gap
                 # would let two land together and act one speaker twice.
@@ -508,6 +533,31 @@ class GroundedGm:
                 ):
                     return (payload.entity,)
                 return ()
+            # The diary. Every one of these already has a handler waiting
+            # in `memory_stream` -- "Meeting scheduled: {title}" at
+            # importance 5, "Meeting held with N turns" at importance 8 --
+            # and nothing delivered them, so a firm whose days are meetings
+            # remembered none of them. Only the genesis seed calendar was
+            # ever visible, because genesis is observed wholesale rather
+            # than routed.
+            #
+            # The responder observes their own RSVP for exactly the reason
+            # the ticket comment above gives. Measured without it: 203 of
+            # 278 responses across two recorded days were the same person
+            # answering the same invitation again, one of them fifteen
+            # times, because `_pending_all` clears an invitation on seeing
+            # the response and the response never arrived. That loop then
+            # crowded out chat, which is how it was noticed at all.
+            #
+            # Not the organizer, though they should hear it: `world_state`
+            # keeps calendar events as a set of ids with no organizer, and
+            # widening that is a change to another frozen file.
+            case CalendarEventScheduledPayload():
+                return self._entities_for((payload.organizer, *payload.attendees))
+            case CalendarResponsePayload():
+                return self._entities_for((payload.responder,))
+            case MeetingTranscriptPayload():
+                return self._entities_for(payload.attendees)
             case _:
                 return ()
 
