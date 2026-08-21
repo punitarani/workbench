@@ -66,7 +66,7 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("word_register.json")
 # gives 596 messages read for 64 rows, with the minority form `filed` in 17
 # of them. Ten and fourteen days carry the minority form in *one* message,
 # which is the hygiene failure the brief's own note records.
-WINDOW_DAYS: int | None = 18
+WINDOW_DAYS: int | None = 10
 
 # In this order: the first that matches names the row's form, so a message
 # carrying both is still one hit with one name -- which is what the
@@ -122,8 +122,8 @@ WINDOW_DAYS: int | None = 18
 # workdays of 130, and a corpus count is true of the window measured.
 
 FORMS: tuple[tuple[str, str], ...] = (
-    ("file", r"\bfile\b"),
-    ("filed", r"\bfiled\b"),
+    ("agree", r"\bagree\b"),
+    ("agreed", r"\bagreed\b"),
 )
 
 # Every department the served directory records, including the ones no row

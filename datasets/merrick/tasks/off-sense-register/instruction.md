@@ -13,7 +13,7 @@ not what the matches are about. Whether a message is responsive is somebody
 else's decision, made later, from this list. Your job is the list the term
 produces on its face, and it is only worth having if it is exactly that.
 
-The term is **one word in two admitted forms**: file and filed.
+The term is **one word in two admitted forms**: agree and agreed.
 That is the whole term — no stem, no wildcard, no synonym, no other
 ending.
 
@@ -22,8 +22,8 @@ The firm's systems are available through tools: **gmail**, **slack**,
 
 ## The window
 
-Report only messages sent **on or before Thursday 22 January 2026** — the firm's
-first 14 working days. A message sent
+Report only messages sent **on or before Wednesday 14 January 2026** — the firm's
+first 8 working days. A message sent
 after that makes no row here, however squarely the term hits it.
 
 Which side of that boundary a message falls on is decided by its date in
@@ -47,29 +47,33 @@ case-insensitively, anywhere in the text:
 
 | form | matches |
 |---|---|
-| `file` | the word *file* |
-| `filed` | the word *filed* |
+| `agree` | the word *agree* |
+| `agreed` | the word *agreed* |
 
 **The test is textual, not editorial.** A message counts when the word is
 in it, whatever the sentence is doing with it — reporting, asking,
 promising, quoting a document, or using the word for something with no
-bearing on the firm's work at all. For instance, *"how fast can we file for a TRO if he's already shopping this to someone"* is squarely about an act of filing, and *"Pull his file and confirm"* is about a folder in a cabinet. Both contain the
-word and both are hits. Do not weigh up whether the message is about the
+bearing on the firm's work at all. For instance, *"yeah agreed — whoever's matter
+partner on Atwater needs to make the split call"* is one colleague
+assenting to another, and *"send me the sign/fund date the moment both
+are done, same day, as agreed"* is about a funding date, with the word
+carrying nothing but a reference to something settled earlier. Both
+contain the word and both are hits. Do not weigh up whether the message is about the
 thing the term was written to find.
 
 **A form counts only when it stands as its own word.** Letters, digits and
 the underscore continue a word; every other character ends one. So a
 hyphenated compound is two words and the form inside it counts —
-`re-filed` carries filed — while a longer word that merely contains
+`re-agreed` carries agreed — while a longer word that merely contains
 the letters does not. This is a separate question from the one above, and
 it is settled here: inside a longer *phrase* is a hit; inside a longer
 *word* is not.
 
 Nothing else counts, and that cuts two ways.
 
-**No other ending counts.** *filing* alone appears in thirty of this window's messages, and twenty-one of those carry no admitted form at all; *filings* appears in two, and *files* in one. Not one of them makes a row. A reader who stems to `fil-` gains twenty-two rows that do not belong to the term.
+**No other ending counts.** *agreement* alone appears in thirty-five of this window's messages, and twenty-eight of those carry no admitted form at all; *agreements* appears in nine, eight of them likewise. Not one makes a row. **The excluded form outnumbers the answer**: a reader who stems to `agree-` gains thirty-six rows against a register of twenty-two, and more than half of what they report is not the term. `disagree` is a longer word rather than a phrase, so it carries nothing.
 
-**No synonym counts.** The firm also writes *docket* — eleven messages, seven of which never carry either admitted form — and *served*, in three, two of them likewise. Every one of those messages stays out. The term is the term, not the idea behind it.
+**No synonym counts.** The firm also writes *sign* — twenty messages, seventeen of which never carry either admitted form — and *signed*, in eighteen, fourteen likewise; *align* in two and *consent* in one. Every one of those messages stays out. The term is the term, not the idea behind it.
 
 **One row per message**, however many times either form appears in it. For
 `form_counts`, a message carrying both forms counts once, under `file`.

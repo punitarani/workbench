@@ -189,7 +189,7 @@ def transcribed_last_day() -> str:
     the same day back off the brief and refuses if the two differ.
     """
 
-    return "2026-01-22"
+    return "2026-01-14"
 
 
 # --- reading the brief ---------------------------------------------------
