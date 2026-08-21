@@ -134,7 +134,19 @@ class HartwellHermes(Hermes):
                 'export HERMES_HOME="${HERMES_HOME:-/tmp/hermes}" && '
                 'mkdir -p "$HERMES_HOME" "$HERMES_HOME/sessions" '
                 '"$HERMES_HOME/skills" "$HERMES_HOME/memories" && '
-                "hermes version && "
+                # `--version`, not `version`. Upstream removed the
+                # subcommand in v0.20.5 (2026.8.19) and argparse answers an
+                # unknown one with a usage message and a non-zero exit, so
+                # this line — a liveness check appended *after* a
+                # successful install — took the whole agent setup down.
+                # Every gpt-5.6-sol trial errored rather than scored, two
+                # days after the same path last worked.
+                #
+                # It cost a while to find because the installer exits 0 on
+                # its own: reproducing the failure needed the command that
+                # runs *after* it, and Harbor truncates the middle of a
+                # captured stdout, so the usage message was never visible.
+                "hermes --version && "
                 # Last, not before `hermes version`: installing as root
                 # leaves HERMES_HOME root-owned, and running the binary
                 # once as root mints more of it (`logs/curator`). Harbor
