@@ -1462,6 +1462,24 @@ class GroundedGm:
         self, entity, sender, intent: DocumentEditIntent, event, delay
     ) -> tuple[EventDraft, ...]:
         if intent.create is not None:
+            # A deliverable with nothing in it is not a deliverable.
+            #
+            # Nine documents in a six-month world were created with empty
+            # content and materialized as zero-byte files -- work product
+            # that the record registers and the folder loses. The count by
+            # suffix cannot see it: nine .docx files, all of them real to
+            # every check that asks how many documents exist.
+            #
+            # Refused rather than dropped, for the same reason the path
+            # collision below is: the rejection reaches the persona, which
+            # can write the document or pick another action. Silently not
+            # creating it would leave the persona believing it had.
+            if not (intent.create.content or "").strip():
+                raise IntentRejection(
+                    f"{intent.create.path} has no content; a document with "
+                    "nothing in it is not work product — write it, or choose "
+                    "an action other than creating a document"
+                )
             # A file room cannot hold two files at one path, and the
             # materializer does not pretend otherwise: the second write
             # overwrites the first. So the record said fifteen documents

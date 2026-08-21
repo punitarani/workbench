@@ -198,3 +198,62 @@ def test_a_declared_suffix_that_lies_still_collides() -> None:
     _commit(gm, _ground(gm, "engagements/a/report.md")[0])
     with pytest.raises(IntentRejection):
         _ground(gm, "engagements/a/report.md")
+
+
+def test_a_document_with_no_content_is_refused() -> None:
+    """Nine documents in a six-month world were created empty and
+    materialized as zero-byte files.
+
+    A count by suffix cannot see this: they are nine real .docx entries to
+    every check that asks how many documents exist. Only reading the bytes
+    finds them, and by then the work is lost.
+    """
+
+    gm = _gm()
+    empty = DocumentEditIntent(
+        document_ref=None,
+        create=DocumentCreateSpec(
+            title="Counterclaim strategy position",
+            path="engagements/verity-grain/counterclaim-strategy.docx",
+            content="",
+            content_format="markdown",
+        ),
+    )
+    with pytest.raises(IntentRejection) as caught:
+        gm._ground_document("ana", "per-ana", empty, _event(), 0)
+    assert "no content" in caught.value.reason
+
+
+def test_whitespace_is_not_content() -> None:
+    gm = _gm()
+    blank = DocumentEditIntent(
+        document_ref=None,
+        create=DocumentCreateSpec(
+            title="Blank",
+            path="engagements/a/blank.docx",
+            content="   \n\t  \n",
+            content_format="markdown",
+        ),
+    )
+    with pytest.raises(IntentRejection):
+        gm._ground_document("ana", "per-ana", blank, _event(), 0)
+
+
+def test_a_refused_empty_document_reserves_no_path() -> None:
+    """The collision guard reserves a filed name at resolve time. If the
+    emptiness check ran after that, the rejection would burn the path and
+    the persona's retry -- with real content this time -- would collide
+    with a document that was never created."""
+
+    gm = _gm()
+    path = "engagements/a/strategy.docx"
+    empty = DocumentEditIntent(
+        document_ref=None,
+        create=DocumentCreateSpec(
+            title="Strategy", path=path, content="", content_format="markdown"
+        ),
+    )
+    with pytest.raises(IntentRejection):
+        gm._ground_document("ana", "per-ana", empty, _event(), 0)
+    drafts = _ground(gm, path)
+    assert [d.tag for d in drafts] == ["document.created"]

@@ -27,9 +27,13 @@ from analysis.calendar_units import inspect as inspect_calendar_units
 from analysis.fidelity import (
     evaluate,
     load_bands,
-    measure,
     summarize,
 )
+# Aliased: `analysis.artifact_mix.measure` is already imported above under
+# that name, and importing this one plainly shadowed it -- the artifact
+# check then failed with an unexpected keyword rather than a name error,
+# which reads like the caller is wrong.
+from analysis.fidelity import measure as measure_bands
 from analysis.coherence import MISBOOKED_LIMIT, check
 from analysis.reachability import unreachable
 from analysis.world_facts import load_world
@@ -132,7 +136,12 @@ def degenerate(answer: dict) -> list[str]:
     return reports
 
 
-def build(world_log: Path, names: list[str], refresh: bool) -> int:
+def build(
+    world_log: Path,
+    names: list[str],
+    refresh: bool,
+    allow_band_absence: bool = False,
+) -> int:
     # Before anything is materialized: does the record contradict itself?
     # The materializer has its own integrity check and it caught the same
     # class once, but it speaks in sequence numbers. This reads the world as
@@ -178,7 +187,7 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     # projection learned to quarantine these, so the gate refused the world
     # over events the current projection drops.
     _calendar_units(world_log, SHARED_BUNDLE / "state")
-    _realism_bands(SHARED_BUNDLE / "state", world_log)
+    _realism_bands(SHARED_BUNDLE / "state", world_log, allow_absence=allow_band_absence)
     print(f"materialized {env.event_count} events -> {SHARED_BUNDLE}")
     # Immediately, not after the gates. `materialize` has already rewritten
     # `workspace/` and `state/` wholesale, so from this line on the bundle
@@ -408,7 +417,9 @@ _STRUCTURAL_BANDS = (
 )
 
 
-def _realism_bands(state_dir: Path, world_log: Path) -> None:
+def _realism_bands(
+    state_dir: Path, world_log: Path, *, allow_absence: bool = False
+) -> None:
     """The committed distribution bands, run against the world just built.
 
     These bands have existed, and been computed correctly, for as long as
@@ -429,7 +440,7 @@ def _realism_bands(state_dir: Path, world_log: Path) -> None:
     that hides best, because an empty column raises nothing anywhere.
     """
 
-    measurements = measure(state_dir, world_log)
+    measurements = measure_bands(state_dir, world_log)
     results = evaluate(measurements, load_bands())
     counts = summarize(results)
     print(
@@ -445,13 +456,33 @@ def _realism_bands(state_dir: Path, world_log: Path) -> None:
             f"    structural {result.metric}: {result.observed} "
             f"vs {result.band.rendered()}"
         )
-        if result.observed == 0:
-            missing.append(f"{result.metric} is 0, band {result.band.rendered()}")
+        # Not `== 0`. The first version of this gate refused only an exact
+        # zero, and the world it was written for measured
+        # `threaded_reply_share` at 0.000315 -- three threaded replies in
+        # 3,177 messages, every one of them a fluke of a code path that
+        # could not fire on purpose. Absence had been rounded into
+        # presence by three accidents, and only `dm_share` happening to be
+        # exactly 0.0 caught the world at all.
+        #
+        # A tenth of the floor is the line between "the engine cannot do
+        # this" and "the firm was quiet". A world at 0.25 against a floor
+        # of 0.30 is a realism note; one at 0.0003 is a missing feature.
+        if result.band.min and result.observed < result.band.min / 10:
+            missing.append(
+                f"{result.metric} is {result.observed:.4g}, effectively none "
+                f"against a band of {result.band.rendered()}"
+            )
     if missing:
-        raise WorldLogIntegrityError(
-            "this world has none of something a firm certainly has: "
-            + "; ".join(missing)
+        message = "this world has none of something a firm certainly has: " + "; ".join(
+            missing
         )
+        if not allow_absence:
+            raise WorldLogIntegrityError(message)
+        # Loud, and named as a choice. A world recorded before the engine
+        # could produce DMs is worth building to exercise the harness
+        # against; it is not worth grading a model on.
+        print(f"  ALLOWED (--allow-band-absence): {message}")
+        print("    do not ship rollout numbers from this world")
 
 
 def _calendar_units(world_log: Path, state_dir: Path) -> None:
@@ -797,8 +828,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--log", type=Path, default=DEFAULT_LOG)
     parser.add_argument("--task", action="append", default=[])
     parser.add_argument("--refresh-truth", action="store_true")
+    parser.add_argument(
+        "--allow-band-absence",
+        action="store_true",
+        help=(
+            "build a world that has none of something a firm certainly "
+            "has. For a world recorded before the engine could produce "
+            "it -- to exercise the harness against, never to ship."
+        ),
+    )
     args = parser.parse_args(argv)
-    return build(args.log, args.task, args.refresh_truth)
+    return build(args.log, args.task, args.refresh_truth, args.allow_band_absence)
 
 
 if __name__ == "__main__":
