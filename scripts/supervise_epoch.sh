@@ -90,13 +90,27 @@ print(sum(1 for i in range(days) if (start + timedelta(days=i)).weekday() < 5))
 EOF
 )
 stalled=0
+attempts=0
 
 while :; do
     before=$(days_done)
-    if [ "${before}" -ge "${target}" ] && [ "$(world_days)" -ge "${target}" ]; then
-        echo "[supervise] $(world_days) workdays in world.jsonl — done"
+    # Only before the first segment of this invocation. Below, a completed
+    # run is accepted on the artifact *and* a clean exit — deliberately,
+    # because a segment that returned non-zero still ended the run once.
+    # This check accepted on the counts alone, so a segment that failed its
+    # own validation was caught by the guard below, resumed, and then
+    # walked straight out of the top of the next iteration. The guard was
+    # bypassed one loop later by the check above it.
+    #
+    # Kept for the case it was written for: a supervisor pointed at a run
+    # that is already finished should say so and stop, not resume it.
+    if [ "${attempts}" -eq 0 ] \
+        && [ "${before}" -ge "${target}" ] \
+        && [ "$(world_days)" -ge "${target}" ]; then
+        echo "[supervise] $(world_days) workdays already in world.jsonl — done"
         exit 0
     fi
+    attempts=$(( attempts + 1 ))
 
     # Branch on whether a run *exists*, not on whether it produced a day.
     # The store is created before the first step and `start` refuses over

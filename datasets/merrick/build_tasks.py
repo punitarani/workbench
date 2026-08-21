@@ -420,6 +420,57 @@ _STRUCTURAL_BANDS = (
 )
 
 
+def _structural_absences(results, *, report: bool = True) -> list[str]:
+    """Which structural bands say this world has none of that thing.
+
+    Split out so a test can drive the decision without building a world.
+    The first version of that test restated this loop instead, which is
+    the shape of defect this file has spent the day finding: two readers
+    of one rule, agreeing with each other and with nothing else.
+
+    **ABSENT counts, not only FAIL.** A metric whose surface is missing,
+    or present and holding no rows, measures None and is scored ABSENT --
+    never FAIL -- so filtering on FAIL skipped the strongest form of the
+    absence this gate exists to catch. A world with no chat surface at all
+    passed; a world with a chat surface reading 0.0 did not.
+    """
+
+    missing: list[str] = []
+    for result in sorted(results, key=lambda r: r.metric):
+        if result.metric not in _STRUCTURAL_BANDS or result.verdict == "PASS":
+            continue
+        if report:
+            observed = (
+                "not measurable" if result.observed is None else f"{result.observed}"
+            )
+            print(
+                f"    structural {result.metric}: {observed} "
+                f"vs {result.band.rendered()} [{result.verdict}]"
+            )
+        if result.verdict == "ABSENT":
+            missing.append(
+                f"{result.metric} could not be measured at all — the surface "
+                "it reads is missing or empty"
+            )
+            continue
+        # Not `== 0`. The first version refused only an exact zero, and the
+        # world it was written for measured `threaded_reply_share` at
+        # 0.000315 -- three threaded replies in 3,177 messages, every one a
+        # fluke of a code path that could not fire on purpose. Absence had
+        # been rounded into presence by three accidents, and only
+        # `dm_share` landing on exactly 0.0 caught the world at all.
+        #
+        # A tenth of the floor is the line between "the engine cannot do
+        # this" and "the firm was quiet": 0.25 against a floor of 0.30 is a
+        # realism note, 0.0003 is a missing feature.
+        if result.band.min and result.observed < result.band.min / 10:
+            missing.append(
+                f"{result.metric} is {result.observed:.4g}, effectively none "
+                f"against a band of {result.band.rendered()}"
+            )
+    return missing
+
+
 def _realism_bands(
     state_dir: Path, world_log: Path, *, allow_absence: bool = False
 ) -> None:
@@ -451,30 +502,7 @@ def _realism_bands(
         f"{counts['ABSENT']} absent of {len(results)} "
         f"(most were written for an accounting firm; see _STRUCTURAL_BANDS)"
     )
-    missing = []
-    for result in sorted(results, key=lambda r: r.metric):
-        if result.verdict != "FAIL" or result.metric not in _STRUCTURAL_BANDS:
-            continue
-        print(
-            f"    structural {result.metric}: {result.observed} "
-            f"vs {result.band.rendered()}"
-        )
-        # Not `== 0`. The first version of this gate refused only an exact
-        # zero, and the world it was written for measured
-        # `threaded_reply_share` at 0.000315 -- three threaded replies in
-        # 3,177 messages, every one of them a fluke of a code path that
-        # could not fire on purpose. Absence had been rounded into
-        # presence by three accidents, and only `dm_share` happening to be
-        # exactly 0.0 caught the world at all.
-        #
-        # A tenth of the floor is the line between "the engine cannot do
-        # this" and "the firm was quiet". A world at 0.25 against a floor
-        # of 0.30 is a realism note; one at 0.0003 is a missing feature.
-        if result.band.min and result.observed < result.band.min / 10:
-            missing.append(
-                f"{result.metric} is {result.observed:.4g}, effectively none "
-                f"against a band of {result.band.rendered()}"
-            )
+    missing = _structural_absences(results)
     if missing:
         message = "this world has none of something a firm certainly has: " + "; ".join(
             missing
