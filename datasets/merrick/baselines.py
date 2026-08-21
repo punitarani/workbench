@@ -62,6 +62,13 @@ def _noise_rows(
 def _score(tests_dir: Path, deliverable: str, answer: dict) -> float | None:
     """Run the task's own verifier over one answer and read the reward."""
 
+    # Resolved, because this runs the script with `cwd` set to the task
+    # directory: a relative `tests_dir` then resolves against the task
+    # rather than the repository and `sh` exits 127. The build always
+    # passes absolute paths, so the failure only appears when somebody
+    # calls this by hand — and it appears as "baselines could not be
+    # measured", which reads like a broken task rather than a broken call.
+    tests_dir = tests_dir.resolve()
     with tempfile.TemporaryDirectory() as scratch:
         workspace = Path(scratch) / "workspace"
         logs = Path(scratch) / "logs"
@@ -139,13 +146,40 @@ def measure(task: Path, oracle: dict) -> dict[str, float]:
     if no_work is not None:
         floors["no_work_at_all"] = no_work
 
+    # Two figures, because one of them flatters and the other is bleak, and
+    # the truth is between them.
+    #
+    # Handing the dump the oracle's scalars assumes a reader who reports
+    # every candidate as a row somehow knows the true counts anyway. That
+    # is an upper bound, and on one task it read 0.587 — an alarming
+    # number that is partly the baseline's own generosity. A reader who
+    # dumps reports counts consistent with their dump and gets them wrong,
+    # which is the lower bound.
+    #
+    # Neither is the answer on its own. A wide gap between them says the
+    # scalars carry a large share of the reward, which is itself worth
+    # seeing: on that same task six scalars were 43% of the weight and
+    # five of the six were derivable from the row set the task already
+    # grades.
+    dump_rows = list(truth) + _noise_rows(
+        candidates - len(truth), tuple(key), tuple(fields)
+    )
+    bleak = _score(
+        tests,
+        deliverable,
+        {
+            **{name: _wrong(value) for name, value in scalars.items()},
+            rows_key: dump_rows,
+        },
+    )
+    if bleak is not None:
+        floors["reported_every_candidate_counts_wrong"] = bleak
     dumped = _score(
         tests,
         deliverable,
         {
             **scalars,
-            rows_key: list(truth)
-            + _noise_rows(candidates - len(truth), tuple(key), tuple(fields)),
+            rows_key: dump_rows,
         },
     )
     if dumped is not None:
