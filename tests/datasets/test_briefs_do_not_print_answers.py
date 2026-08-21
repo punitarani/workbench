@@ -86,3 +86,79 @@ def test_a_brief_that_names_nothing_real_passes(tmp_path: Path) -> None:
         'DELIVERABLE = "x.json"\nROWS = "hits"\nKEY = ("ref",)\n'
     )
     build_tasks._refuse_leaked_rows(task, {"hits": [{"ref": "msg-000104"}]}, "clean")
+
+
+def _task(tmp_path: Path, brief: str, *, rows: str, key: tuple[str, ...]) -> Path:
+    task = tmp_path / "t"
+    (task / "tests").mkdir(parents=True, exist_ok=True)
+    (task / "instruction.md").write_text(brief)
+    (task / "tests" / "criteria.py").write_text(
+        f'DELIVERABLE = "x.json"\nROWS = "{rows}"\nKEY = {key!r}\n'
+    )
+    return task
+
+
+def test_a_bare_integer_key_is_not_evidence(tmp_path: Path) -> None:
+    """Run across the other dataset in this tree, the first version of this
+    check reported three tasks as leaking the keys 1, 2, 5 and 12 — every
+    one of which appears in any prose of any length. Reporting them would
+    have sent somebody rewriting good briefs."""
+
+    import build_tasks
+
+    task = _task(
+        tmp_path,
+        "Report at least 12 rows. Section 2 explains the 5 statuses.\n",
+        rows="hits",
+        key=("n",),
+    )
+    answer = {"hits": [{"n": 2}, {"n": 5}, {"n": 12}]}
+    build_tasks._refuse_leaked_rows(task, answer, "t")
+
+
+def test_one_half_of_a_composite_key_is_not_a_row(tmp_path: Path) -> None:
+    """A row is identified by its whole key. The first version flagged a
+    brief for naming an engagement that has seventeen rows under it — and
+    that string is the one the brief must print to explain the join the
+    task is about."""
+
+    import build_tasks
+
+    task = _task(
+        tmp_path,
+        "Clio calls the engagement `00004-Kestrel` and the sheet calls it "
+        "tkt-000004. That is the join.\n",
+        rows="effort",
+        key=("engagement", "person"),
+    )
+    build_tasks._refuse_leaked_rows(
+        task,
+        {
+            "effort": [
+                {"engagement": "00004-Kestrel", "person": "Hana Sato"},
+                {"engagement": "00004-Kestrel", "person": "Freya Holt"},
+            ]
+        },
+        "t",
+    )
+
+
+def test_a_whole_composite_key_on_one_line_is_a_leak(tmp_path: Path) -> None:
+    """The other direction, or the fix above would simply switch composite
+    keys off."""
+
+    import build_tasks
+
+    task = _task(
+        tmp_path,
+        "For instance `00004-Kestrel` / `Hana Sato` reconciles to 12.5 hours.\n",
+        rows="effort",
+        key=("engagement", "person"),
+    )
+    with pytest.raises(SystemExit) as caught:
+        build_tasks._refuse_leaked_rows(
+            task,
+            {"effort": [{"engagement": "00004-Kestrel", "person": "Hana Sato"}]},
+            "t",
+        )
+    assert "Kestrel" in str(caught.value)

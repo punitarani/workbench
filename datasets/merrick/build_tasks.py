@@ -430,6 +430,22 @@ _STRUCTURAL_BANDS = (
 )
 
 
+def _named_in(value: str, text: str) -> bool:
+    """Whether `text` names this value, as opposed to containing its
+    characters.
+
+    A bare integer cannot be evidence. The first version of this check
+    reported three tasks as leaking the keys `1`, `2`, `5` and `12` --
+    every one of which appears in any prose of any length. Reporting them
+    would have sent somebody rewriting good briefs, which costs the same
+    as the leak the gate exists to stop.
+    """
+
+    if len(value) < 4 or value.isdigit():
+        return False
+    return re.search(rf"(?<![\w!.-]){re.escape(value)}(?![\w!.-])", text) is not None
+
+
 def _refuse_leaked_rows(task: Path, answer: dict, name: str) -> None:
     """A brief must not print a row key the oracle scores.
 
@@ -460,15 +476,48 @@ def _refuse_leaked_rows(task: Path, answer: dict, name: str) -> None:
     if not isinstance(rows, list) or not key_fields:
         return
     text = brief.read_text(encoding="utf-8")
-    leaked = sorted(
-        {
-            str(row[field])
+    # A row is identified by its whole key, not by one component of it.
+    # Run across the other dataset in this tree, the first version flagged
+    # a brief for printing `00004-KestrelManufacturing` — one half of a
+    # ("engagement", "person") key with seventeen rows under it, and the
+    # very string the brief has to name to explain the join the task is
+    # about. Removing it would have made the brief unusable to fix a leak
+    # that was not one.
+    #
+    # So a composite key leaks only when its components appear together on
+    # one line, which is what naming a row looks like.
+    lines = text.splitlines()
+    if len(key_fields) == 1:
+        (field,) = key_fields
+        values = {
+            str(row[field]) for row in rows if isinstance(row, dict) and row.get(field)
+        }
+        found = {v for v in values if _named_in(v, text)}
+    else:
+        values = {
+            " / ".join(str(row.get(f, "")) for f in key_fields)
             for row in rows
             if isinstance(row, dict)
-            for field in key_fields
-            if field in row and str(row[field]) and str(row[field]) in text
         }
-    )
+        found = {
+            label
+            for label, parts in (
+                (v, [str(row.get(f, "")) for f in key_fields])
+                for v, row in zip(
+                    values, [r for r in rows if isinstance(r, dict)], strict=False
+                )
+            )
+            if all(p for p in parts)
+            and any(all(_named_in(p, line) for p in parts) for line in lines)
+        }
+    # A bare integer cannot be evidence. Run across the other dataset in
+    # this tree, the first version of this check reported three tasks as
+    # leaking keys `1`, `2`, `5` and `12` -- every one of which appears in
+    # any prose of any length, and none of which tells a reader anything.
+    # Reporting them would have sent somebody rewriting good briefs, which
+    # is the same cost as the leak this gate exists to stop.
+    #
+    leaked = sorted(found)
     if leaked:
         raise SystemExit(
             f"{name}: instruction.md prints {len(leaked)} row key(s) the "
