@@ -94,7 +94,7 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("court_clock.json")
 # windows on a lexicographic accident.
 #
 # This has to match the day named in `instruction.md` exactly. It is the one
-# assumption the solver and the verifier both rest on, so `tests/verify.py`
+# assumption the solver and the verifier both rest on, so `checks/verify.py`
 # re-derives it from the instruction's prose rather than from this constant.
 CUTOFF = (
     measure(
@@ -155,7 +155,7 @@ MONTHS: dict[str, int] = measure(
 #
 # The boundaries are not decoration. This scan is `finditer` over the whole
 # body and will happily match part-way through a token — `PO4/17` yields
-# `4/17` — while `tests/verify.py` only tries indices at the start of a
+# `4/17` — while `checks/verify.py` only tries indices at the start of a
 # word. A shape written without `\b` therefore reads a trigger here that the
 # second derivation cannot see, and the disagreement surfaces as a row whose
 # dates are wrong for no reason either file explains.

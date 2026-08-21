@@ -41,7 +41,7 @@ and the brief never names is a rule the agent was never told.
 note left in the brief ships to the agent as prose, and this one names
 the row floors and the solver.
 
-    WORKBENCH_STATE=out/merrick/bundle/state python3 tests/verify.py
+    WORKBENCH_STATE=out/merrick/bundle/state python3 checks/verify.py
 """
 
 import datetime

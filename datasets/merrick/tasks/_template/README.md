@@ -11,11 +11,11 @@ Copy the directory, rename it, and change five things:
 | `instruction.md` | the brief — who you are, the rule, the deliverable |
 | `solution/solve.py` | the rule, as the oracle computes it |
 | `tests/criteria.py` | `ROWS`, `KEY`, `FIELDS`, and the aggregate list |
-| `tests/verify.py` | the rule again, derived a *second* way |
+| `checks/verify.py` | the rule again, derived a *second* way |
 
 ## The two things that are not boilerplate
 
-**`tests/verify.py` must not share the solver's expression of the rule.**
+**`checks/verify.py` must not share the solver's expression of the rule.**
 Transcribe it from `instruction.md` — the prose the agent is graded
 against — never from `solve.py`. Copying the solver reproduces its bug
 and then certifies that the two agree. This has produced two published

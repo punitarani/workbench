@@ -137,7 +137,7 @@ def _unbuilt() -> str | None:
 def _form(body: str) -> str | None:
     # `re.ASCII` deliberately. Without it `\b` is Unicode-aware, so a form
     # sitting against an accented letter is a non-boundary here and a
-    # boundary to tests/verify.py, which splits on `[^0-9A-Za-z_]+`. Two
+    # boundary to checks/verify.py, which splits on `[^0-9A-Za-z_]+`. Two
     # derivations of one stated rule may differ in expression; they may not
     # differ on which characters are letters.
     for name, pattern in FORMS:

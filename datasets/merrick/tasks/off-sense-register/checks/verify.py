@@ -1,7 +1,7 @@
 """An independent derivation of the same answer.
 
     WORKBENCH_STATE=out/merrick/bundle/state uv run python \
-        datasets/merrick/tasks/off-sense-register/tests/verify.py
+        datasets/merrick/tasks/off-sense-register/checks/verify.py
 
 Everything below is transcribed from `instruction.md` -- the prose the agent
 is graded against -- and nothing from `solution/solve.py`. Copying the

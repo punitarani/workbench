@@ -72,7 +72,7 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("date_register.json")
 # smallest window whose mail carries >=12 rows and >=12 second-or-later
 # rows (`measure_candidates.py --days N` prints both), then write the same
 # window into instruction.md as a weekday and a full date. Nothing has to
-# be written into tests/verify.py -- it reads that date back out of the
+# be written into checks/verify.py -- it reads that date back out of the
 # brief.
 #
 # Two calendar days is the floor whatever the counts say. A one-day window
@@ -250,7 +250,7 @@ def main() -> None:
         raise SystemExit(
             "WINDOW_DAYS is unmeasured. Fix the window against the recorded "
             "world (datasets/merrick/measure_candidates.py --days N) and "
-            "write the same window into instruction.md and tests/verify.py. "
+            "write the same window into instruction.md and checks/verify.py. "
             "A guessed window produces a real answer key over an imaginary "
             "corpus, and every row is wrong together while every row-level "
             "check stays green."

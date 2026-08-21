@@ -173,7 +173,7 @@ This is cheap to check and almost never checked:
 
 ```bash
 grep -rl verify.py --include='*.py' --include='*.sh' --include='*.yml' . \
-  | grep -v 'tests/verify.py$'      # who *runs* it, not who *is* it
+  | grep -v 'checks/verify.py$'      # who *runs* it, not who *is* it
 ```
 
 Quote the globs. Unquoted, zsh expands `*.py` against the current directory

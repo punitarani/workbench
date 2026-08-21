@@ -141,7 +141,7 @@ This decides rows as much as it decides totals: a row is a sum over as many
 as «MEASURE: the largest number of flagged entries in one matter-and-
 timekeeper row» entries, and the two orders disagree on «MEASURE: the share
 of rows on which sum-then-round and round-then-sum give different figures at
-2 dp. `tests/verify.py` computes and prints this, and fails the derivation
+2 dp. `checks/verify.py` computes and prints this, and fails the derivation
 below a fifth. On the two-day probe bundle it is 0.0% of 59 rows, because
 those rows average 1.2 flagged entries each and a one-entry row cannot
 disagree with itself — so this paragraph is decoration until the window is

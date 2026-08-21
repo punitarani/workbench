@@ -1,6 +1,6 @@
 r"""An independent derivation of the court-clock register.
 
-    WORKBENCH_STATE=out/merrick/bundle/state python3 tests/verify.py
+    WORKBENCH_STATE=out/merrick/bundle/state python3 checks/verify.py
 
 Every rule below is transcribed from `instruction.md` — the prose the agent
 is graded against — and nothing from `solution/solve.py`. Copying the

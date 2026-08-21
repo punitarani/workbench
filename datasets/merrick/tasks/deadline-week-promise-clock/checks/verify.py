@@ -1,6 +1,6 @@
 """A second derivation of the promise clock, read off the brief alone.
 
-    WORKBENCH_STATE=out/merrick/bundle/state python3 tests/verify.py
+    WORKBENCH_STATE=out/merrick/bundle/state python3 checks/verify.py
 
 The rule here is transcribed from `instruction.md` -- the prose the agent
 is graded against -- and from nothing else. A verifier that borrows the
