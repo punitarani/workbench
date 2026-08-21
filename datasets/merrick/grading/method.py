@@ -18,9 +18,7 @@ rk.schema_ok(criteria.DELIVERABLE, name="deliverable_schema", weight=1.0)
 # on the wrong day should be visible in the trial log; unpaid, because the
 # answer was in the prompt. See the note in `answer/grade.py`.
 _ORACLE = json.loads(
-    (Path(__file__).resolve().parent.parent / "oracle.json").read_text(
-        encoding="utf-8"
-    )
+    (Path(__file__).resolve().parent.parent / "oracle.json").read_text(encoding="utf-8")
 )
 for _name in sorted(frozenset(getattr(criteria, "RESTATED_FROM_BRIEF", ()))):
     if _name in _ORACLE:
