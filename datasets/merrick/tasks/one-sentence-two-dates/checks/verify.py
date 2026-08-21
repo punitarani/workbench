@@ -56,7 +56,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 HERE = Path(__file__).resolve().parent
 STATE = Path(os.environ["WORKBENCH_STATE"])
-ORACLE = HERE / "oracle.json"
+# The build writes the oracle to `tests/`, which is the directory that
+# ships to the grader. This file moved out of it — a `parents[3]` in
+# here took the whole grader down when the container mounted `tests/`
+# at `/tests` — so the path has to cross back.
+ORACLE = HERE.parent / "tests" / "oracle.json"
 BRIEF = HERE.parent / "instruction.md"
 
 _WEEKDAYS = (

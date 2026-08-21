@@ -101,7 +101,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
-ORACLE = Path(__file__).resolve().parent / "oracle.json"
+# The build writes the oracle to `tests/`, which is the directory that
+# ships to the grader. This file moved out of it — a `parents[3]` in
+# here took the whole grader down when the container mounted `tests/`
+# at `/tests` — so the path has to cross back.
+ORACLE = Path(__file__).resolve().parent.parent / "tests" / "oracle.json"
 BRIEF = Path(__file__).resolve().parents[1] / "instruction.md"
 DELIVERABLE = "prebill_screen.json"
 BRIEF_TEXT = BRIEF.read_text(encoding="utf-8")

@@ -76,7 +76,7 @@ Nothing else counts, and that cuts two ways.
 **No synonym counts.** The firm also writes *sign* — twenty messages, seventeen of which never carry either admitted form — and *signed*, in eighteen, fourteen likewise; *align* in two and *consent* in one. Every one of those messages stays out. The term is the term, not the idea behind it.
 
 **One row per message**, however many times either form appears in it. For
-`form_counts`, a message carrying both forms counts once, under `file`.
+`form_counts`, a message carrying both forms counts once, under `agree`.
 
 ## What to produce
 
@@ -93,7 +93,9 @@ fields. Every figure is a count of **messages**, never of occurrences.
 - `department_counts` — an object with **one key per department the
   directory records**, each mapped to how many rows were written by people
   in it. Every key appears every time, including the ones at zero. The keys
-  are exactly, and in this spelling: `Client`, `Corporate`, `Employment`, `Firm Management`, `IP`, `Litigation`, `Practice Operations`
+  are exactly, and in this spelling:
+  `Client`, `Corporate`, `Employment`, `Firm Management`, `IP`,
+  `Litigation`, `Practice Operations`
 - `top_author` — the person on the most rows, written the way `author`
   writes them: the full name, never an id. Break a tie alphabetically by
   full name, earlier first.

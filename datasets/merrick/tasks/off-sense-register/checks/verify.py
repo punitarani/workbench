@@ -116,7 +116,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 HERE = Path(__file__).resolve().parent
 BRIEF = HERE.parent / "instruction.md"
-ORACLE = HERE / "oracle.json"
+# The build writes the oracle to `tests/`, which is the directory that
+# ships to the grader. This file moved out of it — a `parents[3]` in
+# here took the whole grader down when the container mounted `tests/`
+# at `/tests` — so the path has to cross back.
+ORACLE = HERE.parent / "tests" / "oracle.json"
 # An unset variable is `Path("")`, which is the working directory and is a
 # directory, so `is_dir()` alone waves it through and the run goes looking
 # for `./gmail.db`.
@@ -129,7 +133,20 @@ DELIVERABLE = "word_register.json"
 # "in the firm's own time zone (New York)"
 FIRM_TZ = "America/New_York"
 # "an object with one key per department the directory records"
-DEPARTMENTS: tuple[str, ...] = ()
+#
+# Transcribed from the brief's own list, not from `solve.py`. The two
+# files agreeing about this is the point: if the brief names seven and
+# the solver emits six, exactly one of them is wrong and only a
+# transcription from the prose can say which.
+DEPARTMENTS: tuple[str, ...] = (
+    "Client",
+    "Corporate",
+    "Employment",
+    "Firm Management",
+    "IP",
+    "Litigation",
+    "Practice Operations",
+)
 # "One file in your workspace: word_register.json, with exactly these
 # fields" -- in the brief's own order, checked against its bullets.
 TOP_FIELDS = (

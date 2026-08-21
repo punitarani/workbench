@@ -129,7 +129,11 @@ sys.path.insert(0, str(_HERE.parents[3]))
 from pending import measure  # noqa: E402
 
 TASK = _HERE.parents[1]
-ORACLE = _HERE.parent / "oracle.json"
+# The build writes the oracle to `tests/`, which is the directory that
+# ships to the grader. This file moved out of it — a `parents[3]` in
+# here took the whole grader down when the container mounted `tests/`
+# at `/tests` — so the path has to cross back.
+ORACLE = _HERE.parent / "tests" / "oracle.json"
 INSTRUCTION = TASK / "instruction.md"
 
 # ---------------------------------------------------------------------------

@@ -91,7 +91,11 @@ from typing import NamedTuple
 
 HERE = Path(__file__).resolve().parent
 BRIEF = HERE.parent / "instruction.md"
-ORACLE = HERE / "oracle.json"
+# The build writes the oracle to `tests/`, which is the directory that
+# ships to the grader. This file moved out of it — a `parents[3]` in
+# here took the whole grader down when the container mounted `tests/`
+# at `/tests` — so the path has to cross back.
+ORACLE = HERE.parent / "tests" / "oracle.json"
 DELIVERABLE = "promise_clock.json"
 
 # How many rows the register needs before partial credit means anything.
