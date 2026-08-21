@@ -183,14 +183,6 @@ def build(
     shutil.rmtree(SHARED_BUNDLE / "workspace", ignore_errors=True)
     shutil.rmtree(SHARED_BUNDLE / "state", ignore_errors=True)
     env = materialize(world_log, SHARED_BUNDLE, seat=None)
-    # After materialize, never before. This gate asks whether a malformed
-    # start survived into the *served* state, and materialize is what builds
-    # that state -- run earlier it reads whatever the last build left behind.
-    # It did: a state directory thirty-one hours old, from before the
-    # projection learned to quarantine these, so the gate refused the world
-    # over events the current projection drops.
-    _calendar_units(world_log, SHARED_BUNDLE / "state")
-    _realism_bands(SHARED_BUNDLE / "state", world_log, allow_absence=allow_band_absence)
     print(f"materialized {env.event_count} events -> {SHARED_BUNDLE}")
     # Immediately, not after the gates. `materialize` has already rewritten
     # `workspace/` and `state/` wholesale, so from this line on the bundle
@@ -199,6 +191,23 @@ def build(
     # answer key against a stale world" state this file's other comment
     # exists to prevent, reached by a different route.
     (SHARED_BUNDLE / "SOURCE").write_text(str(world_log.resolve()) + "\n")
+
+    # After materialize, and after SOURCE. Both gates read the *served*
+    # state, which materialize is what builds -- run earlier they read
+    # whatever the last build left behind, and one did: a state directory
+    # thirty-one hours old, from before the projection learned to
+    # quarantine malformed calendar starts, so the gate refused a world
+    # over events the current projection drops.
+    #
+    # After SOURCE rather than before it, which is the correction. The
+    # comment above says SOURCE must be written the moment the bundle on
+    # disk becomes this world, and these two gates were inserted between
+    # the two -- so a world that failed either left SOURCE naming the
+    # previous one. That is the "fresh answer key against a stale world"
+    # state this file exists to prevent, reached by the route the file was
+    # already warning about.
+    _calendar_units(world_log, SHARED_BUNDLE / "state")
+    _realism_bands(SHARED_BUNDLE / "state", world_log, allow_absence=allow_band_absence)
 
     files = sum(1 for p in (SHARED_BUNDLE / "workspace").rglob("*") if p.is_file())
     print(f"  workspace: {files} files from {len(facts.documents)} documents")
