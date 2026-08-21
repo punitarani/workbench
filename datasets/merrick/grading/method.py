@@ -20,7 +20,10 @@ rk.schema_ok(criteria.DELIVERABLE, name="deliverable_schema", weight=1.0)
 _ORACLE = json.loads(
     (Path(__file__).resolve().parent.parent / "oracle.json").read_text(encoding="utf-8")
 )
-for _name in sorted(frozenset(getattr(criteria, "RESTATED_FROM_BRIEF", ()))):
+_UNPAID = frozenset(getattr(criteria, "RESTATED_FROM_BRIEF", ())) | frozenset(
+    getattr(criteria, "DERIVED_FROM_ROWS", ())
+)
+for _name in sorted(_UNPAID):
     if _name in _ORACLE:
         rk.scalar(
             criteria.DELIVERABLE,

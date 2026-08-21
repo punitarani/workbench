@@ -64,8 +64,25 @@ _SCALARS = sorted(k for k, v in ORACLE.items() if not isinstance(v, list))
 # windowed on the wrong day -- they just stop paying for it.
 _RESTATED = frozenset(getattr(criteria, "RESTATED_FROM_BRIEF", ()))
 
+# ...and the ones that are already inside the row set.
+#
+# A register that reports its rows and then also reports counts *of* those
+# rows is grading one piece of work twice. On the off-sense register six
+# scalars carried 43% of the reward and five of them —  `hits_total`,
+# `distinct_authors`, `top_author`, `form_counts`, `department_counts` —
+# are each a tally over `hits`, which `row_f1` and `row_fields` already
+# grade. Only the count of what was *read* is independent: it measures how
+# much of the window the reader opened, and nothing else captures that.
+#
+# Paying for a derived figure does not add signal, it multiplies the
+# signal already there — and it raises the floor, because an answer that
+# gets the rows badly wrong can still tally its own wrong rows correctly.
+# Checked in `process`, where a reader who cannot add up their own
+# register is still visible.
+_DERIVED = frozenset(getattr(criteria, "DERIVED_FROM_ROWS", ()))
+
 for _name in _SCALARS:
-    if _name in _RESTATED:
+    if _name in _RESTATED or _name in _DERIVED:
         continue
     rk.scalar(DELIVERABLE, _name, ORACLE[_name], 0, name=_name, weight=1.0)
 
