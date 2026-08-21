@@ -265,15 +265,34 @@ def load_world(path: Path) -> WorldFacts:
                     ticket = facts.tickets.get(payload["ticket_id"])
                     if ticket is None:
                         continue
+                    # One update may carry two changes to the same
+                    # field, and then only the net change ever durably
+                    # held: a recorded firm has an event claiming
+                    # `status: Intake -> Awaiting Court` and
+                    # `status: Intake -> Active` at once, with every
+                    # later event chaining from `Active`. The history a
+                    # reader sees is the net one.
+                    #
+                    # Restated here rather than imported, like every
+                    # other projection rule in this module. Sharing the
+                    # code would make this file agree with the projection
+                    # by construction, which is the one thing it exists
+                    # not to do.
+                    net: dict[str, tuple[str, str]] = {}
+                    order: list[str] = []
                     for change in payload.get("changes", []):
+                        name = change.get("field", "")
+                        old_value = str(change.get("old", ""))
+                        new_value = str(change.get("new", ""))
+                        if name in net:
+                            net[name] = (net[name][0], new_value)
+                        else:
+                            order.append(name)
+                            net[name] = (old_value, new_value)
+                    for name in order:
+                        was, now = net[name]
                         ticket.changes.append(
-                            (
-                                when,
-                                payload.get("actor", ""),
-                                change.get("field", ""),
-                                str(change.get("old", "")),
-                                str(change.get("new", "")),
-                            )
+                            (when, payload.get("actor", ""), name, was, now)
                         )
                 case "work.time.logged":
                     facts.activities.append(

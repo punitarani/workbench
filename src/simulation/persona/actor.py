@@ -142,7 +142,10 @@ class ProfessionalActorAct:
         if self._stream is None:
             return "None yet."
         query = RetrievalQuery(
-            refs=frozenset(item.ref for item in pending),
+            # `retrieval_refs` widens a pending chat item back to its
+            # channel. The item itself names a single message, because
+            # that is what the persona must target to reply.
+            refs=self._memory.retrieval_refs(),
             tokens=tokens_of(*(item.summary for item in pending)),
         )
         now = self._memory.last_time()

@@ -41,9 +41,16 @@ pnpm-debug.log*
 # default; the Calder epoch cassettes are committed as the standing
 # determinism dataset (reviewed: prompts + completions only, no
 # credentials of any kind).
-src/workbench/workplaces/**/cassettes/
-!src/workbench/workplaces/calder/cassettes/
-!src/workbench/workplaces/calder/cassettes/**
+# These paths said `src/workbench/workplaces/**` and the tree has been
+# `src/workplaces/**` since the package was flattened, so the rules
+# matched nothing at all. Calder's cassettes stayed committed for the
+# right reason by accident, and every other cassette -- including a
+# scratch 4.9MB pilot recording -- was one `git add -A` from the index.
+src/workplaces/**/cassettes/
+!src/workplaces/calder/cassettes/
+!src/workplaces/calder/cassettes/**
+# Scratch recordings made outside a workplace package.
+/cassettes/
 datasets/**/bundle/
 datasets/**/.workbench/
 

@@ -203,7 +203,13 @@ class DraftEmail(dspy.Signature):
     statements not present in them. When the email sends a deliverable the
     firm has produced, attach it by its doc- id rather than describing what
     it would contain. The summary must honestly compress what
-    the email commits to."""
+    the email commits to.
+
+    Ids are how the system files things, not how people write. In the
+    subject and body, call a document by its filename and a matter by
+    its name — "the closing checklist", "Sandhurst platform
+    acquisition" — never "doc-000042" or "tkt-000260". The id goes in
+    attachment_refs and nowhere else."""
 
     identity: str = dspy.InputField()
     thread: str = dspy.InputField(desc="full rendered thread, oldest first")
@@ -218,7 +224,8 @@ class DraftEmail(dspy.Signature):
         desc=(
             "work product in the repository, as 'path (doc- id)'. Put the "
             "id in attachment_refs when the email sends one of these; "
-            "leave it empty otherwise. Never attach an id not listed here."
+            "leave it empty otherwise. Never attach an id not listed here. "
+            "The id is for that field alone — in prose, use the filename."
         )
     )
     draft: EmailDraft = dspy.OutputField()
@@ -227,7 +234,11 @@ class DraftEmail(dspy.Signature):
 class DraftChatMessage(dspy.Signature):
     """Write a chat message in this person's chat register: shorter and more
     informal than email, consistent with their seniority and the channel's
-    audience. Ground it in the conversation and established facts."""
+    audience. Ground it in the conversation and established facts.
+
+    Write names, not ids: "the closing checklist", not "doc-000042". A
+    colleague reading the channel knows what you mean by the former and
+    has to go and look up the latter."""
 
     identity: str = dspy.InputField()
     conversation: str = dspy.InputField(desc="rendered conversation, oldest first")

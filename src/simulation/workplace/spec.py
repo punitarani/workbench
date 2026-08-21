@@ -39,6 +39,24 @@ class ChannelSpec(_Model):
     members: tuple[str, ...] = Field(min_length=1)
 
 
+class DirectMessageSpec(_Model):
+    """A private two-person conversation.
+
+    The hand-written workplaces in this tree create these; the generic
+    compile path could not, because it hardcoded
+    ``conversation_type="channel"``. A firm generated from a spec
+    therefore had channels and nothing else — a six-month, 21-person law
+    firm whose 3,177 chat messages were all posted in the open, which is
+    not how any firm's most consequential conversations happen.
+
+    Unnamed on purpose: the payload validator requires channels to carry
+    a name and leaves DMs without one, because a DM is identified by who
+    is in it.
+    """
+
+    members: tuple[str, ...] = Field(min_length=2, max_length=2)
+
+
 class SeedDocument(_Model):
     author: str
     title: str
@@ -124,6 +142,7 @@ class WorkplaceSpec(_Model):
     organizations: tuple[OrganizationSpec, ...] = ()
     arrivals: tuple[PersonArrival, ...] = ()
     channels: tuple[ChannelSpec, ...] = ()
+    direct_messages: tuple[DirectMessageSpec, ...] = ()
     seed_documents: tuple[SeedDocument, ...] = ()
     seed_calendar: tuple[SeedCalendarEvent, ...] = ()
     seed_tickets: tuple[SeedTicket, ...] = ()

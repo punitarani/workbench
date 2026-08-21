@@ -351,7 +351,7 @@ def audit(log_path: Path) -> int:
 def _report(args: argparse.Namespace) -> int:
     events = tuple(read_events(args.out / "world.jsonl"))
     tags = Counter(e.tag for e in events)
-    print("# Calder epoch report\n")
+    print("# Merrick epoch report\n")
     print(f"Events: {len(events)}")
     for tag, count in tags.most_common():
         print(f"- {tag}: {count}")

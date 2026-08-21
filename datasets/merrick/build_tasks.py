@@ -24,11 +24,18 @@ from pathlib import Path
 from analysis import attempted_work
 from analysis.artifact_mix import MixFloors, emptiness, measure, violations
 from analysis.calendar_units import inspect as inspect_calendar_units
+from analysis.fidelity import (
+    evaluate,
+    load_bands,
+    measure,
+    summarize,
+)
 from analysis.coherence import MISBOOKED_LIMIT, check
 from analysis.reachability import unreachable
 from analysis.world_facts import load_world
 from core.filing import filed_name
 from core.worldlog import read_events
+from core.errors import WorldLogIntegrityError
 from environment.materialize import materialize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hartwell"))
@@ -133,7 +140,6 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     # held -- and it separates the contradictions, which block, from the
     # ambiguities, which are the raw material the hardest tasks are made of.
     facts = load_world(world_log)
-    _calendar_units(world_log, SHARED_BUNDLE / "state")
     found = check(facts)
     print(found.report())
     if not found.ok:
@@ -165,6 +171,14 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
     shutil.rmtree(SHARED_BUNDLE / "workspace", ignore_errors=True)
     shutil.rmtree(SHARED_BUNDLE / "state", ignore_errors=True)
     env = materialize(world_log, SHARED_BUNDLE, seat=None)
+    # After materialize, never before. This gate asks whether a malformed
+    # start survived into the *served* state, and materialize is what builds
+    # that state -- run earlier it reads whatever the last build left behind.
+    # It did: a state directory thirty-one hours old, from before the
+    # projection learned to quarantine these, so the gate refused the world
+    # over events the current projection drops.
+    _calendar_units(world_log, SHARED_BUNDLE / "state")
+    _realism_bands(SHARED_BUNDLE / "state", world_log)
     print(f"materialized {env.event_count} events -> {SHARED_BUNDLE}")
     # Immediately, not after the gates. `materialize` has already rewritten
     # `workspace/` and `state/` wholesale, so from this line on the bundle
@@ -360,6 +374,84 @@ def build(world_log: Path, names: list[str], refresh: bool) -> int:
 # is the world there is; what has to hold is that none of them reaches
 # anything that ships. That is checked directly below rather than proxied by
 # a threshold, because a threshold can be satisfied by moving it.
+
+
+# Bands whose absence refuses this world, and why each one earns it.
+#
+# The committed band file was written for a seventeen-person *accounting*
+# firm. Merrick is a law firm with ten clients and fifty-three matters by
+# design, so `book.clients: 10 against 120-200` is a band that does not
+# apply rather than a defect, and `cross.weekend_share_busy` is measuring
+# a February-to-April tax season this firm does not have. Refusing on all
+# 37 current failures would refuse every world this dataset can produce.
+#
+# Two bands survive that filter. Both describe a capability a law firm
+# certainly has, both measured exactly zero, and both were zero because
+# the engine could not produce them at all rather than because the firm
+# was quiet:
+#
+#   slack.dm_share             the generic compile path had no way to make
+#                              a DM, so 3,177 messages were posted in the
+#                              open across ten channels
+#   slack.threaded_reply_share pending chat items offered a conversation
+#                              id where the reply branch needed a message
+#                              id, so 3 messages in 3,177 were replies
+#
+# Deliberately excluded, and worth naming so nobody adds them later
+# expecting them to work: `calendar.cancellation_share` has no cancel verb
+# anywhere in the engine, so it is unsatisfiable by construction, and a
+# gate that cannot pass is a gate that gets deleted in a hurry by whoever
+# meets it next.
+_STRUCTURAL_BANDS = (
+    "slack.dm_share",
+    "slack.threaded_reply_share",
+)
+
+
+def _realism_bands(state_dir: Path, world_log: Path) -> None:
+    """The committed distribution bands, run against the world just built.
+
+    These bands have existed, and been computed correctly, for as long as
+    this tree has. Nothing in a build ever ran them. Their only caller was
+    a realism suite pointed at a *different firm's* world and marked
+    xfail, so the verdict it produced could not fail anything even on the
+    occasions somebody read it.
+
+    What that cost here: six months of a law firm shipped with
+    `slack.dm_share` at 0.0 against a band of 0.15-0.35 and
+    `slack.threaded_reply_share` at 0.0 against a floor of 0.30. Both
+    numbers were right. Nobody was looking at them.
+
+    **Refuse on a declared absence, report on everything else.** A band
+    missed by a margin is a realism note and a judgement call. A band in
+    `_STRUCTURAL_BANDS` sitting at zero says the world has none of that
+    thing at all -- which is the failure this exists to catch, and the one
+    that hides best, because an empty column raises nothing anywhere.
+    """
+
+    measurements = measure(state_dir, world_log)
+    results = evaluate(measurements, load_bands())
+    counts = summarize(results)
+    print(
+        f"  realism bands: {counts['PASS']} pass, {counts['FAIL']} fail, "
+        f"{counts['ABSENT']} absent of {len(results)} "
+        f"(most were written for an accounting firm; see _STRUCTURAL_BANDS)"
+    )
+    missing = []
+    for result in sorted(results, key=lambda r: r.metric):
+        if result.verdict != "FAIL" or result.metric not in _STRUCTURAL_BANDS:
+            continue
+        print(
+            f"    structural {result.metric}: {result.observed} "
+            f"vs {result.band.rendered()}"
+        )
+        if result.observed == 0:
+            missing.append(f"{result.metric} is 0, band {result.band.rendered()}")
+    if missing:
+        raise WorldLogIntegrityError(
+            "this world has none of something a firm certainly has: "
+            + "; ".join(missing)
+        )
 
 
 def _calendar_units(world_log: Path, state_dir: Path) -> None:

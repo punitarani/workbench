@@ -27,6 +27,27 @@ LOG="/tmp/${DATASET}-epoch.log"
 RUNNER="datasets/${DATASET}/run_epoch.py"
 PY="./.venv/bin/python"
 
+# The runner refuses record mode without OPENROUTER_API_KEY, and calling
+# the venv interpreter directly does not load `.env` the way the
+# documented `uv run --env-file .env` invocation does. This script drove
+# a 180-day run straight into "record mode requires OPENROUTER_API_KEY",
+# three times, and then reported it as "not a transient failure" —
+# correctly, and uselessly, because the cause was one unset variable.
+#
+# Sourced with `set -a` so every assignment exports. Values never reach
+# stdout: the log this writes is world-readable for as long as it exists.
+if [ -f .env ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . ./.env
+    set +a
+fi
+if [ -z "${OPENROUTER_API_KEY:-}" ]; then
+    echo "[supervise] OPENROUTER_API_KEY is not set and .env did not provide" \
+         "it; record mode cannot start." >&2
+    exit 1
+fi
+
 # The artifact, not the progress log. `telemetry.jsonl` gains a day row
 # during the run; `world.jsonl` is written once per segment at the very
 # end, and it is the only thing anything downstream reads. A kill between

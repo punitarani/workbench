@@ -156,6 +156,11 @@ def compile_workplace(
     for channel in spec.channels:
         for member in channel.members:
             require_person(member, f"channel {channel.name}")
+    for dm in spec.direct_messages:
+        for member in dm.members:
+            require_person(member, f"dm {'/'.join(dm.members)}")
+        if len(set(dm.members)) != 2:
+            raise ConfigError(f"dm with itself: {dm.members[0]!r}")
     for document in spec.seed_documents:
         require_person(document.author, f"seed document {document.path}")
     for calendar_event in spec.seed_calendar:
@@ -210,6 +215,16 @@ def compile_workplace(
                 conversation_type="channel",
                 name=channel.name,
                 members=channel.members,
+            )
+        )
+    for dm in spec.direct_messages:
+        payloads.append(
+            ChatConversationCreatedPayload(
+                kind="chat.conversation.created",
+                conversation_id=minter.mint("cnv"),
+                conversation_type="dm",
+                name=None,
+                members=dm.members,
             )
         )
     for document in spec.seed_documents:

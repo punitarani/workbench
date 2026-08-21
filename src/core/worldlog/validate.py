@@ -27,13 +27,12 @@ from core.events.email import EmailMessagePayload
 from core.events.meetings import MeetingTranscriptPayload
 from core.events.people import PersonRecordPayload
 from core.events.tickets import (
+    FOLDED_TICKET_FIELDS,
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
 )
 from core.worldlog.writer import RUN_STARTED_TAG
-
-FOLDED_TICKET_FIELDS = ("title", "description", "assignee", "status", "priority")
 
 
 class Finding(BaseModel):

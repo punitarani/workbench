@@ -29,6 +29,7 @@ from simulation.director import PoissonCueSchedule
 from simulation.gm.grounded import TicketVocabulary
 from simulation.workplace.spec import (
     ChannelSpec,
+    DirectMessageSpec,
     OrganizationSpec,
     SeedCalendarEvent,
     SeedDocument,
@@ -418,6 +419,52 @@ _MATTERS: tuple[tuple[str, str, str, str, str, str, str, str | None], ...] = (
 )
 
 
+# Private two-person conversations.
+#
+# Everything the firm said to itself for six months was said in a
+# channel, because the generic compile path could not make anything
+# else. A firm where nobody messages anyone privately is missing the
+# register where the actual coordination happens — "can you cover the
+# Sandhurst call", "the Pryor deadline moved and I have not told the
+# client yet" — and it is precisely that register a task about who knew
+# what, when has to read.
+#
+# Derived from the reporting lines rather than listed by hand: a
+# supervising relationship is the pair that messages privately most, and
+# deriving it means a change to the org chart cannot leave a stale list
+# behind. The operational pairs are added because the docket manager and
+# the billing manager talk to matter owners privately about dates and
+# write-offs, and neither reports to them.
+def _direct_message_pairs() -> tuple[tuple[str, str], ...]:
+    internal = {p.person_id for p in PEOPLE if p.affiliation == "internal"}
+    pairs: set[tuple[str, str]] = {
+        tuple(sorted((p.person_id, p.manager)))  # type: ignore[misc]
+        for p in PEOPLE
+        if p.affiliation == "internal" and p.manager in internal
+    }
+    _OPERATIONAL = (
+        # Docket manager with the litigators whose dates she keeps.
+        ("per-thandiwe-mokoena", "per-cecile-marchand"),
+        ("per-thandiwe-mokoena", "per-hyunwoo-bae"),
+        ("per-thandiwe-mokoena", "per-lucien-abara"),
+        ("per-thandiwe-mokoena", "per-rosalie-duchamp"),
+        # Billing manager with the partners who own the prebills.
+        ("per-ulrich-bergmann", "per-bennett-ashworth"),
+        ("per-ulrich-bergmann", "per-dov-reinhardt"),
+        ("per-ulrich-bergmann", "per-elena-vasquez-reyes"),
+        ("per-ulrich-bergmann", "per-gideon-park"),
+        ("per-ulrich-bergmann", "per-fionnuala-doherty"),
+        # Paralegals with the associates they actually work beside, which
+        # the reporting line does not capture — both report upward, not
+        # to each other.
+        ("per-rosalie-duchamp", "per-noor-haddad"),
+        ("per-samir-bhatt", "per-mira-chandrasekhar"),
+        ("per-samir-bhatt", "per-quentin-sarr"),
+    )
+    pairs.update(tuple(sorted(pair)) for pair in _OPERATIONAL)
+    return tuple(sorted(pairs))
+
+
 _CHANNELS: tuple[tuple[str, tuple[str, ...]], ...] = (
     (
         "firm-announcements",
@@ -750,6 +797,9 @@ def epoch_spec(days: int = FULL_WINDOW_DAYS) -> WorkplaceSpec:
         ),
         channels=tuple(
             ChannelSpec(name=name, members=members) for name, members in _CHANNELS
+        ),
+        direct_messages=tuple(
+            DirectMessageSpec(members=pair) for pair in _direct_message_pairs()
         ),
         seed_documents=_seed_documents(),
         seed_calendar=_calendar(),

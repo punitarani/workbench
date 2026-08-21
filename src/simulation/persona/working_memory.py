@@ -26,6 +26,7 @@ from core.events.chat import (
 )
 from core.events.documents import DocumentCreatedPayload
 from core.events.email import EmailMessagePayload
+from core.events.people import PersonRecordPayload
 from core.events.tickets import TicketCreatedPayload
 from core.intents import (
     ChatIntent,
@@ -128,10 +129,29 @@ class WorkingMemoryComponent(BaseComponent):
         # and every post is rejected. Nothing then reaches the log for
         # anyone to learn the real id from, so the firm's chat goes silent
         # from a cold start it cannot recover from.
+        # A DM has no name — it is identified by who is in it — so it
+        # rendered as a bare `cnv-000015`. A persona shown that has no
+        # reason to ever post in it, and no way to tell one such id from
+        # another. Name the other person instead.
+        names = {
+            e.payload.person_id: e.payload.name
+            for e in events
+            if isinstance(e.payload, PersonRecordPayload)
+        }
+
+        def _label(payload: ChatConversationCreatedPayload) -> str:
+            if payload.name:
+                return f"{payload.name} ({payload.conversation_id})"
+            others = [
+                names.get(member, member)
+                for member in payload.members
+                if member != self._person_id
+            ]
+            who = ", ".join(others) if others else "yourself"
+            return f"direct message with {who} ({payload.conversation_id})"
+
         channels = [
-            f"{e.payload.name} ({e.payload.conversation_id})"
-            if e.payload.name
-            else e.payload.conversation_id
+            _label(e.payload)
             for e in events
             if isinstance(e.payload, ChatConversationCreatedPayload)
             and self._person_id in e.payload.members
@@ -148,7 +168,7 @@ class WorkingMemoryComponent(BaseComponent):
         if tickets:
             lines.append("Tickets you know of: " + "; ".join(tickets))
         if channels:
-            lines.append("Chat channels you can post in: " + "; ".join(channels))
+            lines.append("Chat conversations you can post in: " + "; ".join(channels))
         # An invitation nobody can see is an invitation nobody answers. The
         # first RSVPs in this engine's history named events invented out of
         # their titles, because the id had never been put in front of anyone.
@@ -306,15 +326,55 @@ class WorkingMemoryComponent(BaseComponent):
                         last_time = int(event.time)
                         answered = False
             if last_message is not None and not answered:
+                # The *message*, not the conversation it sits in.
+                #
+                # `post_chat` treats a chm- target as a reply and anything
+                # else as a fresh post to the channel, and the decide
+                # prompt tells personas to "target a chm- message id
+                # instead when you are answering that particular message".
+                # This was the only place a chat item was offered, and it
+                # offered the conversation — so the reply branch could fire
+                # only if a persona invented an id, which the same prompt
+                # forbids. Measured on a 130-workday world: 3 replies in
+                # 3,177 messages. A chat surface with no threads is not a
+                # chat surface, and the one task that needed "who answered
+                # this" had to reconstruct adjacency from timestamps.
+                #
+                # Posting fresh is unaffected: the Situation block lists
+                # every channel the person belongs to with its cnv- id.
                 items.append(
                     PendingItem(
-                        ref=conversation_id,
+                        ref=last_message.chat_message_id,
                         channel="chat",
                         summary=last_message.body[:80],
                         age_minutes=max(0, (now - last_time) // 60),
                     )
                 )
         return tuple(items)
+
+    def retrieval_refs(self) -> frozenset[str]:
+        """What the pending items are *about*, for memory retrieval.
+
+        Not the same set as the ids the persona is asked to target. A
+        memory record carries every id in its payload, so querying a chm-
+        id returns records touching that one message, where the cnv- id
+        returns the channel's history. Narrowing the target ref without
+        widening this would have traded threading for context — the
+        persona would reply to a message with no memory of the channel it
+        was posted in.
+        """
+
+        refs: set[str] = set()
+        conversation_of = {
+            e.payload.chat_message_id: e.payload.conversation_id
+            for e in self._require_hydrated()
+            if isinstance(e.payload, ChatMessagePayload)
+        }
+        for item in self.pending_items():
+            refs.add(item.ref)
+            if (conversation := conversation_of.get(item.ref)) is not None:
+                refs.add(conversation)
+        return frozenset(refs)
 
     def get_state(self) -> WorkingMemoryState:
         events = self._require_hydrated()

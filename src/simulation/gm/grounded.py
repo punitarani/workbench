@@ -6,6 +6,8 @@ run never wedges and every rejection is visible in the log. LM-backed repair
 (RepairIntent, ResolveFreeform) is a named future optimization target.
 """
 
+import re
+
 from pydantic import BaseModel
 
 from core.actions import (
@@ -62,6 +64,8 @@ from core.events.meetings import (
 )
 from core.events.people import PersonRecordPayload
 from core.events.tickets import (
+    PERSON_TICKET_FIELDS,
+    collapse_field_changes,
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
@@ -1063,6 +1067,69 @@ class GroundedGm:
                 resolved.append(person)
         return tuple(resolved)
 
+    # Any minted world id, as it appears inside prose.
+    _MINTED_ID = re.compile(r"\b[a-z]{3}-\d{6}\b")
+
+    def _human_label(self, ref: str) -> str | None:
+        """What a person would call the thing this id names."""
+
+        if ref.startswith("doc-"):
+            path = self._world.document_paths_by_id.get(ref)
+            return path.rsplit("/", 1)[-1] if path else None
+        if ref.startswith("tkt-"):
+            values = self._world.tickets.get(ref)
+            return values.get("title") if values else None
+        return None
+
+    def _dereference(self, text: str) -> str:
+        """Replace internal ids in prose with the names of what they point at.
+
+        Personas are shown ids because they need them: an attachment
+        field takes `doc-000042`, a reply takes `chm-000117`. Having seen
+        one, they write it into the sentence too — 26.1% of the 5,894
+        messages in a six-month world contained at least one, most often
+        "please see doc-000042 attached".
+
+        Nobody writes that. Worse, it is a shortcut: an agent asked which
+        matters a document touched can grep the id instead of reading
+        anything, so a task meant to measure comprehension measures
+        string matching.
+
+        This is a referee-level normalisation, in the same family as the
+        rule that a document's format wins an argument with its declared
+        suffix: the author's intent is kept and their expression of it is
+        corrected. Doing it here rather than at materialisation means the
+        world log itself is clean and every surface derived from it
+        agrees.
+
+        One acknowledged cost: the memory stream indexes a record by the
+        ids in its payload, so a document merely *mentioned* is no longer
+        retrievable by its id from that message. A document *attached*
+        still is — the id stays in `attachments`, which is the structured
+        field the link belongs in anyway.
+        """
+
+        return self._MINTED_ID.sub(
+            lambda match: self._human_label(match.group(0)) or match.group(0), text
+        )
+
+    def _resolve_person_field(self, ref: str | None) -> str | None:
+        """A ticket field that holds a person, resolved to that person's id.
+
+        Rejecting an unresolvable name rather than storing it keeps this
+        the same rule the create path applies. A stored name is worse than
+        a rejection: the rejection reaches the persona, which names
+        somebody real next time, while the name sits in the column
+        forever looking like data.
+        """
+
+        if ref is None:
+            return None
+        person = self._world.resolve_person(ref)
+        if person is None:
+            raise IntentRejection(f"unknown person {ref!r}")
+        return person
+
     def _ground(
         self, entity: str, intent: ActionIntent, event: Event
     ) -> tuple[EventDraft, ...]:
@@ -1189,8 +1256,8 @@ class GroundedGm:
             sender=sender,
             to=to,
             cc=cc,
-            subject=intent.draft.subject,
-            body=intent.draft.body,
+            subject=self._dereference(intent.draft.subject),
+            body=self._dereference(intent.draft.body),
             attachments=self._resolve_attachments(intent.draft.attachment_refs),
         )
         record_drafts = tuple(
@@ -1232,7 +1299,7 @@ class GroundedGm:
             conversation_id=conversation_id,
             reply_to=intent.reply_to_ref,
             sender=sender,
-            body=intent.draft.body,
+            body=self._dereference(intent.draft.body),
         )
         return (
             EventDraft(
@@ -1292,7 +1359,37 @@ class GroundedGm:
         if values is None:
             raise IntentRejection(f"unknown ticket {intent.ticket_ref!r}")
         if intent.changes:
-            for change in intent.changes:
+            # Person-valued fields are resolved here for the same reason
+            # the create path resolves `assignee_ref`: a persona names a
+            # colleague and the column is typed `Ref("person")`. Only the
+            # create path did it. One matter in a six-month world ended up
+            # with `responsible_person` holding the string "Cecile
+            # Marchand", which no join against the people table can match —
+            # the row does not error, it silently leaves every result that
+            # groups by who is responsible.
+            #
+            # Resolving `old` too is not symmetry for its own sake. The
+            # staleness check below compares against state that holds an
+            # id, so a persona naming the current assignee — reading it
+            # correctly off the surface it was shown — was rejected for
+            # claiming a value that was never stale.
+            #
+            # Collapsed first: a persona that changed one field twice in a
+            # single action disagreed with itself, and only the net change
+            # ever durably held. Recording both puts a transition in
+            # `matter_history` that the record never had.
+            changes = tuple(
+                change.model_copy(
+                    update={
+                        "old": self._resolve_person_field(change.old),
+                        "new": self._resolve_person_field(change.new),
+                    }
+                )
+                if change.field in PERSON_TICKET_FIELDS
+                else change
+                for change in collapse_field_changes(intent.changes)
+            )
+            for change in changes:
                 if change.field in values and values[change.field] != change.old:
                     raise IntentRejection(
                         f"stale change to {change.field}: claimed old "
@@ -1322,7 +1419,7 @@ class GroundedGm:
             values.update(
                 {
                     change.field: change.new
-                    for change in intent.changes
+                    for change in changes
                     if change.field in values
                 }
             )
@@ -1330,7 +1427,7 @@ class GroundedGm:
                 kind="ticket.updated",
                 ticket_id=intent.ticket_ref,
                 actor=sender,
-                changes=intent.changes,
+                changes=changes,
             )
             drafts.append(
                 EventDraft(
@@ -1346,7 +1443,7 @@ class GroundedGm:
                 kind="ticket.commented",
                 ticket_id=intent.ticket_ref,
                 actor=sender,
-                body=intent.comment,
+                body=self._dereference(intent.comment),
             )
             drafts.append(
                 EventDraft(
