@@ -363,6 +363,7 @@ def build(
 
         _refuse_empty_answer(answer, name)
         _refuse_leaked_rows(task, answer, name)
+        _refuse_dead_categories(task, answer, name)
 
         # An oracle the tools cannot spell is not an answer key, it is a
         # coin flip on which internal vocabulary the agent guesses. This
@@ -743,6 +744,75 @@ def _commit_oracle(
     # 0.427, which is inside the 0.2-0.8 band the tasks target. Printed
     # here so a rollout number is never read without it.
     print("  " + baselines.render(name, baselines.measure(task, answer)))
+
+
+def _refuse_dead_categories(task: Path, answer: dict, name: str) -> None:
+    """A category the brief enumerates and the world never fills.
+
+    Every dict-valued figure in these oracles is a *table the brief prints*
+    — `form_counts` has one key per row of the admitted-forms table,
+    `department_counts` one per department. A key whose count is zero means
+    the brief spent a row of a table, and a paragraph of the reader's
+    attention, on a rule this corpus never exercises. The key is then a
+    constant: an agent that never looks writes 0 and scores full marks, and
+    the rule it was meant to test is graded by nothing.
+
+    Measured instances in this tree. `deadline-week-promise-clock` prints a
+    form table whose `end of month` row matches **zero** of 2,717 mail
+    messages — `end of month`, `end of the month` and `EOM` together. And a
+    sibling firm's brief warned about the article form `end of the week`,
+    which occurred fifteen times there and *not once* here, while the bare
+    form occurred 172 times: a rule carried across worlds without being
+    re-measured admits one instance in thirty-five and scores the rest as
+    inventions.
+
+    So this refuses rather than reports, which is the opposite of
+    `degenerate()` above. A constant *row column* can be the finding —
+    sparseness is real, and few documents ever reach a client. A dead
+    *table row* cannot: the brief asserted a category exists, and it does
+    not. That is a false statement about the world, and this dataset has
+    shipped three of them.
+
+    A task that genuinely means to test whether an agent reports an empty
+    category says so, by name, in its `criteria.py`:
+
+        ALLOWED_EMPTY_KEYS = ("form_counts.end of month",)
+
+    Declared and narrow on purpose. `off-sense-register` requires every
+    form as a key "including any that no narrative in the window uses", and
+    that is a real thing to grade — once, deliberately, with the reason
+    written down.
+    """
+
+    allowed = frozenset(
+        baselines._literal_of(task / "tests" / "criteria.py", "ALLOWED_EMPTY_KEYS")
+        or ()
+    )
+    dead = [
+        f"{field}.{key}"
+        for field, value in sorted(answer.items())
+        if isinstance(value, dict)
+        for key, count in sorted(value.items())
+        if isinstance(count, (int, float)) and not count
+    ]
+    surprising = [entry for entry in dead if entry not in allowed]
+    if surprising:
+        raise SystemExit(
+            f"{name}: the brief enumerates {len(surprising)} categor"
+            f"{'y' if len(surprising) == 1 else 'ies'} the world never "
+            f"fills: {surprising}. Each one is a table row the reader is "
+            "told to apply and a key an agent scores by writing 0. Measure "
+            "the corpus and drop the row, widen it until it admits "
+            "something, or declare it in ALLOWED_EMPTY_KEYS with the reason."
+        )
+    stale = sorted(allowed - set(dead))
+    if stale:
+        # An allowance that no longer allows anything is a comment claiming
+        # a defect that has been fixed, and the next reader believes it.
+        print(
+            f"{name}: note — ALLOWED_EMPTY_KEYS still lists {stale}, which "
+            "this world does fill. Drop the allowance."
+        )
 
 
 def _refuse_empty_answer(answer: dict, name: str) -> None:
