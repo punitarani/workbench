@@ -18,6 +18,7 @@ broken task, and this is the gate that says so before it is ever run.
 """
 
 import asyncio
+import hashlib
 import json
 import re
 import shutil
@@ -252,16 +253,20 @@ def served_vocabulary(state_dir: Path) -> set[str]:
     bundle is never answered from a stale one.
     """
 
-    fingerprint = (
-        str(state_dir.resolve()),
-        tuple(
-            sorted(
-                (path.name, path.stat().st_mtime_ns) for path in state_dir.glob("*.db")
-            )
-        ),
-    )
+    fingerprint = _state_digest(state_dir)
+    if fingerprint is None:
+        # Unknown provenance: crawl, and cache nothing. This is the path a
+        # bundle with no SOURCE takes, and it must not share a key with
+        # any other bundle.
+        with tempfile.TemporaryDirectory() as scratch:
+            mirror = Path(scratch) / "state"
+            shutil.copytree(state_dir, mirror)
+            return asyncio.run(_served(mirror))
     if fingerprint not in _VOCABULARY:
         _VOCABULARY.clear()
+        if (cached := _read_cache(state_dir, fingerprint)) is not None:
+            _VOCABULARY[fingerprint] = cached
+            return cached
         # Crawled on a copy, because reading this world writes to it.
         # iManage keeps an access log and every tool call appends a row to
         # it -- a real feature of the product, and the reason the staged
@@ -273,7 +278,81 @@ def served_vocabulary(state_dir: Path) -> set[str]:
             mirror = Path(scratch) / "state"
             shutil.copytree(state_dir, mirror)
             _VOCABULARY[fingerprint] = asyncio.run(_served(mirror))
+        _write_cache(state_dir, fingerprint, _VOCABULARY[fingerprint])
     return _VOCABULARY[fingerprint]
+
+
+# The crawl is the dominant cost of a build: ~18 minutes of the ~25 a
+# single-task build takes, and it is repeated in full every time because
+# `materialize` rewrites `state/` from scratch and the in-process memo
+# dies with the process. Keyed on the *content* of the databases rather
+# than their mtimes, so a bundle rebuilt from the same world log answers
+# from the cache and a bundle rebuilt from a different one cannot.
+#
+# Hashing 16MB of SQLite costs well under a second. Getting this wrong in
+# the stale direction would be serious -- a reachability verdict from
+# another world -- which is why it is a digest of the bytes and not a
+# timestamp.
+_CACHE_NAME = ".reachability.json"
+
+
+def _state_digest(state_dir: Path) -> str | None:
+    """What this crawl's answer actually depends on: the world log.
+
+    Hashing the databases was the obvious thing and it does not work. Two
+    SQLite files holding identical rows differ byte for byte after a
+    rebuild — page layout, freelists, insertion order — so the digest
+    changed every time `materialize` ran, which is exactly and only when
+    the cache would have paid. A test caught it; the implementation looked
+    right.
+
+    The served state is a deterministic projection of one world log, so
+    the log is the honest key. `SOURCE` records which log built this
+    bundle — written by the build the moment the bundle becomes that
+    world — and hashing 47MB of JSONL costs about a fifth of a second
+    against the eighteen minutes it saves.
+
+    Returns None when the provenance is unknown, which means crawl. A
+    missing key must never be treated as a matching one.
+    """
+
+    source = state_dir.parent / "SOURCE"
+    if not source.is_file():
+        return None
+    log = Path(source.read_text(encoding="utf-8").strip())
+    if not log.is_file():
+        return None
+    digest = hashlib.sha256()
+    with log.open("rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _read_cache(state_dir: Path, fingerprint: str) -> set[str] | None:
+    path = state_dir.parent / _CACHE_NAME
+    if not path.is_file():
+        return None
+    try:
+        stored = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError:
+        return None
+    if stored.get("state") != fingerprint:
+        return None
+    values = stored.get("reachable")
+    return set(values) if isinstance(values, list) else None
+
+
+def _write_cache(state_dir: Path, fingerprint: str, reachable: set[str]) -> None:
+    path = state_dir.parent / _CACHE_NAME
+    try:
+        path.write_text(
+            json.dumps({"state": fingerprint, "reachable": sorted(reachable)}),
+            encoding="utf-8",
+        )
+    except OSError:
+        # A cache that cannot be written is a slow build, not a wrong one.
+        pass
 
 
 _VOCABULARY: dict[tuple, set[str]] = {}
