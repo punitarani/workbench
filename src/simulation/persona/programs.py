@@ -381,9 +381,12 @@ class UpdateTicket(dspy.Signature):
 
 class DraftMeeting(dspy.Signature):
     """Schedule a working meeting that accomplishes the intent. Keep it
-    short, invite only the people the situation implicates, and pick a slot
-    inside ordinary working hours near the current time. Times are seconds
-    on the simulation clock."""
+    short and invite only the people the situation implicates.
+
+    Say when it is the way you would say it out loud: `day_offset` is 0
+    for today and 1 for tomorrow, and the two clocks are wall times like
+    "14:00". Pick a slot inside ordinary working hours, near the current
+    time — the situation tells you what that is."""
 
     identity: str = dspy.InputField()
     situation: str = dspy.InputField(desc="who is involved and the current time")

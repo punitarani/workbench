@@ -235,6 +235,17 @@ def _validated_format(create: DocumentCreateSpec) -> str:
     return create.content_format
 
 
+# When a working session may begin, as seconds past midnight. A meeting at
+# 00:20 is not a meeting; two of seven persona-scheduled events in one
+# recorded day were under two thousand seconds past midnight.
+_WORKING_HOURS = (7 * 3600, 19 * 3600)
+
+
+def _clock_seconds(clock: str) -> int:
+    hours, minutes = clock.split(":")
+    return int(hours) * 3600 + int(minutes) * 60
+
+
 class GroundedGmState(BaseModel):
     minter: IdMinter
     emergent_minted: int = 0
@@ -1750,21 +1761,41 @@ class GroundedGm:
         self, entity, sender, intent: CalendarIntent, event, delay
     ) -> tuple[EventDraft, ...]:
         if intent.schedule is not None:
-            if intent.schedule.end <= intent.schedule.start:
+            # The clock arithmetic is the referee's. A persona says "in two
+            # days at 14:00"; turning that into seconds on the simulation
+            # clock is exactly the step a language model was getting wrong
+            # -- see CalendarScheduleSpec.
+            schedule = intent.schedule
+            midnight = (int(event.time) // SECONDS_PER_DAY) * SECONDS_PER_DAY
+            day = midnight + schedule.day_offset * SECONDS_PER_DAY
+            start = day + _clock_seconds(schedule.start_clock)
+            end = day + _clock_seconds(schedule.end_clock)
+            if end <= start:
                 raise IntentRejection(
-                    f"calendar event {intent.schedule.title!r} must end after it "
-                    f"starts; give it a positive duration"
+                    f"calendar event {schedule.title!r} ends at "
+                    f"{schedule.end_clock} which is not after "
+                    f"{schedule.start_clock}; give it a positive duration"
                 )
-            attendees = self._resolve_people((sender, *intent.schedule.attendee_refs))
+            if (
+                not _WORKING_HOURS[0]
+                <= _clock_seconds(schedule.start_clock)
+                <= (_WORKING_HOURS[1])
+            ):
+                raise IntentRejection(
+                    f"calendar event {schedule.title!r} starts at "
+                    f"{schedule.start_clock}; book working sessions inside "
+                    "ordinary working hours"
+                )
+            attendees = self._resolve_people((sender, *schedule.attendee_refs))
             payload = CalendarEventScheduledPayload(
                 kind="calendar.event.scheduled",
                 calendar_event_id=self._minter.mint("cal"),
                 organizer=sender,
-                title=intent.schedule.title,
-                start=intent.schedule.start,
-                end=intent.schedule.end,
+                title=schedule.title,
+                start=start,
+                end=end,
                 attendees=attendees,
-                description=intent.schedule.description,
+                description=schedule.description,
             )
             return (
                 EventDraft(

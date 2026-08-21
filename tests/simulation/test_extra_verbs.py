@@ -55,7 +55,8 @@ DECIDE_MEETING = (
 
 DRAFT_MEETING = (
     "[[ ## meeting ## ]]\n"
-    '{"title": "NDA redline walkthrough", "start": 50400, "end": 52200, '
+    '{"title": "NDA redline walkthrough", "day_offset": 0, '
+    '"start_clock": "14:00", "end_clock": "14:30", '
     '"attendee_refs": ["Jess Alvarez"], '
     '"description": "Review the Vantage redlines together."}\n\n'
     "[[ ## completed ## ]]"
@@ -119,7 +120,8 @@ async def test_schedule_meeting_routes_through_drafter() -> None:
     assert isinstance(action.intent, CalendarIntent)
     assert action.intent.schedule is not None
     assert action.intent.schedule.attendee_refs == ("Jess Alvarez",)
-    assert int(action.intent.schedule.start) == 50400
+    assert action.intent.schedule.start_clock == "14:00"
+    assert action.intent.schedule.day_offset == 0
     assert len(inner.requests) == 2
 
 
