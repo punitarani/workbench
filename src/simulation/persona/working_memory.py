@@ -54,6 +54,12 @@ class PendingItem(BaseModel):
 # view is exactly the old one, which keeps recorded prompts byte-stable.
 PENDING_CAP = 20
 
+# How far ahead an unanswered invitation still counts as outstanding work.
+# Two weeks: long enough that a meeting is real and worth answering, short
+# enough that a calendar seeded six months deep does not become somebody's
+# whole job. See `_pending_all`.
+_INVITATION_HORIZON = 14 * 86_400
+
 
 class WorkingMemoryState(BaseModel):
     event_ids: tuple[str, ...] = ()
@@ -363,8 +369,27 @@ class WorkingMemoryComponent(BaseComponent):
         #
         # Organizers are skipped — booking a meeting is not an invitation to
         # yourself — and so are meetings that have already started, because
-        # an RSVP to this morning's call is not outstanding work, it is
-        # noise that would crowd the list forever.
+        # an RSVP to this morning's call is not outstanding work.
+        #
+        # And so is anything past `_INVITATION_HORIZON`. That bound is not
+        # tidiness, it is the difference between a firm and a queue.
+        # Measured on the first three recorded days without it: the seed
+        # calendar issues 520 of its 522 meetings on day 0, spread across
+        # all 180 days, so every persona woke up holding a median of **125**
+        # unanswered invitations — 225 for the worst — against a
+        # `PENDING_CAP` of 20. They worked through it dutifully, 113 RSVPs a
+        # day where the old engine managed 14, and the turns had to come
+        # from somewhere: chat fell to 0.36x and reactions to 0.33x. A
+        # backlog of 2,017 invitations takes eighteen days to clear, so a
+        # seventh of the record would have been a firm that RSVPs and
+        # barely speaks.
+        #
+        # A fortnight is what a professional actually plans over, and the
+        # behaviour agrees: of the RSVPs personas made unbounded, 73% were
+        # to meetings within two days and 99% within a week. So this
+        # removes the backlog without removing the behaviour — median
+        # pending invitations 125 -> 7, which fits under the cap beside a
+        # person's actual mail.
         answered_events = {
             event.payload.calendar_event_id
             for event in events
@@ -378,7 +403,7 @@ class WorkingMemoryComponent(BaseComponent):
                 and self._person_id in payload.attendees
                 and payload.organizer != self._person_id
                 and payload.calendar_event_id not in answered_events
-                and int(payload.start) > now
+                and now < int(payload.start) <= now + _INVITATION_HORIZON
             ):
                 items.append(
                     PendingItem(

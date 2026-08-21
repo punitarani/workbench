@@ -26,8 +26,8 @@ fi
 : "${OPENROUTER_API_KEY:?set OPENROUTER_API_KEY (it lives in .env, which is gitignored)}"
 export OPENROUTER_API_KEY
 
-OUT=out/merrick/epoch-v3
-LOG=/tmp/merrick-epoch-v3.log
+OUT="${OUT:-out/merrick/epoch-v4}"
+LOG="/tmp/merrick-$(basename "$OUT").log"
 if [ -e "$OUT" ]; then
     echo "$OUT already exists; move it aside or pick another --out" >&2
     exit 1
@@ -35,10 +35,10 @@ fi
 
 nohup ./.venv/bin/python -u datasets/merrick/run_epoch.py start \
     --days 180 --mode record \
-    --out "$OUT" --cassette cassettes/merrick-epoch-v3 \
+    --out "$OUT" --cassette "cassettes/merrick-$(basename "$OUT")" \
     --concurrency 48 > "$LOG" 2>&1 &
 
-echo "started epoch v3 as pid $!"
+echo "started $(basename "$OUT") as pid $!"
 echo "  log        $LOG"
 echo "  telemetry  $OUT/telemetry.jsonl   (one JSON line per simulated day)"
 echo "  progress   ./.venv/bin/python datasets/merrick/run_epoch.py status --out $OUT"

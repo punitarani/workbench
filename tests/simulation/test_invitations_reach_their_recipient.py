@@ -127,3 +127,34 @@ async def test_pending_invitations_survive_a_resume() -> None:
     fresh.set_state(memory.get_state())
     fresh.rehydrate({str(e.event_id): e for e in _ordered(events)})
     assert fresh.pending_items() == memory.pending_items()
+
+
+async def test_a_meeting_months_away_is_not_outstanding_today() -> None:
+    """The bound that keeps a seeded calendar from becoming somebody's job.
+
+    Without it, measured on three recorded days: the seed calendar issues
+    520 of its 522 meetings on day 0 across all 180 days, so every persona
+    woke holding a median of 125 unanswered invitations against a
+    PENDING_CAP of 20. They answered 113 a day, and chat fell to 0.36x
+    because the turns had to come from somewhere.
+    """
+
+    memory = await _memory(
+        [_invitation("cal-000004", 90, at=36000, start=120 * 86_400)]
+    )
+    assert "cal-000004" not in {item.ref for item in memory.pending_items()}
+
+
+async def test_the_horizon_is_wide_enough_to_hold_real_meetings() -> None:
+    """A bound that admitted nothing would be the defect it replaced.
+
+    73% of the RSVPs personas made unbounded were to meetings within two
+    days and 99% within a week, so a fortnight covers what people actually
+    answer. This pins that the near case still fires — a horizon tightened
+    to three days would have made the whole capability dead again, which is
+    how this family of defect keeps coming back.
+    """
+
+    soon = 35_000 + 5 * 86_400
+    memory = await _memory([_invitation("cal-000005", 90, at=30_000, start=soon)])
+    assert "cal-000005" in {item.ref for item in memory.pending_items()}
