@@ -1,0 +1,153 @@
+{
+ "messages_read": 284,
+ "hits_total": 22,
+ "distinct_authors": 14,
+ "form_counts": {
+  "agree": 11,
+  "agreed": 11
+ },
+ "department_counts": {
+  "Client": 4,
+  "Corporate": 3,
+  "Employment": 5,
+  "Firm Management": 2,
+  "IP": 3,
+  "Litigation": 4,
+  "Practice Operations": 1
+ },
+ "top_author": "Jamal Okonkwo",
+ "hits": [
+  {
+   "ref": "1767827100.000000",
+   "author": "Bennett Ashworth",
+   "sent_date": "2026-01-07",
+   "where": "linden-pryor-trade-secret"
+  },
+  {
+   "ref": "1767827100.000001",
+   "author": "Hyun-woo Bae",
+   "sent_date": "2026-01-07",
+   "where": "linden-pryor-trade-secret"
+  },
+  {
+   "ref": "1767891900.000000",
+   "author": "Bennett Ashworth",
+   "sent_date": "2026-01-08",
+   "where": "linden-pryor-trade-secret"
+  },
+  {
+   "ref": "1767902700.000000",
+   "author": "Petra Kovacs",
+   "sent_date": "2026-01-08",
+   "where": "employment-group"
+  },
+  {
+   "ref": "1767994800.000000",
+   "author": "Klara Bendtsen",
+   "sent_date": "2026-01-09",
+   "where": "ip-technology"
+  },
+  {
+   "ref": "1768313100.000002",
+   "author": "Klara Bendtsen",
+   "sent_date": "2026-01-13",
+   "where": "ip-technology"
+  },
+  {
+   "ref": "1768404900.000003",
+   "author": "Jamal Okonkwo",
+   "sent_date": "2026-01-14",
+   "where": "docket-and-deadlines"
+  },
+  {
+   "ref": "1768404900.000008",
+   "author": "Thandiwe Mokoena",
+   "sent_date": "2026-01-14",
+   "where": "docket-and-deadlines"
+  },
+  {
+   "ref": "1768405200.000000",
+   "author": "Hyun-woo Bae",
+   "sent_date": "2026-01-14",
+   "where": "docket-and-deadlines"
+  },
+  {
+   "ref": "1768415700.000000",
+   "author": "Jamal Okonkwo",
+   "sent_date": "2026-01-14",
+   "where": "docket-and-deadlines"
+  },
+  {
+   "ref": "msg-000008",
+   "author": "Jamal Okonkwo",
+   "sent_date": "2026-01-05",
+   "where": "Re: Need guidance on planned 12% workforce reduction - defensibility concerns"
+  },
+  {
+   "ref": "msg-000010",
+   "author": "Clement Abioye",
+   "sent_date": "2026-01-05",
+   "where": "Re: Need guidance on planned 12% workforce reduction - defensibility concerns"
+  },
+  {
+   "ref": "msg-000019",
+   "author": "Teodor Vasiliev",
+   "sent_date": "2026-01-06",
+   "where": "Re: Cross-jurisdiction clinical data \u2014 investor question ahead of Series C"
+  },
+  {
+   "ref": "msg-000020",
+   "author": "Fionnuala Doherty",
+   "sent_date": "2026-01-06",
+   "where": "Re: Need guidance on planned 12% workforce reduction - defensibility concerns"
+  },
+  {
+   "ref": "msg-000029",
+   "author": "Dov Reinhardt",
+   "sent_date": "2026-01-08",
+   "where": "Re: Which diligence flags actually matter"
+  },
+  {
+   "ref": "msg-000040",
+   "author": "Teodor Vasiliev",
+   "sent_date": "2026-01-12",
+   "where": "Re: Gap in Series C disclosure schedule \u2014 collaboration agreement IP characterization"
+  },
+  {
+   "ref": "msg-000046",
+   "author": "Elena Vasquez-Reyes",
+   "sent_date": "2026-01-12",
+   "where": "RE: Gap in Series C disclosure schedule \u2014 collaboration agreement IP characterization"
+  },
+  {
+   "ref": "msg-000059",
+   "author": "Gideon Park",
+   "sent_date": "2026-01-13",
+   "where": "Re: Gap in Series C disclosure schedule - Nordholm collaboration IP bucketing"
+  },
+  {
+   "ref": "msg-000063",
+   "author": "Saoirse Mulvaney",
+   "sent_date": "2026-01-13",
+   "where": "Re: Closing this quarter \u2014 need a definitive timeline"
+  },
+  {
+   "ref": "msg-000078",
+   "author": "Elena Vasquez-Reyes",
+   "sent_date": "2026-01-14",
+   "where": "Re: Cross-Border Clinical Data Transfer Assessment - Follow-up Questions + Call This Week"
+  },
+  {
+   "ref": "msg-000084",
+   "author": "Adaora Nwosu",
+   "sent_date": "2026-01-14",
+   "where": "Re: Board needs a specific exposure number by Wednesday EOD \u2014 enforcement inquiry"
+  },
+  {
+   "ref": "msg-000086",
+   "author": "Adaora Nwosu",
+   "sent_date": "2026-01-14",
+   "where": "Re: Board needs a specific exposure number by Wednesday EOD \u2014 enforcement inquiry"
+  }
+ ]
+}
