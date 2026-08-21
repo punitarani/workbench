@@ -25,11 +25,27 @@ straight through, because both are integers larger than the one before them.
 any horizon the run could reach. Those events caused **96% of every
 scheduling conflict in the world** and killed a task built on that signal.
 
-**And the rate is rising.** Twelve working days later the same measurement
-reads **127 of 850, 14.9%**. It is not a fixed share of a growing calendar —
-the malformed events are accumulating faster than the sound ones, so a
-figure quoted from any single day understates where the finished world lands.
-Re-measure at the end rather than trusting 8% or 15%.
+**And the rate is rising, steeply.** The same measurement over time:
+
+| recorded day | malformed starts | share |
+|---|---|---|
+| 22 | 64 of 787 | 8.1% |
+| 35 | 127 of 850 | 14.9% |
+| 109 | **464 of 1,187** | **39.1%** |
+
+Nearly two calendar events in five. The malformed ones accumulate far faster
+than the sound ones, so any single day's figure understates the finished
+world badly — this note itself said "8% or 15%" while the true figure was
+heading for forty.
+
+**This is also the clearest argument for how the gate was re-aimed.** The
+first version refused any world above a 2% raw rate. At 39% it would have
+refused the build outright, with no remedy available: the writer is frozen,
+the rate only grows, and the only move left would have been deleting a gate
+under time pressure. The version that refuses on *survivors into the served
+state* passes cleanly — the projection quarantines all 464 — while the rate
+stays loud and recorded. A gate aimed at what reaches a score survives a
+defect getting worse; a gate aimed at the generator does not.
 
 The fix belongs beside the existing check and should reject rather than
 repair, with the reason in the rejection so the persona can rewrite it:
