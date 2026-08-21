@@ -253,11 +253,24 @@ class MemoryStreamComponent(BaseComponent):
             case SimGmNotePayload():
                 if payload.entity != self._entity_name:
                     return ()
+                # `guidance`, never `note`. `note` is the operator's text and
+                # carries engine diagnostics; this is a memory at importance
+                # 10, the highest the world has, so whatever goes in here is
+                # retrieved ahead of everything the person actually did. It
+                # used to be `note`, and a pydantic validation dump became
+                # the most important thing several lawyers knew.
+                #
+                # Empty guidance means the refusal was the engine's fault and
+                # there was no different thing the person could have done, so
+                # they remember nothing -- the alternative is an instruction
+                # that cannot be followed, outranking real memories forever.
+                if not payload.guidance:
+                    return ()
                 return (
                     MemoryRecord(
                         kind="rejection",
                         importance=10,
-                        gist=_clip(payload.note, 110),
+                        gist=_clip(payload.guidance, 110),
                         **base,
                     ),
                 )

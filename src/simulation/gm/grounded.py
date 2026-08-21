@@ -110,19 +110,47 @@ class IntentRejection(Exception):
     accept, so the note built from this rejection reports it as data. A
     gate three files away used to recover the same numbers by parsing the
     prose, which meant rewording a sentence silently zeroed a loss rate.
+
+    **Two audiences, two strings.** ``reason`` is read by a person inside
+    the fiction: it becomes a memory at importance 10, the highest this
+    world has, so it is retrieved ahead of everything else that person
+    knows and it shapes what they plan, write and say. ``detail`` is read
+    by whoever is running the recording. Most reasons here are already
+    written for the first audience — *"an email needs at least one
+    recipient; name them by full name as they appear in the thread"* is
+    exactly what a colleague would say. The one that was not put a
+    pydantic dump in front of a lawyer, at importance 10, every time a
+    document failed to parse; the firm read it, believed it, and spent six
+    months discussing a platform outage that never happened.
+
+    ``engine_fault`` is the other half. *"unsupported intent kind"* and
+    *"expected a typed intent, got …"* describe a programming mistake, not
+    a workplace one: there is no different thing the person could have
+    done, so telling them is not instruction, it is noise that outranks
+    their real memories. Those reach the operator and stop there.
     """
 
     def __init__(
         self,
         reason: str,
         *,
+        detail: str = "",
+        engine_fault: bool = False,
         dropped_entries: int = 0,
         unknown_refs: tuple[str, ...] = (),
     ) -> None:
-        super().__init__(reason)
+        super().__init__(" ".join(part for part in (reason, detail) if part))
         self.reason = reason
+        self.detail = detail
+        self.engine_fault = engine_fault
         self.dropped_entries = dropped_entries
         self.unknown_refs = unknown_refs
+
+    @property
+    def guidance(self) -> str:
+        """What the person is allowed to remember. Empty for engine faults."""
+
+        return "" if self.engine_fault else self.reason
 
 
 class DayPlan(BaseModel):
@@ -194,9 +222,15 @@ def _reject_unless_parsable(content_format: str, content: str, label: str) -> No
         parsed = parser(content)
     except ValueError as error:
         raise IntentRejection(
-            f"{label} declares {content_format} but its content does not "
-            f"parse as one ({error}); send the structured JSON for that "
-            f"format, or declare markdown and write prose"
+            f"{label} declares {content_format} but its content is not in "
+            f"that form; send the structured JSON for that format, or "
+            f"declare markdown and write prose",
+            # The parser's own words, for the operator. Interpolated into
+            # the reason, this read "(1 validation error for
+            # SpreadsheetContent review_note Extra inputs are not
+            # permitted)" -- and that sentence, at importance 10, is what
+            # the firm turned into "the malformed-input bug".
+            detail=str(error),
         ) from error
     # A workbook of column headings and no rows parses cleanly and is
     # empty in the only sense that matters -- `formatted` and `slides`
@@ -689,7 +723,11 @@ class GroundedGm:
         except IntentRejection as rejection:
             note = SimGmNotePayload(
                 kind="sim.gm.note",
-                note=f"Rejected action from {entity}: {rejection.reason}",
+                note=(
+                    f"Rejected action from {entity}: {rejection.reason}"
+                    + (f" [{rejection.detail}]" if rejection.detail else "")
+                ),
+                guidance=rejection.guidance,
                 rejected_intent=_intent_summary(action),
                 entity=entity,
                 dropped_entries=rejection.dropped_entries,
@@ -1022,17 +1060,24 @@ class GroundedGm:
 
     def _extract_intent(self, action: EntityAction) -> ActionIntent:
         if not isinstance(action, IntentAction):
-            raise IntentRejection(f"expected a typed intent, got {action.kind} action")
+            raise IntentRejection(
+                f"expected a typed intent, got {action.kind} action",
+                engine_fault=True,
+            )
         if isinstance(action.intent, FreeformIntent):
             raise IntentRejection(
-                f"freeform intents are not grounded yet: {action.intent.text[:80]}"
+                "freeform intents are not grounded yet",
+                detail=action.intent.text[:80],
+                engine_fault=True,
             )
         return action.intent
 
     def _person_for(self, entity: str) -> str:
         person = self._person_for_entity.get(entity)
         if person is None:
-            raise IntentRejection(f"entity {entity} has no person record")
+            raise IntentRejection(
+            f"entity {entity} has no person record", engine_fault=True
+        )
         return person
 
     @staticmethod
@@ -1227,7 +1272,9 @@ class GroundedGm:
             case MeetingSpeakIntent():
                 return self._ground_meeting_speak(entity, intent, event, delay)
             case _:
-                raise IntentRejection(f"unsupported intent kind {intent.kind}")
+                raise IntentRejection(
+                    f"unsupported intent kind {intent.kind}", engine_fault=True
+                )
 
     _MEDIA_TYPES = {
         "markdown": ("md", "text/markdown"),
@@ -1442,7 +1489,9 @@ class GroundedGm:
             return tuple(drafts)
 
         if intent.ticket_ref is None:
-            raise IntentRejection("ticket intent needs a ticket_ref or create spec")
+            raise IntentRejection(
+                "ticket intent needs a ticket_ref or create spec", engine_fault=True
+            )
         values = self._world.tickets.get(intent.ticket_ref)
         if values is None:
             raise IntentRejection(f"unknown ticket {intent.ticket_ref!r}")
@@ -1480,8 +1529,9 @@ class GroundedGm:
             for change in changes:
                 if change.field in values and values[change.field] != change.old:
                     raise IntentRejection(
-                        f"stale change to {change.field}: claimed old "
-                        f"{change.old!r}, actual {values[change.field]!r}"
+                        f"{change.field} has moved on since you last "
+                        f"looked — it reads {values[change.field]}, not "
+                        f"{change.old}; check it and make the change again"
                     )
                 if change.field == "status" and change.new not in self._vocab.statuses:
                     raise IntentRejection(f"unknown ticket status {change.new!r}")
@@ -1543,7 +1593,10 @@ class GroundedGm:
                 )
             )
         if not drafts:
-            raise IntentRejection("ticket intent had no changes and no comment")
+            raise IntentRejection(
+                "that update changes nothing and carries no note; say what "
+                "moved, or leave a comment saying why nothing did"
+            )
         return tuple(drafts)
 
     def _ground_document(
@@ -1616,7 +1669,8 @@ class GroundedGm:
         else:
             if intent.document_ref is None or intent.edit is None:
                 raise IntentRejection(
-                    "document intent needs a document_ref and edit, or a create spec"
+                    "document intent needs a document_ref and edit, or a create spec",
+                    engine_fault=True,
                 )
             document_id = self._world.resolve_document(intent.document_ref)
             if document_id is None:
@@ -1756,8 +1810,9 @@ class GroundedGm:
             # the worse the structural gap, the likelier a persona has no
             # valid code at all, so the more of the loss disappeared.
             raise IntentRejection(
-                f"none of these engagements exist: {sorted(set(unknown))}; log "
-                "time against the ids on your own engagement list",
+                "none of these engagements exist: "
+                + ", ".join(sorted(set(unknown)))
+                + "; log time against the ones on your own engagement list",
                 dropped_entries=len(unknown),
                 unknown_refs=tuple(sorted(set(unknown))),
             )
@@ -1833,7 +1888,9 @@ class GroundedGm:
                 ),
             )
         if intent.respond is None:
-            raise IntentRejection("calendar intent needs a schedule or a response")
+            raise IntentRejection(
+                "calendar intent needs a schedule or a response", engine_fault=True
+            )
         if intent.respond.calendar_event_ref not in self._world.calendar_events:
             # Every other surface rejects an id it has never issued; without
             # this one, an invented cal- ref became a response event and the
@@ -1878,6 +1935,7 @@ class GroundedGm:
             day=intent.day,
             bullets=bullets,
             open_loops=intent.open_loops,
+            engine_detail=intent.engine_detail,
         )
         return (
             EventDraft(
@@ -1903,7 +1961,9 @@ class GroundedGm:
             clamped.append(block.model_copy(update={"start": start, "end": end}))
             previous_end = end
         if not clamped:
-            raise IntentRejection("plan has no blocks inside the working day")
+            raise IntentRejection(
+                "nothing in that plan falls inside the working day"
+            )
         key = f"{entity}|{intent.day}"
         revision = self._world.plan_revisions.get(key, 0) + 1
         payload = SimAgentPlanPayload(

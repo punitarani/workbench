@@ -387,7 +387,15 @@ PINS: tuple[Pin, ...] = (
             "rates are dollars per hour",
             "recorded against the individual entry",
             "an entry's fee is the rate on that entry times that entry's hours",
-            "fees are per entry, not per person and not per matter",
+            # Was "fees are per entry, not per person and not per matter",
+            # which the brief said and this world did not support: of the
+            # 19 timekeepers carrying a rate, *none* carries two, so
+            # totalling a person's hours and multiplying once gives
+            # exactly the right answer. The brief went further and told
+            # the reader the two methods differ, which was false. Cut to
+            # what is true here; see the task note about making rates vary
+            # by engagement, which would earn the paragraph back.
+            "charge each entry at the rate that entry carries",
         ),
     ),
     Pin(

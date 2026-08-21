@@ -350,6 +350,44 @@ class WorkingMemoryComponent(BaseComponent):
                         age_minutes=max(0, (now - last_time) // 60),
                     )
                 )
+        # An invitation nobody has answered.
+        #
+        # `respond_invite` is a verb, `CalendarResponseSpec` is a schema and
+        # the referee grounds both — and until now nothing ever put an
+        # unanswered invitation in front of the person it was sent to. The
+        # only replies that happened came from personas who stumbled on the
+        # meeting through memory retrieval, which is why a corrected-engine
+        # pilot answered 187 of 2,765 invitations: 93% unanswered, and one
+        # decline in the whole record. A diary where nobody ever says no is
+        # not a diary anyone can ask questions about.
+        #
+        # Organizers are skipped — booking a meeting is not an invitation to
+        # yourself — and so are meetings that have already started, because
+        # an RSVP to this morning's call is not outstanding work, it is
+        # noise that would crowd the list forever.
+        answered_events = {
+            event.payload.calendar_event_id
+            for event in events
+            if isinstance(event.payload, CalendarResponsePayload)
+            and event.payload.responder == self._person_id
+        }
+        for event in events:
+            payload = event.payload
+            if (
+                isinstance(payload, CalendarEventScheduledPayload)
+                and self._person_id in payload.attendees
+                and payload.organizer != self._person_id
+                and payload.calendar_event_id not in answered_events
+                and int(payload.start) > now
+            ):
+                items.append(
+                    PendingItem(
+                        ref=payload.calendar_event_id,
+                        channel="invitation",
+                        summary=payload.title,
+                        age_minutes=max(0, (now - int(event.time)) // 60),
+                    )
+                )
         return tuple(items)
 
     def retrieval_refs(self) -> frozenset[str]:

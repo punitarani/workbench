@@ -37,6 +37,13 @@ class SimAgentMemoryPayload(Payload):
     day: str
     bullets: tuple[MemoryBullet, ...] = Field(min_length=1)
     open_loops: tuple[str, ...] = ()
+    # An engine diagnostic about *this* note, for whoever is reading the
+    # run — never for the persona. Optional and defaulted so recorded
+    # cassettes replay unchanged. `memory_stream` renders `bullets` and
+    # only `bullets`, which is the whole point: the text that made the
+    # firm invent a document-management outage was engine text sitting in
+    # a field a persona reads.
+    engine_detail: str = ""
 
 
 class SimAgentPlanPayload(Payload):
