@@ -48,13 +48,23 @@ async def _stream(events: list[Event]) -> MemoryStreamComponent:
 
 
 async def test_fold_importance_rules() -> None:
+    # `guidance` is what the persona is allowed to remember; `note` is the
+    # operator's text and is never rendered. A note carrying no guidance
+    # makes no memory at all -- see
+    # tests/simulation/test_engine_failures_are_not_world_data.py, and the
+    # firm that spent six months discussing an engine bug it had been told
+    # about at importance 10.
     note = SimGmNotePayload(
         kind="sim.gm.note",
         note="Rejected action from daniel: unknown thread",
+        guidance="that thread is not one of yours; reply on one you are on",
         entity=MY_ENTITY,
     )
     other_note = SimGmNotePayload(
-        kind="sim.gm.note", note="Rejected action from tom: x", entity="tom"
+        kind="sim.gm.note",
+        note="Rejected action from tom: x",
+        guidance="x",
+        entity="tom",
     )
     chat = ChatMessagePayload(
         kind="chat.message",

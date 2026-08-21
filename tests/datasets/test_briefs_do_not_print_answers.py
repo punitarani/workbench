@@ -27,7 +27,6 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[2]
 TASKS = REPO / "datasets" / "merrick" / "tasks"
-sys.path.insert(0, str(REPO / "datasets" / "merrick"))
 
 
 def _built() -> list[str]:
@@ -49,7 +48,9 @@ def test_there_are_built_tasks_to_check() -> None:
 
 @pytest.mark.parametrize("task", BUILT)
 def test_the_brief_names_no_scoring_row(task: str) -> None:
-    import build_tasks
+    from dataset_modules import merrick_build_tasks
+
+    build_tasks = merrick_build_tasks()
 
     path = TASKS / task
     answer = json.loads((path / "tests" / "oracle.json").read_text())
@@ -60,7 +61,9 @@ def test_the_check_catches_a_leak(tmp_path: Path) -> None:
     """Guard the guard. Every real brief passing proves nothing unless a
     brief that leaks is refused."""
 
-    import build_tasks
+    from dataset_modules import merrick_build_tasks
+
+    build_tasks = merrick_build_tasks()
 
     task = tmp_path / "leaky"
     (task / "tests").mkdir(parents=True)
@@ -77,7 +80,9 @@ def test_the_check_catches_a_leak(tmp_path: Path) -> None:
 
 
 def test_a_brief_that_names_nothing_real_passes(tmp_path: Path) -> None:
-    import build_tasks
+    from dataset_modules import merrick_build_tasks
+
+    build_tasks = merrick_build_tasks()
 
     task = tmp_path / "clean"
     (task / "tests").mkdir(parents=True)
@@ -104,7 +109,9 @@ def test_a_bare_integer_key_is_not_evidence(tmp_path: Path) -> None:
     one of which appears in any prose of any length. Reporting them would
     have sent somebody rewriting good briefs."""
 
-    import build_tasks
+    from dataset_modules import merrick_build_tasks
+
+    build_tasks = merrick_build_tasks()
 
     task = _task(
         tmp_path,
@@ -122,7 +129,9 @@ def test_one_half_of_a_composite_key_is_not_a_row(tmp_path: Path) -> None:
     that string is the one the brief must print to explain the join the
     task is about."""
 
-    import build_tasks
+    from dataset_modules import merrick_build_tasks
+
+    build_tasks = merrick_build_tasks()
 
     task = _task(
         tmp_path,
@@ -147,7 +156,9 @@ def test_a_whole_composite_key_on_one_line_is_a_leak(tmp_path: Path) -> None:
     """The other direction, or the fix above would simply switch composite
     keys off."""
 
-    import build_tasks
+    from dataset_modules import merrick_build_tasks
+
+    build_tasks = merrick_build_tasks()
 
     task = _task(
         tmp_path,

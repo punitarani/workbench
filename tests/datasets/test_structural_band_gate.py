@@ -29,15 +29,9 @@ def _gate():
     a broken gate forever.
     """
 
-    import sys
-    from pathlib import Path
+    from dataset_modules import merrick_build_tasks
 
-    sys.path.insert(
-        0, str(Path(__file__).resolve().parents[2] / "datasets" / "merrick")
-    )
-    import build_tasks
-
-    return build_tasks._structural_absences
+    return merrick_build_tasks()._structural_absences
 
 
 BAND = Band(label="DM share", surface="chat", min=0.15, max=0.35)
