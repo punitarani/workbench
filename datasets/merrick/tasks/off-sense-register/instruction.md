@@ -71,9 +71,20 @@ it is settled here: inside a longer *phrase* is a hit; inside a longer
 
 Nothing else counts, and that cuts two ways.
 
-**No other ending counts.** *agreement* alone appears in thirty-five of this window's messages, and twenty-eight of those carry no admitted form at all; *agreements* appears in nine, eight of them likewise. Not one makes a row. **The excluded form outnumbers the answer**: a reader who stems to `agree-` gains thirty-six rows against a register of twenty-two, and more than half of what they report is not the term. `disagree` is a longer word rather than a phrase, so it carries nothing.
+**No other ending counts.** *agreement* alone appears in thirty-five of
+this window's messages, and twenty-eight of those carry no admitted
+form at all; *agreements* appears in nine, eight of them likewise. Not
+one of them makes a row. A reader who stems to `agree-` would take on
+thirty-six messages that are not the term, which is more than this
+register contains — so the mistake does not shade the answer, it
+swamps it. `disagree` is a longer word rather than a phrase, so it
+carries nothing either.
 
-**No synonym counts.** The firm also writes *sign* — twenty messages, seventeen of which never carry either admitted form — and *signed*, in eighteen, fourteen likewise; *align* in two and *consent* in one. Every one of those messages stays out. The term is the term, not the idea behind it.
+**No synonym counts.** The firm also writes *sign* — twenty messages,
+seventeen of which never carry either admitted form — and *signed*, in
+eighteen, fourteen likewise; *align* in two and *consent* in one. Every
+one of those messages stays out. The term is the term, not the idea
+behind it.
 
 **One row per message**, however many times either form appears in it. For
 `form_counts`, a message carrying both forms counts once, under `agree`.
