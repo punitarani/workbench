@@ -13,7 +13,7 @@ not what the matches are about. Whether a message is responsive is somebody
 else's decision, made later, from this list. Your job is the list the term
 produces on its face, and it is only worth having if it is exactly that.
 
-The term is **one word in two admitted forms**: «FORM_A» and «FORM_B».
+The term is **one word in two admitted forms**: file and filed.
 That is the whole term — no stem, no wildcard, no synonym, no other
 ending.
 
@@ -22,16 +22,8 @@ The firm's systems are available through tools: **gmail**, **slack**,
 
 ## The window
 
-Report only messages sent **on or before «MEASURE: the last day of the
-window, as a weekday and a date — e.g. "Friday 16 January 2026". Choose it
-so the register carries at least 12 rows and the reader's load stays near
-the 213 messages the in-band ashgrove task settled on; measure both with
-`measure_candidates.py --days N` before writing it here.»** — the firm's
-first «MEASURE: how many working days that window is: the weekdays from the
-record's first day to the boundary above, inclusive. This is *not* the
-`--days` figure `measure_candidates.py` takes and *not* the offset
-`solve.py` holds — both of those count calendar days, and the two numbers
-differ by every weekend inside the window.» working days. A message sent
+Report only messages sent **on or before Thursday 22 January 2026** — the firm's
+first 14 working days. A message sent
 after that makes no row here, however squarely the term hits it.
 
 Which side of that boundary a message falls on is decided by its date in
@@ -55,41 +47,32 @@ case-insensitively, anywhere in the text:
 
 | form | matches |
 |---|---|
-| `«FORM_A»` | the word *«FORM_A»* |
-| `«FORM_B»` | the word *«FORM_B»* |
+| `file` | the word *file* |
+| `filed` | the word *filed* |
 
 **The test is textual, not editorial.** A message counts when the word is
 in it, whatever the sentence is doing with it — reporting, asking,
 promising, quoting a document, or using the word for something with no
-bearing on the firm's work at all. «MEASURE: two short real examples from
-the window, one squarely on the term's own subject and one plainly off it,
-both quoting the corpus rather than an invented sentence.» Both contain the
+bearing on the firm's work at all. For instance, *"how fast can we file for a TRO if he's already shopping this to someone"* is squarely about an act of filing, and *"Pull his file and confirm"* is about a folder in a cabinet. Both contain the
 word and both are hits. Do not weigh up whether the message is about the
 thing the term was written to find.
 
 **A form counts only when it stands as its own word.** Letters, digits and
 the underscore continue a word; every other character ends one. So a
 hyphenated compound is two words and the form inside it counts —
-`re-«FORM_B»` carries «FORM_B» — while a longer word that merely contains
+`re-filed` carries filed — while a longer word that merely contains
 the letters does not. This is a separate question from the one above, and
 it is settled here: inside a longer *phrase* is a hit; inside a longer
 *word* is not.
 
 Nothing else counts, and that cuts two ways.
 
-**No other ending counts.** «MEASURE: the inflections and derived forms of
-this family that the window actually contains — with the count of each —
-and a sentence naming them as excluded, in the manner of "*completion*
-alone appears fifty times". Take the list and the counts from
-`measure_candidates.py`; do not guess which endings a law firm writes.»
+**No other ending counts.** *filing* alone appears in thirty of this window's messages, and twenty-one of those carry no admitted form at all; *filings* appears in two, and *files* in one. Not one of them makes a row. A reader who stems to `fil-` gains twenty-two rows that do not belong to the term.
 
-**No synonym counts.** «MEASURE: the synonyms the firm's traffic actually
-uses for this idea, with a count of the messages that carry one and never
-carry either admitted form. Name them, and say that every one of those
-messages stays out.»
+**No synonym counts.** The firm also writes *docket* — eleven messages, seven of which never carry either admitted form — and *served*, in three, two of them likewise. Every one of those messages stays out. The term is the term, not the idea behind it.
 
 **One row per message**, however many times either form appears in it. For
-`form_counts`, a message carrying both forms counts once, under `«FORM_A»`.
+`form_counts`, a message carrying both forms counts once, under `file`.
 
 ## What to produce
 
@@ -106,15 +89,7 @@ fields. Every figure is a count of **messages**, never of occurrences.
 - `department_counts` — an object with **one key per department the
   directory records**, each mapped to how many rows were written by people
   in it. Every key appears every time, including the ones at zero. The keys
-  are exactly, and in this spelling: «MEASURE: enumerate the exact
-  department strings the served directory records, one per line, spelled and
-  capitalised as the directory spells them. The cast as written carries
-  seven — Client, Corporate, Employment, Firm Management, IP, Litigation,
-  Practice Operations — six practice groups plus the one category every
-  outsider in the cast belongs to. Confirm that against the built state
-  rather than copying it: a correspondent at an opposing firm, a court or a
-  vendor would add a key, and a roster that is short by one loses those rows
-  silently while every other key still reads right.»
+  are exactly, and in this spelling: `Client`, `Corporate`, `Employment`, `Firm Management`, `IP`, `Litigation`, `Practice Operations`
 - `top_author` — the person on the most rows, written the way `author`
   writes them: the full name, never an id. Break a tie alphabetically by
   full name, earlier first.

@@ -189,7 +189,7 @@ def transcribed_last_day() -> str:
     the same day back off the brief and refuses if the two differ.
     """
 
-    return measure("the same boundary instruction.md states, as YYYY-MM-DD")
+    return "2026-01-22"
 
 
 # --- reading the brief ---------------------------------------------------

@@ -45,6 +45,30 @@ STATE = Path(os.environ.get("WORKBENCH_STATE", "out/merrick/bundle/state"))
 _ENDINGS = ("", "d", "ed", "s", "es", "ing", "ings", "ment", "ments", "ation", "ations")
 
 
+def _inflections(stem: str) -> list[str]:
+    """Every form of `stem` a reader might meet, spelled as English spells it.
+
+    Concatenating endings is not enough, and the gap is not academic. For
+    the stem `file` it produces `fileing`, which occurs nowhere, and never
+    produces `filing`, which occurs in **407 messages** — the single
+    largest over-admission trap in the corpus. Measured with the naive
+    list, the same window reported one excluded inflection carrying one
+    message, and a brief written from that would have told the agent the
+    trap was negligible.
+
+    So a stem ending in a silent `e` drops it before a vowel-initial
+    ending, which is the rule that makes `file` -> `filing` and
+    `resolve` -> `resolving`.
+    """
+
+    forms = {stem + ending for ending in _ENDINGS}
+    if stem.endswith("e"):
+        forms |= {
+            stem[:-1] + ending for ending in _ENDINGS if ending and ending[0] in "aeiou"
+        }
+    return sorted(forms)
+
+
 def _bodies(surface: str, window_end: int | None) -> list[tuple[str, str]]:
     path = STATE / f"{surface}.db"
     if not path.is_file():
@@ -121,8 +145,7 @@ def main(argv: list[str] | None = None) -> int:
 
     stem = args.stem or args.form_a
     print("\nexcluded inflections — each one an over-admission trap")
-    for ending in _ENDINGS:
-        form = stem + ending
+    for form in _inflections(stem):
         if form.lower() in {args.form_a.lower(), args.form_b.lower()}:
             continue
         rx = _word(form)
