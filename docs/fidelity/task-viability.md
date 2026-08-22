@@ -1368,3 +1368,36 @@ about half of one form and none of the other, which is exactly the split
 `off-sense-register` gets from `agree`/`agreed` in mail, reproduced in a
 corpus that needed its own measurement rather than the mail figures carried
 across.
+
+## The window is set by what an agent can finish, not by what the corpus holds
+
+Nine trials across three probes, all at days 42–88 — 143 standing meetings,
+726 turns, 53,960 words — and **not one wrote a deliverable**. The only
+trial that ever finished was the very first, under the *less precise* brief,
+and that is the clue: a vague brief makes an agent guess and stop early; a
+precise one makes it calibrate, and calibration is what ran out of time.
+Making the brief better made the task longer.
+
+Raising the budget from 3600s to 5400s did not fix it, and lowering
+concurrency from k=3 to k=1 roughly doubled throughput without closing the
+gap. So the window is the thing that has to move.
+
+Re-measured, the alternatives on the same record:
+
+    window        mtgs   words   rows  sup%  floor
+    days 42-88     143  53,960     33   61%   12%
+    days 42-81     123  46,471     30   57%   20%
+    days 49-74      83  31,539     25   52%   16%
+    days 42-67      80  29,706     24   46%   17%
+
+**Days 49–74 ships** — Monday 23 February to Friday 20 March, 20 working
+days. It costs 8 rows and 9 points of supersession against the largest
+window, and buys back 42% of the reading. Every screen still passes: 25 rows
+over a floor of 12, 52% supersession over a floor of 15%, 31,539 words under
+a ceiling of 60,000, and a guessing floor of 16%.
+
+**The general point, and it is not about this task.** A window sized by what
+the corpus can support is sized by the wrong constraint. The binding one is
+what a careful agent can *finish* — and that is not knowable from the
+corpus, only from a probe. Three probes and nine trials bought this number;
+no amount of reading the transcripts would have.
