@@ -1450,3 +1450,39 @@ rows keyed differently would have out-weighed the 8 correct ones — wiping
 out, on a criterion worth 3 of 11, an answer that got a third of the
 register exactly right. That would have read as 0.29 instead of 0.40, and
 the difference is entirely arithmetic rather than comprehension.
+
+## The task discriminates on tool strategy, not only on reading
+
+`glm-5.2`, same window, same brief, same 5400s. It read the corpus a
+different way, and the difference is stark:
+
+    model      shell calls   MCP tool calls   output      deliverable
+    opus-5          56-72             2-4     1.28 MB     written
+    glm-5.2             0             448     2.30 MB     none
+
+**Opus dumps the window with the shell and spends its budget on judgement.
+glm pages the same 83 meetings one transcript at a time through the MCP
+tools and spends its budget on retrieval.** That is why its log is nearly
+twice the size while containing less work: most of those bytes are
+transcript payloads coming back through the tool boundary, one call at a
+time, 448 times.
+
+It never wrote a register.
+
+This is worth separating from "glm is weaker at reading", which the run does
+not show. What it shows is a strategy difference with an enormous cost
+attached, on a corpus that is 31,539 words — small enough to hold, large
+enough that fetching it a piece at a time consumes an hour and a half.
+
+**Whether that is difficulty or an artefact is a fair question**, and the
+answer here is that it is the task working as designed. The environment
+gives every model the same shell and the same tools; the brief names
+neither. Choosing how to get 83 transcripts in front of yourself *is* part
+of the work, and a model that spends its whole budget on retrieval has made
+a real mistake about a real trade-off, not been tripped by a harness quirk.
+Both models had 5400 seconds and the same corpus.
+
+It does mean a score of 0.00 here should be read as **"never got to the
+question"**, not as "answered it badly" — and the two are worth reporting
+separately, because a suite that cannot tell them apart will retire a task
+for being too hard when it is really too slow to reach.
