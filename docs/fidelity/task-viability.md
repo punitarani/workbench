@@ -589,3 +589,37 @@ rather than the measured one.
 `body ends with the question mark` matches nothing in this corpus. It is
 recorded so the next person does not re-derive it: people ask a question
 and then keep writing.
+
+#### The email fix may kill this task rather than rescue it
+
+The dump floor above is high because 53% of questions go unanswered, and
+that rate is substantially engine failure: 48.5% of question-bearing
+threads lost a reply to the recipient refusal. The obvious inference is
+that fixing replies fixes the task. Measured on a four-day pilot of the
+fixed engine, against the *same four days* of the unfixed one:
+
+| same 4 days | emails | questions | answered within 3 working days | unanswered |
+|---|---|---|---|---|
+| old engine | 16 | 8 | 6 | **25%** |
+| fixed engine | 47 | 17 | 17 | **0%** |
+
+Every question answered. A register of unanswered questions over that world
+has **no rows**.
+
+**Read both numbers as early-window, not as the world's rate.** The unfixed
+world reads 25% unanswered at four days and 53% at forty-three: the rate
+climbs as a backlog accumulates, so a four-day figure is not comparable to
+a forty-three-day one, and the pilot's 0% will not stay 0%. Seventeen
+questions is also a very small sample.
+
+What this does establish is the *direction*, and it is the opposite of the
+comfortable assumption: the fix does not move this task's base rate toward
+a healthy middle, it moves it toward zero. The task may be unviable on both
+worlds for opposite reasons — too many artefact rows on the unfixed one,
+too few real ones on the fixed one.
+
+So do not treat "re-record with the email fix" as the repair for this task.
+Measure the unanswered rate on the finished record at the window actually
+chosen, and if it lands near zero, the task retires on the same evidence
+that retired the other three — the corpus does not carry the thing it
+grades.
