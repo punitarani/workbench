@@ -1230,3 +1230,43 @@ brief looking like a fact about this firm.
 Retire it, or re-found it on a mechanism this world has. It is the fourth
 task in this dataset to be retired for producing 0–5 rows, and every one of
 them was caught by measuring the premise rather than by running the task.
+
+## The staged tasks, premises measured — and two I nearly retired wrongly
+
+Six tasks are staged with unfilled placeholders. Their premises, measured on
+the finished v6 record before anyone fills anything:
+
+    task                          material                       verdict
+    double-booked-week            5 clashes in 69 working days   DEAD
+    court-clock-computation       195 interval-bearing messages  viable
+    one-sentence-two-dates        100 two-date sentences         viable
+    deadline-week-promise-clock   133 promise+deadline emails    thin
+    unanswered-question-register  34.5% unanswered on v7         viable
+    prebill-narrative-screen      structured; not at risk        —
+
+`deadline-week-promise-clock` is thin rather than dead: 133 over 68 days is
+about 10 a week, under the twelve-row floor for the one-week window its
+brief describes. Two weeks clears it.
+
+**And the part worth writing down is that I got two of these wrong first.**
+
+My first screen for `one-sentence-two-dates` matched only calendar dates —
+`March 14`, `3/14` — and returned **zero** sentences carrying two. I was one
+commit away from retiring the task. Widened to what this firm actually
+writes, which is weekdays and relative forms, it returns **100**:
+
+> "I'm free tomorrow after 2:00 or Thursday before 11:00"
+
+The same happened to `court-clock-computation`: a narrow interval pattern
+found 12 messages, a fair one finds 195.
+
+This is the gate-drift defect from the other side. A screen whose pattern is
+narrower than the corpus's vocabulary reports material as *absent*, and
+absence is the verdict nobody argues with — it retires a task quietly and
+looks like diligence. The rule that catches it is the one already applied to
+`live-commitment-register`'s deadline table: **before believing a screen
+that says nothing is there, check what the corpus writes instead.**
+
+`double-booked-week` survives that check and stays dead, because its
+measurement is not a pattern match at all: two events clash when their time
+ranges overlap, which is arithmetic. Five is five.
