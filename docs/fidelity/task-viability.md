@@ -1531,3 +1531,58 @@ every turn that satisfies it in the time available.
 against 31. It is graded exact, and it is the one figure that cannot be
 reached without crossing meetings — which is the mechanism this task exists
 to grade.
+
+## The oracle was wrong and the models were right
+
+The most important result of the probe sequence, and it came from checking
+the misses instead of banking the score.
+
+`failure_analysis` flagged the pattern: *missing rows with none invented
+often means a filter the instruction states differently from the oracle*.
+Both models under-reported heavily — 17 and 10 rows against 25 — and
+neither invented one. Reading the nine rows Opus never found settled it:
+
+> **Ingrid** — *"the second I get a timestamped response from their counsel
+> I'll log it straight into the tracker"*. A real promise, conditional on an
+> external event, with no date of its own. The `EOD tomorrow` sat two
+> sentences away, describing a checkpoint.
+>
+> **Thandiwe** — *"Position Statement review, owner Jamal, due EOD tomorrow
+> ... I'll circulate the updated Master Docket Report"*. The docket manager
+> reciting somebody else's deadline beside an undated promise of her own.
+>
+> **Gideon** — *"if it's still open Wednesday EOD, flag me directly and I'll
+> make the call"*. The date is the condition, not the deadline.
+
+**Eight of twenty-five oracle rows were of this kind, and both models
+declined all of them.** The row count under a sentence-scoped rule is 17 —
+exactly what Opus submitted.
+
+**It is the defect that retired this task's first design, one conjunct
+over.** I removed the matter column because "which piece of work a promise
+is about" is clause-scoped while speaker and deadline are turn-scoped — and
+then left owner and deadline paired at turn scope, where they are *both*
+present but not necessarily *together*. Both being properties of a turn does
+not make their pairing one.
+
+### What the score actually is
+
+    against the oracle at each stage of my own fixing
+      ambiguous brief, turn-scoped, broken row_fields   0.347
+      brief fixed, row_fields fixed, still turn-scoped  0.40
+      sentence-scoped                                   0.495
+      sentence-scoped + the full compound table         0.529
+
+`row_f1` 0.588, 10 of 17 rows exact, `superseded_count` 22 against 15.
+**0.529 is the honest number** and the earlier ones were measurements of my
+own artefacts. It is still inside the band, and it still loses where the
+design intends: the reading is perfect and the date resolution is not.
+
+### Two more compounds, found by the same test
+
+Fixing the rule surfaced two more forms the table did not know, both naming
+one day and both resolving a day early without it: **`tomorrow EOD`** (27
+turns) and **`<weekday> EOD`** (6). With `EOD tomorrow` at 79 turns, the
+compound family is 112 turns — a quarter of everything the register grades.
+Order is the rule: every compound, in either direction, ahead of either
+part.

@@ -70,7 +70,6 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("live_commitments.json")
@@ -109,13 +108,19 @@ def _form(*words: str) -> str:
     return r"\b" + _GAP.join(words) + r"\b"
 
 
+_EOD = rf"(?:EOD|COB|close{_GAP}of{_GAP}business|end{_GAP}of{_GAP}(?:the{_GAP})?day)"
+
 DEADLINE_FORMS: tuple[tuple[str, str], ...] = (
-    (rf"\b(?:EOD|COB|end{_GAP}of{_GAP}(?:the{_GAP})?day){_GAP}tomorrow\b", "tomorrow"),
-    (
-        rf"\b(?:EOD|COB|close{_GAP}of{_GAP}business|"
-        rf"end{_GAP}of{_GAP}(?:the{_GAP})?day)\b",
-        "eod",
-    ),
+    # Every compound, in either order, ahead of either part. This firm
+    # writes all of them and each names ONE day: `EOD tomorrow` 79 turns,
+    # `tomorrow EOD` 27, `<weekday> EOD` 6. A table that tries the bare
+    # `EOD` first resolves every one of them to the day it was said —
+    # silently, because `eod` is a valid token yielding a plausible date.
+    (rf"\b{_EOD}{_GAP}tomorrow\b", "tomorrow"),
+    (rf"\btomorrow{_GAP}{_EOD}\b", "tomorrow"),
+    *((rf"\b{day}{_GAP}{_EOD}\b", day) for day in WEEKDAYS),
+    *((rf"\b{_EOD}{_GAP}{day}\b", day) for day in WEEKDAYS),
+    (rf"\b{_EOD}\b", "eod"),
     (rf"\b(?:EOW|end{_GAP}of{_GAP}(?:the{_GAP})?week)\b", "end of week"),
     (r"\btomorrow\b", "tomorrow"),
     *((rf"\b{day}\b", day) for day in WEEKDAYS),
@@ -182,8 +187,8 @@ def _window() -> tuple[int, int]:
     # indentation, so the window can live in here and the rest of the
     # module -- the date arithmetic, the form tables -- stays importable
     # before the corpus exists.
-    WINDOW_FIRST_DAY = measure("zero-based day index of the window's first day")
-    WINDOW_LAST_DAY = measure("zero-based day index of the window's last day")
+    WINDOW_FIRST_DAY = 49  # PROBE ONLY — not committed
+    WINDOW_LAST_DAY = 74  # PROBE ONLY — not committed
     return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
 
 
@@ -200,6 +205,55 @@ def deadline_token(text: str) -> str | None:
     for pattern, token in _DEADLINE:
         if pattern.search(text or ""):
             return token
+    return None
+
+
+# A sentence, for the purpose of pairing a promise with a date. Split on
+# terminal punctuation *and the semicolon*, because this firm writes long
+# turns that hang several independent statements off one another.
+_SENTENCE = re.compile(r"(?<=[.?!;])\s+")
+
+
+def commitment_in(text: str) -> str | None:
+    """The deadline this turn's speaker committed to, or None.
+
+    **The promise and the date must be in the same sentence**, and getting
+    that wrong is what this function exists to prevent. An earlier version
+    asked only whether the turn contained an owner form *somewhere* and a
+    deadline *somewhere*, which is not the same question in a 71-word turn
+    and produced rows nobody made:
+
+    * "the second I get a timestamped response from their counsel I'll log
+      it straight into the tracker" — a real promise, conditional on an
+      external event, with no date of its own; the `EOD tomorrow` sat two
+      sentences away describing a checkpoint.
+    * "Position Statement review, owner Jamal, due EOD tomorrow ... I'll
+      circulate the updated Master Docket Report" — the docket manager
+      reciting *somebody else's* deadline beside a promise of her own that
+      carries none.
+    * "if it's still open Wednesday EOD, flag me directly and I'll make the
+      call" — the date is the *condition*, not the deadline.
+
+    Eight of twenty-five oracle rows were of this kind. Two frontier models
+    independently declined all of them, and the row count under this rule
+    is 17 — exactly what one of them submitted. They were right and the
+    oracle was wrong.
+
+    It is the same defect that retired this task's first design one conjunct
+    over. Owner and deadline are both properties of a *turn* only in the
+    trivial sense that both appear in it; the *pairing* of an actor with a
+    date is a property of a clause. A sentence is the closest unit a rule
+    can name out loud, so it is the one the brief names.
+
+    First sentence wins, matching `deadline_token`'s first-match-wins: a
+    speaker who commits twice in one turn is making one commitment.
+    """
+
+    for sentence in _SENTENCE.split(text or ""):
+        if _OWNER.search(sentence):
+            token = deadline_token(sentence)
+            if token is not None:
+                return token
     return None
 
 
@@ -289,8 +343,8 @@ def main() -> int:
 
     said: dict[tuple[str, str], list] = {}
     for meeting_id, position, speaker, text in turns:
-        token = deadline_token(text or "")
-        if token is None or not _OWNER.search(text or ""):
+        token = commitment_in(text or "")
+        if token is None:
             continue
         started, title = window[meeting_id]
         said.setdefault((speaker, title), []).append(

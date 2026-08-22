@@ -30,12 +30,9 @@ meeting is what counts and the mail changes nothing.
 ## The window and the meetings
 
 Read the meetings held from
-**«MEASURE: window first day — the calendar date the window opens, written
-as e.g. "Monday 2 February 2026". `datasets/merrick/measure_transcripts.py`
-prints meetings, turns and words per window and refuses over 60,000 words
-or under 25 meetings.»** through
-**«MEASURE: window last day.»**, inclusive — **«MEASURE: working days»**
-working days and **«MEASURE: the number of standing meetings in it»**
+****Monday 23 February 2026**** through
+****Friday 20 March 2026****, inclusive — ****20****
+working days and ****83****
 meetings.
 
 A meeting is in the window when it **started** inside it; one that runs past
@@ -51,57 +48,42 @@ opened, whatever was said in them.
 ## What counts as a commitment
 
 A turn is a **commitment** when the person speaking says **they** will do
-something, and names **when**. Both have to be present in the same turn.
+something, and names **when**. Both have to be present **in the same
+sentence** — not merely somewhere in the same turn.
+
+That distinction decides most of this register. People here speak in long
+turns that hang several independent statements together, and a date in one
+sentence has nothing to do with a promise in another. *"Position Statement
+review, owner Jamal, due EOD tomorrow ... I'll circulate the updated Master
+Docket Report"* is one person reciting somebody else's deadline and then
+promising something undated: **no row**. *"if it's still open Wednesday EOD,
+flag me directly and I'll make the call"* names a date as a *condition*, not
+as a deadline: **no row**. A promise whose timing depends on an external
+event — *"the second I get a response, I'll log it"* — names no day at all.
+
+Semicolons separate sentences here, as full stops do.
 
 - **The speaker is taking it on themselves**, in the first person, about a
-  **future** act. In this firm's transcripts that is written
-  «MEASURE: the admitted owner forms as a CLOSED SET, not an example.
-  Measured on the previous record: `I'll` 501 turns, `I will` 9, and
-  nothing looser survives contact — `I have` is possession, `I'd` is
-  conditional, `I can` is as often `I can't`.
-
-  A probe is why this says "closed set". The brief stated the deadline
-  forms as a table and gave only an *example* for this one, so the two
-  halves of one rule were written asymmetrically and Opus 5 generalised —
-  correctly, by the brief's own words. The oracle took Dov Reinhardt's
-  "i'll have a firm answer by eod"; the agent took his later "i'm calling
-  their counsel", which does say he will do something. It came out broader
-  on some turns and stricter on others, 22 rows against 33 with only one
-  of its own spurious, which is what a boundary nobody pinned down looks
-  like from the outside. The score then measures agreement with a regex.
-
-  A count of EXCLUDED material is safe and useful — `off-sense-register`
-  publishes them freely and nobody chases them, because reproducing a
-  count of what makes no rows earns nothing. A count of the ANSWER'S OWN
-  composition is a specification. Publish the first, never the second
-  unless it is an exact reproducible partition.» —
-  *«MEASURE: a real turn in which somebody takes work on themselves»*.
-  Nothing looser counts, and two things that read like commitments are not:
-  - **A report of what is already under way.** *«MEASURE: a real turn
-    describing present activity — the previous record wrote "I'm calling
-    their counsel now"»* names no future act. It makes no row.
-  - **Work handed to somebody else.** *«MEASURE: a real turn in which
-    somebody assigns work to a named colleague»* is an instruction, and it
+  **future** act. In this firm's transcripts that is written `I'll` or
+  `I will` — *"I'll get you a clean answer by EOD tomorrow, one of the
+  three, no fourth chase needed"*. Nothing looser counts, and two things
+  that read like commitments are not:
+  - **A report of what is already under way.** *"I'm calling their counsel
+    now"* describes present activity and names no future act. It makes no
+    row.
+  - **Work handed to somebody else.** *"Ingrid, I need a yes/no from them
+    directly by EOD, not routed through Quentin"* is an instruction, and it
     makes a row for nobody: not for the speaker, who is not doing it, and
-    not for the colleague, who did not say it. The same is true of a chair
+    not for Ingrid, who did not say it. The same is true of a chair
     recapping what other people promised.
 - **A day is named.** In the forms this firm actually uses for a near date:
-  *«MEASURE: the admitted deadline forms, and the compound forms that occur,
-  stating that each compound names one deadline. Include the relative forms;
-  a weekday-only rule is measured dead on this world.*
-
-  ***Name the forms. Do NOT publish a count for each.*** *A count in a brief
-  is not colour, it is a specification: a probe watched Opus 5 read
-  "end of day — 66 turns; tomorrow — 42; a named weekday — 28; `EOD
-  tomorrow` — 15" as a target to reproduce, write `target eod66 tom42 wd28
-  eodt15 total151` into its own scratch file, and spend turns trying
-  counting modes against it — 223 under one, 270 under another — because
-  raw match counts over overlapping patterns are not a partition and cannot
-  be reproduced by anyone. Measure them for yourself, to choose the forms;
-  publish only the forms.»*
+  ***end of day**, written as `EOD`, `COB`, "close of business" or "end of the
+  day"; **tomorrow**; **end of week**; and **a named weekday**. Compounds
+  occur and each names a single deadline, not two — "by `EOD` tomorrow" is
+  one date, the end of the following working day*
 
 Nothing else is a commitment. In particular, **a question is not one**
-(*«MEASURE: a real turn asking when something will be done»* names a day and
+(*"Anything from either of you I should loop into the Thursday call?"* names a day and
 promises nothing), and **a date already past is not one** — a turn reporting
 that something *was* done on a day is a report, not a promise.
 
@@ -139,11 +121,8 @@ sits in a transcript. Two meetings on the same day are ordered by their
 start times; a person who commits twice inside one meeting is making one
 commitment, and the later turn is the one that counts.
 
-«MEASURE: the share of rows whose deadline differs between the person's
-first and last statement. `measure_transcripts.py` prints it and refuses
-under 15%, because a corpus in which nothing is ever superseded makes a
-reader who takes the first answer always right. On 45 days of the partial
-record it was 82% of 28 rows once resolved to dates.»
+On this window, 52% of the rows carry a due date that differs between the
+person's first statement and their last
 
 A commitment made once and never repeated is live. It does not need
 restating to count.

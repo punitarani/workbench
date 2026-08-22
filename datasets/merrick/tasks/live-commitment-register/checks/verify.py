@@ -61,7 +61,6 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from brief_pins import RuleChanged, section, unchanged  # noqa: E402
-from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
 BRIEF = Path(__file__).resolve().parents[1] / "instruction.md"
@@ -83,11 +82,9 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # implements, and no section that does not — a pin on prose nobody derives
 # from is a tripwire that fires for nothing.»
 PINNED: dict[str, str] = {
-    "## What counts as a commitment": measure("digest of the commitment rule section"),
-    "## Turning what was said into a date": measure(
-        "digest of the date-resolution table"
-    ),
-    "## Which one is live": measure("digest of the supersession rule section"),
+    "## What counts as a commitment": "4c274a2356b7f66a",
+    "## Turning what was said into a date": "c8f8a8253e49bbef",
+    "## Which one is live": "f8cf3f5493be32e4",
 }
 
 # The firm's own zone, read from the served meta table rather than named
@@ -99,8 +96,8 @@ PINNED: dict[str, str] = {
 # company at the transition. If the window reaches past one, the two
 # derivations disagree near midnight and THAT DISAGREEMENT IS THE FINDING,
 # not a bug in this file.»
-WINDOW_FIRST_DATE = "2026-02-16"
-WINDOW_LAST_DATE = "2026-04-03"
+WINDOW_FIRST_DATE = "2026-02-23"
+WINDOW_LAST_DATE = "2026-03-20"
 
 # «MEASURE: the admitted deadline forms and their normalised tokens, read
 # out of the brief's own table rather than restated here once the table
@@ -108,10 +105,85 @@ WINDOW_LAST_DATE = "2026-04-03"
 # a weekday-only rule was measured dead on this world: 14% of turns name a
 # weekday against 41% naming a relative deadline, and the weekday-only
 # register held six rows with no supersession at all.»
-ADMITTED = measure("the brief's deadline table, as (form, normalised token) pairs")
+ADMITTED = [
+    ("EOD tomorrow", "tomorrow"),
+    ("COB tomorrow", "tomorrow"),
+    ("end of day tomorrow", "tomorrow"),
+    ("end of the day tomorrow", "tomorrow"),
+    ("close of business tomorrow", "tomorrow"),
+    ("tomorrow EOD", "tomorrow"),
+    ("tomorrow COB", "tomorrow"),
+    ("tomorrow end of day", "tomorrow"),
+    ("tomorrow end of the day", "tomorrow"),
+    ("tomorrow close of business", "tomorrow"),
+    ("Monday EOD", "monday"),
+    ("Monday COB", "monday"),
+    ("Monday end of day", "monday"),
+    ("Monday end of the day", "monday"),
+    ("Monday close of business", "monday"),
+    ("Tuesday EOD", "tuesday"),
+    ("Tuesday COB", "tuesday"),
+    ("Tuesday end of day", "tuesday"),
+    ("Tuesday end of the day", "tuesday"),
+    ("Tuesday close of business", "tuesday"),
+    ("Wednesday EOD", "wednesday"),
+    ("Wednesday COB", "wednesday"),
+    ("Wednesday end of day", "wednesday"),
+    ("Wednesday end of the day", "wednesday"),
+    ("Wednesday close of business", "wednesday"),
+    ("Thursday EOD", "thursday"),
+    ("Thursday COB", "thursday"),
+    ("Thursday end of day", "thursday"),
+    ("Thursday end of the day", "thursday"),
+    ("Thursday close of business", "thursday"),
+    ("Friday EOD", "friday"),
+    ("Friday COB", "friday"),
+    ("Friday end of day", "friday"),
+    ("Friday end of the day", "friday"),
+    ("Friday close of business", "friday"),
+    ("EOD Monday", "monday"),
+    ("COB Monday", "monday"),
+    ("end of day Monday", "monday"),
+    ("end of the day Monday", "monday"),
+    ("close of business Monday", "monday"),
+    ("EOD Tuesday", "tuesday"),
+    ("COB Tuesday", "tuesday"),
+    ("end of day Tuesday", "tuesday"),
+    ("end of the day Tuesday", "tuesday"),
+    ("close of business Tuesday", "tuesday"),
+    ("EOD Wednesday", "wednesday"),
+    ("COB Wednesday", "wednesday"),
+    ("end of day Wednesday", "wednesday"),
+    ("end of the day Wednesday", "wednesday"),
+    ("close of business Wednesday", "wednesday"),
+    ("EOD Thursday", "thursday"),
+    ("COB Thursday", "thursday"),
+    ("end of day Thursday", "thursday"),
+    ("end of the day Thursday", "thursday"),
+    ("close of business Thursday", "thursday"),
+    ("EOD Friday", "friday"),
+    ("COB Friday", "friday"),
+    ("end of day Friday", "friday"),
+    ("end of the day Friday", "friday"),
+    ("close of business Friday", "friday"),
+    ("EOD", "eod"),
+    ("COB", "eod"),
+    ("end of day", "eod"),
+    ("end of the day", "eod"),
+    ("close of business", "eod"),
+    ("EOW", "end of week"),
+    ("end of the week", "end of week"),
+    ("end of week", "end of week"),
+    ("tomorrow", "tomorrow"),
+    ("Monday", "monday"),
+    ("Tuesday", "tuesday"),
+    ("Wednesday", "wednesday"),
+    ("Thursday", "thursday"),
+    ("Friday", "friday"),
+]
 
 # «MEASURE: the owner-shaped phrasings, likewise from the brief.»
-OWNER_FORMS = measure("the brief's owner-phrase list, as a closed set")
+OWNER_FORMS = ["I'll", "I will"]
 
 # How many days a title has to appear on before the meeting is standing.
 # The brief states the number outright; it is repeated here because this
@@ -168,7 +240,8 @@ _STATED: dict[str, tuple[str, ...]] = {
         # one, so an agent generalised to "I'm calling their counsel" and
         # was graded against a narrower rule than the brief stated; and
         # that neither a recap, an instruction, nor a question is one
-        "both have to be present in the same turn",
+        "not merely somewhere in the same turn",
+        "names a date as a *condition*",
         "`i'll` or",
         "names no future act",
         "makes a row for nobody",
@@ -323,6 +396,60 @@ def _resolve(said_on: datetime.date, token: str) -> datetime.date:
     return day
 
 
+def _sentences(text: str) -> list[str]:
+    """The turn as sentences.
+
+    The solver splits on a regex lookbehind over terminal punctuation. This
+    walks the characters and breaks after one, which reaches the same
+    boundaries by a different route — so a turn the two disagree about is a
+    finding rather than a shared assumption. Semicolons end a sentence here
+    because this firm hangs independent statements off one another with
+    them, and the brief says so.
+    """
+
+    body = text or ""
+    out: list[str] = []
+    current: list[str] = []
+    for index, character in enumerate(body):
+        current.append(character)
+        if character not in ".?!;":
+            continue
+        # A sentence ends where the punctuation is *followed by space*.
+        # Breaking on the mark alone splits `.xlsx` into two sentences and
+        # separates "I'll have the updated" from "by EOD tomorrow" — which
+        # is how this file first disagreed with the solver by exactly one
+        # row, on a real commitment both should have kept. Decimals, file
+        # extensions and abbreviations all end in a mark that ends nothing.
+        following = body[index + 1 : index + 2]
+        if following == "" or following.isspace():
+            out.append("".join(current))
+            current = []
+    if current:
+        out.append("".join(current))
+    return out
+
+
+def _committed_in(text: str) -> str | None:
+    """The deadline the speaker committed to *in one sentence*, or None.
+
+    The pairing is what matters and it is why this exists. Asking whether a
+    turn holds an owner form somewhere and a deadline somewhere is a
+    different question in a 71-word turn, and it manufactured eight rows of
+    twenty-five that nobody made: a docket manager reciting another
+    person's deadline beside an undated promise of her own, a date used as
+    a condition rather than a deadline, a promise contingent on an external
+    event. Two frontier models independently declined all of them.
+    """
+
+    for sentence in _sentences(text):
+        tokens = _tokens(sentence)
+        if any(_names_form(tokens, form) for form in OWNER_FORMS):
+            deadline = _deadline(tokens)
+            if deadline is not None:
+                return deadline
+    return None
+
+
 def main() -> int:
     problems: list[str] = []
 
@@ -376,10 +503,7 @@ def main() -> int:
         if meeting_id not in in_window:
             continue
         turns_read += 1
-        tokens = _tokens(text)
-        if not any(_names_form(tokens, form) for form in OWNER_FORMS):
-            continue
-        deadline = _deadline(tokens)
+        deadline = _committed_in(text)
         if deadline is None:
             continue
         statements[(speaker, inside[meeting_id][1])].append(

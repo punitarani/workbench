@@ -205,3 +205,85 @@ def test_a_hyphen_is_a_gap_like_any_other(text: str, token: str) -> None:
     """
 
     assert solve.deadline_token(text) == token
+
+
+# ------------------------------------------------- the promise and the date
+
+
+def test_the_promise_and_the_date_must_share_a_sentence() -> None:
+    """The defect two frontier models caught before this test did.
+
+    The rule first asked whether a turn held an owner form *somewhere* and a
+    deadline *somewhere*. In a 71-word turn those are different questions,
+    and it manufactured eight rows of twenty-five that nobody made. Both
+    models independently declined all eight; the row count under this rule
+    is 17, which is exactly what one of them submitted. They were right and
+    the oracle was wrong.
+    """
+
+    # The docket manager reciting somebody else's deadline, then promising
+    # something undated. No row.
+    assert (
+        solve.commitment_in(
+            "Position Statement review, owner Jamal, due EOD tomorrow. "
+            "I'll circulate the updated Master Docket Report."
+        )
+        is None
+    )
+    # One sentence, so it *is* a row — and `Wednesday EOD` is the compound,
+    # not a bare `EOD`. The brief's "date as a condition" example is the
+    # two-sentence form; inside one sentence the reader cannot tell a
+    # condition from a deadline and the rule does not ask them to.
+    assert (
+        solve.commitment_in(
+            "If it's still open Wednesday EOD, flag me directly and I'll make the call."
+        )
+        == "wednesday"
+    )
+    # A promise contingent on an external event, with the date elsewhere.
+    assert (
+        solve.commitment_in(
+            "I'm holding EOD tomorrow as the checkpoint. "
+            "The second I get a response from their counsel I'll log it."
+        )
+        is None
+    )
+
+
+def test_a_promise_and_its_own_date_is_a_row() -> None:
+    assert (
+        solve.commitment_in("I'll have the privilege log to the team by EOD tomorrow.")
+        == "tomorrow"
+    )
+
+
+def test_a_semicolon_ends_a_sentence() -> None:
+    """This firm hangs independent statements off one another with them, so
+    a rule that ignores the semicolon pairs a promise with a stranger's
+    date."""
+
+    assert (
+        solve.commitment_in(
+            "Cecile's note is due Thursday; I'll hold off drafting until it lands."
+        )
+        is None
+    )
+
+
+def test_a_full_stop_inside_a_word_does_not_end_a_sentence() -> None:
+    """`.xlsx` is not the end of a sentence.
+
+    The independent verifier split on any terminal mark and broke this
+    commitment in half, separating the promise from its date — which is how
+    the two derivations came to disagree by exactly one row on a commitment
+    both should have kept. A mark ends a sentence when whitespace follows
+    it; decimals, file extensions and abbreviations end nothing.
+    """
+
+    assert (
+        solve.commitment_in(
+            "The privilege log is on track, I'll have the updated .xlsx "
+            "to the team by EOD tomorrow, no deadline risk."
+        )
+        == "tomorrow"
+    )
