@@ -17,6 +17,7 @@ from core.events.documents import (
     DocumentRevisedPayload,
 )
 from core.filing import extension_of as _extension
+from core.filing import filed_name
 from core.filing import workspace_of as _workspace
 from tools.imanage.tables import DOCUMENTS, VERSIONS, Document, Version
 
@@ -31,7 +32,28 @@ def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
                 document_id=payload.document_id,
                 document_number=len(documents) + 1,
                 name=payload.title,
-                path=payload.path,
+                # The path the system reports is the path the file is at.
+                # These were two different strings: the profile served the
+                # author's declared path and the file room wrote
+                # `{workspace}/{basename}`, so a six-month world served 304
+                # of 308 documents at a location that did not exist and an
+                # agent that read a path and opened it failed 98.7% of the
+                # time. Every document id resolved, so no referential check
+                # could see it.
+                #
+                # The declared extension is wrong for the same reason and
+                # in the same direction: a workbook an author named `.docx`
+                # renders as `.xlsx`, so the served name would not open
+                # even where the folders happened to agree. `filed_name`
+                # decides both, and the materializer writes what it says.
+                #
+                # It is also workspace-relative, where the declared path may
+                # lead with a slash. That is not cosmetic: `workspace_root /
+                # "/legal/x.md"` discards the root and resolves at the
+                # filesystem root, so a leading slash turns the obvious way
+                # to open a served path into a file the agent will never
+                # find, in a way that looks like the document is missing.
+                path=filed_name(payload.path, payload.content_format),
                 extension=_extension(payload.path, payload.content_format),
                 workspace=_workspace(payload.path),
                 head_version=1,

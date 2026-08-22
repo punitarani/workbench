@@ -73,12 +73,48 @@ def test_materialize_writes_document_head_files(tmp_path: Path) -> None:
     result = materialize(log_path, out)
 
     # The fixture's one document lives at /legal/playbooks/nda-playbook.md
-    # and was revised to "v2"; the head version becomes a real file in the
-    # agent's own folders.
-    target = out / "workspace" / "legal" / "nda-playbook.md"
+    # and was revised to "v2"; the head version becomes a real file **at
+    # the path the document system serves for it**.
+    #
+    # This assertion used to expect `workspace/legal/nda-playbook.md` — the
+    # top-level segment only — and so encoded the defect rather than the
+    # rule. The file room flattened every document into its workspace while
+    # iManage served the author's declared path, and on a six-month world
+    # 304 of 308 documents were served at a location that did not exist:
+    # an agent that read a path from the document system and opened it
+    # failed 98.7% of the time. Every document id resolved, so nothing
+    # referential could see it, and this test passed throughout.
+    #
+    # Flattening cost the file room its shape as well. With every matter
+    # sharing one namespace the obvious filenames collided and later
+    # documents overwrote earlier ones — 377 documents produced 341 files.
+    # They now produce 377.
+    target = out / "workspace" / "legal" / "playbooks" / "nda-playbook.md"
     assert target.read_text(encoding="utf-8") == "v2"
     assert result.document_files == 1
     assert [p.name for p in result.agent_workspace.iterdir()] == ["legal"]
+
+
+def test_a_document_is_filed_where_its_profile_says_it_is(tmp_path: Path) -> None:
+    """The served path and the file are one string, not two.
+
+    The regression guard for the defect above, asserted as the property
+    rather than as one fixture path: whatever iManage reports as a
+    document's path, opening exactly that under the workspace must find the
+    bytes. A writer that recomputes a location — from the workspace column,
+    from the basename, from the declared extension — passes the assertion
+    above and fails this one the moment a document sits two folders deep.
+    """
+
+    import sqlite3
+
+    out = tmp_path / "bundle"
+    result = materialize(write_log(tmp_path), out)
+    with sqlite3.connect(out / "state" / "imanage.db") as connection:
+        served = [row[0] for row in connection.execute("SELECT path FROM documents")]
+    assert served, "the fixture must project at least one document"
+    for path in served:
+        assert (result.agent_workspace / path).is_file(), path
 
 
 def test_materialize_refuses_invalid_log(tmp_path: Path) -> None:

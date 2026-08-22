@@ -50,8 +50,7 @@ def _write_document_files(
     connection = sqlite3.connect(imanage_db)
     try:
         rows = connection.execute(
-            "SELECT documents.document_id, documents.workspace, "
-            "documents.path, versions.content, documents.extension "
+            "SELECT documents.document_id, documents.path, versions.content "
             "FROM documents JOIN versions "
             "ON versions.document_id = documents.document_id "
             "AND versions.version = documents.head_version "
@@ -60,14 +59,16 @@ def _write_document_files(
     finally:
         connection.close()
     skipped: list[str] = []
-    for document_id, workspace, path, content, extension in rows:
+    for document_id, path, content in rows:
         # The name follows the bytes. An author who declared a workbook and
         # named it `.docx` would otherwise leave a file Word cannot open,
         # and an agent that trusts the extension is misled by the
         # environment rather than by the work.
-        basename = path.rsplit("/", 1)[-1]
-        stem = basename.rsplit(".", 1)[0] if "." in basename else basename
-        target = agent_workspace / workspace / f"{stem}.{extension}"
+        # `path` is already what `filed_name` decided when the profile was
+        # projected: directories, case and extension all settled in one
+        # place. Recomputing a location here is how the file room and the
+        # document system came to disagree in the first place.
+        target = agent_workspace / path
         content_format = formats.get(document_id, "markdown")
         if content_format == "markdown":
             target.parent.mkdir(parents=True, exist_ok=True)
