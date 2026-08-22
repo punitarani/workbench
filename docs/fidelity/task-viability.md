@@ -1704,3 +1704,35 @@ strategy here is k=1 repeated rather than k=3 at once.
 Taken with glm-5.2 at 0.443, the picture is a task where two model tiers
 land a tenth apart, both inside the 0.2–0.8 band, on wrong branches of 0.442
 and 0.273.
+
+## Correction: `court-clock-computation` is dead, and my screen was too broad
+
+Recorded above as viable on **195 interval-bearing messages**. Wrong. That
+pattern matched any `N days` construction anywhere in mail or chat, and most
+of its hits were the docket tracker's own *"N days remaining"* — not a court
+clock at all.
+
+Measured against the three forms the brief actually admits, over 1,959 mail
+and chat bodies in the 67-day record:
+
+    within N days     1 message
+    N days after      1
+    due in N days     2
+    ANY of the three  4          — 0.06 a day
+
+The best window gives **3 rows against a twelve-row floor**. Widening to
+`in N days` (3) and `N days from` (5) reaches about a dozen over six months,
+still under the floor, and only by admitting forms the brief does not.
+
+**Both directions of screen error have now bitten the same audit.** Earlier
+in this document a pattern *narrower* than the corpus's vocabulary reported
+`one-sentence-two-dates` as empty, and I was a commit from retiring a task
+with 100 candidates. Here a pattern *broader* than the brief reported a dead
+task as viable, and it would have been filled.
+
+The rule that catches both: **screen with the task's own admitted forms, not
+with an approximation of them.** A proxy pattern answers a different
+question, and which way it errs is luck.
+
+Two tasks now retired on measurement: `double-booked-week` (5 clashes
+against ~235 needed) and this one.
