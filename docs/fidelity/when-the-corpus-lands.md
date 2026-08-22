@@ -243,9 +243,24 @@ process, and every later count is a comparison of two draws rather than a
 controlled A/B.
 
 So: quote the refusal numbers, which are mechanical. Do not quote the
-volume ratios as the fix's effect. If a controlled figure is wanted, the
-only honest way to get it is to re-record the *same* days with the fix
-reverted, which costs what it costs.
+volume ratios as the fix's effect.
+
+**The controlled figure does not need a second recording.** It is countable
+from v6's own refusal log, because every refusal the fix structurally
+cannot make is a message that would have existed. Over 50 recorded days:
+
+    emails sent                                545
+    replies refused for naming nobody          216
+      of which the fix recovers                201
+      blocked anyway by the 12-message cap      15
+      thread had no other participant            0
+
+    mail the fixed engine would have produced  746   (+36.9%)
+
+That is a **lower bound**, and deliberately so: a recovered reply draws
+further replies, and those second-order messages are not counted. It also
+does not need an A/B, because it is not a comparison of two samples — it
+is a count of refusals against a rule that can no longer refuse them.
 
 **Thread length is clear.** Reply-all could have pushed threads into the
 twelve-message cap; longest is 4, median 3.
