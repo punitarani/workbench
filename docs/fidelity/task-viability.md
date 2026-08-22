@@ -770,7 +770,9 @@ roughly 25 rows at 35–50% wrong, inside the word ceiling, with every field
 directly observable.
 
 **One measured objection, and it is real.** In the days 20–49 window the
-live deadline is `eod` for 20 of 26 rows — 77%. So supersession here is
+live deadline is `eod` for 18 of 26 rows — 69%. (First measured as 77%,
+before `EOD tomorrow` was recognised as one deadline rather than two; see
+the correction below.) So supersession here is
 mostly *"something → eod"*, which has a perverse consequence: a reader who
 never opens a transcript and answers `eod` everywhere scores **higher on
 the day field than a careful reader who takes each person's first
@@ -784,3 +786,62 @@ who did not cross meetings.
 The concentration is itself a world-quality finding: `by EOD` is a stock
 phrase the personas reach for, not a distribution a real firm would
 produce. Re-measure it on the finished record before deciding.
+
+### Grade the resolved due date, not the token — measured
+
+Two corrections and one design change, all from the same pass.
+
+**`EOD tomorrow` is one deadline, and a naive rule reads it as today.**
+40% of commitment-bearing turns name two deadline forms, and the dominant
+pair is `eod`+`tomorrow` in 47 of 178 turns — the phrase *"I'll confirm the
+date by EOD tomorrow"*. A first-match-wins rule over an ordered form table
+returns `eod` and is wrong by a day in **26% of all graded turns**. Any
+solver here has to match the compound before either part.
+
+**Simulation seconds are not Unix seconds.** `meetings.started` is an
+offset from the run's epoch. Read as a Unix timestamp it yields 1970 dates
+that parse cleanly, sort correctly, and put 30% of the firm's meetings on a
+Saturday or Sunday — a fidelity defect that does not exist. Convert with
+`epoch + timedelta(seconds=started)` and every meeting is on a weekday at
+08:45–09:30, which is what the recorded day labels say (58 recorded days,
+all Mon–Fri). The engine's own `CalendarScheduleSpec` exists to stop this
+mistake in the other direction; the analysis side had no such guard.
+
+**The design change.** Grade the **resolved due date**, not the token.
+`EOD` said on 3 February and `EOD` said on 20 February are the same word
+and different obligations, so the register's answer cannot be guessed from
+the vocabulary:
+
+    window      rows   token: guess/wrong    date: guess/wrong
+    days  0-29    24        54%  /  54%          17%  /  67%
+    days 10-39    25        64%  /  40%          20%  /  64%
+    days 20-49    26        69%  /  35%          23%  /  69%
+    days 20-64    32        47%  /  44%          16%  /  72%
+    days  0-79    38        47%  /  50%          16%  /  66%
+
+The guessing floor falls from ~47–69% to ~16–23%, and the first-answer
+reader's error rate roughly doubles, to 62–72%. The reason it doubles is
+the useful part: **a person who says `EOD` in two different meetings has
+changed their deadline without changing their words.** Token grading cannot
+see that; date grading makes it the common case. This is the "second
+statement inside a unit the reader has already resolved" mechanism — the
+only one this project has measured moving a frontier model — applied to
+about two thirds of the rows rather than a third.
+
+It also buys a second thing: the date is only computable from the meeting
+the last statement was made in, so a reader who has the right owner and the
+right series but the wrong meeting still gets the date wrong. `meeting_id`
+stops being decoration and becomes load-bearing.
+
+**What the brief then owes the reader,** because each is a real convention
+the corpus exercises: that `EOD tomorrow` is one deadline; that a weekday
+names its *next* occurrence, including when the meeting falls on that same
+weekday (3 turns) or later in the week than the day named (26 turns); that
+`tomorrow` said on a Friday means Monday (3 turns); and that `end of week`
+means that week's Friday. Every one of these is stated because it occurs,
+not for completeness.
+
+**Recommended shape when v6 lands:** window days 20–64 (45 days, 140
+meetings, 50,113 words — inside the 60,000 ceiling), 32 rows, 72% of them
+wrong for a first-answer reader, 16% guessing floor. Re-measure all of it;
+these numbers are from 56 partial days.
