@@ -219,7 +219,38 @@ should pass on v6 without `--allow-band-absence`; if it does not, do not
 reach for the flag — it prints "do not ship rollout numbers from this
 world" for a reason.
 
-## Before the NEXT recording: pilot the email fix
+## The email fix, piloted — and what the pilot can and cannot show
+
+Run at day 47 of v6, four days into a scratch epoch on the fixed engine
+(`b6e7102cd06621f2`), concurrency 8. The run shape is comparable: 664 steps
+against v6's 667, 147 wakes against 147, batches 291 against 295 — so
+concurrency changed wall time and nothing else.
+
+**What is established.** Reply refusals are gone: `refused-reply` is 0 at
+sim day 1.55, where v6 recorded 196 of them in 43 days. That one is not a
+statistical claim — with the thread's participants filled in, a reply to a
+thread that has another participant *cannot* be refused for naming nobody.
+The overall refused share is 4.2% against v6's 38.2%, which is the residue
+of new threads naming nobody, as designed.
+
+**What the pilot does NOT establish, and nearly got reported as if it did.**
+Day 0 shows email 5 -> 15, chat 9 -> 19, documents 10 -> 16 and
+`calendar.response` 105 -> 64. The email fix cannot touch RSVPs, and total
+events are the same (667 against 664) — so this is not the fix adding work,
+it is **trajectory divergence**. Same seed, but the moment one action
+resolves differently the two worlds are different samples of a stochastic
+process, and every later count is a comparison of two draws rather than a
+controlled A/B.
+
+So: quote the refusal numbers, which are mechanical. Do not quote the
+volume ratios as the fix's effect. If a controlled figure is wanted, the
+only honest way to get it is to re-record the *same* days with the fix
+reverted, which costs what it costs.
+
+**Thread length is clear.** Reply-all could have pushed threads into the
+twelve-message cap; longest is 4, median 3.
+
+## Before the NEXT recording: what the pilot leaves open
 
 The reply-addressing fix is proven by five mutations and has never run in
 a real recording. Everything below about its effect is arithmetic on the
