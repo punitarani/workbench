@@ -11,7 +11,7 @@ from core.events.documents import DocumentCreatedPayload
 from core.events.tickets import TicketCreatedPayload
 from core.seed import Seed
 from core.worldlog import read_events, validate_events
-from tools import check_coherence
+from tools import REGISTRY, check_coherence
 from workplaces.hartwell import (
     EPOCH_ISO,
     FEDERAL_HOLIDAYS_2026,
@@ -234,12 +234,11 @@ def test_pilot_build_validates_projects_and_coheres(tmp_path: Path) -> None:
 
     bundle = tmp_path / "pilot-bundle"
     state = bundle / "state"
+    # Derived from the registry rather than listed. The literal roster this
+    # replaced went stale the moment a sixth system was added, and a stale
+    # roster here fails a build that is correct.
     assert {path.name for path in state.glob("*.db")} == {
-        "gmail.db",
-        "slack.db",
-        "imanage.db",
-        "clio.db",
-        "calendar.db",
+        f"{system.name}.db" for system in REGISTRY
     }
     assert check_coherence(state) == ()
     environment = (bundle / "environment.toml").read_text()

@@ -102,6 +102,11 @@ name = "calendar"
 transport = "stdio"
 command = "/usr/local/bin/workbench-mcp-calendar"
 
+[[environment.mcp_servers]]
+name = "meetings"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-meetings"
+
 [agent]
 user = "agent"
 timeout_sec = 1800.0

@@ -93,7 +93,8 @@ class TestDeclaredFormats:
         ] in reason
         # And it still has to say what to do instead, the way the
         # thread-cap and unknown-ref rejections do.
-        assert "note" in reason and ("rows" in reason or "headings" in reason or "slides" in reason)
+        assert "note" in reason
+        assert any(word in reason for word in ("rows", "headings", "slides"))
         assert "json" not in reason.lower()
 
     def test_a_spreadsheet_with_ragged_rows_is_rejected(self) -> None:

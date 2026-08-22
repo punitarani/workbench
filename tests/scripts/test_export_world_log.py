@@ -25,11 +25,11 @@ _ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_ROOT / "scripts"))
 sys.path.insert(0, str(_ROOT / "tests" / "simulation"))
 
+from export_world_log import export  # noqa: E402
 from toy_scenario import build_store_engine  # noqa: E402
 
 from core.worldlog import read_events  # noqa: E402
 from core.worldlog.validate import validate_events  # noqa: E402
-from export_world_log import export  # noqa: E402
 from simulation.engine.engine import StopCondition  # noqa: E402
 
 
@@ -74,9 +74,7 @@ async def test_the_manifest_counts_what_the_log_holds(tmp_path: Path) -> None:
 
     manifest = json.loads((out / "manifest.json").read_text())
     lines = [
-        line
-        for line in (out / "world.jsonl").read_bytes().splitlines()
-        if line.strip()
+        line for line in (out / "world.jsonl").read_bytes().splitlines() if line.strip()
     ]
     assert manifest["event_count"] == len(lines)
     # Identity comes from the store, never from a flag or the directory

@@ -19,6 +19,7 @@ from tools import (
     framework,
     gmail,
     imanage,
+    meetings,
     slack,
 )
 from tools.framework import ToolSystem
@@ -29,6 +30,7 @@ REGISTRY: tuple[ToolSystem, ...] = (
     imanage.SYSTEM,
     clio.SYSTEM,
     calendar.SYSTEM,
+    meetings.SYSTEM,
 )
 
 

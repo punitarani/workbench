@@ -19,7 +19,6 @@ exists when it does not.
 """
 
 import pytest
-
 from dataset_modules import merrick_build_tasks
 
 

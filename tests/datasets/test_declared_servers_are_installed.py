@@ -96,3 +96,65 @@ def test_declared_servers_point_at_the_wrappers(task: Path) -> None:
             f"{task.parent.name}: server {entry['name']!r} runs {command!r}, "
             f"not the installed wrapper"
         )
+
+
+def test_every_read_system_is_installed() -> None:
+    """The other direction, which nothing checked.
+
+    The tests above catch a task declaring a server the stager never
+    installs. Nothing caught a *system that exists and nobody declares* —
+    projected into a database, registered, tested, and reachable by no
+    agent because no wrapper was written and no task named it.
+
+    That is the same defect as the one this file was written for, one
+    level up, and it is how `meeting.transcript` stayed invisible: 723
+    transcripts and 255,889 words in the world log, a projection ready to
+    serve them, and nothing in the container that could spawn the server.
+    """
+
+    import sys
+
+    sys.path.insert(0, str(REPO / "src"))
+    from tools import REGISTRY
+
+    built = {system.name for system in REGISTRY}
+    missing = built - _installed() - _STAGED_SEPARATELY
+    assert not missing, (
+        f"these tool systems are in REGISTRY and get no wrapper: {sorted(missing)}. "
+        "The database is projected and the server can never spawn, so the "
+        "surface exists and no agent can reach it. Add them to "
+        "harbor_stage.TOOLS."
+    )
+
+
+@pytest.mark.parametrize(
+    "task", TASKS, ids=lambda p: f"{p.parent.parent.parent.name}/{p.parent.name}"
+)
+def test_merrick_tasks_declare_every_read_surface(task: Path) -> None:
+    """A Merrick task that omits a surface is a task whose agent is blind
+    to it, with nothing failing to say so.
+
+    Scoped to merrick because the other datasets' worlds predate some of
+    these systems and their briefs are written against the surfaces they
+    had; widening this would fail them for a corpus they never claimed.
+    """
+
+    if task.parent.parent.parent.name != "merrick":
+        pytest.skip("scoped to the merrick dataset")
+    import sys
+
+    sys.path.insert(0, str(REPO / "src"))
+    from tools import REGISTRY
+
+    declared = {
+        entry["name"]
+        for entry in tomllib.loads(task.read_text())
+        .get("environment", {})
+        .get("mcp_servers", [])
+    }
+    expected = {system.name for system in REGISTRY} - _STAGED_SEPARATELY
+    assert expected <= declared, (
+        f"{task.parent.name} does not declare {sorted(expected - declared)}. "
+        "The surface is projected into the bundle and the agent has no tool "
+        "for it."
+    )

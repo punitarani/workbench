@@ -110,7 +110,9 @@ _ENGINE_WORDS = (
 # ordinary English gets switched off, and a switched-off check is the
 # thing this whole file exists to prevent.
 _ENGINE_PATTERN = re.compile(
-    r"(?<![a-z0-9_])(?:" + "|".join(re.escape(w) for w in _ENGINE_WORDS) + r")(?![a-z0-9])",
+    r"(?<![a-z0-9_])(?:"
+    + "|".join(re.escape(word) for word in _ENGINE_WORDS)
+    + r")(?![a-z0-9])",
     re.IGNORECASE,
 )
 
@@ -243,7 +245,9 @@ def test_a_failed_draft_is_remembered_in_workplace_words() -> None:
     assert not _engine_words_in(text), (
         f"engine vocabulary reached a persona's memory: {text!r}"
     )
-    assert "document" in text.lower(), f"the person should know what they dropped: {text!r}"
+    assert "document" in text.lower(), (
+        f"the person should know what they dropped: {text!r}"
+    )
     assert note.engine_detail, "the operator's diagnostic must survive somewhere"
 
 
@@ -287,7 +291,9 @@ def test_a_parse_failure_keeps_its_diagnostic_off_the_persona() -> None:
     assert not _engine_words_in(rejection.guidance), (
         f"the persona-visible half still carries engine words: {rejection.guidance!r}"
     )
-    assert "validation error" in rejection.detail, "the operator still gets the parser's words"
+    assert "validation error" in rejection.detail, (
+        "the operator still gets the parser's words"
+    )
 
 
 async def test_a_guidance_free_rejection_makes_no_memory() -> None:
@@ -414,9 +420,7 @@ def test_no_caught_exception_is_interpolated_into_a_reason() -> None:
         for call in (n for n in ast.walk(handler) if isinstance(n, ast.Call)):
             if getattr(call.func, "id", None) != "IntentRejection" or not call.args:
                 continue
-            names = {
-                n.id for n in ast.walk(call.args[0]) if isinstance(n, ast.Name)
-            }
+            names = {n.id for n in ast.walk(call.args[0]) if isinstance(n, ast.Name)}
             if handler.name in names:
                 offenders.append((call.lineno, handler.name))
     assert not offenders, (

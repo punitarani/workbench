@@ -153,7 +153,7 @@ async def test_the_organizer_hears_the_answer() -> None:
     assert set(await gm.route(_event(payload))) == {"cecile", "ana"}
 
 
-async def test_an_answer_to_a_meeting_the_world_forgot_still_reaches_its_author() -> None:
+async def test_an_answer_to_a_forgotten_meeting_reaches_its_author() -> None:
     """No organizer on record must degrade, not crash."""
 
     gm = _gm()
