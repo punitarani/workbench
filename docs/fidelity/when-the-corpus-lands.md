@@ -219,7 +219,41 @@ should pass on v6 without `--allow-band-absence`; if it does not, do not
 reach for the flag — it prints "do not ship rollout numbers from this
 world" for a reason.
 
-## The largest defect still in the engine, measured and deliberately not fixed
+## Before the NEXT recording: pilot the email fix
+
+The reply-addressing fix is proven by five mutations and has never run in
+a real recording. Everything below about its effect is arithmetic on the
+old world, not observation of a new one, and this tree's rule is that an
+unpiloted change is how a seventeen-hour run gets burned.
+
+Two days at low concurrency, into a scratch epoch, then:
+
+```bash
+uv run python -c "import sqlite3, json; \
+  c=sqlite3.connect('file:<pilot>/run.db?mode=ro',uri=True); \
+  sent=sum('\"email.message\"' in p for (p,) in c.execute('select payload from events')); \
+  ref=sum('at least one recipient' in (json.loads(p).get('guidance') or '') \
+          for (p,) in c.execute('select payload from events') if '\"sim.gm.note\"' in p); \
+  print(sent, ref, ref/(sent+ref) if sent+ref else 0)"
+```
+
+Expect the refused share to fall from **38.2%** toward the share that is
+genuinely a new thread naming nobody — about a third of the old refusals,
+so roughly **12%**. If it does not move, the personas are omitting
+recipients on new threads rather than replies and the fix addresses the
+smaller half.
+
+Also check that reply-all has not made threads balloon: the referee caps a
+thread at twelve messages, and a fill that adds recipients who then reply
+could push more threads into that cap. Compare thread-length distribution
+against this world's.
+
+## The email defect: measured here, fixed after this world was recorded
+
+> **FIXED in `36984fc`, after v6 had already recorded 44 days.** The
+> section below is what was measured on v6 and why it was not restarted
+> for it. Any world recorded on the current engine should show the 38%
+> back; pilot it first, per the section above.
 
 **38.2% of every attempted email never sends.** Measured at day 43 of v6:
 469 emails delivered against 290 refused, all for the same reason — the
