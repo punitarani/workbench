@@ -1781,3 +1781,31 @@ That is three of eight. The remaining five are `live-commitment-register`
 `unanswered-question-register` (34.5% on v7), `prebill-narrative-screen`
 (family measured), and `deadline-week-promise-clock` (223 messages, needs a
 fortnight and four of its seven forms dropped).
+
+## `no-op-revision-register`: viable, but its trap is not on this world
+
+1,034 document versions in the 67-day record; **42 carry an admitted
+phrase**, distributed very unevenly:
+
+    no changes made            27      no changes were made      2
+    no substantive changes     11      no edits made             1
+    no substantive edits        1      no substantive revisions  0
+
+Two things follow. `no substantive revisions` grades nothing and should go
+unless the finished record writes it — the same defect as three of
+`deadline-week-promise-clock`'s seven forms.
+
+And **the decoys the brief names do not exist**. `only formatting`,
+`typo fix`, `minor cleanup`, `nothing material`, `cosmetic only`: zero each,
+across 1,034 comments. The brief spends a paragraph excluding them and the
+difficulty it claims from them is imaginary here. The one genuine near-miss
+the corpus offers is the singular `no substantive edit`, twice, which the
+asymmetry rule already shuts out.
+
+The window: 2 rows in a fortnight, 14 in four weeks, 20 over days 14–41.
+**Four weeks is the minimum** that clears the twelve-row floor, against 329
+versions to read.
+
+That completes the audit of all nine task directories. Every verdict is a
+count against the task's own admitted forms — the discipline that reversed
+two of them in each direction.

@@ -43,6 +43,30 @@ phrases:
 
 Case does not matter. Nothing else admits a row.
 
+«MEASURE: **counted on the 67-day record, before this table is fixed.**
+1,034 versions, 42 carrying an admitted phrase:
+
+    no changes made            27        no changes were made      2
+    no substantive changes     11        no edits made             1
+    no substantive edits        1        no substantive revisions  0
+
+`no substantive revisions` fires on nothing. Keep it only if the finished
+record writes it; a row that grades zero instances is a column of nothing
+dressed as a form.
+
+**And the decoys this brief names do not exist here.** `only formatting`,
+`typo fix`, `minor cleanup`, `nothing material` and `cosmetic only` appear
+**zero times each** in 1,034 version comments. The paragraph below excluding
+them is excluding nothing, and the difficulty it claims is not on this
+world. What *does* occur is the singular `no substantive edit` — twice —
+which the asymmetry rule correctly shuts out, and that is the only real
+near-miss the corpus offers. Re-count on the finished record and name the
+decoys it actually writes.
+
+**The window follows from the same count:** 2 rows in a fortnight, 14 in
+four weeks, 20 over days 14-41. Four weeks is the minimum that clears the
+twelve-row floor.»
+
 **The list is exact, and it is deliberately not symmetric.** `no changes
 were made` admits a row; `no edits were made` does not, and neither does any
 singular form. That is not a typo to be repaired — it is the rule. Read the
