@@ -946,7 +946,8 @@ tentatively — the firm has one RSVP verb. Nobody ever cancels a meeting.
 Mail is six times too quiet and its threads do not develop: a median depth
 of 1 means the typical email is never replied to at all, which is the same
 defect the reply fix addressed from the sending end and evidently did not
-finish. And 23% of the time someone says a document is attached, it is not.
+finish. The `announced-then-attached 0.774` line in that table is **withdrawn**;
+see the correction below.
 
 **The one that changes how tasks should be written.** Cross-surface volume
 correlation is **0.12 per matter and −0.12 per person**, against a band of
@@ -1139,3 +1140,39 @@ climbs as threads accumulate; expect v7's to climb too, from a lower base.
 
 The task's premise is re-measured on v7 before it ships, not carried from
 here. What is settled is that it has a premise.
+
+
+## Correction: "23% of announced attachments do not exist" is not supported
+
+Stated above and in a commit message, from the band
+`documents.announced_attached_share` reading 0.774 against a floor of 0.9.
+Checked, and it does not mean that.
+
+The band counts any email whose body contains `attach` or `enclosed` as a
+promise, then returns **total attachments divided by total such emails** —
+a ratio of totals, not a per-message rate, so one email carrying three
+attachments offsets two carrying none.
+
+Measured properly on the 67-day record: 102 emails use a word that could
+announce an attachment and 76 of them carry one, so 26 do not. That per-
+message rate (75%) happens to land near the band's 0.774, which is why the
+misreading survived.
+
+But the 26 are mostly not false announcements. Reading them:
+
+> "you'll hear it from me directly, with the amendment language attached"
+> "I attached the status memorandum earlier for the file"
+> "the current version (with all amendments incorporated or attached as
+> exhibits)"
+
+— a promise about a *future* message, a reference to a *past* one, and a
+description of how a document is assembled. The word is doing ordinary work
+in each. The firm is not claiming attachments it did not send; the band
+cannot tell an announcement from a mention.
+
+**So this is a defective band, not a defective world**, and it belongs with
+the inherited failures rather than the real ones. The lesson is the one this
+document keeps relearning from the other side: a number that agrees with a
+plausible story is not evidence for the story. I read a ratio of totals as a
+per-message rate, got a figure close enough to be unremarkable, and wrote it
+down.
