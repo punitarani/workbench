@@ -352,3 +352,34 @@ did not go; narrating it as a bounce is a fair reading.
 Keep the detector broad anyway. `malformed` was the tell that found the
 original defect, and one examined false positive in 43 days is a cheap
 price for that.
+
+## The second-largest refusal, and why it is not urgent
+
+After the email fix, the largest remaining refusal is `that update changes
+nothing and carries no note` — 97 over 51 recorded days, 1.3% of all
+turns. It loops: 19 (person, ticket) pairs account for all of them, and
+**12 pairs were refused more than twice**, worst `ulrich-bergmann` on
+`tkt-000024` **nineteen times**. The persona observes the rejection and
+tries again.
+
+**It is waste, not data loss, and that distinction decides the priority.**
+A refused reply destroyed a message that should have existed — 201 of them,
+distorting what the firm looked like. A refused no-op ticket update
+destroys nothing: there was nothing to record. The world is not wrong, some
+turns were simply spent on nothing.
+
+The guidance is already actionable — "say what moved, or leave a comment
+saying why nothing did" — and the persona does not take either branch. So
+the repair is not better wording. The candidates, for the window before the
+next recording:
+
+* let the referee treat a no-change, no-comment update as an **idle**: no
+  event, no rejection, no memory. Nothing is lost, because nothing was
+  going to be recorded, and the loop stops because there is no feedback to
+  react to. This is the smallest change and probably the right one.
+* or stop offering `update_ticket` when the persona has nothing to change,
+  which is action selection and a larger job.
+
+Do **not** have the referee invent a comment. That is fabricating world
+data to satisfy a gate, which is the defect this tree has spent the most
+effort removing.
