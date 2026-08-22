@@ -43,6 +43,33 @@ reproduce numbers that are not a partition. Counts of *excluded* material
 are safe — reproducing them earns nothing — and are worth publishing,
 because they price the obvious mistake.
 
+**A form table written before the corpus is counted describes a world that
+does not exist.** Every task in this dataset that admits a list of literal
+forms was audited against the record, and every one of them was wrong
+somewhere:
+
+    deadline-week-promise-clock   3 of 7 forms grade nothing (end of month
+                                  0 messages); and its note claimed the
+                                  article form beats the bare form 15-to-0
+                                  when this corpus reads 149-to-0 the other way
+    no-op-revision-register       1 of 6 forms grades nothing; and all five
+                                  decoys it names to exclude appear zero times
+    court-clock-computation       its 3 forms match 4 messages in 67 days
+    one-sentence-two-dates        its table counts a compound as two dates,
+                                  so 13 of its 14 "hits" are one date each
+
+The failures are not symmetric and both directions are expensive: a form
+that fires on nothing is a column of nothing dressed as a rule, and a table
+that counts one thing twice manufactures rows the world never had.
+
+**And screen with the task's own admitted forms, never a proxy for them.**
+A proxy answers a different question and which way it errs is luck. In one
+audit a pattern *narrower* than the corpus reported a live task as empty —
+one commit from retiring it — and a pattern *broader* than the brief
+reported a dead task as viable, which would have shipped it. The narrow
+failure is the more dangerous of the two, because absence is the verdict
+nobody argues with and retiring a task looks like diligence.
+
 ## About the checks around it
 
 **A stale constant in a *gate* is worse than in a solver.** A gate is what
