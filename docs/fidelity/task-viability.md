@@ -1264,7 +1264,16 @@ Absence from a list is not presence on another one, and a check that
 enumerates two of three shapes reports the third as fine.
 
 `deadline-week-promise-clock` is thin rather than dead, and the fix is
-measured. 148 promise-and-deadline emails over 68 recorded days, windowed:
+measured. **Re-measured with the brief's own seven forms rather than my
+proxy** — its rule has no promise conjunct at all, it is the form alone —
+223 messages carry an admitted form, 3.3 a day: one week yields 9 rows,
+a fortnight 32-34. And three of the seven forms are dead on this corpus:
+`end of month` fires on 0 messages, `by <Month> <day>` and `within N days`
+on 1 each. The table has to lose them.
+
+The proxy figures below (which required a promise phrase) are kept for the
+record and are not the task's numbers: 148 promise-and-deadline emails over
+68 recorded days, windowed:
 
     calendar days  0-6     5 rows, 4 senders     under the floor
     calendar days  0-13   24 rows, 11 senders    clears it

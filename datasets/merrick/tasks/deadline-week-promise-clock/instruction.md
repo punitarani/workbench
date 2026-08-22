@@ -76,6 +76,29 @@ match the count. A rule that requires a wording the corpus writes once
 where it writes another thirty-four times admits one instance of
 thirty-five and scores the rest as inventions.»
 
+«MEASURE: **three of the seven rows above grade nothing on this world, and
+the table has to lose them or say why.** Counted over 707 email bodies in
+the 67-day record, by the exact wording each row admits:
+
+    EOD / COB / end of day     133 messages
+    end of week / EOW           68
+    by tomorrow                 23
+    by <weekday>                17
+    by <Month> <day>             1
+    within N days                1
+    end of month / EOM           0
+
+`end of month` fires on nothing at all; `by <Month> <day>` and `within N
+days` on one message each. A row that grades one instance is not a rule,
+it is a coin flip that decides a register — and one that grades zero is a
+column of nothing dressed as a form. Keep the four that fire, and drop or
+justify the rest.
+
+The window follows from the same count: **223 messages carry an admitted
+form, 3.3 a day.** One week yields 9 rows, under the twelve-row floor; a
+fortnight yields 32-34. The brief's title says week and the corpus says
+fortnight — say fortnight.»
+
 «MEASURE: **the compounds, and put them ahead of their parts.** Measured on
 the Merrick mail: `EOD tomorrow` 53 messages, `EOD <weekday>` 15,
 `tomorrow EOD` 13, `<weekday> EOD` 6 — 87 messages, more than a tenth of
