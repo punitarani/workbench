@@ -334,9 +334,25 @@ def build(
                 "key nothing checked."
             )
         produced = SHARED_BUNDLE / "workspace" / f"{name}-answer.json"
-        subprocess.run(
+        # Captured and re-raised as the solver's own words. The staged check
+        # above knows two shapes of placeholder -- `«MEASURE` in the brief
+        # and a `measure("` call in Python -- and a task can use a third:
+        # a module constant left as `None` that `main()` refuses on. Such a
+        # task passes the check, gets built, and dies here as a
+        # `CalledProcessError` traceback naming a subprocess and an exit
+        # code, twenty lines from the one sentence that says which value is
+        # missing.
+        #
+        # The check is not widened to catch the third shape because it
+        # cannot be: the `«MEASURE` text in a solver is *guidance for whoever
+        # fills it* and stays there after filling, so flagging it would
+        # report every finished task as staged. Reporting the refusal the
+        # solver already writes is both simpler and exact.
+        outcome = subprocess.run(
             [sys.executable, str(solver), str(produced)],
-            check=True,
+            check=False,
+            capture_output=True,
+            text=True,
             env={
                 "WORKBENCH_STATE": str(SHARED_BUNDLE / "state"),
                 # The working papers are files, not a surface. A solver
@@ -346,6 +362,7 @@ def build(
                 "PYTHONPATH": os.environ.get("PYTHONPATH", ""),
             },
         )
+        _refuse_if_the_solver_refused(name, outcome)
         answer = json.loads(produced.read_text())
         produced.unlink()
         oracle_path = task / "tests" / "oracle.json"
@@ -966,6 +983,36 @@ def _declared_window(task: Path) -> int:
         "which window to re-derive. If it names the window some third way, "
         "teach this function that name rather than renaming the solver."
     )
+
+
+def _refuse_if_the_solver_refused(
+    name: str, outcome: subprocess.CompletedProcess
+) -> None:
+    """Re-raise a solver's own refusal instead of a subprocess traceback.
+
+    The staged check upstream knows two shapes of placeholder — `«MEASURE`
+    in the brief, and a `measure("` call in Python. A task can use a third:
+    a module constant left as `None` that `main()` refuses on. Such a task
+    passes the check, gets built, and used to die here as a
+    `CalledProcessError` naming a subprocess and an exit code, twenty lines
+    from the one sentence that says which value is missing.
+
+    Widening the check to catch the third shape is not possible: the
+    `«MEASURE` text inside a solver is guidance for whoever fills it and
+    stays there after filling, so flagging it would report every finished
+    task as staged. The solver already writes the exact sentence; this
+    carries it up.
+
+    The last line, not the whole stream — a refusal is one sentence and a
+    traceback above it is noise, while a solver that dies for some other
+    reason still gets its final line reported rather than swallowed.
+    """
+
+    if outcome.returncode == 0:
+        return
+    said = (outcome.stderr or outcome.stdout or "").strip().splitlines()
+    last = said[-1] if said else f"exit status {outcome.returncode}"
+    raise SystemExit(f"{name}: its reference solver refused —\n  {last}")
 
 
 def _ship_grading_base(task: Path, name: str) -> None:
