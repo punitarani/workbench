@@ -50,6 +50,7 @@ class WorldStateModel(BaseModel):
 
     people: tuple[PersonRecordPayload, ...] = ()
     threads: tuple[tuple[str, str], ...] = ()
+    thread_participants: tuple[tuple[str, tuple[str, ...]], ...] = ()
     message_depth: tuple[tuple[str, int], ...] = ()
     conversations: tuple[tuple[str, tuple[str, ...]], ...] = ()
     conversation_names: tuple[tuple[str, str], ...] = ()
@@ -86,6 +87,11 @@ class WorldState:
         self.email_to_person: dict[str, str] = {}
         self.threads: dict[str, str] = {}  # message_id -> thread_id
         self.thread_ids: set[str] = set()
+        # Everyone who has written in a thread, by thread id. Kept so a
+        # reply can be addressed from the thread it replies to instead of
+        # being refused for restating what is already in front of the
+        # persona -- see `_ground_email`.
+        self.thread_participants: dict[str, set[str]] = {}
         self.message_depth: dict[str, int] = {}  # message_id -> reply depth
         self.conversations: dict[str, tuple[str, ...]] = {}
         self.conversation_names: dict[str, str] = {}  # "#legal" -> id
@@ -133,6 +139,9 @@ class WorldState:
             case EmailMessagePayload():
                 self.threads[payload.message_id] = payload.thread_id
                 self.thread_ids.add(payload.thread_id)
+                self.thread_participants.setdefault(payload.thread_id, set()).update(
+                    (payload.sender, *payload.to, *payload.cc)
+                )
                 parent_depth = (
                     self.message_depth.get(payload.in_reply_to, 0)
                     if payload.in_reply_to is not None
@@ -245,6 +254,10 @@ class WorldState:
         return WorldStateModel(
             people=tuple(self.people[person_id] for person_id in sorted(self.people)),
             threads=tuple(sorted(self.threads.items())),
+            thread_participants=tuple(
+                (thread, tuple(sorted(people)))
+                for thread, people in sorted(self.thread_participants.items())
+            ),
             message_depth=tuple(sorted(self.message_depth.items())),
             conversations=tuple(sorted(self.conversations.items())),
             conversation_names=tuple(sorted(self.conversation_names.items())),
@@ -280,6 +293,9 @@ class WorldState:
             state.name_to_person[record.name.casefold()] = record.person_id
             state.email_to_person[record.email_address.casefold()] = record.person_id
         state.threads = dict(model.threads)
+        state.thread_participants = {
+            thread: set(people) for thread, people in model.thread_participants
+        }
         state.thread_ids = set(state.threads.values())
         state.message_depth = dict(model.message_depth)
         state.conversations = {

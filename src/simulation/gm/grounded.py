@@ -1415,11 +1415,6 @@ class GroundedGm:
     def _ground_email(
         self, entity, sender, intent: EmailIntent, event, delay
     ) -> tuple[EventDraft, ...]:
-        if not intent.draft.to:
-            raise IntentRejection(
-                "an email needs at least one recipient; name them by full "
-                "name as they appear in the thread or the directory"
-            )
         minted: list[PersonRecordPayload] = []
         to = self._resolve_or_mint_people(intent.draft.to, minted)
         cc = self._resolve_or_mint_people(intent.draft.cc, minted)
@@ -1427,6 +1422,37 @@ class GroundedGm:
             if intent.thread_ref not in self._world.thread_ids:
                 raise IntentRejection(f"unknown thread {intent.thread_ref!r}")
             thread_id = intent.thread_ref
+            if not to:
+                # Address the reply from the thread it replies to, rather
+                # than refusing the turn for restating what the persona
+                # already has in front of it.
+                #
+                # This check used to run first, before the thread was even
+                # resolved, and it refused **38.2% of every attempted
+                # email** in a six-month recording -- 290 refused against
+                # 469 delivered, across 27 senders, half of every rejection
+                # in the run. Two thirds of those carried a `thread_ref`,
+                # so the recipients were sitting in the thread being
+                # replied to.
+                #
+                # The damage was not only volume. Of the threads that lost
+                # a reply, 83% contained a question, and **48.5% of every
+                # question-bearing thread lost at least one** -- so a firm
+                # that looked like it ignored half the questions put to it
+                # was a firm whose answers the referee refused. A task
+                # built on that measures the engine.
+                #
+                # It is the same lesson as the calendar's `SimTime`: do not
+                # ask a model for something derivable, derive it. Reply-all
+                # is what a work thread does, and the sender is dropped
+                # because nobody replies to themselves.
+                to = tuple(
+                    person
+                    for person in sorted(
+                        self._world.thread_participants.get(thread_id, ())
+                    )
+                    if person != sender
+                )
             # Wake-driven replies can ping-pong past any auto-grant cap; a
             # real thread this long has become a meeting or a task. The
             # rejection is feedback the persona remembers.
@@ -1441,6 +1467,14 @@ class GroundedGm:
                 )
         else:
             thread_id = self._minter.mint("thr")
+        if not to:
+            # A new thread naming nobody, or a reply to a thread this world
+            # has no other participant for. Neither is derivable, so this
+            # is still the persona's job and still an instructive refusal.
+            raise IntentRejection(
+                "an email needs at least one recipient; name them by full "
+                "name as they appear in the thread or the directory"
+            )
         in_reply_to = intent.reply_to_ref
         if in_reply_to is not None:
             parent_thread = self._world.threads.get(in_reply_to)
