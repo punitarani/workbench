@@ -78,6 +78,40 @@ VARIANTS: dict[str, str] = {
 }
 
 
+# A row does not have to admit *nothing* to be worthless. It has to admit
+# too little for a reader to be wrong about it.
+#
+# This screen used to flag only an exact zero, and `by date` walked
+# straight past it: **5 occurrences across 3 of 2,717 messages** in a
+# six-month record, which is nothing in any window a task can use, and the
+# screen printed it beside `by weekday` at 106 messages without comment.
+# On the re-recorded world the same row is a true zero — so the defect was
+# always there and the guard only noticed once the corpus got poorer.
+#
+# It is the same mistake the fidelity band gate made and had fixed the same
+# week: refusing `observed == 0` let a metric through at 0.000315. A check
+# that fires only on exactly nothing is a check calibrated to the one case
+# somebody already thought of.
+_DEAD = 10
+"""Messages in the whole record below which a row grades noise.
+
+Ten because a task windows a fraction of the record: a row carried by
+three messages in six months is carried by none in the ten-day window the
+in-band precedent settled on, and a `form_counts` key nobody can populate
+is a constant an agent scores by writing 0."""
+
+
+def _verdict(carrying: int) -> str:
+    if carrying == 0:
+        return "   <-- ADMITS NOTHING: a form_counts key that is a constant"
+    if carrying < _DEAD:
+        return (
+            f"   <-- EFFECTIVELY ABSENT: {carrying} message(s) in the whole "
+            "record grades noise in any window"
+        )
+    return ""
+
+
 def _mail() -> list[tuple[int, str]]:
     path = STATE / "gmail.db"
     if not path.is_file():
@@ -101,10 +135,9 @@ def main(argv: list[str] | None = None) -> int:
     for name, rx in compiled.items():
         occurrences = sum(len(rx.findall(body)) for _, body in mail)
         carrying = sum(1 for _, body in mail if rx.search(body))
-        dead = "   <-- ADMITS NOTHING: a form_counts key that is a constant"
         print(
             f"  {name:14s} {occurrences:5d} occurrences, {carrying:4d} messages"
-            f"{dead if occurrences == 0 else ''}"
+            f"{_verdict(carrying)}"
         )
 
     print("\nwordings the table excludes — each one a sentence the brief owes")
