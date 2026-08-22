@@ -22,8 +22,29 @@ keywords = [
 ]
 
 [metadata]
-# Retired on measured evidence, kept for the record rather than
-# deleted: 42.4% of raw calendar starts were malformed and quarantined before serving, so the served diary is roughly half the size the register assumed and the double-bookings it graded were not there.
+# Retired on measured evidence, kept for the record rather than deleted.
+#
+# THE ORIGINAL REASON NO LONGER HOLDS, AND THE TASK STAYS RETIRED ANYWAY.
+# It was withdrawn because 42.4% of raw calendar starts were malformed and
+# quarantined before serving, so the served diary was about half the size
+# the register assumed. The engine fix that reshaped `CalendarScheduleSpec`
+# into `day_offset` + `HH:MM` closed that: measured on the re-recorded
+# world, 7 of 539 starts are malformed (1.3%), the beyond-any-run-horizon
+# class -- the June 2080 timestamps -- is gone entirely, and the served
+# diary is 4.4x denser per day than the world this task was retired on.
+#
+# So anyone rechecking the recorded reason would find it false and revive
+# the task. The real reason, measured on both worlds, is simpler and was
+# never the one written down:
+#
+#     v1, 180 days   723 served events, 21 diaries, 2 overlapping pairs
+#     v6,  30 days   532 served events, 27 diaries, 1 overlapping pair
+#
+# **This firm does not double-book.** A register of double-bookings over a
+# week would hold zero or one row on either world, which is not a task at
+# any diary size. Reviving it needs the *scheduler* to produce conflicts,
+# not the calendar to be repaired -- and a firm whose diary never clashes
+# is arguably the more realistic thing to leave alone.
 #
 # Read by scripts/band.py, which iterates every directory here and
 # would otherwise report a task nobody intends to run -- or, once it
