@@ -173,6 +173,35 @@ real reason holds on both worlds and was never written down: this firm does
 not double-book, 2 overlapping pairs in 180 days of the old world and 1 in
 30 days of the new. Its `task.toml` now says so.
 
+## The build's refusal thresholds, checked against v6 before the build
+
+Every gate that can refuse a world was calibrated on an earlier one. A
+threshold tuned for the old corpus refusing a good new one is a turnaround
+spent debugging the gate, so they were checked at day 42 rather than at the
+build:
+
+| gate | limit | v1 | v6 |
+|---|---|---|---|
+| `MAX_DROPPED_SHARE` | 0.03 | 0.0000 (1 entry) | **0.0000 (none)** |
+| `MAX_REPEATED_REF` | 3 | 1 | **0** |
+| artifact mix, markdown | <= 15% | 3.2% | 1.0% |
+| artifact mix, office | >= 70% | 96.8% | 99.0% |
+| `slack.dm_share` | 0.15-0.35 | 0.000 **FAIL** | 0.250 |
+| `slack.threaded_reply_share` | >= 0.30 | 0.0003 **FAIL** | 0.433 |
+
+Everything passes, and v6 is cleaner than v1 on every one. The two that
+refused the old world outright are the two the engine fixes were for, so
+the build should not need `--allow-band-absence` — and if it does, do not
+reach for the flag, because it prints "do not ship rollout numbers from
+this world" for a reason.
+
+One number in that table settles an older question. `.pptx` was 3 of 308
+documents (1.0%) and the recorded explanation was that the firm had no seed
+deck to imitate. It is 4 of 195 (2.1%) on v6 with no seed deck added: the
+cause was `_route_document` never converting its draft, so a persona who
+spontaneously decided to build a deck simply could not. The deck rate
+doubled when that was fixed.
+
 ## What v6 fixed, verified on the running recording
 
 | | old world | v6 |
