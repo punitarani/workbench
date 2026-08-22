@@ -111,6 +111,88 @@ def _rows(day_limit: int | None) -> tuple[list, dict]:
     return turns, meetings
 
 
+# The client and matter names this firm argues about. Used only to group a
+# speaker's mentions of one piece of work across meetings; a task would
+# have to name them from the served matter list rather than a literal.
+_MATTERS = (
+    "Sandhurst",
+    "Sable Ridge",
+    "Pellumbra",
+    "Northmoor",
+    "Ardmore",
+    "Coastal Meridian",
+    "Halden",
+    "Verity Grain",
+    "Cotswold",
+    "Linden",
+    "Devane",
+    "Hartley",
+    "Tessaro",
+    "Renwick",
+    "Brackley",
+    "Ravenna",
+    "Nordholm",
+    "Atwater",
+    "Hollstead",
+    "Fairmont",
+)
+_WEEKDAY = re.compile(r"\b(Monday|Tuesday|Wednesday|Thursday|Friday)\b", re.I)
+
+
+def _supersession(turns: list, meetings: dict) -> None:
+    """Does a date said in one room get changed in a later one?
+
+    This is the only mechanism in this project's ledger ever measured to
+    move a frontier model off ceiling — *a second statement inside a unit
+    the reader has already resolved* — so whether the corpus contains it
+    decides whether a transcript task has anything to be hard about.
+
+    Measured on the six-month record, and the first guess was wrong in a
+    way worth keeping: **within** a single meeting it essentially does not
+    happen. Five of 723 meetings have a speaker name a different weekday
+    later in the same room, because a meeting here is a five-turn one-pass
+    status round and nobody revises inside it. A screen for revision *cues*
+    ("actually", "instead", "moved to") fired on 32.5% of meetings and was
+    almost entirely false: those turns are a chair moving through an
+    agenda, not changing a commitment.
+
+    **Across** the recurring series it is common: of the (speaker, matter)
+    pairs that name a weekday on two or more separate occasions, 45% name
+    a different one by the last. That is a commitment made in one docket
+    call and superseded in a later one, which is what supersession looks
+    like in a real firm.
+
+    So a reader who finds the first mention and stops is wrong about
+    roughly half of them — and a reader must cross meetings to know it.
+    """
+
+    matters = re.compile("|".join(re.escape(m) for m in _MATTERS), re.I)
+    track: dict[tuple[str, str], list] = collections.defaultdict(list)
+    for meeting_id, _position, speaker, text in turns:
+        days = {d.lower() for d in _WEEKDAY.findall(text or "")}
+        if not days:
+            continue
+        for matter in {m.lower() for m in matters.findall(text or "")}:
+            track[(speaker, matter)].append((meetings[meeting_id][1], days))
+
+    repeated = {key: sorted(seq) for key, seq in track.items() if len(seq) >= 2}
+    changed = sum(1 for seq in repeated.values() if not (seq[0][1] & seq[-1][1]))
+    print("\nsupersession — is a date said once changed later?")
+    print(f"  (speaker, matter) pairs naming a weekday at all      {len(track):5d}")
+    print(f"  named on two or more separate occasions              {len(repeated):5d}")
+    share = changed / len(repeated) if repeated else 0.0
+    verdict = (
+        "   <-- ABSENT: nothing is ever superseded, so a reader who takes "
+        "the first answer is never wrong"
+        if share < 0.15
+        else ""
+    )
+    print(
+        f"  ...and the weekday DIFFERS by the last                {changed:5d} "
+        f"({share:.0%}){verdict}"
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--days", type=int, default=None, help="first N days only")
@@ -177,6 +259,8 @@ def main(argv: list[str] | None = None) -> int:
             f"  {title[:42]:44s} {count:4d} meetings, {carrying[title]:4d} "
             f"commitment turns ({share:5.1%} of all)"
         )
+
+    _supersession(turns, meetings)
 
     # Who speaks. A corpus where one person says everything grades one
     # person's prose, and `distinct_speakers` becomes a constant.
