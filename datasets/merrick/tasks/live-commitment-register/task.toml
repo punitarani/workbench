@@ -40,8 +40,17 @@ schema_version = "1.3"
 # or more separate occasions, 45% name a different one by the last. A
 # commitment set in one docket call and moved in a later one.
 #
-# So a reader who finds the first mention and stops is wrong about roughly
-# half the register, and cannot know it without crossing meetings.
+# So a reader who finds the first mention and stops is wrong, and cannot
+# know it without crossing meetings.
+#
+# HOW OFTEN wrong depends on the window and on how narrowly a commitment is
+# defined, and the two figures in this file are not the same measurement.
+# The 45% above counts (speaker, matter) pairs that name a weekday at all,
+# over the whole six months. The scored table further down uses the
+# narrower owner-shaped rule this brief actually states, over 30 days, and
+# there it is 3 rows of 27. The narrow rule over a short window supersedes
+# far less often — and the point of the table is that it does not need to
+# supersede much, because the key makes each one expensive.
 #
 # THE DELIVERABLE IS KEYED ON THE COMMITMENT, NOT ON THE MATTER, and that is
 # a semantic claim rather than a grading trick. "Cecile committed to Friday"
