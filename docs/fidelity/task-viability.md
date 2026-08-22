@@ -979,3 +979,59 @@ Worth stating plainly because it bounds what mail-based tasks can be:
 a task keyed on the firm's own correspondence is drawing on four emails a
 day, not sixty. The transcript corpus is unaffected — meetings are 9/day
 throughout and 30% of everything anyone says.
+
+## Opus 5 on the finished task, and the defect the score exposed
+
+Second probe, on the finished 67-day v6 record, window days 42–88 (Monday
+16 February – Friday 3 April), 143 standing meetings, 726 turns, 53,960
+words, 33 rows. `opus-5`, k=3, agent timeout 3600s. Wrong-branch floors
+from the build: `reported_every_candidate` 0.449, `empty_register` 0.273,
+`no_work_at_all` 0.000.
+
+**The first completed trial:**
+
+    meetings_read       143 / 143   exact
+    turns_read          726 / 726   exact
+    distinct_owners      13 / 18
+    superseded_count     57 / 77
+    rows                 22 / 33     row_f1 0.364
+    pairs, ignoring the date  21 / 33
+
+`meetings_read` and `turns_read` are exact, so the reading happened — this
+is not a coverage failure. The register it built from that reading is where
+it loses, and **the date is most of it**: of the 21 (owner, meeting) pairs
+it found, only 10 carry the right date. That is the mechanism working as
+designed.
+
+**But part of the loss is mine, and the probe is how it was found.** The
+brief states the deadline forms as a closed set and gives only an *example*
+for the owner form. So the two sides of the same rule were written
+asymmetrically, and the agent generalised — correctly, by the brief's own
+words. Dov Reinhardt's Partner-matter-review row is the clean case: the
+oracle takes his 16 February *"i'll have a firm answer by eod"*, and the
+agent takes a 30 March turn reading *"i'm calling their counsel"*. That
+does say he will do something. The brief admits it and the oracle does not.
+
+The agent is broader than the oracle on some turns and stricter on others —
+22 rows against 33, but only one of its rows spurious — which is the
+signature of a boundary the brief never pinned down. A score built on that
+measures agreement with a regex, not comprehension.
+
+**The fix, and it is the same shape as the deadline table.** Name the
+admitted owner forms as a closed set, with the concept beside it so a
+careful reader converges on the same turns rather than guessing:
+
+> The speaker is taking it on themselves, in the first person, about a
+> **future** act — written `I'll` or `I will`. A report of what is already
+> under way (*"I'm calling their counsel now"*) names no future act and
+> makes no row. Work handed to somebody else is an instruction and makes a
+> row for nobody.
+
+That keeps the difficulty where the design put it — resolving a relative
+deadline against the right meeting, and noticing the later mention that
+moved a date without changing a word — and takes it out of guessing which
+verbs the author admitted.
+
+**Read the score accordingly.** 0.364 is in band, and it is an *upper
+bound on the task defect's cost* rather than a clean measurement of the
+model. Re-probe after the brief is symmetric.
