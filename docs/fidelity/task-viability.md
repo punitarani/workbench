@@ -515,3 +515,44 @@ seven excluded wordings the brief warns about (`end of the week`,
 so the brief must say each is moot on this corpus rather than implying a
 reader will meet one — a warning about a thing that never happens is a
 sentence spent teaching nothing.
+
+### `unanswered-question-register`: the recorded fix does not work
+
+Its dump floor was measured at 0.556 — an answer that reports every
+candidate question as unanswered scores over half marks — and the recorded
+plan was to lengthen the silence window so fewer questions qualify.
+
+Measured, the curve is nearly flat:
+
+| grace | old world unanswered | new world unanswered |
+|---|---|---|
+| 1 working day | 49.3% | 57.3% |
+| 3 working days | 40.9% | **53.0%** |
+| 5 working days | 37.0% | 51.3% |
+| 8 working days | 34.7% | **50.4%** |
+
+Going from three working days to eight moves the new world's dump
+precision by **2.6 points**. The reason is structural: most unanswered
+questions are never answered *at all*, not answered late, so extending the
+grace only catches the few stragglers. And the new world is worse than the
+old — 53% against 41% — so the floor rises rather than falls.
+
+**A dump scores well here because the base rate is high**, and no window
+length changes a base rate. The lever has to be something a dump gets
+*wrong*, not something that shrinks the admitted set:
+
+* the row fields already carry `asked_of` and the thread — a dump can fill
+  those from the same scan, so they add nothing;
+* narrowing the population (questions asked of exactly one addressee, or
+  in threads over some length) lowers the base rate directly, and is worth
+  measuring before the window is chosen;
+* the honest alternative is to accept the floor and report it beside every
+  score, which `baselines.py` already does. A task whose floor is 0.69 is
+  not useless — it is a task whose numbers mean less than they look, and
+  saying so is cheaper than a redesign that does not move it.
+
+These figures come from an approximate extraction — a body containing `?`,
+sent to a named addressee, answered by any of them in the same thread —
+not from the task's own solver, which is stricter. Treat the *shape* as
+robust and the levels as indicative; re-run with the real solver on the
+finished record before choosing.
