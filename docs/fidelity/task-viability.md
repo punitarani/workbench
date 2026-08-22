@@ -1249,9 +1249,19 @@ the finished v6 record before anyone fills anything:
     unanswered-question-register  34.5% unanswered on v7         viable
     prebill-narrative-screen      structured; not at risk        —
 
-`deadline-week-promise-clock` is thin rather than dead: 133 over 68 days is
-about 10 a week, under the twelve-row floor for the one-week window its
-brief describes. Two weeks clears it.
+`deadline-week-promise-clock` is thin rather than dead, and the fix is
+measured. 148 promise-and-deadline emails over 68 recorded days, windowed:
+
+    calendar days  0-6     5 rows, 4 senders     under the floor
+    calendar days  0-13   24 rows, 11 senders    clears it
+    calendar days  7-20   29 rows, 11 senders
+    calendar days 21-34   29 rows, 14 senders
+
+The one-week window its brief describes yields **five rows**; a fortnight
+yields 20-29 from 10-14 different people. Widen it to two weeks and say
+"fortnight" in the brief rather than leaving the name to imply seven days —
+the task's title is a label, not a specification, and this dataset has
+already shipped one register whose window nobody re-derived.
 
 **And the part worth writing down is that I got two of these wrong first.**
 
