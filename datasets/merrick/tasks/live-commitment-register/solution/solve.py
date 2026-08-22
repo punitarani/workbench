@@ -2,319 +2,307 @@
 
 One rule, and the whole difficulty is in the second half of it.
 
-**A commitment is three things at once.** Somebody speaking about their own
-work, a matter named in the same turn, and a day named in the same turn.
-Any two of the three is not a commitment: a chair assigning work names a
-matter and a day and promises nothing, and a question names both and
-promises less.
+**A commitment is two things at once**: somebody speaking about their own
+work, and a day named in the same turn. **A person owes one thing per
+standing meeting: the most recent thing they said in it.** When the same
+person names a day again in a later meeting of the same series, the later
+statement replaces the earlier one entirely — not a second row, not a note,
+simply no longer what they owe.
 
-**A person owes one thing per matter: the most recent thing they said.**
-When the same person names a day for the same matter in a later meeting,
-the later statement replaces the earlier one entirely. The earlier one is
-not a second row and not a note — it is simply no longer owed. Ordering is
-by when the *meeting* started, not by position in a transcript, because two
-turns in different rooms have no relative position.
+**What is graded is the date, not the word.** A deadline said out loud is
+relative: `EOD`, `tomorrow`, `Thursday`. Two people saying `EOD` three weeks
+apart owe different days, and so does one person saying it twice. The
+register reports the resolved calendar date, which means a reader who has
+the right owner and the right series but the wrong *meeting* still gets the
+row wrong. That is the whole mechanism, and it is measured: grading the
+token gives a reader who guesses the commonest word 47-69% of the field for
+free, and grading the date gives them 16-23%.
 
-That is why this reads meetings rather than mail. Every other surface in
-this world can be flattened by a script: `list_activities` returns all
+**Why there is no matter column**, though an earlier draft of this task had
+one and its removal is the reason this file was rewritten. The brief said "a
+commitment about a matter"; a solver can only implement "a turn containing a
+commitment token, a date token and a matter token". Measured on 56 recorded
+days those are different rules: of 178 turns carrying a commitment and a
+deadline only 63 name a matter, so the rule discarded 65% of the firm's real
+promises for a reason unrelated to whether a promise was made — and in a
+third of the 63 it kept, the matter name sat more than 120 characters from
+the commitment, a different sentence of a 71-word turn. One qualifying turn
+attached a promise to a matter in the clause where the speaker said she had
+*nothing* on it.
+
+The general form is worth stating once, because it will come up again: **a
+conjunctive rule is safe only when its conjuncts share a unit.** Who is
+speaking and what day they named are properties of a turn. Which piece of
+work a promise is about is a property of a clause, and no care in the brief
+turns a regex over a turn into a reader of clauses. Owner, series and date
+are all turn-scoped, so the register is keyed on those and on nothing else.
+
+That is also why this reads meetings rather than mail. Every other surface
+in this world can be flattened by a script: `list_activities` returns all
 21,597 time entries in about seventy seconds at zero context cost, and the
 arithmetic over them is three lines. A transcript has no id to group by and
-no column to sum. A commitment made out loud is not a field, so the only
-way to know what was said is to read what was said — which is the one
-property in this world that a shell cannot defeat.
+no column to sum, so the only way to know what was said is to read it.
 
-**The oracle is computed the same way the register is defined**, and that
-is deliberate: `checks/verify.py` derives the same answer by a second route
-from the brief's own prose, so a rule that drifts between the two is
-visible rather than silently agreed.
+**The oracle is computed the way the register is defined**, and
+`checks/verify.py` derives the same answer by a second route from the
+brief's own prose, so a rule that drifts between them is visible rather than
+silently agreed.
 
-Every «MEASURE» below is a value this world has not finished recording. The
-guard is a call that raises rather than a placeholder that is a syntax
-error: the file compiles, the schema and independence gates can read it,
-and running it before the measurement lands fails loudly with the question
-still outstanding.
+Every `measure()` below is a value this world has not finished recording.
+The guard raises rather than being a placeholder that is a syntax error: the
+file compiles, the schema and independence gates can read it, and running it
+before the measurement lands fails loudly with the question still open. The
+date arithmetic deliberately sits above that line — it is a property of the
+English, not of the recording, so it is written, tested and settled now.
 """
 
-# ---------------------------------------------------------------------------
-# STOP — DO NOT FILL THE `«MEASURE»` VALUES IN THIS FILE.
-#
-# The three-part rule this solver implements is not gradeable on the corpus
-# it was written for, measured on 56 recorded days of v6 before any value
-# was filled. Of 178 turns carrying a first-person commitment and a
-# deadline, only 63 also name a matter: the rule discards 65% of the firm's
-# real commitments for a reason unrelated to whether a commitment was made,
-# and the discarded ones are the clearest in the record ("I'll have the
-# statement of facts to Bennett by tomorrow night").
-#
-# Of the 63 it keeps, the matter name sits a median 96 characters from the
-# commitment and in a third of them more than 120 -- a different sentence of
-# a 71-word turn. One qualifying turn attaches a commitment to a matter in a
-# clause where the speaker says she has nothing on it.
-#
-# The brief says "a commitment about a matter". This file can only implement
-# "a turn containing a commitment token, a date token and a matter token".
-# Over 71-word turns those are different rules, and an agent reading
-# correctly would be graded wrong -- a task measuring agreement with a regex
-# artefact and reporting it as model failure.
-#
-# The rule is only safe when its conjuncts share a unit. Speaker and
-# deadline are properties of the turn; which matter a promise is about is a
-# property of a clause.
-#
-# The measured reframe -- key on (speaker, meeting series) instead, which
-# drops the ungradeable conjunct and roughly doubles both the rows and the
-# supersession -- is in docs/fidelity/task-viability.md, together with the
-# one objection that still has to be answered (the live deadline is `eod`
-# for 77% of rows, so guessing beats careful-but-naive reading).
-# ---------------------------------------------------------------------------
+from __future__ import annotations
 
-# ruff: noqa: E501
-# Long lines are the «MEASURE» questions, written out in full.
-
+import collections
+import datetime as dt
 import json
 import os
 import re
 import sqlite3
 import sys
-from collections import defaultdict
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+
 from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("live_commitments.json")
 
-# The window, as zero-based day indices on the simulation clock. A meeting
-# is in scope when it STARTED inside the window; one that runs past the
-# last day is still that day's meeting.
-#
-# «MEASURE: the window. `datasets/merrick/measure_transcripts.py` prints
-# meetings, turns and words per window and refuses over 60,000 words or
-# under 25 meetings. On the world this was designed against, 30 calendar
-# days held 123 meetings, 622 turns and 43,779 words and scored a
-# first-answer reader at 0.687; 45 days went over the word ceiling. Pick
-# the longest window that stays under it, because supersession accumulates
-# with time and the score falls as it does.»
-WINDOW_FIRST_DAY = measure("zero-based day index of the window's first working day")
-WINDOW_LAST_DAY = measure("zero-based day index of the window's last working day")
+WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 
-# What a person says when they are taking work on themselves, as opposed to
-# handing it out or asking about it. Matched case-insensitively against the
-# turn's text.
-#
-# «MEASURE: the owner-shaped phrasings this corpus actually writes, with a
-# count for each. The screen's `commitment` shape fired in 95% of meetings
-# on the previous world using `I'll / I will / I can / I am going to`, but
-# that is a screen rather than a rule — count each form here and admit only
-# the ones the corpus writes often enough to matter. A form that occurs
-# twice is a key in `form_counts` that is a constant.»
-OWNER_FORMS: tuple[str, ...] = (
-    measure("owner form 1"),
-    measure("owner form 2"),
-)
+# What a person says when the work is theirs. Measured on 56 recorded days:
+# `I'll` 501 turns, `I will` 9, and nothing looser survives contact —
+# `I have` is possession, `I'd` is conditional, and `I can` is as often
+# `I can't` or `I can see why`. A chair recapping somebody else's promise
+# ("Reinhardt, $61,047.00 out by Thursday") is not a commitment by anyone in
+# the room: the person who owes it never said it, and the person who said it
+# does not owe it.
+OWNER_FORMS: tuple[str, ...] = (r"\bI'll\b", r"\bI will\b")
 
-# What a deadline can look like, and this is the line the world moved
-# under.
+# The deadline forms this firm writes, and the token each normalises to.
+# First match wins, so **order is the rule** and the compound comes first.
 #
-# The first version admitted weekdays only, on a v1 measurement: 27% of
-# meetings named a weekday against 2% naming a month and a number, so
-# dated deadlines would grade nearly nothing. Measured again on 26 days of
-# the re-recorded world, the weekday rate had **halved to 14%** while every
-# other conjunct held — owner phrases 0.86x, matter mentions 1.21x — and
-# the three-part rule collapsed from 37 qualifying turns to 10. Six rows,
-# under the twelve-row floor, and not one supersession that changed a day.
-# The task's whole mechanism would have been absent.
-#
-# What the corpus writes instead is the relative form: 243 turns carry
-# "end of week", "EOD", "COB" or "tomorrow" against 83 naming a weekday.
-# Admitting both gives 31 rows on v6 with 32% of them superseded to a
-# different deadline — healthier than v1's weekday-only 27 rows at 11%.
-#
-# Two forms must therefore be normalised to one token before comparison,
-# and the brief has to say so: `EOD` and `COB` and "end of the day" are one
-# deadline, not three. That normalisation is the rule, and a reader who
-# treats them as distinct reports three live commitments where there is
-# one.
-#
-# «MEASURE: the admitted deadline forms on the finished record, with a
-# count for each and the normalisation the brief states. Include the
-# relative forms; the weekday-only rule is measured dead on v6. A form
-# occurring under ~15 times is a key that grades nothing.»
+# `EOD tomorrow` is one deadline meaning end of day tomorrow, and it is the
+# single commonest two-form phrase in the corpus: 47 of 178 commitment turns.
+# A table that tries `EOD` before it resolves a quarter of everything graded
+# to the wrong day. 40% of commitment turns name two forms at all, so this
+# is not an edge case dressed up as one.
 DEADLINE_FORMS: tuple[tuple[str, str], ...] = (
-    measure("deadline form 1 as a regex, and the token it normalises to"),
-    measure("deadline form 2 as a regex, and the token it normalises to"),
+    (r"\b(?:EOD|COB|end of (?:the )?day)\s+tomorrow\b", "tomorrow"),
+    (r"\b(?:EOD|COB|close of business|end of (?:the )?day)\b", "eod"),
+    (r"\b(?:EOW|end of (?:the )?week)\b", "end of week"),
+    (r"\btomorrow\b", "tomorrow"),
+    *((rf"\b{day}\b", day) for day in WEEKDAYS),
 )
 
-# «MEASURE: whether a turn naming two different weekdays occurs, and what
-# to do with it. On the previous world it was rare enough to take the
-# earliest named and say so in the brief; if v6 writes it often, the brief
-# owes the reader a stated rule and this line owes it a measurement.»
-TWO_DAYS_IN_ONE_TURN = measure(
-    "how many turns name two different weekdays, and the rule the brief states for them"
+# How many times a title has to appear in the window before the meeting is a
+# *standing* one rather than a one-off.
+#
+# The register is keyed on the series, so a one-off is a key with exactly one
+# meeting in it: nothing can supersede, and the key is a free-text title the
+# agent has to reproduce character for character. This world writes two of
+# those a colon apart — `Ardmore Chain-of-Access Routing Decision` and
+# `Ardmore Chain-of-Access: Routing Decision` — which are one meeting to a
+# reader and two rows to a grader.
+#
+# The calendar cannot answer this, though it looks as though it should:
+# `event_recurrence` is a real table that the projection never writes, so
+# every event in the recorded world is served `recurrence: []` even though
+# the workplace spec declares these eight meetings daily or weekly. So the
+# series are recovered by counting, and the threshold is measured rather than
+# picked: across four windows the standing series occur 4 to 32 times and the
+# one-offs 1 or 2, so any cut in 3..4 separates them. Three is chosen because
+# a 30-day window puts the weekly series at 4 and a cut of 5 would silently
+# drop five of the eight.
+STANDING_SERIES_MINIMUM = 3
+
+_OWNER = re.compile("|".join(OWNER_FORMS), re.IGNORECASE)
+_DEADLINE = tuple(
+    (re.compile(pattern, re.IGNORECASE), token) for pattern, token in DEADLINE_FORMS
 )
 
 
-def _matters(connection: sqlite3.Connection) -> dict[str, str]:
-    """Every matter's display number, by the word people say for it.
+def _window() -> tuple[int, int]:
+    """The window, in seconds from the run epoch, inclusive of both ends.
 
-    Read from clio rather than listed here: a literal list is a second
-    source of truth about the firm's own matters, and the constant that
-    drifted from the world it describes is the defect this tree has paid
-    for most.
+    A meeting is in the window when it **started** inside it; one that runs
+    past the last day is still that day's meeting.
 
-    **Not the description, and not the client.** Clio stores
-    `"Coastal Meridian - regulatory inquiry"`, and one matter's description
-    runs two hundred characters with three parentheticals. Nobody says that
-    in a room. Measured on the previous world:
+    «MEASURE: the window. `datasets/merrick/measure_transcripts.py` prints
+    meetings, turns and words per window and refuses over 60,000 words or
+    under 25 meetings. On 56 partial days of v6, days 20-64 held 140
+    meetings and 50,113 words — inside the ceiling — and yielded 32 rows of
+    which a first-answer reader got 72% wrong, against 26 rows at 69% for
+    days 20-49. Longer is better until the ceiling binds, because
+    supersession accumulates with time. Re-measure on the finished record:
+    every figure here is from a recording that was 43% complete.»
 
-      * the client name is AMBIGUOUS — 11 of 34 client names cover two or
-        more matters, `Firm` covers eight, `Pellumbra` and `Sable Ridge`
-        three each — so a turn saying "Pellumbra" names no single matter;
-      * the client name is also mostly UNSAID — only 10 of 34 ever appear
-        in a transcript at all;
-      * the distinctive word after the dash is both said and unique for
-        **50 of 53** matters: Renwick, Tessaro, Ardmore, Hollstead,
-        Ravenna.
+    Probed end to end on the partial bundle at days 20-64, which is the
+    shape recommended when the recording finishes: 131 standing meetings,
+    660 turns, 28 rows over 7 series, 62 supersessions, 17 distinct due
+    dates with the commonest holding 14%. A reader who takes each person's
+    first statement finds every row — `row_f1` 1.000 keyed on
+    (owner, meeting) — and scores **0.179** once the date joins the key,
+    because they get the due date wrong on 82% of rows and report
+    `superseded_count` as 0.
 
-    So the handle is the tail word, which is what a lawyer actually says.
-
-    «MEASURE: the handle per matter, on the finished record, and its
-    uniqueness. Three of 53 had no distinctive said word; decide whether
-    those matters are out of scope or whether the brief names them another
-    way, and say which in the brief — a matter an agent cannot name is a
-    row it cannot report, and a task that grades one is grading the
-    environment.»
+    Called rather than evaluated at import so the pure date arithmetic below
+    can be tested without a corpus.
     """
 
-    handles = measure(
-        "the word that names each matter in speech, per matter, and proof that no two share one"
-    )
-    return {str(handle).strip().lower(): str(display) for handle, display in handles}
+    first = measure("zero-based day index of the window's first day")
+    last = measure("zero-based day index of the window's last day")
+    return first * 86_400, (last + 1) * 86_400 - 1
 
 
-def _deadline(text: str, forms: tuple) -> str | None:
+def deadline_token(text: str) -> str | None:
     """The deadline a turn names, normalised, or None.
 
-    First match wins, in the order the forms are declared, so the brief's
-    table order is the tie-break for a turn naming two. That is a rule the
-    brief owes the reader out loud — see the TWO_DAYS_IN_ONE_TURN
-    measurement — because a reader who picks the other one reports a
-    different commitment, not a wrong field.
+    First match wins in declaration order, which is why the compound form
+    leads the table. Collecting every form instead would make
+    "I'll confirm by EOD tomorrow" name two deadlines, and a turn that
+    disagrees with itself becomes a fake revision the moment supersession is
+    computed by comparing a speaker's first statement to their last.
     """
 
-    for pattern, token in forms:
-        found = pattern.search(text)
-        if found:
-            return token or found.group(0).lower()
+    for pattern, token in _DEADLINE:
+        if pattern.search(text or ""):
+            return token
     return None
 
 
-def _window_bounds() -> tuple[int, int]:
-    return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
+def due_date(said_on: dt.date, token: str) -> dt.date:
+    """The calendar date a token names, said on `said_on`.
+
+    Every branch here is a convention the corpus exercises, which is why the
+    brief states each one rather than listing them for completeness:
+
+    * `eod` is the day it was said. The meeting is in the morning and the
+      commitment is for that evening.
+    * `tomorrow` is the next **working** day, so said on a Friday it means
+      Monday. The firm records no weekend days at all — 58 recorded days,
+      every one Monday to Friday — so a Saturday deadline would be a date on
+      which nobody could deliver.
+    * `end of week` is that week's Friday, and said *on* a Friday it means
+      that same day rather than a week later.
+    * a weekday names its **next** occurrence, strictly after the day it was
+      said. Said on a Thursday, "Thursday" is next Thursday — that happens
+      in 3 turns — and a weekday earlier in the week than the meeting is
+      next week's, which happens in 26.
+    """
+
+    if token == "eod":
+        return said_on
+    if token == "tomorrow":
+        nxt = said_on + dt.timedelta(days=1)
+        while nxt.weekday() >= 5:
+            nxt += dt.timedelta(days=1)
+        return nxt
+    if token == "end of week":
+        return said_on + dt.timedelta(days=(4 - said_on.weekday()) % 7)
+    ahead = (WEEKDAYS.index(token) - said_on.weekday()) % 7
+    return said_on + dt.timedelta(days=ahead or 7)
+
+
+def _epoch(connection: sqlite3.Connection) -> tuple[dt.datetime, ZoneInfo]:
+    """The run's own epoch and timezone, from the surface that serves them.
+
+    `meetings.started` is an offset in seconds from this epoch, **not a Unix
+    timestamp**. Read as one it yields 1970 dates that parse, sort and
+    compare perfectly well while putting 30% of the firm's meetings on a
+    weekend — a fidelity defect that does not exist, discovered only because
+    the recorded day labels disagreed.
+    """
+
+    meta = dict(connection.execute("SELECT key, value FROM meta"))
+    zone = ZoneInfo(meta["timezone"])
+    return dt.datetime.fromisoformat(meta["epoch"]).astimezone(zone), zone
 
 
 def main() -> int:
-    meetings_db = STATE / "meetings.db"
-    clio_db = STATE / "clio.db"
-    with sqlite3.connect(f"file:{clio_db}?mode=ro", uri=True) as clio:
-        matters = _matters(clio)
-    matter_pattern = re.compile(
-        "|".join(re.escape(name) for name in sorted(matters, key=len, reverse=True)),
-        re.IGNORECASE,
-    )
-    owner_pattern = re.compile(
-        "|".join(re.escape(form) for form in OWNER_FORMS), re.IGNORECASE
-    )
-    deadlines = tuple(
-        (re.compile(pattern, re.IGNORECASE), token) for pattern, token in DEADLINE_FORMS
+    low, high = _window()
+    connection = sqlite3.connect(f"file:{STATE / 'meetings.db'}?mode=ro", uri=True)
+    epoch, zone = _epoch(connection)
+    people = dict(
+        sqlite3.connect(f"file:{STATE / 'clio.db'}?mode=ro", uri=True).execute(
+            "SELECT person_id, name FROM people"
+        )
     )
 
-    low, high = _window_bounds()
-    connection = sqlite3.connect(f"file:{meetings_db}?mode=ro", uri=True)
-    in_window = {
+    window = {
         meeting_id: (started, title)
         for meeting_id, started, title in connection.execute(
             "SELECT meeting_id, started, title FROM meetings"
         )
         if low <= started <= high
     }
+    standing = {
+        title
+        for title, count in collections.Counter(
+            title for _started, title in window.values()
+        ).items()
+        if count >= STANDING_SERIES_MINIMUM
+    }
+    window = {
+        meeting_id: row for meeting_id, row in window.items() if row[1] in standing
+    }
     turns = [
         row
         for row in connection.execute(
             "SELECT meeting_id, position, speaker, text FROM utterances"
         )
-        if row[0] in in_window
+        if row[0] in window
     ]
-    people = {
-        person_id: name
-        for person_id, name in connection.execute("SELECT person_id, name FROM people")
-    }
     connection.close()
 
-    # Every commitment, in the order it was made. A person naming a day
-    # twice for one matter inside one meeting is making one commitment, so
-    # the sort key carries the turn's position under the meeting's start.
-    made: dict[tuple[str, str], list] = defaultdict(list)
+    said: dict[tuple[str, str], list] = {}
     for meeting_id, position, speaker, text in turns:
-        body = text or ""
-        if not owner_pattern.search(body):
+        token = deadline_token(text or "")
+        if token is None or not _OWNER.search(text or ""):
             continue
-        day = _deadline(body, deadlines)
-        if day is None:
-            continue
-        named = {m.lower() for m in matter_pattern.findall(body)}
-        if not named:
-            continue
-        started = in_window[meeting_id][0]
-        for name in named:
-            made[(speaker, matters[name])].append((started, position, meeting_id, day))
+        started, title = window[meeting_id]
+        said.setdefault((speaker, title), []).append(
+            (started, position, meeting_id, token)
+        )
 
-    live = []
-    superseded = 0
-    for (speaker, matter), statements in made.items():
-        statements.sort()
-        superseded += len(statements) - 1
-        started, _position, meeting_id, day = statements[-1]
+    live, superseded = [], 0
+    for (speaker, title), occasions in said.items():
+        occasions.sort()
+        superseded += len({row[2] for row in occasions}) - 1
+        started, _position, meeting_id, token = occasions[-1]
+        moment = epoch + dt.timedelta(seconds=started)
         live.append(
             {
-                "matter": matter,
                 "owner": people.get(speaker, speaker),
-                "day": day,
+                "meeting": title,
+                "due": due_date(moment.date(), token).isoformat(),
                 "meeting_id": meeting_id,
-                "said_at": _iso(started),
+                "said_at": moment.isoformat(),
             }
         )
-    live.sort(key=lambda row: (row["matter"], row["owner"]))
+    live.sort(key=lambda row: (row["meeting"], row["owner"]))
 
-    answer = {
-        "meetings_read": len(in_window),
-        "turns_read": len(turns),
-        "distinct_owners": len({row["owner"] for row in live}),
-        "matters_with_a_commitment": len({row["matter"] for row in live}),
-        # What was found and discarded. Not derivable from `live` — the
-        # rows are precisely what supersession removed — and the one figure
-        # a reader who takes the first mention gets structurally wrong,
-        # because they never saw a supersession and report zero.
-        "superseded_count": superseded,
-        "live": live,
-    }
-    OUT.write_text(json.dumps(answer, indent=2, sort_keys=True), encoding="utf-8")
-    return 0
-
-
-def _iso(seconds: int) -> str:
-    """The meeting's start, in the epoch the served surfaces use.
-
-    «MEASURE: read the epoch from the shared meta table rather than
-    hardcoding it here. `tools.framework.read_epoch` is what the servers
-    use, and an oracle that computes a moment a different way from the
-    surface it grades is the defect this dataset has shipped twice.»
-    """
-
-    raise NotImplementedError(
-        measure("the epoch conversion, read from the served meta table")
+    OUT.write_text(
+        json.dumps(
+            {
+                "meetings_read": len(window),
+                "turns_read": len(turns),
+                "distinct_owners": len({row["owner"] for row in live}),
+                "superseded_count": superseded,
+                "live": live,
+            },
+            indent=2,
+        )
+        + "\n"
     )
+    return 0
 
 
 if __name__ == "__main__":
