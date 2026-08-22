@@ -30,6 +30,42 @@ recently on someone's mind.
 > 4. **The five tasks are six**, and `deadline-week-promise-clock`'s form
 >    table is five rows, not four — measured on v6, not carried over.
 
+> **REVISED AGAIN 2026-08-22 for the seventh recording (`epoch-v7`).**
+> **v6 died at day 67 of 130** — no process, WAL checkpointed, clean close —
+> and it cannot be resumed: its `engine_fingerprint` is `a50dae98eb2fe0e5`
+> and the tree is `b6e7102cd06621f2`, so resuming would mean checking out
+> the engine fixes made since. Its 68-day corpus is preserved at
+> `out/merrick/epoch-v6/world.jsonl` (39,838 events, 290 transcripts) and
+> is fine for *building and probing* a task. It is not fine to grade on:
+> see "v6 carries a cross-surface fiction" in `task-viability.md` — 0.8% of
+> its on-stage events are the firm managing a bug in its own simulator, and
+> someone billed time to it. **v7 is clean on the same screen.**
+>
+> **Read every path below as `out/merrick/epoch-v7/`.** Started 2026-08-22
+> 09:42 on `b6e7102cd06621f2`, 180 days, concurrency 48, log
+> `/tmp/merrick-epoch-v7.log`. Note it records slower than the documented
+> ~6.2 days/hour while probes run alongside it — measured at ~4.1.
+>
+> Five things changed that the text below does not know:
+>
+> 1. **The email fix is in the engine now**, not pending. The section
+>    "fixed after this world was recorded" describes v6; v7 carries it, and
+>    its first week reads email 6.4 -> 10.1/day with refusals 12.1 -> 8.0.
+> 2. **A document is now filed where its profile says it is.** iManage
+>    served declared paths while the file room wrote `{workspace}/{basename}`:
+>    374 of 377 served paths pointed at nothing. Both sides now read
+>    `filed_name`, and 377 documents produce 377 files instead of 341.
+> 3. **`live-commitment-register` was rebuilt**, not filled. Its matter
+>    column was not gradeable; it is keyed on (owner, standing meeting,
+>    resolved due date) and grades a calendar date rather than the word.
+> 4. **`datasets/merrick/measure_commitment_window.py` exists** and prints
+>    every value that task's brief needs for a given window, refusing one
+>    that cannot carry it. Use it instead of filling by hand — three of
+>    this dataset's costliest defects were true numbers filled by hand.
+> 5. **`--allow-band-absence` makes a partial world buildable**, which is
+>    what makes probing a recording *before it finishes* possible. Probe
+>    early: it found four task defects that would otherwise have shipped.
+
 ## If the recording dies before it finishes
 
 Resume needs the seven files in `_ENGINE_SURFACE` to hash to what the run
