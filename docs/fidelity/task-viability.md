@@ -1249,6 +1249,20 @@ the finished v6 record before anyone fills anything:
     unanswered-question-register  34.5% unanswered on v7         viable
     prebill-narrative-screen      structured; not at risk        —
 
+**Correction: only two tasks are actually finished.** The build prints a
+"staged, not finished" list and I read absence from it as readiness. It is
+not: that list catches `«MEASURE` in a brief and `measure("` in Python, and
+three tasks use a third form — a module constant left as `None` that the
+solver refuses on. Run each solver and the real state is:
+
+    off-sense-register            runs
+    live-commitment-register      runs
+    unanswered-question-register  STAGED
+    no-op-revision-register       STAGED
+
+Absence from a list is not presence on another one, and a check that
+enumerates two of three shapes reports the third as fine.
+
 `deadline-week-promise-clock` is thin rather than dead, and the fix is
 measured. 148 promise-and-deadline emails over 68 recorded days, windowed:
 
