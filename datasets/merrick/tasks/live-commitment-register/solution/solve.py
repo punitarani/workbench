@@ -70,6 +70,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
+from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("live_commitments.json")
@@ -181,8 +182,8 @@ def _window() -> tuple[int, int]:
     # indentation, so the window can live in here and the rest of the
     # module -- the date arithmetic, the form tables -- stays importable
     # before the corpus exists.
-    WINDOW_FIRST_DAY = 42  # PROBE
-    WINDOW_LAST_DAY = 88  # PROBE
+    WINDOW_FIRST_DAY = measure("zero-based day index of the window's first day")
+    WINDOW_LAST_DAY = measure("zero-based day index of the window's last day")
     return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
 
 

@@ -99,8 +99,8 @@ PINNED: dict[str, str] = {
 # company at the transition. If the window reaches past one, the two
 # derivations disagree near midnight and THAT DISAGREEMENT IS THE FINDING,
 # not a bug in this file.»
-WINDOW_FIRST_DATE = measure("the window's first day as an ISO calendar date")
-WINDOW_LAST_DATE = measure("the window's last day as an ISO calendar date")
+WINDOW_FIRST_DATE = "2026-02-16"
+WINDOW_LAST_DATE = "2026-04-03"
 
 # «MEASURE: the admitted deadline forms and their normalised tokens, read
 # out of the brief's own table rather than restated here once the table
@@ -111,7 +111,7 @@ WINDOW_LAST_DATE = measure("the window's last day as an ISO calendar date")
 ADMITTED = measure("the brief's deadline table, as (form, normalised token) pairs")
 
 # «MEASURE: the owner-shaped phrasings, likewise from the brief.»
-OWNER_FORMS = measure("the brief's owner-phrase list")
+OWNER_FORMS = measure("the brief's owner-phrase list, as a closed set")
 
 # How many days a title has to appear on before the meeting is standing.
 # The brief states the number outright; it is repeated here because this
@@ -162,9 +162,16 @@ SUPERSESSION_FLOOR = 0.15
 # an independent reading. **20 of 27 brief mutations went unnoticed.**
 _STATED: dict[str, tuple[str, ...]] = {
     "## What counts as a commitment": (
-        # both conjuncts, and that neither a recap nor a question is one
+        # both conjuncts; the owner forms as a CLOSED set rather than an
+        # example, which is the asymmetry a probe caught -- the brief named
+        # the deadline forms exactly and gave only an instance for this
+        # one, so an agent generalised to "I'm calling their counsel" and
+        # was graded against a narrower rule than the brief stated; and
+        # that neither a recap, an instruction, nor a question is one
         "both have to be present in the same turn",
-        "is not that person's commitment",
+        "`i'll` or",
+        "names no future act",
+        "makes a row for nobody",
         "a question is not one",
     ),
     "## Turning what was said into a date": (

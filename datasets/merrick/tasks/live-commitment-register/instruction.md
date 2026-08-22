@@ -53,13 +53,38 @@ opened, whatever was said in them.
 A turn is a **commitment** when the person speaking says **they** will do
 something, and names **when**. Both have to be present in the same turn.
 
-- **The speaker is taking it on themselves.** They are talking about their
-  own work — *«MEASURE: a real turn from the corpus in which somebody takes
-  work on themselves»*. Somebody assigning work to another person is not
-  that person's commitment: it is an instruction, and it makes no row. Nor
-  is a chair recapping what other people promised — *«MEASURE: a real recap
-  turn»* — a commitment by anyone, because the person who owes it did not
-  say it here and the person saying it does not owe it.
+- **The speaker is taking it on themselves**, in the first person, about a
+  **future** act. In this firm's transcripts that is written
+  «MEASURE: the admitted owner forms as a CLOSED SET, not an example.
+  Measured on the previous record: `I'll` 501 turns, `I will` 9, and
+  nothing looser survives contact — `I have` is possession, `I'd` is
+  conditional, `I can` is as often `I can't`.
+
+  A probe is why this says "closed set". The brief stated the deadline
+  forms as a table and gave only an *example* for this one, so the two
+  halves of one rule were written asymmetrically and Opus 5 generalised —
+  correctly, by the brief's own words. The oracle took Dov Reinhardt's
+  "i'll have a firm answer by eod"; the agent took his later "i'm calling
+  their counsel", which does say he will do something. It came out broader
+  on some turns and stricter on others, 22 rows against 33 with only one
+  of its own spurious, which is what a boundary nobody pinned down looks
+  like from the outside. The score then measures agreement with a regex.
+
+  A count of EXCLUDED material is safe and useful — `off-sense-register`
+  publishes them freely and nobody chases them, because reproducing a
+  count of what makes no rows earns nothing. A count of the ANSWER'S OWN
+  composition is a specification. Publish the first, never the second
+  unless it is an exact reproducible partition.» —
+  *«MEASURE: a real turn in which somebody takes work on themselves»*.
+  Nothing looser counts, and two things that read like commitments are not:
+  - **A report of what is already under way.** *«MEASURE: a real turn
+    describing present activity — the previous record wrote "I'm calling
+    their counsel now"»* names no future act. It makes no row.
+  - **Work handed to somebody else.** *«MEASURE: a real turn in which
+    somebody assigns work to a named colleague»* is an instruction, and it
+    makes a row for nobody: not for the speaker, who is not doing it, and
+    not for the colleague, who did not say it. The same is true of a chair
+    recapping what other people promised.
 - **A day is named.** In the forms this firm actually uses for a near date:
   *«MEASURE: the admitted deadline forms, and the compound forms that occur,
   stating that each compound names one deadline. Include the relative forms;
