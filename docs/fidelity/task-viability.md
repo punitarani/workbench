@@ -845,3 +845,60 @@ not for completeness.
 meetings, 50,113 words — inside the 60,000 ceiling), 32 rows, 72% of them
 wrong for a first-answer reader, 16% guessing floor. Re-measure all of it;
 these numbers are from 56 partial days.
+
+## The first real probe, and what it measured that reasoning did not
+
+Built `live-commitment-register` against the 56-day partial bundle and ran
+it for real: `scripts/rollout.py --model opus-5 --k 3`, through the pinned
+gateway, against the staged environment. Three findings.
+
+### The window's own baselines, from `build_tasks`
+
+    no_work_at_all                          0.000
+    reported_every_candidate_counts_wrong   0.171
+    empty_register                          0.273
+    reported_every_candidate                0.444   <- ignores supersession
+
+Against this dataset's five killed designs, whose fifteen measured
+wrong-branch payoffs had a **median of 0.90**, and against the
+matter-keyed version of this same task, whose wrong branch scored 0.687.
+Ignoring supersession entirely now costs more than half the reward.
+
+### 1800 seconds is not enough
+
+All three trials hit the agent wall with no deliverable written, and the
+harness retried all three into the same wall. The agent was not stuck. It
+had dumped the window's transcripts to a scratch file and was paging
+candidate turns twenty at a time — the reading the task exists to require.
+`task.toml` had asked, in a `«MEASURE»`, for someone to time a real read
+before trusting 1800; nobody had, and the answer is that it is too short
+for 140 meetings and 51,672 words. Now 3600.
+
+A timeout that cuts off honest work does not measure difficulty. It
+measures the clock, and downstream it is indistinguishable from a model
+that cannot do the task — which is the harness failure this dataset has
+already mistaken for a score once.
+
+### A count in a brief is a specification
+
+The filled brief listed the admitted deadline forms *with a count for
+each*: "end of day — 66 turns; tomorrow — 42; a named weekday — 28; the
+compound `EOD tomorrow` — 15". The agent read that as a target to
+reproduce. It wrote
+
+    target eod66 tom42 wd28 eodt15 total151
+
+into its own scratch file and spent turns trying counting modes against
+it — 223 matches under one, 270 under another — because raw match counts
+over overlapping patterns are **not a partition** and cannot be reproduced
+by anyone, including the person who measured them. The counts were true;
+they were also unreachable, and they sent a careful reader hunting a
+consistency that does not exist.
+
+Measure the forms to choose them. Publish only the forms. The skeleton now
+says so where the value gets filled, which is the only place anyone will
+read it.
+
+**The general shape** is the session's through-line arriving from a new
+direction: not a stale claim this time but a *true* one, put where it reads
+as a requirement. Anything a brief states, an agent will try to satisfy.
