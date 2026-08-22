@@ -397,3 +397,93 @@ messages carrying `confirm` in its ordinary sense, more revisions that
 really did change something. A rate that is a *proportion of a growing
 population* should be expected to drift; a rate that is a *count per working
 day* should not. Worth checking which kind a number is before quoting it.
+
+## Re-measured across a *different recording*, and that is not the same thing
+
+Everything above re-measures one world as it grows — day 13, then day 61 —
+and closes with the right warning about proportions of a growing
+population diluting. This section is the first re-measurement against a
+**differently recorded world**, and the effect is larger, differently
+caused, and not predicted by the drift rule above.
+
+Measured at day 28 of the corrected-engine recording against the same
+window of the previous one, identical extraction, on meeting transcripts:
+
+| conjunct | old world | new world | ratio |
+|---|---|---|---|
+| owner phrase (`I'll`, `I will`) | 55% of turns | 47% | 0.86x |
+| matter named | 47% | 56% | **1.21x** |
+| weekday named | 30% | **14%** | **0.47x** |
+| all three together | 37 turns | **10** | 0.27x |
+
+**This is not dilution.** Dilution moves every proportion the same way; here
+one conjunct halved while another rose. The firm changed how it writes
+deadlines — 243 turns now carry `end of week` / `EOD` / `COB` / `tomorrow`
+against 83 naming a weekday — and a task whose rule admitted weekdays only
+would have shipped with six rows, under the twelve-row floor, and **not one
+supersession**. Its entire mechanism would have been absent, and it would
+have scored a frontier model 1.000 for taking the first answer, because
+there was never a second one. Admitting both forms gives 31 rows with 32%
+superseded on the same window.
+
+**Why a whole conjunct can move between recordings.** The engine changed.
+Personas now observe meetings being scheduled, held and answered — three
+payload kinds that previously reached nobody — so they have something to
+refer back to and less need to restate a date. A rule measured on a world
+recorded by a different engine is a rule measured on a different firm, and
+no amount of corpus growth in the old world would have revealed it.
+
+So the document's closing warning needs a second clause. Do not fill a
+`«MEASURE»` from a number here **and** do not carry a verdict across a
+re-record: the verdicts above are engine-specific, not merely
+corpus-size-specific.
+
+### What else moved, measured the same way
+
+| premise | old | new | verdict |
+|---|---|---|---|
+| `off-sense-register`: `agree`/`agreed` | 598 rows / 5,894 msgs | 68 / 904 at day 28, both forms firing | **holds** |
+| `prebill-narrative-screen`: rounding disagreement | 76.6% of matter rows | **83.3%** | **stronger** |
+| `deadline-week-promise-clock`: `end of month` | 0 messages | 0 | dead in both |
+| `deadline-week-promise-clock`: `by date` | 3 of 2,717 messages | 0 | **dead — and was effectively dead before** |
+| malformed calendar starts | 532 of 1,255 (42.4%) | **7 of 539 (1.3%)** | fixed |
+| `slack.dm_share` | 0.000 | **0.250** | fixed |
+| `slack.threaded_reply_share` | 0.0003 | **0.433** | fixed |
+
+Two of those need acting on rather than noting.
+
+`by date` was **effectively absent in the old world too** — five occurrences
+across three of 2,717 messages, which is none at all in any window a task
+can use — and the screen printed it without comment because it flagged only
+an exact zero. It became visible only when the new recording made it a true
+zero, so the guard fired on the second world for a row already dead in the
+first. `measure_promise_week.py` now reports EFFECTIVELY ABSENT under ten
+messages. That is the same calibration mistake the fidelity band gate made
+(refusing `observed == 0` let a metric through at 0.000315): **a check that
+fires only on exactly nothing is calibrated to the one case somebody
+already thought of.**
+
+`double-booked-week` was retired because the calendar was 42.4% malformed
+and the served diary was half-size. That cause is fixed, so its recorded
+reason is now false and anyone rechecking it would revive the task. The
+real reason holds on both worlds and was never written down: **this firm
+does not double-book** — 2 overlapping pairs in 180 days of the old world,
+1 in 30 days of the new, across 21 and 27 diaries. Its `task.toml` now says
+so. A stale retirement note is worse than none: it is a measured-sounding
+claim pointing at a fixed cause.
+
+### How this was measured before the recording finished
+
+Seventeen hours before the world was due, on a run still in progress:
+
+```
+./.venv/bin/python scripts/export_world_log.py --out <scratch>   # run.db -> world.jsonl
+# then tools.project_all(read_events(world.jsonl), <scratch>/state)
+WORKBENCH_STATE=<scratch>/state uv run python datasets/merrick/measure_*.py
+```
+
+The export is safe against a live recording — SQLite is in WAL mode, so it
+reads a committed snapshot while the writer continues. Do this at day ~25
+of every re-record. Every finding in this section came from it, and each
+one would otherwise have surfaced during the turnaround, when the cost of
+a starved rule is a rollout that reads as a model failure.
