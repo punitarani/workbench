@@ -1176,3 +1176,25 @@ document keeps relearning from the other side: a number that agrees with a
 plausible story is not evidence for the story. I read a ratio of totals as a
 per-message rate, got a figure close enough to be unremarkable, and wrote it
 down.
+
+## Do not probe and record on the same key
+
+The third probe's slowest trial carries **six HTTP 429s** in its agent log,
+and its output stopped growing for twenty minutes while the other two ran
+on. Nothing was wrong with the model or the task: a 180-day recording was
+running at concurrency 48 against the same OpenRouter key.
+
+This matters more than an operational annoyance, because of what a starved
+trial looks like from downstream. It reads as a model that is slow, gets
+less done, and runs out of time — the exact signature the timeout section
+above is about, and indistinguishable from it without opening the log and
+counting 429s. A benchmark number produced this way is a measurement of
+queue depth.
+
+**So: a probe and a recording do not share a key.** Either pause the
+recording, or wait for it. When neither is possible, count the 429s in the
+agent log before believing the score, and say so beside the number.
+
+Which is also the reading of the recording's own throughput: v7 records at
+~4.1 simulated days per hour with probes alongside it, against a documented
+~6.2 on its own. Both sides pay.
