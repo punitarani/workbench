@@ -1401,3 +1401,38 @@ the corpus can support is sized by the wrong constraint. The binding one is
 what a careful agent can *finish* — and that is not knowable from the
 corpus, only from a probe. Three probes and nine trials bought this number;
 no amount of reading the transcripts would have.
+
+## The measurement, reproduced on a second window
+
+`opus-5`, k=1, days 49–74 (83 standing meetings, 429 turns, 31,539 words,
+25 oracle rows), 5400s budget. It finished inside the budget, which is what
+the smaller window was for.
+
+    meetings_read        83 / 83      exact
+    turns_read          429 / 429     exact
+    distinct_owners      11 / 15
+    superseded_count     22 / 31
+    rows                 17 / 25      8 matched     row_f1 0.381
+    pairs, ignoring the date          16 / 25
+
+Composite, at the weights `tests/criteria.py` pins (row_f1 5, row_facts 3,
+three paid scalars at 1): **≈ 0.40**, inside the 0.2–0.8 band.
+
+**It reproduces.** The first probe, on a different window (days 42–88, 33
+rows) and an earlier brief, read `row_f1` 0.364 with the same shape:
+`meetings_read` and `turns_read` exact, about two thirds of the pairs found,
+about half of those dated wrong, `superseded_count` short. Two windows, two
+briefs, the same answer — this is a property of the task, not of one draw.
+
+**Where it loses is where the design put it.** The reading is perfect: every
+meeting opened, every turn counted. What it cannot do is resolve each
+relative deadline against the right meeting and notice the later mention
+that moved a date. Of the 16 pairs it correctly identified, 8 carry the
+wrong date — a coin flip on the field the whole design turns on.
+
+**And the grading fix earns its place here.** `row_facts` on this answer is
+0.16. Under the old penalty bound it would have been 0.000, because the 9
+rows keyed differently would have out-weighed the 8 correct ones — wiping
+out, on a criterion worth 3 of 11, an answer that got a third of the
+register exactly right. That would have read as 0.29 instead of 0.40, and
+the difference is entirely arithmetic rather than comprehension.
