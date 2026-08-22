@@ -1618,3 +1618,28 @@ it, which is the mechanism the task exists to grade.
 
 Both sit inside the 0.2–0.8 band on a task whose wrong branches score 0.444
 and 0.273. That is the result the design was aiming at.
+
+## Premise audit complete: all eight tasks measured on the finished v6
+
+    task                          material on v6                    verdict
+    live-commitment-register      17 rows, 52% supersede            BUILT, 0.529/0.432
+    off-sense-register            88 hits; 109 stem-only decoys     viable
+    court-clock-computation       195 interval-bearing messages     viable
+    one-sentence-two-dates        100 two-date sentences            viable
+    unanswered-question-register  34.5% unanswered (on v7)          viable
+    prebill-narrative-screen      file/filed, 492 entries, 47% off  family chosen
+    deadline-week-promise-clock   5 rows/week, 24 per fortnight     widen to 2 weeks
+    double-booked-week            5 clashes in 69 working days      DEAD
+
+`off-sense-register`'s decoy structure is exactly what its brief claims, and
+worth recording because the claim is load-bearing: 88 messages carry an
+admitted form, and **109 carry `agreement`/`agreements` with no admitted
+form at all**. A reader who stems to `agree-` takes on more messages than
+the register contains, so the mistake does not shade the answer — it swamps
+it. Ninety-five more carry a synonym (`sign`, `signed`, `align`, `consent`)
+and stay out.
+
+**One dead, one to widen, six sound.** Every verdict is a measurement on the
+record rather than a reading of the brief, and two of them reversed a first
+answer: `one-sentence-two-dates` and `court-clock-computation` both read as
+empty under a screen narrower than the corpus's vocabulary.
