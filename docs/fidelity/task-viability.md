@@ -1643,3 +1643,39 @@ and stay out.
 record rather than a reading of the brief, and two of them reversed a first
 answer: `one-sentence-two-dates` and `court-clock-computation` both read as
 empty under a screen narrower than the corpus's vocabulary.
+
+## v7 validated on a larger sample: the fixes hold
+
+Measured at v7 day 31, against v6 truncated to the same simulated span
+(~calendar day 43) so the comparison is like-for-like.
+
+**The engine fiction is gone.** The screen that found 151 events in v6's
+full record finds, over the matched span:
+
+    v6   16 hits of 9,197 on-stage events   (chat 8, time entries 6,
+                                             documents 1, email 1)
+    v7    0 hits of 8,727 on-stage events
+
+Zero, across four surfaces that all carried it before. Removing the refusal
+removed the thing the firm was reacting to.
+
+**The file room resolves completely.** 201 served paths, 201 files, **100%
+of served paths open**, and the depth histogram shows real folders —
+187 of 201 four levels deep. v6 served 374 of 377 paths at locations that
+did not exist.
+
+**Volume, same span** — and read this cautiously:
+
+    email.message        320 -> 357   1.12x
+    meeting.transcript   135 -> 143   1.06x
+    document.created     214 -> 201   0.94x
+    calendar.response    591 -> 517   0.87x
+    chat.message         670 -> 503   0.75x
+
+**Correcting an earlier figure of mine.** At v7 day 7 this document recorded
+email at 1.58x. Over 43 days it is 1.12x. The first number was seven days of
+a noisy daily rate and should not have been written down as a ratio at all;
+chat moving to 0.75x on a surface the email fix cannot touch is the standing
+reminder that these are different draws, not an intervention effect. What
+the email fix is measured to do is recorded where it can be: the refusal log,
+and refusals per day falling by a third.
