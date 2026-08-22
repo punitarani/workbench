@@ -1177,7 +1177,12 @@ plausible story is not evidence for the story. I read a ratio of totals as a
 per-message rate, got a figure close enough to be unremarkable, and wrote it
 down.
 
-## Do not probe and record on the same key
+## Rate limiting looks exactly like a slow model — and it is not the recording
+
+**Corrected below.** This section first blamed the recording; it is wrong,
+and the correction is at the end.
+
+## What the 429s actually are
 
 The third probe's slowest trial carries **six HTTP 429s** in its agent log,
 and its output stopped growing for twenty minutes while the other two ran
@@ -1270,3 +1275,31 @@ that says nothing is there, check what the corpus writes instead.**
 `double-booked-week` survives that check and stays dead, because its
 measurement is not a pattern match at all: two events clash when their time
 ranges overlap, which is arithmetic. Five is five.
+
+
+### Correction: the recording was not the cause
+
+The section above concluded "a probe and a recording do not share a key",
+from six 429s in a starved trial while a 180-day recording ran at
+concurrency 48 against the same key. Tested by pausing the recording and
+re-running the probe on an otherwise idle account.
+
+    with the recording, ~75 minutes in     6, 8, 10 429s   ~0.10 / minute
+    recording paused, ~25 minutes in       5, 5,  6 429s   ~0.22 / minute
+
+Pausing it did not help, and per minute it is worse. **The 429s come from
+running three Opus trials concurrently on this account, not from sharing
+with the recording.** The recording may add to them; nothing here shows it
+does.
+
+What survives is the part that mattered: **a rate-limited trial is
+indistinguishable downstream from a slow model** — less done, out of time,
+zero — and the only way to tell is to open the agent log and count 429s.
+Do that before believing a score, and report the count beside it. What does
+not survive is the causal story I attached to it, which I reached by
+noticing one plausible cause and stopping.
+
+The operational consequence is different, and cheaper: **probe at lower
+concurrency**, or accept that k=3 on this account buys retries and a longer
+wall clock. Pausing a 20-hour recording to make room bought nothing, and I
+paused it before testing whether it would.
