@@ -1,3 +1,35 @@
+<!--
+STOP — DO NOT FILL THIS BRIEF. Its premise does not exist on this world,
+and what looks like the premise is an artefact of its own table.
+
+Over 707 email bodies in the 67-day record, **14 sentences carry two or
+more of the forms below**. Thirteen of the fourteen are a single date
+written as a compound:
+
+    "get you both figures by tomorrow EOD"
+    "You'll have the exposure number by Wednesday EOD"
+    "she'd have it by tomorrow EOD"
+
+`by tomorrow` and `EOD` are two rows of the table and one deadline in the
+world. The table counts them twice, and the register then reports two dates
+where the writer named one — including a date (today) that the sentence
+does not mean at all.
+
+The fourteenth is `"back to me by Wednesday close of business"`, which is
+the same thing in longer words. **The count of sentences genuinely naming
+two different dates is zero.**
+
+This is the defect that cost the sibling transcript task a quarter of its
+graded turns, met from the other side: there a compound resolved to the
+wrong day, here it manufactures a row. A form table must place every
+compound ahead of either of its parts — and once this one does, this task
+has no material at all.
+
+Retire it, or re-found it on a mechanism this world has.
+
+See docs/fidelity/task-viability.md.
+-->
+
 # Dates the firm put in writing
 
 You are covering the docket desk at **Merrick Stanton LLP**, a litigation

@@ -1745,3 +1745,39 @@ question, and which way it errs is luck.
 
 Two tasks now retired on measurement: `double-booked-week` (5 clashes
 against ~235 needed) and this one.
+
+## `one-sentence-two-dates` has no material either, and its own table made it look otherwise
+
+Over 707 email bodies in the 67-day record, **14 sentences carry two or more
+of the forms its table admits**. Thirteen of the fourteen are a single date
+written as a compound:
+
+> *"get you both figures **by tomorrow EOD**"*
+> *"You'll have the exposure number **by Wednesday EOD**"*
+
+`by tomorrow` and `EOD` are two rows of the table and one deadline in the
+world. The table counts them twice, so the register reports two dates where
+the writer named one — and one of the two (today) is a date the sentence
+does not mean. The fourteenth, *"back to me by Wednesday close of
+business"*, is the same thing in longer words.
+
+**Sentences genuinely naming two different dates: zero.**
+
+This is the compound defect that cost the transcript task a quarter of its
+graded turns, met from the opposite side. There a compound resolved to the
+wrong day; here it *manufactures the row*. A form table must place every
+compound ahead of either of its parts — and once this one does, the task has
+nothing left to grade.
+
+**Three tasks now retired on measurement**, and each one looked fine until
+it was counted with its own admitted forms:
+
+    double-booked-week        5 clashes against ~235 needed
+    court-clock-computation   4 messages carry any admitted form
+    one-sentence-two-dates    0 sentences carry two real dates
+
+That is three of eight. The remaining five are `live-commitment-register`
+(built, probed, 0.54/0.44), `off-sense-register` (88 hits, decoys verified),
+`unanswered-question-register` (34.5% on v7), `prebill-narrative-screen`
+(family measured), and `deadline-week-promise-clock` (223 messages, needs a
+fortnight and four of its seven forms dropped).
