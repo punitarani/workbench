@@ -1313,3 +1313,40 @@ The operational consequence is different, and cheaper: **probe at lower
 concurrency**, or accept that k=3 on this account buys retries and a longer
 wall clock. Pausing a 20-hour recording to make room bought nothing, and I
 paused it before testing whether it would.
+
+## `prebill-narrative-screen`: the word family, measured
+
+The brief asks its filler to choose a word family from the *narratives* —
+a different corpus from mail, with its own vocabulary — on three tests: both
+forms must fire, each must match entries the other does not, and the
+off-sense share must be high, because that is what a model reading for
+meaning throws away while a textual screen keeps it.
+
+Run over all 11,127 time-entry narratives on the v6 record:
+
+    family              form A   form B   A only   B only   both
+    review/reviewed        788     3207      718     3137      70
+    draft/drafted          347     1304      334     1291      13
+    file/filed             274      227      265      218       9
+    close/closed            75       93       75       93       0
+    update/updated         197      841      197      841       0
+    revise/revised           2      494        2      494       0
+
+`review` and `draft` fire far too widely — 3,995 and 1,638 entries, a third
+and a seventh of the firm's timekeeping. `revise` and `prepare` fail the
+first test outright: 2 and 0.
+
+**`file` / `filed` is the family.** 492 entries between them, 4.4% of the
+corpus, each form matching hundreds the other does not — and the off-sense
+share is the reason:
+
+    file    274 entries    47% noun-sense
+    filed   227 entries     0% noun-sense
+
+Nearly half of `file` is the *thing*, not the act — "Reviewed Cotswold
+Mutual claims **file**", "Drafted **file** memo", "for the **file**" — while
+`filed` is always the act. A reader screening for the idea of *filing* drops
+about half of one form and none of the other, which is exactly the split
+`off-sense-register` gets from `agree`/`agreed` in mail, reproduced in a
+corpus that needed its own measurement rather than the mail figures carried
+across.
