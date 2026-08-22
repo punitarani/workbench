@@ -50,17 +50,44 @@ schema_version = "1.3"
 # that is not live -- a genuine false positive, not a wrong field.
 #
 # It is also what makes the arithmetic work, and the arithmetic is why this
-# design was chosen over a matter-keyed register. With `row_f1` at weight 5,
-# `row_facts` at 3 and four independent scalars at 1:
+# design was chosen over a matter-keyed register. These are MEASURED through
+# `criteria_base`'s own comparisons on the six-month record, not estimated:
+# a "first-answer reader" register was built beside the truth and both were
+# scored with the real `row_f1` and `row_fields`, at grade.py's weights of 5,
+# 3 and four scalars at 1.
 #
-#   keyed on (matter, owner), day as a field
-#     a first-answer reader finds every row, so row_f1 = 1.000 and one field
-#     of three is wrong on 45% of rows -> about 0.90. Above band, and the
-#     same wall five earlier designs hit.
+#   keyed (matter, owner), day a field    row_f1 1.000  row_facts 0.584
+#                                         -> 0.729, above band, the same
+#                                            wall five earlier designs hit
+#   keyed (matter, owner, day)            row_f1 0.757  row_facts 0.168
+#                                         -> 0.524
 #
-#   keyed on (matter, owner, committed_day)
-#     a first-answer reader has 55% of the keys, so row_f1 = 0.55 and
-#     row_facts = 0.55 -> (5*0.55 + 3*0.55 + 2)/12 = 0.53. In band.
+# `row_facts` collapses rather than degrading because a wrong key means the
+# row is not found at all, so every field on it misses AND the invented row
+# draws the extra-row penalty. That is why the key carries the day: the
+# same error rate costs three times as much.
+#
+# THE WINDOW IS DECIDED BY THE SAME MEASUREMENT, and the two constraints
+# pull against each other. The word ceiling wants a short window; supersession
+# only accumulates with time. Scored across windows:
+#
+#     window    words   rows  wrong   row_f1  row_fac   score
+#       30d    43,779     27      3    0.889    0.370   0.630   readable, in band
+#       45d    65,595     36      5    0.861    0.278   0.595   over the ceiling
+#       60d    87,746     42     12    0.714    0.119   0.494   over the ceiling
+#      180d   255,889    107     26    0.757    0.168   0.524   over the ceiling
+#
+# Thirty days is the point that satisfies both: under the 60,000-word
+# ceiling, over the 12-row floor, and a first-answer reader scores 0.630.
+# Note how little supersession it takes — three rows of twenty-seven.
+#
+# For comparison, the five designs an adversarial panel killed had fifteen
+# measured wrong-branch payoffs with a MEDIAN OF 0.90, and only three of the
+# fifteen under 0.8. This design's modal wrong branch is 0.630.
+#
+# Every figure above is a regex proxy for the semantic rule -- owner-shaped
+# turns naming a matter and a weekday -- on the world being replaced. It
+# establishes that the SHAPE pays; the task's own numbers come from v6.
 #
 # BE HONEST ABOUT WHAT IS UNPROVEN. The brief has to define "live", and
 # defining it tells the reader that commitments get superseded. This project
