@@ -27,6 +27,40 @@ agent can fix — and it does *not* show in row F1, because both sides
 dedupe identically and F1 still reads 1.000. It shows in the per-row
 check. Assert the row count before and after keying.
 
+## Scope every conjunct to the same unit
+
+A rule with more than one part is safe only when its parts are properties of
+the same thing. This is the defect that has cost this dataset the most, and
+it has now bitten the same task twice.
+
+`live-commitment-register` first graded "a commitment, on a matter, by a
+day" over a **turn**. Who is speaking and what day they named are properties
+of a turn; *which piece of work a promise is about* is a property of a
+clause. Over 71-word turns those came apart in both directions — 65% of the
+firm's real promises discarded for not naming a matter in the same breath,
+and a third of the kept rows pairing a promise with a matter mentioned more
+than 120 characters away.
+
+The matter column was removed. Then the *same defect* was found one conjunct
+over: owner and deadline were still paired at turn scope, where both are
+present but not necessarily *together*. Eight of twenty-five rows were a
+docket manager reciting somebody else's deadline beside an undated promise,
+or a date used as a condition. Two frontier models independently declined
+all eight, and the sentence-scoped count matched one of them exactly.
+
+**Both parts being properties of a turn does not make their pairing one.**
+
+Before filling a rule with two or more conjuncts:
+
+1. Name the unit each conjunct lives in — token, clause, sentence, turn,
+   message, thread, day.
+2. If they differ, the rule is not gradeable as written. Drop the conjunct
+   that lives in the smaller unit, or scope the whole rule down to it.
+3. Measure it: count how many units satisfy each conjunct alone, and — in
+   the units that satisfy all of them — the character distance between the
+   conjuncts. A median in the tens is a rule; a median in the hundreds is
+   co-occurrence wearing a rule's clothes.
+
 ## Before the first rollout
 
 Run `datasets/merrick/build_tasks.py --task <name>`. It refuses a build
