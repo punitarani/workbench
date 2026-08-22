@@ -899,6 +899,18 @@ Measure the forms to choose them. Publish only the forms. The skeleton now
 says so where the value gets filled, which is the only place anyone will
 read it.
 
+**Refined against a brief that gets this right.** `off-sense-register`
+publishes counts freely — "*agreement* alone appears in thirty-five of this
+window's messages... not one of them makes a row" — and no agent has ever
+chased them. The difference is what the count is *about*. A count of the
+**answer's own composition** is a specification: it describes the thing
+being graded, so a careful reader treats it as a constraint to satisfy and
+loses if it cannot be reproduced. A count of **excluded** material is
+illustration: reproducing it earns nothing, so nobody tries, and it does
+the job it was written for — telling the reader how expensive the obvious
+mistake is. Publish the second freely; never publish the first unless it is
+an exact, reproducible partition.
+
 **The general shape** is the session's through-line arriving from a new
 direction: not a stale claim this time but a *true* one, put where it reads
 as a requirement. Anything a brief states, an agent will try to satisfy.
