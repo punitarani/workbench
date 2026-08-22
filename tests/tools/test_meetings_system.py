@@ -196,3 +196,47 @@ async def test_an_unknown_meeting_is_refused(server) -> None:
 
     with pytest.raises(ToolError, match="mtg-999999"):
         await server.call_tool("get_transcript", {"meetingId": "mtg-999999"})
+
+
+async def test_the_surface_is_crawlable(db_path: Path) -> None:
+    """A task may only grade what the tools can spell.
+
+    `analysis.reachability` refuses an oracle naming values no agent could
+    obtain, by crawling every read tool: zero-argument tools seed the
+    walk, `query`-only searches get an empty query, and single-argument
+    getters are followed. This surface is built to satisfy all three —
+    `list_meetings` seeds the meeting ids, `get_transcript` is followed
+    from them, `search_transcripts` takes a bare query.
+
+    Pinned because it is easy to lose by accident: give `list_meetings` a
+    required argument and the crawl seeds nothing, the ids become
+    unreachable, and every transcript-based oracle is refused by a gate
+    whose message is about the oracle rather than about the tool.
+    """
+
+    from analysis.reachability import _collect, _follow, _is_read
+
+    server = build_server(SYSTEM, db_path)
+    tools = [tool for tool in await server.list_tools() if _is_read(tool.name)]
+    assert {tool.name for tool in tools} == {
+        "list_meetings",
+        "get_transcript",
+        "search_transcripts",
+    }
+
+    discovered: set[str] = set()
+    for tool in tools:
+        required = (tool.input_schema or {}).get("required") or []
+        if not required:
+            await _collect(server, tool.name, {}, discovered)
+        elif required == ["query"]:
+            await _collect(server, tool.name, {"query": ""}, discovered)
+    assert SPOKEN in discovered, (
+        "no meeting id is reachable without already knowing one; a "
+        "transcript oracle would be refused as unservable"
+    )
+
+    reachable = discovered | await _follow(server, tools, discovered)
+    assert any("conflicts check" in value for value in reachable), (
+        "what was said is not reachable, so no task may quote it"
+    )
