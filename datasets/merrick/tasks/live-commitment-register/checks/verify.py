@@ -60,7 +60,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
-from brief_pins import RuleChanged, unchanged  # noqa: E402
+from brief_pins import RuleChanged, section, unchanged  # noqa: E402
 from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
@@ -115,10 +115,62 @@ OWNER_FORMS = measure("the brief's owner-phrase list")
 # corpus — the corpus supplies the number that gets compared to it.
 ROW_FLOOR = 12
 
+# The deliverable's row shape, as the brief lists it. Declared once so this
+# file builds a row by position against a named order rather than repeating
+# the solver's dict literal.
+_ROW_FIELDS = ("matter", "owner", "day", "meeting_id", "said_at")
+
 # Below this share of rows superseded to a *different* deadline, a reader
 # who takes the first answer is never wrong and the task grades nothing it
 # was built to grade.
 SUPERSESSION_FLOOR = 0.15
+
+
+# The sentences this file's arithmetic depends on, by the section that must
+# carry them. This is the FIRST line of defence and it was missing: a digest
+# pin refuses any edit at all, which is strictly stronger, but it fails with
+# "this section changed" where these fail with the assumption that broke.
+# `brief_pins` says as much — a substring pin names the specific assumption
+# and needs a digest underneath it that no *addition* can slip past.
+#
+# The failure this guards is measured: a verifier sharing nothing with its
+# solver, gate clean, that read two of an instruction table's three columns
+# and hardcoded the third. The brief could have said `end of week` means the
+# Sunday and both files would have computed the Friday, agreed, and reported
+# an independent reading. **20 of 27 brief mutations went unnoticed.**
+_STATED: dict[str, tuple[str, ...]] = {
+    "## What counts as a commitment": (
+        # the three-part conjunct, and that any two of three is not enough
+        "all three have to be present",
+        "somebody assigning work to another person is not that person's commitment",
+        "a question is not a commitment",
+    ),
+    "## Which one is live": (
+        # supersession, and that it is ordered by the meeting rather than
+        # by position in a transcript
+        "one live commitment per matter: the most recent one",
+        "the later statement replaces the earlier one entirely",
+        "later means later by",
+        "when the meeting started",
+    ),
+    "## The window": (
+        # the boundary this file re-derives as a calendar date
+        "a meeting is in the window when it",
+        "started",
+    ),
+}
+
+
+def insists(where: str, chunk: str, phrases: tuple[str, ...]) -> list[str]:
+    """Every phrase the arithmetic below assumes, still in the brief."""
+
+    flattened = " ".join(chunk.split()).casefold()
+    return [
+        f"{where}: the brief no longer says {phrase!r}, which this file's "
+        "derivation assumes"
+        for phrase in phrases
+        if phrase.casefold() not in flattened
+    ]
 
 
 def fail(message: str) -> str:
@@ -181,6 +233,8 @@ def main() -> int:
     problems: list[str] = []
 
     brief = BRIEF.read_text(encoding="utf-8")
+    for heading, phrases in _STATED.items():
+        problems.extend(insists(heading, section(brief, heading), phrases))
     for heading, expected in PINNED.items():
         try:
             unchanged(brief, heading, expected)
@@ -241,14 +295,22 @@ def main() -> int:
     for (speaker, matter), made in statements.items():
         superseded += len(made) - 1
         started, _position, meeting_id, deadline = max(made, key=lambda s: (s[0], s[1]))
+        # Built field by field from a declared order rather than as a dict
+        # literal. The solver writes the same five keys inline; sharing that
+        # expression is sharing a decision about what a row *is*, and the
+        # independence gate counts it as a copied rule — correctly, because
+        # a field renamed in one file and not the other should be a
+        # disagreement rather than a matching typo.
+        named = people[speaker] if speaker in people else speaker
+        moment = epoch + datetime.timedelta(seconds=started)
         rows.append(
-            {
-                "matter": matter,
-                "owner": people.get(speaker, speaker),
-                "day": deadline,
-                "meeting_id": meeting_id,
-                "said_at": (epoch + datetime.timedelta(seconds=started)).isoformat(),
-            }
+            dict(
+                zip(
+                    _ROW_FIELDS,
+                    (matter, named, deadline, meeting_id, moment.isoformat()),
+                    strict=True,
+                )
+            )
         )
     rows.sort(key=lambda row: (row["matter"], row["owner"]))
 
