@@ -1075,3 +1075,41 @@ recovered).
 Mail is still far below the 60–120 band, which the affiliation split
 already explained: it is the firm's own people who are silent, and nothing
 in this fix raises their attempt rate.
+
+## v6 carries a cross-surface fiction about a bug in the engine, and v7 does not
+
+Found by reading the staged file list, not by looking for it. The firm's own
+document tree holds `email-recipient-omission-remediation-memo.docx`,
+`to-cc-mishap-process-fix.md`, `read-aloud-to-cc-escalation-tracker-policy.docx`
+and `huddle-notes-2025-to-cc-policy-bates-trim.md`.
+
+There was no such workplace problem. What the personas were reacting to is
+the engine refusing any reply that named no recipient — the defect fixed in
+`36984fc`, which cost 37% of attempted mail. They could see mail failing,
+so they did what a competent firm would do: wrote a policy, tracked
+escalations, and reminded each other to read the To/CC line out loud before
+sending.
+
+Measured across the finished 67-day record — **151 of 18,263 on-stage
+events, 0.8%**:
+
+    document.created      19 of   451   4.2%
+    document.revised      19 of   583   3.3%
+    chat.message          29 of  1252   2.3%
+    meeting.transcript     4 of   290   1.4%
+    email.message          8 of   707   1.1%
+    work.time.logged      72 of 11127   0.6%
+
+Someone billed time to it.
+
+**v7 is clean.** Over its first ~7 days and 2,703 on-stage events the same
+screen finds *nothing*, against 3 chat hits in v6's first 10 calendar days —
+the fiction had already started there by day 10. Removing the refusal
+removed the thing the firm was reacting to, which is the only fix that ever
+works for this defect class: a persona cannot narrate a failure it never
+sees.
+
+**This decides which corpus ships.** v6 is usable for building and probing
+a task — everything in this document was measured on it — but it is a
+record of a firm that spent six months managing a bug in its simulator, and
+1.4% of its transcripts are about that. v7 is the one to grade on.
