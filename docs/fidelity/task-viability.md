@@ -1467,7 +1467,9 @@ twice the size while containing less work: most of those bytes are
 transcript payloads coming back through the tool boundary, one call at a
 time, 448 times.
 
-It never wrote a register.
+**It did write a register, in its last minutes** — I wrote "it never wrote
+one" here while the trial was still running, which was true at the time and
+not a fact about the run. The correction and the score are below.
 
 This is worth separating from "glm is weaker at reading", which the run does
 not show. What it shows is a strategy difference with an enormous cost
@@ -1486,3 +1488,46 @@ It does mean a score of 0.00 here should be read as **"never got to the
 question"**, not as "answered it badly" — and the two are worth reporting
 separately, because a suite that cannot tell them apart will retire a task
 for being too hard when it is really too slow to reach.
+
+
+## The discrimination curve, measured
+
+Both models, same window (days 49–74, 83 meetings, 429 turns, 31,539 words,
+25 oracle rows), same brief, k=1, 5400s.
+
+    criterion            weight   opus-5    glm-5.2
+    meetings_read           1      1.000      1.000
+    turns_read              1      1.000      1.000
+    live.f1                 5      0.381      0.229
+    row_facts               3      ~0.16      0.060
+    superseded_count        1      0.000      0.000
+    ------------------------------------------------
+    answer                         ~0.40      0.302
+    process                         0.50       0.50
+
+    rows submitted                 17 / 25    10 / 25
+    superseded_count               22 / 31     6 / 31
+    distinct_owners                11 / 15     8 / 15
+
+**Read these against the floors, not against zero.** An empty register
+scores **0.273** on this task — the two paid scalars that measure *reading*
+are free to anyone who opens the window. So the useful signal is what sits
+above that floor: opus **+0.13**, glm **+0.03**. Opus does roughly four
+times the gradeable work, on a scale where the raw scores look close.
+
+**Both read the whole corpus.** `meetings_read` and `turns_read` are exact
+for both — this task does not discriminate on coverage, and never did. It
+discriminates on what a model does with the corpus once it has it.
+
+**Both under-report, neither invents.** Opus submits 17 rows and glm 10,
+against 25, and `failure_analysis` flags the pattern: *missing rows with
+none invented often means a filter the instruction states differently from
+the oracle*. Worth taking seriously rather than reading as model failure —
+though after the owner-form correction, both models are now applying a rule
+the brief states as a closed set, and the residue is that neither finds
+every turn that satisfies it in the time available.
+
+**`superseded_count` is the cleanest separator and both fail it.** 22 and 6
+against 31. It is graded exact, and it is the one figure that cannot be
+reached without crossing meetings — which is the mechanism this task exists
+to grade.
