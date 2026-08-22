@@ -84,6 +84,9 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # from is a tripwire that fires for nothing.»
 PINNED: dict[str, str] = {
     "## What counts as a commitment": measure("digest of the commitment rule section"),
+    "## Turning what was said into a date": measure(
+        "digest of the date-resolution table"
+    ),
     "## Which one is live": measure("digest of the supersession rule section"),
 }
 
@@ -110,6 +113,16 @@ ADMITTED = measure("the brief's deadline table, as (form, normalised token) pair
 # «MEASURE: the owner-shaped phrasings, likewise from the brief.»
 OWNER_FORMS = measure("the brief's owner-phrase list")
 
+# How many days a title has to appear on before the meeting is standing.
+# The brief states the number outright; it is repeated here because this
+# file's arithmetic depends on it, and `_STATED` pins the sentence so a
+# brief that changes the number fails rather than silently disagreeing.
+#
+# Counted here over the distinct *dates* a title was held on, not over the
+# rows in the meetings table: two rows for one morning is a duplicate the
+# solver's count would swallow and this one reports.
+STANDING_MINIMUM = 3
+
 # A register below this is not a task, it is a coin flip. Twelve is this
 # dataset's floor and it is a policy about the task, not a count of the
 # corpus — the corpus supplies the number that gets compared to it.
@@ -118,7 +131,16 @@ ROW_FLOOR = 12
 # The deliverable's row shape, as the brief lists it. Declared once so this
 # file builds a row by position against a named order rather than repeating
 # the solver's dict literal.
-_ROW_FIELDS = ("matter", "owner", "day", "meeting_id", "said_at")
+_ROW_FIELDS = ("owner", "meeting", "due", "meeting_id", "said_at")
+
+# The tokens whose resolution is not simply "the weekday of this name".
+# Read off the brief's own table rather than spelled into `_resolve`, so a
+# renamed token fails loudly at the lookup instead of silently falling
+# through to the weekday walk and spinning.
+_EOD = "eod"
+_TOMORROW = "tomorrow"
+_END_OF_WEEK = "end of week"
+_FRIDAY = "friday"
 
 # Below this share of rows superseded to a *different* deadline, a reader
 # who takes the first answer is never wrong and the task grades nothing it
@@ -140,23 +162,41 @@ SUPERSESSION_FLOOR = 0.15
 # an independent reading. **20 of 27 brief mutations went unnoticed.**
 _STATED: dict[str, tuple[str, ...]] = {
     "## What counts as a commitment": (
-        # the three-part conjunct, and that any two of three is not enough
-        "all three have to be present",
-        "somebody assigning work to another person is not that person's commitment",
-        "a question is not a commitment",
+        # both conjuncts, and that neither a recap nor a question is one
+        "both have to be present in the same turn",
+        "is not that person's commitment",
+        "a question is not one",
+    ),
+    "## Turning what was said into a date": (
+        # every branch of `_resolve`. The failure this guards is measured:
+        # a verifier sharing nothing with its solver read two of a table's
+        # three columns and hardcoded the third, and 20 of 27 brief
+        # mutations went unnoticed. The brief could say `end of week` means
+        # the Sunday and both files would compute the Friday and agree.
+        "is the day of that meeting",
+        "tomorrow** is the next working day",
+        "following Monday",
+        "end of week** is that week's Friday",
+        "same day, not a week later",
+        "next occurrence, always *after* the day it was said",
+        "is one deadline, not two",
     ),
     "## Which one is live": (
-        # supersession, and that it is ordered by the meeting rather than
-        # by position in a transcript
-        "one live commitment per matter: the most recent one",
+        # supersession, that it is ordered by the meeting rather than by
+        # position, and that identical words still supersede -- which is
+        # the whole reason the date is graded instead of the word
+        "one live commitment per standing meeting: the most recent",
         "the later statement replaces the earlier one entirely",
+        "even when they say the same words",
         "later means later by",
         "when the meeting started",
     ),
-    "## The window": (
-        # the boundary this file re-derives as a calendar date
+    "## The window and the meetings": (
+        # the boundary this file re-derives as a calendar date, and the
+        # threshold `STANDING_MINIMUM` copies
         "a meeting is in the window when it",
         "started",
+        "three or more days",
     ),
 }
 
@@ -182,8 +222,18 @@ def _zone(connection: sqlite3.Connection) -> tuple[datetime.datetime, ZoneInfo]:
 
     row = connection.execute("SELECT key, value FROM meta").fetchall()
     meta = {k: v for k, v in row}
-    epoch = datetime.datetime.fromisoformat(meta["epoch"])
-    return epoch, ZoneInfo(meta.get("timezone", "America/New_York"))
+    zone = ZoneInfo(meta.get("timezone", "America/New_York"))
+    # Bound to the zone, not left on the fixed offset the ISO string
+    # carries. This file's first version kept the offset, and it disagreed
+    # with the solver on every meeting after the spring transition: same
+    # wall clock, `-05:00` against `-04:00`, because a fixed offset never
+    # learns about daylight saving. The `«MEASURE»` above predicted exactly
+    # that and the gate found it on the first run. The firm keeps local
+    # hours -- the docket call is 08:45 in March as it was in January --
+    # so the zone is what renders the moment, and a task whose window
+    # crosses a transition grades `said_at` on it.
+    epoch = datetime.datetime.fromisoformat(meta["epoch"]).astimezone(zone)
+    return epoch, zone
 
 
 def _date_of(epoch: datetime.datetime, zone: ZoneInfo, seconds: int) -> datetime.date:
@@ -229,6 +279,43 @@ def _deadline(tokens: list[str]) -> str | None:
     return None
 
 
+ONE_DAY = datetime.timedelta(days=1)
+
+
+def _working(day: datetime.date) -> bool:
+    """A day the firm works. Named from the date rather than an index."""
+
+    return day.strftime("%A").casefold() not in {"saturday", "sunday"}
+
+
+def _resolve(said_on: datetime.date, token: str) -> datetime.date:
+    """The date a deadline names, walked forward one day at a time.
+
+    The solver computes this with modular arithmetic over a weekday index.
+    This walks the calendar and asks each day what it is called, which is
+    the same rule reached from the other end: an off-by-one in either shows
+    up as a disagreement instead of being shared. Every branch is a sentence
+    `_STATED` pins in the brief.
+    """
+
+    if token == _EOD:
+        return said_on
+    if token == _TOMORROW:
+        day = said_on + ONE_DAY
+        while not _working(day):
+            day += ONE_DAY
+        return day
+    if token == _END_OF_WEEK:
+        day = said_on
+        while day.strftime("%A").casefold() != _FRIDAY:
+            day += ONE_DAY
+        return day
+    day = said_on + ONE_DAY
+    while day.strftime("%A").casefold() != token:
+        day += ONE_DAY
+    return day
+
+
 def main() -> int:
     problems: list[str] = []
 
@@ -254,20 +341,25 @@ def main() -> int:
         person_id: name
         for person_id, name in clio.execute("SELECT person_id, name FROM people")
     }
-    # «MEASURE: the matter handles, derived here by a different route from
-    # the solver's. The solver builds them from clio's matter descriptions;
-    # this should reach the same set another way — the brief states how a
-    # matter is named, and this file implements the brief.»
-    handles: dict[str, str] = measure(
-        "the matter handles, derived independently of the solver"
-    )
-
-    in_window = {}
-    for meeting_id, started in meetings.execute(
-        "SELECT meeting_id, started FROM meetings"
+    held: dict[str, set[datetime.date]] = defaultdict(set)
+    inside: dict[str, tuple[int, str]] = {}
+    for meeting_id, started, title in meetings.execute(
+        "SELECT meeting_id, started, title FROM meetings"
     ):
-        if first <= _date_of(epoch, zone, started) <= last:
-            in_window[meeting_id] = started
+        when = _date_of(epoch, zone, started)
+        if first <= when <= last:
+            inside[meeting_id] = (started, title)
+            held[title].add(when)
+
+    # Standing by the count of distinct DAYS a title was held on, where the
+    # solver counts meetings. Equal on a clean corpus and not on a dirty
+    # one, which is the point of deriving it twice.
+    standing = {title for title, days in held.items() if len(days) >= STANDING_MINIMUM}
+    in_window = {
+        meeting_id: started
+        for meeting_id, (started, title) in inside.items()
+        if title in standing
+    }
 
     statements: dict[tuple[str, str], list] = defaultdict(list)
     turns_read = 0
@@ -283,17 +375,15 @@ def main() -> int:
         deadline = _deadline(tokens)
         if deadline is None:
             continue
-        for handle, display in handles.items():
-            if _names_form(tokens, handle):
-                statements[(speaker, display)].append(
-                    (in_window[meeting_id], position, meeting_id, deadline)
-                )
+        statements[(speaker, inside[meeting_id][1])].append(
+            (in_window[meeting_id], position, meeting_id, deadline)
+        )
 
     # Resolved by maximum, not by sorting and taking the last.
     rows = []
     superseded = 0
-    for (speaker, matter), made in statements.items():
-        superseded += len(made) - 1
+    for (speaker, title), made in statements.items():
+        superseded += len({statement[2] for statement in made}) - 1
         started, _position, meeting_id, deadline = max(made, key=lambda s: (s[0], s[1]))
         # Built field by field from a declared order rather than as a dict
         # literal. The solver writes the same five keys inline; sharing that
@@ -307,12 +397,18 @@ def main() -> int:
             dict(
                 zip(
                     _ROW_FIELDS,
-                    (matter, named, deadline, meeting_id, moment.isoformat()),
+                    (
+                        named,
+                        title,
+                        _resolve(moment.date(), deadline).isoformat(),
+                        meeting_id,
+                        moment.isoformat(),
+                    ),
                     strict=True,
                 )
             )
         )
-    rows.sort(key=lambda row: (row["matter"], row["owner"]))
+    rows.sort(key=lambda row: (row["meeting"], row["owner"]))
 
     truth = json.loads(ORACLE.read_text(encoding="utf-8"))
 
@@ -326,14 +422,13 @@ def main() -> int:
     check("turns_read", turns_read)
     check("superseded_count", superseded)
     check("distinct_owners", len({row["owner"] for row in rows}))
-    check("matters_with_a_commitment", len({row["matter"] for row in rows}))
     check("live", rows)
 
     # Floors no per-row criterion can see.
     if len(rows) < ROW_FLOOR:
         problems.append(fail(f"row floor: {len(rows)} rows, fewer than {ROW_FLOOR}"))
 
-    keyed = {(row["matter"], row["owner"], row["day"]) for row in rows}
+    keyed = {(row["owner"], row["meeting"], row["due"]) for row in rows}
     if len(keyed) != len(rows):
         problems.append(
             fail(
@@ -342,11 +437,11 @@ def main() -> int:
                 "dedupe identically"
             )
         )
-    owned = {(row["matter"], row["owner"]) for row in rows}
+    owned = {(row["owner"], row["meeting"]) for row in rows}
     if len(owned) != len(rows):
         problems.append(
             fail(
-                f"two live commitments for one person on one matter: {len(rows)} "
+                f"two live commitments for one person in one meeting: {len(rows)} "
                 f"rows over {len(owned)} pairs. The brief admits one; the later "
                 "statement replaced the earlier."
             )
@@ -355,12 +450,20 @@ def main() -> int:
     # The mechanism the task exists to grade. A register nothing supersedes
     # makes a reader who takes the first answer always right, and the task
     # scores comprehension it never tested.
+    def _due(statement) -> datetime.date:
+        moment = epoch + datetime.timedelta(seconds=statement[0])
+        return _resolve(moment.astimezone(zone).date(), statement[3])
+
+    # Compared as resolved DATES, not as the words. Two statements of `EOD`
+    # a fortnight apart are the same token and different obligations, and
+    # counting tokens here would report this corpus as barely superseding
+    # while the register it grades changes on most rows.
     changed = sum(
         1
         for made in statements.values()
-        if len(made) > 1
-        and min(made, key=lambda s: (s[0], s[1]))[3]
-        != max(made, key=lambda s: (s[0], s[1]))[3]
+        if len({statement[2] for statement in made}) > 1
+        and _due(min(made, key=lambda s: (s[0], s[1])))
+        != _due(max(made, key=lambda s: (s[0], s[1])))
     )
     share = changed / len(rows) if rows else 0.0
     if share < SUPERSESSION_FLOOR:
@@ -373,7 +476,7 @@ def main() -> int:
             )
         )
 
-    for field in ("day", "owner", "matter"):
+    for field in ("due", "owner", "meeting"):
         distinct = {row[field] for row in rows}
         if rows and len(distinct) < 2:
             problems.append(
