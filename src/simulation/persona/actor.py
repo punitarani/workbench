@@ -642,9 +642,7 @@ class ProfessionalActorAct:
             # dictionary or instance of DocumentCreateSpec" in thirty days
             # named the bug outright. Keep it; just keep it away from the
             # persona.
-            engine_detail=(
-                f"{decision.choice.action}: {_first_missing(error)}"
-            ),
+            engine_detail=(f"{decision.choice.action}: {_first_missing(error)}"),
         )
 
     async def _route(

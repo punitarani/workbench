@@ -120,9 +120,7 @@ def filed_name(path: str, content_format: str) -> str:
     directories = [segment.casefold() for segment in segments[:-1]] or [
         DEFAULT_WORKSPACE
     ]
-    return "/".join(
-        (*directories, f"{stem}.{extension_of(path, content_format)}")
-    )
+    return "/".join((*directories, f"{stem}.{extension_of(path, content_format)}"))
 
 
 __all__ = [

@@ -30,6 +30,29 @@ recently on someone's mind.
 > 4. **The five tasks are six**, and `deadline-week-promise-clock`'s form
 >    table is five rows, not four — measured on v6, not carried over.
 
+## If the recording dies before it finishes
+
+Resume needs the seven files in `_ENGINE_SURFACE` to hash to what the run
+recorded — `resume_workplace` refuses a fingerprint change, which is the
+guard that stops a world being spliced out of two rule sets.
+
+Those files were reformatted after the run started, so the working tree no
+longer matches. **The exact bytes are `git checkout 94e6cc2 -- <the seven
+files>`**, which restores fingerprint `a50dae98eb2fe0e5`. Resume, then
+`ruff format` them again and commit; nothing else in the tree depends on
+their whitespace.
+
+Verify before resuming:
+
+```bash
+uv run python -c "import sys; sys.path.insert(0,'src'); \
+  from simulation.run import engine_fingerprint; print(engine_fingerprint())"
+# must print a50dae98eb2fe0e5...
+```
+
+If the run is unrecoverable, `scripts/export_world_log.py` rebuilds
+`world.jsonl` from `run.db` and nothing is lost but the unrecorded days.
+
 ## Step 0 — measure the recording BEFORE it finishes
 
 Do this at about day 25. It is the cheapest step here and it caught more

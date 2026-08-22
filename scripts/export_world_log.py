@@ -95,7 +95,9 @@ def export(out_dir: Path, *, force: bool = False) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True, help="the run directory")
-    parser.add_argument("--force", action="store_true", help="overwrite an existing world.jsonl")
+    parser.add_argument(
+        "--force", action="store_true", help="overwrite an existing world.jsonl"
+    )
     args = parser.parse_args(argv)
     return export(args.out, force=args.force)
 

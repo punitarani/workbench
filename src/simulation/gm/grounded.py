@@ -500,9 +500,7 @@ class GroundedGm:
                 return self._entities_for(
                     (
                         payload.responder,
-                        self._world.calendar_organizers.get(
-                            payload.calendar_event_id
-                        ),
+                        self._world.calendar_organizers.get(payload.calendar_event_id),
                     )
                 )
             case MeetingTranscriptPayload():
@@ -599,9 +597,7 @@ class GroundedGm:
                 return self._entities_for(
                     (
                         payload.responder,
-                        self._world.calendar_organizers.get(
-                            payload.calendar_event_id
-                        ),
+                        self._world.calendar_organizers.get(payload.calendar_event_id),
                     )
                 )
             case MeetingTranscriptPayload():
@@ -1174,8 +1170,8 @@ class GroundedGm:
         person = self._person_for_entity.get(entity)
         if person is None:
             raise IntentRejection(
-            f"entity {entity} has no person record", engine_fault=True
-        )
+                f"entity {entity} has no person record", engine_fault=True
+            )
         return person
 
     @staticmethod
@@ -2059,9 +2055,7 @@ class GroundedGm:
             clamped.append(block.model_copy(update={"start": start, "end": end}))
             previous_end = end
         if not clamped:
-            raise IntentRejection(
-                "nothing in that plan falls inside the working day"
-            )
+            raise IntentRejection("nothing in that plan falls inside the working day")
         key = f"{entity}|{intent.day}"
         revision = self._world.plan_revisions.get(key, 0) + 1
         payload = SimAgentPlanPayload(
