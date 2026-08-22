@@ -1679,3 +1679,28 @@ chat moving to 0.75x on a surface the email fix cannot touch is the standing
 reminder that these are different draws, not an intervention effect. What
 the email fix is measured to do is recorded where it can be: the refusal log,
 and refusals per day falling by a third.
+
+## Variance: two Opus samples, 0.543 and 0.536
+
+Same window, same brief, same budget, scored against the same oracle.
+
+    sample 1   17 rows, 10 matched, row_f1 0.606, superseded 22/13   0.543
+    sample 2   11 rows,  8 matched, row_f1 0.593, superseded  7/13   0.536
+
+    mean 0.539   sd 0.004
+
+The scores are almost identical and the *routes* are not: one reports 17
+rows and matches 10, the other reports 11 and matches 8, and they miss
+`superseded_count` from opposite sides — 22 against 13, and 7. A task that
+returns the same number from two different mistakes is measuring something
+stable about the model rather than the luck of a draw.
+
+**n=2, and honestly so.** Three trials were launched; one never wrote a
+register inside 5400s and one was still calibrating when the budget ended.
+That is the k=3 behaviour recorded above — concurrency roughly halves
+per-trial throughput on this account — and it is why the useful sampling
+strategy here is k=1 repeated rather than k=3 at once.
+
+Taken with glm-5.2 at 0.443, the picture is a task where two model tiers
+land a tenth apart, both inside the 0.2–0.8 band, on wrong branches of 0.442
+and 0.273.
