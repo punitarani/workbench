@@ -1047,3 +1047,31 @@ verbs the author admitted.
 **Read the score accordingly.** 0.364 is in band, and it is an *upper
 bound on the task defect's cost* rather than a clean measurement of the
 model. Re-probe after the brief is symmetric.
+
+## The email fix, seen on the engine that carries it
+
+v7 records on the corrected engine; v6 did not. Over the first 7 recorded
+days of each:
+
+    email.message      6.4/d -> 10.1/d   x1.58
+    rejections        12.1/d ->  8.0/d   x0.66
+    chat.message      24.7/d -> 18.3/d   x0.74
+    work.time.logged 169.7/d -> 170.3/d  x1.00
+
+**The ratio is not an intervention effect**, and this file has been wrong
+that way before. Two recordings from the same seed are the same world only
+until the first action resolves differently; after that they are different
+draws, and chat moving 0.74 in the same window — on a surface the email fix
+cannot touch — is the reminder. Seven days is also a small sample of a noisy
+daily rate.
+
+What is closer to a controlled reading is **rejections falling by a third**.
+The fix removed a refusal cause outright — a reply that named no recipient —
+so a drop in refusals per day is nearly a direct measure of it rather than
+a downstream consequence, and it moves in the direction and roughly the
+magnitude the refusal-log count predicted (+36.9% of attempted mail
+recovered).
+
+Mail is still far below the 60–120 band, which the affiliation split
+already explained: it is the firm's own people who are silent, and nothing
+in this fix raises their attempt rate.
