@@ -7,9 +7,9 @@ schema_version = "1.3"
 #
 # THIS TASK READS THE MEETING TRANSCRIPTS, AND IT IS THE FIRST ONE THAT CAN.
 # `meeting.transcript` was a validated world event from the first commit and
-# no projection, table, file or tool ever served one -- 723 transcripts,
-# 3,662 turns, 255,889 words, roughly 30% of everything anyone at this firm
-# said, reachable by nobody. The `meetings` system now serves them.
+# no projection, table, file or tool ever served one -- roughly 30% of
+# everything anyone at this firm said, reachable by nobody. The `meetings`
+# system now serves them.
 #
 # WHY THAT MATTERS FOR DIFFICULTY, and it is the whole reason this task
 # exists. Every other surface in this world can be flattened by a script.
@@ -28,126 +28,108 @@ schema_version = "1.3"
 #                         across five designs had a median of 0.90
 #
 # A transcript has no id to group by and no column to sum. A commitment made
-# out loud is not a field. That is the only property in this world that a
-# shell cannot defeat.
+# out loud is not a field. That is the only property in this world a shell
+# cannot defeat.
 #
-# THE MECHANISM, measured before this file was written (see
-# `datasets/merrick/measure_transcripts.py`). Supersession does NOT happen
-# inside a meeting -- five of 723, because a meeting here is a five-turn
-# one-pass status round -- and a screen for revision *cues* fired on 32.5%
-# of meetings and was almost entirely false positives. It happens ACROSS the
-# recurring series: of the (speaker, matter) pairs that name a weekday on two
-# or more separate occasions, 45% name a different one by the last. A
-# commitment set in one docket call and moved in a later one.
+# THE DESIGN WAS REBUILT ONCE, AND THE REASON IS THE MOST TRANSFERABLE THING
+# IN THIS FILE. The first version keyed the register on the matter a promise
+# was about, and it is not gradeable. Measured on 56 recorded days: of 178
+# turns carrying a first-person commitment and a deadline, only 63 name a
+# matter -- so the rule discarded 65% of the firm's real promises for a
+# reason unrelated to whether a promise was made, and the discarded ones are
+# the clearest in the record. Of the 63 it kept, the matter name sat a median
+# 96 characters from the commitment and in a third of them more than 120: a
+# different sentence of a 71-word turn. One qualifying turn attached a
+# promise to a matter in the clause where the speaker said she had nothing on
+# it.
 #
-# So a reader who finds the first mention and stops is wrong, and cannot
-# know it without crossing meetings.
+# The brief said "a commitment about a matter"; a solver can only implement
+# "a turn containing a commitment token, a date token and a matter token".
+# Over long turns those are different rules, and an agent reading correctly
+# would have been graded wrong -- an oracle artefact reported as model
+# failure. **A conjunctive rule is safe only when its conjuncts share a
+# unit.** Who is speaking and what day they named are properties of a turn;
+# which piece of work a promise is about is a property of a clause. The
+# register is keyed on turn-scoped facts and on nothing else.
 #
-# HOW OFTEN wrong depends on the window and on how narrowly a commitment is
-# defined, and the two figures in this file are not the same measurement.
-# The 45% above counts (speaker, matter) pairs that name a weekday at all,
-# over the whole six months. The scored table further down uses the
-# narrower owner-shaped rule this brief actually states, over 30 days, and
-# there it is 3 rows of 27. The narrow rule over a short window supersedes
-# far less often — and the point of the table is that it does not need to
-# supersede much, because the key makes each one expensive.
+# THE MECHANISM, measured before this file was rewritten. Supersession does
+# NOT happen inside a meeting -- a meeting here is a five-turn one-pass
+# status round -- and a screen for revision *cues* fired on a third of
+# meetings and was almost entirely false positives. It happens ACROSS the
+# recurring series: a commitment set in one docket call and moved in a later
+# one. So a reader who finds the first mention and stops is wrong, and
+# cannot know it without crossing meetings.
 #
-# THE DELIVERABLE IS KEYED ON THE COMMITMENT, NOT ON THE MATTER, and that is
-# a semantic claim rather than a grading trick. "Cecile committed to Friday"
-# and "Cecile committed to Thursday" are two different commitments, one of
-# which is dead. A reader who reports the dead one has reported a commitment
-# that is not live -- a genuine false positive, not a wrong field.
+# WHAT IS GRADED IS THE DATE, NOT THE WORD, and this is what took the task
+# from marginal to hard. A deadline said out loud is relative: `EOD`,
+# `tomorrow`, `Thursday`. Grading the token hands away the column -- `eod`
+# is 47-69% of live answers depending on the window, so a reader who never
+# opens a transcript scores most of it, and worse, *beats* a careful reader
+# who takes each person's first statement. Grading the resolved calendar
+# date inverts that. Measured across five windows on the partial bundle:
 #
-# It is also what makes the arithmetic work, and the arithmetic is why this
-# design was chosen over a matter-keyed register. These are MEASURED through
-# `criteria_base`'s own comparisons on the six-month record, not estimated:
-# a "first-answer reader" register was built beside the truth and both were
-# scored with the real `row_f1` and `row_fields`, at grade.py's weights of 5,
-# 3 and four scalars at 1.
+#     window      rows   token: guess/wrong    date: guess/wrong
+#     days  0-29    24        54%  /  54%          17%  /  67%
+#     days 20-49    26        69%  /  35%          23%  /  69%
+#     days 20-64    32        47%  /  44%          16%  /  72%
 #
-# At the 30-day window the task actually uses, and at the exact weights
-# `tests/criteria.py` pins -- row_f1 5, row_facts 3, and THREE paid scalars
-# (`distinct_owners` and `matters_with_a_commitment` are tallies of the rows
-# and move to the process dimension), so a denominator of 11:
+# The reason the error rate roughly doubles is the useful part: **a person
+# who says `EOD` in two different meetings has changed their deadline
+# without changing their words.** Token grading cannot see that; date
+# grading makes it the common case. It also makes `meeting_id` load-bearing
+# rather than decorative, because the date is computable only from the
+# meeting the last statement was made in.
 #
-#   keyed (matter, owner), day a field    row_f1 1.000  row_facts 0.617
-#                                         -> 0.805, ABOVE BAND, the same
-#                                            wall five earlier designs hit
-#   keyed (matter, owner, day)            row_f1 0.889  row_facts 0.370
-#                                         -> 0.687
+# THE ARITHMETIC, measured through `criteria_base`'s own comparisons on the
+# 45-day window, against a register built by a reader who takes each
+# person's first statement and stops:
 #
-# `row_facts` collapses rather than degrading because a wrong key means the
-# row is not found at all, so every field on it misses AND the invented row
-# draws the extra-row penalty. That is why the key carries the day: the
-# same error rate costs three times as much.
+#   keyed (owner, meeting), date a field   row_f1 1.000   -- finds every row
+#   keyed (owner, meeting, due)            row_f1 0.179   -- 5 of 28
 #
-# THE WINDOW IS DECIDED BY THE SAME MEASUREMENT, and the two constraints
-# pull against each other. The word ceiling wants a short window; supersession
-# only accumulates with time. Scored across windows:
+# The due date is wrong on 82% of rows and `superseded_count` comes back 0
+# against a true 62. `row_facts` collapses rather than degrading because a
+# wrong key means the row is not matched at all: every field on it misses
+# AND the invented row draws the extra-row penalty. For comparison, the five
+# designs an adversarial panel killed had fifteen measured wrong-branch
+# payoffs with a MEDIAN OF 0.90, and the matter-keyed version of this task
+# scored its wrong branch at 0.687.
 #
-#     window    words   rows  sup  wrong   row_f1  row_fac   score
-#       30d    43,779     27   24      3    0.889    0.370   0.687   readable
-#       45d    65,595     36   47      5    0.861    0.278   0.649   over ceiling
-#       60d    87,746     42   74     12    0.714    0.119   0.539   over ceiling
-#      180d   255,889    107  326     26    0.757    0.168   0.572   over ceiling
+# ONLY THE STANDING MEETINGS COUNT, and the threshold is measured rather
+# than picked. A one-off working session is a key with one meeting in it:
+# nothing can supersede, and the key is a free-text title the agent must
+# reproduce exactly -- this world writes `Ardmore Chain-of-Access Routing
+# Decision` and `Ardmore Chain-of-Access: Routing Decision`, one meeting to
+# a reader and two rows to a grader. Standing series occur 4 to 32 times per
+# window and one-offs 1 or 2, so any cut in 3..4 separates them; three is
+# chosen because a 30-day window puts the weekly series at 4 and a cut of 5
+# would silently drop five of the eight.
 #
-# Thirty days is the point that satisfies both: under the 60,000-word
-# ceiling, over the 12-row floor, and a first-answer reader scores 0.687.
+# The calendar cannot answer this, though it looks as though it should:
+# `event_recurrence` is a real table the projection never writes, so every
+# event in the recorded world is served `recurrence: []` even though the
+# workplace spec declares these eight meetings daily or weekly.
 #
-# Note how little supersession it takes -- three rows of twenty-seven change
-# their day. Note also that 24 commitments were superseded and only 3 changed
-# the day, so most restatements repeat the same date; `superseded_count` is
-# where that shows, and it is the one figure a first-answer reader gets
-# structurally wrong rather than by accident, because they never saw one.
-#
-# 0.687 is IN BAND AND AT THE TOP OF IT. If the v6 numbers land higher, the
-# lever with the most room is the window: 45 and 60 days score lower and the
-# word ceiling is the binding constraint, so a narrower matter set or a
-# meetings-only subset of the window buys reading budget back.
-#
-# For comparison, the five designs an adversarial panel killed had fifteen
-# measured wrong-branch payoffs with a MEDIAN OF 0.90, and only three of the
-# fifteen under 0.8. This design's modal wrong branch is 0.687.
-#
-# Every figure above is a regex proxy for the semantic rule, on the world
-# being replaced. It establishes that the SHAPE pays; the task's own
-# numbers come from v6.
-#
-# AND ONE OF THEM ALREADY MOVED, measured on 26 recorded days of v6 while
-# it was still running. A weekday-only deadline rule collapsed: the weekday
-# rate halved from 30% of turns to 14% while owner phrases held at 0.86x
-# and matter mentions actually rose to 1.21x, so the three-part conjunct
-# fell from 37 qualifying turns to 10 -- six rows, under the twelve-row
-# floor, and NOT ONE supersession that changed a deadline. The task's whole
-# mechanism would have been absent from the world it ships on.
-#
-# The corpus writes relative deadlines instead: 243 turns carry "end of
-# week", "EOD", "COB" or "tomorrow" against 83 naming a weekday. Admitting
-# both gives, on the same v6 window:
-#
-#     rows 31 (over the floor), superseded 30, deadline changed 10 (32%)
-#
-# against v1's weekday-only 27 rows at 11%. Better than the world it was
-# designed on, and only because it was measured on partial data twenty
-# hours before the recording finished rather than after.
-#
-# BE HONEST ABOUT WHAT IS UNPROVEN. The brief has to define "live", and
-# defining it tells the reader that commitments get superseded. This project
-# has a measured law that any key component strong enough to collapse row_f1
-# is also an instruction for the right method. The bet here is that knowing
-# the rule and executing it are different: the rule is one sentence, and
-# obeying it means finding every later mention across «MEASURE: meetings in
-# the window» meetings of prose that no script can aggregate. Missing one
-# later mention is a wrong row. Whether that survives a frontier model is a
-# question for a probe at k>=5, not for more reasoning -- three of this
-# session's own hypotheses were wrong and measurement settled each one.
+# BE HONEST ABOUT WHAT IS UNPROVEN. The brief has to state its conventions,
+# and stating them tells the reader the method. This project has a measured
+# law that any key component strong enough to collapse row_f1 is also an
+# instruction for the right method, and it applies here in full. The bet is
+# that knowing the rule and executing it are different: the rule is a
+# paragraph, and obeying it means resolving a relative deadline against the
+# right meeting for every person in every standing series across
+# «MEASURE: meetings in the window» meetings of prose no script can
+# aggregate, and noticing the later mention that silently moved a date
+# without changing a word. Whether that survives a frontier model is a
+# question for a probe at k>=5, not for more reasoning -- several of this
+# design's own hypotheses were wrong and measurement settled each one,
+# including two in the pass that produced this file.
 
 [task]
 name = "workbench/merrick-live-commitment-register"
-description = """Read the firm's meeting transcripts for a billing period \
-and report the commitments that are still live: who owes what, on which \
-matter, by when — counting only the most recent thing each person said \
-about each matter."""
+description = """Read the transcripts of the firm's standing meetings for \
+a billing period and report the commitments that are still live: who owes \
+something, in which meeting they said so, and the calendar date it is due \
+— counting only the most recent thing each person said in each meeting."""
 authors = [{ name = "Workbench" }]
 keywords = [
     "legal",
@@ -166,6 +148,7 @@ skills = [
     "prose-comprehension",
     "cross-document-tracking",
     "supersession",
+    "relative-date-resolution",
     "completeness",
 ]
 agent_data_scope = "Intentionally seatless firm-wide Clio, Gmail, Slack, Calendar, iManage and meeting-transcript records from the LLM-generated epoch."
