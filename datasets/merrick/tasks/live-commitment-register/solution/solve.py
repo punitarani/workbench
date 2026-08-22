@@ -34,6 +34,40 @@ error: the file compiles, the schema and independence gates can read it,
 and running it before the measurement lands fails loudly with the question
 still outstanding.
 """
+
+# ---------------------------------------------------------------------------
+# STOP — DO NOT FILL THE `«MEASURE»` VALUES IN THIS FILE.
+#
+# The three-part rule this solver implements is not gradeable on the corpus
+# it was written for, measured on 56 recorded days of v6 before any value
+# was filled. Of 178 turns carrying a first-person commitment and a
+# deadline, only 63 also name a matter: the rule discards 65% of the firm's
+# real commitments for a reason unrelated to whether a commitment was made,
+# and the discarded ones are the clearest in the record ("I'll have the
+# statement of facts to Bennett by tomorrow night").
+#
+# Of the 63 it keeps, the matter name sits a median 96 characters from the
+# commitment and in a third of them more than 120 -- a different sentence of
+# a 71-word turn. One qualifying turn attaches a commitment to a matter in a
+# clause where the speaker says she has nothing on it.
+#
+# The brief says "a commitment about a matter". This file can only implement
+# "a turn containing a commitment token, a date token and a matter token".
+# Over 71-word turns those are different rules, and an agent reading
+# correctly would be graded wrong -- a task measuring agreement with a regex
+# artefact and reporting it as model failure.
+#
+# The rule is only safe when its conjuncts share a unit. Speaker and
+# deadline are properties of the turn; which matter a promise is about is a
+# property of a clause.
+#
+# The measured reframe -- key on (speaker, meeting series) instead, which
+# drops the ungradeable conjunct and roughly doubles both the rows and the
+# supersession -- is in docs/fidelity/task-viability.md, together with the
+# one objection that still has to be answered (the live deadline is `eod`
+# for 77% of rows, so guessing beats careful-but-naive reading).
+# ---------------------------------------------------------------------------
+
 # ruff: noqa: E501
 # Long lines are the «MEASURE» questions, written out in full.
 

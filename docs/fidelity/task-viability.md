@@ -707,3 +707,80 @@ completely in the room: the five quietest in chat are the **loudest
 speakers in meetings**, with Dov Reinhardt first throughout. Transcript
 turns per ten-day band are flat (200/128/156/154/143/152). The corpus a
 transcript task reads is not affected by any of this.
+
+## `live-commitment-register` is not gradeable as specified, and the reason generalises
+
+Measured on the 56-day partial bundle, before any `«MEASURE»` value was
+filled. **Do not fill them.** The brief's three-part rule — a person taking
+work on, a matter named in the turn, a deadline — describes something the
+corpus does not write.
+
+    turns with a first-person commitment AND a deadline     178
+      ...that also name a matter (the task would grade)      63   35%
+      ...that do not (the task would discard)               115   65%
+
+Two thirds of the firm's actual commitments are discarded for a reason that
+has nothing to do with whether a commitment was made — the speaker simply
+did not happen to say a matter name in the same breath. What gets discarded
+is not marginal material; it is the clearest commitments in the record:
+
+> *"I'll have the statement of facts to Bennett by tomorrow night."*
+> *"I'll have it back to Ulrich by Wednesday."*
+> *"I'll have all four out by thursday."*
+
+And what is *kept* is worse. In the 63 turns that qualify, the matter name
+sits a median of 96 characters from the commitment, and in **33% of them
+more than 120 characters away** — a different sentence of a 71-word turn.
+One qualifying turn attaches a commitment to Sable Ridge in a clause where
+the speaker says she has *nothing* on it, and takes its deadline from
+`ahead of tomorrow's call`, which is not the deadline of anything she
+promised.
+
+**The rule and the concept have come apart.** The brief says "a commitment
+about a matter"; the oracle can only implement "a turn containing a
+commitment token, a date token and a matter token". On short turns those
+agree. On 71-word turns they do not, and the disagreement is not noise — it
+is systematic in both directions. An agent reading correctly would produce
+a different register than the oracle, and the task would score its
+correctness as failure. That is the oracle-defect class that fakes a model
+failure, reached from a new direction: not a wrong answer key, but a
+**rule that cannot be expressed over the unit the corpus is written in.**
+
+The general form, worth carrying to the next task: *a conjunctive rule is
+only safe when its conjuncts are scoped to the same unit.* Speaker and
+deadline are properties of the turn. "Which matter this is about" is a
+property of a clause, and no amount of care in the brief makes a regex over
+a turn into a reader of clauses.
+
+### The reframe that does work, measured
+
+Key the register on **(speaker, meeting series)** — "in each standing
+meeting, what did each person last say they would have done, and by when" —
+and the ungradeable conjunct disappears. Speaker is recorded, series is
+recorded, deadline is stated. Nothing needs resolving against clio.
+
+    window        mtgs   words   rows  superseded  first-answer wrong
+    days  0-29      93  34,026     24          43        12/24   50%
+    days 10-39      89  31,952     25          30        11/25   44%
+    days 20-49      92  32,875     26          36         9/26   35%
+    days 20-64     140  50,113     32          64        13/32   41%
+
+Against the matter-keyed version's 14–18 rows at 6–21% wrong, this is
+roughly 25 rows at 35–50% wrong, inside the word ceiling, with every field
+directly observable.
+
+**One measured objection, and it is real.** In the days 20–49 window the
+live deadline is `eod` for 20 of 26 rows — 77%. So supersession here is
+mostly *"something → eod"*, which has a perverse consequence: a reader who
+never opens a transcript and answers `eod` everywhere scores **higher on
+the day field than a careful reader who takes each person's first
+statement**. The lazy answer and the correct answer correlate, and the
+diligent-but-naive answer is the one that loses. Before this ships, either
+the deadline vocabulary has to be less concentrated on the finished record,
+or the graded field has to be something `eod`-guessing cannot reach —
+`superseded_count` is the candidate, since it is unavailable to any reader
+who did not cross meetings.
+
+The concentration is itself a world-quality finding: `by EOD` is a stock
+phrase the personas reach for, not a distribution a real firm would
+produce. Re-measure it on the finished record before deciding.
