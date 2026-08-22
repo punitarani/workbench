@@ -80,16 +80,36 @@ OWNER_FORMS: tuple[str, ...] = (
     measure("owner form 2"),
 )
 
-# The weekday names a commitment can carry. Deliberately not dates: the
-# corpus writes weekdays and almost never writes a calendar date — 27% of
-# meetings named a weekday against 2% naming a month and a number — so a
-# rule about dated deadlines would grade nearly nothing.
-WEEKDAYS: tuple[str, ...] = (
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
+# What a deadline can look like, and this is the line the world moved
+# under.
+#
+# The first version admitted weekdays only, on a v1 measurement: 27% of
+# meetings named a weekday against 2% naming a month and a number, so
+# dated deadlines would grade nearly nothing. Measured again on 26 days of
+# the re-recorded world, the weekday rate had **halved to 14%** while every
+# other conjunct held — owner phrases 0.86x, matter mentions 1.21x — and
+# the three-part rule collapsed from 37 qualifying turns to 10. Six rows,
+# under the twelve-row floor, and not one supersession that changed a day.
+# The task's whole mechanism would have been absent.
+#
+# What the corpus writes instead is the relative form: 243 turns carry
+# "end of week", "EOD", "COB" or "tomorrow" against 83 naming a weekday.
+# Admitting both gives 31 rows on v6 with 32% of them superseded to a
+# different deadline — healthier than v1's weekday-only 27 rows at 11%.
+#
+# Two forms must therefore be normalised to one token before comparison,
+# and the brief has to say so: `EOD` and `COB` and "end of the day" are one
+# deadline, not three. That normalisation is the rule, and a reader who
+# treats them as distinct reports three live commitments where there is
+# one.
+#
+# «MEASURE: the admitted deadline forms on the finished record, with a
+# count for each and the normalisation the brief states. Include the
+# relative forms; the weekday-only rule is measured dead on v6. A form
+# occurring under ~15 times is a key that grades nothing.»
+DEADLINE_FORMS: tuple[tuple[str, str], ...] = (
+    measure("deadline form 1 as a regex, and the token it normalises to"),
+    measure("deadline form 2 as a regex, and the token it normalises to"),
 )
 
 # «MEASURE: whether a turn naming two different weekdays occurs, and what
@@ -139,6 +159,23 @@ def _matters(connection: sqlite3.Connection) -> dict[str, str]:
     return {str(handle).strip().lower(): str(display) for handle, display in handles}
 
 
+def _deadline(text: str, forms: tuple) -> str | None:
+    """The deadline a turn names, normalised, or None.
+
+    First match wins, in the order the forms are declared, so the brief's
+    table order is the tie-break for a turn naming two. That is a rule the
+    brief owes the reader out loud — see the TWO_DAYS_IN_ONE_TURN
+    measurement — because a reader who picks the other one reports a
+    different commitment, not a wrong field.
+    """
+
+    for pattern, token in forms:
+        found = pattern.search(text)
+        if found:
+            return token or found.group(0).lower()
+    return None
+
+
 def _window_bounds() -> tuple[int, int]:
     return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
 
@@ -155,7 +192,10 @@ def main() -> int:
     owner_pattern = re.compile(
         "|".join(re.escape(form) for form in OWNER_FORMS), re.IGNORECASE
     )
-    weekday_pattern = re.compile(r"\b(" + "|".join(WEEKDAYS) + r")\b", re.IGNORECASE)
+    deadlines = tuple(
+        (re.compile(pattern, re.IGNORECASE), token)
+        for pattern, token in DEADLINE_FORMS
+    )
 
     low, high = _window_bounds()
     connection = sqlite3.connect(f"file:{meetings_db}?mode=ro", uri=True)
@@ -187,8 +227,8 @@ def main() -> int:
         body = text or ""
         if not owner_pattern.search(body):
             continue
-        days = [d.lower() for d in weekday_pattern.findall(body)]
-        if not days:
+        day = _deadline(body, deadlines)
+        if day is None:
             continue
         named = {m.lower() for m in matter_pattern.findall(body)}
         if not named:
@@ -196,7 +236,7 @@ def main() -> int:
         started = in_window[meeting_id][0]
         for name in named:
             made[(speaker, matters[name])].append(
-                (started, position, meeting_id, sorted(set(days))[0])
+                (started, position, meeting_id, day)
             )
 
     live = []

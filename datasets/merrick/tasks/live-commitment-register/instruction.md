@@ -57,14 +57,20 @@ All three have to be present in what that person said:
   person's commitment; it is an instruction, and it makes no row.
 - **a matter.** The work has to attach to one of the firm's matters, named
   in the turn. Use the matter's display number as clio shows it.
-- **a day.** A weekday named for this coming week —
-  *«MEASURE: the weekday forms the corpus actually writes, with counts»*.
+- **a deadline.** A day named for this coming week, either as a weekday or
+  in the forms the firm actually uses for a near date —
+  *«MEASURE: the admitted deadline forms, with a count for each, and the
+  normalisation. `EOD`, `COB` and "end of the day" are one deadline and
+  must be reported as one token; a reader who treats them as three reports
+  three live commitments where the firm has one.»*
 
 «MEASURE: how often all three co-occur, and the count of turns carrying
-each part alone. On the world this was designed against, 95% of meetings
-carried something in the shape of a commitment, 41% named an owner and 27%
-named a weekday, so the three-part rule is much narrower than any one part
-and its yield has to be measured rather than assumed.»
+each part alone. Measure this on the finished record and do not carry the
+earlier numbers over — the deadline rate is the one that moved. On the
+first recording 27% of meetings named a weekday; on the corrected engine
+it was 14%, while owner phrases and matter mentions held steady, and a
+weekday-only rule fell to six rows with no supersession at all. The
+relative forms are what the corpus writes: 243 turns against 83.»
 
 Nothing else is a commitment. In particular:
 
@@ -91,11 +97,17 @@ sits in the transcript. Two meetings on the same day are ordered by their
 start times; a person who names a day twice inside one meeting is making
 one commitment, and the later turn is the one that counts.
 
-«MEASURE: the share of (person, matter) pairs named on two or more separate
-occasions whose day differs by the last. The screen prints this and refuses
-under 15%, because a corpus in which nothing is ever superseded makes a
-reader who takes the first answer always right. It was 45% of 96 pairs on
-the world this was designed against — 43 of them.»
+«MEASURE: the share of rows whose deadline differs between the person's
+first and last statement about that matter. `measure_transcripts.py`
+prints it and refuses under 15%, because a corpus in which nothing is ever
+superseded makes a reader who takes the first answer always right.
+
+Measure it with the admitted forms this brief settles on, and ignore the
+earlier figures rather than carrying them over: a weekday-only rule read
+45% on the first recording, 11% on a 30-day window of it, and 0% on the
+corrected engine, which is three answers to one question and none of them
+this task's. On 26 recorded days of the corrected engine with weekday and
+relative forms both admitted it was 32% of 31 rows.»
 
 A commitment made once and never mentioned again is live. It does not need
 repeating to count.
@@ -117,7 +129,8 @@ fields:
   `owner`, each with:
   - `matter` — the matter's display number, exactly as clio shows it
   - `owner` — the person's full name
-  - `day` — the weekday they last named, lowercase, e.g. `thursday`
+  - `day` — the deadline they last named, normalised to the token the
+    table above gives it, lowercase — e.g. `thursday`, or `end of week`
   - `meeting_id` — the meeting in which they last named it
   - `said_at` — the ISO-8601 start of that meeting
 
