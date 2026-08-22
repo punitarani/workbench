@@ -902,3 +902,53 @@ read it.
 **The general shape** is the session's through-line arriving from a new
 direction: not a stale claim this time but a *true* one, put where it reads
 as a requirement. Anything a brief states, an agent will try to satisfy.
+
+## What the realism bands say about v6, sorted into real and inherited
+
+The build reports "34 pass, 36 fail, 21 absent of 91 (most were written for
+an accounting firm)". That parenthesis has been doing a lot of work, so the
+failures are sorted here once. Measured on the finished 67-day v6 record.
+
+**Inherited, and not defects.** `Clients on the book 10 against 120–200`,
+`Engagements 37 against 250–500`, `Top-10 client share 1.0 against
+0.35–0.55`, `Gini by client 0.41`. This firm has ten clients and
+thirty-odd matters *by construction* — the workplace spec says so. A band
+calibrated on a 200-client accounting practice cannot pass here and should
+not; it needs re-aiming at the firm it now describes, which is a separate
+job from this one.
+
+**Real, and worth fixing in the engine.** Each of these is a statement
+about behaviour rather than about scale:
+
+    RSVP still needsAction     0.666  against ≤ 0.1
+    RSVP accepted              0.329  against 0.6–0.8
+    RSVP tentative / declined  0.000 / 0.005  against 0.05–0.15 each
+    Cancelled events           0.000  against 0.03–0.08
+    Emails per day, firm-wide  9.96   against 60–120
+    Thread depth, median       1.0    against 1.5–3
+    Announced-then-attached    0.774  against ≥ 0.9
+
+Two thirds of invitations are still never answered even after the
+invitation fix, and of those answered nobody ever declines or answers
+tentatively — the firm has one RSVP verb. Nobody ever cancels a meeting.
+Mail is six times too quiet and its threads do not develop: a median depth
+of 1 means the typical email is never replied to at all, which is the same
+defect the reply fix addressed from the sending end and evidently did not
+finish. And 23% of the time someone says a document is attached, it is not.
+
+**The one that changes how tasks should be written.** Cross-surface volume
+correlation is **0.12 per matter and −0.12 per person**, against a band of
+≥ 0.45. Per person it is *anti*-correlated: the people busiest on one
+surface are the quietest on another.
+
+That is not noise, it is the role differentiation measured directly
+earlier — the five partners who fall to near zero in chat are the loudest
+speakers in the room, and Dov Reinhardt is first in meetings throughout
+while ending near the bottom in chat. A real firm's senior people are busy
+*everywhere*; these personas specialise into a surface. So "the busiest
+person on this matter" is a question with a different answer per surface,
+and any task that asks it without naming the surface is ungradeable for
+the same reason the matter column was.
+
+None of this is fixable in a recording already running. It is written down
+so the next engine pass has a list rather than an impression.
