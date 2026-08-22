@@ -218,3 +218,57 @@ The band gate refused the old world outright on the two slack bands. It
 should pass on v6 without `--allow-band-absence`; if it does not, do not
 reach for the flag — it prints "do not ship rollout numbers from this
 world" for a reason.
+
+## The largest defect still in the engine, measured and deliberately not fixed
+
+**38.2% of every attempted email never sends.** Measured at day 43 of v6:
+469 emails delivered against 290 refused, all for the same reason — the
+draft named no recipient — across 27 distinct senders. It is half of every
+rejection in the run (290 of 577), and rejections consume 9.0% of all
+turns.
+
+**Two thirds of those are replies.** Of 292 refusals, 196 carry a
+`thread_ref` and 92 do not. On a reply the recipients are sitting in the
+thread being replied to, so the engine is asking the model to restate
+something it already has in front of it and refusing the turn when it does
+not. That is the same mistake the calendar had before `CalendarScheduleSpec`
+was reshaped: **do not ask a model for something derivable — derive it.**
+
+The design is not careless and the comment on `EmailDraft.to` says why it
+is as it is:
+
+> No min_length: a model that returns an empty recipient list should meet
+> the GM's instructive rejection like any other malformed intent, not fail
+> schema parsing and take the run down with it.
+
+That reasoning is right about robustness. What was never measured is the
+yield: crash-safety was bought at 38% of the firm's mail. Both can be had —
+the referee should *fill* a reply's recipients from the thread and refuse
+only a new thread that names nobody.
+
+**Not fixed here, on purpose.** It needs an engine change, the engine is
+frozen for the run, and v6 was already restarted four times. The mail that
+does send is correct; there is simply less of it — 11/day against the old
+world's 15/day, which is low for a twenty-one-person firm but not
+implausible for one that talks in chat and meetings. This is a volume
+defect, not a correctness one, and it is the first thing to fix in the
+window before the next recording.
+
+Two smaller ones from the same measurement, in the same window:
+`that update changes nothing and carries no note` is 87 refusals, and the
+workbook-form rejection is 15.
+
+### A false positive worth keeping in the record
+
+The day-43 monitor reported a vocabulary leak. It was not one. Fionnuala
+Doherty wrote "bounced twice for missing/malformed recipient" into her own
+reflection, and **no guidance string in the entire run contains the word
+`malformed`** — checked, zero. She was paraphrasing "an email needs at
+least one recipient; name them by full name", which is a clean workplace
+sentence, and "a malformed recipient" is ordinary email vocabulary. An
+email the system refused to send is, from the sender's side, an email that
+did not go; narrating it as a bounce is a fair reading.
+
+Keep the detector broad anyway. `malformed` was the tell that found the
+original defect, and one examined false positive in 43 days is a cheap
+price for that.
