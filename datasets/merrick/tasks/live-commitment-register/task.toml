@@ -224,12 +224,17 @@ command = "/usr/local/bin/workbench-mcp-meetings"
 
 [agent]
 user = "agent"
-# «MEASURE: the wall clock an in-band tier needs to read the window's
-# transcripts. The corpus is words rather than messages: 30 calendar days
-# was 123 meetings, 622 turns and 43,779 words on the world this design was
-# measured against, and 45 days went over the 60,000-word ceiling the screen
-# enforces. Time a real read before trusting 1800s.»
-timeout_sec = 1800.0
+# Measured, not assumed, and 1800 was wrong. A probe of Opus 5 at k=3 on a
+# 47-day window -- 140 standing meetings, 706 turns, 51,672 words -- hit the
+# 1800-second wall on all three trials with no deliverable written, and the
+# harness retried all three into the same wall. The agent was not stuck: it
+# had dumped the transcripts and was paging candidate turns twenty at a time,
+# which is the reading this task exists to require.
+#
+# A timeout that cuts off honest work does not measure difficulty, it
+# measures the clock, and it is indistinguishable downstream from a model
+# that cannot do the task. Re-time this whenever the window changes.
+timeout_sec = 3600.0
 network_mode = "allowlist"
 allowed_hosts = ["openrouter.ai"]
 

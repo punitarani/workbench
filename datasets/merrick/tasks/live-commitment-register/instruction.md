@@ -61,10 +61,19 @@ something, and names **when**. Both have to be present in the same turn.
   turn»* — a commitment by anyone, because the person who owes it did not
   say it here and the person saying it does not owe it.
 - **A day is named.** In the forms this firm actually uses for a near date:
-  *«MEASURE: the admitted deadline forms with a count for each. Include the
-  relative forms; a weekday-only rule is measured dead on this world. Note
-  which compound forms occur — `EOD tomorrow` was 47 of 178 commitment
-  turns on the partial record — and state that each names one deadline.»*
+  *«MEASURE: the admitted deadline forms, and the compound forms that occur,
+  stating that each compound names one deadline. Include the relative forms;
+  a weekday-only rule is measured dead on this world.*
+
+  ***Name the forms. Do NOT publish a count for each.*** *A count in a brief
+  is not colour, it is a specification: a probe watched Opus 5 read
+  "end of day — 66 turns; tomorrow — 42; a named weekday — 28; `EOD
+  tomorrow` — 15" as a target to reproduce, write `target eod66 tom42 wd28
+  eodt15 total151` into its own scratch file, and spend turns trying
+  counting modes against it — 223 under one, 270 under another — because
+  raw match counts over overlapping patterns are not a partition and cannot
+  be reproduced by anyone. Measure them for yourself, to choose the forms;
+  publish only the forms.»*
 
 Nothing else is a commitment. In particular, **a question is not one**
 (*«MEASURE: a real turn asking when something will be done»* names a day and

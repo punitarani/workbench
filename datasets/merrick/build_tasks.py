@@ -943,7 +943,12 @@ def _declared_window(task: Path) -> int:
     """
 
     source = (task / "solution" / "solve.py").read_text(encoding="utf-8")
-    found = re.search(r"^WINDOW_DAYS[^=]*=\s*(\d+)", source, re.M)
+    # Indentation is allowed. A solver may keep its window inside a function
+    # so that the rest of the module -- date arithmetic, form tables -- stays
+    # importable before the corpus exists; `live-commitment-register` does
+    # exactly that, and its 20 unit tests depend on it. The name is what this
+    # reads, not the column it starts in.
+    found = re.search(r"^\s*WINDOW_DAYS[^=]*=\s*(\d+)", source, re.M)
     if found:
         return int(found.group(1))
 
@@ -951,7 +956,7 @@ def _declared_window(task: Path) -> int:
     # made the build refuse a task for a naming convention the build itself
     # invented. A window stated as an inclusive last-day index is the same
     # window, one off: day 0 through day N is N+1 days.
-    last = re.search(r"^WINDOW_LAST_DAY[^=]*=\s*(\d+)", source, re.M)
+    last = re.search(r"^\s*WINDOW_LAST_DAY[^=]*=\s*(\d+)", source, re.M)
     if last:
         return int(last.group(1)) + 1
 

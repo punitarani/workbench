@@ -157,9 +157,15 @@ def _window() -> tuple[int, int]:
     can be tested without a corpus.
     """
 
-    first = measure("zero-based day index of the window's first day")
-    last = measure("zero-based day index of the window's last day")
-    return first * 86_400, (last + 1) * 86_400 - 1
+    # Named `WINDOW_FIRST_DAY` / `WINDOW_LAST_DAY` because `build_tasks`
+    # reads the window off this source to tell the verifier which window to
+    # re-derive, and those are the names it looks for. It tolerates the
+    # indentation, so the window can live in here and the rest of the
+    # module -- the date arithmetic, the form tables -- stays importable
+    # before the corpus exists.
+    WINDOW_FIRST_DAY = measure("zero-based day index of the window's first day")
+    WINDOW_LAST_DAY = measure("zero-based day index of the window's last day")
+    return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
 
 
 def deadline_token(text: str) -> str | None:
