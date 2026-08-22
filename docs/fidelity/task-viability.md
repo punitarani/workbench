@@ -623,3 +623,87 @@ Measure the unanswered rate on the finished record at the window actually
 chosen, and if it lands near zero, the task retires on the same evidence
 that retired the other three — the corpus does not carry the thing it
 grades.
+
+## The transcript corpus, measured on 56 recorded days of v6
+
+Measured mid-recording, by backing up the live `run.db`, exporting a world
+log from the copy and materializing it — the recording was untouched. Every
+number below is **partial and must be re-measured on the finished record**;
+they are here for the shape they establish, not the values.
+
+    sqlite3 backup out/merrick/epoch-v6/run.db -> <scratch>/probe/run.db
+    uv run python scripts/export_world_log.py --out <scratch>/probe
+    environment.materialize(<scratch>/probe/world.jsonl, <scratch>/probe/bundle)
+    WORKBENCH_STATE=<scratch>/probe/bundle/state uv run python \
+        datasets/merrick/measure_transcripts.py
+
+247 meetings, 1,257 turns, 91,177 words — over the 60,000-word ceiling, so
+`live-commitment-register` needs a window, not the record. A 30-day window
+is 93 meetings and 34,026 words, comfortably inside it.
+
+**The material is there.** 510 turns carry a first-person commitment, 178
+of those also name a deadline, and 86 also name a matter that resolves.
+That yields 47 (speaker, matter) pairs, 36 of them named in two or more
+separate meetings, and **19 change their deadline by the last mention —
+53%**. A reader who takes the first answer and stops is wrong about half
+the register, and cannot know it without crossing meetings.
+
+### Three findings that constrain the design
+
+**Nobody says a matter number.** Zero turns in 56 days contain a display
+number in any form. Matters are named by the handle in their description
+(`the Ardmore closing`), so the brief's requirement to report the display
+number is a *resolution* step the agent performs against clio — not
+something it can copy out of a transcript.
+
+**20 of 34 matters cannot be named out loud at all**, so no commitment
+about them can ever be keyed. Two causes, both now reported by the screen:
+descriptions that are common nouns (`administration`, `pro bono`,
+`regulatory inquiry`), and descriptions the engine minted mid-run as status
+sentences rather than names. `Sandhurst` names four matters at once after
+two were minted, so a turn saying it names none of them uniquely.
+
+**The day field has a 64% guessing floor.** Live deadlines are `eod` 30,
+`tomorrow` 11, `thursday` 4, `end of week` 2. Answering `eod` everywhere
+scores 64% of the day field with no reading — invisible in the
+supersession rate, which is why the screen now prints it. This is less
+damaging than it looks: the floor is only reachable by a reader who has
+already found the rows, and finding a row requires reading the turn that
+makes it. But it does cap what keying on `day` buys, and the earlier
+estimate in `tests/criteria.py` (row_facts 0.584 → 0.168) was computed
+against a day field assumed to be informative. **Re-derive it.**
+
+### Two defects in the emergent matters, for the next engine pass
+
+Neither is fixable in v6 — the engine fingerprint is frozen for the run.
+
+* **Minted descriptions are status sentences, not names.** `Priyanka
+  Sandhurst Clearance Confirmation Pending`, `Sandhurst Platform
+  Acquisition — Whitfield/Odell Good Standing Tracking`. The second
+  duplicates the seeded `00010-NorthmoorCapital`. Seeded descriptions are
+  `Client - handle plus noun phrase`; minted ones are not, and nothing
+  checks the shape.
+* **A firm matter whose responsible attorney is the client's CEO.**
+  `00033-Ravndal` has `responsible_person = per-priyanka-deshmukh`, who is
+  `affiliation=external`. One matter in 34, and `check_coherence` cannot
+  see it: the reference resolves, so there is nothing dangling. The check
+  verifies *existence* and not *class*. A firm-side role held by an
+  external person is the check that was missing. (The 23 matters whose
+  `originating_person` is external are the seeded convention — the client
+  contact who brought the instruction — not this defect.)
+
+### The chat decline is the world settling, not decaying
+
+Chat fell from 24.7 messages a day over the first fourteen recorded days to
+14.4 over the last fourteen, which looked like degradation and is not. It
+is a step at day 21, not a slope, and `calendar.response` steps with it
+(−53.5%): both drain the same pending list, and what changed at day 21 is
+that the seeded invitation backlog cleared. Everyone still wakes the same
+147 times a day and nobody is idle.
+
+The per-person split that looked alarming — five partners falling to near
+zero in chat while others rose — is role differentiation, and it reverses
+completely in the room: the five quietest in chat are the **loudest
+speakers in meetings**, with Dov Reinhardt first throughout. Transcript
+turns per ten-day band are flat (200/128/156/154/143/152). The corpus a
+transcript task reads is not affected by any of this.
