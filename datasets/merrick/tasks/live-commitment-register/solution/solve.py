@@ -70,7 +70,6 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("live_commitments.json")
@@ -94,10 +93,29 @@ OWNER_FORMS: tuple[str, ...] = (r"\bI'll\b", r"\bI will\b")
 # A table that tries `EOD` before it resolves a quarter of everything graded
 # to the wrong day. 40% of commitment turns name two forms at all, so this
 # is not an edge case dressed up as one.
+# A gap between the words of a form is any run of space or punctuation, not
+# a space. The firm writes `EOD-tomorrow` and `end-of-week` as readily as it
+# writes them out, and a pattern anchored on `\s+` reads the hyphenated
+# compound as a bare `EOD` and puts the deadline a day early — silently,
+# because `eod` is a valid token that yields a plausible date. The
+# independent verifier tokenises instead of matching, so it read those turns
+# correctly and the two derivations disagreed by one supersession, which is
+# how this was found rather than shipped.
+_GAP = r"[\s\-\u2010-\u2015]+"
+
+
+def _form(*words: str) -> str:
+    return r"\b" + _GAP.join(words) + r"\b"
+
+
 DEADLINE_FORMS: tuple[tuple[str, str], ...] = (
-    (r"\b(?:EOD|COB|end of (?:the )?day)\s+tomorrow\b", "tomorrow"),
-    (r"\b(?:EOD|COB|close of business|end of (?:the )?day)\b", "eod"),
-    (r"\b(?:EOW|end of (?:the )?week)\b", "end of week"),
+    (rf"\b(?:EOD|COB|end{_GAP}of{_GAP}(?:the{_GAP})?day){_GAP}tomorrow\b", "tomorrow"),
+    (
+        rf"\b(?:EOD|COB|close{_GAP}of{_GAP}business|"
+        rf"end{_GAP}of{_GAP}(?:the{_GAP})?day)\b",
+        "eod",
+    ),
+    (rf"\b(?:EOW|end{_GAP}of{_GAP}(?:the{_GAP})?week)\b", "end of week"),
     (r"\btomorrow\b", "tomorrow"),
     *((rf"\b{day}\b", day) for day in WEEKDAYS),
 )
@@ -163,8 +181,8 @@ def _window() -> tuple[int, int]:
     # indentation, so the window can live in here and the rest of the
     # module -- the date arithmetic, the form tables -- stays importable
     # before the corpus exists.
-    WINDOW_FIRST_DAY = measure("zero-based day index of the window's first day")
-    WINDOW_LAST_DAY = measure("zero-based day index of the window's last day")
+    WINDOW_FIRST_DAY = 42  # PROBE
+    WINDOW_LAST_DAY = 88  # PROBE
     return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
 
 

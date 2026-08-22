@@ -174,3 +174,34 @@ def test_the_resolved_date_is_never_before_the_day_it_was_said() -> None:
         said = MON + dt.timedelta(days=offset)
         for token in ("eod", "tomorrow", "end of week", *solve.WEEKDAYS):
             assert solve.due_date(said, token) >= said, (token, said)
+
+
+# --------------------------------------------------------- punctuated forms
+
+
+@pytest.mark.parametrize(
+    ("text", "token"),
+    [
+        ("I'll have it by EOD-tomorrow", "tomorrow"),
+        ("I'll have it by EOD tomorrow", "tomorrow"),
+        ("I'll close it by end-of-week", "end of week"),
+        ("I'll close it by end of week", "end of week"),
+        ("I'll send it end-of-day", "eod"),
+        ("I'll send it end of the day", "eod"),
+    ],
+)
+def test_a_hyphen_is_a_gap_like_any_other(text: str, token: str) -> None:
+    """The firm writes `EOD-tomorrow`, and a pattern anchored on `\\s+` is a
+    day early.
+
+    Found by the independence gate rather than by reading: the verifier
+    tokenises the turn and splits on any non-word character, so it read
+    these correctly while the solver's regex matched only the bare `EOD`
+    inside `EOD-tomorrow` and resolved the deadline to the wrong day. The
+    two derivations disagreed by one supersession on a 47-day window, which
+    is a small number standing for a systematic error — `eod` is a valid
+    token producing a plausible date, so nothing downstream would have
+    looked wrong.
+    """
+
+    assert solve.deadline_token(text) == token
