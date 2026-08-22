@@ -1198,3 +1198,35 @@ agent log before believing the score, and say so beside the number.
 Which is also the reading of the recording's own throughput: v7 records at
 ~4.1 simulated days per hour with probes alongside it, against a documented
 ~6.2 on its own. Both sides pay.
+
+## `double-booked-week` has no material, by a factor of forty-seven
+
+Measured on the finished v6 record, over the 69 working days its calendar
+covers:
+
+    events per working day     4.7    the brief assumes ~47
+    genuine clashes            5      in the whole record; the brief assumes
+                                      ~3.4 a day, i.e. ~34 rows in a fortnight
+
+The brief's numbers were carried across from another world. This firm holds
+about five meetings a working day, scheduled by one docket manager into
+non-overlapping slots, and its people are not double-booked because nothing
+books them twice. There is no window of a 69-working-day record that
+contains 34 clashes when the record contains 5.
+
+Two things worth separating, because the first was my own wrong guess.
+
+**It is not the recurrence gap.** The obvious explanation — recurring series
+projected as one event rather than one per occurrence, which would hide most
+of the calendar — is false here: 290 meetings reference 290 distinct
+calendar events. The calendar has one row per occurrence. The rate really is
+five a day.
+
+**It is a premise carried between worlds**, which is this dataset's oldest
+mistake and the one that keeps coming back wearing new clothes. The number
+was true where it was written. Nobody re-measured it here, and it sat in a
+brief looking like a fact about this firm.
+
+Retire it, or re-found it on a mechanism this world has. It is the fourth
+task in this dataset to be retired for producing 0–5 rows, and every one of
+them was caught by measuring the premise rather than by running the task.

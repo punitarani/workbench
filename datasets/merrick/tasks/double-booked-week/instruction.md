@@ -1,3 +1,27 @@
+<!--
+STOP — DO NOT FILL THIS BRIEF. The premise does not hold on this world.
+
+Measured on the finished 67-day Merrick v6 record, over the 69 working days
+its calendar actually covers:
+
+    events per working day    4.7   the text below assumes ~47
+    genuine clashes           5     in the WHOLE record; the text below
+                                    assumes ~3.4 a day, i.e. ~34 rows in a
+                                    two-week window
+
+A ten-fold shortfall in volume and a register with five rows available in
+six months. The numbers in the text were carried across from a different
+world — this firm holds about five meetings a day, all of them scheduled by
+the same docket manager into non-overlapping slots, and its people are not
+double-booked because nothing here books them twice.
+
+Retire it, or re-found it on a mechanism this world has. Do not re-window:
+there is no window of a 69-working-day record that contains 34 clashes when
+the record contains 5.
+
+See docs/fidelity/task-viability.md, "double-booked-week has no material".
+-->
+
 # Who is actually double-booked
 
 You are the practice manager at **Merrick Stanton LLP**, a litigation and
