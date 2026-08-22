@@ -1113,3 +1113,29 @@ sees.
 a task — everything in this document was measured on it — but it is a
 record of a firm that spent six months managing a bug in its simulator, and
 1.4% of its transcripts are about that. v7 is the one to grade on.
+
+## `unanswered-question-register` survives the email fix — the pilot was wrong
+
+Recorded earlier in this document: *"the email fix may kill this task rather
+than rescue it"*, on a pilot that read 25% unanswered before the fix and 0%
+after. That was a small-sample artifact and it is now superseded.
+
+Measured on the two recordings over the **same first 16 calendar days**,
+applying the brief's own rule — a body containing `?`, at least one
+recipient in To, and no To-addressee replying in the thread within three
+working days:
+
+    v6   117 emails    50 asked    25 unanswered   50.0%
+    v7   144 emails    58 asked    20 unanswered   34.5%
+
+The fix cuts the rate by about a third and leaves a healthy base. It does
+not empty the register.
+
+Two caveats, both real. Sixteen days is early, and the two recordings are
+different draws once the first action resolves differently — so the *level*
+is provisional and only the direction is safe. Over v6's full 68 days the
+same screen reads 69.1%, well above its own 16-day figure, so the rate
+climbs as threads accumulate; expect v7's to climb too, from a lower base.
+
+The task's premise is re-measured on v7 before it ships, not carried from
+here. What is settled is that it has a premise.
