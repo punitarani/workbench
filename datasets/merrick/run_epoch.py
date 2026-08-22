@@ -97,14 +97,53 @@ def build_lm(
     ), backend
 
 
+def _days_recorded(telemetry: Path) -> int:
+    """How many days this run has already written, for a resume to continue.
+
+    Counts distinct `day` dates rather than rows: a run killed between
+    `sim.day.started` and `sim.day.ended` writes no row for that day, and a
+    row count would then be right by accident; a date count is right on
+    purpose. A malformed line is skipped rather than fatal — this is
+    telemetry, and refusing to resume a 20-hour recording over a truncated
+    JSON line would be the cure being worse.
+    """
+
+    if not telemetry.is_file():
+        return 0
+    seen: set[str] = set()
+    for line in telemetry.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if row.get("kind") == "day" and row.get("day"):
+            seen.add(row["day"])
+    return len(seen)
+
+
 class _DayTracker:
     """Accumulates per-day telemetry through on_step/on_batch."""
 
-    def __init__(self, writer: TelemetryWriter, budget: BudgetedLM | None) -> None:
+    def __init__(
+        self,
+        writer: TelemetryWriter,
+        budget: BudgetedLM | None,
+        *,
+        days_already_recorded: int = 0,
+    ) -> None:
         self._writer = writer
         self._budget = budget
         self._day = ""
-        self._day_index = -1
+        # Continues the count across a resume. It used to start at -1
+        # unconditionally, so a run stopped at day 13 and resumed wrote its
+        # next day as `day_index` 0 — silently, into a file whose whole
+        # purpose is per-day analysis. Every band, rate and trend keyed on
+        # `day_index` is then wrong for a resumed run, and nothing says so:
+        # the `day` date field stays correct, so the rows look fine one at
+        # a time and only the sequence is broken.
+        self._day_index = days_already_recorded - 1
         self._steps = 0
         self._events: Counter[str] = Counter()
         self._batches: list[int] = []
@@ -184,7 +223,11 @@ async def _start_or_resume(args: argparse.Namespace, *, resume: bool) -> int:
         args.mode, args.cassette, args.max_calls, args.concurrency
     )
     writer = TelemetryWriter(args.out / "telemetry.jsonl")
-    tracker = _DayTracker(writer, inner if isinstance(inner, BudgetedLM) else None)
+    tracker = _DayTracker(
+        writer,
+        inner if isinstance(inner, BudgetedLM) else None,
+        days_already_recorded=_days_recorded(args.out / "telemetry.jsonl"),
+    )
 
     if not resume and (args.out / "run.db").exists():
         raise SystemExit(f"{args.out / 'run.db'} exists; use resume or a new --out")
