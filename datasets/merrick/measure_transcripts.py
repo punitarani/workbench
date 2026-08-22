@@ -242,6 +242,18 @@ def _matter_handles(state: Path) -> tuple[dict[str, str], list[str], list[str]]:
     return handles, ambiguous, sorted(unreachable)
 
 
+# What a person says when the work is *theirs*. A task keyed to the speaker
+# grades only these; a screen that ignores them measures a superset of what
+# it gates and overstates it.
+#
+# Measured on 56 recorded days: `I'll` 501 turns, `I will` 9, and nothing
+# else is safe -- `I have` is possession, `I'd` is conditional, and `I can`
+# is as often `I can't` or `I can see why`.
+OWNER_FORMS: tuple[str, ...] = (r"\bI'll\b", r"\bI will\b")
+
+_OWNER = re.compile("|".join(OWNER_FORMS), re.IGNORECASE)
+
+
 def _supersession(turns: list, meetings: dict, handles: dict[str, str]) -> None:
     """Does a date said in one room get changed in a later one?
 
@@ -273,41 +285,73 @@ def _supersession(turns: list, meetings: dict, handles: dict[str, str]) -> None:
         "|".join(rf"\b{re.escape(h)}\b" for h in handles), re.IGNORECASE
     )
     track: dict[tuple[str, str], list] = collections.defaultdict(list)
+    owned: dict[tuple[str, str], list] = collections.defaultdict(list)
     for meeting_id, position, speaker, text in turns:
         day = _deadline(text or "")
         if day is None:
             continue
+        entry = (meetings[meeting_id][1], position, meeting_id, day)
         for handle in {m.lower() for m in pattern.findall(text or "")}:
-            track[(speaker, handles[handle])].append(
-                (meetings[meeting_id][1], position, meeting_id, day)
-            )
+            track[(speaker, handles[handle])].append(entry)
+            if _OWNER.search(text or ""):
+                owned[(speaker, handles[handle])].append(entry)
 
-    occasions = {key: sorted(seq) for key, seq in track.items()}
-    repeated = {
-        key: seq for key, seq in occasions.items() if len({row[2] for row in seq}) >= 2
-    }
-    changed = sum(1 for seq in repeated.values() if seq[0][3] != seq[-1][3])
     print("\nsupersession — is a date said once changed later?")
-    print(f"  (speaker, matter) pairs naming a deadline at all     {len(track):5d}")
-    print(f"  named in two or more separate meetings               {len(repeated):5d}")
-    share = changed / len(repeated) if repeated else 0.0
-    verdict = (
-        "   <-- ABSENT: nothing is ever superseded, so a reader who takes "
-        "the first answer is never wrong"
-        if share < 0.15
-        else ""
-    )
     print(
-        f"  ...and the deadline DIFFERS by the last              {changed:5d} "
-        f"({share:.0%}){verdict}"
+        f"  {'population':<34s}{'pairs':>7s}{'repeated':>10s}"
+        f"{'changed':>9s}{'share':>7s}"
     )
+    occasions: dict[str, dict] = {}
+    for label, source in (
+        ("any mention of the matter", track),
+        ("...the speaker's own commitment", owned),
+    ):
+        seen = {key: sorted(seq) for key, seq in source.items()}
+        occasions[label] = seen
+        repeated = {
+            key: seq for key, seq in seen.items() if len({row[2] for row in seq}) >= 2
+        }
+        changed = sum(1 for seq in repeated.values() if seq[0][3] != seq[-1][3])
+        share = changed / len(repeated) if repeated else 0.0
+        print(
+            f"  {label:<34s}{len(seen):7d}{len(repeated):10d}{changed:9d}{share:6.0%}"
+        )
+
+    # The second row is the one a task keyed to the speaker can grade, and
+    # the gap between them is the finding rather than a rounding detail: the
+    # difference is people reporting *other* people's commitments -- a chair
+    # recapping "Reinhardt, $61,047.00 out by Thursday" -- which no such
+    # task can key, because the person who owes it never said it.
+    #
+    # What the gap moves is the *population*, not the rate. Measured on 56
+    # recorded days: 36 repeated pairs of which 19 change, against 17 of
+    # which 8 do -- 53% and 47%, but half as much gradeable material.
+    # Screening on the first row would have promised a task twice the rows
+    # it can actually have, which is how a corpus passes a gate and then
+    # yields a register too thin to grade.
+    live_source = occasions["...the speaker's own commitment"]
+    if not live_source:
+        print("\n  no speaker ever commits to a nameable matter — no task here")
+        return
+    share = sum(
+        1
+        for seq in live_source.values()
+        if len({row[2] for row in seq}) >= 2 and seq[0][3] != seq[-1][3]
+    ) / max(
+        sum(1 for seq in live_source.values() if len({row[2] for row in seq}) >= 2), 1
+    )
+    if share < 0.15:
+        print(
+            "  <-- ABSENT: nothing a speaker owns is ever superseded, so a "
+            "reader who takes the first answer is never wrong"
+        )
 
     # A key field with a dominant value has a floor a reader can reach
     # without reading: answer the mode everywhere and collect its share.
     # Measured because it is invisible in the rate above -- a corpus can
     # supersede constantly and still be guessable, if what it supersedes
     # *to* is nearly always the same token.
-    live = collections.Counter(seq[-1][3] for seq in occasions.values())
+    live = collections.Counter(seq[-1][3] for seq in live_source.values())
     if live:
         token, count = live.most_common(1)[0]
         print(f"\n  live deadlines by token: {dict(live.most_common())}")

@@ -225,3 +225,34 @@ def test_an_empty_matter_list_refuses(tmp_path: Path) -> None:
 def test_a_missing_clio_refuses(tmp_path: Path) -> None:
     with pytest.raises(SystemExit, match="no clio.db"):
         screen._matter_handles(tmp_path)
+
+
+# ------------------------------------------------------- the graded population
+
+
+def test_the_owner_forms_are_the_ones_the_corpus_writes() -> None:
+    """A screen that ignores who owns the work measures a superset.
+
+    The third drift in this same file: `_supersession` grouped every turn
+    that mentioned a matter and a date, including a chair recapping
+    somebody else's commitment (`Reinhardt, $61,047.00 out by Thursday`).
+    No task keyed to the speaker can grade those -- the person who owes it
+    never said it -- so the screen promised twice the gradeable material
+    the corpus holds. It now reports both populations, and this pins the
+    narrower one to what the corpus actually writes: `I'll` at 501 turns
+    and `I will` at 9, and nothing looser.
+
+    `I have` is possession, `I'd` is conditional, and `I can` is as often
+    `I can't`. Admitting any of them puts turns in the register that are
+    not commitments at all.
+    """
+
+    assert screen._OWNER.search("I'll have it by EOD")
+    assert screen._OWNER.search("I will have it by EOD")
+    for not_a_commitment in (
+        "I have the file open",
+        "I'd want to see the schedule first",
+        "I can't get to it this week",
+        "Reinhardt, $61,047.00 out by Thursday",
+    ):
+        assert not screen._OWNER.search(not_a_commitment), not_a_commitment
