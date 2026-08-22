@@ -60,10 +60,14 @@ and the table above admits only the first:
 
 1. the words *before* the form — `by`, `the`, `this`, `next`;
 2. the article *inside* it — `end of **the** week`, `end of **the**
-   month`, `end of **the** day`. The table names the bare form only. In
-   the mail of a comparable firm in this record the article form appears
-   fifteen times and the bare form not once, so this is not a hypothetical:
-   whichever way it comes out, the table has to say so;
+   month`, `end of **the** day`. The table names the bare form only. This
+   note used to say the article form appears fifteen times in a comparable
+   firm's mail and the bare form not once; **measured on the Merrick
+   record it is the exact reverse — bare 149 messages, article 0.** Which
+   is the point rather than an erratum: the ratio is a fact about a corpus,
+   it flipped completely between two firms in the same repository, and a
+   table fixed from the other world's figure would have admitted nothing.
+   Count it here;
 3. the hyphenated form — `end-of-week`, `end-of-day`. A second corpus
    here writes four of them.
 
@@ -71,6 +75,22 @@ Count all three in the window before fixing the table, and make the table
 match the count. A rule that requires a wording the corpus writes once
 where it writes another thirty-four times admits one instance of
 thirty-five and scores the rest as inventions.»
+
+«MEASURE: **the compounds, and put them ahead of their parts.** Measured on
+the Merrick mail: `EOD tomorrow` 53 messages, `EOD <weekday>` 15,
+`tomorrow EOD` 13, `<weekday> EOD` 6 — 87 messages, more than a tenth of
+the corpus. Each names ONE day, and a table that tries the bare `EOD`
+first resolves every one of them to the sent date. This cost the sibling
+transcript task a quarter of its graded turns before it was found, twice:
+once for `EOD tomorrow` and again for the reversed order.»
+
+«MEASURE: **a form named only to rule it out.** `not Wednesday`,
+`rather than Friday` — 6 messages here. The form is in the body, so a
+textual screen matches it, and the row it makes is a deadline the writer
+explicitly rejected. Decide whether this brief admits it and say so; if it
+does not, the negation has to sit immediately against the form, because a
+wider window flags ordinary sentences where the `not` belongs to something
+else entirely.»
 
 «MEASURE: `by Saturday` and `by Sunday`. The table names Monday to Friday.
 If the window carries weekend weekdays, either admit them in the row above
