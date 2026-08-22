@@ -952,3 +952,30 @@ the same reason the matter column was.
 
 None of this is fixable in a recording already running. It is written down
 so the next engine pass has a list rather than an impression.
+
+### Why the mail is six times too quiet: it is the firm that is silent
+
+`Emails per day, firm-wide` reads 9.96 against a band of 60–120, and the
+shortfall is not spread evenly. Split by affiliation on the 67-day v6
+record:
+
+    the firm's 21 staff       276 emails   4.1/day   0.19 per person per day
+    the 10 client contacts    431 emails   6.3/day   0.63 per person per day
+
+**The client contacts out-write the firm's own lawyers by 3.3× per head,
+and produce 61% of all its mail.** Seven of the eight busiest senders in
+the record are external. A lawyer at this firm sends one email per five
+working days.
+
+That is backwards for a law firm's corpus, and it is a different defect
+from the reply-routing one fixed earlier — that was mail *attempted and
+refused*, this is mail never attempted. The external personas exist to
+inject work and reach for mail because it is the only surface they have;
+the internal personas choose among chat, documents, tickets, time entries
+and meetings, and mail loses. Fixing the routing raised the yield on
+attempts; nothing raised the attempt rate.
+
+Worth stating plainly because it bounds what mail-based tasks can be:
+a task keyed on the firm's own correspondence is drawing on four emails a
+day, not sixty. The transcript corpus is unaffected — meetings are 9/day
+throughout and 30% of everything anyone says.
