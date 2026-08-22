@@ -487,3 +487,31 @@ reads a committed snapshot while the writer continues. Do this at day ~25
 of every re-record. Every finding in this section came from it, and each
 one would otherwise have surfaced during the turnaround, when the cost of
 a starved rule is a rollout that reads as a model failure.
+
+### Resolved: `deadline-week-promise-clock` ships with five rows
+
+Two of its seven form-table rows are dead on the new world (`end of month`
+and `by date`, both zero), and the build now refuses a dead category
+outright rather than shipping a `form_counts` key an agent scores by
+writing 0. The open question was whether what remains is enough of a task.
+
+It is. Ranked by rows *and* by how many rules a week exercises, on 33
+recorded days:
+
+    2026-02-02   60 messages read, ~26 rows, 5 of 7 forms
+    2026-01-12   64 read, ~26 rows, 4 forms
+    2026-01-19   55 read, ~21 rows, 4 forms
+
+Twenty-six rows over sixty messages, exercising five distinct rules, clears
+the twelve-row floor with room and is a lighter read than the ~213-message
+window the in-band precedent settled on. Ship the five live rows; do not
+retire.
+
+Two things to carry into the fill. The week above is the best of the
+*first 33 days* — re-rank on the finished record, because later weeks are
+unmeasured and the ranking is what picks the window. And every one of the
+seven excluded wordings the brief warns about (`end of the week`,
+`end-of-day`, `by Saturday`, `by <Mon>. <day>`) occurs **zero** times here,
+so the brief must say each is moot on this corpus rather than implying a
+reader will meet one — a warning about a thing that never happens is a
+sentence spent teaching nothing.
