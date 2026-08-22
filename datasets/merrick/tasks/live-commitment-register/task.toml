@@ -1,0 +1,187 @@
+schema_version = "1.3"
+
+# Merrick Stanton LLP: the litigation-and-transactions firm, recorded over six
+# months and materialized into six tool surfaces. The agent reads the firm's
+# record and delivers one JSON report; grading is outcome-based against an
+# oracle computed from the same world state.
+#
+# THIS TASK READS THE MEETING TRANSCRIPTS, AND IT IS THE FIRST ONE THAT CAN.
+# `meeting.transcript` was a validated world event from the first commit and
+# no projection, table, file or tool ever served one -- 723 transcripts,
+# 3,662 turns, 255,889 words, roughly 30% of everything anyone at this firm
+# said, reachable by nobody. The `meetings` system now serves them.
+#
+# WHY THAT MATTERS FOR DIFFICULTY, and it is the whole reason this task
+# exists. Every other surface in this world can be flattened by a script.
+# `list_activities` returns all 21,597 time entries in about seventy seconds
+# at zero context cost, and the arithmetic over them is three lines; the MCP
+# binaries are mode 755 and a frontier model has been recorded driving them
+# from bash unprompted. Three difficulty levers have been measured dead on
+# this world as a direct result:
+#
+#   rule difficulty       Opus 5 scored 1.000 and 0.976 on two tasks built
+#                         to punish an editorial reader
+#   coverage difficulty   bimodal, luck rather than skill, gone once the
+#                         corpus is bounded to a readable size
+#   procedure difficulty  scriptable, and the row set survives the wrong
+#                         procedure -- fifteen measured wrong-branch payoffs
+#                         across five designs had a median of 0.90
+#
+# A transcript has no id to group by and no column to sum. A commitment made
+# out loud is not a field. That is the only property in this world that a
+# shell cannot defeat.
+#
+# THE MECHANISM, measured before this file was written (see
+# `datasets/merrick/measure_transcripts.py`). Supersession does NOT happen
+# inside a meeting -- five of 723, because a meeting here is a five-turn
+# one-pass status round -- and a screen for revision *cues* fired on 32.5%
+# of meetings and was almost entirely false positives. It happens ACROSS the
+# recurring series: of the (speaker, matter) pairs that name a weekday on two
+# or more separate occasions, 45% name a different one by the last. A
+# commitment set in one docket call and moved in a later one.
+#
+# So a reader who finds the first mention and stops is wrong about roughly
+# half the register, and cannot know it without crossing meetings.
+#
+# THE DELIVERABLE IS KEYED ON THE COMMITMENT, NOT ON THE MATTER, and that is
+# a semantic claim rather than a grading trick. "Cecile committed to Friday"
+# and "Cecile committed to Thursday" are two different commitments, one of
+# which is dead. A reader who reports the dead one has reported a commitment
+# that is not live -- a genuine false positive, not a wrong field.
+#
+# It is also what makes the arithmetic work, and the arithmetic is why this
+# design was chosen over a matter-keyed register. With `row_f1` at weight 5,
+# `row_facts` at 3 and four independent scalars at 1:
+#
+#   keyed on (matter, owner), day as a field
+#     a first-answer reader finds every row, so row_f1 = 1.000 and one field
+#     of three is wrong on 45% of rows -> about 0.90. Above band, and the
+#     same wall five earlier designs hit.
+#
+#   keyed on (matter, owner, committed_day)
+#     a first-answer reader has 55% of the keys, so row_f1 = 0.55 and
+#     row_facts = 0.55 -> (5*0.55 + 3*0.55 + 2)/12 = 0.53. In band.
+#
+# BE HONEST ABOUT WHAT IS UNPROVEN. The brief has to define "live", and
+# defining it tells the reader that commitments get superseded. This project
+# has a measured law that any key component strong enough to collapse row_f1
+# is also an instruction for the right method. The bet here is that knowing
+# the rule and executing it are different: the rule is one sentence, and
+# obeying it means finding every later mention across «MEASURE: meetings in
+# the window» meetings of prose that no script can aggregate. Missing one
+# later mention is a wrong row. Whether that survives a frontier model is a
+# question for a probe at k>=5, not for more reasoning -- three of this
+# session's own hypotheses were wrong and measurement settled each one.
+
+[task]
+name = "workbench/merrick-live-commitment-register"
+description = """Read the firm's meeting transcripts for a billing period \
+and report the commitments that are still live: who owes what, on which \
+matter, by when — counting only the most recent thing each person said \
+about each matter."""
+authors = [{ name = "Workbench" }]
+keywords = [
+    "legal",
+    "agentic",
+    "transcripts",
+    "prose-extraction",
+    "supersession",
+    "outcome-graded",
+    "mcp",
+]
+
+[metadata]
+dataset = "merrick"
+difficulty = "hard"
+skills = [
+    "prose-comprehension",
+    "cross-document-tracking",
+    "supersession",
+    "completeness",
+]
+agent_data_scope = "Intentionally seatless firm-wide Clio, Gmail, Slack, Calendar, iManage and meeting-transcript records from the LLM-generated epoch."
+
+[metadata.evidence]
+primary_field = "live_commitments.json"
+source_surfaces = ["meetings"]
+
+[environment]
+docker_image = "workbench:dev"
+os = "linux"
+workdir = "/home/agent/workspace"
+memory_mb = 4096
+network_mode = "allowlist"
+allowed_hosts = [
+    "openrouter.ai",
+    "raw.githubusercontent.com",
+    "objects.githubusercontent.com",
+    "nodejs.org",
+    "registry.npmjs.org",
+    "*.ubuntu.com",
+    # Setup hosts only -- they gate how the agent is installed, never what
+    # it can read, so no task's data or difficulty moves.
+    "astral.sh",
+    "*.astral.sh",
+    "github.com",
+    "codeload.github.com",
+    "*.githubusercontent.com",
+    "pypi.org",
+    "*.pypi.org",
+    "files.pythonhosted.org",
+    "*.nousresearch.com",
+]
+
+[environment.healthcheck]
+command = "sh /home/agent/workspace/.workbench/install.sh"
+timeout_sec = 600.0
+interval_sec = 2.0
+retries = 2
+
+# One argument-free executable per server, never command-plus-args: Harbor's
+# Codex adapter joins them into a single program name and the agent silently
+# comes up with no tools at all.
+[[environment.mcp_servers]]
+name = "clio"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-clio"
+
+[[environment.mcp_servers]]
+name = "gmail"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-gmail"
+
+[[environment.mcp_servers]]
+name = "slack"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-slack"
+
+[[environment.mcp_servers]]
+name = "imanage"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-imanage"
+
+[[environment.mcp_servers]]
+name = "calendar"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-calendar"
+
+[[environment.mcp_servers]]
+name = "meetings"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-meetings"
+
+[agent]
+user = "agent"
+# «MEASURE: the wall clock an in-band tier needs to read the window's
+# transcripts. The corpus is words rather than messages: 30 calendar days
+# was 123 meetings, 622 turns and 43,779 words on the world this design was
+# measured against, and 45 days went over the 60,000-word ceiling the screen
+# enforces. Time a real read before trusting 1800s.»
+timeout_sec = 1800.0
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
+
+[verifier]
+user = "verifier"
+timeout_sec = 900.0
+network_mode = "no-network"
