@@ -231,10 +231,24 @@ user = "agent"
 # had dumped the transcripts and was paging candidate turns twenty at a time,
 # which is the reading this task exists to require.
 #
+# Raised again to 5400 after a second probe, and the reason is worth
+# keeping. All three trials reached the 3600 wall *mid-calibration*: the
+# agent had dumped the window, built four competing readings of the rule
+# and printed them side by side --
+#
+#     after_first_self   cands= 73 live=26 sup=47 owners=16
+#     anywhere_first     cands=110 live=33 sup=76 owners=18
+#     window60           cands= 47 live=18 sup=29 owners=14
+#
+# -- with `anywhere_first` reproducing the oracle's 33 rows and 18 owners
+# almost exactly. It had found the answer and had no time left to write it
+# down. That is the most expensive way to score zero, and none of it is a
+# fact about comprehension.
+#
 # A timeout that cuts off honest work does not measure difficulty, it
 # measures the clock, and it is indistinguishable downstream from a model
 # that cannot do the task. Re-time this whenever the window changes.
-timeout_sec = 3600.0
+timeout_sec = 5400.0
 network_mode = "allowlist"
 allowed_hosts = ["openrouter.ai"]
 
