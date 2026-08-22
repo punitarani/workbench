@@ -556,3 +556,36 @@ sent to a named addressee, answered by any of them in the same thread —
 not from the task's own solver, which is stricter. Treat the *shape* as
 robust and the levels as indicative; re-run with the real solver on the
 finished record before choosing.
+
+#### What does move it: narrow the population, measured
+
+Following the note above rather than leaving it as advice. Each narrowing
+applied to the same corpus, on the new world:
+
+| narrowing | candidates | unanswered | dump F1 |
+|---|---|---|---|
+| all questions (current rule) | 117 | 53.0% | **0.693** |
+| asked of exactly one person | 115 | 53.9% | 0.701 |
+| not the thread's opening message | 30 | 33.3% | 0.500 |
+| **in a thread of 3+ messages** | 63 | **25.4%** | **0.405** |
+| one addressee AND thread of 3+ | 61 | 26.2% | 0.416 |
+| body *ends* with the question mark | **0** | — | dead narrowing |
+
+**Thread length is the lever.** It drops the dump floor by 0.288, and it is
+also the sharper question: a question in a thread that *kept going*, which
+the person asked never answered, is a dropped ball. A question in a
+one-message thread is a note nobody needed to answer. The register becomes
+"what did the firm let slide while it was still talking", which is what a
+practice administrator actually chases.
+
+Two costs, both real. It halves the candidates, so the window must be
+longer to clear the twelve-row floor — 16 unanswered in 39 recorded days
+is about 0.4/day, so a thirty-day window sits *on* the floor and a longer
+one carries more reading than the ~213-message precedent. And "asked of
+exactly one person" does nothing at all (0.701 against 0.693), which is
+worth knowing before somebody spends a build on the intuitive narrowing
+rather than the measured one.
+
+`body ends with the question mark` matches nothing in this corpus. It is
+recorded so the next person does not re-derive it: people ask a question
+and then keep writing.
