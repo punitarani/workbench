@@ -193,8 +193,7 @@ def main() -> int:
         "|".join(re.escape(form) for form in OWNER_FORMS), re.IGNORECASE
     )
     deadlines = tuple(
-        (re.compile(pattern, re.IGNORECASE), token)
-        for pattern, token in DEADLINE_FORMS
+        (re.compile(pattern, re.IGNORECASE), token) for pattern, token in DEADLINE_FORMS
     )
 
     low, high = _window_bounds()
@@ -235,9 +234,7 @@ def main() -> int:
             continue
         started = in_window[meeting_id][0]
         for name in named:
-            made[(speaker, matters[name])].append(
-                (started, position, meeting_id, day)
-            )
+            made[(speaker, matters[name])].append((started, position, meeting_id, day))
 
     live = []
     superseded = 0
