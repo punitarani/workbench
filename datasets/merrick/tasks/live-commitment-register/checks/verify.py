@@ -61,6 +61,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from brief_pins import RuleChanged, section, unchanged  # noqa: E402
+from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
 BRIEF = Path(__file__).resolve().parents[1] / "instruction.md"
@@ -82,9 +83,11 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # implements, and no section that does not — a pin on prose nobody derives
 # from is a tripwire that fires for nothing.»
 PINNED: dict[str, str] = {
-    "## What counts as a commitment": "4c274a2356b7f66a",
-    "## Turning what was said into a date": "c8f8a8253e49bbef",
-    "## Which one is live": "f8cf3f5493be32e4",
+    "## What counts as a commitment": measure("digest of the commitment rule section"),
+    "## Turning what was said into a date": measure(
+        "digest of the date-resolution table"
+    ),
+    "## Which one is live": measure("digest of the supersession rule section"),
 }
 
 # The firm's own zone, read from the served meta table rather than named
@@ -96,8 +99,8 @@ PINNED: dict[str, str] = {
 # company at the transition. If the window reaches past one, the two
 # derivations disagree near midnight and THAT DISAGREEMENT IS THE FINDING,
 # not a bug in this file.»
-WINDOW_FIRST_DATE = "2026-02-23"
-WINDOW_LAST_DATE = "2026-03-20"
+WINDOW_FIRST_DATE = measure("the window's first day as an ISO calendar date")
+WINDOW_LAST_DATE = measure("the window's last day as an ISO calendar date")
 
 # «MEASURE: the admitted deadline forms and their normalised tokens, read
 # out of the brief's own table rather than restated here once the table
@@ -105,85 +108,13 @@ WINDOW_LAST_DATE = "2026-03-20"
 # a weekday-only rule was measured dead on this world: 14% of turns name a
 # weekday against 41% naming a relative deadline, and the weekday-only
 # register held six rows with no supersession at all.»
-ADMITTED = [
-    ("EOD tomorrow", "tomorrow"),
-    ("COB tomorrow", "tomorrow"),
-    ("end of day tomorrow", "tomorrow"),
-    ("end of the day tomorrow", "tomorrow"),
-    ("close of business tomorrow", "tomorrow"),
-    ("tomorrow EOD", "tomorrow"),
-    ("tomorrow COB", "tomorrow"),
-    ("tomorrow end of day", "tomorrow"),
-    ("tomorrow end of the day", "tomorrow"),
-    ("tomorrow close of business", "tomorrow"),
-    ("Monday EOD", "monday"),
-    ("Monday COB", "monday"),
-    ("Monday end of day", "monday"),
-    ("Monday end of the day", "monday"),
-    ("Monday close of business", "monday"),
-    ("Tuesday EOD", "tuesday"),
-    ("Tuesday COB", "tuesday"),
-    ("Tuesday end of day", "tuesday"),
-    ("Tuesday end of the day", "tuesday"),
-    ("Tuesday close of business", "tuesday"),
-    ("Wednesday EOD", "wednesday"),
-    ("Wednesday COB", "wednesday"),
-    ("Wednesday end of day", "wednesday"),
-    ("Wednesday end of the day", "wednesday"),
-    ("Wednesday close of business", "wednesday"),
-    ("Thursday EOD", "thursday"),
-    ("Thursday COB", "thursday"),
-    ("Thursday end of day", "thursday"),
-    ("Thursday end of the day", "thursday"),
-    ("Thursday close of business", "thursday"),
-    ("Friday EOD", "friday"),
-    ("Friday COB", "friday"),
-    ("Friday end of day", "friday"),
-    ("Friday end of the day", "friday"),
-    ("Friday close of business", "friday"),
-    ("EOD Monday", "monday"),
-    ("COB Monday", "monday"),
-    ("end of day Monday", "monday"),
-    ("end of the day Monday", "monday"),
-    ("close of business Monday", "monday"),
-    ("EOD Tuesday", "tuesday"),
-    ("COB Tuesday", "tuesday"),
-    ("end of day Tuesday", "tuesday"),
-    ("end of the day Tuesday", "tuesday"),
-    ("close of business Tuesday", "tuesday"),
-    ("EOD Wednesday", "wednesday"),
-    ("COB Wednesday", "wednesday"),
-    ("end of day Wednesday", "wednesday"),
-    ("end of the day Wednesday", "wednesday"),
-    ("close of business Wednesday", "wednesday"),
-    ("EOD Thursday", "thursday"),
-    ("COB Thursday", "thursday"),
-    ("end of day Thursday", "thursday"),
-    ("end of the day Thursday", "thursday"),
-    ("close of business Thursday", "thursday"),
-    ("EOD Friday", "friday"),
-    ("COB Friday", "friday"),
-    ("end of day Friday", "friday"),
-    ("end of the day Friday", "friday"),
-    ("close of business Friday", "friday"),
-    ("EOD", "eod"),
-    ("COB", "eod"),
-    ("end of day", "eod"),
-    ("end of the day", "eod"),
-    ("close of business", "eod"),
-    ("EOW", "end of week"),
-    ("end of the week", "end of week"),
-    ("end of week", "end of week"),
-    ("tomorrow", "tomorrow"),
-    ("Monday", "monday"),
-    ("Tuesday", "tuesday"),
-    ("Wednesday", "wednesday"),
-    ("Thursday", "thursday"),
-    ("Friday", "friday"),
-]
+ADMITTED = measure(
+    "the brief's deadline table, as (form, normalised token) pairs — every "
+    "compound in BOTH directions ahead of either of its parts"
+)
 
 # «MEASURE: the owner-shaped phrasings, likewise from the brief.»
-OWNER_FORMS = ["I'll", "I will"]
+OWNER_FORMS = measure("the brief's owner-phrase list, as a closed set")
 
 # How many days a title has to appear on before the meeting is standing.
 # The brief states the number outright; it is repeated here because this

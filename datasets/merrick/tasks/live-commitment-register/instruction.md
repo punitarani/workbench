@@ -30,9 +30,18 @@ meeting is what counts and the mail changes nothing.
 ## The window and the meetings
 
 Read the meetings held from
-****Monday 23 February 2026**** through
-****Friday 20 March 2026****, inclusive — ****20****
-working days and ****83****
+****«MEASURE: window first day — the calendar date the window opens, written
+as e.g. "Monday 2 February 2026". Use
+`datasets/merrick/measure_commitment_window.py --first-day N --last-day M`,
+which prints every value on this page and refuses a window that is over the
+word ceiling, under the row floor or under the supersession floor.
+
+Size it by what an agent can FINISH, not by what the corpus holds. Nine
+trials across three probes timed out at 143 meetings and 53,960 words; 83
+meetings and 31,539 words finishes inside the budget. Only a probe tells
+you this.»**** through
+****«MEASURE: window last day.»****, inclusive — ****«MEASURE: the number of working days in that span»****
+working days and ****«MEASURE: the number of standing meetings in it»****
 meetings.
 
 A meeting is in the window when it **started** inside it; one that runs past
@@ -121,8 +130,10 @@ sits in a transcript. Two meetings on the same day are ordered by their
 start times; a person who commits twice inside one meeting is making one
 commitment, and the later turn is the one that counts.
 
-On this window, 52% of the rows carry a due date that differs between the
-person's first statement and their last
+«MEASURE: the share of rows whose due date differs between the person's
+first statement and their last. The screen prints it and refuses under 15%,
+because a corpus in which nothing is ever superseded makes a reader who
+takes the first answer always right.»
 
 A commitment made once and never repeated is live. It does not need
 restating to count.
