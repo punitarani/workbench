@@ -111,75 +111,185 @@ def _rows(day_limit: int | None) -> tuple[list, dict]:
     return turns, meetings
 
 
-# The client and matter names this firm argues about. Used only to group a
-# speaker's mentions of one piece of work across meetings; a task would
-# have to name them from the served matter list rather than a literal.
-_MATTERS = (
-    "Sandhurst",
-    "Sable Ridge",
-    "Pellumbra",
-    "Northmoor",
-    "Ardmore",
-    "Coastal Meridian",
-    "Halden",
-    "Verity Grain",
-    "Cotswold",
-    "Linden",
-    "Devane",
-    "Hartley",
-    "Tessaro",
-    "Renwick",
-    "Brackley",
-    "Ravenna",
-    "Nordholm",
-    "Atwater",
-    "Hollstead",
-    "Fairmont",
+# What this firm says when it names a near date, and the token each form
+# normalises to. First match wins, so order matters: `end of the day` has
+# to be tried before anything that could claim `day` on its own.
+#
+# **This is the measurement's definition of a deadline, and a task's
+# admitted forms have to be the same set.** They were not, which is why
+# this constant exists at all. The screen shipped matching weekdays only,
+# because the first draft of the commitment task admitted weekdays only.
+# The brief then widened to admit the relative forms -- because the corpus
+# writes far more of them -- and this screen never followed. Measured over
+# 56 recorded days of the v6 world: `eod` and its spellings appear in 245
+# turns, `tomorrow` in 201, and every weekday combined in 169. So a
+# weekday-only screen was reporting the supersession rate of about an
+# eighth of the deadline material and printing it as the corpus's.
+DEADLINE_FORMS: tuple[tuple[str, str], ...] = (
+    (r"\b(?:EOD|COB|close of business|end of (?:the )?day)\b", "eod"),
+    (r"\b(?:EOW|end of (?:the )?week)\b", "end of week"),
+    (r"\btomorrow\b", "tomorrow"),
+    (r"\bMonday\b", "monday"),
+    (r"\bTuesday\b", "tuesday"),
+    (r"\bWednesday\b", "wednesday"),
+    (r"\bThursday\b", "thursday"),
+    (r"\bFriday\b", "friday"),
 )
-_WEEKDAY = re.compile(r"\b(Monday|Tuesday|Wednesday|Thursday|Friday)\b", re.I)
+
+_DEADLINE = tuple((re.compile(p, re.IGNORECASE), token) for p, token in DEADLINE_FORMS)
+
+# Above this share of Title-Case words, a description is a sentence rather
+# than a name and yields no usable handle. See `_matter_handles`.
+_TITLE_CASE = 0.6
 
 
-def _supersession(turns: list, meetings: dict) -> None:
+def _deadline(text: str) -> str | None:
+    """The first admitted deadline form in a turn, normalised to its token.
+
+    First match wins rather than collecting every form the turn contains,
+    because "EOD tomorrow at the latest" names one deadline in two
+    phrasings. Collecting both would make a single sentence look like a
+    speaker disagreeing with themselves, and supersession below is measured
+    by comparing a speaker's first statement to their last -- so a fake
+    disagreement inside one turn would be counted as a real revision.
+    """
+
+    for pattern, token in _DEADLINE:
+        if pattern.search(text or ""):
+            return token
+    return None
+
+
+def _matter_handles(state: Path) -> tuple[dict[str, str], list[str], list[str]]:
+    """Every matter that can be named out loud, by the word people say.
+
+    Read from the served matter list. This screen used to carry a literal
+    tuple of twenty client and matter names, and by the time the v6 world
+    was recorded two of them -- `Hartley` and `Nordholm` -- named no matter
+    this firm had, while `Pryor`, the third-busiest handle in the corpus at
+    102 turns, was missing from it entirely.
+
+    That is worse here than the same drift would be in a solver. The figure
+    this feeds is the gate that decides whether a transcript task is viable
+    at all, so a literal that drifts does not produce one wrong row
+    somewhere downstream: it produces a confident viability verdict that
+    nobody re-checks, because consulting the gate is what people do
+    *instead of* looking.
+
+    A handle is a proper noun from the matter's own description -- the part
+    after the client name, which is what gets said in a room. Nobody says a
+    display number: no turn in 56 recorded days contains one.
+
+    Two kinds of description yield nothing usable, and are reported rather
+    than guessed at:
+
+    * **Title Case.** The matters the engine mints mid-run are described
+      with a status sentence instead of a name -- `Priyanka Sandhurst
+      Clearance Confirmation Pending` -- and every capitalised word in one
+      looks like a proper noun. Taking handles from those yields `Good`,
+      `Standing`, `Action` and `Break`, which match ordinary prose and
+      would attach commitments to a matter nobody mentioned.
+    * **No proper noun at all.** `regulatory inquiry`, `pro bono`,
+      `administration`. There is no word a speaker can say that picks these
+      out and nothing else.
+
+    A handle two matters claim is dropped rather than assigned to either.
+    After the engine minted `00033` and `00034` mid-run, `Sandhurst` named
+    four different matters at once, so a turn saying it names none of them
+    uniquely -- and a task keyed on the matter cannot grade those turns no
+    matter how well they are read.
+    """
+
+    path = state / "clio.db"
+    if not path.is_file():
+        raise SystemExit(
+            f"no clio.db under {state}. Matters are read from the served "
+            "list rather than named here, so without it this screen has "
+            "nothing to group a speaker's commitments by."
+        )
+    connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    rows = connection.execute(
+        "SELECT display_number, description FROM matters"
+    ).fetchall()
+    connection.close()
+    if not rows:
+        raise SystemExit(
+            "clio.db serves no matters. Every figure below would be a "
+            "confident zero computed over an empty list."
+        )
+
+    claimed: dict[str, set[str]] = collections.defaultdict(set)
+    unreachable: list[str] = []
+    for display, description in rows:
+        parts = description.split(" - ")
+        tail = parts[1] if len(parts) > 1 else parts[0]
+        words = re.findall(r"[A-Za-z][\w'-]*", tail)
+        # ALL-CAPS is an acronym (`OEM`, `WIP`), not evidence of a Title-Case
+        # sentence; counting it as one hid `Fairmont` behind `OEM`.
+        titled = [w for w in words if re.fullmatch(r"[A-Z][a-z'-]+", w)]
+        if not words or len(titled) / len(words) > _TITLE_CASE:
+            unreachable.append(display)
+            continue
+        nouns = [w for w in titled if len(w) >= 4]
+        if not nouns:
+            unreachable.append(display)
+            continue
+        for noun in nouns:
+            claimed[noun.lower()].add(display)
+
+    handles = {h: next(iter(m)) for h, m in claimed.items() if len(m) == 1}
+    ambiguous = sorted(h for h, m in claimed.items() if len(m) > 1)
+    return handles, ambiguous, sorted(unreachable)
+
+
+def _supersession(turns: list, meetings: dict, handles: dict[str, str]) -> None:
     """Does a date said in one room get changed in a later one?
 
     This is the only mechanism in this project's ledger ever measured to
-    move a frontier model off ceiling — *a second statement inside a unit
-    the reader has already resolved* — so whether the corpus contains it
+    move a frontier model off ceiling -- *a second statement inside a unit
+    the reader has already resolved* -- so whether the corpus contains it
     decides whether a transcript task has anything to be hard about.
 
-    Measured on the six-month record, and the first guess was wrong in a
-    way worth keeping: **within** a single meeting it essentially does not
-    happen. Five of 723 meetings have a speaker name a different weekday
-    later in the same room, because a meeting here is a five-turn one-pass
-    status round and nobody revises inside it. A screen for revision *cues*
-    ("actually", "instead", "moved to") fired on 32.5% of meetings and was
-    almost entirely false: those turns are a chair moving through an
-    agenda, not changing a commitment.
+    The first guess about where to find it was wrong in a way worth
+    keeping. **Within** a single meeting it essentially does not happen: a
+    meeting here is a five-turn one-pass status round and nobody revises
+    inside it. A screen for revision *cues* ("actually", "instead", "moved
+    to") fired on a third of meetings and was almost entirely false --
+    those turns are a chair moving through an agenda. **Across** the
+    recurring series it is common, and that is the thing worth grading: a
+    commitment made in one docket call and quietly replaced in a later one,
+    which no single meeting reveals.
 
-    **Across** the recurring series it is common: of the (speaker, matter)
-    pairs that name a weekday on two or more separate occasions, 45% name
-    a different one by the last. That is a commitment made in one docket
-    call and superseded in a later one, which is what supersession looks
-    like in a real firm.
-
-    So a reader who finds the first mention and stops is wrong about
-    roughly half of them — and a reader must cross meetings to know it.
+    The rate is printed rather than quoted here, because every number this
+    docstring used to carry was measured on a world that has since been
+    re-recorded, and a stale figure in a docstring is exactly the failure
+    this file was rewritten to stop repeating.
     """
 
-    matters = re.compile("|".join(re.escape(m) for m in _MATTERS), re.I)
+    if not handles:
+        print("\nsupersession — no matter has a sayable handle; cannot group")
+        return
+    pattern = re.compile(
+        "|".join(rf"\b{re.escape(h)}\b" for h in handles), re.IGNORECASE
+    )
     track: dict[tuple[str, str], list] = collections.defaultdict(list)
-    for meeting_id, _position, speaker, text in turns:
-        days = {d.lower() for d in _WEEKDAY.findall(text or "")}
-        if not days:
+    for meeting_id, position, speaker, text in turns:
+        day = _deadline(text or "")
+        if day is None:
             continue
-        for matter in {m.lower() for m in matters.findall(text or "")}:
-            track[(speaker, matter)].append((meetings[meeting_id][1], days))
+        for handle in {m.lower() for m in pattern.findall(text or "")}:
+            track[(speaker, handles[handle])].append(
+                (meetings[meeting_id][1], position, meeting_id, day)
+            )
 
-    repeated = {key: sorted(seq) for key, seq in track.items() if len(seq) >= 2}
-    changed = sum(1 for seq in repeated.values() if not (seq[0][1] & seq[-1][1]))
+    occasions = {key: sorted(seq) for key, seq in track.items()}
+    repeated = {
+        key: seq for key, seq in occasions.items() if len({row[2] for row in seq}) >= 2
+    }
+    changed = sum(1 for seq in repeated.values() if seq[0][3] != seq[-1][3])
     print("\nsupersession — is a date said once changed later?")
-    print(f"  (speaker, matter) pairs naming a weekday at all      {len(track):5d}")
-    print(f"  named on two or more separate occasions              {len(repeated):5d}")
+    print(f"  (speaker, matter) pairs naming a deadline at all     {len(track):5d}")
+    print(f"  named in two or more separate meetings               {len(repeated):5d}")
     share = changed / len(repeated) if repeated else 0.0
     verdict = (
         "   <-- ABSENT: nothing is ever superseded, so a reader who takes "
@@ -188,9 +298,23 @@ def _supersession(turns: list, meetings: dict) -> None:
         else ""
     )
     print(
-        f"  ...and the weekday DIFFERS by the last                {changed:5d} "
+        f"  ...and the deadline DIFFERS by the last              {changed:5d} "
         f"({share:.0%}){verdict}"
     )
+
+    # A key field with a dominant value has a floor a reader can reach
+    # without reading: answer the mode everywhere and collect its share.
+    # Measured because it is invisible in the rate above -- a corpus can
+    # supersede constantly and still be guessable, if what it supersedes
+    # *to* is nearly always the same token.
+    live = collections.Counter(seq[-1][3] for seq in occasions.values())
+    if live:
+        token, count = live.most_common(1)[0]
+        print(f"\n  live deadlines by token: {dict(live.most_common())}")
+        print(
+            f"  guessing {token!r} on every row scores "
+            f"{count / sum(live.values()):.0%} of the day field with no reading"
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -260,7 +384,22 @@ def main(argv: list[str] | None = None) -> int:
             f"commitment turns ({share:5.1%} of all)"
         )
 
-    _supersession(turns, meetings)
+    handles, ambiguous, unreachable = _matter_handles(STATE)
+    print("\nwhich matters can be named out loud?")
+    print(f"  matters with a handle a speaker can say  {len(handles):4d}")
+    print(
+        f"  handle claimed by two or more matters    {len(ambiguous):4d}  {ambiguous}"
+    )
+    print(
+        f"  no sayable handle at all                 {len(unreachable):4d}"
+        "  (status-sentence or common-noun descriptions)"
+    )
+    print(
+        "  a commitment about any of those cannot be keyed to a matter, "
+        "however well it is read"
+    )
+
+    _supersession(turns, meetings, handles)
 
     # Who speaks. A corpus where one person says everything grades one
     # person's prose, and `distinct_speakers` becomes a constant.
