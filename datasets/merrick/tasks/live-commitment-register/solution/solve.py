@@ -193,6 +193,31 @@ def _window() -> tuple[int, int]:
     return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
 
 
+# A deadline named only to be ruled out. Measured on the record: 3 of 132
+# commitment sentences, and all three real —
+#
+#   "treating it as urgent, not EOD"
+#   "i'll get an answer today, not tomorrow"
+#   "i'll flag it same day, not wednesday morning"
+#
+# In each the speaker's actual deadline is unstated or unadmitted (`today`,
+# `same day`), so the sentence should make no row at all; matching the
+# rejected form instead puts a commitment in the register that its owner
+# explicitly disclaimed.
+#
+# Deliberately tight, and a looser rule was measured and discarded. Scanning
+# a 28-character window for any negation flags 8 of 132, and five of those
+# are false: in "I'll have a real number, not a guess, by end of day" the
+# `not` belongs to the guess, and in "by Wednesday so it's not in Friday's
+# crunch" the negation lands on a *later* form that first-match-wins never
+# reaches. The negation has to sit immediately against the form.
+_RULED_OUT = re.compile(
+    r"\b(?:not|never|rather than|instead of)\s+"
+    r"(?:by\s+|until\s+|waiting\s+for\s+)?$",
+    re.IGNORECASE,
+)
+
+
 def deadline_token(text: str) -> str | None:
     """The deadline a turn names, normalised, or None.
 
@@ -203,8 +228,11 @@ def deadline_token(text: str) -> str | None:
     computed by comparing a speaker's first statement to their last.
     """
 
+    body = text or ""
     for pattern, token in _DEADLINE:
-        if pattern.search(text or ""):
+        for found in pattern.finditer(body):
+            if _RULED_OUT.search(body[max(0, found.start() - 24) : found.start()]):
+                continue
             return token
     return None
 

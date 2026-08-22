@@ -287,3 +287,57 @@ def test_a_full_stop_inside_a_word_does_not_end_a_sentence() -> None:
         )
         == "tomorrow"
     )
+
+
+# ------------------------------------------------------ deadlines ruled out
+
+
+def test_a_deadline_named_only_to_reject_it_makes_no_row() -> None:
+    """ "not wednesday" is not a commitment to Wednesday.
+
+    Three of 132 commitment sentences on the record do this, and all three
+    are real: the speaker's actual deadline is unstated or unadmitted
+    (`today`, `same day`), so the sentence should make no row at all.
+    Matching the rejected form instead puts a commitment in the register
+    that its owner explicitly disclaimed — and it cost a frontier model a
+    row it had read correctly.
+    """
+
+    assert solve.commitment_in("I'll flag it same day, not wednesday morning.") is None
+    assert solve.commitment_in("I'll get an answer today, not tomorrow.") is None
+    assert (
+        solve.commitment_in("I'll flag the second I hear back, urgent, not EOD.")
+        is None
+    )
+
+
+def test_the_guard_is_tight_enough_not_to_eat_real_deadlines() -> None:
+    """Guard the guard, and the looser rule was measured before being
+    discarded.
+
+    Scanning a 28-character window for any negation flags 8 of 132
+    sentences and five are false. In the first case below the `not` belongs
+    to the guess, not to the deadline. In the second the negation lands on a
+    *later* form that first-match-wins never reaches — Wednesday is the
+    commitment and Friday is the thing being avoided.
+    """
+
+    assert (
+        solve.commitment_in("I'll have a real number, not a guess, by end of day.")
+        == "eod"
+    )
+    assert (
+        solve.commitment_in(
+            "I'll have it back to Ulrich by Wednesday so it's not in Friday's crunch."
+        )
+        == "wednesday"
+    )
+    assert solve.commitment_in("I'll send it by tomorrow.") == "tomorrow"
+
+
+def test_a_negation_reaches_across_its_connective() -> None:
+    """`not by Friday` and `not until Friday` negate as plainly as
+    `not Friday`; the connective does not shelter the form."""
+
+    assert solve.commitment_in("I'll have it done, not by Friday.") is None
+    assert solve.commitment_in("I'll start it, rather than Monday.") is None

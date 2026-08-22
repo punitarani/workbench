@@ -72,6 +72,14 @@ event — *"the second I get a response, I'll log it"* — names no day at all.
 
 Semicolons separate sentences here, as full stops do.
 
+**A day named only to rule it out is not a deadline.** *"I'll get an answer
+today, not tomorrow"* commits to today, and `today` is not one of the days
+this register admits — so it makes **no row**, and certainly not a row due
+tomorrow. The same goes for *"urgent, not EOD"* and *"same day, not
+Wednesday morning"*. The negation has to sit against the day it rejects: in
+*"by Wednesday so it's not in Friday's crunch"* the commitment is Wednesday
+and Friday is merely the thing being avoided.
+
 - **The speaker is taking it on themselves**, in the first person, about a
   **future** act. In this firm's transcripts that is written `I'll` or
   `I will` — *"I'll get you a clean answer by EOD tomorrow, one of the

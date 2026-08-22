@@ -283,9 +283,46 @@ def _names_form(tokens: list[str], form: str) -> bool:
     return False
 
 
+# The words that rule a deadline out rather than name one, and the
+# connectives allowed to sit between them and the form. Counted in tokens
+# here; the solver scans characters. A form ruled out is not the speaker's
+# deadline — "i'll flag it same day, not wednesday morning" commits to
+# nothing this register admits — and matching it anyway puts a commitment in
+# the answer that its owner explicitly disclaimed.
+_RULES_OUT = ("not", "never")
+_RULES_OUT_PHRASES = (("rather", "than"), ("instead", "of"))
+_BRIDGES = ("by", "until", "waiting", "for")
+
+
+def _ruled_out(tokens: list[str], start: int) -> bool:
+    """Whether the form beginning at `start` is preceded by a negation.
+
+    Walks back over the connectives a negation may put between itself and
+    the form, then asks whether what stands before them negates. Deliberately
+    short-sighted: on the record a window wide enough to reach past an
+    intervening noun phrase flags five sentences that are not negations at
+    all — in "a real number, not a guess, by end of day" the `not` belongs to
+    the guess.
+    """
+
+    index = start
+    while index > 0 and tokens[index - 1] in _BRIDGES:
+        index -= 1
+    if index > 0 and tokens[index - 1] in _RULES_OUT:
+        return True
+    return index > 1 and (tokens[index - 2], tokens[index - 1]) in _RULES_OUT_PHRASES
+
+
 def _deadline(tokens: list[str]) -> str | None:
     for form, token in ADMITTED:
-        if _names_form(tokens, form):
+        wanted = _tokens(form)
+        if not wanted:
+            continue
+        for start in range(len(tokens) - len(wanted) + 1):
+            if tokens[start : start + len(wanted)] != wanted:
+                continue
+            if _ruled_out(tokens, start):
+                continue
             return token
     return None
 
