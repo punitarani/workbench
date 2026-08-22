@@ -1309,10 +1309,28 @@ Do that before believing a score, and report the count beside it. What does
 not survive is the causal story I attached to it, which I reached by
 noticing one plausible cause and stopping.
 
-The operational consequence is different, and cheaper: **probe at lower
-concurrency**, or accept that k=3 on this account buys retries and a longer
-wall clock. Pausing a 20-hour recording to make room bought nothing, and I
-paused it before testing whether it would.
+The operational consequence I drew from that — probe at lower concurrency —
+**is also wrong**, and tested:
+
+    k=3, recording running     6, 8, 10 429s
+    k=3, recording paused      5, 5,  6 429s
+    k=1, recording running     5 429s in the first four minutes
+
+A single trial on an idle account still hits them. So the 429s are ambient
+on this account for this model, at any concurrency, with or without a
+recording, and the harness retries through them — the one trial that ever
+completed did so *with* 429s in its log.
+
+**I have now been wrong twice about the cause and will stop guessing.** What
+is established, and all that is: 429s are present in every probe here; they
+are not caused by the recording; they are not caused by concurrency; and a
+trial can complete despite them. The binding constraint on this task is the
+wall clock, not the rate limit.
+
+What survives from the original section is the only part that was ever
+measured: **a rate-limited trial is indistinguishable downstream from a slow
+model**, so count the 429s in the agent log and report the count beside any
+score. Everything else here was a story fitted to one observation, twice.
 
 ## `prebill-narrative-screen`: the word family, measured
 
