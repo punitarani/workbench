@@ -1458,7 +1458,11 @@ different way, and the difference is stark:
 
     model      shell calls   MCP tool calls   output      deliverable
     opus-5          56-72             2-4     1.28 MB     written
-    glm-5.2             0             448     2.30 MB     none
+    glm-5.2             4             452     2.30 MB     written
+
+(Corrected: glm made **four** shell calls, not zero — my first count used a
+pattern that did not match this log's shape. The lopsidedness is the point
+and it survives: 452 tool calls against 4.)
 
 **Opus dumps the window with the shell and spends its budget on judgement.
 glm pages the same 83 meetings one transcript at a time through the MCP
@@ -1586,3 +1590,31 @@ turns) and **`<weekday> EOD`** (6). With `EOD tomorrow` at 79 turns, the
 compound family is 112 turns — a quarter of everything the register grades.
 Order is the rule: every compound, in either direction, ahead of either
 part.
+
+
+## The curve, against the corrected oracle
+
+Both deliverables re-scored against the sentence-scoped oracle with the full
+compound table. glm's register was recovered from its agent log, which had
+printed the file back; the trial's artefacts kept only logs.
+
+    model     rows   matched   row_f1   row_facts   superseded   ANSWER
+    opus-5   17/17        10    0.588       0.294      22 / 15    0.529
+    glm-5.2  10/17         6    0.444       0.176       6 / 15    0.432
+
+    floors:  empty_register 0.273 · reported_every_candidate 0.444 · nothing 0.000
+
+Above the empty-register floor — the honest denominator, since the two
+scalars that measure *reading* are free to anyone who opens the window —
+opus is **+0.256** and glm **+0.159**. Opus does about sixty per cent more
+gradeable work on a scale where the raw numbers sit a tenth apart.
+
+**The two fail differently, and that is the useful part.** Opus reports
+*exactly* 17 rows against 17 and gets 10 of them right: it finds the
+register and misses on dates. glm reports 10 and gets 6: it under-finds. And
+`superseded_count` separates them cleanly in the other direction — opus
+over-counts at 22, glm under-counts at 6, against a true 15. Neither reaches
+it, which is the mechanism the task exists to grade.
+
+Both sit inside the 0.2–0.8 band on a task whose wrong branches score 0.444
+and 0.273. That is the result the design was aiming at.
