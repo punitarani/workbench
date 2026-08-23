@@ -39,13 +39,28 @@ def _solver():
 
     import os
 
-    os.environ.setdefault("WORKBENCH_STATE", str(_TASK))
+    # Set for the import and put back afterwards. `os.environ.setdefault`
+    # here mutated the *session* environment permanently, and every
+    # subprocess a later test started inherited it -- which is how
+    # legal-nda's two tasks began failing: their `solve.sh` reads
+    # `WORKBENCH_STATE` with a relative default, so an inherited absolute
+    # path pointed it at another dataset's databases and it exited 1. The
+    # tests passed alone and failed in the suite, and the traceback named
+    # legal-nda.
+    previous = os.environ.get("WORKBENCH_STATE")
+    os.environ["WORKBENCH_STATE"] = str(_TASK)
     sys.path.insert(0, str(_TASK.parents[1]))
     spec = importlib.util.spec_from_file_location(
         "_lcr_solve", _TASK / "solution/solve.py"
     )
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        if previous is None:
+            os.environ.pop("WORKBENCH_STATE", None)
+        else:
+            os.environ["WORKBENCH_STATE"] = previous
     return module
 
 

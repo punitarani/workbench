@@ -19,6 +19,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
 _DATASET = Path(__file__).resolve().parents[2] / "datasets" / "merrick"
 
 
@@ -35,14 +37,22 @@ screen = _load("_window_screen", _DATASET / "measure_commitment_window.py")
 MON, TUE, WED, THU, FRI = (dt.date(2026, 2, 16 + n) for n in range(5))
 
 
-def test_the_screen_resolves_dates_the_way_the_solver_does() -> None:
+def test_the_screen_resolves_dates_the_way_the_solver_does(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """A screen that chooses the window has to agree with the file that
     grades it. If they drift, the screen certifies a window whose rows the
-    task will not produce — and it will look like the corpus changed."""
+    task will not produce — and it will look like the corpus changed.
 
-    import os
+    `monkeypatch` rather than `os.environ.setdefault`: the latter mutated
+    the session environment for good, and every subprocess a later test
+    started inherited it. legal-nda's `solve.sh` reads `WORKBENCH_STATE`
+    with a relative default, so it silently read another dataset's
+    databases and exited 1 -- six failures whose traceback named a task
+    nothing here had touched.
+    """
 
-    os.environ.setdefault("WORKBENCH_STATE", str(_DATASET))
+    monkeypatch.setenv("WORKBENCH_STATE", str(_DATASET))
     solver = _load(
         "_lcr_solve_for_screen",
         _DATASET / "tasks/live-commitment-register/solution/solve.py",
