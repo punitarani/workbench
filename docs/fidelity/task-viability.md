@@ -1,5 +1,37 @@
 # Which staged tasks the corpus can actually support
 
+> **STATE AS OF 2026-08-22.** This file is a running record, 1,800 lines
+> long and written in the order things were found — including the several
+> places where a later measurement overturns an earlier one. Read those
+> corrections as the point rather than as noise: every one of them is a
+> number that looked settled. Where an earlier section and a later one
+> disagree, **the later one is the measurement.**
+>
+> The audit that matters now is one table. Every verdict is a count against
+> the task's **own admitted forms**, on the finished 67-day v6 record:
+>
+>     live-commitment-register   BUILT and probed — opus 0.54 (sd .004, n=2),
+>                                glm 0.44, both inside 0.2–0.8
+>     off-sense-register         88 hits, 109 stem-only decoys — sound
+>     unanswered-question-reg    55% unanswered; late replies 6.8% (v6) /
+>                                12.0% (v7) — sound, watch the late rate
+>     prebill-narrative-screen   family measured: file/filed, 47% off-sense
+>     deadline-week-promise      needs a fortnight; 3 of its 7 forms grade 0/1/1
+>     no-op-revision-register    needs 4 weeks; 1 form grades 0, and all 5
+>                                decoys it names are absent from the corpus
+>     double-booked-week         RETIRED — 5 clashes against ~235 needed
+>     court-clock-computation    RETIRED — 3 forms match 4 messages in 67 days
+>     one-sentence-two-dates     RETIRED — 0 real two-date sentences; 13 of
+>                                its 14 "hits" are ONE date, counted twice
+>
+> **v6 is dead** (stopped at day 67 of 130) and carries a cross-surface
+> fiction about a bug in its own engine, so it builds and probes tasks but
+> does not grade them. **v7 records on the corrected engine** and is clean
+> on the same screen. The transferable rules extracted from all of this live
+> in `task-design-laws.md`.
+
+---
+
 Measured on the recording in progress at **day 13 of 130** — 595 message
 bodies, 2,325 time entries, 55 documents. Rates, not totals, are what
 carry to the full window; each row below extrapolates linearly and says
