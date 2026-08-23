@@ -1,34 +1,58 @@
 # Which staged tasks the corpus can actually support
 
-> **STATE AS OF 2026-08-22.** This file is a running record, 1,800 lines
-> long and written in the order things were found — including the several
+> **STATE AS OF 2026-08-22, late.** This file is a running record, ~1,900
+> lines, written in the order things were found — including the several
 > places where a later measurement overturns an earlier one. Read those
 > corrections as the point rather than as noise: every one of them is a
 > number that looked settled. Where an earlier section and a later one
 > disagree, **the later one is the measurement.**
 >
-> The audit that matters now is one table. Every verdict is a count against
-> the task's **own admitted forms**, on the finished 67-day v6 record:
+> **A second screen now applies to every row below, and it changes
+> verdicts.** A reader who reports every candidate has recall 1.0 by
+> construction, so its row F1 is fixed by rows ÷ candidates alone. Across
+> twelve tasks in two datasets that predicts the measured dump floor at
+> r = 0.892. A task whose answer is a large share of its own candidate pool
+> cannot punish reporting all of it, however good its rule is.
 >
->     live-commitment-register   BUILT and probed — opus 0.54 (sd .004, n=2),
->                                glm 0.44, both inside 0.2–0.8
->     off-sense-register         88 hits, 109 stem-only decoys — sound
->     unanswered-question-reg    55% unanswered; late replies 6.8% (v6) /
->                                12.0% (v7) — sound, watch the late rate
->     prebill-narrative-screen   family measured: file/filed, 47% off-sense
->     deadline-week-promise      needs a fortnight; 3 of its 7 forms grade 0/1/1
->     no-op-revision-register    needs 4 weeks; 1 form grades 0, and all 5
->                                decoys it names are absent from the corpus
->     double-booked-week         RETIRED — 5 clashes against ~235 needed
->     court-clock-computation    RETIRED — 3 forms match 4 messages in 67 days
->     one-sentence-two-dates     RETIRED — 0 real two-date sentences; 13 of
->                                its 14 "hits" are ONE date, counted twice
+>     task                      forms/premise      rows/cands   floor
+>     live-commitment-register  BUILT and probed        0.07     0.444
+>     prebill-narrative-screen  file/filed, 47% off     0.097     —
+>     no-op-revision-register   1 form grades 0         0.083     0.363
+>     off-sense-register        88 hits, 109 decoys     0.077     0.474
+>     unanswered-question-reg   sound on its premise    0.333     0.556  ⚠
+>     deadline-week-promise     3 of 7 forms grade ~0   0.476     —      ⚠
+>     double-booked-week        RETIRED — 5 clashes
+>     court-clock-computation   RETIRED — 4 messages in 67 days
+>     one-sentence-two-dates    RETIRED — 0 real two-date sentences
 >
-> **v6 is dead** (stopped at day 67 of 130) and carries a cross-surface
-> fiction about a bug in its own engine, so it builds and probes tasks but
-> does not grade them. **v7 records on the corrected engine** and is clean
-> on the same screen. The transferable rules extracted from all of this live
-> in `task-design-laws.md`.
+> The two flagged rows each have a measured menu of tightenings in their own
+> `CANDIDATE-RATIO.md`; the best reach 0.10–0.13 and 0.169 respectively.
+> `deadline-week-promise`'s 0.476 is against the *honest* pool — declaring
+> the wider one measures 0.223, which is the direction of error to watch,
+> because a generous candidate count makes a task look better while being
+> no harder to dump.
+>
+> **What clears its floor.** Only `live-commitment-register` has been
+> measured against a model at all, and the result splits: against the top of
+> the dump bracket [0.171, 0.444], opus is **+0.085** and glm is **−0.012**.
+> The design moved a frontier model off 1.000 *and* clear of dumping, which
+> this dataset had not managed before. glm's 0.432 is what dumping scores.
+>
+> **Three engine defects are pending and v7 carries all three** (see
+> `pending-engine-fixes/`): the calendar creates every occurrence at day
+> zero, so 89% of invitations are never visible and `rsvp_needsaction` fails
+> its band; every reviewer is permanently assigned one document, so 30 of
+> 325 documents have a second reader and **no new pairing has appeared in 26
+> days**; and one RSVP verb. Only the second touches a task — exactly one
+> task reads `imanage.db`, `no-op-revision-register`, so letting v7 finish
+> costs that task and nothing else.
+>
+> **v6 is dead** (day 67 of 130) and carries a cross-surface fiction about a
+> bug in its own engine, so it builds and probes tasks but does not grade
+> them. **v7 is at day 71 of 180** on the corrected engine. Transferable
+> rules live in `task-design-laws.md`; floors are gated in
+> `datasets/merrick/baselines.py`, which refuses a dump floor ≥ 0.8 and warns
+> at ≥ 0.6 — 10 of ashgrove's 17 tasks would refuse and the other 7 warn.
 
 ---
 
