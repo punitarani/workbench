@@ -38,6 +38,7 @@ is a baseline for.
 from __future__ import annotations
 
 import json
+import math
 import os
 import subprocess
 import tempfile
@@ -277,11 +278,70 @@ def _literal_of(path: Path, name: str):
     return None
 
 
+# The top of the band this dataset targets. A no-comprehension answer that
+# scores here or above lands *inside* the range a real result is supposed
+# to occupy, so no score in the band distinguishes reading from dumping.
+# Measured elsewhere for scale: ashgrove's client-responsiveness-sla pays a
+# dump 0.990 and its workpaper-open-items 0.954, and neither dataset knew,
+# because nothing compared a floor to a threshold.
+DUMP_CEILING = 0.8
+
+# Below this a dump is comfortably clear of a real answer; between the two
+# it is close enough to say so out loud. Merrick's own tasks measure
+# 0.363-0.556 here, so this warns rather than refuses.
+DUMP_WARN = 0.6
+
+UNMEASURABLE = "reported_every_candidate_UNMEASURABLE"
+
+
 def render(name: str, floors: dict[str, float]) -> str:
     if not floors:
         return f"{name}: baselines could not be measured"
-    parts = ", ".join(f"{label} {value:.3f}" for label, value in sorted(floors.items()))
+    parts = ", ".join(
+        f"{label} {'unmeasurable' if math.isnan(value) else format(value, '.3f')}"
+        for label, value in sorted(floors.items())
+    )
     return f"{name}: floors — {parts}"
+
+
+def refuse_a_task_a_dump_can_pass(name: str, floors: dict[str, float]) -> None:
+    """A task whose floor reaches the band cannot report a band result.
+
+    Two refusals, and the first is the one that hides the second. A dump
+    floor needs an answer holding rows the truth does not, sized from the
+    task's own count of what it read; a task that states no such count
+    gets no floor at all, and an absent floor reads as "fine" because it
+    prints nothing alarming. Six of ashgrove's fifteen keyed tasks are in
+    that state and two of them pay a dump 0.95+.
+    """
+
+    if not floors:
+        raise SystemExit(
+            f"{name}: no floors could be measured. Without them a rollout "
+            "number cannot be read at all -- 0.5 may be comprehension or may "
+            "be what this task pays for reporting everything."
+        )
+    if UNMEASURABLE in floors:
+        raise SystemExit(
+            f"{name}: no dump floor can be computed, because the report "
+            "states no count of what was read larger than its own row set. "
+            "A task that never says how much it looked at cannot detect a "
+            "reader who looked at nothing. Add the count, or accept that "
+            "this task's band is unreadable."
+        )
+    dump = floors.get("reported_every_candidate")
+    if dump is not None and dump >= DUMP_CEILING:
+        raise SystemExit(
+            f"{name}: reporting every candidate scores {dump:.3f}, at or "
+            f"above the {DUMP_CEILING} top of the target band. Every score "
+            "this task can report in band is also what a dump scores, so "
+            "the number would measure nothing."
+        )
+    if dump is not None and dump >= DUMP_WARN:
+        print(
+            f"  {name}: WARNING a dump scores {dump:.3f}; only "
+            f"{1 - dump:.3f} of the scale is above it"
+        )
 
 
 __all__ = ["measure", "render"]

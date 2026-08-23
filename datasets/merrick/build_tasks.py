@@ -848,7 +848,16 @@ def _commit_oracle(
     # shape, reporting every candidate with no comprehension at all scores
     # 0.427, which is inside the 0.2-0.8 band the tasks target. Printed
     # here so a rollout number is never read without it.
-    print("  " + baselines.render(name, baselines.measure(task, answer)))
+    #
+    # And refused, not only printed. Printing was this line's whole job for
+    # months, on the assumption that a number in the build log gets read --
+    # the same assumption that let a whole other dataset be banded with no
+    # floors at all, because the function returned an empty dict there and
+    # an empty dict prints as one quiet line. A threshold is what makes a
+    # measurement a gate.
+    floors = baselines.measure(task, answer)
+    print("  " + baselines.render(name, floors))
+    baselines.refuse_a_task_a_dump_can_pass(name, floors)
 
 
 def _refuse_dead_categories(task: Path, answer: dict, name: str) -> None:
