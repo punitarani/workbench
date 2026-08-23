@@ -376,3 +376,50 @@ not the same as broken: `billing.duration_uniform_p` and
 **pass**, because their bands ask for p ≤ 0.01 — the test wants these
 distributions to be conclusively non-uniform, and they are. Invariance is
 worth investigating and is not itself a defect.
+
+## a matter's status has a vocabulary and no lifecycle
+
+`grounded.py:1664` accepts any status change whose new value is in
+`self._vocab.statuses`. That is a membership test on a flat list: nothing
+says which transitions are legal, and nothing is terminal. Measured on v6's
+81 status changes across 26 matter/field series:
+
+    transitions into Closed                     16
+    transitions out of Closed                    9   (56% of closes undone)
+    transitions moving backward through the      13
+      lifecycle (Closed->Closing, Closing->Discovery, ...)
+
+`tkt-000009` (Pellumbra cross-border assessment) changes status **twelve
+times in three months**, including `Closed -> Closing` on 2026-02-03 — a
+matter un-closing into the state before closed — and `Closed -> Active`
+seventeen days later. `tkt-000017` goes `Closing -> Discovery` in late
+March: a litigation matter that was wrapping up returns to discovery.
+`tkt-000024` is *"Firm - billing, WIP and realization"*, a standing
+internal matter, and it is Closed three separate times.
+
+Every one of these is a single persona — the responsible lawyer — changing
+its own matter, so this is not a coordination failure. It is that nothing
+tells the persona, or the referee, that closing a matter means something.
+
+**The minimal fix is not "forbid reopening".** Firms do reopen matters; it
+is a real event with real paperwork. Two narrower rules cover the measured
+damage:
+
+* `Closed` is terminal for the ordinary path — a change out of it is a
+  *reopening*, and should be a distinct intent rather than a status edit,
+  so it is rare and legible in the record.
+* a transition into `Closed` may only come from `Closing`, and one out of
+  `Closing` may not go backwards. `Closed -> Closing` is incoherent in any
+  reading.
+
+Which orderings are legal beyond that is a design decision about how this
+firm works, and it belongs in the workplace spec next to the vocabulary
+rather than in the referee.
+
+**Do not build a task on this.** "Which matters were closed and reopened"
+is a plausible audit question and there are 9 instances, which is a
+tempting register. It would be grading the simulator, exactly as the
+reply-with-no-recipient fiction was — see the entry above, and the earlier
+one where a firm wrote policies about a bug for six months. The rule to
+apply is the one that dataset already paid for: a task may only grade a
+regularity the firm would have if the engine were right.
