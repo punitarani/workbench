@@ -211,6 +211,31 @@ twelve, so its correlation rests on four points. On n = 12 none of these is
 worth acting on. The gap is real, it is sometimes large, and this file does
 not know what drives it.
 
+**A no-comprehension baseline is only a floor if it is the best one a
+reader could actually reach.** `baselines.measure` builds its dump as the
+true rows plus *random noise*, sized from the task's own read-count. That
+is a strawman on two counts: the noise rows match no key, and the
+read-count often measures work done rather than candidates a cheap filter
+leaves. Both make the floor look lower than it is.
+
+The competent version is buildable per task, and the recipe is general
+even though the filter is not:
+
+1. fill the task for a window and run its solver against the bundle — the
+   solver's own output **is** the answer key for that window, so no
+   committed oracle is needed;
+2. build the answer a reader would submit after one cheap pass — for
+   `live-commitment-register`, one row per speaker-per-meeting who makes a
+   dated first-person undertaking, with the commonest date guess;
+3. score both through the task's own `test.sh`.
+
+Measured that way on 30 days of v7, 17 true rows: the strawman scores
+0.366 and the competent dump 0.419. The direction is what the ratios
+predicted; **the size is a seventh of it**, because row F1 carries 5 of
+about 11 weight and the extra-row penalty is capped. *A ratio on one
+criterion is not a ratio on the score* — a lesson that cost an hour of
+believing a 4.4x row-F1 gap meant a 4.4x floor.
+
 **A floor that is printed and not compared to anything is decoration.**
 `build_tasks` measured and printed every task's no-comprehension floors for
 months, with a comment explaining that a rollout number must never be read
