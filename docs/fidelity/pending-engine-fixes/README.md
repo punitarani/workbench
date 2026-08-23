@@ -494,6 +494,33 @@ That is a project rather than a patch, and three of the six files are in
 `_ENGINE_SURFACE`. The value estimate below is unchanged; the cost estimate
 was wrong by a lot.
 
+### the cheap alternative was tried and it cannot work
+
+Before committing to six layers: `work.time.logged` already carries
+`ticket_id`, `person` and `time`. If a person logged time to exactly one
+matter on the day they wrote a message, the anchor is already in the record
+and no schema has to move. Measured over 707 emails:
+
+    sender logged time to exactly ONE matter that day      0   (0%)
+    sender logged time to several matters that day       274  (39%)
+    sender logged no time that day                       433  (61%)
+
+**Zero.** Not "few" — none, and it is not a fluke of the window. A lawyer
+here works **six or seven matters a day** (the distribution peaks at 7 of
+1,410 person-days, and only 3 person-days in the whole record have one), so
+a day-level anchor cannot distinguish anything. That number is not a defect
+either; it is what the fidelity work was for.
+
+Narrowing to an hour would not help: the timesheet is a single end-of-day
+turn, so **94% of person-days have every entry at one identical timestamp**
+and 11,014 of 11,127 entries are logged in the 15:00 hour. There is no
+intra-day ordering to exploit, by design.
+
+So the anchor genuinely has to be recorded at the moment of writing. The
+negative is worth as much as the positive here — it is the obvious first
+idea, it costs nothing to check, and it forecloses the "just derive it"
+objection to a schema change.
+
 Two cautions, because this one is easy to overdo:
 
 * **Do not anchor everything.** If every message carries a matter, a task
