@@ -1913,3 +1913,54 @@ measured).
 The two structural fixes hold at scale: the file room resolves completely
 where v6 served 374 of 377 paths at nothing, and the engine fiction that ran
 through four of v6's surfaces is absent from 11,315 events.
+
+## v7's behavioural defects, characterised for the next engine pass
+
+The structural fixes hold (file room 100%, engine fiction 0). The
+*behavioural* bands do not, and v7 carries every one v6 had. Measured at day
+46 on 26,546 events:
+
+    calendar.rsvp_needsaction   0.772   against ≤ 0.1      (v6: 0.666 — worse)
+    calendar.rsvp_accepted      0.223   against 0.6–0.8
+    calendar.rsvp_tentative     0.000   against 0.05–0.15
+    calendar.rsvp_declined      0.004   against 0.05–0.15
+    calendar.cancellation_share 0.000   against 0.03–0.08
+    email.per_day              10.96    against 60–120
+    email.thread_depth_median   1       against 1.5–3
+
+The firm still has **one RSVP verb**, still never cancels a meeting, and
+still writes a tenth of the mail a firm this size would.
+
+**Two the earlier audit did not name, both sharp enough to fix directly.**
+
+**Only 19% of the firm's mail is internal.** Split by affiliation over 674
+recipient-pairs:
+
+    external -> internal   333   49.4%
+    internal -> external   211   31.3%
+    internal -> internal   130   19.3%      band wants 45–65%
+
+Half the firm's inbox is its clients writing in. Colleagues barely write to
+each other, which is the "the firm is silent" finding from v6 in its sharpest
+form — and it bounds any task keyed on internal correspondence.
+
+**Replies are instantaneous.** Median latency between consecutive messages
+in a thread is **0.08 hours — five minutes** — against a band of 1.5–6
+hours, and the distribution is not a distribution:
+
+    under 5 minutes   176 of 333   53%
+    under 1 hour      197          59%
+    under a day       246          74%
+    p90                            126 hours
+
+Half of all replies land inside five minutes and the tail runs to three
+weeks. That is not lognormal, it is two populations: a persona answering
+inside the same wake it received the message, and one that never gets back
+to it. The fidelity band says the same thing less legibly —
+`reply_latency_lognormal_p 2.9e-30`.
+
+The five-minute cluster is worth fixing before a task is keyed on timing:
+`unanswered-question-register` asks whether a reply arrived within three
+*working days*, and on a world where half of all replies arrive in five
+minutes that threshold is doing no work at all — it is separating "answered
+immediately" from "never answered", with almost nothing in between.
