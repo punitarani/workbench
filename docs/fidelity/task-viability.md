@@ -1980,3 +1980,59 @@ is that it answers fast or not at all: **52% of questions are never answered
 by anyone in To**, and 29% are answered before a human could have read them.
 Both halves are engine behaviour rather than firm behaviour, and both bound
 what a timing-keyed task can measure here.
+
+## The whole firm wakes at the same moment, and the code that should spread it computes zero
+
+The sharpest engine finding of this pass, and the cause of the reply-latency
+defect above.
+
+Measured on v7: **21 personas, 323 distinct wake timestamps, and every
+single timestamp has all 21 of them on it.** 09:00, 10:30, 12:00, 13:30 —
+the entire firm acts in lockstep, seven times a working day, and nothing
+happens in between.
+
+The cause is four lines in `grounded.py` that exist precisely to prevent it:
+
+    quantum = max(grid, -(-interval * 60 // grid) * grid)
+    slots   = quantum // grid
+    phase   = derive_seed(seed, "wake-phase", day, entity) % slots
+    wake    = day_start + phase * grid
+
+With `wake_grid_minutes` at 90, any persona whose check interval is **at or
+below 90 minutes** gets `quantum == grid`, so `slots == 1`, so
+`phase = seed % 1 = 0`. Every persona. Every day.
+
+    interval  30 min -> quantum  90, slots 1, phase ALWAYS 0
+    interval  60 min -> quantum  90, slots 1, phase ALWAYS 0
+    interval  90 min -> quantum  90, slots 1, phase ALWAYS 0
+    interval 120 min -> quantum 180, slots 2, spread
+
+A seed derivation, a modulo and a multiply, all executing, all incapable of
+returning anything but zero in the configuration actually used. This is the
+`capability without a caller` class in its subtlest form yet: the code is
+not dead, it is *inert* — it runs on every persona on every day and computes
+a constant.
+
+**What it explains.** Three failing bands stop being separate problems:
+
+* `email.reply_latency_median 5 minutes` against 1.5–6 hours — a message and
+  its reply land in the same tick, because there is no later tick to land in
+  until 90 minutes have passed.
+* `slack.offhours_share 0.034` against ≥ 0.15 — there are no off-hours
+  ticks, so there is no off-hours anything.
+* `email.thread_depth_median 1` — a thread advances at most once per tick
+  per participant, and all participants share the tick.
+
+**The fix is small and the decision is not.** Deriving the phase over a
+finer sub-grid — minutes within the quantum rather than grid-multiples
+within it — spreads 21 personas across 90 minutes instead of stacking them
+on one instant. But `grounded.py` is inside `_ENGINE_SURFACE`, so changing
+it means v7 cannot be resumed: the recording is at day 47 of 180, about 16
+hours from finishing, and a fresh run is about 29. **Roughly 13 hours to buy
+a firm with temporal texture.**
+
+Recorded rather than acted on, because that is a resource decision rather
+than a correctness one, and because the fix should be piloted over two days
+before 29 hours are spent on it. What is *not* in doubt is the diagnosis:
+323 timestamps, 21 personas on each, and a phase that is arithmetically
+pinned to zero.
