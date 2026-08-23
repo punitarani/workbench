@@ -34,6 +34,7 @@ shipping recording was `epoch-v7`.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -244,3 +245,78 @@ def test_the_identity_is_content_not_a_path() -> None:
     if identity["sha256"]:
         assert len(identity["sha256"]) == 64
         assert identity["world_log"].endswith(".jsonl")
+
+
+def test_a_committed_oracle_is_stamped_with_the_world_it_came_from(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The write, not the read.
+
+    Every test above exercises the gate that *reads* the stamp. Deleting
+    the line that writes it left all of them green -- which is the
+    capability-without-a-caller shape in miniature, and worse than it
+    sounds: with nothing writing a stamp, every oracle is unstamped
+    forever, every comparison routes to the re-derivation branch, and the
+    SOLVER REGRESSION message this whole file exists to produce can never
+    fire. A reader tested against a writer that does not run agrees with
+    everything.
+    """
+
+    log = tmp_path / "epoch-vX" / "world.jsonl"
+    log.parent.mkdir()
+    log.write_text('{"day": 1}\n')
+    source = tmp_path / "SOURCE"
+    source.write_text(str(log) + "\n")
+    monkeypatch.setattr(B, "_SOURCE", source)
+    monkeypatch.setattr(B, "_run_second_derivation", lambda *a, **k: None)
+    monkeypatch.setattr(B, "_ship_grading_base", lambda *a, **k: None)
+    # `_commit_oracle` also runs the floors gate added on 2026-08-23, and a
+    # synthetic task has no test.sh for Reward Kit to run, so the gate
+    # correctly refuses "baselines could not be measured". Stubbed because
+    # this test is about the stamp; the gate has its own file.
+    monkeypatch.setattr(
+        B.baselines, "refuse_a_task_a_dump_can_pass", lambda *a, **k: None
+    )
+
+    task = tmp_path / "task"
+    (task / "tests").mkdir(parents=True)
+    oracle = task / "tests" / "oracle.json"
+    B._commit_oracle(task, "t", {"rows": [{"a": 1}]}, oracle, fresh=True)
+
+    stamp = B._world_stamp_path(oracle)
+    assert stamp.is_file(), "the answer key shipped without its provenance"
+    written = json.loads(stamp.read_text())
+    assert written == B._world_identity()
+    assert written["sha256"] == hashlib.sha256(log.read_bytes()).hexdigest()
+    assert written["world_log"] == str(log)
+
+
+def test_the_stamp_follows_the_world_it_was_written_against(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Guard the guard: a stamp that is always the same value proves nothing.
+
+    The test above compares the stamp to `_world_identity()`, and both
+    would agree on a constant. Two worlds, two commits, two stamps.
+    """
+
+    monkeypatch.setattr(B, "_run_second_derivation", lambda *a, **k: None)
+    monkeypatch.setattr(B, "_ship_grading_base", lambda *a, **k: None)
+    monkeypatch.setattr(
+        B.baselines, "refuse_a_task_a_dump_can_pass", lambda *a, **k: None
+    )
+    seen = []
+    for index, body in enumerate(('{"day": 1}\n', '{"day": 1}\n{"day": 2}\n')):
+        world = tmp_path / f"w{index}"
+        world.mkdir()
+        log = world / "world.jsonl"
+        log.write_text(body)
+        source = world / "SOURCE"
+        source.write_text(str(log) + "\n")
+        monkeypatch.setattr(B, "_SOURCE", source)
+        task = tmp_path / f"task{index}"
+        (task / "tests").mkdir(parents=True)
+        oracle = task / "tests" / "oracle.json"
+        B._commit_oracle(task, "t", {"rows": [{"a": index}]}, oracle, fresh=True)
+        seen.append(json.loads(B._world_stamp_path(oracle).read_text())["sha256"])
+    assert seen[0] != seen[1], "the stamp does not follow the world"
