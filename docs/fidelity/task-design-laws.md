@@ -85,6 +85,14 @@ names, the distinct values, one whole row — *then* write the analysis. It
 costs one statement and it is the only thing that catches a wrong field,
 because a wrong field does not raise.
 
+Writing that down did not work. The law was recorded at 04:12 and broken
+three more times the same hour, each time building an answer with a guessed
+row key that matched nothing and scored the empty-register floor. So it is
+a command now — `scripts/show_shape.py <db|json> [table]` prints columns, a
+whole first row, and the distinct-value counts per field — because a rule
+that needs remembering at four in the morning is a rule that gets broken at
+four in the morning.
+
 **And screen with the task's own admitted forms, never a proxy for them.**
 A proxy answers a different question and which way it errs is luck. In one
 audit a pattern *narrower* than the corpus reported a live task as empty —
