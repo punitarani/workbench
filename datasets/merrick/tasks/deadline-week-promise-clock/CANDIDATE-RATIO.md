@@ -12,6 +12,26 @@ apart:
     every mail message                 707    158   0.223     0.365
     messages carrying any relative date 332   158   0.476     0.645
 
+**Which figure the solver actually reports, checked 2026-08-23.**
+`solve.py:374-383` counts `read` for **every message inside the window**,
+and the comment above it says why: *"Requiring a figure over the whole
+record is what makes an agent read the whole record: the bound has to apply
+to the work and not only to the answer."* That is a deliberate and correct
+purpose, and it is not the same purpose the dump floor needs.
+
+So this is not a task gaming its floor. It is `baselines.measure` picking
+`*_read` as the candidate pool, when a report's read-count measures **work
+done** and the dump pool wants **candidates a cheap filter leaves**. The
+two coincide only when the rule admits from everything it opens. Here they
+differ by four times, and the task is the innocent party.
+
+There is no mechanical fix, for the reason the gate already prints: bounding
+the real floor means knowing which pre-filters are cheap for a reader, and
+that is a judgement about the corpus rather than a property of the oracle.
+What follows from it is a rule for reading, not a patch — **a floor
+computed from a work-measure is a lower bound on the floor, and the gap is
+whatever the rule filters out for free.**
+
 **The second is the honest one.** A reader dumping this task submits
 messages that carry a date, not every message in the firm — the report asks
 for dated promises, so filtering to dates is one cheap pass, not

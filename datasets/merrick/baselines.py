@@ -367,6 +367,19 @@ def refuse_a_task_a_dump_can_pass(name: str, floors: dict[str, float]) -> None:
             f"  {name}: this floor assumes a dump of the DECLARED candidate "
             "pool; a reader who cheaply narrows it first scores higher"
         )
+        # Why that is usually nobody's fault. A `*_read` figure often
+        # measures WORK DONE -- deadline-week-promise-clock counts every
+        # message in its window precisely so an agent must open the window
+        # rather than grep it -- while the dump pool wants the candidates a
+        # cheap filter leaves. The two coincide only when the rule admits
+        # from everything it opens. On that task they differ by four times:
+        # 98 promises against 989 messages reads 0.099, against the 255
+        # carrying a date it reads 0.384.
+        print(
+            f"  {name}: and if that count measures work rather than "
+            "candidates, this is a lower bound and the gap is whatever the "
+            "rule filters out for free"
+        )
 
 
 __all__ = ["measure", "render"]
