@@ -641,6 +641,7 @@ def _realism_bands(
         f"{counts['ABSENT']} absent of {len(results)} "
         f"(most were written for an accounting firm; see _STRUCTURAL_BANDS)"
     )
+    _report_undeclared_absences(results)
     missing = _structural_absences(results)
     if missing:
         message = "this world has none of something a firm certainly has: " + "; ".join(
@@ -653,6 +654,56 @@ def _realism_bands(
         # against; it is not worth grading a model on.
         print(f"  ALLOWED (--allow-band-absence): {message}")
         print("    do not ship rollout numbers from this world")
+
+
+def _report_undeclared_absences(results) -> None:
+    """Bands that meet the structural-absence rule and are not on the list.
+
+    `_STRUCTURAL_BANDS` is two entries long and hand-kept, and the comment
+    above it says as much -- it is a list because *which* bands apply to a
+    law firm is a judgement, and most of these were written for an
+    accounting firm. That is a good reason for the gate's scope to be
+    curated. It is not a reason for the gap to be invisible: nothing has
+    ever prompted anyone to review the list against what the world actually
+    reads, so a new absence joins the 36 failing bands and is never seen.
+
+    Filtered to surfaces that **exist and read effectively nothing**, which
+    is the class worth a person's attention: the world can do this and
+    never does. A metric scored ABSENT has no surface at all -- the tax and
+    billing bands here -- and is a band written for a different firm rather
+    than a hole in this one. That single distinction takes the report from
+    30 lines of mostly-noise to 9.
+
+    On the v6 world it names, among others, `calendar.cancellation_share`
+    at 0.000 -- not one meeting cancelled in sixty-eight days -- and
+    `email.machine_share` at 0.000, a firm with no automated mail of any
+    kind. Neither had ever been surfaced, because both are FAIL and the
+    gate reads only its own two names.
+
+    Reported, not refused, for the same reason the list is curated: whether
+    a law firm should have CSVs is not something this function knows.
+    """
+
+    candidates = [
+        result
+        for result in sorted(results, key=lambda r: r.metric)
+        if result.metric not in _STRUCTURAL_BANDS
+        and result.verdict == "FAIL"
+        and result.band.min
+        and result.observed is not None
+        and result.observed < result.band.min / 10
+    ]
+    if not candidates:
+        return
+    print(
+        f"  {len(candidates)} surface(s) exist and read effectively nothing, "
+        "and are NOT declared structural — review _STRUCTURAL_BANDS:"
+    )
+    for result in candidates:
+        print(
+            f"    {result.metric}: {result.observed:.4g} "
+            f"against a floor of {result.band.min}"
+        )
 
 
 def _calendar_units(world_log: Path, state_dir: Path) -> None:
