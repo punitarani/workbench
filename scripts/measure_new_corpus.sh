@@ -89,7 +89,27 @@ echo
 echo "   it refuses a window over the word ceiling, under the row floor, or"
 echo "   under the supersession floor — and prints every value the brief needs."
 echo
-echo "== 5. what is still owed ===================================="
+echo "== 5. before you build on this world ========================"
+./.venv/bin/python - <<'STALE'
+import pathlib
+stale = [
+    path
+    for path in sorted(pathlib.Path("datasets/merrick/tasks").glob("*/tests/oracle.json"))
+    if not path.with_suffix(".world").exists()
+]
+if stale:
+    print(f"   {len(stale)} oracle(s) on disk carry no world stamp:")
+    for path in stale:
+        print(f"     {path}")
+    print("   The build refuses each with 'derived from an unrecorded world'")
+    print("   -- correct, and it reads like a defect. They are probe artifacts")
+    print("   of a world that is gone. Delete them, or pass --refresh-truth")
+    print("   deliberately and know which of the two you are doing.")
+else:
+    print("   no unstamped oracles -- the build compares against provenance")
+STALE
+
+echo "== 6. what is still owed ===================================="
 echo "   Three tasks are retired (double-booked-week, court-clock-computation,"
 echo "   one-sentence-two-dates); their briefs carry a STOP banner saying why."
 echo "   Five are staged. Each brief's «MEASURE» notes now carry counts from"
