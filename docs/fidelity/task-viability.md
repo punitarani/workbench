@@ -1860,3 +1860,29 @@ versions to read.
 That completes the audit of all nine task directories. Every verdict is a
 count against the task's own admitted forms — the discipline that reversed
 two of them in each direction.
+
+## The third tier could not be measured, and its 0.000 is not a score
+
+`gpt-5.6-sol`, same window and brief, returned **reward 0.000** — and that
+number is a fact about this account, not about the model. Its agent log
+carries **108 HTTP 401s, one 403, and eighteen "your API key was rejected
+by the provider"**, with the provider's own hint: *does your account have
+access to `openai/gpt-5.6-sol`?*
+
+Nine of its tool calls succeeded before the wall, and its reasoning shows it
+had understood the task — it was working out how to fetch 83 transcripts
+efficiently, the same strategic question that separated the other two tiers:
+
+> *"I wonder if I can programmatically call MCP? Since execute_code cannot
+> handle tool calls directly, I could run individual calls in parallel."*
+
+**So the Pareto has two points, not three**, and saying otherwise would put
+a harness failure on a difficulty curve. This is the same rule the timeout
+and rate-limit sections above are about, arriving a third time and from the
+cheapest possible direction: *a zero is a claim about a model only once you
+have ruled out every way the harness can produce one.* Counting 401s takes
+a minute; a fabricated third point would have survived indefinitely.
+
+The tier stays in `scripts/rollout.py`'s table because the gateway resolves
+it correctly — what is missing is entitlement on this account, which is not
+something a dataset can fix.
