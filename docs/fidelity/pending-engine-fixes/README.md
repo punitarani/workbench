@@ -98,6 +98,43 @@ to move** `rsvp_tentative` or `rsvp_declined`, which are 0.000 and 0.004:
 the firm having exactly one RSVP verb is a separate defect, and this one
 does not touch it.
 
+### how much of the failure this actually explains (measured 2026-08-23)
+
+Less than the entry above implies, and the difference is a measurement
+artifact rather than a behaviour. `compile.py:282` expands a standing
+meeting across **the whole declared epoch** and emits every occurrence as a
+*genesis* event — 520 of v6's 575 `calendar.event.scheduled` events are at
+simulated second 0. A recording that stops early therefore carries
+invitations to meetings that never arrive:
+
+    every invitation in the log                     2,768   needsAction 0.669
+    events starting before the recording ends       1,526   needsAction 0.444
+    events starting after the recording ends        1,242   needsAction 0.944
+
+**45% of all invitations are for meetings past the end of the recording**,
+and they are unanswerable by construction — a persona cannot RSVP to a
+meeting the world never reaches. They drag the headline from 0.444 to
+0.669 and none of that is the firm behaving badly.
+
+So the fix has two separable effects and only one is a fidelity gain:
+
+* it removes the unanswerable 45% from the corpus, because an occurrence
+  created near its date is never created at all when that date is past the
+  recording's end. That is bookkeeping, and the honest way to see the same
+  thing today is to compute the band over answerable invitations only.
+* it lets the remaining invitations be answered at the rate personas
+  already manage inside the horizon — 65.7%, which is inside the band the
+  metric asks for.
+
+Best estimate after the fix: `rsvp_needsaction` around 0.34, from 0.669.
+**Better, and still failing a band of ≤0.1.** Whatever else is wrong here
+is not front-loading, and the entry as first written would have claimed the
+whole gap.
+
+The band arguably wants a companion change too: counting invitations to
+meetings the recording never reaches measures the epoch's declared length,
+not the firm.
+
 ## one RSVP verb: the capability is there, the behaviour is not
 
 `rsvp_tentative` 0.000 and `rsvp_declined` 0.004 against bands of 0.05–0.15
