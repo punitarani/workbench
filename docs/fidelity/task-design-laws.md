@@ -141,6 +141,25 @@ the rule and identified the right one, with no time left to write it down.
 Downstream that is indistinguishable from a model that cannot do the task.
 Time a real read before trusting a number.
 
+**A floor that is printed and not compared to anything is decoration.**
+`build_tasks` measured and printed every task's no-comprehension floors for
+months, with a comment explaining that a rollout number must never be read
+without them. Nothing compared the number to a threshold. The dataset that
+*owns* that code was fine — its tasks measure 0.363–0.556 — and the one
+that does not call it pays a dump **0.990** on one task and 0.954 on
+another, across seventeen tasks banded on three models with no floor ever
+measured. Under the gate now in place, 10 of those 17 refuse and the other
+7 warn. Set a threshold, or the measurement is a habit rather than a check.
+
+**And the strongest no-comprehension answer is a bracket, not a number.**
+Reporting every candidate scores one thing if the reader also gets its own
+counts wrong and another if it is handed the true scalars; both are
+defensible and the truth is between them. Which end you quote decides the
+conclusion: on `live-commitment-register`, read against the empty-register
+floor both measured models look like partial successes, and read against
+the top of the dump bracket one clears it by 0.085 and the other sits 0.012
+*below* it. Quote both ends, always.
+
 ## About difficulty itself
 
 **Measured dead on frontier models:** rule difficulty (Opus 5 at 1.000 and
