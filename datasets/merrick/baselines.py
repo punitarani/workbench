@@ -120,12 +120,25 @@ def measure(task: Path, oracle: dict) -> dict[str, float]:
 
     truth = oracle.get(rows_key) or []
     scalars = {k: v for k, v in oracle.items() if not isinstance(v, list)}
-    # The largest `*_read` count, by name-sorted order for a stable choice
-    # when a task reports more than one. Taking whichever came first in the
-    # oracle's dict would make this floor depend on JSON key order, which
-    # is exactly the kind of number that changes without anyone editing it.
+    # The largest count-of-what-was-opened, by name-sorted order for a
+    # stable choice when a task reports more than one. Taking whichever
+    # came first in the oracle's dict would make this floor depend on JSON
+    # key order, which is exactly the kind of number that changes without
+    # anyone editing it.
+    #
+    # `_reviewed` as well as `_read`: merrick spells it one way and
+    # ashgrove the other, and matching only `_read` made
+    # `client-responsiveness-sla` report no measurable dump floor when it
+    # states `threads_reviewed=49` against 43 rows -- an absence produced
+    # by this function's vocabulary rather than by the task.
     read_counts = sorted(
-        (int(v) for k, v in sorted(scalars.items()) if k.endswith("_read")),
+        (
+            int(v)
+            for k, v in sorted(scalars.items())
+            if isinstance(v, int)
+            and not isinstance(v, bool)
+            and (k.endswith("_read") or k.endswith("_reviewed"))
+        ),
         reverse=True,
     )
     candidates = read_counts[0] if read_counts else len(truth)
@@ -161,6 +174,25 @@ def measure(task: Path, oracle: dict) -> dict[str, float]:
     # seeing: on that same task six scalars were 43% of the weight and
     # five of the six were derivable from the row set the task already
     # grades.
+    # A dump floor is only a floor if the dump contains something the truth
+    # does not. When a task reports no count of what it read -- or reports
+    # one no larger than its own row set -- `candidates` falls back to
+    # `len(truth)`, `_noise_rows` is asked for nothing, and the "dump" IS
+    # the oracle. Both figures below then come back at or near 1.000 and
+    # read as "a reader who did no work scores 1.000", which is a fact
+    # about this function rather than about the task.
+    #
+    # Measured on the other datasets: five of ashgrove's fifteen keyed
+    # tasks report no candidate count at all and a sixth reports one equal
+    # to its row count, so six of fifteen produced exactly this artifact --
+    # two of them a clean 1.000. Merrick's own tasks all carry a real
+    # count, which is why the bug was latent here and live there.
+    #
+    # Reported as absent, with the reason, rather than as a number. A
+    # missing floor makes someone look; a fabricated one does not.
+    if candidates <= len(truth):
+        floors["reported_every_candidate_UNMEASURABLE"] = float("nan")
+        return floors
     dump_rows = list(truth) + _noise_rows(
         candidates - len(truth), tuple(key), tuple(fields)
     )
@@ -198,7 +230,21 @@ def _wrong(value):
 
 
 def _deliverable_of(criteria_path: Path) -> str | None:
-    return _literal_of(criteria_path, "DELIVERABLE")
+    """The file the agent writes, however this task's generation spells it.
+
+    Merrick's tasks name it `DELIVERABLE` in `criteria.py`. Ashgrove's
+    predate that convention and put it in `answer/grade.py` as `D`, so
+    `measure` returned an empty dict for all seventeen of them -- which
+    reads as "this task has no floors" and is why a shipped dataset was
+    banded without any. Falling back keeps one function able to measure
+    both rather than leaving the older half unmeasurable.
+    """
+
+    named = _literal_of(criteria_path, "DELIVERABLE")
+    if named is not None:
+        return named
+    grade = criteria_path.parent / "answer" / "grade.py"
+    return _literal_of(grade, "D") if grade.is_file() else None
 
 
 def _restated_of(criteria_path: Path) -> frozenset[str]:
