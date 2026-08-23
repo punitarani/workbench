@@ -76,6 +76,27 @@ def _token(text: str) -> str | None:
     return None
 
 
+# Sentences, as the brief defines them: semicolons separate sentences here
+# as full stops do.
+_SENTENCE = re.compile(r"(?<=[.?!;])\s+")
+
+
+def _commitment_in(text: str) -> str | None:
+    """The deadline this turn's speaker committed to, or None.
+
+    Both halves in one sentence. The solver reaches the same rule by its
+    own route; this is the screen agreeing with what it screens for,
+    which it did not until 2026-08-23.
+    """
+
+    for sentence in _SENTENCE.split(text or ""):
+        if OWNER.search(sentence):
+            token = _token(sentence)
+            if token is not None:
+                return token
+    return None
+
+
 def _due(said_on: dt.date, token: str) -> dt.date:
     if token == "eod":
         return said_on
@@ -137,8 +158,17 @@ def main(argv: list[str] | None = None) -> int:
 
     said: dict[tuple[str, str], list] = collections.defaultdict(list)
     for meeting_id, position, speaker, text in turns:
-        token = _token(text or "")
-        if token is None or not OWNER.search(text or ""):
+        # The promise and the date must be in ONE SENTENCE, which is the
+        # rule the task grades and this file's own first law. Asking
+        # whether a turn holds an owner form *somewhere* and a deadline
+        # *somewhere* is a different question in a 71-word turn, and it is
+        # the question this screen was asking: on days 1-25 of v7 it
+        # counted 21 rows where the solver's oracle holds 15, a 40%
+        # overstatement in the number the ROW FLOOR is checked against.
+        # A window the screen called usable at 13 could build 9 and be
+        # refused, one step after the decision that caused it.
+        token = _commitment_in(text or "")
+        if token is None:
             continue
         started, title = window[meeting_id]
         said[(speaker, title)].append((started, position, meeting_id, token))

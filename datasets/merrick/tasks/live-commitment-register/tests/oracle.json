@@ -1,0 +1,148 @@
+{
+ "meetings_read": 100,
+ "turns_read": 517,
+ "distinct_owners": 15,
+ "superseded_count": 41,
+ "live": [
+  {
+   "owner": "Adaora Nwosu",
+   "meeting": "Billing and WIP review",
+   "due": "2026-01-14",
+   "meeting_id": "mtg-000418",
+   "said_at": "2026-01-12T11:00:00-05:00"
+  },
+  {
+   "owner": "Bennett Ashworth",
+   "meeting": "Billing and WIP review",
+   "due": "2026-02-13",
+   "meeting_id": "mtg-000422",
+   "said_at": "2026-02-09T11:00:00-05:00"
+  },
+  {
+   "owner": "Dov Reinhardt",
+   "meeting": "Billing and WIP review",
+   "due": "2026-01-14",
+   "meeting_id": "mtg-000418",
+   "said_at": "2026-01-12T11:00:00-05:00"
+  },
+  {
+   "owner": "Dov Reinhardt",
+   "meeting": "Corporate deal status",
+   "due": "2026-02-02",
+   "meeting_id": "mtg-000150",
+   "said_at": "2026-01-30T09:15:00-05:00"
+  },
+  {
+   "owner": "Elena Vasquez-Reyes",
+   "meeting": "Corporate deal status",
+   "due": "2026-01-22",
+   "meeting_id": "mtg-000144",
+   "said_at": "2026-01-22T09:15:00-05:00"
+  },
+  {
+   "owner": "Ingrid Solheim",
+   "meeting": "Corporate deal status",
+   "due": "2026-02-04",
+   "meeting_id": "mtg-000152",
+   "said_at": "2026-02-03T09:15:00-05:00"
+  },
+  {
+   "owner": "Mira Chandrasekhar",
+   "meeting": "Corporate deal status",
+   "due": "2026-01-27",
+   "meeting_id": "mtg-000147",
+   "said_at": "2026-01-27T09:15:00-05:00"
+  },
+  {
+   "owner": "Quentin Sarr",
+   "meeting": "Corporate deal status",
+   "due": "2026-01-21",
+   "meeting_id": "mtg-000143",
+   "said_at": "2026-01-21T09:15:00-05:00"
+  },
+  {
+   "owner": "Samir Bhatt",
+   "meeting": "Corporate deal status",
+   "due": "2026-01-27",
+   "meeting_id": "mtg-000147",
+   "said_at": "2026-01-27T09:15:00-05:00"
+  },
+  {
+   "owner": "Bennett Ashworth",
+   "meeting": "Docket call",
+   "due": "2026-01-12",
+   "meeting_id": "mtg-000006",
+   "said_at": "2026-01-12T08:45:00-05:00"
+  },
+  {
+   "owner": "Cecile Marchand",
+   "meeting": "Docket call",
+   "due": "2026-02-16",
+   "meeting_id": "mtg-000026",
+   "said_at": "2026-02-09T08:45:00-05:00"
+  },
+  {
+   "owner": "Hyun-woo Bae",
+   "meeting": "Docket call",
+   "due": "2026-02-16",
+   "meeting_id": "mtg-000026",
+   "said_at": "2026-02-09T08:45:00-05:00"
+  },
+  {
+   "owner": "Lucien Abara",
+   "meeting": "Docket call",
+   "due": "2026-02-13",
+   "meeting_id": "mtg-000026",
+   "said_at": "2026-02-09T08:45:00-05:00"
+  },
+  {
+   "owner": "Fionnuala Doherty",
+   "meeting": "Employment practice huddle",
+   "due": "2026-02-12",
+   "meeting_id": "mtg-000286",
+   "said_at": "2026-02-09T09:30:00-05:00"
+  },
+  {
+   "owner": "Jamal Okonkwo",
+   "meeting": "Employment practice huddle",
+   "due": "2026-02-03",
+   "meeting_id": "mtg-000282",
+   "said_at": "2026-02-03T09:30:00-05:00"
+  },
+  {
+   "owner": "Gideon Park",
+   "meeting": "IP and technology group",
+   "due": "2026-02-09",
+   "meeting_id": "mtg-000500",
+   "said_at": "2026-02-09T10:00:00-05:00"
+  },
+  {
+   "owner": "Klara Bendtsen",
+   "meeting": "IP and technology group",
+   "due": "2026-01-12",
+   "meeting_id": "mtg-000496",
+   "said_at": "2026-01-12T10:00:00-05:00"
+  },
+  {
+   "owner": "Adaora Nwosu",
+   "meeting": "Partner matter review",
+   "due": "2026-01-23",
+   "meeting_id": "mtg-000393",
+   "said_at": "2026-01-19T16:00:00-05:00"
+  },
+  {
+   "owner": "Bennett Ashworth",
+   "meeting": "Partner matter review",
+   "due": "2026-02-03",
+   "meeting_id": "mtg-000395",
+   "said_at": "2026-02-02T16:00:00-05:00"
+  },
+  {
+   "owner": "Gideon Park",
+   "meeting": "Partner matter review",
+   "due": "2026-02-12",
+   "meeting_id": "mtg-000396",
+   "said_at": "2026-02-09T16:00:00-05:00"
+  }
+ ]
+}

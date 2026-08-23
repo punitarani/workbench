@@ -61,7 +61,6 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from brief_pins import RuleChanged, section, unchanged  # noqa: E402
-from pending import measure  # noqa: E402
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
 BRIEF = Path(__file__).resolve().parents[1] / "instruction.md"
@@ -78,16 +77,19 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # fails this, and the right response is to re-read this file against the
 # new wording and re-pin, not to loosen the pin.
 #
-# «MEASURE: the digests, once the brief is filled. `brief_pins.digest(brief,
-# heading)` prints them. Pin every section that states a rule this file
-# implements, and no section that does not — a pin on prose nobody derives
-# from is a tripwire that fires for nothing.»
+# Pinned against the filled brief for days 1-35 of the v7 record. Three
+# sections, and only three: each states a rule this file derives
+# independently. The window prose is not pinned -- it is a fact about which
+# meetings to read, not a rule this file implements.
+#
+# `## Which one is live` also carries the measured supersession share, so it
+# re-pins whenever the WINDOW moves and not only when the rule does. Kept:
+# the share is what tells a reader the rule is worth applying, and splitting
+# it out would leave the rule's own justification unpinned.
 PINNED: dict[str, str] = {
-    "## What counts as a commitment": measure("digest of the commitment rule section"),
-    "## Turning what was said into a date": measure(
-        "digest of the date-resolution table"
-    ),
-    "## Which one is live": measure("digest of the supersession rule section"),
+    "## What counts as a commitment": "850f0b8bfae76e94",
+    "## Turning what was said into a date": "c8f8a8253e49bbef",
+    "## Which one is live": "bda9fa6cdb25b25d",
 }
 
 # The firm's own zone, read from the served meta table rather than named
@@ -99,8 +101,8 @@ PINNED: dict[str, str] = {
 # company at the transition. If the window reaches past one, the two
 # derivations disagree near midnight and THAT DISAGREEMENT IS THE FINDING,
 # not a bug in this file.»
-WINDOW_FIRST_DATE = measure("the window's first day as an ISO calendar date")
-WINDOW_LAST_DATE = measure("the window's last day as an ISO calendar date")
+WINDOW_FIRST_DATE = "2026-01-06"
+WINDOW_LAST_DATE = "2026-02-09"
 
 # «MEASURE: the admitted deadline forms and their normalised tokens, read
 # out of the brief's own table rather than restated here once the table
@@ -108,13 +110,56 @@ WINDOW_LAST_DATE = measure("the window's last day as an ISO calendar date")
 # a weekday-only rule was measured dead on this world: 14% of turns name a
 # weekday against 41% naming a relative deadline, and the weekday-only
 # register held six rows with no supersession at all.»
-ADMITTED = measure(
-    "the brief's deadline table, as (form, normalised token) pairs — every "
-    "compound in BOTH directions ahead of either of its parts"
+# Read off the brief's table, longest first: `_deadline` returns on the
+# first form whose tokens appear, so a compound must precede either part or
+# "EOD tomorrow" resolves as "eod" and loses a day. Both directions,
+# because the corpus writes it both ways.
+#
+# The TOKEN is compared against `day.strftime("%A").casefold()`, so weekday
+# tokens are lower case; the FORM is casefolded by `_tokens`. Writing a
+# token capitalised walked the calendar to date.max looking for a day
+# called "Monday" -- an OverflowError rather than a wrong answer, and only
+# because that loop has no bound.
+ADMITTED: tuple[tuple[str, str], ...] = (
+    ("EOD tomorrow", "tomorrow"),
+    ("COB tomorrow", "tomorrow"),
+    ("close of business tomorrow", "tomorrow"),
+    ("end of day tomorrow", "tomorrow"),
+    ("tomorrow EOD", "tomorrow"),
+    ("tomorrow COB", "tomorrow"),
+    ("tomorrow close of business", "tomorrow"),
+    ("tomorrow end of day", "tomorrow"),
+    *(
+        (f"{day.title()} {form}", day)
+        for day in ("monday", "tuesday", "wednesday", "thursday", "friday")
+        for form in ("EOD", "COB", "close of business", "end of day")
+    ),
+    *(
+        (f"{form} {day.title()}", day)
+        for form in ("EOD", "COB", "close of business", "end of day")
+        for day in ("monday", "tuesday", "wednesday", "thursday", "friday")
+    ),
+    ("end of week", "end of week"),
+    ("EOW", "end of week"),
+    ("close of business", "eod"),
+    ("end of day", "eod"),
+    ("EOD", "eod"),
+    ("COB", "eod"),
+    ("tomorrow", "tomorrow"),
+    ("Monday", "monday"),
+    ("Tuesday", "tuesday"),
+    ("Wednesday", "wednesday"),
+    ("Thursday", "thursday"),
+    ("Friday", "friday"),
 )
 
 # «MEASURE: the owner-shaped phrasings, likewise from the brief.»
-OWNER_FORMS = measure("the brief's owner-phrase list, as a closed set")
+# The brief names two and says "Nothing looser counts", so this is closed.
+# An earlier draft gave only an EXAMPLE of an owner form and left the
+# boundary open; Opus generalised from it, correctly by the brief's own
+# words, and scored 22 rows against 33 -- which measures agreement with a
+# regex rather than comprehension.
+OWNER_FORMS: tuple[str, ...] = ("I'll", "I will")
 
 # How many days a title has to appear on before the meeting is standing.
 # The brief states the number outright; it is repeated here because this
