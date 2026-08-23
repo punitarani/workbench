@@ -342,6 +342,24 @@ def refuse_a_task_a_dump_can_pass(name: str, floors: dict[str, float]) -> None:
             f"  {name}: WARNING a dump scores {dump:.3f}; only "
             f"{1 - dump:.3f} of the scale is above it"
         )
+    # And the number above is a floor on the floor. The dump is sized from
+    # the candidate count the report declares, so a task that declares a
+    # generous pool measures better here while being *easier* to dump: a
+    # reader who cheaply pre-filters submits fewer, better rows than the
+    # baseline does. Measured on deadline-week-promise-clock -- 158
+    # promises against 707 messages reads 0.365, against the 332 messages
+    # carrying any relative date it reads 0.645, and the second is the set
+    # a dumper would actually submit.
+    #
+    # Not automated, because bounding it means knowing which pre-filters
+    # are cheap for a reader, which is a judgement about the corpus and not
+    # a property of the oracle. Printed so the number is never read as an
+    # upper bound on what doing nothing pays.
+    if dump is not None:
+        print(
+            f"  {name}: this floor assumes a dump of the DECLARED candidate "
+            "pool; a reader who cheaply narrows it first scores higher"
+        )
 
 
 __all__ = ["measure", "render"]

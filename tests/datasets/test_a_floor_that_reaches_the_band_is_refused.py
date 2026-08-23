@@ -65,9 +65,11 @@ def test_the_ceiling_is_the_band_it_names() -> None:
 
     with pytest.raises(SystemExit):
         B.refuse_a_task_a_dump_can_pass(
-            "t", _floors(reported_every_candidate=B.DUMP_CEILING))
+            "t", _floors(reported_every_candidate=B.DUMP_CEILING)
+        )
     B.refuse_a_task_a_dump_can_pass(
-        "t", _floors(reported_every_candidate=B.DUMP_CEILING - 0.001))
+        "t", _floors(reported_every_candidate=B.DUMP_CEILING - 0.001)
+    )
 
 
 def test_the_middle_warns_and_does_not_refuse(capsys: pytest.CaptureFixture) -> None:
@@ -77,9 +79,32 @@ def test_the_middle_warns_and_does_not_refuse(capsys: pytest.CaptureFixture) -> 
     assert "0.300 of the scale is above it" in out, out
 
 
-def test_a_low_floor_says_nothing(capsys: pytest.CaptureFixture) -> None:
+def test_a_low_floor_raises_no_warning(capsys: pytest.CaptureFixture) -> None:
     B.refuse_a_task_a_dump_can_pass("t", _floors(reported_every_candidate=0.44))
-    assert capsys.readouterr().out == ""
+    assert "WARNING" not in capsys.readouterr().out
+
+
+def test_every_measurable_floor_says_what_it_cannot_see(
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """The caveat is unconditional, and a low floor is where it matters most.
+
+    The dump is sized from the candidate count the report declares, so a
+    task that declares a generous pool measures a *better* floor while
+    being easier to dump -- a reader who cheaply narrows the pool first
+    submits fewer, better rows than the baseline does. Measured on
+    deadline-week-promise-clock: 158 promises against 707 messages reads
+    0.365, against the 332 carrying any relative date it reads 0.645, and
+    the second is the set a dumper would actually submit.
+
+    An earlier version of this file asserted that a low floor prints
+    nothing at all, which is exactly the reading the caveat exists to
+    prevent -- silence on the number that most needs the qualification.
+    """
+
+    for floor in (0.10, 0.44, 0.70):
+        B.refuse_a_task_a_dump_can_pass("t", _floors(reported_every_candidate=floor))
+        assert "DECLARED candidate" in capsys.readouterr().out, floor
 
 
 def test_the_thresholds_are_ordered() -> None:

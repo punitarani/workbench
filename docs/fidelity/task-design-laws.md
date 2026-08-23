@@ -161,6 +161,24 @@ ten. **Keep the answer under about a tenth of the candidate pool** — and
 still measure, because the relation sets a lower bound rather than the
 number.
 
+*And a hole in it, found by applying it.* The ratio depends on **which
+pool the report declares**, and a wider declaration makes the measured
+floor look better than the real one. `deadline-week-promise-clock` carries
+158 promises. Against every mail message (707) that is a ratio of 0.223 and
+a dumped F1 of 0.365; against the messages that carry any relative date
+(332) — which is the set a dumper would actually submit, since the task is
+about dated promises — it is 0.476 and 0.645. Same task, same rows, two
+floors nearly 0.3 apart.
+
+The baseline sizes its dump from the declared count, so declaring the wider
+pool *lowers* the measured floor while raising the real one. A task can
+therefore pass the gate by naming a generous candidate count. No automatic
+measure closes this: bounding the real floor means knowing which
+pre-filters are cheap for a reader, and that is a judgement about the
+corpus rather than a property of the oracle. Screen a design against the
+narrowest pool a competent reader could filter to in one pass, not the
+widest one the report happens to name.
+
 *What is not explained.* The measured floor sits above the pure row-F1
 prediction by between 0.006 and 0.473, and three attempts to attribute that
 gap all failed: share of figures that are tallies of the rows (r = 0.46),
