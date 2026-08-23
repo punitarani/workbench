@@ -11,6 +11,7 @@ way to move that line, and it is a deliberate act.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -372,11 +373,8 @@ def build(
         # verified" -- a key that had never passed reachability, degeneracy or
         # the second derivation, wearing the word verified.
         fresh = refresh or not oracle_path.exists()
-        if not fresh and json.loads(oracle_path.read_text()) != answer:
-            raise SystemExit(
-                f"{name}: the reference solver no longer reproduces its oracle. "
-                "Rebuild the world or pass --refresh-truth deliberately."
-            )
+        if not fresh:
+            _refuse_a_key_that_no_longer_reproduces(name, oracle_path, answer)
 
         _refuse_empty_answer(answer, name)
         _refuse_leaked_rows(task, answer, name)
@@ -725,6 +723,87 @@ def _calendar_units(world_log: Path, state_dir: Path) -> None:
     )
 
 
+def _world_identity() -> dict[str, str]:
+    """Which world the bundle on disk was built from, by content.
+
+    `SOURCE` names the world log as a path, and a path is a weak identity:
+    `epoch-v7/world.jsonl` means one thing at day 40 and another at day
+    180, and every recording in this project writes to a path it will
+    later append to. The digest is what actually distinguishes two worlds,
+    and it costs 0.12s on a 23M log -- a rounding error inside a build
+    that materializes the whole file room.
+    """
+
+    source = _SOURCE.read_text().strip() if _SOURCE.exists() else ""
+    if not source:
+        return {"world_log": "", "sha256": ""}
+    log = Path(source)
+    if not log.exists():
+        return {"world_log": source, "sha256": ""}
+    digest = hashlib.sha256(log.read_bytes()).hexdigest()
+    return {"world_log": source, "sha256": digest}
+
+
+def _world_stamp_path(oracle_path: Path) -> Path:
+    """Beside the oracle, not inside it.
+
+    `criteria_base` does `TOP = frozenset(_ORACLE)` -- the oracle's
+    top-level keys *are* the list of figures the report is graded on. A
+    `_world` key added for provenance would become a figure every answer
+    is missing, so the stamp has to live in its own file.
+    """
+
+    return oracle_path.with_suffix(".world")
+
+
+def _refuse_a_key_that_no_longer_reproduces(
+    name: str, oracle_path: Path, answer: dict
+) -> None:
+    """Two different failures wore one message, and one of them is a bug.
+
+    The old text -- "the reference solver no longer reproduces its oracle.
+    Rebuild the world or pass --refresh-truth deliberately" -- is printed
+    both when the solver has regressed against the same world, which is a
+    defect to go and find, and when the bundle is simply a later recording,
+    which is expected and whose remedy is exactly the `--refresh-truth`
+    the message offers. Conflating them trains the reader to reach for the
+    refresh, and the refresh is what disables the check for the first case.
+
+    So this asks the question the old line could not: *is it the same
+    world?* Same world and a different answer is a regression and says so
+    in those words. A different world says which one, and that re-deriving
+    is the correct move rather than a workaround.
+    """
+
+    if json.loads(oracle_path.read_text()) == answer:
+        return
+
+    stamp_path = _world_stamp_path(oracle_path)
+    stamp = json.loads(stamp_path.read_text()) if stamp_path.exists() else {}
+    current = _world_identity()
+
+    if stamp.get("sha256") and stamp["sha256"] == current["sha256"]:
+        raise SystemExit(
+            f"{name}: SOLVER REGRESSION. The oracle and the bundle are the "
+            f"same world ({Path(current['world_log']).parent.name}, "
+            f"sha {current['sha256'][:12]}) and the solver now returns a "
+            "different answer. Something changed in the solver, the tools "
+            "or the projection. Find it -- do NOT pass --refresh-truth, "
+            "which would write the new answer down as truth unexamined."
+        )
+
+    was = stamp.get("world_log") or "an unrecorded world"
+    if stamp.get("world_log"):
+        was = f"{Path(was).parent.name} (sha {stamp.get('sha256', '')[:12]})"
+    raise SystemExit(
+        f"{name}: the oracle was derived from {was}; the bundle is "
+        f"{Path(current['world_log']).parent.name} "
+        f"(sha {current['sha256'][:12]}). A key for one world cannot grade "
+        "another. Re-derive it with --refresh-truth -- that is the correct "
+        "move here, not a way around the check."
+    )
+
+
 def _commit_oracle(
     task: Path, name: str, answer: dict, oracle_path: Path, fresh: bool
 ) -> None:
@@ -743,16 +822,25 @@ def _commit_oracle(
     """
 
     oracle_path.parent.mkdir(parents=True, exist_ok=True)
+    # The world stamp rolls back with the key it describes. Written outside
+    # this try, a refused build would leave the new world named against the
+    # restored old answer -- a key claiming a provenance it does not have,
+    # which is worse than no stamp at all because the next build would then
+    # read the two as the same world and call a re-derivation a regression.
+    stamp_path = _world_stamp_path(oracle_path)
     existing = oracle_path.read_text() if oracle_path.exists() else None
+    existing_stamp = stamp_path.read_text() if stamp_path.exists() else None
     oracle_path.write_text(json.dumps(answer, indent=1) + "\n")
+    stamp_path.write_text(json.dumps(_world_identity(), indent=1) + "\n")
     try:
         _run_second_derivation(task, name, oracle_path)
         _ship_grading_base(task, name)
     except BaseException:
-        if existing is None:
-            oracle_path.unlink(missing_ok=True)
-        else:
-            oracle_path.write_text(existing)
+        for path, before in ((oracle_path, existing), (stamp_path, existing_stamp)):
+            if before is None:
+                path.unlink(missing_ok=True)
+            else:
+                path.write_text(before)
         raise
     print(f"{name}: oracle {'written' if fresh else 'verified'}")
     # What this task pays for answers that demonstrate nothing. A band is
