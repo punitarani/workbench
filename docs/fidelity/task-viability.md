@@ -1886,3 +1886,30 @@ a minute; a fabricated third point would have survived indefinitely.
 The tier stays in `scripts/rollout.py`'s table because the gateway resolves
 it correctly — what is missing is entitlement on this account, which is not
 something a dataset can fix.
+
+## v7 at day 42: the vocabulary has changed worlds
+
+`scripts/measure_new_corpus.sh` run against the live recording:
+
+    file room        252/252 served paths resolve (100%)
+    engine fiction   0 of 11,315 on-stage events — clean
+    transcripts      188 meetings, 956 turns, 70,496 words
+    supersession     61% any mention / 56% speaker's own commitment
+    guessing floor   'monday', 28% of live answers
+
+**On v6 the modal deadline token was `eod` at 68%. On v7 it is `monday` at
+28%.** Same engine, same workplace spec, same seed — a different draw, and
+the deadline vocabulary is not the same shape. A window chosen from v6's
+numbers would have been chosen against a distribution this world does not
+have, and the guessing floor alone moves by forty points.
+
+That is the concrete case for the instruction every brief's `«MEASURE»` note
+now ends on: **re-count here, do not carry over.** It is also the third time
+this document has caught a number travelling between worlds — after the
+`deadline-week-promise-clock` article ratio (15-to-0 claimed, 149-to-0
+measured) and `double-booked-week`'s event rate (47 a day assumed, 4.7
+measured).
+
+The two structural fixes hold at scale: the file room resolves completely
+where v6 served 374 of 377 paths at nothing, and the engine fiction that ran
+through four of v6's surfaces is absent from 11,315 events.
