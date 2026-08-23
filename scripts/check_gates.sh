@@ -1,5 +1,5 @@
 #!/bin/sh
-# Every refusal in the merrick build, broken on purpose.
+# Every refusal in the merrick build AND in the engine, broken on purpose.
 #
 #     sh scripts/check_gates.sh
 #
@@ -18,6 +18,26 @@
 # Exits non-zero if any mutation survives or any anchor has gone stale.
 set -eu
 cd "$(dirname "$0")/.."
+
+# This script edits src/simulation/gm/grounded.py, one of the seven files
+# whose byte digest keys a resume. Each mutation leaves it changed for about
+# a second, and if a live recording dies inside that window its resume
+# computes a different fingerprint and refuses to continue -- the safe
+# failure, and still an hour of somebody's recording lost to a test run.
+#
+# The author of this script started editing that file by hand during a live
+# recording an hour before writing this, on the reasoning that it was only a
+# comment. The digest does not care, deliberately: its own test says a
+# comment-only edit must trip it. So the check is mechanical rather than
+# remembered.
+#
+# CI never has a recording in flight, so this costs nothing there.
+if pgrep -f "run_epoch.py" >/dev/null 2>&1 && [ "${ALLOW_DURING_RECORDING:-}" != "1" ]; then
+    echo "a recording is in flight; this script mutates a frozen engine file." >&2
+    echo "wait for it, or set ALLOW_DURING_RECORDING=1 if you know it is safe." >&2
+    exit 2
+fi
+
 PY=./.venv/bin/python
 M="$PY scripts/mutation_check.py --source datasets/merrick/build_tasks.py"
 B="$PY scripts/mutation_check.py --source datasets/merrick/baselines.py"
@@ -88,6 +108,58 @@ run "baselines.measure — a dump that is secretly the oracle" \
      --function measure \
      --mutation 'if candidates <= len(truth):' 'if False:' \
      --mutation 'or k.endswith("_reviewed")' ''
+
+# The engine's own refusals. These turned out to hold most of the gaps: a
+# sweep on 2026-08-23 found 23 of grounded.py's 44 rejection sites with no
+# test at all, including the fingerprint that stops a world being spliced
+# out of two rule sets and the guard added after a recording was thrown
+# away. None of them crash -- they shape the corpus, or protect a build
+# hours downstream -- which is why a 652-test suite stayed green through
+# every one.
+G="$PY scripts/mutation_check.py --source src/simulation/gm/grounded.py"
+R="$PY scripts/mutation_check.py --source src/simulation/run.py"
+
+run "resume refuses an engine change, and records what to compare" \
+  $R --tests tests/simulation/test_run_resume.py \
+     --mutation 'if stored_engine and stored_engine != current_engine and not allow_engine_change:' 'if False:' \
+     --mutation 'store.set_meta("engine_fingerprint", engine_fingerprint())' 'pass'
+
+run "only the people in the room speak" \
+  $G --tests tests/simulation/test_only_the_people_in_the_room_speak.py \
+     --function _ground_meeting_speak \
+     --mutation 'if entity not in progress.attendees:' 'if False:' \
+     --mutation 'raise IntentRejection(f"no open meeting {intent.meeting_ref!r}")' 'return ()'
+
+run "a mail thread stops growing, and its references resolve" \
+  $G --tests tests/simulation/test_a_thread_stops_growing.py \
+     --function _ground_email \
+     --mutation 'if length >= 12:' 'if length >= 120:' \
+     --mutation 'if parent_thread != thread_id:' 'if False:' \
+     --mutation 'if self._world.resolve_document(ref) is None:' 'if False:'
+
+run "chat refuses a reference it cannot resolve" \
+  $G --tests tests/simulation/test_chat_refuses_a_reference_it_cannot_resolve.py \
+     --mutation 'if intent.reply_to_ref not in self._world.chat_messages:' 'if False:' \
+     --mutation 'resolved = self._world.resolve_conversation(message_ref)' 'resolved = None'
+
+run "a day's plan lands inside the working day" \
+  $G --tests tests/simulation/test_a_plan_lands_inside_the_working_day.py \
+     --function _ground_agent_plan \
+     --mutation 'if not clamped:' 'if False:' \
+     --mutation 'sorted(intent.blocks, key=lambda b: (b.start, b.end))' 'intent.blocks' \
+     --mutation 'if end <= start:' 'if False:'
+
+run "a dropped timesheet entry is counted, not silently lost" \
+  $G --tests tests/simulation/test_a_dropped_timesheet_entry_is_counted.py \
+     --function _ground_timesheet \
+     --mutation 'dropped_entries=len(unknown),' 'dropped_entries=0,' \
+     --mutation 'unknown_refs=tuple(sorted(set(unknown))),' 'unknown_refs=(),'
+
+run "the workplace vocabulary stays closed" \
+  $G --tests tests/simulation/test_the_referee_refuses_a_reference_it_cannot_resolve.py \
+     --mutation 'raise IntentRejection(f"unknown ticket status {create.status!r}")' 'pass' \
+     --mutation 'raise IntentRejection(f"unknown priority {change.new!r}")' 'pass' \
+     --mutation 'if intent.respond.calendar_event_ref not in self._world.calendar_events:' 'if False:'
 
 echo
 if [ "$fail" -eq 0 ]; then
