@@ -189,3 +189,66 @@ def test_the_cap_counts_one_thread_not_all_mail() -> None:
     for index in range(CAP + 5):
         _fill(gm, 1, thread=f"thr-{index:06d}")
     assert gm._ground_email("ana", "per-ana", _reply("thr-000000"), _event(), 0)
+
+
+def _in_thread(gm: GroundedGm, thread: str = "thr-000001") -> str:
+    """One message already in `thread`, and its id."""
+
+    _fill(gm, 1, thread=thread)
+    return max(gm.world.threads, key=lambda ref: gm.world.threads[ref] == thread)
+
+
+def test_a_reply_to_a_message_that_does_not_exist_is_refused() -> None:
+    """`in_reply_to` becomes a column the projection serves.
+
+    A reply naming a message this world never sent produces a mail row
+    pointing at nothing, and coherence reports it as dangling — at
+    materialize time, long after the persona could have been told.
+    """
+
+    gm = _gm()
+    _fill(gm, 1)
+    intent = _reply().model_copy(update={"reply_to_ref": "msg-999999"})
+    with pytest.raises(IntentRejection, match="unknown message"):
+        gm._ground_email("ana", "per-ana", intent, _event(), 0)
+
+
+def test_a_reply_pointing_into_another_thread_is_refused() -> None:
+    """The subtler half, and the one a dangling check cannot see.
+
+    Both ids resolve; they simply belong to different conversations. The
+    row is coherent and the thread structure is wrong, which is exactly
+    what `email.thread_depth` measures and what a task reading threads
+    walks.
+    """
+
+    gm = _gm()
+    elsewhere = _in_thread(gm, "thr-000002")
+    _fill(gm, 1, thread="thr-000001")
+    intent = _reply("thr-000001").model_copy(update={"reply_to_ref": elsewhere})
+    with pytest.raises(IntentRejection, match="outside thread"):
+        gm._ground_email("ana", "per-ana", intent, _event(), 0)
+
+
+def test_a_reply_inside_its_own_thread_is_accepted() -> None:
+    """Guard the guard: the two refusals above must not refuse everything."""
+
+    gm = _gm()
+    parent = _in_thread(gm, "thr-000001")
+    intent = _reply("thr-000001").model_copy(update={"reply_to_ref": parent})
+    assert gm._ground_email("ana", "per-ana", intent, _event(), 0)
+
+
+def test_attaching_a_document_that_does_not_exist_is_refused() -> None:
+    """An attachment is a reference the file room has to honour.
+
+    Coherence catches the dangling row later — "attaches doc-999999, which
+    no document is" — but that fails a build rather than teaching the
+    persona, and the persona is the one who can fix it.
+    """
+
+    gm = _gm()
+    _fill(gm, 1)
+    intent = _reply().model_copy(update={"attach_document_refs": ("doc-999999",)})
+    with pytest.raises(IntentRejection, match="unknown document"):
+        gm._ground_email("ana", "per-ana", intent, _event(), 0)
