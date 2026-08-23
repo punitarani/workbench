@@ -396,6 +396,7 @@ def build(
 
         for report in degenerate(answer):
             print(f"{name}: DEGENERATE {report}")
+        _refuse_a_register_too_thin_to_grade(answer, name)
 
         _commit_oracle(task, name, answer, oracle_path, fresh)
 
@@ -957,6 +958,74 @@ def _refuse_empty_answer(answer: dict, name: str) -> None:
             "agree, no field is constant — and the task then rewards an "
             "agent for reporting nothing. Widen the window or retire the rule."
         )
+
+
+# Below this a register cannot produce a partial score: with so few rows to
+# get partly right, one row's worth of F1 is a tenth of the criterion and
+# the grade becomes a verdict on the rule. Kept equal to the threshold
+# `degenerate` already reports at, so the report and the refusal cannot
+# drift apart.
+THIN_ROWS = 12
+
+
+def _refuse_a_register_too_thin_to_grade(answer: dict, name: str) -> None:
+    """`degenerate` has reported this for as long as it has existed.
+
+    Its docstring even carries the evidence -- "six of seven tasks here
+    answered with four to ten rows and every rollout came back 1.000 or
+    near zero" -- and it reports rather than refuses, deliberately, because
+    *sparseness can be the finding*: few documents ever reach a client, and
+    a task about that should be allowed to say so.
+
+    That justification is about a **constant column**. It was written for
+    one of `degenerate`'s two report kinds and inherited by the other, and
+    the other is not a finding about the world. A register of four rows
+    does not tell you something surprising about the firm; it tells you the
+    grade cannot be partial. The two reports travel together in one list
+    and one of them earned the exemption.
+
+    Measured downstream, in the dataset that has never gated on it:
+    ashgrove ships five tasks under this threshold, `open-items-triage` at
+    four rows and four more at ten. Both of the thin ones whose scores were
+    published came back at or beside 1.000 across every model -- exactly
+    what the report predicted, printed at build time, and shipped.
+
+    This dataset's own three built tasks hold 20, 22 and 34 rows, so the
+    refusal blocks nothing here today. It is for the next thin one.
+    """
+
+    # Every list, not just the one when there happens to be one. The first
+    # version returned early unless the oracle held exactly one list, which
+    # made it strictly weaker than the report it is built on: `degenerate`
+    # counts each list separately, and four of ashgrove's five thin tasks
+    # carry a second list, so they slipped past a check that was flagging
+    # them one line above. In this dataset `_refuse_empty_answer` refuses a
+    # two-list oracle outright, so the early return was also unreachable --
+    # a dead branch that made the gate look narrower than it was.
+    # Lists of *rows*, which is what `degenerate` counts and what the
+    # threshold was measured on. A list of scalars is a set-membership
+    # figure -- ashgrove grades four engagement numbers as a set, and a set
+    # of four is a legitimate criterion rather than a register too thin to
+    # score. Counting those refused four more ashgrove tasks than the
+    # report this gate is supposed to be the teeth of, which is the gate
+    # inventing its own rule rather than enforcing one.
+    thin = {
+        key: len(value)
+        for key, value in answer.items()
+        if isinstance(value, list)
+        and value
+        and isinstance(value[0], dict)
+        and len(value) < THIN_ROWS
+    }
+    if not thin:
+        return
+    counted = ", ".join(f"{key} holds {n}" for key, n in sorted(thin.items()))
+    raise SystemExit(
+        f"{name}: {counted}, under the {THIN_ROWS} rows a register needs to "
+        "score partially. Every rollout on a register this thin comes back "
+        "at 1.000 or near zero, which is a verdict on the rule rather than a "
+        "measure of the work. Widen the window, loosen the rule, or retire it."
+    )
 
 
 def _run_second_derivation(task: Path, name: str, oracle_path: Path) -> None:
