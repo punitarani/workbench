@@ -130,3 +130,107 @@ What is left is a behaviour question with no measured cause: personas accept
 experiment before anything structural, and worth doing *after* the
 front-loading fix above, because a persona answering an invitation to a
 meeting three months away has little reason to say anything but yes.
+
+## peer review is a constant function of the reviewer
+
+`grounded.py:770`, in the branch that hands a person a colleague's file:
+
+    elif phase == 1 and colleagues:
+        candidate = colleagues[offset % len(colleagues)]
+
+`offset` is the person's index in the sorted roster. It never changes.
+`colleagues` is every document written by somebody else, in creation
+order, and passes 17 entries on the first day — so `offset % len(...)`
+**is** `offset` for the whole run. Every person is permanently assigned one
+file to review, picked by their alphabetical rank.
+
+Measured on the six-month v6 record, from the projected file room:
+
+    review versions (author != creator)                139
+    reviewers                                           18
+    distinct documents ever reviewed          17 of 451  (4%)
+    reviewers whose reviews are ALL one document    12 of 18
+    median share of a reviewer's reviews on one file    100%
+
+The branch itself was a fix, and a real one — its comment records that a
+firm of seventeen had produced a hundred versions "without a single second
+reader". It got second readers. It did not get a second reader for any
+document but seventeen of them.
+
+**This is the constant-computing shape**, the subtlest form of capability
+without a caller: not dead code, but code that runs, is reached, does
+something, and can only ever do one thing. The comment four lines above it
+diagnoses exactly this about the *phase* — "authorship never moves once a
+document exists, so a phase counted from documents I wrote sticks on
+whichever branch it first reaches" — and then the selection *inside* the
+branch indexes on a quantity that never moves at all. The lesson was
+learned one line up and not applied one line down.
+
+### it is also visible to the personas
+
+A person assigned a file at random writes down that it is the wrong file.
+16 revision comments (1.5% of 1,034) say so outright -- "This document is
+the firm's Standard Rates table, not the Sable Ridge work product", "No
+edit made to this document. The intent requests continuation of the
+wage-and-hour..." -- and 8 of `doc-000001`'s 19 versions are that sentence
+in different words. The rate card is what the alphabetically-first reviewer
+draws forever.
+
+Same class as the reply-with-no-recipient fiction, at a similar scale
+(0.8% of events there, 1.5% of versions here), and the same remedy: the
+failure has to stop being visible, not be papered over in the prompt.
+
+### the obvious fix makes the visible symptom worse
+
+Replayed offline against the recorded log -- no re-recording needed, since
+the log already says which person reached a `sim.deliverable` at which
+moment and what the file room held then. 224 review selections:
+
+    rule                       distinct docs   median share   in a directory
+                                               on top doc     they write in
+    current                          19            100%            13%
+    advancing index                 175              9%             4%
+    advancing + prefer near         106             27%            81%
+
+An index that advances is the one-line change anyone reaches for, and it
+solves the concentration completely -- 19 documents to 175. It also drops
+relevance from 13% to **4%**, because a moving index samples the whole firm
+uniformly and most of the firm is not your practice. It would have produced
+*more* "this is not my matter" comments, not fewer, while the headline
+number said the defect was fixed.
+
+Both halves are needed. Preferring colleague files under a directory the
+person has themselves written into, then advancing within that pool:
+
+    elif phase == 1 and colleagues:
+        # Advance on the same quantity the phase does. `offset` alone
+        # never moves, so this line picked one file per person for the
+        # whole run.
+        moving = (sum(self._world.documents.values()) + offset) // 3
+        mine = {
+            paths[document_id].rsplit("/", 1)[0]
+            for document_id in authored
+        }
+        near = [
+            document_id
+            for document_id in colleagues
+            if paths[document_id].rsplit("/", 1)[0] in mine
+        ]
+        pool = near or colleagues
+        candidate = pool[moving % len(pool)]
+        as_review = True
+
+Documents that ever get a second reader: 19/451 (4%) -> 106/451 (24%).
+
+**What it is not measured to do.** It does not touch how *many* reviews
+happen -- 139 review versions is a property of the phase rotation, which
+is unchanged, so nothing here moves `document.revised` volume or any
+band computed from it. It does not make reviews *good*; a persona handed a
+relevant file may still have nothing to say about it. And the 4%-relevance
+result for the advancing rule is a caution about this whole file: a fix
+measured only on the number it was designed to move can be a regression on
+the number that made anyone look.
+
+Not applied: `simulation/gm/grounded.py` is one of the seven files in
+`_ENGINE_SURFACE` whose byte digest keys resume, so editing it now ends
+the v7 recording. Carry to v8 with the calendar front-loading fix.
