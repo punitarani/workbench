@@ -27,6 +27,55 @@ Mean of gpt-5.6-sol, Opus 5 and glm-5.2, over gradeable trials only.
 Every miss in the three in-band tasks is classified M, on the evidence
 recorded in [`LEDGER.md`](LEDGER.md).
 
+
+## What the band is worth, once the floors are measured (2026-08-22)
+
+The table above was produced without measuring what a no-comprehension
+answer scores here, because `baselines.measure` returned nothing for every
+ashgrove task: it looked for the deliverable's name in `criteria.py`, and
+this generation puts it in `answer/grade.py`. That absence read as "these
+tasks have no floors" rather than "this function cannot see them", so a
+shipped dataset was banded without one. Measured now:
+
+| task | gpt | glm | empty register | a dump scores | opus |
+|---|---|---|---|---|---|
+| commitment-follow-through | 0.515 | 0.213 | 0.421 | 0.319 – 0.740 | 1.000 |
+| opening-days-completion-claims | 0.687 | 0.635 | 0.405 | 0.221 – 0.626 | 1.000 |
+| opening-week-follow-through | 0.686 | 0.693 | 0.421 | 0.330 – 0.751 | 1.000 |
+
+The dump range is bracketed because both ends are defensible: the low end
+is a reader who reports every candidate and gets its own counts wrong, the
+high end hands that same reader the oracle's scalars for free. Neither is
+the answer alone; the truth is between them, and a model's score landing
+inside the bracket is not evidence that it read anything.
+
+**Of the six non-frontier scores on the three in-band tasks, three sit
+inside that bracket, two sit barely above it (by 0.06 and 0.01), and one
+sits below it.** None is clearly above. glm's 0.213 on
+commitment-follow-through is beneath even the bleak floor and beneath the
+0.421 an *empty* register scores, which does not mean it half-understood:
+it means the answer was actively wrong, inventing rows and missing counts
+that doing nothing would have left blank.
+
+And Opus 5 is 1.000 on all three. So the mean that placed these tasks "in
+band" is composed of one frontier model at ceiling and two models scoring
+where indiscriminate reporting already scores. The band is a fact about
+averaging across capability tiers, not about the task being hard.
+
+This is consistent with what the levers experiment found by a different
+route -- rule difficulty and coverage difficulty do not move a frontier
+model off ~1.0 -- and it sharpens it: on this dataset the *middle* of the
+band is not measuring comprehension either.
+
+Two limits on the above, both real. The floors are computed against the
+committed oracles, and the model scores in the table above were recorded
+earlier; if an oracle has been rebuilt since, the two are not strictly
+comparable. And six of fifteen keyed tasks state no count of what they
+read, so no dump floor can be computed for them at all -- including
+`work-product-review` and `tracker-reconciliation` in the table above. A
+task that never says how much it looked at cannot detect a reader who
+looked at nothing.
+
 ## Opus 5 scores 1.000 on every fair task here
 
 Eight difficulty levers were built and measured against it here — width,
