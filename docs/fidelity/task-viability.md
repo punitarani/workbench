@@ -2036,3 +2036,34 @@ than a correctness one, and because the fix should be piloted over two days
 before 29 hours are spent on it. What is *not* in doubt is the diagnosis:
 323 timestamps, 21 personas on each, and a phase that is arithmetically
 pinned to zero.
+
+### The fix, piloted
+
+Applied in an isolated git worktree so the running recording's tree was
+never touched, and run as a real 3-day recording rather than reasoned about:
+
+    slots = max(1, quantum // PHASE_STEP)      # PHASE_STEP = 60 seconds
+    wake  = day_start + phase * PHASE_STEP
+
+Spreading the phase over *minutes inside the quantum* instead of
+*grid-multiples inside it* gives every persona a distinct offset.
+
+    v7 (current)   323 timestamps, 21 personas on every one
+    pilot           45 timestamps, ONE persona on 43 of them
+
+The recorded wake times read 09:01, 09:13, 09:14, 09:20, 09:24, 09:34,
+09:44, 09:49 — a firm arriving at its desk over the morning instead of a
+klaxon going off seven times a day.
+
+**One methodological note worth keeping**, because the first pilot run
+measured nothing and looked fine. The worktree symlinks the main
+repository's `.venv`, whose `workbench.pth` points at the *main* tree's
+`src` — so the pilot imported the unpatched engine and faithfully reproduced
+the lockstep it was meant to fix. It took `PYTHONPATH` on the worktree's own
+`src` to load the patched module, and the tell was that the "after" numbers
+were identical to the "before" ones. A pilot that reproduces the defect
+exactly is not evidence the fix failed; check what it imported first.
+
+Reply latency is the downstream question and needs more than a day of mail
+to answer; the pilot is still accumulating. What is settled is that the
+wakes spread.
