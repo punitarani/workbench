@@ -1809,6 +1809,29 @@ its dump bracket; see that dataset's `DIFFICULTY.md`. The contrast is the
 point: this task discriminates a frontier model from a dumper and that one
 does not, so the measurement is not merely destructive.
 
+**And a caveat on that +0.085, found 2026-08-23 and not yet resolved.**
+`baselines.measure` sizes its dump from the largest `*_read` figure, which
+here is `turns_read`. A dumper does not submit one row per turn. Measured
+on a 30-day v7 window carrying 22 rows:
+
+    pool a dumper might submit                     size   ratio  dumped F1
+    turns_read (what the floors machinery uses)     488   0.045    0.086
+    turns carrying a date form                      198   0.111    0.200
+    (meeting, speaker) pairs with a promise          94   0.234    0.379
+
+The cheapest filter that produces *plausible* rows — one per speaker per
+meeting who makes a dated first-person undertaking — scores **4.4x the row
+F1** the machinery assumes. So the 0.444 dump floor understates what a
+competent dumper scores, and the +0.085 margin is measured against a
+strawman.
+
+**Whether it understates it enough to reach 0.529 is unknown**, and cannot
+be settled from here: scoring the smarter dump needs the task's own grading
+path, and this task has no committed oracle to grade against until v7
+lands. Do it then, before quoting the margin again. The direction of the
+error is known and the size is not, which is exactly the state in which a
+number should stop being repeated.
+
 ## Premise audit complete: all eight tasks measured on the finished v6
 
     task                          material on v6                    verdict
