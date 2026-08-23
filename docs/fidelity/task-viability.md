@@ -1129,8 +1129,27 @@ working days:
     v6   117 emails    50 asked    25 unanswered   50.0%
     v7   144 emails    58 asked    20 unanswered   34.5%
 
-The fix cuts the rate by about a third and leaves a healthy base. It does
-not empty the register.
+**Corrected, over a longer span.** Those sixteen days were noise. Measured
+through simulated day 43 — the furthest both recordings reach:
+
+    v6   320 emails   135 asked   74 rows  54.8%   late-replied  5  (6.8%)
+    v7   357 emails   151 asked   83 rows  55.0%   late-replied 10 (12.0%)
+
+The unanswered rate is **the same on both worlds**, ~55%. The email fix does
+not reduce it, and the earlier "cuts it by a third" was a sixteen-day
+artefact of exactly the kind this document keeps catching in other people's
+numbers.
+
+What the fix *does* move is the thing next to it: **late replies double,
+6.8% to 12.0% of rows.** More mail, and threads that develop far enough for
+an answer to arrive after the deadline rather than never. That matters for
+this task specifically, because its sharpest distinction — a late reply does
+not answer the question — is only interesting when late replies exist. At
+6.8% it is nearly vacuous; at 12% it has something to bite on. A previous
+world read 47%, so the mechanism has been strong before and this world is
+still the weak end of it.
+
+Either way the register is not emptied: 83 rows through day 43.
 
 Two caveats, both real. Sixteen days is early, and the two recordings are
 different draws once the first action resolves differently — so the *level*

@@ -69,7 +69,14 @@ of the register's rows were eventually replied to, after the three working
 days had run — count them against the built world, do not carry a number
 over from a previous one. The brief said "Four" against a world where the
 true figure was 16 of 34 rows: a corpus fact in a brief is a measurement,
-and one that goes stale the moment the world is recorded again.» of the
+and one that goes stale the moment the world is recorded again.
+
+Counted again since, and it has moved twice more: **6.8% of rows on the v6
+recording, 12.0% on v7 over the same span**, against 47% on the world the
+"Four" came from. Watch this one, because the distinction this paragraph
+draws is only interesting when late replies exist — at 7% it is nearly
+vacuous and the sentence is decoration. Also measure the window: on v6, days
+0-13 give 12 rows (exactly the floor), 0-20 give 25, and 14-34 give 37.» of the
 questions in this record were eventually replied to, after the three
 working days had run. Those are rows. "Did anybody ever reply" is a different question from
 the one being asked, and it gives a different list.
