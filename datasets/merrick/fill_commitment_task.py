@@ -20,6 +20,14 @@ compare against `git show HEAD` byte for byte.
 What this does NOT do is choose the values. `measure_commitment_window.py`
 does that, and refuses a window that cannot carry the task. This only moves
 them in and out.
+
+**`unfill` is `git checkout`, so it discards everything uncommitted in the
+task — including a real fix made while the task was filled.** That is the
+trade for a round trip that provably lands on HEAD, and it is a live hazard:
+most of the defects in this task were found *during* a probe, with the fill
+in place. Commit the structural change first, then unfill. If you forget,
+the change is gone and the probe that motivated it is the only record it
+ever existed.
 """
 
 from __future__ import annotations
