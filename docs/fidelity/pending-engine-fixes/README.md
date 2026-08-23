@@ -257,3 +257,54 @@ the number that made anyone look.
 Not applied: `simulation/gm/grounded.py` is one of the seven files in
 `_ENGINE_SURFACE` whose byte digest keys resume, so editing it now ends
 the v7 recording. Carry to v8 with the calendar front-loading fix.
+
+## a band that cannot pass, and the world gap behind it
+
+`email.machine_share` counts messages whose sender is the literal string
+`"system"`, against a floor of 0.03. Measured across every bundle in this
+repository — four workplaces, 7,273 emails — it reads **0.000 every time**,
+and it cannot read anything else:
+
+* every sender id in every world is `per-*`;
+* `coherence.py:121` requires each email's sender to be a recorded person,
+  so a non-person sender fails the build outright;
+* so the band needs a `person.record` whose `person_id` is exactly
+  `"system"`, breaking the id convention every other person follows;
+* and the predicate is `row[3] not in internal and row[3] == "system"`, so
+  that person would additionally have to be *external*.
+
+A metric that can only ever compute one value is the same defect as a test
+that cannot fail, in the mirror: this one **cannot pass**. It has been
+contributing a permanent FAIL to the band count since it was written, and
+that FAIL is indistinguishable in the summary line from a world that is
+genuinely missing something.
+
+**But the world gap it points at is real.** A law firm receives automated
+mail — ECF and court docket notices, e-billing rejections, calendar
+reminders, conflict-check results. No workplace in this repository has
+produced a single one, and the reason is upstream of the band: there is no
+way to record a non-human correspondent. `PersonRecordPayload.affiliation`
+is `Literal["internal", "external"]`, with no notion of a service account.
+
+So this is one fix in two halves, and the halves are separable:
+
+1. *Engine.* Let a workplace declare a service correspondent — a docket
+   system, an e-billing gateway — as a recorded party the coherence gate
+   accepts. Machine mail then becomes representable, and the firm gains a
+   category of document with real downstream uses: a docket notice is a
+   deadline nobody typed, which is exactly the kind of fact a task can ask
+   an agent to reconcile against what people said in a meeting.
+2. *Band.* Match on that declared kind rather than on the string
+   `"system"`. Until (1) exists the band should be marked as not applicable
+   rather than left to fail, because a permanent FAIL trains the reader to
+   skim the failures.
+
+**Do not do (2) alone.** Silencing the band removes the only signal that
+the world has no machine mail, which is the finding.
+
+Found by applying `_structural_absences`' own rule to bands outside its
+hand-kept list of two — see the same commit for
+`calendar.cancellation_share`, which is 0.000 for a different reason: the
+tool server can cancel an event (`tools/calendar/server.py:587`) and
+nothing in `core/intents.py` can emit a cancellation, so the agent can
+cancel meetings and the firm never does.
