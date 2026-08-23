@@ -537,3 +537,30 @@ Two cautions, because this one is easy to overdo:
 Schema change, so it moves the config hash and needs a fresh recording.
 This is the largest single unlock available for the task half of the
 project, and nothing else in this file is a prerequisite for it.
+
+## the three probe oracles are orphaned, demonstrated
+
+The world-stamp gate refuses them with "derived from an unrecorded world",
+which is an inference from a missing stamp. It is also literally true, and
+now measured: of `off-sense-register`'s 22 oracle rows, **6 refs resolve in
+`out/merrick/bundle` and 5 in `out/merrick/probe-bundle`**. Neither bundle
+on disk is the world that produced them.
+
+Two consequences, and only the first is obvious.
+
+*They cannot be scored against.* The competent-dump technique that settled
+the commitment register's floor needs a corpus to build the dump from, and
+theirs is gone. So those three tasks keep the floors already measured —
+0.363, 0.474 and 0.556 — which remain valid **as arithmetic on that
+oracle's shape**, because `baselines.measure` needs only the rows, the
+scalars and the grading path. They are not valid as numbers for a v7-built
+task, which is what the runbook already says.
+
+*Delete them at landing rather than refreshing them.* `--refresh-truth`
+would overwrite an orphan with a fresh key and leave no trace that the
+previous one described a vanished world. Deleting makes the next build
+`fresh` by the ordinary path, and the stamp it writes then means something.
+
+This is the clearest instance yet of why the stamp was worth adding: the
+refusal reads as bureaucratic until you check, and then it turns out the
+answer key really was describing somewhere that no longer exists.
