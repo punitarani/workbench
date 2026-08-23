@@ -1679,6 +1679,35 @@ it, which is the mechanism the task exists to grade.
 Both sit inside the 0.2–0.8 band on a task whose wrong branches score 0.444
 and 0.273. That is the result the design was aiming at.
 
+**Half of it, measured properly (2026-08-22).** The paragraph above takes
+`empty_register` 0.273 as the denominator, and that is the weaker of the two
+no-comprehension strategies. The stronger one — report every candidate — is
+a *bracket*, not a point: 0.171 with its own counts wrong, 0.444 handed the
+oracle's scalars for free. Against the top of that bracket:
+
+    opus-5   0.529   +0.085 above a dump
+    glm-5.2  0.432   -0.012, i.e. AT OR BELOW it
+
+So the design achieved one of its two aims and not the other. It moved a
+frontier model off 1.000 *and* clearly above indiscriminate reporting,
+which is the thing this dataset had never managed before and which the
+per-route repeat supports: 0.543 and 0.536 by different routes, sd 0.004,
+against a 0.444 ceiling on dumping — a gap of roughly twenty standard
+deviations. **glm's 0.432 is not evidence that glm did anything.** It is
+what reporting every candidate scores, to within a hundredth, and the
+"+0.159 above the empty-register floor" above flatters it by choosing the
+easier baseline.
+
+That the two *fail differently* — opus over-counts supersession at 22, glm
+under-counts at 6 — remains true and remains the useful part. It is a
+statement about the shape of their errors, not about their scores clearing
+a floor.
+
+The same analysis applied to ashgrove found no task where any model clears
+its dump bracket; see that dataset's `DIFFICULTY.md`. The contrast is the
+point: this task discriminates a frontier model from a dumper and that one
+does not, so the measurement is not merely destructive.
+
 ## Premise audit complete: all eight tasks measured on the finished v6
 
     task                          material on v6                    verdict
