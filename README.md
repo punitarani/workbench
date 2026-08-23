@@ -64,6 +64,10 @@ src/  one Python distribution, one import namespace
 tests/          mirrors src/; parity snapshots under tests/parity/
 environment/    container image: Dockerfile, setuid shim
 datasets/       Harbor tasks and their builders, grouped into datasets
-scripts/        fidelity_report.py
+scripts/        show_shape.py       what a db or oracle actually contains
+                mutation_check.py   break code on purpose, confirm tests notice
+                check_gates.sh      every build refusal, broken (a CI step)
+                measure_new_corpus.sh  a finished recording, measured end to end
+                fidelity_report.py, rollout.py, export_world_log.py
 docs/           WORKBENCH.md plus measurement records
 ```
