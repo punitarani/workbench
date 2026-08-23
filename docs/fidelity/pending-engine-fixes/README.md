@@ -423,3 +423,63 @@ reply-with-no-recipient fiction was — see the entry above, and the earlier
 one where a firm wrote policies about a bug for six months. The rule to
 apply is the one that dataset already paid for: a task may only grade a
 regularity the firm would have if the engine were right.
+
+## nothing anyone says is attached to a matter, and that is why the cross-unit tasks keep failing
+
+Four on-stage payload kinds carry a `ticket_id`:
+
+    ticket.created   ticket.updated   ticket.commented   work.time.logged
+
+All four are **ledger** kinds. Every kind that carries what people actually
+say or make has no matter reference at all:
+
+    email.message      chat.message        meeting.transcript
+    document.created   document.revised    calendar.event.scheduled
+    chat.conversation.created              calendar.response
+
+So this firm's record knows which matter a *time entry* belongs to and
+never knows which matter an *email* is about. That single absence is the
+reason three separate attempts at a second hard task ran aground, and it
+took three failures to see it as one cause rather than three:
+
+* **cross-unit supersession.** Deciding that "Cecile said Thursday here and
+  Friday there" is one commitment revised rather than two commitments needs
+  both statements attached to the same work. Three cheap ways to recover
+  that from unit titles gave three different answers with errors in both
+  directions (58%, 17%, and a false negative on a matter-named channel).
+* **delegation chains.** A hands to B, B hands to C, and who owes the
+  deliverable is only answerable by following the chain. There are 19
+  handoffs naming a real colleague across mail, chat and meetings — enough
+  rows — and no way to tell whether two of them concern the same work.
+* **email supersession** is the same wall from the other side: it exists
+  (16 of 127) but every instance is inside one thread, because a thread is
+  the only unit whose messages are reliably about one thing.
+
+`live-commitment-register` works *because it side-steps this*. It keys on
+(owner, standing meeting), and a recurring meeting is an anchor the record
+**states** — an identity, not a subject somebody has to infer. That is a
+narrow escape hatch, and it is why the one working task is the one that
+found it.
+
+**The fix is an optional `ticket_id` on the communication and artifact
+kinds**, set from what the persona was already doing — the deliverable and
+timesheet action specs both hand the persona a list of their engagements,
+so the intent knows. The prose stays natural; nobody has to say "re:
+tkt-000012" out loud.
+
+Two cautions, because this one is easy to overdo:
+
+* **Do not anchor everything.** If every message carries a matter, a task
+  becomes a filter and the difficulty is gone. People name the matter
+  sometimes; the field should be present when the persona was working on
+  that matter and absent otherwise, which is also what makes the anchor
+  worth reading.
+* **An anchor makes retrieval easy and judgement no easier**, which is the
+  point. A frontier agent will dump and filter on it — 56–72 shell calls
+  against 2–4 tool calls is the measured behaviour — and a task whose
+  difficulty is *volume of judgement* survives that where one whose
+  difficulty is retrieval does not.
+
+Schema change, so it moves the config hash and needs a fresh recording.
+This is the largest single unlock available for the task half of the
+project, and nothing else in this file is a prerequisite for it.
