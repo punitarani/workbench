@@ -70,6 +70,45 @@ reported a dead task as viable, which would have shipped it. The narrow
 failure is the more dangerous of the two, because absence is the verdict
 nobody argues with and retiring a task looks like diligence.
 
+
+**The working mechanism does not obviously port to a second surface, and I
+could not cheaply establish whether it does.** Supersession is the one
+thing measured to move a frontier model, and only one task uses it. Two
+things were measured about extending it:
+
+*Email carries supersession, in its easy form.* Over 68 days, 127 people
+stated a deadline in a thread and 16 of them (13%) later stated a different
+one. Every one of those revisions is **inside the same thread**. The
+meeting register is hard because the replacement lives in a meeting the
+reader has already closed; a thread is a unit the agent reads in one pass,
+so the same rule on email grades retrieval rather than the thing that
+worked.
+
+*The cross-unit form needs a matter anchor, and this corpus may not have
+one.* Deciding that "Cecile said Thursday here and Friday there" is one
+commitment revised, rather than two commitments, requires knowing both
+statements are about the same work. Three cheap ways of recovering matter
+identity from a unit's title were tried and **all three were wrong, in
+different directions**:
+
+    clio.display_number         "00001-CoastalMeridianBancorp" is the client,
+                                not the matter; its distinctive tokens are
+                                partner surnames
+    rare words in description   58% of email subjects "named a matter" --
+                                on words like practice, billing and review
+    capitalised proper nouns    17% instead, and 0 of 34 chat channels --
+                                but `linden-pryor-trade-secret` IS a matter
+                                channel, missed because slugs are lowercase
+
+Both over- and under-counting appeared within twenty minutes of each other,
+which is the proxy law biting on the person who wrote it down. The result
+is *not* "email cannot carry a task"; it is that the anchor has to be built
+as carefully as the deadline forms were, and until it is, the numbers above
+are not evidence for anything. Anchoring on the *standing meeting* is what
+`live-commitment-register` does, and the reason it works is that a
+recurring meeting is an anchor the record states rather than one a rule has
+to infer.
+
 ## About the checks around it
 
 **A stale constant in a *gate* is worse than in a solver.** A gate is what
