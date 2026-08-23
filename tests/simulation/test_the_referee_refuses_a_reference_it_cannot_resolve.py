@@ -177,3 +177,66 @@ def test_naming_someone_this_firm_has_never_heard_of_is_refused() -> None:
     )
     with pytest.raises(IntentRejection, match="unknown person"):
         _gm()._ground_ticket("ana", "per-ana", intent, _event(), 0)
+
+
+def test_answering_an_invitation_this_world_never_issued_is_refused() -> None:
+    """The guard whose comment records the incident that produced it.
+
+    *"Every other surface rejects an id it has never issued; without this
+    one, an invented cal- ref became a response event and the materializer
+    refused the whole log as incoherent."*
+
+    A guard added after a whole recording was thrown away, and nothing
+    exercised it. The cost of losing it again is not one bad row: a
+    response naming no event fails materialization, so the log is
+    unusable and the hours that produced it are gone.
+    """
+
+    from core.intents import CalendarIntent, CalendarResponseSpec
+
+    intent = CalendarIntent(
+        kind="calendar",
+        schedule=None,
+        respond=CalendarResponseSpec(
+            calendar_event_ref="cal-999999", response="accept"
+        ),
+    )
+    with pytest.raises(IntentRejection, match="unknown calendar event"):
+        _gm()._ground_calendar("ana", "per-ana", intent, _event(), 0)
+
+
+def test_a_ticket_update_that_changes_nothing_is_refused() -> None:
+    """An update carrying no change and no note is a turn that says nothing.
+
+    It grounds to no drafts, so without the guard the persona's turn
+    produces an empty tuple: no event, no feedback, and a wake spent. The
+    refusal is what tells them to say what moved or why nothing did.
+    """
+
+    gm = _gm()
+    # A ticket that exists, so this reaches the no-op guard rather than the
+    # earlier "needs a ticket_ref or create spec". The first version of
+    # this test passed against that one instead -- a rejection for the
+    # wrong reason reads exactly like a rejection for the right one, and
+    # only mutating the intended guard away showed the difference.
+    (draft,) = gm._ground_ticket("ana", "per-ana", _create(), _event(), 0)
+    gm.world.apply(
+        Event(
+            seq=2,
+            event_id="evt-000002",
+            time=2,
+            tag=draft.payload.kind,
+            source="gm",
+            caused_by=None,
+            payload=draft.payload,
+        )
+    )
+    empty = TicketIntent(
+        kind="ticket",
+        ticket_ref=draft.payload.ticket_id,
+        create=None,
+        changes=(),
+        comment=None,
+    )
+    with pytest.raises(IntentRejection, match="changes nothing"):
+        gm._ground_ticket("ana", "per-ana", empty, _event(), 0)
