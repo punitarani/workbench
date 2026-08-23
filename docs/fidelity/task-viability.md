@@ -1959,8 +1959,24 @@ inside the same wake it received the message, and one that never gets back
 to it. The fidelity band says the same thing less legibly —
 `reply_latency_lognormal_p 2.9e-30`.
 
-The five-minute cluster is worth fixing before a task is keyed on timing:
-`unanswered-question-register` asks whether a reply arrived within three
-*working days*, and on a world where half of all replies arrive in five
-minutes that threshold is doing no work at all — it is separating "answered
-immediately" from "never answered", with almost nothing in between.
+The five-minute cluster is worth fixing before a task is keyed on timing —
+though **not for the reason I first wrote here.** I claimed the three-
+working-day threshold in `unanswered-question-register` "is doing no work at
+all". Counted, it is doing some. Of 233 questions with a To recipient on v7:
+
+    under 10 minutes      68   29.2%
+    10 minutes – 1 day    15    6.4%
+    1 day – the deadline  16    6.9%   <- decided by the window
+    after the deadline    12    5.2%   <- the brief's "late does not count"
+    never answered       122   52.4%
+
+**12% of questions sit in the zone where the exact rule matters**, and that
+is what separates the register from the naive "did anybody ever reply"
+list — a difference of about one row in eight, which is real and modest.
+The other 88% are settled at ten minutes or never.
+
+So the task's distinction survives, and the honest description of this world
+is that it answers fast or not at all: **52% of questions are never answered
+by anyone in To**, and 29% are answered before a human could have read them.
+Both halves are engine behaviour rather than firm behaviour, and both bound
+what a timing-keyed task can measure here.
