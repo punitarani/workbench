@@ -74,7 +74,12 @@ def _slice(text: str, function: str | None) -> tuple[int, int]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", required=True, type=Path)
-    parser.add_argument("--tests", required=True)
+    parser.add_argument(
+        "--tests",
+        required=True,
+        nargs="+",
+        help="one or more paths pytest should collect",
+    )
     parser.add_argument("--function", default=None)
     parser.add_argument(
         "--mutation",
@@ -102,7 +107,7 @@ def main() -> int:
             mutated = block.replace(before, after, 1)
             args.source.write_text(original[:start] + mutated + original[end:])
             result = subprocess.run(
-                [args.python, "-m", "pytest", args.tests],
+                [args.python, "-m", "pytest", *args.tests],
                 capture_output=True,
                 text=True,
             )
