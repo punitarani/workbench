@@ -142,6 +142,13 @@ def measure(task: Path, oracle: dict) -> dict[str, float]:
         ),
         reverse=True,
     )
+    # The fallback value is arbitrary and deliberately so: the guard below
+    # refuses whenever `candidates <= len(truth)`, which subsumes every
+    # value this expression can produce when no count was reported. Proved
+    # by mutation -- replacing `len(truth)` with `0` changes nothing, which
+    # is the guard doing its job rather than a gap in the tests. Before the
+    # guard existed, this line was the defect: it made the dump equal the
+    # oracle and returned a floor of 1.000.
     candidates = read_counts[0] if read_counts else len(truth)
 
     floors: dict[str, float] = {}
