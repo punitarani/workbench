@@ -62,6 +62,29 @@ The failures are not symmetric and both directions are expensive: a form
 that fires on nothing is a column of nothing dressed as a rule, and a table
 that counts one thing twice manufactures rows the world never had.
 
+**Print the interface before writing the query.** The proxy law below is
+the one most often broken, and a day spent breaking it four times says the
+countermeasure is not "try harder". Three of the four were not
+screen-avoidance at all — they were *guessing a schema*:
+
+    clio.display_number      read as matter identity; it is the CLIENT, and
+                             its distinctive tokens are partner surnames
+    Band.low / Band.high     the fields are `min` and `max`; the code fell
+                             through to a default and reported every one of
+                             36 band failures as missing by exactly 1.0x —
+                             the answer that says "no gate needed"
+    "carries the bare verb"  read as the off-sense register's rows; its rows
+                             are the OFF-SENSE subset, and its own screen
+                             says that share is what "only a person reading
+                             the sample can set"
+
+Each ran without error and produced a plausible number. The fourth printed
+`Band fields: ['label', 'surface', 'min', 'max', 'v1']` in its own output,
+two lines above the code that used `low` and `high`. So: dump the field
+names, the distinct values, one whole row — *then* write the analysis. It
+costs one statement and it is the only thing that catches a wrong field,
+because a wrong field does not raise.
+
 **And screen with the task's own admitted forms, never a proxy for them.**
 A proxy answers a different question and which way it errs is luck. In one
 audit a pattern *narrower* than the corpus reported a live task as empty —
