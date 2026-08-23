@@ -56,6 +56,42 @@
 
 ---
 
+## v7 probed at day 90 of 180 — the headline task will build, comfortably
+
+Run through `scripts/measure_new_corpus.sh` against a WAL snapshot, so this
+cost nothing and interrupted nothing.
+
+    file room       490/490 served paths resolve (100%)
+    engine fiction  0 of 22,450 on-stage events
+    corpus          399 meetings, 2,014 turns, 151,061 words
+    supersession    60 speaker commitments, 41 later changed (68%)
+
+The whole record is over the 60,000-word ceiling, as it should be — a
+window is what the task cuts. Every window swept is usable on all three
+screens:
+
+    window   words    rows  supersession  guessing floor
+     1-20   15,401     13        92%           31%
+     1-25   26,912     21        62%           14%
+     1-30   32,448     22        64%           18%
+     1-35   38,254     24        75%           21%
+    15-45   33,907     19        74%           16%
+    30-60   34,961     23        65%           22%
+    40-70   34,202     25        52%           16%
+
+Against v6, which built at **17 rows and 52% supersession over 45 days**,
+v7 gives 21–25 rows in 25–30 days at 52–75%. Denser material, shorter
+window, more of the mechanism the task exists to grade.
+
+Two things to carry to the choice on the finished record. `1-20` is the one
+to avoid: 13 rows is a row off the floor the build now refuses at, and its
+31% guessing floor is double the best window's. And `1-25` has the lowest
+guessing floor at 14% — the commonest single due date is reachable with no
+reading, so that number is the one to minimise, not the row count.
+
+These are day-90 figures on a recording still running. Re-measure on the
+finished record; the shape will hold, the numbers will not.
+
 Measured on the recording in progress at **day 13 of 130** — 595 message
 bodies, 2,325 time entries, 55 documents. Rates, not totals, are what
 carry to the full window; each row below extrapolates linearly and says
