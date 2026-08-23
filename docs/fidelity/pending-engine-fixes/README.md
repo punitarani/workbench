@@ -56,3 +56,44 @@ symlinks the main `.venv`, whose `workbench.pth` points at the *main* tree,
 so without it the pilot imports the unpatched engine and faithfully
 reproduces the defect it is meant to fix. The tell is an "after" number
 identical to the "before" one.
+
+## calendar front-loading: why 77% of invitations are never answered
+
+`calendar.rsvp_needsaction` reads **0.772** against a band of ≤0.1, and it
+has been the largest single band failure all along. It is not a persona
+behaviour problem.
+
+Split the 2,731 attendee-invitations on v7 by how far ahead the event is:
+
+    lead time         invitations   answered
+    in the past                18       0.0%
+    within 14 days            289      65.7%     <- inside the 0.6-0.8 band
+    beyond 14 days          2,424      17.7%
+
+**When a persona can see an invitation, it answers at 66% — the realistic
+rate the band asks for.** `working_memory._INVITATION_HORIZON` is 14 days,
+so anything further out never enters the pending list and cannot be
+answered at all. And the median lead time is **85 days**: every occurrence
+of every recurring series is created at day zero with its own future start,
+so on day one a persona is invited to a meeting three months away.
+
+That reframes the fix. Widening the horizon is the wrong move and the
+history says why — the horizon was *added* because an unbounded pending list
+had personas working through 113 RSVPs a day and chat collapsing to 0.36x.
+The problem is upstream: **create each occurrence near its date rather than
+all of them at day zero.**
+
+It also explains why surfacing invitations at all — the earlier fix that
+took `needsAction` from 93% to 77% — moved it so little. That fix was
+correct and it could only ever reach the 11% of invitations inside the
+horizon.
+
+Not applied here because it lives in the workplace compiler and changes the
+compiled spec, so the config hash moves and the run in flight cannot be
+resumed either way.
+
+**Expect it to move** `rsvp_needsaction`, `rsvp_accepted`, and the
+`calendar.event.scheduled` rate's shape over the epoch. **Do not expect it
+to move** `rsvp_tentative` or `rsvp_declined`, which are 0.000 and 0.004:
+the firm having exactly one RSVP verb is a separate defect, and this one
+does not touch it.
