@@ -1825,12 +1825,31 @@ F1** the machinery assumes. So the 0.444 dump floor understates what a
 competent dumper scores, and the +0.085 margin is measured against a
 strawman.
 
-**Whether it understates it enough to reach 0.529 is unknown**, and cannot
-be settled from here: scoring the smarter dump needs the task's own grading
-path, and this task has no committed oracle to grade against until v7
-lands. Do it then, before quoting the margin again. The direction of the
-error is known and the size is not, which is exactly the state in which a
-number should stop being repeated.
+**Settled the same day, by making an oracle instead of waiting for one.**
+The task can be filled for a window, run against the v7 probe bundle, and
+its own output *is* the answer key for that window — so both dumps can be
+scored on the real grading path. Days 1–30 of v7, 17 live rows:
+
+    dump                                rows  key hits  scalars right  wrong
+    strawman, one row per turn           488     11/17      0.366      0.094
+    competent, promise-bearing pairs      94      9/17      0.419      0.146
+
+The direction was right and **the magnitude was not**. A competent dumper
+scores 0.419 against the strawman's 0.366 — an understatement of 0.053, not
+the 4.4x the row-F1 ratio implied. Row F1 carries 5 of about 11 weight and
+`row_fields`' extra-row penalty is capped, so a 4.4x change in one
+component moves the total by a seventh of that.
+
+So the margin survives, and the lesson is about reading ratios rather than
+about this task: **a ratio on one criterion is not a ratio on the score.**
+The 0.529 and the 0.419 are still from different worlds and windows and
+should not be subtracted; what is comparable is strawman against competent
+on one oracle, and that gap is 0.053.
+
+Both dumps also use the commonest date guess (EOD resolving to the day it
+was said) and hit 9–11 of 17 keys on it, which is the guessing floor doing
+what it was measured to do. A dumper who guesses dates better is doing
+arithmetic on meetings, which is most of the task.
 
 ## Premise audit complete: all eight tasks measured on the finished v6
 
