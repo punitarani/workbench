@@ -113,13 +113,106 @@ def _verdict(carrying: int) -> str:
 
 
 def _mail() -> list[tuple[int, str]]:
+    return [(when, body) for when, body, _, _ in _mail_full()]
+
+
+def _mail_full() -> list[tuple[int, str, str, str]]:
+    """Time, body, thread and sender.
+
+    `_mail` kept only the first two, which is all the table and the week
+    need. The candidate-ratio section below needs to know who wrote a
+    promise and whether they came back on it, and that is a property of
+    later traffic in the same thread.
+    """
+
     path = STATE / "gmail.db"
     if not path.is_file():
         raise SystemExit(f"no gmail.db under {STATE}; build the bundle first")
     connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
-    rows = connection.execute("SELECT time, body FROM messages").fetchall()
+    rows = connection.execute(
+        "SELECT time, body, thread_id, sender FROM messages"
+    ).fetchall()
     connection.close()
-    return [(int(t), body or "") for t, body in rows]
+    return [(int(t), body or "", thread, sender) for t, body, thread, sender in rows]
+
+
+# A promise is a first-person undertaking and a date in ONE sentence. Over a
+# whole message the two come apart: this dataset already retired a rule that
+# paired a speaker with a deadline across a 71-word turn.
+_OWNER = re.compile(r"\b(?:I'?ll|I will|I can|I'?m|let me|I'?d|I have)\b", re.I)
+_SENTENCE = re.compile(r"(?<=[.?!;])\s+")
+
+
+def _ratio_section(compiled: dict[str, re.Pattern[str]]) -> None:
+    """What a reader who reports everything already scores.
+
+    The register's rows are promises; its candidates are whatever a dumper
+    would submit. **Which pool the report declares decides the floor it
+    measures**, and declaring the wider one flatters the task: against
+    every mail message this reads one thing, and against the messages that
+    carry a date -- the set a dumper actually submits, since the report
+    asks for dated promises and filtering to dates is one cheap pass --
+    it reads far worse. Both are printed so the choice cannot be made by
+    omission.
+
+    Then the rule itself. `followed_up` is the field this design is proud
+    of: it cannot be read off the message carrying the promise, only out of
+    later traffic in the same thread. As the *rule* rather than a field it
+    is much stronger, and the minority class is the KEPT promise, not the
+    broken one.
+    """
+
+    mail = _mail_full()
+    threads: dict[str, list[tuple[int, str]]] = {}
+    for when, _body, thread, sender in mail:
+        threads.setdefault(thread, []).append((when, sender))
+
+    def dated(body: str) -> bool:
+        return any(rx.search(body) for rx in compiled.values())
+
+    def promises(body: str) -> bool:
+        return any(
+            _OWNER.search(part) and dated(part) for part in _SENTENCE.split(body)
+        )
+
+    carrying = [m for m in mail if dated(m[1])]
+    promised = [m for m in mail if promises(m[1])]
+    kept = [
+        m
+        for m in promised
+        if any(later > m[0] and who == m[3] for later, who in threads[m[2]])
+    ]
+    broken = [m for m in promised if m not in kept]
+
+    def show(label: str, rows: int, pool: int, note: str = "") -> None:
+        share = rows / pool if pool else 0.0
+        f1 = 2 * share / (share + 1) if share else 0.0
+        print(f"  {label:<46}{rows:>5}{share:>8.3f}{f1:>11.3f}{note}")
+
+    print("\nwhat reporting everything already scores")
+    header = "rows / the pool the report declares"
+    print(f"  {header:<46}{'rows':>5}{'ratio':>8}{'dumped F1':>11}")
+    show(
+        "every promise / every mail message", len(promised), len(mail), "   flattering"
+    )
+    show(
+        "every promise / mail carrying a date",
+        len(promised),
+        len(carrying),
+        "   <- the honest pool",
+    )
+    show("... promises never followed up", len(broken), len(carrying))
+    show(
+        "... promises the writer came back on",
+        len(kept),
+        len(carrying),
+        "   <- minority class",
+    )
+    print(
+        "  A dumper submits dated messages, not every message in the firm, so"
+        "\n  the second line is the floor to believe. Under twelve rows the build"
+        "\n  refuses outright, so read both columns."
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -174,6 +267,8 @@ def main(argv: list[str] | None = None) -> int:
             f"  {monday} ({monday:%-d %B}) — {week['messages']:3d} read, "
             f"~{rows:3d} rows, {kinds}/{len(FORMS)} forms: {present}"
         )
+
+    _ratio_section(compiled)
     return 0
 
 
