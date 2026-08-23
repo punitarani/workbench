@@ -89,6 +89,47 @@ to avoid: 13 rows is a row off the floor the build now refuses at, and its
 guessing floor at 14% — the commonest single due date is reachable with no
 reading, so that number is the one to minimise, not the row count.
 
+### the other tasks' premises, re-counted on v7 (day 91)
+
+Through each task's own screen, not a proxy — see below for what happened
+when I reached for one anyway.
+
+    word families (whole corpus, 2,213 messages)
+      agree/agreed   221 messages   24.0% minority   <- off-sense-register
+      file/filed     286            24.8%            <- prebill-narrative-screen
+      confirm        614            42.5%
+      resolve        183            26.8%
+
+    date forms
+      mail   254/987 carry >=1 form (25.7%); 30 carry >=2  <- promise-clock
+      chat   182/1226 (14.8%);               16 carry >=2
+
+Every premise holds: `agree/agreed` clears the >=20-message and >=20%
+floors, and 30 two-form mail messages clears the >=12 the compositional
+shape needs. `measure_word_family` adds the verdict that matters — 2,213
+messages to read against the ~213 the in-band precedent settled on — so
+off-sense needs a window for the same reason the commitment register does.
+
+**Candidate ratios on v7**, the screen that decides whether a dump can pass:
+
+    prebill-narrative-screen   1,386 / 14,964   0.093   dumped F1 0.170
+    deadline-week-promise      185 / 418        0.443   dumped F1 0.614
+
+Both agree with the v6 figures (0.097 and 0.476), so those verdicts carry.
+
+**And a correction to a number published an hour before this one.** I first
+computed off-sense's ratio as 221/400 = 0.552 by treating "carries the bare
+verb" as the register's rows. That is not its rule: the rows are the
+messages using the word in the **off sense**, a subset of the ones carrying
+the form — 22 of 284 on the v6 oracle, a ratio of 0.077. Its own screen
+says the off-sense share is the number "only a person reading the sample
+can set", which is exactly why a proxy could not compute it.
+
+So off-sense-register is **not** flagged on ratio, and the 0.552 was this
+file's own law biting its author for the fourth time in a day: screen with
+the task's own admitted forms, never a proxy. The proxy was faster and
+answered a different question.
+
 These are day-90 figures on a recording still running. Re-measure on the
 finished record; the shape will hold, the numbers will not.
 
