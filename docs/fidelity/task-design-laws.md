@@ -141,6 +141,35 @@ the rule and identified the right one, with no time left to write it down.
 Downstream that is indistinguishable from a model that cannot do the task.
 Time a real read before trusting a number.
 
+**The dump floor is mostly set by what fraction of the candidates are
+answers, and that is knowable before the task is built.** A reader who
+reports every candidate has recall 1.0 by construction, so its row F1 is
+fixed by precision alone — `2p/(p+1)` where `p` is rows ÷ candidates.
+Across twelve tasks in two datasets that predicted quantity correlates with
+the measured dump floor at **r = 0.892**:
+
+    rows/candidates   dumped F1   measured dump floor
+    0.07-0.15           0.13-0.26        0.36-0.64
+    0.28-0.48           0.44-0.65        0.66-0.75
+    0.88-0.90           0.94-0.95        0.95-0.99
+
+`client-responsiveness-sla` admits 43 of its 49 candidates, so reporting
+everything is 88% right before anything is read, and it pays a dump 0.990.
+`workpaper-open-items` admits 55 of 61 and pays 0.954. Neither is a grading
+bug: a rule that admits nine candidates in ten cannot punish admitting all
+ten. **Keep the answer under about a tenth of the candidate pool** — and
+still measure, because the relation sets a lower bound rather than the
+number.
+
+*What is not explained.* The measured floor sits above the pure row-F1
+prediction by between 0.006 and 0.473, and three attempts to attribute that
+gap all failed: share of figures that are tallies of the rows (r = 0.46),
+share that are still *paid* tallies (r = 0.32), and paid-scalar weight
+share (r = 0.49) — the last on a predictor that is 0.385 for eight of the
+twelve, so its correlation rests on four points. On n = 12 none of these is
+worth acting on. The gap is real, it is sometimes large, and this file does
+not know what drives it.
+
 **A floor that is printed and not compared to anything is decoration.**
 `build_tasks` measured and printed every task's no-comprehension floors for
 months, with a comment explaining that a rollout number must never be read
