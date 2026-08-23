@@ -172,3 +172,75 @@ def test_a_whole_composite_key_on_one_line_is_a_leak(tmp_path: Path) -> None:
             "t",
         )
     assert "Kestrel" in str(caught.value)
+
+
+def test_a_longer_identifier_is_not_the_same_identifier(tmp_path: Path) -> None:
+    """The word boundary, which nothing exercised until 2026-08-23.
+
+    `_named_in` wraps the value in `(?<![\\w!.-])` and `(?![\\w!.-])`, and
+    replacing that whole regex with a plain `value in text` left every test
+    in this file green. The docstring explains the boundary in terms of
+    bare integers — but the `len(value) < 4 or value.isdigit()` guard
+    already handles those, and mutating *that* is caught. What the boundary
+    alone protects is the case below: a brief naming a *longer* id that
+    merely contains a row key.
+
+    A brief that says `LEGAL!12.30` has not named the row `LEGAL!12.3`.
+    Reporting it would send an author rewriting a brief that leaks nothing,
+    which costs the same as missing a leak and is harder to argue with,
+    because the reported string really is in the text.
+    """
+
+    from dataset_modules import merrick_build_tasks
+
+    build_tasks = merrick_build_tasks()
+
+    task = _task(
+        tmp_path,
+        'For example: {"document_ref": "LEGAL!12.30"} — note the format.\n',
+        rows="found",
+        key=("document_ref",),
+    )
+    answer = {"found": [{"document_ref": "LEGAL!12.3"}]}
+    build_tasks._refuse_leaked_rows(task, answer, "t")
+
+
+def test_the_real_row_in_the_same_brief_is_still_caught(tmp_path: Path) -> None:
+    """Guard the guard: a boundary loose enough to pass the test above must
+    not also pass the leak it was built for."""
+
+    import pytest
+    from dataset_modules import merrick_build_tasks
+
+    build_tasks = merrick_build_tasks()
+
+    task = _task(
+        tmp_path,
+        'For example: {"document_ref": "LEGAL!12.3"} — note the format.\n',
+        rows="found",
+        key=("document_ref",),
+    )
+    answer = {"found": [{"document_ref": "LEGAL!12.3"}]}
+    with pytest.raises(SystemExit, match="LEGAL"):
+        build_tasks._refuse_leaked_rows(task, answer, "t")
+
+
+def test_a_task_without_a_row_key_is_skipped_not_crashed(tmp_path: Path) -> None:
+    """The early return that no test reached.
+
+    `criteria.py` need not declare `ROWS`/`KEY` — `open-items-triage` and
+    `wip-utilization-review` in the neighbouring dataset do not. Without
+    the guard this iterates `None` and the build dies with a TypeError
+    naming this function, which reads as a broken gate rather than a task
+    that has nothing for it to check.
+    """
+
+    from dataset_modules import merrick_build_tasks
+
+    build_tasks = merrick_build_tasks()
+
+    task = tmp_path / "t"
+    (task / "tests").mkdir(parents=True)
+    (task / "instruction.md").write_text("A brief with no worked example.\n")
+    (task / "tests" / "criteria.py").write_text('DELIVERABLE = "x.json"\n')
+    build_tasks._refuse_leaked_rows(task, {"found": [{"a": 1}]}, "t")
