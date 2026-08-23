@@ -240,3 +240,61 @@ def test_a_ticket_update_that_changes_nothing_is_refused() -> None:
     )
     with pytest.raises(IntentRejection, match="changes nothing"):
         gm._ground_ticket("ana", "per-ana", empty, _event(), 0)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("priority", "Whenever", "unknown priority"),
+        ("ticket_type", "vibes", "unknown ticket type"),
+    ],
+)
+def test_a_create_outside_the_workplace_vocabulary_is_refused(
+    field: str, value: str, message: str
+) -> None:
+    """Status had a test; priority and type did not, and they are one rule.
+
+    Three fields, three chances to lose one — and losing any of them has
+    the same effect as losing the status check: nothing dangles, the
+    workplace's own vocabulary simply widens from inside until the column
+    holds whatever the personas typed.
+    """
+
+    spec = _create().create.model_copy(update={field: value})
+    intent = _create().model_copy(update={"create": spec})
+    with pytest.raises(IntentRejection, match=message):
+        _gm()._ground_ticket("ana", "per-ana", intent, _event(), 0)
+
+
+def test_a_priority_outside_the_vocabulary_is_refused_on_update_too() -> None:
+    """The create path and the change path are separate guards.
+
+    A vocabulary enforced only at creation lets every later edit widen it,
+    which is the slower version of the same defect and harder to see: the
+    column starts clean and drifts.
+    """
+
+    from core.events.tickets import FieldChange
+
+    gm = _gm()
+    (draft,) = gm._ground_ticket("ana", "per-ana", _create(), _event(), 0)
+    gm.world.apply(
+        Event(
+            seq=3,
+            event_id="evt-000003",
+            time=3,
+            tag=draft.payload.kind,
+            source="gm",
+            caused_by=None,
+            payload=draft.payload,
+        )
+    )
+    intent = TicketIntent(
+        kind="ticket",
+        ticket_ref=draft.payload.ticket_id,
+        create=None,
+        changes=(FieldChange(field="priority", old="Normal", new="Whenever"),),
+        comment=None,
+    )
+    with pytest.raises(IntentRejection, match="unknown priority"):
+        gm._ground_ticket("ana", "per-ana", intent, _event(), 0)
