@@ -462,10 +462,37 @@ narrow escape hatch, and it is why the one working task is the one that
 found it.
 
 **The fix is an optional `ticket_id` on the communication and artifact
-kinds**, set from what the persona was already doing — the deliverable and
-timesheet action specs both hand the persona a list of their engagements,
-so the intent knows. The prose stays natural; nobody has to say "re:
-tkt-000012" out loud.
+kinds.** The prose stays natural; nobody has to say "re: tkt-000012" out
+loud, and the persona prompt already forbids exactly that — *"Never put an
+internal id in a path — no `tkt-`, no `doc-`."*
+
+*Corrected, having checked:* a first draft of this entry said the fix was
+cheap because "the action specs hand the persona its engagements, so the
+intent knows". **The intent does not know.** No communication intent
+carries a matter reference:
+
+    EmailIntent          kind, thread_ref, reply_to_ref, draft, attach_document_refs
+    ChatIntent           kind, conversation_ref, reply_to_ref, draft
+    DocumentEditIntent   kind, document_ref, create, edit
+    MeetingSpeakIntent   kind, meeting_ref, text, yields
+
+The action spec offering a list of engagements is not the same as the
+persona recording which one it chose, and nothing carries that choice
+today. The pattern to copy exists and works — `TimeLogIntent.ticket_ref`
+and `TimesheetEntry.ticket_ref` are how the ledger kinds get their link,
+including the referee's resolution of a `ticket_ref` and its rejection of a
+bad one — but it has to be added at every layer:
+
+    core/intents.py            a ticket_ref on 3-4 intents        (frozen file)
+    simulation/persona/programs.py  the prompt that says when to set it  (frozen)
+    simulation/gm/grounded.py  resolve and reject, per handler    (frozen)
+    core/events/*.py           the field on 3-4 payloads
+    tools/*/project.py         project it
+    tools/*/server.py          serve it
+
+That is a project rather than a patch, and three of the six files are in
+`_ENGINE_SURFACE`. The value estimate below is unchanged; the cost estimate
+was wrong by a lot.
 
 Two cautions, because this one is easy to overdo:
 
