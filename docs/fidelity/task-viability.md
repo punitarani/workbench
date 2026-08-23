@@ -2064,6 +2064,41 @@ the lockstep it was meant to fix. It took `PYTHONPATH` on the worktree's own
 were identical to the "before" ones. A pilot that reproduces the defect
 exactly is not evidence the fix failed; check what it imported first.
 
-Reply latency is the downstream question and needs more than a day of mail
-to answer; the pilot is still accumulating. What is settled is that the
-wakes spread.
+### And the reply latency did not improve — my causal claim was wrong
+
+The section above says the lockstep "explains" the five-minute reply
+latency. **The pilot refutes that.** With wakes fully spread — one persona
+per timestamp instead of 21 — the latency is unchanged:
+
+    v7 (lockstep)   median 0.08h,  53% of replies under 5 minutes
+    pilot (spread)  median 0.08h,  11 of 12 replies under 5 minutes  (n=12)
+
+The arithmetic says why, and I should have done it before writing the
+explanation:
+
+    21 personas over a 90-minute quantum = a wake every 4.3 minutes
+
+Lockstep puts every persona 0 minutes from the next one; spreading puts them
+4 minutes apart. **Neither produces a latency measured in hours.** The
+binding constraint is that somebody is always about to wake, and a persona
+answers at its first opportunity — not that they all wake together.
+
+So these are two defects, not one:
+
+* **the lockstep** is real, is fixed by the phase change, and is what
+  `slack.offhours_share 0.034` and the firm's missing temporal texture are
+  about;
+* **the five-minute reply** is separate and is not addressed by it. Fixing
+  it means a persona *declining* to answer at its first opportunity — a
+  response delay drawn per message — which is a behaviour change, not a
+  scheduling one.
+
+`n=12` is a small sample and the pilot was still running; the point stands
+on the arithmetic rather than the count.
+
+**This changes the restart recommendation.** Thirteen hours of recording
+would buy the temporal spread and *not* the reply timing, so it buys less
+than the section above implied. My inclination is now to let v7 finish and
+carry both fixes to a v8 where they can be piloted together — but that is
+still a call to make with the numbers, not a conclusion I should reach for
+the reader.
