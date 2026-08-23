@@ -20,7 +20,7 @@ slots = quantum // grid
 wake_delay = plan.day_start + phase * grid
 
 # is
-PHASE_STEP = 60                          # module level
+PHASE_STEP = 60  # module level
 slots = max(1, quantum // PHASE_STEP)
 ...
 wake_delay = plan.day_start + phase * PHASE_STEP

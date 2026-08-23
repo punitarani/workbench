@@ -56,9 +56,7 @@ def _tracked(pattern: str) -> list[str]:
 
 def _datasets() -> list[str]:
     return sorted(
-        path.name
-        for path in (REPO / "datasets").iterdir()
-        if (path / "tasks").is_dir()
+        path.name for path in (REPO / "datasets").iterdir() if (path / "tasks").is_dir()
     )
 
 
@@ -95,8 +93,7 @@ def test_every_dataset_with_tasks_ignores_them() -> None:
                 if f"{directory}/" not in rules:
                     missing.append(f"{dataset}/{task.name}: {directory}/")
     assert not missing, (
-        "task directories that do not ignore their own build output: "
-        f"{missing}"
+        f"task directories that do not ignore their own build output: {missing}"
     )
 
 
