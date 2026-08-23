@@ -97,3 +97,36 @@ resumed either way.
 to move** `rsvp_tentative` or `rsvp_declined`, which are 0.000 and 0.004:
 the firm having exactly one RSVP verb is a separate defect, and this one
 does not touch it.
+
+## one RSVP verb: the capability is there, the behaviour is not
+
+`rsvp_tentative` 0.000 and `rsvp_declined` 0.004 against bands of 0.05–0.15
+each. This is **not** a missing capability. The payload accepts
+`accept | decline | tentative`, the persona program's own prose names all
+three — *"set response to accept, decline, or tentative"* — and on v7 the
+personas chose:
+
+    accept      608
+    decline      12
+    tentative     0
+
+**A hypothesis, tested and refuted.** The obvious story is that a persona
+declines when it has a conflict, and this firm barely has conflicts — the
+same absence that retired `double-booked-week` at 5 clashes. Measured:
+
+    response     answered   of which the person had a clashing event
+    accept            608     4   (0.7%)
+    decline            12     0   (0.0%)
+    tentative           0     0
+
+**The twelve declines had no conflict at all**, so the absence of clashes is
+not shown to be the cause of the missing verbs, however well it fits. Both
+facts are true and the link between them is not established — the second
+time in this session that a plausible chain between two real defects turned
+out to be invented, after the wake-lockstep and the reply latency.
+
+What is left is a behaviour question with no measured cause: personas accept
+98% of what they are asked to, and never hedge. Worth a prompt-level
+experiment before anything structural, and worth doing *after* the
+front-loading fix above, because a persona answering an invitation to a
+meeting three months away has little reason to say anything but yes.
