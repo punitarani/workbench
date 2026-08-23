@@ -12,10 +12,17 @@ passes 17 entries on the first day -- so `offset % len(colleagues)` **is**
 `offset`, always, and each person is permanently assigned one file to
 review, chosen by their alphabetical rank.
 
-Measured on the six-month v6 record: 139 review versions, 18 reviewers,
-and **17 distinct documents reviewed out of 451**. Twelve of the eighteen
-reviewers reviewed exactly one document for six months. The median
-reviewer put 100% of their reviews on a single file.
+Measured on the v6 record -- 68 days, not the six months an earlier
+version of this docstring claimed: 139 review versions, 18 reviewers, and
+**17 distinct documents reviewed out of 451**. Twelve of the eighteen
+reviewers reviewed exactly one document for the whole recording. The
+median reviewer put 100% of their reviews on a single file.
+
+The lock is measurable while a run is still going. `colleagues` only grows
+by appending, so once the file room passes the roster size -- the first day
+or two -- the modulo stops biting and the pick freezes. On the live v7
+recording, 30 of 325 documents have a second reader and **no reviewer has
+been handed a document they had not already reviewed in 26 days**.
 
 The branch is not dead code and it is not unreached -- it fires 224 times.
 It is the subtler thing: code that runs, does something, and can only ever

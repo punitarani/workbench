@@ -144,13 +144,36 @@ order, and passes 17 entries on the first day — so `offset % len(...)`
 **is** `offset` for the whole run. Every person is permanently assigned one
 file to review, picked by their alphabetical rank.
 
-Measured on the six-month v6 record, from the projected file room:
+Measured on the v6 record -- **68 days**, 2026-01-05 to 2026-04-08. (An
+earlier version of this entry called it "the six-month record", conflating
+the 180-day epoch with what was actually recorded. The rates below are
+unaffected; the corpus is 2.7x smaller than I said.)
 
     review versions (author != creator)                139
     reviewers                                           18
     distinct documents ever reviewed          17 of 451  (4%)
     reviewers whose reviews are ALL one document    12 of 18
     median share of a reviewer's reviews on one file    100%
+
+**v7 has it too, and has already locked.** Measured on the live recording
+at day 57 of 180:
+
+    distinct documents ever reviewed           30 of 325  (9%)
+    reviewers reviewing exactly one document        6 of 21
+    median share on their top document                  75%
+    days since any reviewer was handed a NEW document    26
+
+The last figure is the one that matters. `colleagues` only ever grows by
+appending, so once the file room passes the roster size -- inside the first
+day or two -- `offset % len(colleagues)` **is** `offset` and the pick
+freezes. The handful of switches visible early (one reviewer runs
+2 -> 28 -> 70 across the first three weeks) is the wrapping phase before the
+lock, not variety. For v7's remaining 123 days, **no document that does not
+already have a second reader will ever get one.**
+
+That also corrects the shape of the claim: the target is the offset-th
+colleague document in creation order, and it is permanent from the
+fortnight mark -- not literally from the first review.
 
 The branch itself was a fix, and a real one — its comment records that a
 firm of seventeen had produced a hundred versions "without a single second
