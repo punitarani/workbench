@@ -59,7 +59,26 @@ def test_a_reproduced_key_says_nothing(oracle: Path) -> None:
     B._refuse_a_key_that_no_longer_reproduces("t", oracle, {"rows": [{"a": 1}], "n": 1})
 
 
-def test_same_world_different_answer_is_named_a_regression(oracle: Path) -> None:
+def test_same_world_different_answer_is_named_a_regression(
+    oracle: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The regression branch, on a world this test creates.
+
+    It used to stamp with `_world_identity()` as it stood, which reads
+    `out/merrick/bundle/SOURCE` -- present on the machine this was written
+    on and absent in a fresh checkout, where the identity degrades to empty
+    strings and the branch under test cannot be reached. It passed here and
+    failed in a worktree, which is the same disease as a test that cannot
+    fail: green for a reason that has nothing to do with the assertion.
+    """
+
+    log = tmp_path / "epoch-vX" / "world.jsonl"
+    log.parent.mkdir()
+    log.write_text('{"day": 1}\n')
+    source = tmp_path / "SOURCE"
+    source.write_text(str(log) + "\n")
+    monkeypatch.setattr(B, "_SOURCE", source)
+
     B._world_stamp_path(oracle).write_text(json.dumps(B._world_identity()))
     with pytest.raises(SystemExit) as raised:
         B._refuse_a_key_that_no_longer_reproduces("t", oracle, {"n": 2})
