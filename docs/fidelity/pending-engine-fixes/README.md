@@ -308,3 +308,34 @@ hand-kept list of two — see the same commit for
 tool server can cancel an event (`tools/calendar/server.py:587`) and
 nothing in `core/intents.py` can emit a cancellation, so the agent can
 cancel meetings and the firm never does.
+
+## the book bands describe a firm twelve times larger than any built here
+
+Sweeping for more bands that cannot pass — the `machine_share` species —
+turned up one that is pinned by arithmetic rather than by a predicate:
+
+    book.clients           merrick 10, ashgrove 9     band 120–200
+    book.top10_fee_share   1.0 in both                band 0.35–0.55
+
+The second is a consequence of the first. A top-ten share cannot be
+anything but 1.0 when the firm has ten clients or fewer, so
+`book.top10_fee_share` is not measuring concentration here — it is
+restating the client count in another form and failing for it. Unlike
+`email.machine_share` this one is satisfiable in principle; it just needs a
+world with an order of magnitude more clients than this project builds.
+
+The choice is real and worth making explicitly rather than by omission: a
+17-person firm with 10 clients and 37 matters is a coherent thing to
+simulate, and a band set written for a 150-client book will fail on it
+forever. Either the workplaces grow a realistic book or the `book.*` bands
+are marked not applicable at this scale. Leaving them to fail costs the
+same as any permanent failure — it trains the reader to skim.
+
+**Two cautions on the sweep that found this.** Only two bundles in the tree
+still have a world log their `SOURCE` can reach, so "frozen across every
+world" rests on n = 2 and is a prompt to look, not evidence. And frozen is
+not the same as broken: `billing.duration_uniform_p` and
+`email.reply_latency_uniform_p` are frozen at ~1e-304 and ~1e-182 and both
+**pass**, because their bands ask for p ≤ 0.01 — the test wants these
+distributions to be conclusively non-uniform, and they are. Invariance is
+worth investigating and is not itself a defect.
