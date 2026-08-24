@@ -170,6 +170,45 @@ the answer key. Every miss in them was the author's.
    the row.
 3. **Did anyone find it?** Cheap, and it settles most flags.
 
+## When the models agree with each other and not with you
+
+Three model families declining the *same* rows is the strongest signal
+available that the answer key is wrong, and it is worth spelling out what
+to do with it, because it recurs.
+
+**Partition twice, independently.** From the rollouts: which oracle rows
+did EVERY trial decline. From the corpus: pull each disputed speaker's
+whole contribution with **no pattern applied** and read the sentence the
+oracle cites. If the two partitions name the same rows, you are done
+arguing. On one task they matched exactly — 10 rows, derived two ways.
+
+**Then re-grade the submissions you already have.** They are on disk and
+they cost nothing, and the models never saw the correction, so it is
+uncontaminated evidence. **Validate the re-scorer first by reproducing
+every shipped reward exactly.** A first attempt missed the extra-row
+penalty and read every score high by ~0.06 — it would have "confirmed"
+the fix either way.
+
+Expect the ordering to be preserved and the spread to *widen*. If a
+correction reorders the models, it is not a correction.
+
+**The likeliest cause is not a typo in the rule — it is that the prose is
+right and the code implements something weaker.** Check the brief before
+blaming it. On one task the brief already forbade all eleven bad rows in
+its own words; the extractor tested same-sentence co-occurrence and
+nothing else.
+
+**A second derivation will not save you here.** Two implementations
+written from the same brief tend to under-implement it the same way. One
+walked characters, the other tokens, and both encoded the identical
+too-narrow negation rule — citing the same justifying example. They
+agreed on all 2,872 utterances and were both wrong.
+
+**Fix in both directions or not at all.** Every candidate rule reports
+*defects removed* AND *sound rows kept*. Validating on the disputed rows
+alone is how a clause rule that removed 7 of 10 defects also destroyed 7
+of 10 good rows.
+
 ## Structure in an error is a convention mismatch, not a mistake
 
 Model error is shapeless. When the error has *structure* — a constant

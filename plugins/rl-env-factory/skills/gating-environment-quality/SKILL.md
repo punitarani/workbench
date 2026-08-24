@@ -557,6 +557,41 @@ One companion, found in the same pass: a structural check run against
 the verifier's **own** output is arithmetic restated against itself. Run
 consistency checks against the oracle, where they can fail.
 
+## Two derivations written from the same prose under-implement it the same way
+
+The section above is about a *value* both files hardcoded. This is about
+a *rule* both files simplified, and it is worse, because there is no
+literal to pin and the brief is correct.
+
+A brief said: a promise and its date must be paired, a day named only to
+rule it out is not a deadline, and reciting somebody else's deadline
+beside an undated promise makes no row. Both derivations tested
+same-sentence co-occurrence plus a negation guard that reached only an
+*adjacent* negator. One walked characters, the other tokens. They agreed
+on all 2,872 utterances of the corpus. **Eleven of the twenty rows they
+agreed on were wrong**, and the brief had forbidden every one.
+
+The negation guards even cited the same justifying example in their
+comments — written months apart, from the same prose, by the same
+reasoning. That is the tell: when two "independent" implementations
+explain themselves with the same sentence, they are one implementation.
+
+Nothing mechanical catches this. Not shared-literal gates, not brief
+pinning (the brief was right), not mutation of either file (each catches
+the other's mutation and neither catches the shared blind spot). What
+caught it was **three model families declining the same rows**, and then
+reading the corpus with no pattern applied.
+
+**So: when a rule is stated in prose and implemented in code, treat every
+clause of the prose as a test case with a name.** For each sentence of
+the rule, write down the corpus example it excludes and assert the
+implementation excludes it. The clauses nobody turned into a test are
+exactly the ones both derivations will skip.
+
+And when the rollouts disagree with the oracle in one *direction* —
+every disputed row wrong the same way — believe them before you believe
+the second derivation.
+
 ## Mutate the thing under test before believing the test
 
 Three tests written in one day contained a copy of the code they tested —

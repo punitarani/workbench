@@ -197,3 +197,34 @@ outside the target — not a task fighting noise.
 
 Report it out rather than adjusting until it isn't. And if you do apply a
 lever, **declare it before seeing which way it moves the result.**
+
+## A band can be manufactured entirely by the answer key
+
+The most expensive way to be wrong about difficulty: a task sits at
+0.33-0.51 across three model families, looks perfectly calibrated, and is
+measuring its own defects.
+
+The tell is available before any lever is chosen. **Decompose the loss
+per criterion.** If a scalar reads 0.0 for every trial of every model
+while the counts-of-what-was-read read 1.0, the models opened the whole
+corpus and disagree with the key, not with each other. On one task
+`superseded_count` and `distinct_owners` were 0.0 in nine of nine trials
+while `meetings_read` and `turns_read` were exact.
+
+Then check recall against the subset of the key you can defend by
+reading the source. the strongest tier scored 10/10, 9/10, 10/10 there while
+its graded `live.f1` read 0.53-0.59 — and it was 100% correct on every
+evidence field of every row it matched. The reward said 0.508; the model
+was at ceiling.
+
+**Correct the key before choosing a lever**, even though correcting it
+raises the scores — that is the point. A lever applied on top of a broken
+key tunes the defect.
+
+And be ready for the honest outcome: once corrected, that task ran
+0.838/0.838/0.838 for the frontier tier. Identical three times, one
+genuine row error, the rest an exact-match integer. The apparent band was
+gone and the real difficulty was small. **Report that rather than
+re-widening the window to recover a number** — the window levers under a
+word ceiling move supersession density by fractions, and coverage was
+already measured not to survive.
