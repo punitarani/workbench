@@ -27,6 +27,10 @@ from criteria_base import *  # noqa: F401,F403
 # grading that its criteria cannot derive from the oracle.
 DELIVERABLE = "no_op_revisions.json"
 
+# Stated by the brief in its own prose, so grading it in the answer
+# dimension pays for a transcription. Checked in `process` instead.
+RESTATED_FROM_BRIEF = ("window_end",)
+
 # The list in the deliverable carrying one entry per no-op revision.
 ROWS = "no_op_revisions"
 # The served version id names a version uniquely on its own -- `LEGAL!12.3`

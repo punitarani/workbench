@@ -100,10 +100,11 @@ def test_materialize_renders_real_office_files(tmp_path: Path) -> None:
     out = tmp_path / "bundle"
     result = materialize(write_log(tmp_path, artifact_events()), out)
 
-    workbook = load_workbook(out / "workspace" / "legal" / "fees.xlsx")
+    workbook = load_workbook(out / "workspace" / "legal" / "billing" / "fees.xlsx")
     assert [cell.value for cell in workbook["Fees"][2]] == ["Vantage NDA", 3.5]
 
-    document = Document(str(out / "workspace" / "legal" / "engagement.docx"))
+    letters = out / "workspace" / "legal" / "letters"
+    document = Document(str(letters / "engagement.docx"))
     texts = [p.text for p in document.paragraphs if p.text]
     assert texts[0] == "Engagement Letter"
 
@@ -115,7 +116,7 @@ def test_a_pdf_document_materializes_as_a_pdf(tmp_path: Path) -> None:
     out = tmp_path / "bundle"
     result = materialize(write_log(tmp_path, artifact_events(with_pdf=True)), out)
 
-    rendered = out / "workspace" / "legal" / "terms.pdf"
+    rendered = out / "workspace" / "legal" / "letters" / "terms.pdf"
     assert rendered.exists()
     assert rendered.read_bytes().startswith(b"%PDF-")
     assert result.skipped_renders == ()

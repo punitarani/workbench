@@ -72,6 +72,49 @@ def _submitted(job: Path, field: str) -> dict | None:
     return best
 
 
+def _print_floors(task: Path | None, oracle: dict) -> None:
+    """What this task pays for answers that demonstrate nothing.
+
+    A score without its floor is half the evidence, and this file's whole
+    subject is whether a number measures the model. Measured on this
+    dataset: an *empty* register scores a median 0.405 across the
+    neighbouring dataset's fifteen keyed tasks, and reporting every
+    candidate scores up to 0.990 on one of them. A trial that comes back
+    0.45 there has demonstrated nothing, and nothing in this output said
+    so until now.
+
+    Printed rather than judged, and printed with its own caveat: the dump
+    is sized from the count the report declares, and when that count
+    measures *work done* rather than the candidates a cheap filter leaves,
+    the floor is a lower bound. On one task here the two differ by four
+    times.
+    """
+
+    if task is None or not oracle:
+        return
+    merrick = Path(__file__).resolve().parents[1] / "datasets" / "merrick"
+    sys.path.insert(0, str(merrick))
+    try:
+        import baselines
+    except ImportError:  # pragma: no cover - a dataset without the module
+        return
+    try:
+        floors = baselines.measure(task, oracle)
+    except Exception as error:  # pragma: no cover - a task that cannot be scored
+        print(f"  floors: could not be measured ({type(error).__name__})")
+        return
+    if not floors:
+        print("  floors: could not be measured — read this score against nothing")
+        return
+    print("  " + baselines.render("floors", floors).removeprefix("floors: "))
+    dump = floors.get("reported_every_candidate")
+    if dump is not None:
+        print(
+            f"    a score at or under {dump:.3f} is what reporting every "
+            "candidate already pays"
+        )
+
+
 def main() -> int:
     if len(sys.argv) < 2:
         print(__doc__)
@@ -97,6 +140,7 @@ def main() -> int:
     got = _submitted(job, next(iter(oracle), "")) if oracle else None
 
     print(f"=== {job.name}")
+    _print_floors(task, oracle)
     losses = []
     for dimension in ("answer", "process"):
         block = scored.get(dimension) or {}

@@ -73,6 +73,37 @@ from simulation.persona.working_memory import WorkingMemoryComponent
 MALFORMED_DRAFT = (ValidationError, AdapterParseError)
 
 
+# What the person was doing, said the way they would say it. Keyed on the
+# actor's verb because that is all the failure knows, but the verb itself
+# must never reach a memory: `create_document` is a name this firm's staff
+# have no reason to have heard.
+_WORK_IN_HAND = {
+    "create_document": "the document I was drafting",
+    "revise_document": "the mark-up I was making",
+    "send_email": "the message I was writing",
+    "reply_email": "the reply I was writing",
+    "post_chat": "the note I was posting",
+    "react_chat": "the note I was posting",
+    "create_ticket": "the matter I was opening",
+    "update_ticket": "the matter update I was recording",
+    "comment_ticket": "the matter note I was adding",
+    "log_time": "the time I was recording",
+    "schedule_meeting": "the meeting I was booking",
+}
+
+
+def _work_in_hand(action: str) -> str:
+    """The in-world name for whatever the actor was part-way through.
+
+    Falls back to a phrase rather than the verb, because an unmapped verb
+    is exactly how engine vocabulary would find its way back in: a new
+    action added upstream would otherwise start writing its own name into
+    personas' memories with nothing failing.
+    """
+
+    return _WORK_IN_HAND.get(action, "something I had started")
+
+
 class ActorActState(BaseModel):
     """What the acting component must carry across a resume: the LM call
     counter that drives per-call seed derivation and cassette keys."""
@@ -142,7 +173,10 @@ class ProfessionalActorAct:
         if self._stream is None:
             return "None yet."
         query = RetrievalQuery(
-            refs=frozenset(item.ref for item in pending),
+            # `retrieval_refs` widens a pending chat item back to its
+            # channel. The item itself names a single message, because
+            # that is what the persona must target to reply.
+            refs=self._memory.retrieval_refs(),
             tokens=tokens_of(*(item.summary for item in pending)),
         )
         now = self._memory.last_time()
@@ -566,8 +600,26 @@ class ProfessionalActorAct:
     ) -> AgentNoteIntent:
         """A draft the model filled in badly becomes the persona's own note.
 
-        Visible in the log, remembered, and survivable. Transport, budget
-        and cassette failures still raise; only content degrades.
+        Survivable, and remembered in the words a person would use.
+        Transport, budget and cassette failures still raise; only content
+        degrades.
+
+        This note used to read "I started to create_document and left the
+        draft malformed (create: Input should be a valid dictionary or
+        instance of DocumentCreateSpec)" — an engine verb and a pydantic
+        error, written into a lawyer's memory at importance 8 and retrieved
+        forever after. The personas believed it. Over thirty recorded days
+        they built a shared account of a document-management outage that
+        did not exist: 4.8% of time-entry narratives mentioned reworking
+        "malformed" drafts, a Slack thread chased "the malformed-input bug"
+        across two people and a ticket number, and somebody opened a matter
+        note to document the platform's failures. None of it happened.
+
+        So the rule this method now keeps: **the engine's own failures are
+        never world data.** What the person remembers is that the work did
+        not go out, in the vocabulary of the work. What the engine needs to
+        say about itself belongs in the run log, where an operator reads it
+        and no persona ever will.
         """
 
         return AgentNoteIntent(
@@ -576,14 +628,21 @@ class ProfessionalActorAct:
             bullets=(
                 MemoryBullet(
                     text=(
-                        f"I started to {decision.choice.action} and left "
-                        f"the draft malformed ({_first_missing(error)}); "
-                        "redo it with every field filled."
+                        f"I left {_work_in_hand(decision.choice.action)} "
+                        "unfinished and it never went out; pick it up again "
+                        "and see it through."
                     ),
                     importance=8,
                 ),
             ),
             open_loops=(),
+            # For the run log and the operator reading it. This string is
+            # what made the one-line `_create_spec` omission findable at
+            # all -- 415 identical "create: Input should be a valid
+            # dictionary or instance of DocumentCreateSpec" in thirty days
+            # named the bug outright. Keep it; just keep it away from the
+            # persona.
+            engine_detail=(f"{decision.choice.action}: {_first_missing(error)}"),
         )
 
     async def _route(
@@ -756,7 +815,16 @@ class ProfessionalActorAct:
                 intent=choice.intent,
                 context=f"{facts}\n\n{knowledge}",
             )
-            return DocumentEditIntent(document_ref=None, create=prediction.document)
+            # Through `_create_spec`, exactly as the scheduled deliverable
+            # path does. Passing `prediction.document` straight in typed an
+            # `AuthoredDocument` into a field declared `DocumentCreateSpec`
+            # and pydantic refused every one: 415 of 417 malformed drafts in
+            # thirty recorded days were this line, and 85% of the firm's
+            # document authoring never happened. The conversion existed and
+            # was correct; this call site simply did not call it.
+            return DocumentEditIntent(
+                document_ref=None, create=self._create_spec(prediction.document)
+            )
 
         prediction = await self._actor.draft_document.acall(
             identity=identity,

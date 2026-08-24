@@ -42,6 +42,19 @@ MODEL_PROVIDERS: dict[str, tuple[str, ...]] = {
     # tools payload and answers correctly anyway. Checked directly.
     "openai/gpt-5.6-sol": ("azure",),
     "openai/gpt-5.6-luna": ("openai",),
+    # First-party mxfp4 first, then the one other provider serving the same
+    # quantization with tool support. Same-quant chain on purpose: a
+    # fallback that swaps fp4 for fp8 mid-sweep makes two trials of one
+    # model incomparable, which is what the glm pins below are also doing.
+    #
+    # Excluded deliberately: `deepinfra/bf16` and `chutes/mxfp4` both
+    # report `tools=False` on their endpoint listing, and this task is
+    # entirely tool-driven -- an agent that cannot call a tool scores zero
+    # for a reason the model had no part in.
+    "moonshotai/kimi-k3": (
+        "moonshotai/mxfp4",
+        "modal/mxfp4",
+    ),
     "z-ai/glm-5.2": (
         "baidu/fp8",
         "novita/fp8",

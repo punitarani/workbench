@@ -813,7 +813,15 @@ Two riders, both learned the hard way:
 
 - **Confirm the mutation landed.** A substitution that matches nothing
   exits zero, and the honest-looking conclusion is that a correct test is
-  inadequate — exactly backwards.
+  inadequate — exactly backwards. `scripts/mutation_check.py` makes this
+  rider mechanical: a missing anchor is a non-zero exit, the source is
+  restored in a `finally` and the restore verified by digest, and
+  `--function` slices the target so a shared idiom cannot be mutated in a
+  neighbouring definition. It exists because six hand-written sweeps in
+  one day produced three failures of exactly these kinds, each of which
+  made the *tests* look wrong when the harness was.
+  `scripts/check_gates.sh` runs the whole build's refusals through it and
+  is a CI step.
 - **Mutate in the direction of the defect you fear**, not an arbitrary
   one. Deleting a whole function fails everything and proves little;
   removing the single field a gate reads is the question you actually

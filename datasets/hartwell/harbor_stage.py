@@ -90,8 +90,15 @@ PLATFORM_TAGS = {
 PYTHON_VERSION = "3.14"
 """Ubuntu 26.04's interpreter, asserted by the image build."""
 
-TOOLS = ("calendar", "clio", "gmail", "imanage", "slack")
+TOOLS = ("calendar", "clio", "gmail", "imanage", "meetings", "slack")
 """Read surfaces that get an MCP wrapper installed.
+
+Kept as a literal rather than derived from ``tools.REGISTRY`` because this
+module is uploaded into the container and must import nothing from ``src``.
+``test_every_read_system_is_installed`` compares the two so the literal
+cannot fall behind the registry -- which is the direction that bit twice:
+first ``calendar``, then ``meetings``, each built and projected and
+reachable by nobody.
 
 `calendar` was missing here while every task's `[[environment.mcp_servers]]`
 declared it and pointed at `/usr/local/bin/workbench-mcp-calendar`. The

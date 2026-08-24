@@ -17,3 +17,8 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pytest
+      # Break every refusal in the build and confirm the tests notice. A
+      # gate that has stopped refusing looks exactly like a gate with
+      # nothing to refuse, so a green pytest above says nothing about it.
+      # 84s.
+      - run: sh scripts/check_gates.sh

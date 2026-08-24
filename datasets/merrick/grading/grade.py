@@ -45,7 +45,45 @@ FIELDS = dict(criteria.FIELDS)
 # a reader reports about the work rather than the work itself.
 _SCALARS = sorted(k for k, v in ORACLE.items() if not isinstance(v, list))
 
+# ...except the ones the brief hands the agent.
+#
+# `window_end` is the boundary the instruction states in its own prose --
+# "on or before Thursday 19 February 2026" -- and the skeleton asks for it
+# back as a date. Graded here it was **10% of the reward on every task in
+# this dataset**, obtainable by transcribing one sentence of the prompt.
+# Measured on a register with three rows: an answer with the row list empty
+# and the scalars right scored 0.2, and a frontier model reformatting a
+# date it was given scored 0.1 for no work at all.
+#
+# That is not a small thing when the target band is 0.2-0.8. A floor of 0.1
+# is a tenth of the range spent before the task starts.
+#
+# `criteria_base` already states the principle this restores: presentation
+# and process checks belong in a dimension that informs without moving the
+# number. These move to `method.py`, where they still catch a reader who
+# windowed on the wrong day -- they just stop paying for it.
+_RESTATED = frozenset(getattr(criteria, "RESTATED_FROM_BRIEF", ()))
+
+# ...and the ones that are already inside the row set.
+#
+# A register that reports its rows and then also reports counts *of* those
+# rows is grading one piece of work twice. On the off-sense register six
+# scalars carried 43% of the reward and five of them —  `hits_total`,
+# `distinct_authors`, `top_author`, `form_counts`, `department_counts` —
+# are each a tally over `hits`, which `row_f1` and `row_fields` already
+# grade. Only the count of what was *read* is independent: it measures how
+# much of the window the reader opened, and nothing else captures that.
+#
+# Paying for a derived figure does not add signal, it multiplies the
+# signal already there — and it raises the floor, because an answer that
+# gets the rows badly wrong can still tally its own wrong rows correctly.
+# Checked in `process`, where a reader who cannot add up their own
+# register is still visible.
+_DERIVED = frozenset(getattr(criteria, "DERIVED_FROM_ROWS", ()))
+
 for _name in _SCALARS:
+    if _name in _RESTATED or _name in _DERIVED:
+        continue
     rk.scalar(DELIVERABLE, _name, ORACLE[_name], 0, name=_name, weight=1.0)
 
 # The row set. Five is not a round number: it is what makes one missing row

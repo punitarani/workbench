@@ -19,6 +19,26 @@ the measurement into a coin flip.
 **Difficulty targets should name a capability tier, not a number in the
 abstract.**
 
+## A floor is the first thing to move, before any lever
+
+A task cannot be hard for a model if doing nothing already scores in the
+band. Measure that before designing difficulty at all: across one shipped
+dataset's fifteen keyed tasks, an **empty register with correct scalars
+scored a median 0.405**, and "report every candidate" reached **0.990** on
+one of them. Every band judgement made there had been made without a floor,
+because the tool that computes floors returned an empty dict for that
+dataset's task shape and an empty result reads as *no floors exist* rather
+than *this function cannot see them*.
+
+The consequence for a three-model mean: on the three tasks that dataset
+called in-band, **of six non-frontier scores, three sit inside the range a
+no-comprehension dump produces, two sit 0.01–0.06 above it, and one sits
+below** — with the frontier model at 1.000 on all three. The band was one
+model at ceiling averaged with two scoring where dumping already scores.
+
+So the order is: floor first, then difficulty. A lever applied to a task
+whose floor is 0.9 buys nothing.
+
 ## Levers measured to do nothing
 
 Each was built, measured against a frontier model, and came back at

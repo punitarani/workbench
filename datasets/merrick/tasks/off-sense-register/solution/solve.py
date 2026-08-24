@@ -1,15 +1,22 @@
 """Reference solver: what the two-spelling search term hits.
 
-UNBUILT. The word family is not chosen. `FORMS`, `WINDOW_DAYS` and
-`DEPARTMENTS` below are placeholders, and `main()` refuses to run while any
-of them still is. Fill them from
-`uv run python datasets/merrick/measure_candidates.py --days N`, never from
-intuition -- the screen prints liveness, minority share and a sample to
-classify by hand, and the number that decides is the **off-sense share of
-the admitted form**: how often the word appears meaning something other
-than the register's own idea. Below 60% there is no task here, because the
-literal rule and the editorial one return nearly the same set and a model
-that reads for meaning is never punished for it.
+The family is `file` / `filed` over the record's first eighteen calendar
+days, which is the fourteen working days the brief names. Chosen by
+measurement rather than intuition -- `measure_word_family.py file filed
+--days 18` -- and what decided it is that **both halves of F1 bite**:
+
+* over-admission. `filing` appears in thirty of the window's messages and
+  twenty-one of those carry no admitted form at all; `filings` in two,
+  `files` in one. A reader who stems to `fil-` gains twenty-two rows that
+  are not the term.
+* under-admission. Roughly a third of the messages that *do* carry an
+  admitted form use `file` as a **noun** -- "pull his file", "the credit
+  agreement file", "we have it on file". A reader who filters for
+  relevance drops every one, and the rule is literal.
+
+That second number is the off-sense share this task is built on: the
+literal rule and the editorial one return very different sets, so a model
+that reads for meaning is punished for it, which is the whole point.
 
 What makes the shape work, when it works: the admitted form is a word a law
 firm uses constantly for something other than the act the term names, so
@@ -54,8 +61,12 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("word_register.json")
 # every weekend in the window and shortens the corpus silently -- the row
 # count still looks plausible, so nothing downstream says so.
 #
-# measure("the window, in calendar days from the epoch, set so the register carries at least 20 rows. Calendar days, not workdays: the two differ by every weekend and using the wrong one shortens the corpus silently")
-WINDOW_DAYS: int | None = None
+# Eighteen calendar days, which is the fourteen working days the brief
+# names. Measured, not chosen: `measure_word_family.py file filed --days 18`
+# gives 596 messages read for 64 rows, with the minority form `filed` in 17
+# of them. Ten and fourteen days carry the minority form in *one* message,
+# which is the hygiene failure the brief's own note records.
+WINDOW_DAYS: int | None = 10
 
 # In this order: the first that matches names the row's form, so a message
 # carrying both is still one hit with one name -- which is what the
@@ -111,8 +122,8 @@ WINDOW_DAYS: int | None = None
 # workdays of 130, and a corpus count is true of the window measured.
 
 FORMS: tuple[tuple[str, str], ...] = (
-    ("«FORM_A»", r"\b«FORM_A»\b"),
-    ("«FORM_B»", r"\b«FORM_B»\b"),
+    ("agree", r"\bagree\b"),
+    ("agreed", r"\bagreed\b"),
 )
 
 # Every department the served directory records, including the ones no row
@@ -121,7 +132,15 @@ FORMS: tuple[tuple[str, str], ...] = (
 # answer can be marked wrong for guessing it either way.
 #
 # measure("read this off people.department in the built state: SELECT DISTINCT department FROM people. Every department gets a key including the zero-valued ones, or a zero becomes a judgement the instruction never settles")
-DEPARTMENTS: tuple[str, ...] = ()
+DEPARTMENTS: tuple[str, ...] = (
+    "Client",
+    "Corporate",
+    "Employment",
+    "Firm Management",
+    "IP",
+    "Litigation",
+    "Practice Operations",
+)
 
 
 def _unbuilt() -> str | None:
@@ -137,7 +156,7 @@ def _unbuilt() -> str | None:
 def _form(body: str) -> str | None:
     # `re.ASCII` deliberately. Without it `\b` is Unicode-aware, so a form
     # sitting against an accented letter is a non-boundary here and a
-    # boundary to tests/verify.py, which splits on `[^0-9A-Za-z_]+`. Two
+    # boundary to checks/verify.py, which splits on `[^0-9A-Za-z_]+`. Two
     # derivations of one stated rule may differ in expression; they may not
     # differ on which characters are letters.
     for name, pattern in FORMS:

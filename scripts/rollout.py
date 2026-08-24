@@ -77,6 +77,10 @@ TIERS: dict[str, tuple[str, str]] = {
     # invoked with incompatible payload", nothing written — so it is
     # driven by hermes instead.
     "gpt-5.6-sol": (HERMES, "openai/gpt-5.6-sol"),
+    # Codex normalises a slashed id to its last segment before the request
+    # reaches the gateway, which is why the gateway carries a `kimi-k3`
+    # alias as well as the full name.
+    "kimi-k3": (CODEX, "kimi-k3"),
 }
 MODELS = TIERS  # name kept for the tag/agreement test
 

@@ -1,4 +1,10 @@
-"""Grading for the time allocation review: totals, a set, and per-row figures."""
+"""Grading for the opening-week follow-through review.
+
+This docstring named the time allocation review until 2026-08-22, and so did nine
+other tasks': the file was copied and the prose was not. The KEY comment below
+travelled with it, asserting that a row is "a person and an engagement" and citing
+197 rows collapsing to 17 -- facts about a different task's corpus, sitting in the
+one file whose job is to justify THIS task's key."""
 
 import json
 from pathlib import Path
@@ -14,9 +20,11 @@ TOP = frozenset(
     json.loads((Path(__file__).resolve().parent / "oracle.json").read_text())
 )
 ROWS = "commitments"
-# A row is a person *and* an engagement. Keyed on either alone, a
-# hundred and ninety-seven rows collapse to seventeen or to thirteen,
-# and the grader silently marks a fraction of the work as all of it.
+# A row is message id plus due date, and both halves are load-bearing: across this
+# oracle's 55 rows, message_id alone yields 41; due_date alone yields 8. Keying on
+# due_date alone would merge 47 rows into their neighbours and mark a fraction of the
+# work as all of it. Row F1 would not show a bad key: both sides dedupe identically
+# and it still reads 1.000, so the loss appears only as a ceiling no agent can reach.
 KEY = ("message_id", "due_date")
 
 

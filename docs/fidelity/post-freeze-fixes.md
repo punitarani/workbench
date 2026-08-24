@@ -25,11 +25,27 @@ straight through, because both are integers larger than the one before them.
 any horizon the run could reach. Those events caused **96% of every
 scheduling conflict in the world** and killed a task built on that signal.
 
-**And the rate is rising.** Twelve working days later the same measurement
-reads **127 of 850, 14.9%**. It is not a fixed share of a growing calendar —
-the malformed events are accumulating faster than the sound ones, so a
-figure quoted from any single day understates where the finished world lands.
-Re-measure at the end rather than trusting 8% or 15%.
+**And the rate is rising, steeply.** The same measurement over time:
+
+| recorded day | malformed starts | share |
+|---|---|---|
+| 22 | 64 of 787 | 8.1% |
+| 35 | 127 of 850 | 14.9% |
+| 109 | **464 of 1,187** | **39.1%** |
+
+Nearly two calendar events in five. The malformed ones accumulate far faster
+than the sound ones, so any single day's figure understates the finished
+world badly — this note itself said "8% or 15%" while the true figure was
+heading for forty.
+
+**This is also the clearest argument for how the gate was re-aimed.** The
+first version refused any world above a 2% raw rate. At 39% it would have
+refused the build outright, with no remedy available: the writer is frozen,
+the rate only grows, and the only move left would have been deleting a gate
+under time pressure. The version that refuses on *survivors into the served
+state* passes cleanly — the projection quarantines all 464 — while the rate
+stays loud and recorded. A gate aimed at what reaches a score survives a
+defect getting worse; a gate aimed at the generator does not.
 
 The fix belongs beside the existing check and should reject rather than
 repair, with the reason in the rejection so the persona can rewrite it:
@@ -71,15 +87,19 @@ Three of 84 documents have **no content at all**, registered under full
 professional titles — a management-incentive-plan memo, an OEM licence
 status, a counterclaim strategy. They materialize as empty `.md` files.
 
-The markdown set and the empty set are the same three documents, 3 of 3, and
-the mechanism explains why. `_reject_unless_parsable` in
+At day 113 there are **eight** empty documents of 280 — the defect recurs at
+roughly one per thirty-five documents, steadily, so it is generator
+behaviour rather than an early-run wrinkle.
+
+Eight of the nine markdown documents are the empty ones, and the mechanism
+explains why. `_reject_unless_parsable` in
 `src/simulation/gm/grounded.py` validates a document's content against its
 declared format:
 
 ```python
 parser = _PARSERS.get(content_format)
 if parser is None:
-    return                      # markdown has no parser
+    return  # markdown has no parser
 ```
 
 Spreadsheets, formatted documents and decks must parse as structured JSON.
@@ -108,8 +128,24 @@ markdown arguably should not be offered at all — but removing it while it is
 the advertised escape hatch would turn these three documents into three
 rejections, not three real documents, so the content check comes first.
 
-Earlier notes here described this as "authors choosing markdown". That was
-wrong: nobody chose it, they were sent there.
+An earlier note here described this as "authors choosing markdown", and a
+later one corrected that to "nobody chose it, they were sent there". Both
+are too absolute. At day 35 the markdown set and the empty set were
+identical, three of three, which made the second reading look complete. At
+day 113 there are nine markdown documents and eight empty ones, and the odd
+one out settles it: `doc-000280` is a 319-word status note with a heading, a
+prepared-by line and a distribution list, filed as `.md`.
+
+So both paths exist. Almost every markdown document is an author who failed
+to produce structured content and took the escape hatch the rejection
+offered. One is an author who wanted prose and wrote it. The content check
+should therefore come first and on its own merits — it fixes eight of nine —
+and removing markdown from the menu is a separate decision about whether a
+firm's file room should hold a prose note at all, which the one good example
+argues both ways on.
+
+The general shape is worth keeping: a set equality measured on three cases
+was read as a mechanism. It held for thirty more documents and then broke.
 
 ## 4. Every explicit date in a document body predates the world
 

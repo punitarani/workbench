@@ -5,6 +5,8 @@ here from one compile-time minter; the runtime game master absorbs them and
 continues the sequences without collision.
 """
 
+from datetime import date, timedelta
+
 from pydantic import BaseModel, ConfigDict
 
 from core.events import Event, EventDraft
@@ -62,21 +64,48 @@ def _clock_to_seconds(clock: str) -> int:
     return int(hours) * 3600 + int(minutes) * 60
 
 
-def _recurrence_days(recurrence: str, days: int) -> tuple[int, ...]:
-    """Which sim days a standing meeting lands on.
+def _recurrence_days(recurrence: str, days: int, epoch: date) -> tuple[int, ...]:
+    """Which day indices a standing meeting lands on.
 
-    Sim days are workdays, so "daily" is every day index and "weekly" is
-    every fifth — no calendar arithmetic, and no meeting on a Saturday
-    that the simulation does not have.
+    This said "sim days are workdays, so 'daily' is every day index and
+    'weekly' is every fifth — no calendar arithmetic, and no meeting on a
+    Saturday that the simulation does not have", and every clause of that
+    was wrong about the index it was returning. A day index is a
+    **calendar** day: `CalendarWindow.day_offset` is `index * 86_400` from
+    the epoch, and workdays are a filtered subset of the range, not a
+    compressed one.
+
+    So `daily` put a standing meeting on every Saturday and Sunday in the
+    window — 27.7% of all meetings, which is 2/7 exactly — and `weekly`,
+    stepping five calendar days, walked a "weekly" series through Monday,
+    Saturday, Thursday, Tuesday, Sunday, Friday, Wednesday and round
+    again. A firm whose weekly partner meeting is never twice on the same
+    weekday is not a firm anyone recognises, and the diary is what two of
+    this dataset's task shapes read.
+
+    The arithmetic the old comment was avoiding is the arithmetic that
+    makes it right: recurrence is a calendar notion and has to be resolved
+    against one.
     """
 
+    horizon = max(1, days)
+    workdays = tuple(
+        index
+        for index in range(horizon)
+        if (epoch + timedelta(days=index)).weekday() < 5
+    )
+    if not workdays:
+        return (0,)
     match recurrence:
         case "daily":
-            return tuple(range(max(1, days)))
+            return workdays
         case "weekly":
-            return tuple(range(0, max(1, days), 5))
+            # The same weekday every week, anchored on the first workday —
+            # seven calendar days apart, which is what "weekly" means.
+            first = workdays[0]
+            return tuple(range(first, horizon, 7))
         case _:
-            return (0,)
+            return (workdays[0],)
 
 
 class CompiledWorkplace(BaseModel):
@@ -156,6 +185,11 @@ def compile_workplace(
     for channel in spec.channels:
         for member in channel.members:
             require_person(member, f"channel {channel.name}")
+    for dm in spec.direct_messages:
+        for member in dm.members:
+            require_person(member, f"dm {'/'.join(dm.members)}")
+        if len(set(dm.members)) != 2:
+            raise ConfigError(f"dm with itself: {dm.members[0]!r}")
     for document in spec.seed_documents:
         require_person(document.author, f"seed document {document.path}")
     for calendar_event in spec.seed_calendar:
@@ -212,6 +246,16 @@ def compile_workplace(
                 members=channel.members,
             )
         )
+    for dm in spec.direct_messages:
+        payloads.append(
+            ChatConversationCreatedPayload(
+                kind="chat.conversation.created",
+                conversation_id=minter.mint("cnv"),
+                conversation_type="dm",
+                name=None,
+                members=dm.members,
+            )
+        )
     for document in spec.seed_documents:
         payloads.append(
             DocumentCreatedPayload(
@@ -235,7 +279,9 @@ def compile_workplace(
         # A standing meeting is one spec row and many instances, each with
         # its own id: sharing one id across days would make every RSVP and
         # every transcript point at the same event.
-        for day in _recurrence_days(calendar_event.recurrence, spec.days):
+        for day in _recurrence_days(
+            calendar_event.recurrence, spec.days, spec.epoch.date()
+        ):
             calendar_id = minter.mint("cal")
             start_seconds = day * 86_400 + base_start
             end_seconds = day * 86_400 + base_end

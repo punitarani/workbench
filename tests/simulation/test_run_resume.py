@@ -12,10 +12,11 @@ from test_workplace import (
 )
 
 from core.seed import Seed
+from core.store import SqliteRunStore
 from simulation.engine.engine import StopCondition
 from simulation.errors import ConfigMismatchError
 from simulation.lm.cassette import CassetteStore, RecordingLM, ReplayLM
-from simulation.run import resume_workplace, run_workplace
+from simulation.run import engine_fingerprint, resume_workplace, run_workplace
 
 
 async def record_straight_run(tmp_path: Path) -> tuple[Path, CassetteStore]:
@@ -142,3 +143,127 @@ async def test_double_resume_is_idempotent(tmp_path: Path) -> None:
     assert second.reason == "quiescent"
     assert second.steps == 0
     assert (out_dir / "world.jsonl").read_bytes() == straight_log.read_bytes()
+
+
+async def test_a_run_stores_its_engine_fingerprint(tmp_path: Path) -> None:
+    """The write, without which the refusal below can never fire.
+
+    `resume_workplace` guards on `if stored_engine and stored_engine !=
+    current_engine`, so a run that never records one resumes under any
+    rules at all, silently and forever. Deleting the single `set_meta` line
+    left the whole suite green until this test existed.
+    """
+
+    _, cassette = await record_straight_run(tmp_path)
+    store = SqliteRunStore.open(tmp_path / "straight" / "run.db")
+    stored = store.get_meta("engine_fingerprint")
+    store.close()
+    assert stored, "a recording that stores no fingerprint cannot be protected"
+    assert stored == engine_fingerprint()
+
+
+async def test_resume_refuses_after_the_grounding_rules_change(
+    tmp_path: Path,
+) -> None:
+    """The gate itself, which five tests of the fingerprint did not cover.
+
+    `config_hash` covers *what world* is being recorded and nothing about
+    *how*, so a long run can be stopped, the referee edited, and resumed --
+    flat for forty days and nested afterwards, with nothing in the log
+    saying where the seam is. That happened here at day 4 of a 130-workday
+    run and only an unrelated stop kept the world uniform.
+
+    Mutating the comparison to `if False:` left 376 tests passing.
+    """
+
+    _, cassette = await record_straight_run(tmp_path)
+    out_dir = tmp_path / "straight"
+    store = SqliteRunStore.open(out_dir / "run.db")
+    store.set_meta("engine_fingerprint", "0" * 64)
+    store.commit()
+    store.close()
+
+    with pytest.raises(ConfigMismatchError, match="grounding rules changed"):
+        await resume_workplace(
+            make_spec(),
+            out_dir=out_dir,
+            inner_lm=ReplayLM(cassette),
+            model="test/model",
+        )
+
+
+async def test_the_refusal_names_both_fingerprints(tmp_path: Path) -> None:
+    """A refusal that does not say what changed sends someone guessing.
+
+    Twelve characters of each is enough to tell two recordings apart in a
+    directory listing and short enough to read aloud.
+    """
+
+    _, cassette = await record_straight_run(tmp_path)
+    out_dir = tmp_path / "straight"
+    store = SqliteRunStore.open(out_dir / "run.db")
+    store.set_meta("engine_fingerprint", "a" * 64)
+    store.commit()
+    store.close()
+
+    with pytest.raises(ConfigMismatchError) as raised:
+        await resume_workplace(
+            make_spec(),
+            out_dir=out_dir,
+            inner_lm=ReplayLM(cassette),
+            model="test/model",
+        )
+    message = str(raised.value)
+    assert "a" * 12 in message
+    assert engine_fingerprint()[:12] in message
+
+
+async def test_allow_engine_change_is_the_documented_way_past(
+    tmp_path: Path,
+) -> None:
+    """The escape hatch the refusal names, so it must actually work.
+
+    A gate whose stated remedy does not function is worse than no gate: the
+    next person edits the guard instead.
+    """
+
+    _, cassette = await record_straight_run(tmp_path)
+    out_dir = tmp_path / "straight"
+    store = SqliteRunStore.open(out_dir / "run.db")
+    store.set_meta("engine_fingerprint", "b" * 64)
+    store.commit()
+    store.close()
+
+    await resume_workplace(
+        make_spec(),
+        out_dir=out_dir,
+        inner_lm=ReplayLM(cassette),
+        model="test/model",
+        allow_engine_change=True,
+    )
+
+
+async def test_a_run_without_a_stored_fingerprint_still_resumes(
+    tmp_path: Path,
+) -> None:
+    """`stored_engine and ...` is deliberate, not an oversight.
+
+    A run.db recorded before the fingerprint existed has no value to
+    compare, and refusing those would strand every earlier recording. The
+    guard reads "if we know what it was recorded under"; this pins that
+    reading so nobody tightens it into a refusal.
+    """
+
+    _, cassette = await record_straight_run(tmp_path)
+    out_dir = tmp_path / "straight"
+    store = SqliteRunStore.open(out_dir / "run.db")
+    store.set_meta("engine_fingerprint", "")
+    store.commit()
+    store.close()
+
+    await resume_workplace(
+        make_spec(),
+        out_dir=out_dir,
+        inner_lm=ReplayLM(cassette),
+        model="test/model",
+    )

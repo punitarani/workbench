@@ -6,6 +6,8 @@ run never wedges and every rejection is visible in the log. LM-backed repair
 (RepairIntent, ResolveFreeform) is a named future optimization target.
 """
 
+import re
+
 from pydantic import BaseModel
 
 from core.actions import (
@@ -62,9 +64,11 @@ from core.events.meetings import (
 )
 from core.events.people import PersonRecordPayload
 from core.events.tickets import (
+    PERSON_TICKET_FIELDS,
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
+    collapse_field_changes,
 )
 from core.events.work import TimeLoggedPayload
 from core.filing import filed_name
@@ -106,19 +110,47 @@ class IntentRejection(Exception):
     accept, so the note built from this rejection reports it as data. A
     gate three files away used to recover the same numbers by parsing the
     prose, which meant rewording a sentence silently zeroed a loss rate.
+
+    **Two audiences, two strings.** ``reason`` is read by a person inside
+    the fiction: it becomes a memory at importance 10, the highest this
+    world has, so it is retrieved ahead of everything else that person
+    knows and it shapes what they plan, write and say. ``detail`` is read
+    by whoever is running the recording. Most reasons here are already
+    written for the first audience — *"an email needs at least one
+    recipient; name them by full name as they appear in the thread"* is
+    exactly what a colleague would say. The one that was not put a
+    pydantic dump in front of a lawyer, at importance 10, every time a
+    document failed to parse; the firm read it, believed it, and spent six
+    months discussing a platform outage that never happened.
+
+    ``engine_fault`` is the other half. *"unsupported intent kind"* and
+    *"expected a typed intent, got …"* describe a programming mistake, not
+    a workplace one: there is no different thing the person could have
+    done, so telling them is not instruction, it is noise that outranks
+    their real memories. Those reach the operator and stop there.
     """
 
     def __init__(
         self,
         reason: str,
         *,
+        detail: str = "",
+        engine_fault: bool = False,
         dropped_entries: int = 0,
         unknown_refs: tuple[str, ...] = (),
     ) -> None:
-        super().__init__(reason)
+        super().__init__(" ".join(part for part in (reason, detail) if part))
         self.reason = reason
+        self.detail = detail
+        self.engine_fault = engine_fault
         self.dropped_entries = dropped_entries
         self.unknown_refs = unknown_refs
+
+    @property
+    def guidance(self) -> str:
+        """What the person is allowed to remember. Empty for engine faults."""
+
+        return "" if self.engine_fault else self.reason
 
 
 class DayPlan(BaseModel):
@@ -157,6 +189,30 @@ _PARSERS = {
 }
 
 
+# What a persona is told they filed, and what to do about it. The reason
+# reaches them as a memory at importance 10, so it has to be a sentence a
+# colleague would say.
+#
+# This read "send the structured JSON for that format" and cost a lawyer's
+# reflection: Cecile Marchand wrote "doc-000003 is malformed: it declares a
+# structured format but the underlying content is not actually structured
+# JSON". She was paraphrasing the referee. A partner does not know what
+# structured JSON is, and the vocabulary check that was supposed to catch
+# this had every type name and action verb in it and not the word `json`.
+_WORK_PRODUCT = {
+    "spreadsheet": "a workbook",
+    "formatted": "a document",
+    "slides": "a deck",
+    "markdown": "a note",
+}
+_HOW_TO_FIX = {
+    "spreadsheet": "set the figures out in rows and columns",
+    "formatted": "set it out in headings and paragraphs",
+    "slides": "set it out as slides, each with a title and its points",
+    "markdown": "write it as prose",
+}
+
+
 def _reject_unless_parsable(content_format: str, content: str, label: str) -> None:
     """Raise the instructive rejection unless the content really is that form.
 
@@ -169,17 +225,47 @@ def _reject_unless_parsable(content_format: str, content: str, label: str) -> No
     finally read the file room.
     """
 
+    # Empty is its own rejection, and what "empty" means depends on the
+    # format. Nine documents in a six-month world were created blank and
+    # materialized as zero-byte files -- work product the record registers
+    # and the folder loses, invisible to any check that counts documents.
+    #
+    # Here rather than on the create path alone, so revision gets the same
+    # rule. That asymmetry is the defect this function already exists to
+    # fix, arrived at from a second direction.
+    if not (content or "").strip():
+        raise IntentRejection(
+            f"{label} has no content; a document with nothing in it is not "
+            "work product — write it, or choose an action other than "
+            "creating or revising a document"
+        )
     parser = _PARSERS.get(content_format)
     if parser is None:
         return
     try:
-        parser(content)
+        parsed = parser(content)
     except ValueError as error:
         raise IntentRejection(
-            f"{label} declares {content_format} but its content does not "
-            f"parse as one ({error}); send the structured JSON for that "
-            f"format, or declare markdown and write prose"
+            f"{label} is filed as {_WORK_PRODUCT[content_format]} and what "
+            f"is in it is not one; {_HOW_TO_FIX[content_format]}, or call it "
+            "a note and write it as prose",
+            # The parser's own words, for the operator. Interpolated into
+            # the reason, this read "(1 validation error for
+            # SpreadsheetContent review_note Extra inputs are not
+            # permitted)" -- and that sentence, at importance 10, is what
+            # the firm turned into "the malformed-input bug".
+            detail=str(error),
         ) from error
+    # A workbook of column headings and no rows parses cleanly and is
+    # empty in the only sense that matters -- `formatted` and `slides`
+    # already refuse their equivalents, so this is the one format where a
+    # document can be well-formed and hold nothing.
+    sheets = getattr(parsed, "sheets", None)
+    if sheets is not None and not any(getattr(sheet, "rows", ()) for sheet in sheets):
+        raise IntentRejection(
+            f"{label} is a workbook whose sheets have no rows; put the "
+            "figures in it, or write the note as prose instead"
+        )
 
 
 # How many *other people's* engagements a turn is shown, for context. The
@@ -229,6 +315,17 @@ def _validated_format(create: DocumentCreateSpec) -> str:
 
     _reject_unless_parsable(create.content_format, create.content, create.path)
     return create.content_format
+
+
+# When a working session may begin, as seconds past midnight. A meeting at
+# 00:20 is not a meeting; two of seven persona-scheduled events in one
+# recorded day were under two thousand seconds past midnight.
+_WORKING_HOURS = (7 * 3600, 19 * 3600)
+
+
+def _clock_seconds(clock: str) -> int:
+    hours, minutes = clock.split(":")
+    return int(hours) * 3600 + int(minutes) * 60
 
 
 class GroundedGmState(BaseModel):
@@ -373,6 +470,41 @@ class GroundedGm:
                 # they preview as nobody's business, land in one batch, and
                 # ask one person to act several times at the same instant.
                 return self._entities_for((payload.person_id,))
+            # The diary. Every one of these already has a handler waiting
+            # in `memory_stream` -- "Meeting scheduled: {title}" at
+            # importance 5, "Meeting held with N turns" at importance 8 --
+            # and nothing delivered them, so a firm whose days are meetings
+            # remembered none of them. Only the genesis seed calendar was
+            # ever visible, because genesis is observed wholesale rather
+            # than routed.
+            #
+            # The responder observes their own RSVP for exactly the reason
+            # the ticket comment above gives. Measured without it: 203 of
+            # 278 responses across two recorded days were the same person
+            # answering the same invitation again, one of them fifteen
+            # times, because `_pending_all` clears an invitation on seeing
+            # the response and the response never arrived. That loop then
+            # crowded out chat, which is how it was noticed at all.
+            #
+            # Not the organizer, though they should hear it: `world_state`
+            # keeps calendar events as a set of ids with no organizer, and
+            # widening that is a change to another frozen file.
+            case CalendarEventScheduledPayload():
+                return self._entities_for((payload.organizer, *payload.attendees))
+            case CalendarResponsePayload():
+                # The organizer too. An answer nobody hears is not an
+                # answer: without this the firm records 29 declines in a
+                # sample of 278 and not one of them reaches the person who
+                # booked the meeting, so nothing is ever moved and no task
+                # can ask what was rescheduled or why.
+                return self._entities_for(
+                    (
+                        payload.responder,
+                        self._world.calendar_organizers.get(payload.calendar_event_id),
+                    )
+                )
+            case MeetingTranscriptPayload():
+                return self._entities_for(payload.attendees)
             case SimMeetingTurnPayload():
                 # Turns are minted one at a time today, but the same gap
                 # would let two land together and act one speaker twice.
@@ -435,6 +567,41 @@ class GroundedGm:
                 ):
                     return (payload.entity,)
                 return ()
+            # The diary. Every one of these already has a handler waiting
+            # in `memory_stream` -- "Meeting scheduled: {title}" at
+            # importance 5, "Meeting held with N turns" at importance 8 --
+            # and nothing delivered them, so a firm whose days are meetings
+            # remembered none of them. Only the genesis seed calendar was
+            # ever visible, because genesis is observed wholesale rather
+            # than routed.
+            #
+            # The responder observes their own RSVP for exactly the reason
+            # the ticket comment above gives. Measured without it: 203 of
+            # 278 responses across two recorded days were the same person
+            # answering the same invitation again, one of them fifteen
+            # times, because `_pending_all` clears an invitation on seeing
+            # the response and the response never arrived. That loop then
+            # crowded out chat, which is how it was noticed at all.
+            #
+            # Not the organizer, though they should hear it: `world_state`
+            # keeps calendar events as a set of ids with no organizer, and
+            # widening that is a change to another frozen file.
+            case CalendarEventScheduledPayload():
+                return self._entities_for((payload.organizer, *payload.attendees))
+            case CalendarResponsePayload():
+                # The organizer too. An answer nobody hears is not an
+                # answer: without this the firm records 29 declines in a
+                # sample of 278 and not one of them reaches the person who
+                # booked the meeting, so nothing is ever moved and no task
+                # can ask what was rescheduled or why.
+                return self._entities_for(
+                    (
+                        payload.responder,
+                        self._world.calendar_organizers.get(payload.calendar_event_id),
+                    )
+                )
+            case MeetingTranscriptPayload():
+                return self._entities_for(payload.attendees)
             case _:
                 return ()
 
@@ -480,13 +647,21 @@ class GroundedGm:
             case ChatMessagePayload():
                 members = self._world.conversations.get(payload.conversation_id, ())
                 body = payload.body.casefold()
+                # A hot conversation eventually needs a reason to continue:
+                # after six straight messages the auto-grant stops until the
+                # day moves (any wake resets the streaks).
+                #
+                # Hoisted above the two-person split so it guards the
+                # channel reply path below as well. It guarded DMs alone,
+                # and the email branch caps chains at depth 3 with the note
+                # that "without this cap, courteous personas acknowledge
+                # each other forever" — the channel path had neither, which
+                # cost nothing while replying to a channel message was
+                # effectively impossible and became a runaway the moment
+                # pending items began naming a message to reply to.
+                if self._world.chat_streaks.get(payload.conversation_id, 0) >= 6:
+                    return NextActingDecision(entities=())
                 if len(members) == 2:
-                    # A hot DM burst eventually needs a reason to continue:
-                    # after six straight messages the auto-grant stops until
-                    # the day moves (any wake resets the streaks).
-                    streak = self._world.dm_streaks.get(payload.conversation_id, 0)
-                    if streak >= 6:
-                        return NextActingDecision(entities=())
                     others = self._entities_for(
                         m for m in members if m != payload.sender
                     )
@@ -642,7 +817,11 @@ class GroundedGm:
         except IntentRejection as rejection:
             note = SimGmNotePayload(
                 kind="sim.gm.note",
-                note=f"Rejected action from {entity}: {rejection.reason}",
+                note=(
+                    f"Rejected action from {entity}: {rejection.reason}"
+                    + (f" [{rejection.detail}]" if rejection.detail else "")
+                ),
+                guidance=rejection.guidance,
                 rejected_intent=_intent_summary(action),
                 entity=entity,
                 dropped_entries=rejection.dropped_entries,
@@ -975,17 +1154,24 @@ class GroundedGm:
 
     def _extract_intent(self, action: EntityAction) -> ActionIntent:
         if not isinstance(action, IntentAction):
-            raise IntentRejection(f"expected a typed intent, got {action.kind} action")
+            raise IntentRejection(
+                f"expected a typed intent, got {action.kind} action",
+                engine_fault=True,
+            )
         if isinstance(action.intent, FreeformIntent):
             raise IntentRejection(
-                f"freeform intents are not grounded yet: {action.intent.text[:80]}"
+                "freeform intents are not grounded yet",
+                detail=action.intent.text[:80],
+                engine_fault=True,
             )
         return action.intent
 
     def _person_for(self, entity: str) -> str:
         person = self._person_for_entity.get(entity)
         if person is None:
-            raise IntentRejection(f"entity {entity} has no person record")
+            raise IntentRejection(
+                f"entity {entity} has no person record", engine_fault=True
+            )
         return person
 
     @staticmethod
@@ -1063,6 +1249,90 @@ class GroundedGm:
                 resolved.append(person)
         return tuple(resolved)
 
+    # Any minted world id, as it appears inside prose.
+    _MINTED_ID = re.compile(r"\b[a-z]{3}-\d{6}\b")
+
+    def _human_label(self, ref: str) -> str | None:
+        """What a person would call the thing this id names.
+
+        The filename comes from `core.filing`, not from the declared path.
+        A name must never lie about its bytes: an author who declares a
+        workbook and calls it `.docx` gets a file the room serves as
+        `.xlsx`, and taking the declared basename here would put a
+        filename into prose that no surface answers to. That rule already
+        has one home precisely so its readers cannot drift -- and this was
+        a fifth reader quietly reimplementing it.
+
+        A label that still carries a minted id is refused. `re.sub` does
+        not rescan its replacement, so a ticket titled "Timestamp
+        inconsistency on tkt-000001 ..." would put an id straight back
+        into the sentence this exists to clean. Returning None leaves the
+        bare id in place, which is the same visible, honest outcome an
+        unresolvable id already gets.
+        """
+
+        label: str | None = None
+        if ref.startswith("doc-"):
+            path = self._world.document_paths_by_id.get(ref)
+            if path is not None:
+                content_format = self._world.document_formats.get(ref, "markdown")
+                label = filed_name(path, content_format).rsplit("/", 1)[-1]
+        elif ref.startswith("tkt-"):
+            values = self._world.tickets.get(ref)
+            label = values.get("title") if values else None
+        if label and self._MINTED_ID.search(label):
+            return None
+        return label
+
+    def _dereference(self, text: str) -> str:
+        """Replace internal ids in prose with the names of what they point at.
+
+        Personas are shown ids because they need them: an attachment
+        field takes `doc-000042`, a reply takes `chm-000117`. Having seen
+        one, they write it into the sentence too — 26.1% of the 5,894
+        messages in a six-month world contained at least one, most often
+        "please see doc-000042 attached".
+
+        Nobody writes that. Worse, it is a shortcut: an agent asked which
+        matters a document touched can grep the id instead of reading
+        anything, so a task meant to measure comprehension measures
+        string matching.
+
+        This is a referee-level normalisation, in the same family as the
+        rule that a document's format wins an argument with its declared
+        suffix: the author's intent is kept and their expression of it is
+        corrected. Doing it here rather than at materialisation means the
+        world log itself is clean and every surface derived from it
+        agrees.
+
+        One acknowledged cost: the memory stream indexes a record by the
+        ids in its payload, so a document merely *mentioned* is no longer
+        retrievable by its id from that message. A document *attached*
+        still is — the id stays in `attachments`, which is the structured
+        field the link belongs in anyway.
+        """
+
+        return self._MINTED_ID.sub(
+            lambda match: self._human_label(match.group(0)) or match.group(0), text
+        )
+
+    def _resolve_person_field(self, ref: str | None) -> str | None:
+        """A ticket field that holds a person, resolved to that person's id.
+
+        Rejecting an unresolvable name rather than storing it keeps this
+        the same rule the create path applies. A stored name is worse than
+        a rejection: the rejection reaches the persona, which names
+        somebody real next time, while the name sits in the column
+        forever looking like data.
+        """
+
+        if ref is None:
+            return None
+        person = self._world.resolve_person(ref)
+        if person is None:
+            raise IntentRejection(f"unknown person {ref!r}")
+        return person
+
     def _ground(
         self, entity: str, intent: ActionIntent, event: Event
     ) -> tuple[EventDraft, ...]:
@@ -1096,7 +1366,9 @@ class GroundedGm:
             case MeetingSpeakIntent():
                 return self._ground_meeting_speak(entity, intent, event, delay)
             case _:
-                raise IntentRejection(f"unsupported intent kind {intent.kind}")
+                raise IntentRejection(
+                    f"unsupported intent kind {intent.kind}", engine_fault=True
+                )
 
     _MEDIA_TYPES = {
         "markdown": ("md", "text/markdown"),
@@ -1143,11 +1415,6 @@ class GroundedGm:
     def _ground_email(
         self, entity, sender, intent: EmailIntent, event, delay
     ) -> tuple[EventDraft, ...]:
-        if not intent.draft.to:
-            raise IntentRejection(
-                "an email needs at least one recipient; name them by full "
-                "name as they appear in the thread or the directory"
-            )
         minted: list[PersonRecordPayload] = []
         to = self._resolve_or_mint_people(intent.draft.to, minted)
         cc = self._resolve_or_mint_people(intent.draft.cc, minted)
@@ -1155,6 +1422,37 @@ class GroundedGm:
             if intent.thread_ref not in self._world.thread_ids:
                 raise IntentRejection(f"unknown thread {intent.thread_ref!r}")
             thread_id = intent.thread_ref
+            if not to:
+                # Address the reply from the thread it replies to, rather
+                # than refusing the turn for restating what the persona
+                # already has in front of it.
+                #
+                # This check used to run first, before the thread was even
+                # resolved, and it refused **38.2% of every attempted
+                # email** in a six-month recording -- 290 refused against
+                # 469 delivered, across 27 senders, half of every rejection
+                # in the run. Two thirds of those carried a `thread_ref`,
+                # so the recipients were sitting in the thread being
+                # replied to.
+                #
+                # The damage was not only volume. Of the threads that lost
+                # a reply, 83% contained a question, and **48.5% of every
+                # question-bearing thread lost at least one** -- so a firm
+                # that looked like it ignored half the questions put to it
+                # was a firm whose answers the referee refused. A task
+                # built on that measures the engine.
+                #
+                # It is the same lesson as the calendar's `SimTime`: do not
+                # ask a model for something derivable, derive it. Reply-all
+                # is what a work thread does, and the sender is dropped
+                # because nobody replies to themselves.
+                to = tuple(
+                    person
+                    for person in sorted(
+                        self._world.thread_participants.get(thread_id, ())
+                    )
+                    if person != sender
+                )
             # Wake-driven replies can ping-pong past any auto-grant cap; a
             # real thread this long has become a meeting or a task. The
             # rejection is feedback the persona remembers.
@@ -1169,6 +1467,14 @@ class GroundedGm:
                 )
         else:
             thread_id = self._minter.mint("thr")
+        if not to:
+            # A new thread naming nobody, or a reply to a thread this world
+            # has no other participant for. Neither is derivable, so this
+            # is still the persona's job and still an instructive refusal.
+            raise IntentRejection(
+                "an email needs at least one recipient; name them by full "
+                "name as they appear in the thread or the directory"
+            )
         in_reply_to = intent.reply_to_ref
         if in_reply_to is not None:
             parent_thread = self._world.threads.get(in_reply_to)
@@ -1189,8 +1495,8 @@ class GroundedGm:
             sender=sender,
             to=to,
             cc=cc,
-            subject=intent.draft.subject,
-            body=intent.draft.body,
+            subject=self._dereference(intent.draft.subject),
+            body=self._dereference(intent.draft.body),
             attachments=self._resolve_attachments(intent.draft.attachment_refs),
         )
         record_drafts = tuple(
@@ -1226,13 +1532,37 @@ class GroundedGm:
         if intent.reply_to_ref is not None:
             if intent.reply_to_ref not in self._world.chat_messages:
                 raise IntentRejection(f"unknown chat message {intent.reply_to_ref!r}")
+        # A chat thread is one level deep in the product these surfaces
+        # mirror: every reply carries the *root's* timestamp and there is
+        # no reply-to-a-reply. The persona replies to whatever it was
+        # shown, which is the newest message, so replies chained --
+        # measured on four recorded days, 44 of 84 replies had a parent
+        # that was itself a reply, with chains nine deep.
+        #
+        # Two things were wrong with that. The served surface set
+        # `thread_ts` to the immediate parent, so a message three deep
+        # named another reply as its thread root, which no real workspace
+        # can represent; and a chain gives every root exactly one direct
+        # reply, so a four-message exchange reads as no thread at all
+        # (threaded_reply_share 0.089 against a floor of 0.30).
+        #
+        # Flattened here, at the source, so the log is right and the
+        # surface derives correctly. The tool's own write path already
+        # states this rule -- "a reply addressed at a reply belongs to
+        # that thread's parent, as in Slack" -- and its single level of
+        # resolution becomes sufficient once nothing nests deeper.
+        reply_to = (
+            self._world.chat_thread_roots.get(intent.reply_to_ref, intent.reply_to_ref)
+            if intent.reply_to_ref is not None
+            else None
+        )
         payload = ChatMessagePayload(
             kind="chat.message",
             chat_message_id=self._minter.mint("chm"),
             conversation_id=conversation_id,
-            reply_to=intent.reply_to_ref,
+            reply_to=reply_to,
             sender=sender,
-            body=intent.draft.body,
+            body=self._dereference(intent.draft.body),
         )
         return (
             EventDraft(
@@ -1266,8 +1596,8 @@ class GroundedGm:
                 kind="ticket.created",
                 ticket_id=self._minter.mint("tkt"),
                 actor=sender,
-                title=create.title,
-                description=create.description,
+                title=self._dereference(create.title),
+                description=self._dereference(create.description),
                 requester=requester,
                 assignee=assignee,
                 status=create.status,
@@ -1287,16 +1617,49 @@ class GroundedGm:
             return tuple(drafts)
 
         if intent.ticket_ref is None:
-            raise IntentRejection("ticket intent needs a ticket_ref or create spec")
+            raise IntentRejection(
+                "ticket intent needs a ticket_ref or create spec", engine_fault=True
+            )
         values = self._world.tickets.get(intent.ticket_ref)
         if values is None:
             raise IntentRejection(f"unknown ticket {intent.ticket_ref!r}")
         if intent.changes:
-            for change in intent.changes:
+            # Person-valued fields are resolved here for the same reason
+            # the create path resolves `assignee_ref`: a persona names a
+            # colleague and the column is typed `Ref("person")`. Only the
+            # create path did it. One matter in a six-month world ended up
+            # with `responsible_person` holding the string "Cecile
+            # Marchand", which no join against the people table can match —
+            # the row does not error, it silently leaves every result that
+            # groups by who is responsible.
+            #
+            # Resolving `old` too is not symmetry for its own sake. The
+            # staleness check below compares against state that holds an
+            # id, so a persona naming the current assignee — reading it
+            # correctly off the surface it was shown — was rejected for
+            # claiming a value that was never stale.
+            #
+            # Collapsed first: a persona that changed one field twice in a
+            # single action disagreed with itself, and only the net change
+            # ever durably held. Recording both puts a transition in
+            # `matter_history` that the record never had.
+            changes = tuple(
+                change.model_copy(
+                    update={
+                        "old": self._resolve_person_field(change.old),
+                        "new": self._resolve_person_field(change.new),
+                    }
+                )
+                if change.field in PERSON_TICKET_FIELDS
+                else change
+                for change in collapse_field_changes(intent.changes)
+            )
+            for change in changes:
                 if change.field in values and values[change.field] != change.old:
                     raise IntentRejection(
-                        f"stale change to {change.field}: claimed old "
-                        f"{change.old!r}, actual {values[change.field]!r}"
+                        f"{change.field} has moved on since you last "
+                        f"looked — it reads {values[change.field]}, not "
+                        f"{change.old}; check it and make the change again"
                     )
                 if change.field == "status" and change.new not in self._vocab.statuses:
                     raise IntentRejection(f"unknown ticket status {change.new!r}")
@@ -1322,7 +1685,7 @@ class GroundedGm:
             values.update(
                 {
                     change.field: change.new
-                    for change in intent.changes
+                    for change in changes
                     if change.field in values
                 }
             )
@@ -1330,7 +1693,7 @@ class GroundedGm:
                 kind="ticket.updated",
                 ticket_id=intent.ticket_ref,
                 actor=sender,
-                changes=intent.changes,
+                changes=changes,
             )
             drafts.append(
                 EventDraft(
@@ -1346,7 +1709,7 @@ class GroundedGm:
                 kind="ticket.commented",
                 ticket_id=intent.ticket_ref,
                 actor=sender,
-                body=intent.comment,
+                body=self._dereference(intent.comment),
             )
             drafts.append(
                 EventDraft(
@@ -1358,13 +1721,28 @@ class GroundedGm:
                 )
             )
         if not drafts:
-            raise IntentRejection("ticket intent had no changes and no comment")
+            raise IntentRejection(
+                "that update changes nothing and carries no note; say what "
+                "moved, or leave a comment saying why nothing did"
+            )
         return tuple(drafts)
 
     def _ground_document(
         self, entity, sender, intent: DocumentEditIntent, event, delay
     ) -> tuple[EventDraft, ...]:
         if intent.create is not None:
+            # A deliverable with nothing in it is not a deliverable.
+            #
+            # Nine documents in a six-month world were created with empty
+            # content and materialized as zero-byte files -- work product
+            # that the record registers and the folder loses. The count by
+            # suffix cannot see it: nine .docx files, all of them real to
+            # every check that asks how many documents exist.
+            #
+            # Refused rather than dropped, for the same reason the path
+            # collision below is: the rejection reaches the persona, which
+            # can write the document or pick another action. Silently not
+            # creating it would leave the persona believing it had.
             # A file room cannot hold two files at one path, and the
             # materializer does not pretend otherwise: the second write
             # overwrites the first. So the record said fifteen documents
@@ -1383,7 +1761,15 @@ class GroundedGm:
             # directory produce one file — and the guard compared declared
             # paths, which are distinct. Measured: 32 documents, 32
             # distinct declared paths, 30 files.
-            filed = filed_name(intent.create.path, intent.create.content_format)
+            # Validated before anything is reserved. `_validated_format`
+            # parses the content and refuses an empty or malformed
+            # document, and every one of those rejections used to happen
+            # *after* the filed name was claimed — so a persona whose
+            # workbook JSON was malformed burned that filename for the
+            # rest of the run, and its retry with correct content
+            # collided with a document that had never been created.
+            content_format = _validated_format(intent.create)
+            filed = filed_name(intent.create.path, content_format)
             existing = self._world.documents_by_filed_name.get(filed)
             if existing is not None:
                 raise IntentRejection(
@@ -1405,13 +1791,14 @@ class GroundedGm:
                 title=intent.create.title,
                 path=intent.create.path,
                 location="repository",
-                content_format=_validated_format(intent.create),
+                content_format=content_format,
                 content=intent.create.content,
             )
         else:
             if intent.document_ref is None or intent.edit is None:
                 raise IntentRejection(
-                    "document intent needs a document_ref and edit, or a create spec"
+                    "document intent needs a document_ref and edit, or a create spec",
+                    engine_fault=True,
                 )
             document_id = self._world.resolve_document(intent.document_ref)
             if document_id is None:
@@ -1551,8 +1938,9 @@ class GroundedGm:
             # the worse the structural gap, the likelier a persona has no
             # valid code at all, so the more of the loss disappeared.
             raise IntentRejection(
-                f"none of these engagements exist: {sorted(set(unknown))}; log "
-                "time against the ids on your own engagement list",
+                "none of these engagements exist: "
+                + ", ".join(sorted(set(unknown)))
+                + "; log time against the ones on your own engagement list",
                 dropped_entries=len(unknown),
                 unknown_refs=tuple(sorted(set(unknown))),
             )
@@ -1582,21 +1970,41 @@ class GroundedGm:
         self, entity, sender, intent: CalendarIntent, event, delay
     ) -> tuple[EventDraft, ...]:
         if intent.schedule is not None:
-            if intent.schedule.end <= intent.schedule.start:
+            # The clock arithmetic is the referee's. A persona says "in two
+            # days at 14:00"; turning that into seconds on the simulation
+            # clock is exactly the step a language model was getting wrong
+            # -- see CalendarScheduleSpec.
+            schedule = intent.schedule
+            midnight = (int(event.time) // SECONDS_PER_DAY) * SECONDS_PER_DAY
+            day = midnight + schedule.day_offset * SECONDS_PER_DAY
+            start = day + _clock_seconds(schedule.start_clock)
+            end = day + _clock_seconds(schedule.end_clock)
+            if end <= start:
                 raise IntentRejection(
-                    f"calendar event {intent.schedule.title!r} must end after it "
-                    f"starts; give it a positive duration"
+                    f"calendar event {schedule.title!r} ends at "
+                    f"{schedule.end_clock} which is not after "
+                    f"{schedule.start_clock}; give it a positive duration"
                 )
-            attendees = self._resolve_people((sender, *intent.schedule.attendee_refs))
+            if (
+                not _WORKING_HOURS[0]
+                <= _clock_seconds(schedule.start_clock)
+                <= (_WORKING_HOURS[1])
+            ):
+                raise IntentRejection(
+                    f"calendar event {schedule.title!r} starts at "
+                    f"{schedule.start_clock}; book working sessions inside "
+                    "ordinary working hours"
+                )
+            attendees = self._resolve_people((sender, *schedule.attendee_refs))
             payload = CalendarEventScheduledPayload(
                 kind="calendar.event.scheduled",
                 calendar_event_id=self._minter.mint("cal"),
                 organizer=sender,
-                title=intent.schedule.title,
-                start=intent.schedule.start,
-                end=intent.schedule.end,
+                title=schedule.title,
+                start=start,
+                end=end,
                 attendees=attendees,
-                description=intent.schedule.description,
+                description=schedule.description,
             )
             return (
                 EventDraft(
@@ -1608,7 +2016,9 @@ class GroundedGm:
                 ),
             )
         if intent.respond is None:
-            raise IntentRejection("calendar intent needs a schedule or a response")
+            raise IntentRejection(
+                "calendar intent needs a schedule or a response", engine_fault=True
+            )
         if intent.respond.calendar_event_ref not in self._world.calendar_events:
             # Every other surface rejects an id it has never issued; without
             # this one, an invented cal- ref became a response event and the
@@ -1653,6 +2063,7 @@ class GroundedGm:
             day=intent.day,
             bullets=bullets,
             open_loops=intent.open_loops,
+            engine_detail=intent.engine_detail,
         )
         return (
             EventDraft(
@@ -1678,7 +2089,7 @@ class GroundedGm:
             clamped.append(block.model_copy(update={"start": start, "end": end}))
             previous_end = end
         if not clamped:
-            raise IntentRejection("plan has no blocks inside the working day")
+            raise IntentRejection("nothing in that plan falls inside the working day")
         key = f"{entity}|{intent.day}"
         revision = self._world.plan_revisions.get(key, 0) + 1
         payload = SimAgentPlanPayload(

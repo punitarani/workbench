@@ -26,6 +26,7 @@ from core.events.chat import (
 )
 from core.events.documents import DocumentCreatedPayload
 from core.events.email import EmailMessagePayload
+from core.events.people import PersonRecordPayload
 from core.events.tickets import TicketCreatedPayload
 from core.intents import (
     ChatIntent,
@@ -52,6 +53,12 @@ class PendingItem(BaseModel):
 # pending items — the youngest ones, in stable order. Below the cap the
 # view is exactly the old one, which keeps recorded prompts byte-stable.
 PENDING_CAP = 20
+
+# How far ahead an unanswered invitation still counts as outstanding work.
+# Two weeks: long enough that a meeting is real and worth answering, short
+# enough that a calendar seeded six months deep does not become somebody's
+# whole job. See `_pending_all`.
+_INVITATION_HORIZON = 14 * 86_400
 
 
 class WorkingMemoryState(BaseModel):
@@ -128,10 +135,29 @@ class WorkingMemoryComponent(BaseComponent):
         # and every post is rejected. Nothing then reaches the log for
         # anyone to learn the real id from, so the firm's chat goes silent
         # from a cold start it cannot recover from.
+        # A DM has no name — it is identified by who is in it — so it
+        # rendered as a bare `cnv-000015`. A persona shown that has no
+        # reason to ever post in it, and no way to tell one such id from
+        # another. Name the other person instead.
+        names = {
+            e.payload.person_id: e.payload.name
+            for e in events
+            if isinstance(e.payload, PersonRecordPayload)
+        }
+
+        def _label(payload: ChatConversationCreatedPayload) -> str:
+            if payload.name:
+                return f"{payload.name} ({payload.conversation_id})"
+            others = [
+                names.get(member, member)
+                for member in payload.members
+                if member != self._person_id
+            ]
+            who = ", ".join(others) if others else "yourself"
+            return f"direct message with {who} ({payload.conversation_id})"
+
         channels = [
-            f"{e.payload.name} ({e.payload.conversation_id})"
-            if e.payload.name
-            else e.payload.conversation_id
+            _label(e.payload)
             for e in events
             if isinstance(e.payload, ChatConversationCreatedPayload)
             and self._person_id in e.payload.members
@@ -148,7 +174,7 @@ class WorkingMemoryComponent(BaseComponent):
         if tickets:
             lines.append("Tickets you know of: " + "; ".join(tickets))
         if channels:
-            lines.append("Chat channels you can post in: " + "; ".join(channels))
+            lines.append("Chat conversations you can post in: " + "; ".join(channels))
         # An invitation nobody can see is an invitation nobody answers. The
         # first RSVPs in this engine's history named events invented out of
         # their titles, because the id had never been put in front of anyone.
@@ -306,15 +332,112 @@ class WorkingMemoryComponent(BaseComponent):
                         last_time = int(event.time)
                         answered = False
             if last_message is not None and not answered:
+                # The *message*, not the conversation it sits in.
+                #
+                # `post_chat` treats a chm- target as a reply and anything
+                # else as a fresh post to the channel, and the decide
+                # prompt tells personas to "target a chm- message id
+                # instead when you are answering that particular message".
+                # This was the only place a chat item was offered, and it
+                # offered the conversation — so the reply branch could fire
+                # only if a persona invented an id, which the same prompt
+                # forbids. Measured on a 130-workday world: 3 replies in
+                # 3,177 messages. A chat surface with no threads is not a
+                # chat surface, and the one task that needed "who answered
+                # this" had to reconstruct adjacency from timestamps.
+                #
+                # Posting fresh is unaffected: the Situation block lists
+                # every channel the person belongs to with its cnv- id.
                 items.append(
                     PendingItem(
-                        ref=conversation_id,
+                        ref=last_message.chat_message_id,
                         channel="chat",
                         summary=last_message.body[:80],
                         age_minutes=max(0, (now - last_time) // 60),
                     )
                 )
+        # An invitation nobody has answered.
+        #
+        # `respond_invite` is a verb, `CalendarResponseSpec` is a schema and
+        # the referee grounds both — and until now nothing ever put an
+        # unanswered invitation in front of the person it was sent to. The
+        # only replies that happened came from personas who stumbled on the
+        # meeting through memory retrieval, which is why a corrected-engine
+        # pilot answered 187 of 2,765 invitations: 93% unanswered, and one
+        # decline in the whole record. A diary where nobody ever says no is
+        # not a diary anyone can ask questions about.
+        #
+        # Organizers are skipped — booking a meeting is not an invitation to
+        # yourself — and so are meetings that have already started, because
+        # an RSVP to this morning's call is not outstanding work.
+        #
+        # And so is anything past `_INVITATION_HORIZON`. That bound is not
+        # tidiness, it is the difference between a firm and a queue.
+        # Measured on the first three recorded days without it: the seed
+        # calendar issues 520 of its 522 meetings on day 0, spread across
+        # all 180 days, so every persona woke up holding a median of **125**
+        # unanswered invitations — 225 for the worst — against a
+        # `PENDING_CAP` of 20. They worked through it dutifully, 113 RSVPs a
+        # day where the old engine managed 14, and the turns had to come
+        # from somewhere: chat fell to 0.36x and reactions to 0.33x. A
+        # backlog of 2,017 invitations takes eighteen days to clear, so a
+        # seventh of the record would have been a firm that RSVPs and
+        # barely speaks.
+        #
+        # A fortnight is what a professional actually plans over, and the
+        # behaviour agrees: of the RSVPs personas made unbounded, 73% were
+        # to meetings within two days and 99% within a week. So this
+        # removes the backlog without removing the behaviour — median
+        # pending invitations 125 -> 7, which fits under the cap beside a
+        # person's actual mail.
+        answered_events = {
+            event.payload.calendar_event_id
+            for event in events
+            if isinstance(event.payload, CalendarResponsePayload)
+            and event.payload.responder == self._person_id
+        }
+        for event in events:
+            payload = event.payload
+            if (
+                isinstance(payload, CalendarEventScheduledPayload)
+                and self._person_id in payload.attendees
+                and payload.organizer != self._person_id
+                and payload.calendar_event_id not in answered_events
+                and now < int(payload.start) <= now + _INVITATION_HORIZON
+            ):
+                items.append(
+                    PendingItem(
+                        ref=payload.calendar_event_id,
+                        channel="invitation",
+                        summary=payload.title,
+                        age_minutes=max(0, (now - int(event.time)) // 60),
+                    )
+                )
         return tuple(items)
+
+    def retrieval_refs(self) -> frozenset[str]:
+        """What the pending items are *about*, for memory retrieval.
+
+        Not the same set as the ids the persona is asked to target. A
+        memory record carries every id in its payload, so querying a chm-
+        id returns records touching that one message, where the cnv- id
+        returns the channel's history. Narrowing the target ref without
+        widening this would have traded threading for context — the
+        persona would reply to a message with no memory of the channel it
+        was posted in.
+        """
+
+        refs: set[str] = set()
+        conversation_of = {
+            e.payload.chat_message_id: e.payload.conversation_id
+            for e in self._require_hydrated()
+            if isinstance(e.payload, ChatMessagePayload)
+        }
+        for item in self.pending_items():
+            refs.add(item.ref)
+            if (conversation := conversation_of.get(item.ref)) is not None:
+                refs.add(conversation)
+        return frozenset(refs)
 
     def get_state(self) -> WorkingMemoryState:
         events = self._require_hydrated()

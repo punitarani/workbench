@@ -18,6 +18,7 @@ broken task, and this is the gate that says so before it is ever run.
 """
 
 import asyncio
+import hashlib
 import json
 import re
 import shutil
@@ -32,6 +33,11 @@ from tools.registry import REGISTRY
 # prior knowledge finds anything at all. If a value cannot be reached from
 # them (directly or through the ids they hand out), it is not discoverable.
 _MAX_FOLLOW = 400
+
+# How many times the crawl opens what the previous round named. Two was
+# one short: iManage needs workspace -> document -> versions before a
+# non-head version id appears anywhere.
+_MAX_DEPTH = 3
 
 # Pagination is navigation, not a special case: a message on page nine is
 # every bit as reachable as one on page one.
@@ -142,6 +148,66 @@ async def _collect(server, name: str, arguments: dict, into: set[str]) -> None:
         arguments[token_arg] = token
 
 
+async def _follow(server, tools, discovered: set[str]) -> set[str]:
+    """Open what the previous round named, until nothing new turns up.
+
+    This was a single round, and one round short of the surface it gates.
+    On iManage an agent goes workspace -> document -> versions:
+    `get_container_children` needs a workspace id, and only its result
+    names the documents whose version lists carry every id but the head.
+    Following step one alone, a six-month world's crawl discovered 105
+    `LEGAL!` ids and not one bare document reference, so `LEGAL!24.6` --
+    which `get_document_versions("24")` returns without complaint -- was
+    reported unservable and blocked a task whose answer key was correct.
+
+    A false positive here is not a small thing. The gate's whole job is to
+    say "no agent could produce this", and when it says so wrongly, the
+    obvious response is to rewrite a rule that was right.
+
+    Shortest first, then alphabetical. The cap bounds a walk that is
+    otherwise quadratic, but truncating it alphabetically sorted
+    seventeen-character timestamps ahead of nine-character channel ids and
+    cut every channel out of the follow -- so two messages in a
+    543-message room were reported as unservable while the tool returned
+    them happily when asked.
+
+    Each round follows only what it has not followed already, so the cost
+    is rounds x cap rather than the square of everything seen.
+    """
+
+    followers = [
+        tool
+        for tool in tools
+        if len((tool.input_schema or {}).get("required") or []) == 1
+    ]
+    reached: set[str] = set()
+    frontier = discovered
+    followed: set[str] = set()
+    for _ in range(_MAX_DEPTH):
+        candidates = sorted(
+            (
+                value
+                for value in frontier
+                if value
+                and len(value) < 64
+                and " " not in value
+                and value not in followed
+            ),
+            key=lambda value: (len(value), value),
+        )[:_MAX_FOLLOW]
+        if not candidates:
+            break
+        followed.update(candidates)
+        found: set[str] = set()
+        for tool in followers:
+            required = (tool.input_schema or {}).get("required") or []
+            for value in candidates:
+                await _collect(server, tool.name, {required[0]: value}, found)
+        reached |= found
+        frontier = found
+    return reached
+
+
 async def _served(state_dir: Path) -> set[str]:
     """Everything two steps of honest navigation can reach.
 
@@ -173,28 +239,7 @@ async def _served(state_dir: Path) -> set[str]:
                 await _collect(server, tool.name, {"query": ""}, discovered)
         reachable |= discovered
 
-        # Step two: open what step one named.
-        # Shortest first, then alphabetical. The cap bounds a crawl that is
-        # otherwise quadratic, but truncating it alphabetically sorted
-        # seventeen-character timestamps ahead of nine-character channel ids
-        # and cut every channel out of the follow -- so two messages in a
-        # 543-message room were reported as unservable while the tool
-        # returned them happily when asked.
-        candidates = sorted(
-            (
-                value
-                for value in discovered
-                if value and len(value) < 64 and " " not in value
-            ),
-            key=lambda value: (len(value), value),
-        )[:_MAX_FOLLOW]
-        for tool in tools:
-            schema = tool.input_schema or {}
-            required = schema.get("required") or []
-            if len(required) != 1:
-                continue
-            for value in candidates:
-                await _collect(server, tool.name, {required[0]: value}, reachable)
+        reachable |= await _follow(server, tools, discovered)
     return reachable
 
 
@@ -208,16 +253,20 @@ def served_vocabulary(state_dir: Path) -> set[str]:
     bundle is never answered from a stale one.
     """
 
-    fingerprint = (
-        str(state_dir.resolve()),
-        tuple(
-            sorted(
-                (path.name, path.stat().st_mtime_ns) for path in state_dir.glob("*.db")
-            )
-        ),
-    )
+    fingerprint = _state_digest(state_dir)
+    if fingerprint is None:
+        # Unknown provenance: crawl, and cache nothing. This is the path a
+        # bundle with no SOURCE takes, and it must not share a key with
+        # any other bundle.
+        with tempfile.TemporaryDirectory() as scratch:
+            mirror = Path(scratch) / "state"
+            shutil.copytree(state_dir, mirror)
+            return asyncio.run(_served(mirror))
     if fingerprint not in _VOCABULARY:
         _VOCABULARY.clear()
+        if (cached := _read_cache(state_dir, fingerprint)) is not None:
+            _VOCABULARY[fingerprint] = cached
+            return cached
         # Crawled on a copy, because reading this world writes to it.
         # iManage keeps an access log and every tool call appends a row to
         # it -- a real feature of the product, and the reason the staged
@@ -229,7 +278,81 @@ def served_vocabulary(state_dir: Path) -> set[str]:
             mirror = Path(scratch) / "state"
             shutil.copytree(state_dir, mirror)
             _VOCABULARY[fingerprint] = asyncio.run(_served(mirror))
+        _write_cache(state_dir, fingerprint, _VOCABULARY[fingerprint])
     return _VOCABULARY[fingerprint]
+
+
+# The crawl is the dominant cost of a build: ~18 minutes of the ~25 a
+# single-task build takes, and it is repeated in full every time because
+# `materialize` rewrites `state/` from scratch and the in-process memo
+# dies with the process. Keyed on the *content* of the databases rather
+# than their mtimes, so a bundle rebuilt from the same world log answers
+# from the cache and a bundle rebuilt from a different one cannot.
+#
+# Hashing 16MB of SQLite costs well under a second. Getting this wrong in
+# the stale direction would be serious -- a reachability verdict from
+# another world -- which is why it is a digest of the bytes and not a
+# timestamp.
+_CACHE_NAME = ".reachability.json"
+
+
+def _state_digest(state_dir: Path) -> str | None:
+    """What this crawl's answer actually depends on: the world log.
+
+    Hashing the databases was the obvious thing and it does not work. Two
+    SQLite files holding identical rows differ byte for byte after a
+    rebuild — page layout, freelists, insertion order — so the digest
+    changed every time `materialize` ran, which is exactly and only when
+    the cache would have paid. A test caught it; the implementation looked
+    right.
+
+    The served state is a deterministic projection of one world log, so
+    the log is the honest key. `SOURCE` records which log built this
+    bundle — written by the build the moment the bundle becomes that
+    world — and hashing 47MB of JSONL costs about a fifth of a second
+    against the eighteen minutes it saves.
+
+    Returns None when the provenance is unknown, which means crawl. A
+    missing key must never be treated as a matching one.
+    """
+
+    source = state_dir.parent / "SOURCE"
+    if not source.is_file():
+        return None
+    log = Path(source.read_text(encoding="utf-8").strip())
+    if not log.is_file():
+        return None
+    digest = hashlib.sha256()
+    with log.open("rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _read_cache(state_dir: Path, fingerprint: str) -> set[str] | None:
+    path = state_dir.parent / _CACHE_NAME
+    if not path.is_file():
+        return None
+    try:
+        stored = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError:
+        return None
+    if stored.get("state") != fingerprint:
+        return None
+    values = stored.get("reachable")
+    return set(values) if isinstance(values, list) else None
+
+
+def _write_cache(state_dir: Path, fingerprint: str, reachable: set[str]) -> None:
+    path = state_dir.parent / _CACHE_NAME
+    try:
+        path.write_text(
+            json.dumps({"state": fingerprint, "reachable": sorted(reachable)}),
+            encoding="utf-8",
+        )
+    except OSError:
+        # A cache that cannot be written is a slow build, not a wrong one.
+        pass
 
 
 _VOCABULARY: dict[tuple, set[str]] = {}

@@ -150,3 +150,54 @@ def test_a_missing_or_unparsable_deliverable_scores_zero(tmp_path: Path) -> None
     assert cb.submitted(tmp_path, "answer.json") is None
     (tmp_path / "answer.json").write_text("not json at all")
     assert cb.submitted(tmp_path, "answer.json") is None
+
+
+def test_extra_rows_cannot_wipe_out_correct_work(tmp_path: Path) -> None:
+    """The promise `row_fields` makes in its own comment, now enforced.
+
+    The penalty was bounded by half of `checked` — a number about the
+    *oracle's* size, which says nothing about how much the agent got right.
+    So an answer could floor at zero while holding rows that were correct
+    in every graded field. Measured on a real rollout: Opus 5 returned 10
+    of 33 rows exactly right, `meeting_id` and `said_at` identical to the
+    oracle, alongside 12 rows keyed differently. matched 20, penalty 24,
+    score 0.000.
+
+    A criterion reporting zero for that is not measuring the model, and a
+    reader looking at the 0.000 learns nothing about what the agent knew —
+    which is what the comment above the penalty has always said.
+    """
+
+    expected = [{"ref": f"row{i}", "a": "yes", "b": "yes"} for i in range(10)]
+    cb = _load(tmp_path, {"rows": expected})
+    _write(
+        tmp_path,
+        {
+            "rows": [{"ref": f"row{i}", "a": "yes", "b": "yes"} for i in range(3)]
+            + [{"ref": f"junk{i}", "a": "no", "b": "no"} for i in range(12)]
+        },
+    )
+    score = cb.row_fields(
+        tmp_path, "answer.json", "rows", ["ref"], expected, {"a": 0.0, "b": 0.0}
+    )
+    assert score > 0.0, "three rows correct in every field must not score zero"
+    assert score < 0.3, "twelve invented rows must still cost"
+
+
+def test_inventing_rows_without_getting_any_right_still_scores_zero(
+    tmp_path: Path,
+) -> None:
+    """Guard the guard.
+
+    The cap is relative to correct work, so an answer with no correct work
+    has nothing to protect. This is the case the previous bound got right,
+    and it must not regress while fixing the case it got wrong.
+    """
+
+    expected = [{"ref": f"row{i}", "a": "yes"} for i in range(10)]
+    cb = _load(tmp_path, {"rows": expected})
+    _write(tmp_path, {"rows": [{"ref": f"junk{i}", "a": "no"} for i in range(12)]})
+    assert (
+        cb.row_fields(tmp_path, "answer.json", "rows", ["ref"], expected, {"a": 0.0})
+        == 0.0
+    )

@@ -112,11 +112,8 @@ Rates are **dollars per hour**, recorded against the individual entry.
 Fees are in **dollars**: an entry's fee is the rate on that entry times
 that entry's hours.
 
-**Fees are per entry, not per person and not per matter.** Charge each
-entry at the rate that entry carries and add the results. Do not total
-somebody's hours and multiply once by a rate found elsewhere: people work
-at different rates in different places, and the two methods give different
-answers.
+**Charge each entry at the rate that entry carries.** The rate is
+recorded on the entry; read it there.
 
 **Not every hour can be charged, and there are two separate reasons.**
 
@@ -141,7 +138,7 @@ This decides rows as much as it decides totals: a row is a sum over as many
 as «MEASURE: the largest number of flagged entries in one matter-and-
 timekeeper row» entries, and the two orders disagree on «MEASURE: the share
 of rows on which sum-then-round and round-then-sum give different figures at
-2 dp. `tests/verify.py` computes and prints this, and fails the derivation
+2 dp. `checks/verify.py` computes and prints this, and fails the derivation
 below a fifth. On the two-day probe bundle it is 0.0% of 59 rows, because
 those rows average 1.2 flagged entries each and a one-entry row cannot
 disagree with itself — so this paragraph is decoration until the window is

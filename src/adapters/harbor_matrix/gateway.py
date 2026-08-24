@@ -41,6 +41,7 @@ MODEL_ALIASES: dict[str, str] = {
 # resolves to "unsupported model" with no pins. These entries put the family
 # back on.
 DIAGNOSTIC_ALIASES: dict[str, str] = {
+    "kimi-k3": "moonshotai/kimi-k3",
     "glm-5.2": "z-ai/glm-5.2",
     "deepseek-v4-flash-0731": "deepseek/deepseek-v4-flash-0731",
 }

@@ -163,7 +163,22 @@ def row_fields(
     extra = len(set(mine) - set(_keyed(expected, tuple(key))))
     # Invented rows cost, but cannot wipe out work that is correct: a
     # cliff to zero tells the reader nothing about what the agent knew.
-    penalty = min(extra * len(spec), checked // 2)
+    #
+    # The third bound is what makes that true, and it was missing. Capping
+    # the penalty at half of `checked` bounds it against the *oracle's*
+    # size, which says nothing about how much the agent got right — so an
+    # answer with real correct work still floored at zero whenever the
+    # penalty happened to exceed it. Measured: Opus 5 returned 10 of 33
+    # rows exactly right, evidence fields and all, alongside 12 rows keyed
+    # differently; matched 20, penalty 24, score 0.000. A criterion
+    # reporting zero for that is not measuring the model, and this file
+    # already said so in the line above.
+    #
+    # Capping against `matched` as well means over-reporting can at most
+    # halve correct work. It still costs: the same answer moves 0.000 ->
+    # 0.152, and an answer that invents rows without getting any right
+    # scores zero on its own merits rather than by penalty.
+    penalty = min(extra * len(spec), checked // 2, matched // 2)
     if not checked:
         # Nothing expected and nothing invented is a correct answer. This
         # said the opposite, so a task whose world held no findings failed

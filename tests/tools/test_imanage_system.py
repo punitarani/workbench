@@ -213,7 +213,7 @@ async def test_search_by_content_and_number(server) -> None:
         "name": "NDA Playbook",
         "wstype": "document",
         "workspace_name": "legal",
-        "path": "/legal/playbooks/nda-playbook.md",
+        "path": "legal/playbooks/nda-playbook.md",
         "matched_versions": [2],
         "in_head": True,
     }
@@ -306,7 +306,7 @@ async def test_document_profile_exact_keys(server) -> None:
         "wstype": "document",
         "workspace_id": "LEGAL!W1",
         "workspace_name": "legal",
-        "path": "/legal/playbooks/nda-playbook.md",
+        "path": "legal/playbooks/nda-playbook.md",
         "content_type": "D",
     }
     for ref in ("LEGAL!1", "1", "doc-000001"):
@@ -363,13 +363,13 @@ async def test_container_children(server) -> None:
             "id": "LEGAL!1.2",
             "name": "NDA Playbook",
             "wstype": "document",
-            "path": "/legal/playbooks/nda-playbook.md",
+            "path": "legal/playbooks/nda-playbook.md",
         },
         {
             "id": "LEGAL!3.1",
             "name": "Engagement Letter",
             "wstype": "document",
-            "path": "/legal/letters/engagement-letter.md",
+            "path": "legal/letters/engagement-letter.md",
         },
     ]
 

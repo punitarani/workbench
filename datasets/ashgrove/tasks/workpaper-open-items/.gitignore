@@ -1,0 +1,8 @@
+# Derived data, rebuilt from the world log by datasets/ashgrove/build_tasks.py.
+# bundle/ is the whole materialized firm; environment/ is the half staged
+# for the agent. Both are deleted and rewritten on every build, so a
+# committed copy is whichever world was on disk that day -- and it reads
+# as the current one. The answer key under tests/ is not derived and ships.
+bundle/
+environment/
+__pycache__/

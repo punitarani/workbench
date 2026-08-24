@@ -27,6 +27,27 @@ LOG="/tmp/${DATASET}-epoch.log"
 RUNNER="datasets/${DATASET}/run_epoch.py"
 PY="./.venv/bin/python"
 
+# The runner refuses record mode without OPENROUTER_API_KEY, and calling
+# the venv interpreter directly does not load `.env` the way the
+# documented `uv run --env-file .env` invocation does. This script drove
+# a 180-day run straight into "record mode requires OPENROUTER_API_KEY",
+# three times, and then reported it as "not a transient failure" —
+# correctly, and uselessly, because the cause was one unset variable.
+#
+# Sourced with `set -a` so every assignment exports. Values never reach
+# stdout: the log this writes is world-readable for as long as it exists.
+if [ -f .env ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . ./.env
+    set +a
+fi
+if [ -z "${OPENROUTER_API_KEY:-}" ]; then
+    echo "[supervise] OPENROUTER_API_KEY is not set and .env did not provide" \
+         "it; record mode cannot start." >&2
+    exit 1
+fi
+
 # The artifact, not the progress log. `telemetry.jsonl` gains a day row
 # during the run; `world.jsonl` is written once per segment at the very
 # end, and it is the only thing anything downstream reads. A kill between
@@ -69,13 +90,27 @@ print(sum(1 for i in range(days) if (start + timedelta(days=i)).weekday() < 5))
 EOF
 )
 stalled=0
+attempts=0
 
 while :; do
     before=$(days_done)
-    if [ "${before}" -ge "${target}" ] && [ "$(world_days)" -ge "${target}" ]; then
-        echo "[supervise] $(world_days) workdays in world.jsonl — done"
+    # Only before the first segment of this invocation. Below, a completed
+    # run is accepted on the artifact *and* a clean exit — deliberately,
+    # because a segment that returned non-zero still ended the run once.
+    # This check accepted on the counts alone, so a segment that failed its
+    # own validation was caught by the guard below, resumed, and then
+    # walked straight out of the top of the next iteration. The guard was
+    # bypassed one loop later by the check above it.
+    #
+    # Kept for the case it was written for: a supervisor pointed at a run
+    # that is already finished should say so and stop, not resume it.
+    if [ "${attempts}" -eq 0 ] \
+        && [ "${before}" -ge "${target}" ] \
+        && [ "$(world_days)" -ge "${target}" ]; then
+        echo "[supervise] $(world_days) workdays already in world.jsonl — done"
         exit 0
     fi
+    attempts=$(( attempts + 1 ))
 
     # Branch on whether a run *exists*, not on whether it produced a day.
     # The store is created before the first step and `start` refuses over

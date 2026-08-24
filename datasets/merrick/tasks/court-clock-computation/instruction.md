@@ -1,3 +1,34 @@
+<!--
+STOP — DO NOT FILL THIS BRIEF. The premise does not hold on this world.
+
+The three forms the table below admits match FOUR messages in the whole
+67-day record, across 1,959 mail and chat bodies:
+
+    within N days     1
+    N days after      1
+    due in N days     2
+
+The best window yields 3 rows against a twelve-row floor. There is no
+window of this record that carries a register.
+
+A wider reading does not rescue it. Admitting `in N days` (3 messages) and
+`N days from` (5) reaches about a dozen over six months — still under the
+floor for any window, and only by admitting forms this brief does not.
+
+**How this was nearly missed, twice over.** A first screen reported the
+task viable on 195 interval-bearing messages. That pattern matched any
+`N days` construction anywhere, and most of its hits were the docket
+tracker's own "N days remaining" — not a court clock at all. The same audit
+had already gone wrong in the other direction, reporting `one-sentence-two-
+dates` as empty under a pattern narrower than the corpus's vocabulary. A
+screen too broad ships a dead task; a screen too narrow retires a live one,
+and the second failure looks like diligence.
+
+Retire it, or re-found it on intervals this firm actually writes.
+
+See docs/fidelity/task-viability.md.
+-->
+
 # The clock each deadline runs on
 
 You are the **docket and calendar manager** at **Merrick Stanton LLP**, a

@@ -45,7 +45,7 @@ KEY = ("matter", "timekeeper")
 # the round-then-sum the instruction spends a paragraph forbidding. At
 # 0.011 a row is forgiven a rounding direction and nothing above it.
 #
-# `tests/verify.py` reads this dict and counts a round-then-sum
+# `checks/verify.py` reads this dict and counts a round-then-sum
 # disagreement only when it exceeds the tolerance here, so the design
 # gate certifies rows the grader can actually see.
 FIELDS: dict[str, float] = {

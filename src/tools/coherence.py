@@ -29,10 +29,22 @@ def _present(connection, table: str) -> bool:
 def check_coherence(
     state_dir: Path, systems: Sequence[ToolSystem]
 ) -> tuple[CoherenceFinding, ...]:
+    # A bundle materialized before a system existed has no database for it,
+    # and no rows can dangle — the same reasoning `_present` already applies
+    # one level down to a table a bundle predates.
+    #
+    # Without this, adding a sixth tool system turned every previously built
+    # bundle into `sqlite3.OperationalError: unable to open database file`,
+    # raised from a path the caller never mentions. A check that cannot read
+    # an old bundle cannot certify one.
+    present = [
+        system for system in systems if (state_dir / f"{system.name}.db").is_file()
+    ]
     connections = {
         system.name: connect_readonly(state_dir / f"{system.name}.db")
-        for system in systems
+        for system in present
     }
+    systems = present
     try:
         known: dict[str, set[str]] = {}
         for system in systems:

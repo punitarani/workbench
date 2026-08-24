@@ -66,7 +66,7 @@ OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("prebill_screen.json")
 #
 # Held as day indices and not as parsed dates on purpose: the world's
 # clock is seconds-from-epoch and a date string here would need a
-# timezone the record does not repeat. `tests/verify.py` goes the other
+# timezone the record does not repeat. `checks/verify.py` goes the other
 # way — from the calendar dates the instruction names — precisely so that
 # a shifted boundary cannot pass unnoticed. A boundary the solver and the
 # oracle share is not checked by their agreeing.

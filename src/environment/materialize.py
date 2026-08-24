@@ -50,8 +50,7 @@ def _write_document_files(
     connection = sqlite3.connect(imanage_db)
     try:
         rows = connection.execute(
-            "SELECT documents.document_id, documents.workspace, "
-            "documents.path, versions.content, documents.extension "
+            "SELECT documents.document_id, documents.path, versions.content "
             "FROM documents JOIN versions "
             "ON versions.document_id = documents.document_id "
             "AND versions.version = documents.head_version "
@@ -60,14 +59,16 @@ def _write_document_files(
     finally:
         connection.close()
     skipped: list[str] = []
-    for document_id, workspace, path, content, extension in rows:
+    for document_id, path, content in rows:
         # The name follows the bytes. An author who declared a workbook and
         # named it `.docx` would otherwise leave a file Word cannot open,
         # and an agent that trusts the extension is misled by the
         # environment rather than by the work.
-        basename = path.rsplit("/", 1)[-1]
-        stem = basename.rsplit(".", 1)[0] if "." in basename else basename
-        target = agent_workspace / workspace / f"{stem}.{extension}"
+        # `path` is already what `filed_name` decided when the profile was
+        # projected: directories, case and extension all settled in one
+        # place. Recomputing a location here is how the file room and the
+        # document system came to disagree in the first place.
+        target = agent_workspace / path
         content_format = formats.get(document_id, "markdown")
         if content_format == "markdown":
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -91,10 +92,32 @@ def materialize(
 
     events = read_events(world_log)
     report = validate_events(events)
-    if not report.ok:
-        details = "; ".join(
-            f"seq {f.seq} {f.code}: {f.detail}" for f in report.findings[:5]
-        )
+    # One finding is reported rather than refused, and the distinction is
+    # about whether the world is ambiguous or merely annotated wrongly.
+    #
+    # `duplicate_field_change` is one update asserting two transitions of the
+    # same field, both claiming the same starting value. The fold is
+    # deterministic -- the last change wins -- so no state is in doubt and no
+    # work is lost; what is wrong is the recorded "from" value of the earlier
+    # transition, which lands in the matter history and nowhere else. Every
+    # other finding means the log contradicts itself about what is true, and
+    # a world that cannot say what is true cannot be graded.
+    #
+    # Refusing on this would mean refusing a finished 130-day recording over
+    # one provenance annotation in 81,084 events, with no remedy short of
+    # re-recording for a day and a half -- and a fresh run is no less likely
+    # to produce one. The writer defect is real and recorded; see
+    # docs/fidelity/post-freeze-fixes.md.
+    tolerated = {"duplicate_field_change"}
+    fatal = [finding for finding in report.findings if finding.code not in tolerated]
+    for finding in report.findings:
+        if finding.code in tolerated:
+            print(
+                f"world log: seq {finding.seq} {finding.code}: {finding.detail} "
+                "(state is unambiguous; the recorded provenance is not)"
+            )
+    if fatal:
+        details = "; ".join(f"seq {f.seq} {f.code}: {f.detail}" for f in fatal[:5])
         raise WorldLogIntegrityError(
             f"refusing to materialize an incoherent log: {details}"
         )

@@ -94,12 +94,40 @@ class HartwellHermes(Hermes):
 
         merged = dict(env or {})
         for source, target in (
+            # The gateway token first, because nothing sets
+            # `OPENAI_API_KEY` for this agent. Codex reaches the same place
+            # by overriding `_get_env` to answer `OPENAI_API_KEY` with the
+            # gateway token; hermes had the mapping below and no such
+            # override, so it mapped a variable that was never populated
+            # and the container reached the gateway carrying whatever
+            # `OPENROUTER_API_KEY` the host had exported — a real
+            # OpenRouter key, which the gateway is not. `gateway.py`
+            # answers a Bearer mismatch with exactly `401 unauthorized`,
+            # which is what every trial got.
             ("OPENAI_API_KEY", "OPENROUTER_API_KEY"),
             ("OPENAI_BASE_URL", "OPENROUTER_BASE_URL"),
         ):
             value = merged.get(source) or self._get_env(source)
             if value:
                 merged.setdefault(target, value)
+        # The gateway token *overwrites*, and that distinction is the whole
+        # fix. Everything above uses `setdefault`, which is right for a
+        # fallback and wrong for a credential: the container already
+        # carries whatever `OPENROUTER_API_KEY` the host exported — a real
+        # OpenRouter key — so a `setdefault` here is a no-op and hermes
+        # presents the wrong bearer to a gateway that is not OpenRouter.
+        # `gateway.py` answers a mismatch with exactly `401 unauthorized`,
+        # which is what every trial got, install bug or no install bug.
+        #
+        # Codex reaches the same place differently, by overriding
+        # `_get_env` so that a request for `OPENAI_API_KEY` returns the
+        # gateway token. Hermes has no such override, so it is done here.
+        if token := (
+            merged.get("HARTWELL_GATEWAY_TOKEN")
+            or self._get_env("HARTWELL_GATEWAY_TOKEN")
+        ):
+            merged["OPENROUTER_API_KEY"] = token
+            merged["OPENAI_API_KEY"] = token
         return await super().exec_as_agent(
             environment, command, env=merged, cwd=cwd, timeout_sec=timeout_sec
         )
@@ -134,7 +162,19 @@ class HartwellHermes(Hermes):
                 'export HERMES_HOME="${HERMES_HOME:-/tmp/hermes}" && '
                 'mkdir -p "$HERMES_HOME" "$HERMES_HOME/sessions" '
                 '"$HERMES_HOME/skills" "$HERMES_HOME/memories" && '
-                "hermes version && "
+                # `--version`, not `version`. Upstream removed the
+                # subcommand in v0.20.5 (2026.8.19) and argparse answers an
+                # unknown one with a usage message and a non-zero exit, so
+                # this line — a liveness check appended *after* a
+                # successful install — took the whole agent setup down.
+                # Every gpt-5.6-sol trial errored rather than scored, two
+                # days after the same path last worked.
+                #
+                # It cost a while to find because the installer exits 0 on
+                # its own: reproducing the failure needed the command that
+                # runs *after* it, and Harbor truncates the middle of a
+                # captured stdout, so the usage message was never visible.
+                "hermes --version && "
                 # Last, not before `hermes version`: installing as root
                 # leaves HERMES_HOME root-owned, and running the binary
                 # once as root mints more of it (`logs/curator`). Harbor

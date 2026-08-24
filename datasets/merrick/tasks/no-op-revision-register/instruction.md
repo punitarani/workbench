@@ -24,16 +24,7 @@ histories are on **imanage**.
 
 ## The window
 
-Register revisions saved **on or before «MEASURE: the last day of the
-window, as a weekday and a date — e.g. "Friday 30 January 2026". At the
-recorded rate this world saves ~7.4 revisions per working day and about one
-in five is a no-op, so a four-week window puts ~150 version comments in
-front of the reader for ~28 rows. Comments run ~69 words, so 150 of them is
-a read comparable to the 213 messages the in-band comparison task settled
-on. Re-measure on the finished record.»** — the firm's «MEASURE: how many
-working days that window is, counted as weekdays from the record's first
-day to the boundary above, inclusive. This is *not* a calendar-day count;
-the two differ by every weekend inside the window.» working days.
+Register revisions saved **on or before Thursday 19 February 2026** — the firm's first 34 working days.
 
 A revision saved after that boundary makes no row.
 
@@ -51,6 +42,30 @@ phrases:
     no changes were made, no edits made
 
 Case does not matter. Nothing else admits a row.
+
+«MEASURE: **counted on the 67-day record, before this table is fixed.**
+1,034 versions, 42 carrying an admitted phrase:
+
+    no changes made            27        no changes were made      2
+    no substantive changes     11        no edits made             1
+    no substantive edits        1        no substantive revisions  0
+
+`no substantive revisions` fires on nothing. Keep it only if the finished
+record writes it; a row that grades zero instances is a column of nothing
+dressed as a form.
+
+**And the decoys this brief names do not exist here.** `only formatting`,
+`typo fix`, `minor cleanup`, `nothing material` and `cosmetic only` appear
+**zero times each** in 1,034 version comments. The paragraph below excluding
+them is excluding nothing, and the difficulty it claims is not on this
+world. What *does* occur is the singular `no substantive edit` — twice —
+which the asymmetry rule correctly shuts out, and that is the only real
+near-miss the corpus offers. Re-count on the finished record and name the
+decoys it actually writes.
+
+**The window follows from the same count:** 2 rows in a fortnight, 14 in
+four weeks, 20 over days 14-41. Four weeks is the minimum that clears the
+twelve-row floor.»
 
 **The list is exact, and it is deliberately not symmetric.** `no changes
 were made` admits a row; `no edits were made` does not, and neither does any
@@ -95,7 +110,7 @@ do not copy these.
   "versions_read": 0,
   "no_op_revisions": [
     {
-      "document_ref": "LEGAL!12.3",
+      "document_ref": "LEGAL!0.1",
       "author": "Rosalie Duchamp",
       "revised_date": "<a date inside the window>",
       "document_name": "Standard rates card"
@@ -108,7 +123,9 @@ One row per no-op version. A document revised nine times can contribute
 several rows.
 
 `document_ref` is the **version's own id, exactly as iManage gives it** —
-`LEGAL!12.3` is version 3 of document 12, and it is the `id` field on every
+`LEGAL!0.1` reads as version 1 of document 0 — the shape is what matters,
+and the library issues no document 0, so nothing named in this brief is a
+row of the answer. It is the `id` field on every
 profile and every row `get_document_versions` returns. It already names the
 version, so there is no separate version column to fill in.
 

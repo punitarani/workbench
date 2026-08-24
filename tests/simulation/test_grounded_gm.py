@@ -437,8 +437,9 @@ async def test_calendar_schedule_grounds_to_scheduled_event() -> None:
     intent = CalendarIntent(
         schedule=CalendarScheduleSpec(
             title="NDA sync",
-            start=50_000,
-            end=51_800,
+            day_offset=0,
+            start_clock="13:53",
+            end_clock="14:23",
             attendee_refs=("Meredith Chao", "Tom Okafor"),
             description="Walk through the redline.",
         )
@@ -455,6 +456,54 @@ async def test_calendar_schedule_grounds_to_scheduled_event() -> None:
         "per-tom-okafor",
     }
     assert payload.calendar_event_id.startswith("cal-")
+    # The referee did the clock arithmetic, not the persona: 13:53 on the
+    # day the grounding event falls in.
+    assert payload.start % 86_400 == 13 * 3600 + 53 * 60
+    assert payload.end - payload.start == 30 * 60
+
+
+async def test_a_meeting_outside_working_hours_is_refused() -> None:
+    """Two of seven persona-scheduled meetings in one recorded day were
+    under two thousand seconds past midnight. A meeting at 00:20 is not a
+    meeting."""
+
+    from core.intents import CalendarIntent, CalendarScheduleSpec
+
+    gm = make_gm()
+    intent = CalendarIntent(
+        schedule=CalendarScheduleSpec(
+            title="Small hours sync",
+            day_offset=0,
+            start_clock="00:20",
+            end_clock="01:00",
+            attendee_refs=("Meredith Chao",),
+            description="No.",
+        )
+    )
+    decision = await gm.resolve(
+        "daniel", IntentAction(intent=intent), spec(), last_event()
+    )
+    assert decision.drafts[0].payload.kind == "sim.gm.note"
+
+
+async def test_a_unix_timestamp_cannot_be_expressed_at_all() -> None:
+    """The shape that produced a meeting in June 2080. There is no longer
+    a field it fits in."""
+
+    import pytest as _pytest
+    from pydantic import ValidationError
+
+    from core.intents import CalendarScheduleSpec
+
+    with _pytest.raises(ValidationError):
+        CalendarScheduleSpec(
+            title="Advisory call",
+            day_offset=1_717_609_200,
+            start_clock="10:00",
+            end_clock="11:00",
+            attendee_refs=("Meredith Chao",),
+            description="x",
+        )
 
 
 async def test_email_to_plausible_unknown_mints_a_person() -> None:

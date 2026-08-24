@@ -30,7 +30,13 @@ class SimDayEndedPayload(Payload):
 
 class SimGmNotePayload(Payload):
     kind: Literal["sim.gm.note"]
+    # The operator's text: the full reason, plus any engine diagnostic.
     note: str
+    # What the *persona* is allowed to remember, in workplace language.
+    # Empty means the refusal was the engine's fault rather than the
+    # person's, and nothing about it reaches them -- see `IntentRejection`.
+    # Optional and defaulted so recorded cassettes replay unchanged.
+    guidance: str = ""
     rejected_intent: str | None = None
     # The entity whose action the note concerns; when set, the note routes
     # back to that entity so agents can correct instead of repeating.

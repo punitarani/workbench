@@ -158,6 +158,113 @@ splitting differs between shells; BSD and GNU `sed` disagree on word
 boundaries, so a substitution can silently do nothing. Each of those has
 produced output that looked like a finding.
 
+## Six species of measurement whose outcome is fixed by construction
+
+"A gate that never runs" is one member of a larger family, and the family
+is the dominant defect class in this kind of tooling. A later audit of one
+project found **every** serious defect in its own instruments took this
+shape: no error raised, a confident number produced, and nobody re-derived
+it. Six species, each with the tell that exposed it:
+
+1. **Printed, never compared.** A build measured and printed every task's
+   no-comprehension floors for months, with a comment explaining that a
+   rollout number must never be read without them — and no threshold
+   anywhere. The dataset owning that code was fine; the neighbouring one
+   that never called it paid a dump **0.990**. *Tell:* grep for a check
+   that only `print`s.
+2. **Cannot pass.** A fidelity band counted senders equal to the literal
+   string `"system"`, while a coherence gate required every sender to be a
+   recorded person and every id was `per-*`. Four worlds, 7,273 emails,
+   0.000 every time, permanently FAIL. *Tell:* a metric frozen across every
+   world you have.
+3. **A fallback that fabricates the answer.** A baseline sized its
+   "report everything" dump from a candidate count; with none it fell back
+   to `len(truth)` and graded the oracle against itself, returning 1.000 —
+   read as "doing nothing scores full marks". *Tell:* a suspiciously
+   perfect number.
+4. **A justification inherited by the wrong report.** One function emitted
+   two kinds of finding and was non-fatal because *sparseness can be the
+   finding* — true of a constant column, false of a four-row register.
+   *Tell:* one function, two kinds of finding, one exemption.
+5. **Scope that is a hand-kept list.** A structural-absence gate read a
+   tuple of two metric names; applying its own rule to every metric found
+   nine more surfaces reading effectively zero. *Tell:* apply the gate's
+   rule outside its own list.
+6. **State leaked from elsewhere.** `os.environ.setdefault` at import time
+   mutates the session permanently, and every later subprocess inherits
+   it — six tests in an untouched dataset failed because a script read a
+   relative-default env var that another test had set absolute. *Tell:*
+   **passes alone, fails in the suite, and the failure names something you
+   did not touch.**
+
+The repair for each is the same shape: give the measurement a threshold,
+a caller, or a reason it can come out the other way.
+
+## Break the gate on purpose, in a harness that cannot lie
+
+A gate is code whose entire value is refusing, and it also runs on the
+happy path and returns quietly. **A gate that has stopped refusing looks
+exactly like a gate with nothing to refuse**, so every green run afterwards
+is evidence for nothing.
+
+Mutate each refusal and confirm a test goes red. Sweeping one referee this
+way found **23 of its 44 rejection sites had no test at all** — including
+the guard that stops a recording being spliced out of two rule sets, and a
+guard added *after* a previous recording was thrown away. None of the 23
+crashed when removed: they shape the corpus, or protect a build hours
+downstream, which is why a 652-test suite stayed green through all of them.
+
+Hand-written sweeps produce their own defects. Three, all of which made the
+*tests* look weak when the harness was:
+
+- a sweep killed mid-run leaves the source **mutated**, and the next sweep
+  reads that as its baseline;
+- bare-substring anchors with `replace(..., 1)` hit the *first* match in
+  the file, which for a shared idiom is usually a neighbouring function —
+  three "survivors" were mutations of code the tests never claimed;
+- an anchor a formatter had rewrapped aborted a sweep after two of four
+  mutations, and the `git commit` chained after it ran anyway, with a
+  message already claiming four.
+
+So: restore in `finally`, verify the restore **by digest**, slice to the
+target function before mutating inside it, and exit non-zero on a missing
+anchor so `sweep && commit` is safe by construction. Then put the whole set
+behind one command in CI.
+
+Two results are not failures and must be recorded as such. **Equivalent
+mutants** — two conditions excluding exactly the same inputs — should be
+noted in the code, or the next reader either "fixes" one or writes a test
+asserting behaviour nothing depends on. And a surviving mutation sometimes
+means the *test* is wrong: one fixture minted the same id on every call, so
+seventeen threads collapsed to one row and the test passed proving nothing.
+
+## Test the branch that declines to fire
+
+A gate with four passing tests can still be untested where it matters. One
+leak detector had tests for every case it *catches* and none for the cases
+it must let through — and its word-boundary check, the thing separating
+`LEGAL!12.3` from `LEGAL!12.30`, could be deleted with everything green.
+
+A false positive costs the same as a miss and is harder to argue with,
+because the reported string really is in the text. An author told their
+clean brief leaks something goes looking, finds nothing, and stops trusting
+the gate.
+
+## A gate that carries a diagnostic must have that number tested too
+
+The sharpest instance: a referee dropped work logged against unknown
+codes, and *"used to raise with no note, so the loss was invisible: a world
+whose people had no valid code for a whole day measured 0.0% dropped and
+passed the gate that exists to catch exactly that."* The repair was two
+fields on the rejection — a count and the offending refs.
+
+**Neither field was tested.** Setting the count to zero left the whole
+suite green: the original defect, restored, with nothing to notice. The
+refusal was covered; the number it carries was the entire fix.
+
+Check this wherever a repair took the form *"and now it also reports how
+much"*.
+
 ## A gate that never runs agrees with everything
 
 Before trusting any check, confirm something executes it.
@@ -173,7 +280,7 @@ This is cheap to check and almost never checked:
 
 ```bash
 grep -rl verify.py --include='*.py' --include='*.sh' --include='*.yml' . \
-  | grep -v 'tests/verify.py$'      # who *runs* it, not who *is* it
+  | grep -v 'checks/verify.py$'      # who *runs* it, not who *is* it
 ```
 
 Quote the globs. Unquoted, zsh expands `*.py` against the current directory
@@ -192,6 +299,66 @@ across all models reads as catastrophic model failure rather than a
 missing file. The unit tests passed throughout, because they add the
 project root to the path and the grader does not. **The suite and the
 runtime import the same file through different doors.**
+
+`grep -rl` answers "is there a caller", which is one question short. A
+caller can exist and still be unable to fail. A mature tree measured 91
+distribution bands correctly, and the only thing that called them was a
+realism suite that (a) pointed at a *different* firm's world and (b) was
+marked `xfail` against the baseline it found there. Both facts are
+defensible in isolation and neither is visible from the import graph. The
+world under construction shipped with its chat surface's `dm_share` at
+0.0 against a committed band of 0.15-0.35 — a number computed correctly,
+by code in the repository, read by nobody.
+
+So ask the two-part question: **what invokes this, and against what?**
+Treat all three of these as "no caller": a test that is skipped, a test
+that is xfail, and a test pointed at a fixture other than the artefact you
+are shipping.
+
+## An empty column is legal, so nothing raises
+
+Referential integrity cannot see a missing capability. Every check of the
+form *does this reference resolve* passes perfectly against a surface that
+is empty, because there is nothing there to be wrong. A `NULL` in a
+nullable column is legal; a table with no rows is legal; a code path that
+never fires leaves no trace at all.
+
+Four defects found in one session, all invisible to every integrity check
+in the tree and all obvious in one query each:
+
+| what was wrong | what it looked like | how it was found |
+|---|---|---|
+| chat threading never fired | `reply_to` non-null in 3 of 3,177 | share of non-null |
+| DMs impossible to create | `conversations` all `kind='channel'` | value counts of an enum |
+| ids leaked into prose | 26.1% of bodies matched `\b[a-z]{3}-\d{6}\b` | regex share over a text column |
+| documents created empty | 9 zero-byte files among 308 | length distribution, not a count |
+
+The recipe is the same each time and it is not clever: for every column
+that is *allowed* to be empty, and every enum, report the **distribution**
+rather than the integrity. Non-null share, value counts, length
+percentiles. A count of documents cannot see nine empty ones; nine
+zero-byte `.docx` files are nine real documents to anything that counts by
+suffix.
+
+### Absence rounds into presence
+
+When you turn that into a gate, do not test `observed == 0`. The world
+that motivated this had `threaded_reply_share` at **0.000315** — three
+replies in 3,177 messages, each one a fluke of a code path that could not
+fire deliberately — and it slipped past a gate whose entire subject was
+missing capabilities. It was caught only because a *second* metric
+happened to land on exactly `0.0`.
+
+Set the line at a small fraction of the band's floor (a tenth works) so it
+separates *the engine cannot do this* from *the firm was quiet*. And keep
+the refusing set small and explicitly declared: **refuse on a declared
+absence, report on shape**. Most bands in a mature file describe some
+earlier world — porting an accounting firm's `book.clients: 120-200` to a
+ten-client law firm produces 37 failures that are all category error — and
+at least one will have no implementation behind it at all
+(`calendar.cancellation_share`, in a world whose engine has no cancel
+verb). A blanket gate on all of them can never pass, and a gate that
+cannot pass is a gate the next person deletes in a hurry.
 
 ## A substring pin cannot see an exception added
 
@@ -244,7 +411,8 @@ own discovery against both suites and comparing the counts:
 
 ```python
 from your_harness.runner import discover
-len(discover(f"{task}/tests"))    # working suite: 2.  broken suite: 0.
+
+len(discover(f"{task}/tests"))  # working suite: 2.  broken suite: 0.
 ```
 
 **Ask the harness what it found, not the source what it declares.** Any

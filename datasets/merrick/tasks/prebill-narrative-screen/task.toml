@@ -113,6 +113,11 @@ name = "calendar"
 transport = "stdio"
 command = "/usr/local/bin/workbench-mcp-calendar"
 
+[[environment.mcp_servers]]
+name = "meetings"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-meetings"
+
 [agent]
 user = "agent"
 # «MEASURE: the wall-clock an in-band tier needs to page the window's entries

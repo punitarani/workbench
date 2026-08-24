@@ -20,7 +20,16 @@ def project_fixture(tmp_path: Path) -> Path:
 
 
 def test_every_registered_system_projects(tmp_path: Path) -> None:
-    assert DBS == ["calendar.db", "clio.db", "gmail.db", "imanage.db", "slack.db"]
+    """Every system in the registry writes a database, none extra.
+
+    This carried a second assertion comparing `DBS` against a literal
+    five-name roster, which had to be edited by hand whenever a system was
+    added and duly went stale when `meetings` arrived. It is gone rather
+    than updated: `DBS` is derived from `REGISTRY` twelve lines up, so
+    re-asserting it against `REGISTRY` is a tautology that cannot fail,
+    and the line below is the check that has always done the work.
+    """
+
     out = project_fixture(tmp_path)
     assert sorted(p.name for p in out.iterdir()) == DBS
 

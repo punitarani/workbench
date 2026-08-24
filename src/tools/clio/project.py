@@ -16,9 +16,11 @@ from core.events.people import (
     PersonRecordPayload,
 )
 from core.events.tickets import (
+    FOLDED_TICKET_FIELDS,
     TicketCommentedPayload,
     TicketCreatedPayload,
     TicketUpdatedPayload,
+    collapse_field_changes,
 )
 from core.events.work import TimeLoggedPayload
 from tools.clio.tables import (
@@ -34,8 +36,6 @@ from tools.clio.tables import (
     Organization,
     clio_status,
 )
-
-FOLDED_FIELDS = ("title", "description", "assignee", "status", "priority")
 
 
 class _TicketState(BaseModel):
@@ -96,7 +96,10 @@ def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
                 open_time=int(event.time),
             )
         elif isinstance(payload, TicketUpdatedPayload):
-            for change in payload.changes:
+            # Collapsed, so the history records the change that happened
+            # rather than a superseded intermediate the record never
+            # durably held. See `collapse_field_changes`.
+            for change in collapse_field_changes(payload.changes):
                 history.append(
                     MatterHistoryEntry(
                         ticket_id=payload.ticket_id,
@@ -107,7 +110,7 @@ def project(events: Sequence[Event], connection: sqlite3.Connection) -> None:
                         time=int(event.time),
                     )
                 )
-                if change.field in FOLDED_FIELDS:
+                if change.field in FOLDED_TICKET_FIELDS:
                     folded = tickets[payload.ticket_id]
                     tickets[payload.ticket_id] = _TicketState.model_validate(
                         {**folded.model_dump(), change.field: change.new}

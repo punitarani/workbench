@@ -10,7 +10,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from core.events.agent import MemoryBullet, PlanBlock
 from core.events.tickets import FieldChange
-from core.simtime import SimTime
 
 
 class _Intent(BaseModel):
@@ -116,9 +115,30 @@ class DocumentEditIntent(_Intent):
 
 
 class CalendarScheduleSpec(_Intent):
+    """A meeting, expressed the way a person books one.
+
+    This asked for `start` and `end` as `SimTime` -- raw seconds on the
+    simulation clock -- and a language model cannot do that arithmetic
+    reliably, so it did not. Measured on seven persona-scheduled meetings
+    in one recorded day: one carried a real-world Unix timestamp
+    (1717609200, which reads as June 2080 on this clock), two were under
+    two thousand seconds past midnight, two more landed at 01:06 and
+    05:00, and two were sensible. A 42.4% malformed rate across a
+    six-month world, half the diary quarantined before serving, and a task
+    retired for want of a calendar.
+
+    None of that is a model failure. It is an interface asking for the
+    wrong thing. A day offset and a wall clock are what a person picks,
+    and the arithmetic belongs to the referee.
+    """
+
     title: str
-    start: SimTime
-    end: SimTime
+    # 0 is today, 1 tomorrow. Bounded because a meeting booked a year out
+    # is not a working session, and an unbounded offset is how a stray
+    # large number became June 2080.
+    day_offset: int = Field(ge=0, le=14)
+    start_clock: str = Field(pattern=r"^([01][0-9]|2[0-3]):[0-5][0-9]$")
+    end_clock: str = Field(pattern=r"^([01][0-9]|2[0-3]):[0-5][0-9]$")
     attendee_refs: tuple[str, ...] = Field(min_length=1)
     description: str
 
@@ -200,6 +220,13 @@ class AgentNoteIntent(_Intent):
     day: str
     bullets: tuple[MemoryBullet, ...] = Field(min_length=1)
     open_loops: tuple[str, ...] = ()
+    # An engine diagnostic about *this* note, for whoever is reading the
+    # run — never for the persona. Optional and defaulted so recorded
+    # cassettes replay unchanged. `memory_stream` renders `bullets` and
+    # only `bullets`, which is the whole point: the text that made the
+    # firm invent a document-management outage was engine text sitting in
+    # a field a persona reads.
+    engine_detail: str = ""
 
 
 class AgentPlanIntent(_Intent):

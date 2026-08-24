@@ -52,7 +52,7 @@ def _tasks() -> list[Path]:
         if p.is_dir()
         and not p.name.startswith("_")
         and (p / "solution" / "solve.py").is_file()
-        and (p / "tests" / "verify.py").is_file()
+        and (p / "checks" / "verify.py").is_file()
     )
 
 
@@ -79,7 +79,7 @@ def _substantive(text: str) -> set[str]:
 @pytest.mark.parametrize("task", PAIRS, ids=lambda p: p.name)
 def test_the_verifier_does_not_copy_the_solvers_rule(task: Path) -> None:
     solver = (task / "solution" / "solve.py").read_text()
-    verifier = (task / "tests" / "verify.py").read_text()
+    verifier = (task / "checks" / "verify.py").read_text()
 
     shared_literals = set(_RULE_LITERAL.findall(solver)) & set(
         _RULE_LITERAL.findall(verifier)
@@ -104,7 +104,7 @@ def test_the_verifier_is_not_a_stub(task: Path) -> None:
     replaced it has no independent derivation at all, and the gate above
     would pass it happily — zero shared literals."""
 
-    verifier = (task / "tests" / "verify.py").read_text()
+    verifier = (task / "checks" / "verify.py").read_text()
     assert "verify.py is a template" not in verifier, (
         f"{task.name}: verify.py is still the template stub"
     )
@@ -141,7 +141,7 @@ def test_the_verifier_pins_its_assumptions_to_the_brief(task: Path) -> None:
     checks that it works, which is what the task's own suite does.
     """
 
-    verifier = (task / "tests" / "verify.py").read_text()
+    verifier = (task / "checks" / "verify.py").read_text()
     assert any(pin in verifier for pin in _PINS), (
         f"{task.name}: verify.py reads the brief but never asserts it still "
         "says what the arithmetic assumes. A rule the verifier hardcodes is "
