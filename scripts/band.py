@@ -83,10 +83,31 @@ TAG_PREFIX = {
 # when nobody passes `--tag`, and a default sweep whose scores the default
 # reader cannot find is the exact failure this table exists to prevent.
 DEFAULT_TAGS: dict[str, list[str]] = {
-    "gpt-5.6-sol": ["gpt-v9-k3", "gpt-v8-k3", "gpt-v7-k3", "gpt-k9", "gpt-k3"],
-    "opus-5": ["opus-v9-k3", "opus-v8-k3", "opus-v7-k3", "opus-k9", "fair-k3"],
-    "glm-5.2": ["glm-v9-k3", "glm-v8-k3", "glm-v7-k3", "glm-k9", "glm-fair"],
-    "kimi-k3": ["kimi-v9-k3", "kimi-v8-k3", "kimi-v7-k3", "kimi-k9"],
+    "gpt-5.6-sol": [
+        "gpt-v10-k3",
+        "gpt-v9-k3",
+        "gpt-v8-k3",
+        "gpt-v7-k3",
+        "gpt-k9",
+        "gpt-k3",
+    ],
+    "opus-5": [
+        "opus-v10-k3",
+        "opus-v9-k3",
+        "opus-v8-k3",
+        "opus-v7-k3",
+        "opus-k9",
+        "fair-k3",
+    ],
+    "glm-5.2": [
+        "glm-v10-k3",
+        "glm-v9-k3",
+        "glm-v8-k3",
+        "glm-v7-k3",
+        "glm-k9",
+        "glm-fair",
+    ],
+    "kimi-k3": ["kimi-v10-k3", "kimi-v9-k3", "kimi-v8-k3", "kimi-v7-k3", "kimi-k9"],
 }
 
 
