@@ -46,30 +46,75 @@ class HartwellHermes(Hermes):
     ``run_rollouts._run_one`` sets both to the gateway.
     """
 
-    @staticmethod
-    def _build_config_yaml(model: str) -> str:
-        """The same config, but naming the provider instead of guessing.
+    def _build_config_yaml(self, model: str) -> str:  # type: ignore[override]
+        """Put the gateway in the *config*, not only in the environment.
 
-        Harbor hardcodes ``provider: auto``. With a slashed model id that
-        resolves to OpenRouter, so hermes reached past the gateway to
-        OpenRouter directly with no key of its own and came back
-        ``HTTP 401: Missing Authentication header`` -- an error from
-        OpenRouter, not from us; the gateway's own refusal reads
-        ``unauthorized``.
+        Harbor hardcodes ``provider: auto`` and writes the endpoint nowhere
+        -- it forwards ``OPENAI_BASE_URL`` only on the native ``openai``
+        branch (``harbor/agents/installed/hermes.py``), and our provider is
+        not that branch. ``exec_as_agent`` below supplies both names in the
+        environment, and that is enough for the *main* agent.
 
-        Naming ``openai`` puts it on the native path, which is the one that
-        reads ``OPENAI_API_KEY`` and ``OPENAI_BASE_URL`` -- both of which
-        ``run_rollouts._run_one`` points at the gateway.
+        It is not enough for the agent's sub-agents, and that distinction
+        cost three sweeps. A gpt-5.6-sol trial's log showed the main agent
+        planning the task correctly and dispatching eight sub-tasks, each
+        of which "completed" in 0.7-2.4s:
 
-        ``openrouter`` rather than ``openai``: hermes rejects the latter
-        outright ("Unknown provider 'openai'"), and the gateway is an
-        OpenRouter proxy anyway -- same wire format, same model ids, so
-        the alias table resolves ``openai/gpt-5.6-sol`` and applies its
-        provider pins exactly as it does for the other two harnesses.
+            [subagent-2] Provider: openrouter  Model: openai/gpt-5.6-sol
+            [subagent-2] Endpoint: https://openrouter.ai/api/v1
+            [subagent-2] HTTP 401: Missing Authentication header
+
+        Eighty such lines, every one of them from a ``[subagent-N]`` and
+        none from the main agent. *Missing*, not rejected: the sub-agent
+        sent no ``Authorization`` header at all, so it had neither the
+        endpoint nor the token. Sub-agents rebuild their client from
+        ``config.yaml`` -- which is how they knew the provider and the
+        model -- and that file named no endpoint and carried no key.
+
+        So the credential and its endpoint go in the file. Hermes reads
+        both off the ``model`` mapping, and reads them *only* under
+        ``provider: custom``:
+
+          * ``agent/credential_sources.py`` documents the source list as
+            ``model_config -- model.api_key when model.provider ==
+            "custom"``. Under any other provider the key is ignored.
+          * ``hermes_cli/runtime_provider.py``'s
+            ``_config_base_url_trustworthy_for_bare_custom`` rejects a
+            non-loopback ``model.base_url`` unless the configured provider
+            is already ``custom`` -- guarding against a stale URL hijacking
+            a local session. ``host.docker.internal`` is not loopback, so
+            without ``custom`` the endpoint would be dropped on the floor
+            exactly as it was.
+
+        ``api_mode`` is pinned rather than inferred: hermes derives it from
+        the host, and only an OpenAI host implies the Responses API. This
+        one is ``host.docker.internal``, so it would infer chat completions
+        anyway -- but ``gateway.py`` serves ``/v1/chat/completions`` and
+        ``/v1/responses`` and nothing else, and an inference that changes
+        under us takes the whole tier to 0.000 without saying why.
+
+        The environment is still set, and deliberately: it costs nothing
+        and it is what the main agent used successfully all along.
         """
 
         loaded = yaml.safe_load(Hermes._build_config_yaml(model))
-        loaded["provider"] = "openrouter"
+        base = self._get_env("OPENAI_BASE_URL")
+        token = self._get_env("HARTWELL_GATEWAY_TOKEN")
+        if not (base and token):
+            # Not a rollout through our gateway -- leave harbor's own
+            # config alone rather than writing a half-formed custom
+            # provider that would fail further downstream and less
+            # legibly.
+            loaded["provider"] = "openrouter"
+            return yaml.dump(loaded, default_flow_style=False)
+        loaded["provider"] = "custom"
+        loaded["model"] = {
+            "provider": "custom",
+            "default": model,
+            "base_url": base,
+            "api_key": token,
+            "api_mode": "chat_completions",
+        }
         return yaml.dump(loaded, default_flow_style=False)
 
     async def exec_as_agent(  # type: ignore[override]
@@ -128,6 +173,23 @@ class HartwellHermes(Hermes):
         ):
             merged["OPENROUTER_API_KEY"] = token
             merged["OPENAI_API_KEY"] = token
+        # And the ENDPOINT, by the same rule and for the same reason. The
+        # mapping above uses `setdefault`, which is a no-op whenever
+        # `OPENROUTER_BASE_URL` is already present and silent when
+        # `OPENAI_BASE_URL` is absent -- and one trial's log showed the
+        # result: 32 mentions of `https://openrouter.ai/api/v1`, **zero**
+        # of the gateway, and 64 `HTTP 401: Missing Authentication header`.
+        # The whole run, main agent included, went to the real provider
+        # with no credential. Its eight sub-tasks each "completed" in under
+        # three seconds, which is what a failing call looks like from
+        # outside, and the trial scored 0.000 three times over while
+        # appearing to work.
+        #
+        # A credential and its endpoint are one setting. Set them the same
+        # way, and never with `setdefault`.
+        if base := (merged.get("OPENAI_BASE_URL") or self._get_env("OPENAI_BASE_URL")):
+            merged["OPENROUTER_BASE_URL"] = base
+            merged["OPENAI_BASE_URL"] = base
         return await super().exec_as_agent(
             environment, command, env=merged, cwd=cwd, timeout_sec=timeout_sec
         )
