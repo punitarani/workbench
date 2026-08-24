@@ -242,46 +242,106 @@ def deadline_token(text: str) -> str | None:
 _SENTENCE = re.compile(r"(?<=[.?!;])\s+")
 
 
+# A *clause*, for the purpose of pairing a promise with a date. Hard
+# punctuation only -- terminator, semicolon, colon, dash.
+#
+# NOT `and`/`so`/`but`. This firm coordinates verb phrases under one
+# subject, and "I'll have it edited and released by Wednesday" is one
+# commitment: splitting on the conjunction loses seven of nine real rows.
+# Measured, when a clause rule that did split there was tried.
+_CLAUSE = re.compile(r"(?<=[.?!;:])\s+|\s*[\u2014\u2013]\s*|\s+-\s+")
+
+# A negation between the promise and the date rules the date out -- but
+# only while it still governs it, and a comma is what closes it off.
+#
+# Wider than `_RULED_OUT`, which reaches only an *adjacent* negator: the
+# corpus writes "I'll cross-check same day ... so let's not slip that to
+# Monday", where a whole verb phrase stands between `not` and `Monday`, and
+# the shipped rule answered Monday -- the day the speaker refused.
+#
+# Narrower than "anywhere between", which was tried and eats a real
+# deadline: in "I'll have a real number, not a guess, by end of day" the
+# `not` belongs to the guess and the comma after it ends its reach. That
+# sentence is a commitment for end of day, and a test already said so --
+# which is how this bound was found rather than shipped.
+_NEG = re.compile(r"\b(?:not|never|n't|rather than|instead of)\b", re.IGNORECASE)
+
+
+def _negated(span: str) -> bool:
+    """Whether a negator in `span` still governs what follows it."""
+
+    return any("," not in span[found.end() :] for found in _NEG.finditer(span))
+
+
+# A date is *attached* to a promise when a preposition introduces it or it
+# ends the clause. A bare form mid-clause is a label, not a deadline: "the
+# EOD escalation call" and "I'll defer the EOD escalation ownership to you"
+# both name a task, and both were rows.
+_ATTACHES = re.compile(r"\b(?:by|before|until|due|on|come|for|end)\W*$", re.IGNORECASE)
+_CLAUSE_FINAL = re.compile(r"^[\s.,;:!?)\"\']*$")
+
+
 def commitment_in(text: str) -> str | None:
     """The deadline this turn's speaker committed to, or None.
 
-    **The promise and the date must be in the same sentence**, and getting
-    that wrong is what this function exists to prevent. An earlier version
-    asked only whether the turn contained an owner form *somewhere* and a
-    deadline *somewhere*, which is not the same question in a 71-word turn
-    and produced rows nobody made:
+    Four conditions, each measured against the twenty rows the shipped rule
+    produced. Nine of those were sound and eleven were not, and the eleven
+    were found the only way this class can be found: three model families
+    disagreed with the oracle in the same direction, and the transcripts
+    agreed with the models.
 
-    * "the second I get a timestamped response from their counsel I'll log
-      it straight into the tracker" — a real promise, conditional on an
-      external event, with no date of its own; the `EOD tomorrow` sat two
-      sentences away describing a checkpoint.
-    * "Position Statement review, owner Jamal, due EOD tomorrow ... I'll
-      circulate the updated Master Docket Report" — the docket manager
-      reciting *somebody else's* deadline beside a promise of her own that
-      carries none.
-    * "if it's still open Wednesday EOD, flag me directly and I'll make the
-      call" — the date is the *condition*, not the deadline.
+    **1. The promise and the date share a CLAUSE, not a sentence.** The
+    sentence rule replaced a turn rule for exactly this reason and did not
+    go far enough. "Quick status round from my side: I've escalated ... and
+    I'm expecting a written confirmation ... by end of day - I'll flag that
+    to Priyanka the moment it lands" is one sentence, and the `end of day`
+    belongs to the docketing manager's confirmation, not to the flag.
 
-    Eight of twenty-five oracle rows were of this kind. Two frontier models
-    independently declined all of them, and the row count under this rule
-    is 17 — exactly what one of them submitted. They were right and the
-    oracle was wrong.
+    **2. The date follows the promise.** "Wednesday it is, Dov, I'll expect
+    it closed by then" recites a date somebody else owns before promising to
+    watch it.
 
-    It is the same defect that retired this task's first design one conjunct
-    over. Owner and deadline are both properties of a *turn* only in the
-    trivial sense that both appear in it; the *pairing* of an actor with a
-    date is a property of a clause. A sentence is the closest unit a rule
-    can name out loud, so it is the one the brief names.
+    **3. The date is attached** -- a preposition introduces it, or it ends
+    the clause. Both forms occur: "released by Wednesday" and "I'll have the
+    scope and timeline doc to Clement Thursday". A bare form mid-clause
+    modifies a noun instead: "I'll defer the EOD escalation ownership to
+    you" is a hand-off, and it was a row.
 
-    First sentence wins, matching `deadline_token`'s first-match-wins: a
-    speaker who commits twice in one turn is making one commitment.
+    **4. No negation that still governs the date stands between them.**
+    "so let's not slip that to Monday" answered Monday. A comma ends a
+    negation's reach, so "I'll have a real number, not a guess, by end of
+    day" keeps its deadline.
+
+    Every owner form in the clause is tried, not only the first. The firm
+    writes "I'll pull the EPO register directly rather than rely on the
+    annuity service snapshot, and I'll close it out on Schedule 2 before
+    EOD", where the `rather than` hanging off the first promise has nothing
+    to do with the deadline hanging off the second.
+
+    What this does NOT do is judge whether the speaker's verb is a delivery.
+    "I owe Imelda a firm closing date by tomorrow morning and I'll beat
+    that" is a real commitment that makes no row, because the brief admits
+    `I'll` and `I will` and nothing looser -- and that is a statement about
+    the rule, which the brief makes out loud, rather than a defect.
     """
 
-    for sentence in _SENTENCE.split(text or ""):
-        if _OWNER.search(sentence):
-            token = deadline_token(sentence)
-            if token is not None:
-                return token
+    for clause in _CLAUSE.split(text or ""):
+        for owner in _OWNER.finditer(clause):
+            for pattern, token in _DEADLINE:
+                for found in pattern.finditer(clause):
+                    start, end = found.start(), found.end()
+                    if _RULED_OUT.search(clause[max(0, start - 24) : start]):
+                        continue
+                    if start < owner.end():
+                        continue
+                    if _negated(clause[owner.end() : start]):
+                        continue
+                    if not (
+                        _ATTACHES.search(clause[max(0, start - 14) : start])
+                        or _CLAUSE_FINAL.match(clause[end:])
+                    ):
+                        continue
+                    return token
     return None
 
 

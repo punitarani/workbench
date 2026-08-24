@@ -87,7 +87,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # the share is what tells a reader the rule is worth applying, and splitting
 # it out would leave the rule's own justification unpinned.
 PINNED: dict[str, str] = {
-    "## What counts as a commitment": "850f0b8bfae76e94",
+    "## What counts as a commitment": "4a08be7838e15f74",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
     "## Which one is live": "bda9fa6cdb25b25d",
 }
@@ -222,6 +222,20 @@ _STATED: dict[str, tuple[str, ...]] = {
         "names no future act",
         "makes a row for nobody",
         "a question is not one",
+        # The clause boundary, and that it is NOT the conjunction. A brief
+        # that said "sentence" was graded against a clause rule for three
+        # sweeps: eleven of twenty oracle rows paired a promise with a date
+        # from a neighbouring clause, and three model families declined all
+        # eleven. They were reading the brief; the brief was not stating the
+        # rule its own oracle applied.
+        "in the same clause",
+        'does *not* end at "and", "so" or "but"',
+        # The three attachment conditions, each of which removed rows.
+        "day comes after the promise",
+        "attached to the promise",
+        "no negation stands between the promise and the day",
+        "a comma ends a negation's reach",
+        "named only to rule it out is not a deadline",
     ),
     "## Turning what was said into a date": (
         # every branch of `_resolve`. The failure this guards is measured:
@@ -372,6 +386,41 @@ def _deadline(tokens: list[str]) -> str | None:
     return None
 
 
+# The words that may introduce a deadline. A form they do not introduce has
+# to end its clause instead, or it is naming a thing rather than a date --
+# "the EOD escalation call" is a meeting, not a Tuesday.
+_INTRODUCES = ("by", "before", "until", "due", "on", "come", "for")
+
+
+def _deadline_after(
+    tokens: list[str], after: int
+) -> tuple[str, list[str], int, int] | None:
+    """The first admitted form that starts at or past `after` and *attaches*.
+
+    Returns the form's token, the words it matched, and its span. The
+    caller needs all three: the words to find the same form again in a
+    comma-preserving split, and the span to know where it sat. The solver
+    reads characters and this reads words, so the two agree on the answer
+    by different routes and disagree loudly when one of them is wrong.
+    """
+
+    for form, token in ADMITTED:
+        wanted = _tokens(form)
+        if not wanted:
+            continue
+        for start in range(after, len(tokens) - len(wanted) + 1):
+            if tokens[start : start + len(wanted)] != wanted:
+                continue
+            if _ruled_out(tokens, start):
+                continue
+            end = start + len(wanted)
+            introduced = start > 0 and tokens[start - 1] in _INTRODUCES
+            if not (introduced or end == len(tokens)):
+                continue
+            return token, wanted, start, end
+    return None
+
+
 ONE_DAY = datetime.timedelta(days=1)
 
 
@@ -442,6 +491,96 @@ def _sentences(text: str) -> list[str]:
     return out
 
 
+def _clauses(text: str) -> list[str]:
+    """The turn as clauses: sentences, cut again at colons and dashes.
+
+    A sentence is not small enough. "Quick status round from my side: I've
+    escalated ... by end of day - I'll flag that to Priyanka the moment it
+    lands" is one sentence in which the deadline belongs to the docketing
+    manager and the promise carries none, and the register carried it as a
+    row.
+
+    Deliberately NOT cut at `and`/`so`/`but`. This firm coordinates verb
+    phrases under one subject, and cutting there loses "I'll have it edited
+    and released by Wednesday" -- seven of nine real rows, when a rule that
+    did cut there was measured.
+    """
+
+    out: list[str] = []
+    for sentence in _sentences(text):
+        current: list[str] = []
+        index = 0
+        while index < len(sentence):
+            character = sentence[index]
+            following = sentence[index + 1 : index + 2]
+            is_dash = character in "\u2014\u2013" or (
+                character == "-"
+                and following.isspace()
+                and current
+                and current[-1].isspace()
+            )
+            if character == ":" and (following == "" or following.isspace()):
+                current.append(character)
+                out.append("".join(current))
+                current = []
+            elif is_dash:
+                out.append("".join(current))
+                current = []
+            else:
+                current.append(character)
+            index += 1
+        if current:
+            out.append("".join(current))
+    return [clause for clause in out if clause.strip()]
+
+
+def _governed_negation(clause: str, owner_form: list[str], day_form: list[str]) -> bool:
+    """Whether a negator between the promise and the day still reaches it.
+
+    Commas are kept here and dropped by `_tokens`, because a comma is
+    exactly what ends a negation's reach: in "I'll have a real number, not
+    a guess, by end of day" the `not` belongs to the guess and the deadline
+    survives, while in "so let's not slip that to Monday" nothing stands
+    between the two and the day is refused.
+
+    Only the words BETWEEN the promise and the day are considered. Scanning
+    to the end of the clause instead put 26 utterances in disagreement with
+    the solver -- a negation *after* the deadline says nothing about it.
+
+    The solver decides the same thing by looking for a comma character
+    after the negator. This counts comma *tokens*, so the two reach the
+    boundary by different routes.
+    """
+
+    marked = [
+        piece.casefold() for piece in re.split(r"([,])|[^\w,]+", clause or "") if piece
+    ]
+
+    def _at(words: list[str], start: int) -> int | None:
+        return next(
+            (
+                index
+                for index in range(start, len(marked) - len(words) + 1)
+                if marked[index : index + len(words)] == words
+            ),
+            None,
+        )
+
+    head = _at(owner_form, 0)
+    if head is None:
+        return False
+    day = _at(day_form, head + len(owner_form))
+    if day is None:
+        return False
+    between = marked[head + len(owner_form) : day]
+    for index, word in enumerate(between):
+        pair = (word, between[index + 1]) if index + 1 < len(between) else None
+        if word in _RULES_OUT or pair in _RULES_OUT_PHRASES:
+            if "," not in between[index + 1 :]:
+                return True
+    return False
+
+
 def _committed_in(text: str) -> str | None:
     """The deadline the speaker committed to *in one sentence*, or None.
 
@@ -454,12 +593,22 @@ def _committed_in(text: str) -> str | None:
     event. Two frontier models independently declined all of them.
     """
 
-    for sentence in _sentences(text):
-        tokens = _tokens(sentence)
-        if any(_names_form(tokens, form) for form in OWNER_FORMS):
-            deadline = _deadline(tokens)
-            if deadline is not None:
-                return deadline
+    for clause in _clauses(text):
+        tokens = _tokens(clause)
+        for owner in OWNER_FORMS:
+            wanted = _tokens(owner)
+            if not wanted:
+                continue
+            for start in range(len(tokens) - len(wanted) + 1):
+                if tokens[start : start + len(wanted)] != wanted:
+                    continue
+                found = _deadline_after(tokens, start + len(wanted))
+                if found is None:
+                    continue
+                token, form, _at, _ = found
+                if _governed_negation(clause, wanted, form):
+                    continue
+                return token
     return None
 
 

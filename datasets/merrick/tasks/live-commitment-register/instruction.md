@@ -49,27 +49,54 @@ opened, whatever was said in them.
 
 A turn is a **commitment** when the person speaking says **they** will do
 something, and names **when**. Both have to be present **in the same
-sentence** — not merely somewhere in the same turn.
+clause** — not merely somewhere in the same turn, and not merely in the same
+sentence.
 
-That distinction decides most of this register. People here speak in long
-turns that hang several independent statements together, and a date in one
-sentence has nothing to do with a promise in another. *"Position Statement
-review, owner Jamal, due EOD tomorrow ... I'll circulate the updated Master
-Docket Report"* is one person reciting somebody else's deadline and then
-promising something undated: **no row**. *"if it's still open Wednesday EOD,
-flag me directly and I'll make the call"* names a date as a *condition*, not
-as a deadline: **no row**. A promise whose timing depends on an external
-event — *"the second I get a response, I'll log it"* — names no day at all.
+**A clause ends at a full stop, question mark, exclamation mark, semicolon,
+colon, or dash.** It does *not* end at "and", "so" or "but": this firm hangs
+several verbs off one subject, and *"I'll have it edited and released by
+Wednesday"* is one promise with one date.
 
-Semicolons separate sentences here, as full stops do.
+That boundary decides most of this register, because people here pack a
+status report and a promise into one sentence. *"I'm expecting a written
+confirmation on target filing dates by end of day — I'll flag it to Priyanka
+the moment it lands"* is two clauses: the `end of day` belongs to somebody
+else's confirmation and the promise carries no date at all. **No row.** The
+same goes for *"Position Statement review, owner Jamal, due EOD tomorrow …
+I'll circulate the updated Master Docket Report"*, and for *"if it's still
+open Wednesday EOD, flag me directly and I'll make the call"*, which names a
+date as a *condition*. A promise whose timing depends on an external event —
+*"the second I get a response, I'll log it"* — names no day at all.
+
+Three further things have to be true of the date, and each of them is a way
+the same sentence can hold a promise and a day that have nothing to do with
+each other:
+
+- **The day comes after the promise.** *"Wednesday it is, Dov, I'll expect
+  it closed by then"* recites a date somebody else owns and then promises to
+  watch it. **No row** — the deadline is Dov's.
+- **The day is attached to the promise**: either a preposition introduces it
+  — `by`, `before`, `until`, `due`, `on` — or it ends the clause, as in
+  *"I'll have the scope and timeline doc to Clement Thursday"*. A bare day
+  sitting mid-clause is naming a thing, not a date: *"I'll defer the EOD
+  escalation ownership to you"* hands over a task called the EOD escalation,
+  and *"someone needs to own the EOD escalation call"* asks for a volunteer.
+  **Neither makes a row.**
+- **No negation stands between the promise and the day.** *"I'll cross-check
+  same day and give you a firm date the moment it lands, so let's not slip
+  that to Monday"* refuses Monday; *"closing tomorrow on an unconfirmed date
+  is not a real deadline"* refuses tomorrow. **No row for the day being
+  refused**, and none for the promise either, since it carries no admitted
+  day of its own. **A comma ends a negation's reach**, so *"I'll have a real
+  number, not a guess, by end of day"* is a commitment for end of day: the
+  `not` belongs to the guess, not to the day.
 
 **A day named only to rule it out is not a deadline.** *"I'll get an answer
 today, not tomorrow"* commits to today, and `today` is not one of the days
 this register admits — so it makes **no row**, and certainly not a row due
 tomorrow. The same goes for *"urgent, not EOD"* and *"same day, not
-Wednesday morning"*. The negation has to sit against the day it rejects: in
-*"by Wednesday so it's not in Friday's crunch"* the commitment is Wednesday
-and Friday is merely the thing being avoided.
+Wednesday morning"*. In *"by Wednesday so it's not in Friday's crunch"* the
+commitment is Wednesday and Friday is merely the thing being avoided.
 
 - **The speaker is taking it on themselves**, in the first person, about a
   **future** act. In this firm's transcripts that is written `I'll` or
