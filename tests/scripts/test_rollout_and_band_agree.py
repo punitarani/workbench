@@ -110,3 +110,31 @@ def test_every_default_tag_names_a_model_the_runner_can_drive() -> None:
             f"the aggregator searches for {model} scores, but the runner "
             "cannot produce them"
         )
+
+
+def test_every_model_gets_a_column() -> None:
+    """The report's row is derived from MODELS, not written out by hand.
+
+    It used to name `cells[0]`, `cells[1]`, `cells[2]` -- three, when
+    MODELS had grown to four. The fourth column was never printed and
+    everything after it shifted left, so a model whose mean the aggregator
+    had in hand read as `--` and the mean column read as the fourth
+    model's score. The header was derived and the row was not, which is
+    the only reason they could disagree.
+    """
+
+    import inspect
+
+    # Comments stripped: the comment explaining this failure names the very
+    # index it warns about, and a check that reads prose fails on its own
+    # explanation.
+    source = "\n".join(
+        line.split("#", 1)[0] for line in inspect.getsource(band.main).splitlines()
+    )
+    assert "cells[0]" not in source, (
+        "the row indexes cells by position again; it will silently drop "
+        "every model past the last index the day MODELS grows"
+    )
+    # Header and row must share one width, or the columns drift apart
+    # without either being wrong on its own.
+    assert source.count("{_COLUMN}s") >= 2, "header and row no longer share _COLUMN"

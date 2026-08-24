@@ -49,6 +49,9 @@ _MIN_GRADEABLE = 2
 # The sign-off trio for merrick: a frontier tier, a strong mid tier, and
 # an open-weights tier, so a band is read across capability rather than
 # across one vendor. glm-5.2 stays routable as a fallback.
+# One width for the header and the row, so the two cannot drift.
+_COLUMN = 13
+
 MODELS = ("gpt-5.6-sol", "opus-5", "glm-5.2", "kimi-k3")
 
 # The short prefix each model's job tags carry. Shared with the rollout
@@ -261,7 +264,7 @@ def main(argv: list[str] | None = None) -> int:
         for model in MODELS
     }
 
-    header = "".join(f"{model:>13s}" for model in MODELS)
+    header = "".join(f"{model:>{_COLUMN}s}" for model in MODELS)
     print(f"{'task':32s}{header} {'mean':>7s}  verdict")
     print("-" * 92)
     in_band = []
@@ -319,10 +322,15 @@ def main(argv: list[str] | None = None) -> int:
                 in_band.append((task, mean))
             else:
                 verdict = "out of band"
-        print(
-            f"{task:32s} {cells[0]:>13s} {cells[1]:>10s} {cells[2]:>10s}"
-            f" {mean_text}  {verdict}{note}"
-        )
+        # Derived from MODELS, like the header. It used to name
+        # `cells[0]`, `cells[1]`, `cells[2]` -- three, when MODELS had
+        # grown to four. The fourth model's column was simply not printed,
+        # and the columns after it shifted left, so `kimi-k3` read as `--`
+        # while `measure` had its mean in hand the whole time. A row that
+        # is written out by hand cannot stay in step with a list that
+        # grows; the header was derived and the row was not.
+        row = "".join(f"{cell:>{_COLUMN}s}" for cell in cells)
+        print(f"{task:32s}{row} {mean_text}  {verdict}{note}")
 
     print(f"\n{len(in_band)} task(s) in 0.2-0.8 on the three-model mean")
     for task, mean in sorted(in_band, key=lambda kv: kv[1]):
