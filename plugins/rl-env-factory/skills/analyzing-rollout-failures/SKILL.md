@@ -17,6 +17,27 @@ capability:
 | rate limiting | tool calls succeed, then a limit error, trials die in seconds |
 | clock | many tool calls, real work in progress, no deliverable, timeout raised |
 | abandoned delegation | a few steps of a large budget, work handed to sub-agents, turn ends with them uncollected |
+| **sub-agent auth** | the main agent works and writes scratch files; sub-agents 401 against the *provider's real endpoint* rather than the pinned gateway |
+
+The sub-agent row is the newest and the easiest to misread, because the
+trial looks busy. One sweep scored 0.000 three times over; the transcript
+showed eight sub-tasks dispatched, four ticked complete, and scratch files
+written to the workspace — and then, buried in the agent log:
+
+    [subagent-6] Non-retryable error (HTTP 401): Missing Authentication header
+    [subagent-6] Provider: openrouter  Endpoint: https://openrouter.ai/api/v1
+
+The harness pins the main agent to a local gateway by overwriting
+`OPENAI_API_KEY` and `OPENAI_BASE_URL` in the container. Sub-agents spawned
+by the agent framework did not inherit the base-url override, so they
+addressed the real provider carrying a gateway token. **An agent whose
+delegation is broken still looks like an agent that is working**, right up
+until the deliverable is missing.
+
+Check `submitted-*.json` in the verifier directory. If the names are the
+agent's own scratch vocabulary rather than the deliverable the brief names,
+it never reached an answer — and *why* it did not is the question, not
+*whether* it could.
 
 **Read the trial log before recording the number.** A model scoring 0.000
 where another scores 1.000 has usually not been measured at all.

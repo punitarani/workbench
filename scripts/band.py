@@ -46,13 +46,21 @@ DATASETS = REPO / "datasets"
 _MIN_GRADEABLE = 2
 
 # The three the goal names, in the order a report should read.
-MODELS = ("gpt-5.6-sol", "opus-5", "glm-5.2")
+# The sign-off trio for merrick: a frontier tier, a strong mid tier, and
+# an open-weights tier, so a band is read across capability rather than
+# across one vendor. glm-5.2 stays routable as a fallback.
+MODELS = ("gpt-5.6-sol", "opus-5", "kimi-k3")
 
 # The short prefix each model's job tags carry. Shared with the rollout
 # writer, because a writer and a reader that disagree about a job name
 # fail silently -- the sweep runs, the scores land, and this reports "not
 # run", which is indistinguishable from never having measured.
-TAG_PREFIX = {"gpt-5.6-sol": "gpt", "opus-5": "opus", "glm-5.2": "glm"}
+TAG_PREFIX = {
+    "gpt-5.6-sol": "gpt",
+    "opus-5": "opus",
+    "glm-5.2": "glm",
+    "kimi-k3": "kimi",
+}
 
 
 def _trials(job: Path) -> list[Path]:
@@ -188,9 +196,14 @@ def main(argv: list[str] | None = None) -> int:
         required=True,
         help="dataset name under datasets/; job names are <dataset>-<task>-<tag>",
     )
-    parser.add_argument("--tag-gpt", action="append", default=None)
-    parser.add_argument("--tag-opus", action="append", default=None)
-    parser.add_argument("--tag-glm", action="append", default=None)
+    # One flag per model, derived from MODELS rather than written out, so
+    # adding a tier cannot leave a column with no way to name its tag --
+    # which is how kimi-k3's first sweep read as "not run" while three
+    # graded trials sat on disk.
+    for _model in MODELS:
+        parser.add_argument(
+            f"--tag-{TAG_PREFIX[_model]}", action="append", default=None
+        )
     args = parser.parse_args(argv)
     tasks_dir = DATASETS / args.dataset / "tasks"
     if not tasks_dir.is_dir():
@@ -199,19 +212,31 @@ def main(argv: list[str] | None = None) -> int:
     # own. Requiring the reader to remember which tag holds the best
     # evidence is how a task that *is* in band gets reported as 0 in band
     # -- which happened, on the first one that qualified.
+    # Several tags per model, newest first: the k=9 re-samples live under
+    # their own, and a world's scores must never be read beside another's.
+    # The `-v7-` tags are the merrick run recorded on epoch-v7.
+    defaults = {
+        "gpt-5.6-sol": ["gpt-v7-k3", "gpt-k9", "gpt-k3"],
+        "opus-5": ["opus-v7-k3", "fair-k3"],
+        "glm-5.2": ["glm-k9", "glm-fair"],
+        "kimi-k3": ["kimi-v7-k3"],
+    }
     tags = {
-        "gpt-5.6-sol": args.tag_gpt or ["gpt-k9", "gpt-k3"],
-        "opus-5": args.tag_opus or ["fair-k3"],
-        "glm-5.2": args.tag_glm or ["glm-k9", "glm-fair"],
+        model: getattr(args, f"tag_{TAG_PREFIX[model]}") or defaults[model]
+        for model in MODELS
     }
 
-    print(
-        f"{'task':32s} {'gpt-5.6-sol':>13s} {'opus-5':>10s} {'glm-5.2':>10s}"
-        f" {'mean':>7s}  verdict"
-    )
+    header = "".join(f"{model:>13s}" for model in MODELS)
+    print(f"{'task':32s}{header} {'mean':>7s}  verdict")
     print("-" * 92)
     in_band = []
     for task in sorted(p.name for p in tasks_dir.iterdir() if p.is_dir()):
+        # `_template` is a scaffold, not a task: it has no DELIVERABLE, so
+        # reading it raises UnknownDeliverable -- a SystemExit, which took
+        # the whole report down and printed a header with no rows under it.
+        # A leading underscore is this tree's mark for "not a task".
+        if task.startswith("_"):
+            continue
         if _retired(tasks_dir / task):
             continue
         cells, means, blocked, rates = [], [], [], []

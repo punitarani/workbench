@@ -54,6 +54,84 @@ The same check governs moving a rule to a new grain: **a literalism task
 is only hard where the near-misses are dense**, so measure the near-miss
 ratio there first.
 
+## Screen the answer's share of the candidate pool before building
+
+A reader who reports every candidate has recall 1.0 by construction, so
+its row F1 is fixed by precision alone — `2p/(p+1)` where `p` is rows ÷
+candidates. Across twelve tasks in two datasets that predicted quantity
+correlated with the **measured** dump floor at **r = 0.892**:
+
+    rows/candidates   dumped F1   measured dump floor
+    0.07-0.15           0.13-0.26        0.36-0.64
+    0.28-0.48           0.44-0.65        0.66-0.75
+    0.88-0.90           0.94-0.95        0.95-0.99
+
+One shipped task admitted **43 of its 49 candidates** — reporting
+everything was 88% right before anything was read — and paid a dump 0.990.
+That is not a grading bug: a rule admitting nine candidates in ten cannot
+punish admitting all ten.
+
+`rows / candidates` is knowable from a **design**, before a world is
+recorded or a rollout paid for. Keep the answer under about a tenth of the
+pool. The relation is a lower bound on the floor, not a prediction of it —
+the gap ran 0.006 to 0.473 — so still measure.
+
+**Which pool you declare decides the floor you measure**, and the wider
+declaration flatters the task. One register read 0.099 against every mail
+message and 0.384 against the messages carrying a date, which is the set a
+dumper actually submits. Screen against the narrowest pool a competent
+reader could filter to in one pass.
+
+That is usually nobody's cheating. A report's `*_read` figure often
+measures **work done** — one task counted every message in its window
+precisely so an agent had to open the window rather than grep it — while
+the dump pool wants the candidates a cheap filter leaves. The two coincide
+only when the rule admits from everything it opens.
+
+## A floor is a bracket, and the end you quote decides your conclusion
+
+"Report every candidate" scores one value with its own counts wrong and
+another handed the true scalars. Both are defensible. Same two model
+scores on one task read as *both models partially succeeded* against the
+empty-register floor, and as *one clears by 0.085, the other sits 0.012
+below* against the top of the dump bracket. Quote both ends.
+
+And build the **competent** dump, not a strawman. A baseline that pads the
+true rows with random noise sized from a work-measure is a weak dumper:
+its noise matches no key. The recipe is general even though the filter is
+not — fill the task for a window and run its own solver against the
+bundle, whose output **is** the answer key for that window, then build the
+answer a reader would submit after one cheap pass and score both through
+the task's own grader. Measured that way on one task: strawman 0.366,
+competent 0.419.
+
+Note what that comparison also teaches. The row-F1 ratio between those two
+dumps was 4.4x and the score difference was 0.053 — because row F1 carried
+5 of about 11 weight and the extra-row penalty was capped. **A ratio on one
+criterion is not a ratio on the score.**
+
+## The screen that picks the window must use the rule the task grades
+
+A window screen counted a commitment as an owner form *somewhere* in a turn
+and a deadline *somewhere* in it. The task required both in one sentence.
+On the same window the screen reported 21 rows where the oracle held 15 —
+a 40% overstatement in the exact number its row floor was checked against,
+so a window it called usable at 13 could build 9 and be refused one step
+after the decision that caused it.
+
+Correcting it changed the answer: the window that looked best at a 14%
+guessing floor became 20%, and a different window at 10% won. **Two
+derivations of "the same" quantity, one used as a gate for the other, is
+the defect to look for whenever a screen and a grader were written apart.**
+
+## Choose a window on the guessing floor, not the row count
+
+The row count says whether a register can score partially. The **guessing
+floor** — the share of a graded field reachable by writing the commonest
+value without reading anything — says how much of the answer is free. Five
+windows over one corpus all cleared the row floor; their guessing floors
+ranged 10% to 24%, and the one with the most rows was not the best.
+
 ## Build only on joins the world records explicitly
 
 If a relation has to be *inferred* — which parent record a document
