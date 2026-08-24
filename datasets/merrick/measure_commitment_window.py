@@ -59,6 +59,12 @@ STATE = Path(os.environ.get("WORKBENCH_STATE", "out/merrick/bundle/state"))
 # The window itself is NOT imported: `solve.py` names it inside a function
 # so it stays importable unfilled, and this screen supplies its own from
 # argv, which is the whole point of running it.
+# `solve.py` reads `WORKBENCH_STATE` at import, so the default this file
+# already computes is put in the environment first. Without it, importing
+# this module raises `KeyError` before any test can set the variable --
+# which is what happened, and what a collection error looks like when the
+# import is the thing under test.
+os.environ.setdefault("WORKBENCH_STATE", str(STATE))
 sys.path.insert(
     0,
     str(
