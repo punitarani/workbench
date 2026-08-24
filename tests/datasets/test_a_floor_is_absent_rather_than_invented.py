@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import json
 import math
+import shutil
 from pathlib import Path
 
 import pytest
@@ -50,6 +51,27 @@ REPO = Path(__file__).resolve().parents[2]
 ASHGROVE = REPO / "datasets" / "ashgrove" / "tasks"
 MERRICK = REPO / "datasets" / "merrick" / "tasks"
 UNMEASURABLE = "reported_every_candidate_UNMEASURABLE"
+
+
+# Reward Kit is a `uv tool`, not a project dependency, so it is absent
+# wherever the repo is only `uv sync`'d -- CI included. Every check below
+# that *scores an answer* needs it, and without it `_score` returns None,
+# the floor never lands in the dict, and the failure surfaces as a KeyError
+# on the floor's name rather than as "the scorer is not installed".
+#
+# Skipped rather than silently passed, and skipped on the tool rather than
+# on the symptom: a floor that is absent because nothing measured it is the
+# exact failure this module exists to refuse, so it may not be confused
+# with a floor that is absent because the task states no candidate count.
+# The build enforces these same thresholds where Reward Kit does exist.
+NEEDS_SCORER = pytest.mark.skipif(
+    shutil.which("rewardkit") is None,
+    reason=(
+        "rewardkit is not installed (it is a `uv tool`, not a project "
+        "dependency); floors that require scoring an answer cannot be "
+        "measured here. The build gate enforces them where it is present."
+    ),
+)
 
 
 @pytest.fixture
@@ -166,6 +188,7 @@ def test_the_deliverable_is_found_in_either_generation() -> None:
     )
 
 
+@NEEDS_SCORER
 def test_one_task_measured_for_real() -> None:
     """The stub above is only worth having if it stands for something.
 

@@ -49,7 +49,7 @@ _MIN_GRADEABLE = 2
 # The sign-off trio for merrick: a frontier tier, a strong mid tier, and
 # an open-weights tier, so a band is read across capability rather than
 # across one vendor. glm-5.2 stays routable as a fallback.
-MODELS = ("gpt-5.6-sol", "opus-5", "kimi-k3")
+MODELS = ("gpt-5.6-sol", "opus-5", "glm-5.2", "kimi-k3")
 
 # The short prefix each model's job tags carry. Shared with the rollout
 # writer, because a writer and a reader that disagree about a job name
@@ -60,6 +60,33 @@ TAG_PREFIX = {
     "opus-5": "opus",
     "glm-5.2": "glm",
     "kimi-k3": "kimi",
+}
+
+
+# Several tags per model, newest first: the k=9 re-samples live under their
+# own, and a world's scores must never be read beside another's. Requiring
+# the reader to remember which tag holds the best evidence is how a task
+# that *is* in band gets reported as 0 in band -- which happened, on the
+# first one that qualified.
+#
+# `-v7-` is the merrick run on the oracle whose eleven bad rows were the
+# score; `-v8-` the one whose three were; `-v9-` the corrected task. They
+# are listed newest first and never merged: a run against a different
+# oracle is a different measurement.
+#
+# Module level, not a local inside `main`, because the test that checks a
+# sweep writes a tag the aggregator searches used to keep its OWN copy of
+# this table. A hand-kept copy of the thing under test cannot fail for the
+# right reason -- it only fails when it goes stale, which is how adding a
+# fourth tier broke it.
+# `<prefix>-k9` is on every row because that is what `rollout.py` writes
+# when nobody passes `--tag`, and a default sweep whose scores the default
+# reader cannot find is the exact failure this table exists to prevent.
+DEFAULT_TAGS: dict[str, list[str]] = {
+    "gpt-5.6-sol": ["gpt-v9-k3", "gpt-v8-k3", "gpt-v7-k3", "gpt-k9", "gpt-k3"],
+    "opus-5": ["opus-v9-k3", "opus-v8-k3", "opus-v7-k3", "opus-k9", "fair-k3"],
+    "glm-5.2": ["glm-v9-k3", "glm-v8-k3", "glm-v7-k3", "glm-k9", "glm-fair"],
+    "kimi-k3": ["kimi-v9-k3", "kimi-v8-k3", "kimi-v7-k3", "kimi-k9"],
 }
 
 
@@ -208,21 +235,8 @@ def main(argv: list[str] | None = None) -> int:
     tasks_dir = DATASETS / args.dataset / "tasks"
     if not tasks_dir.is_dir():
         parser.error(f"no tasks under {tasks_dir}")
-    # Several tags per model, because the k=9 re-samples live under their
-    # own. Requiring the reader to remember which tag holds the best
-    # evidence is how a task that *is* in band gets reported as 0 in band
-    # -- which happened, on the first one that qualified.
-    # Several tags per model, newest first: the k=9 re-samples live under
-    # their own, and a world's scores must never be read beside another's.
-    # The `-v7-` tags are the merrick run recorded on epoch-v7.
-    defaults = {
-        "gpt-5.6-sol": ["gpt-v7-k3", "gpt-k9", "gpt-k3"],
-        "opus-5": ["opus-v7-k3", "fair-k3"],
-        "glm-5.2": ["glm-k9", "glm-fair"],
-        "kimi-k3": ["kimi-v7-k3"],
-    }
     tags = {
-        model: getattr(args, f"tag_{TAG_PREFIX[model]}") or defaults[model]
+        model: getattr(args, f"tag_{TAG_PREFIX[model]}") or DEFAULT_TAGS[model]
         for model in MODELS
     }
 

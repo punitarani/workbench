@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "anthropic/claude-haiku-4.5",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `day` (str): the day being planned\n3. `calendar_today` (str): meetings already on your calendar\n4. `yesterday` (str): yesterday's summary and open loops\n5. `relevant_memories` (str):\nYour output fields are:\n1. `plan` (DayPlanSpec):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## day ## ]]\n{day}\n\n[[ ## calendar_today ## ]]\n{calendar_today}\n\n[[ ## yesterday ## ]]\n{yesterday}\n\n[[ ## relevant_memories ## ]]\n{relevant_memories}\n\n[[ ## plan ## ]]\n{plan}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"$defs\": {\"PlanBlock\": {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"end\": {\"type\": \"integer\", \"exclusiveMinimum\": 0, \"maximum\": 86400, \"title\": \"End\"}, \"focus\": {\"type\": \"string\", \"title\": \"Focus\"}, \"refs\": {\"type\": \"array\", \"default\": [], \"items\": {\"type\": \"string\"}, \"title\": \"Refs\"}, \"start\": {\"type\": \"integer\", \"exclusiveMaximum\": 86400, \"minimum\": 0, \"title\": \"Start\"}}, \"required\": [\"start\", \"end\", \"focus\"], \"title\": \"PlanBlock\"}}, \"additionalProperties\": false, \"description\": \"The day in time blocks: what gets focused attention and when.\", \"properties\": {\"blocks\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/$defs/PlanBlock\"}, \"maxItems\": 8, \"minItems\": 1, \"title\": \"Blocks\"}}, \"required\": [\"blocks\"], \"title\": \"DayPlanSpec\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Lay out your working day in two to six time blocks. Anchor blocks\n        to your real calendar first, then place the work your open items and\n        memories say matters most. Times are seconds since midnight inside\n        working hours; carry the exact world ids (thr-/tkt-/doc-) each block\n        concerns."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Hana Sato, Principal, Assurance (executive).\nAssurance principal. Signs the audit opinions, owns audit methodology and independence questions, and reviews anything the audit team escalates.\nPersonality: Precise, softly spoken, immovable on standards.\nEmail register: Measured, complete sentences; signs 'Hana Sato'.\nChat register: Rare; complete sentences when she does.\nWorking hours: 09:00-17:00\n\n[[ ## day ## ]]\n2026-01-05\n\n[[ ## calendar_today ## ]]\nNothing scheduled.\n\n[[ ## yesterday ## ]]\nNo summary on file.\n\n[[ ## relevant_memories ## ]]\n- [today | !3] Chat from per-lucia-mendes: Evan/Gabe — quick check on the CAM reconc…\n- [today | !3] Chat from per-nadia-osman: Thanks Gabriel, that's super helpful! 🙌 I'…\n- [today | !10] status has moved on since you last looked — it reads in-progress, not open; check it and make the change again\n- [today | !3] Chat from per-gabriel-fontes: Thanks Imogen — good to have you on the…\n- [today | !3] Chat from per-gabriel-fontes: Hi Nadia — happy to. For Kestrel/Summit…\n- [today | !3] Chat from per-nadia-osman: Hey Gabriel! 👋 Before close support kicks …\n- [today | !3] Chat from per-imogen-carraway: Thanks Rosalind — happy to take the Ca…\n- [today | !3] Chat from per-imogen-carraway: Thanks, Rosalind. Agreed on moving the…\n- [today | !3] Chat from per-priscilla-wong: Thanks Victor — that matches my tie-out…\n- [today | !10] status has moved on since you last looked — it reads in-progress, not open; check it and make the change again\n- [today | !3] Chat from per-rosalind-calder: Thanks, Desmond — 13:30 works. Appreci…\n- [today | !3] Chat from per-imogen-carraway: Thanks all. Confirming I'm covering th…\n\nRespond with the corresponding output fields, starting with the field `[[ ## plan ## ]]` (must be formatted as a valid Python DayPlanSpec), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 14836505561893735922,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## plan ## ]]\n{\n  \"blocks\": [\n    {\n      \"start\": 32400,\n      \"end\": 36000,\n      \"focus\": \"Review escalated items and team chat summaries; address status discrepancies flagged in memories\",\n      \"refs\": []\n    },\n    {\n      \"start\": 36000,\n      \"end\": 39600,\n      \"focus\": \"Audit methodology review and independence assessment for active engagements\",\n      \"refs\": []\n    },\n    {\n      \"start\": 39600,\n      \"end\": 43200,\n      \"focus\": \"Check and correct status flags that have drifted from open to in-progress without authorization\",\n      \"refs\": []\n    },\n    {\n      \"start\": 43200,\n      \"end\": 46800,\n      \"focus\": \"Review CAM reconciliation and Kestrel/Summit audit tie-outs; sign off where ready\",\n      \"refs\": []\n    },\n    {\n      \"start\": 46800,\n      \"end\": 50400,\n      \"focus\": \"Outstanding audit opinion review and close-support preparation\",\n      \"refs\": []\n    },\n    {\n      \"start\": 50400,\n      \"end\": 61200,\n      \"focus\": \"Administrative and correspondence; prepare for week ahead\",\n      \"refs\": []\n    }\n  ]\n}\n\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1160,
+      "completion_tokens": 341
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -21,18 +21,34 @@ capability:
 
 The sub-agent row is the newest and the easiest to misread, because the
 trial looks busy. One sweep scored 0.000 three times over; the transcript
-showed eight sub-tasks dispatched, four ticked complete, and scratch files
-written to the workspace — and then, buried in the agent log:
+showed eight sub-tasks dispatched, four ticked complete in under three
+seconds each, and scratch files written to the workspace — and then, buried
+in the agent log, eighty lines of:
 
     [subagent-6] Non-retryable error (HTTP 401): Missing Authentication header
-    [subagent-6] Provider: openrouter  Endpoint: https://openrouter.ai/api/v1
+    [subagent-6] Endpoint: <the vendor's public API, not the pinned gateway>
 
-The harness pins the main agent to a local gateway by overwriting
-`OPENAI_API_KEY` and `OPENAI_BASE_URL` in the container. Sub-agents spawned
-by the agent framework did not inherit the base-url override, so they
-addressed the real provider carrying a gateway token. **An agent whose
-delegation is broken still looks like an agent that is working**, right up
-until the deliverable is missing.
+Every one of them from a sub-agent and none from the main agent, which had
+planned the task correctly. Two details separate this from a bad key.
+*Missing*, not rejected: no credential was sent at all. And the endpoint is
+the vendor's own, so the pin was lost as well.
+
+The obvious diagnosis — sub-processes did not inherit the environment — was
+wrong, and cost a sweep to disprove. The sub-agents knew the provider and
+the model, which they could only have read from the framework's **config
+file**; what that file did not carry was the endpoint or the key, because
+the harness had supplied both as environment variables. A sub-agent that
+rebuilds its client from config gets whatever config holds and nothing
+else.
+
+**Put the endpoint and the credential where the framework's own config
+lives, not only in the environment.** A credential and its endpoint are one
+setting: set them the same way, in the same place, and never with a
+fallback that a pre-existing value silently wins.
+
+**An agent whose delegation is broken still looks like an agent that is
+working**, right up until the deliverable is missing. The tell is timing:
+sub-tasks that "complete" faster than a model can answer did not answer.
 
 Check `submitted-*.json` in the verifier directory. If the names are the
 agent's own scratch vocabulary rather than the deliverable the brief names,

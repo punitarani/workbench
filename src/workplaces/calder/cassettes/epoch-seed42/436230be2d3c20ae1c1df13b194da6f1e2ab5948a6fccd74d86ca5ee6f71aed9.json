@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `conversation` (str): rendered conversation, oldest first\n3. `intent` (str): \n4. `established_facts` (str): \n5. `relevant_knowledge` (str):\nYour output fields are:\n1. `draft` (ChatDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## conversation ## ]]\n{conversation}\n\n[[ ## intent ## ]]\n{intent}\n\n[[ ## established_facts ## ]]\n{established_facts}\n\n[[ ## relevant_knowledge ## ]]\n{relevant_knowledge}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}}, \"required\": [\"body\", \"summary\"], \"title\": \"ChatDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write a chat message in this person's chat register: shorter and more\n        informal than email, consistent with their seniority and the channel's\n        audience. Ground it in the conversation and established facts.\n        \n        Write names, not ids: \"the closing checklist\", not \"doc-000042\". A\n        colleague reading the channel knows what you mean by the former and\n        has to go and look up the latter."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Nadia Osman, Staff Accountant (junior).\nStaff accountant, tax: preparation on Kestrel and the Summit owners, close support for Gabriel in the first week of the month.\nPersonality: Diligent, fast learner, asks good questions in DMs before asking them in channels.\nEmail register: Polite and to the point; signs 'Nadia'.\nChat register: Quick, cheerful, emoji-fluent.\nWorking hours: 08:30-17:30\n\n[[ ## conversation ## ]]\nRosalind Calder: Imogen’s open item is still blocking — recommend pushing the 11:00 review to 13:30. I’ll cover it if Dana can’t.\nImogen Carraway: Thanks, Rosalind. Agreed on moving the 11:00 review to 13:30 — I’ll update the calendar. Could you tell me what specifically is still open on my item? I’ll pull what I need and have it ready before then.\n\n[[ ## intent ## ]]\nAsk Gabriel about Kestrel/Summit owner tax file priorities before close support starts\n\n[[ ## established_facts ## ]]\nCreated document: Kestrel & Summit Owner Tax Files — Baseline Working Summary\n\n[[ ## relevant_knowledge ## ]]\nNone.\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python ChatDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 12143277601546807411,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\"body\": \"Hey Gabriel! 👋 Before close support kicks off next week, could you give me a quick steer on priorities for the Kestrel/Summit owner tax files? I’ve got a baseline working summary doc ready and want to make sure I’m pulling the right threads first. Happy to hop on a quick call or take a list here — whatever’s easiest. 🙏\", \"summary\": \"Asking Gabriel for priority guidance on Kestrel/Summit owner tax files before close support.\"}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 670,
+      "completion_tokens": 120
+    },
+    "cache_hit": false
+  },
+  "site": null
+}
