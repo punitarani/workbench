@@ -564,3 +564,41 @@ previous one described a vanished world. Deleting makes the next build
 This is the clearest instance yet of why the stamp was worth adding: the
 refusal reads as bureaucratic until you check, and then it turns out the
 answer key really was describing somewhere that no longer exists.
+
+## the gpt-5.6-sol tier reaches the gateway now, and its sub-agents stall at 31s
+
+Three sweeps of `live-commitment-register` scored 0.000 on this tier and
+none of them was a score. The cause is fixed and the fix is verified; a
+second, different failure now stands behind it, and this note exists so
+the next person does not re-diagnose the first one.
+
+**What was wrong.** Harbor's hermes agent forwards `OPENAI_BASE_URL` only
+on the native `openai` branch, and this tier is not that branch, so the
+container got a credential and no endpoint. `exec_as_agent` supplying both
+in the environment was enough for the *main* agent and not for its
+sub-agents: they rebuild their client from `config.yaml`, which named the
+provider and the model and carried neither endpoint nor key. Eighty lines
+of `HTTP 401: Missing Authentication header` against the vendor's public
+API, every one from a `[subagent-N]`, each "completing" in under three
+seconds while the trial looked busy.
+
+**What fixed it.** The endpoint and the key go in the config, under
+`provider: custom` — the only provider for which hermes reads
+`model.api_key`, and the only one under which it trusts a non-loopback
+`model.base_url`. Verified on 2026-08-24: **zero** missing-auth errors and
+**zero** requests to the public API, where a comparable trial before the
+fix had 80 and 32.
+
+**What is still wrong.** All eight sub-agents now reach the gateway, run
+for ~31 seconds each, and report `Interrupted during API call`. Uniform
+timing across eight concurrent calls says timeout rather than content. It
+is not the gateway's: that allows 180s (`gateway.py`). Candidates not yet
+eliminated — a per-call timeout inside hermes' delegation, the eight
+concurrent calls exceeding what the single-threaded proxy will serve, or
+the `azure` pin on `openai/gpt-5.6-sol` being slower than that budget.
+
+**What it costs.** Nothing that has been asked for. The task bands on
+opus-5, glm-5.2 and kimi-k3 without it. It costs the fourth column, and
+the aggregator reports the tier as `no deliverable` rather than as a score
+— which is correct, and is the only reason this is a note rather than a
+number in a table.
