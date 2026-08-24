@@ -143,7 +143,7 @@ insists("not by UTC" in _FLAT, "dates are read in the firm's own time zone")
 # a pure addition. When it fires, re-read the section against the code
 # below and confirm the second derivation still implements it before
 # re-pinning -- do not paste the new value in to make it pass.
-unchanged(BRIEF, "## What makes a row", "c19f2700dfe31f37")
+unchanged(BRIEF, "## What makes a row", "51046f26d554ffb1")
 
 
 def counting_dates(sent: datetime.date, working_days: int = GRACE) -> set:

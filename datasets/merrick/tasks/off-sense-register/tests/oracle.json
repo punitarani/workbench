@@ -1,0 +1,147 @@
+{
+ "messages_read": 195,
+ "hits_total": 21,
+ "distinct_authors": 13,
+ "form_counts": {
+  "agree": 9,
+  "agreed": 12
+ },
+ "department_counts": {
+  "Client": 5,
+  "Corporate": 3,
+  "Employment": 1,
+  "Firm Management": 1,
+  "IP": 3,
+  "Litigation": 7,
+  "Practice Operations": 1
+ },
+ "top_author": "Cecile Marchand",
+ "hits": [
+  {
+   "ref": "1767886500.000003",
+   "author": "Rosalie Duchamp",
+   "sent_date": "2026-01-08",
+   "where": "litigation-group"
+  },
+  {
+   "ref": "1767897600.000000",
+   "author": "Gideon Park",
+   "sent_date": "2026-01-08",
+   "where": "billing-and-wip"
+  },
+  {
+   "ref": "1768323900.000002",
+   "author": "Ulrich Bergmann",
+   "sent_date": "2026-01-13",
+   "where": "billing-and-wip"
+  },
+  {
+   "ref": "1768345500.000001",
+   "author": "Cecile Marchand",
+   "sent_date": "2026-01-13",
+   "where": "billing-and-wip"
+  },
+  {
+   "ref": "1768410300.000000",
+   "author": "Bennett Ashworth",
+   "sent_date": "2026-01-14",
+   "where": "billing-and-wip"
+  },
+  {
+   "ref": "1768432500.000000",
+   "author": "Ingrid Solheim",
+   "sent_date": "2026-01-14",
+   "where": "northmoor-sandhurst"
+  },
+  {
+   "ref": "msg-000021",
+   "author": "Elena Vasquez-Reyes",
+   "sent_date": "2026-01-07",
+   "where": "Re: Cross-jurisdictional clinical data handling \u2014 next steps ahead of Series C"
+  },
+  {
+   "ref": "msg-000022",
+   "author": "Gideon Park",
+   "sent_date": "2026-01-07",
+   "where": "Re: Cross-jurisdictional clinical data handling \u2014 next steps ahead of Series C"
+  },
+  {
+   "ref": "msg-000023",
+   "author": "Elena Vasquez-Reyes",
+   "sent_date": "2026-01-07",
+   "where": "Re: Cross-jurisdictional clinical data handling \u2014 next steps ahead of Series C"
+  },
+  {
+   "ref": "msg-000026",
+   "author": "Cecile Marchand",
+   "sent_date": "2026-01-08",
+   "where": "Re: Mediation date - let's move on this"
+  },
+  {
+   "ref": "msg-000027",
+   "author": "Fionnuala Doherty",
+   "sent_date": "2026-01-08",
+   "where": "Re: Mediation date - let's move on this"
+  },
+  {
+   "ref": "msg-000029",
+   "author": "Roland Pesch",
+   "sent_date": "2026-01-08",
+   "where": "Re: Mediation date - let's move on this"
+  },
+  {
+   "ref": "msg-000041",
+   "author": "Gideon Park",
+   "sent_date": "2026-01-08",
+   "where": "Re: Cross-jurisdictional clinical data handling \u2014 next steps ahead of Series C"
+  },
+  {
+   "ref": "msg-000049",
+   "author": "Teodor Vasiliev",
+   "sent_date": "2026-01-09",
+   "where": "Re: Gap in Series C disclosure schedule \u2014 IP/collaboration treatment"
+  },
+  {
+   "ref": "msg-000053",
+   "author": "Cecile Marchand",
+   "sent_date": "2026-01-12",
+   "where": "Re: Mediation date - let's move on this"
+  },
+  {
+   "ref": "msg-000058",
+   "author": "Bennett Ashworth",
+   "sent_date": "2026-01-12",
+   "where": "RE: Second regulatory request \u2014 plan by tomorrow EOD"
+  },
+  {
+   "ref": "msg-000069",
+   "author": "Marguerite Oyelaran",
+   "sent_date": "2026-01-13",
+   "where": "RE: Covenant language - amended or not?"
+  },
+  {
+   "ref": "msg-000070",
+   "author": "Adaora Nwosu",
+   "sent_date": "2026-01-13",
+   "where": "RE: Covenant language - amended or not?"
+  },
+  {
+   "ref": "msg-000074",
+   "author": "Cecile Marchand",
+   "sent_date": "2026-01-14",
+   "where": "Re: Mediation date - let's move on this"
+  },
+  {
+   "ref": "msg-000079",
+   "author": "Saoirse Mulvaney",
+   "sent_date": "2026-01-14",
+   "where": "Re: Sandhurst diligence flags - ranked, per your deadline"
+  },
+  {
+   "ref": "msg-000080",
+   "author": "Teodor Vasiliev",
+   "sent_date": "2026-01-14",
+   "where": "Re: Cross-border clinical data privacy \u2014 investor question, need memo before Series C diligence"
+  }
+ ]
+}

@@ -20,8 +20,8 @@ unanswered here.
 
 ## The window
 
-Register questions asked **on or before Friday 30 January 2026** — the
-firm's first 20
+Register questions asked **on or before Friday 23 January 2026** — the
+firm's first 15
 working days.
 
 A question asked after that boundary makes no row.
@@ -64,22 +64,11 @@ consume one of the three.
 a reply from the asker. Neither does a message in a different thread, however
 obviously it responds.
 
-**And a reply that arrives late does not answer it.** «MEASURE: how many
-of the register's rows were eventually replied to, after the three working
-days had run — count them against the built world, do not carry a number
-over from a previous one. The brief said "Four" against a world where the
-true figure was 16 of 34 rows: a corpus fact in a brief is a measurement,
-and one that goes stale the moment the world is recorded again.
-
-Counted again since, and it has moved twice more: **6.8% of rows on the v6
-recording, 12.0% on v7 over the same span**, against 47% on the world the
-"Four" came from. Watch this one, because the distinction this paragraph
-draws is only interesting when late replies exist — at 7% it is nearly
-vacuous and the sentence is decoration. Also measure the window: on v6, days
-0-13 give 12 rows (exactly the floor), 0-20 give 25, and 14-34 give 37.» of the
-questions in this record were eventually replied to, after the three
-working days had run. Those are rows. "Did anybody ever reply" is a different question from
-the one being asked, and it gives a different list.
+**And a reply that arrives late does not answer it.** Close to a quarter
+of this register's rows were eventually replied to by an addressee, after
+the three working days had run. Those are rows. "Did anybody ever reply" is
+a different question from the one being asked, and it gives a different
+list.
 
 ## The register
 

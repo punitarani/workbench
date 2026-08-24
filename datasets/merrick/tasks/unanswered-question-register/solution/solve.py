@@ -1,6 +1,7 @@
 """Reference solver: questions no addressee answered within three working days.
 
-STAGED. `WINDOW_DAYS` is not chosen; `main()` refuses while it is None.
+The window is 19 calendar days: the first 15 working days, ending
+Friday 23 January 2026, which is the boundary the brief states.
 Fill it from a measurement of the finished record, never from intuition.
 
 This task exists because the one it replaced died of a defect worth naming.
@@ -47,20 +48,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 STATE = Path(os.environ["WORKBENCH_STATE"])
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("unanswered.json")
 
-# «MEASURE: **calendar** days in the window, not working days -- the
-# cutoff below is `WINDOW_DAYS * 86_400` and counts every day. The
-# brief quotes a working-day figure because that is what a reader
-# thinks in, and the two differ by every weekend inside the window;
-# `measure_windows.py` prints both on one line so they are taken as a
-# matched pair. Filling this from the working-day figure shortens the
-# corpus silently, and the verifier takes the same integer so the
-# cross-check cannot see it.
+# Calendar days, not working days: the cutoff is `WINDOW_DAYS * 86_400`
+# and counts every day, while the brief quotes the working-day figure
+# because that is what a reader thinks in. The two differ by every weekend
+# inside the window, and the verifier takes this same integer, so filling
+# it from the working-day figure would shorten the corpus silently and the
+# cross-check could not see it.
 #
-# Sizing: ~5 questions and ~1.5 unanswered per
-# working day, so four weeks gives ~100 read for ~30 rows. MUST also close at
-# least three working days before the record's last day -- see the solver
-# docstring and the brief.»
-WINDOW_DAYS: int | None = None
+# 19 calendar days = 15 working days, ending Friday 23 January 2026, which
+# is the boundary the brief states. It closes months before the record's
+# last day, so every row has had its three working days to be answered in.
+WINDOW_DAYS: int = 19
 
 # The response window, in working days. Day zero is the day the question was
 # sent, so a Thursday question is still answered in time on the following
@@ -88,12 +86,6 @@ def deadline(
 
 
 def main() -> None:
-    if WINDOW_DAYS is None:
-        raise SystemExit(
-            "unanswered-question-register: WINDOW_DAYS is still a placeholder. "
-            "Measure the finished record before building this task."
-        )
-
     gmail = sqlite3.connect(f"file:{STATE / 'gmail.db'}?mode=ro", uri=True)
 
     # Seconds from the world's epoch, not a date string. Comparing a served
