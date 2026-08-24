@@ -267,6 +267,39 @@ _CLAUSE = re.compile(r"(?<=[.?!;:])\s+|\s*[\u2014\u2013]\s*|\s+-\s+")
 _NEG = re.compile(r"\b(?:not|never|n't|rather than|instead of)\b", re.IGNORECASE)
 
 
+# Somebody else's clause, standing between the promise and the day.
+#
+# The brief has always said that reciting another person's deadline beside
+# an undated promise makes no row. The clause rule catches it when the two
+# are separated by hard punctuation and misses it when they are joined by a
+# conjunction -- "I'll ping the moment I have it, Mira, so you can finalize
+# the Officer's Certificate before tomorrow" dates Mira's work, and it was
+# a row.
+#
+# What marks the boundary is a *new subject*, not the conjunction: this
+# firm coordinates verb phrases under one subject constantly, and both of
+# these are the speaker's own --
+#
+#   "...call Okafor myself today, not have an associate chase it, and I'll
+#    have a firm date before Friday"     <- subject is `I`
+#   "...escalate to a phone call today and can report back by EOD"
+#                                        <- no subject at all: shared
+#
+# So: a connective, then at least one word that is not the speaker, then a
+# finite verb. Measured over the sixteen rows at every gap from four words
+# to ten; three defective rows go and none of the thirteen sound ones do,
+# at every one of them. Six is the middle of that plateau.
+_FINITE = (
+    r"(?:can|could|will|would|shall|should|may|might|must|is|are|was|were"
+    r"|has|have|had|do|does|did|lands?|happens?|holds?|comes?|goes)"
+)
+_ELSEWHERE = re.compile(
+    r"\b(?:so|that|whether|which|because|if|once|when|while|unless|and|but)\s+"
+    r"(?!i\b|i'|we\b|we')(?:[\w'-]+[\s,]+){1,6}?" + _FINITE + r"\b",
+    re.IGNORECASE,
+)
+
+
 def _negated(span: str) -> bool:
     """Whether a negator in `span` still governs what follows it."""
 
@@ -307,7 +340,13 @@ def commitment_in(text: str) -> str | None:
     modifies a noun instead: "I'll defer the EOD escalation ownership to
     you" is a hand-off, and it was a row.
 
-    **4. No negation that still governs the date stands between them.**
+    **4. Nobody else's clause stands between them.** "I'll ping the moment
+    I have it, Mira, so you can finalize the Officer's Certificate before
+    tomorrow" dates Mira's work. A conjunction alone does not mark this --
+    "and I'll have a firm date before Friday" and "and can report back by
+    EOD" are both the speaker's -- a new *subject* does.
+
+    **5. No negation that still governs the date stands between them.**
     "so let's not slip that to Monday" answered Monday. A comma ends a
     negation's reach, so "I'll have a real number, not a guess, by end of
     day" keeps its deadline.
@@ -340,6 +379,8 @@ def commitment_in(text: str) -> str | None:
                         _ATTACHES.search(clause[max(0, start - 14) : start])
                         or _CLAUSE_FINAL.match(clause[end:])
                     ):
+                        continue
+                    if _ELSEWHERE.search(clause[owner.end() : start]):
                         continue
                     return token
     return None

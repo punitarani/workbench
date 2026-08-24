@@ -87,7 +87,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # the share is what tells a reader the rule is worth applying, and splitting
 # it out would leave the rule's own justification unpinned.
 PINNED: dict[str, str] = {
-    "## What counts as a commitment": "4a08be7838e15f74",
+    "## What counts as a commitment": "427c94a252d6af9b",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
     "## Which one is live": "bda9fa6cdb25b25d",
 }
@@ -233,6 +233,8 @@ _STATED: dict[str, tuple[str, ...]] = {
         # The three attachment conditions, each of which removed rows.
         "day comes after the promise",
         "attached to the promise",
+        "nobody else's clause stands between the promise and the day",
+        "a new subject does",
         "no negation stands between the promise and the day",
         "a comma ends a negation's reach",
         "named only to rule it out is not a deadline",
@@ -534,6 +536,81 @@ def _clauses(text: str) -> list[str]:
     return [clause for clause in out if clause.strip()]
 
 
+# A connective, a subject that is not the speaker, and a finite verb: the
+# shape of somebody else's clause. The solver expresses this as one regex
+# over characters; this walks words, so the two reach the same boundary by
+# different routes and a turn they disagree about is a finding.
+_CONNECTIVES = frozenset(
+    (
+        "so",
+        "that",
+        "whether",
+        "which",
+        "because",
+        "if",
+        "once",
+        "when",
+        "while",
+        "unless",
+        "and",
+        "but",
+    )
+)
+_SPEAKER = frozenset(("i", "we"))
+_FINITE = frozenset(
+    (
+        "can",
+        "could",
+        "will",
+        "would",
+        "shall",
+        "should",
+        "may",
+        "might",
+        "must",
+        "is",
+        "are",
+        "was",
+        "were",
+        "has",
+        "have",
+        "had",
+        "do",
+        "does",
+        "did",
+        "land",
+        "lands",
+        "happen",
+        "happens",
+        "hold",
+        "holds",
+        "come",
+        "comes",
+        "goes",
+    )
+)
+# Words a subject may span before its verb. Measured at four through ten
+# on the sixteen rows: three defective rows go at every width and none of
+# the thirteen sound ones do. Six is the middle of that plateau.
+_SUBJECT_WIDTH = 6
+
+
+def _elsewhere(between: list[str]) -> bool:
+    """Whether somebody else's clause stands in `between`."""
+
+    for index, word in enumerate(between):
+        if word not in _CONNECTIVES:
+            continue
+        rest = between[index + 1 :]
+        if not rest or rest[0] in _SPEAKER:
+            continue
+        # At least one word of subject, then a finite verb within reach.
+        for step in range(1, min(_SUBJECT_WIDTH, len(rest) - 1) + 1):
+            if rest[step] in _FINITE:
+                return True
+    return False
+
+
 def _governed_negation(clause: str, owner_form: list[str], day_form: list[str]) -> bool:
     """Whether a negator between the promise and the day still reaches it.
 
@@ -607,6 +684,8 @@ def _committed_in(text: str) -> str | None:
                     continue
                 token, form, _at, _ = found
                 if _governed_negation(clause, wanted, form):
+                    continue
+                if _elsewhere(tokens[start + len(wanted) : _at]):
                     continue
                 return token
     return None

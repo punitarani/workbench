@@ -82,6 +82,12 @@ each other:
   escalation ownership to you"* hands over a task called the EOD escalation,
   and *"someone needs to own the EOD escalation call"* asks for a volunteer.
   **Neither makes a row.**
+- **Nobody else's clause stands between the promise and the day.** *"I'll
+  ping the moment I have it, Mira, so you can finalize the Officer's
+  Certificate before tomorrow"* dates Mira's work: the promise is to ping,
+  undated. **No row.** A conjunction alone does not mark this — *"…and I'll
+  have a firm date before Friday"* and *"…and can report back by EOD"* are
+  both still the speaker's own. **A new subject does.**
 - **No negation stands between the promise and the day.** *"I'll cross-check
   same day and give you a firm date the moment it lands, so let's not slip
   that to Monday"* refuses Monday; *"closing tomorrow on an unconfirmed date

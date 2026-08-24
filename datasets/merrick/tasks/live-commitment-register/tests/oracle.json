@@ -1,8 +1,8 @@
 {
  "meetings_read": 100,
  "turns_read": 517,
- "distinct_owners": 14,
- "superseded_count": 18,
+ "distinct_owners": 12,
+ "superseded_count": 16,
  "live": [
   {
    "owner": "Bennett Ashworth",
@@ -40,13 +40,6 @@
    "said_at": "2026-01-08T09:15:00-05:00"
   },
   {
-   "owner": "Quentin Sarr",
-   "meeting": "Corporate deal status",
-   "due": "2026-01-15",
-   "meeting_id": "mtg-000138",
-   "said_at": "2026-01-14T09:15:00-05:00"
-  },
-  {
    "owner": "Samir Bhatt",
    "meeting": "Corporate deal status",
    "due": "2026-01-15",
@@ -61,18 +54,11 @@
    "said_at": "2026-01-12T08:45:00-05:00"
   },
   {
-   "owner": "Cecile Marchand",
-   "meeting": "Docket call",
-   "due": "2026-02-06",
-   "meeting_id": "mtg-000021",
-   "said_at": "2026-02-02T08:45:00-05:00"
-  },
-  {
    "owner": "Hyun-woo Bae",
    "meeting": "Docket call",
-   "due": "2026-02-06",
-   "meeting_id": "mtg-000024",
-   "said_at": "2026-02-05T08:45:00-05:00"
+   "due": "2026-01-30",
+   "meeting_id": "mtg-000019",
+   "said_at": "2026-01-29T08:45:00-05:00"
   },
   {
    "owner": "Lucien Abara",
