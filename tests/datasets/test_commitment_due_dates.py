@@ -225,15 +225,21 @@ def test_a_hyphen_is_a_gap_like_any_other(text: str, token: str) -> None:
 # ------------------------------------------------- the promise and the date
 
 
-def test_the_promise_and_the_date_must_share_a_sentence() -> None:
-    """The defect two frontier models caught before this test did.
+def test_the_promise_and_the_date_must_share_a_clause() -> None:
+    """The defect three model families caught before this test did.
 
     The rule first asked whether a turn held an owner form *somewhere* and a
-    deadline *somewhere*. In a 71-word turn those are different questions,
-    and it manufactured eight rows of twenty-five that nobody made. Both
-    models independently declined all eight; the row count under this rule
-    is 17, which is exactly what one of them submitted. They were right and
-    the oracle was wrong.
+    deadline *somewhere*. That was narrowed to a sentence, and a sentence
+    was still too big: eleven of the twenty rows the sentence rule produced
+    paired a promise with a date from a neighbouring clause. opus-5, glm-5.2
+    and kimi-k3 declined all eleven across nine trials, and reading the
+    transcripts agreed with them.
+
+    This test previously asserted the condition case fired, with a comment
+    reasoning that "inside one sentence the reader cannot tell a condition
+    from a deadline". The brief's own condition example *is* one sentence
+    and the brief says it makes no row -- so the test was pinning the gap
+    between the rule and the brief, in the brief's own words, as intent.
     """
 
     # The docket manager reciting somebody else's deadline, then promising
@@ -245,21 +251,53 @@ def test_the_promise_and_the_date_must_share_a_sentence() -> None:
         )
         is None
     )
-    # One sentence, so it *is* a row — and `Wednesday EOD` is the compound,
-    # not a bare `EOD`. The brief's "date as a condition" example is the
-    # two-sentence form; inside one sentence the reader cannot tell a
-    # condition from a deadline and the rule does not ask them to.
+    # The brief's own "date as a condition" example, verbatim, in ONE
+    # sentence: the date precedes the promise and conditions it.
     assert (
         solve.commitment_in(
             "If it's still open Wednesday EOD, flag me directly and I'll make the call."
         )
-        == "wednesday"
+        is None
     )
     # A promise contingent on an external event, with the date elsewhere.
     assert (
         solve.commitment_in(
             "I'm holding EOD tomorrow as the checkpoint. "
             "The second I get a response from their counsel I'll log it."
+        )
+        is None
+    )
+    # One clause is not one sentence. The deadline belongs to the docketing
+    # manager's confirmation; the promise after the dash carries none.
+    assert (
+        solve.commitment_in(
+            "I've escalated the two applications and I'm expecting written "
+            "confirmation by end of day - I'll flag that to Priyanka the "
+            "moment it lands."
+        )
+        is None
+    )
+    # A conjunction does NOT end a clause: one subject, two verbs, one date.
+    assert (
+        solve.commitment_in("I'll have it edited and released by Wednesday.")
+        == "wednesday"
+    )
+    # Attachment: a bare form mid-clause names a task, not a day.
+    assert (
+        solve.commitment_in("Quentin, I'll defer the EOD escalation ownership to you.")
+        is None
+    )
+    # ...but a bare form that ENDS the clause is a deadline.
+    assert (
+        solve.commitment_in("I'll have the scope and timeline doc to Clement Thursday.")
+        == "thursday"
+    )
+    # Negation between the promise and the day rules the day out, however
+    # much verb phrase stands in between.
+    assert (
+        solve.commitment_in(
+            "I'll cross-check same day and give you a firm due date the "
+            "moment it lands, so let's not slip that to Monday."
         )
         is None
     )

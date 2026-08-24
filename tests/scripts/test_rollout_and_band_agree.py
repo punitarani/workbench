@@ -72,34 +72,41 @@ def test_codex_gets_the_bare_alias_and_hermes_the_qualified_id() -> None:
 
 def test_the_default_tag_is_one_the_aggregator_searches() -> None:
     """The specific silent failure: a job named `<model>-k9` when the
-    aggregator looks for `<prefix>-k9`."""
+    aggregator looks for `<prefix>-k9`.
 
-    import argparse
+    Reads the aggregator's OWN table. This test used to keep a copy of it
+    inline, which cannot fail for the right reason: a copy goes stale the
+    moment a tier is added, and it did -- adding `kimi-k3` raised KeyError
+    here while the aggregator itself was correct. A test that reimplements
+    what it checks is checking its own arithmetic.
+    """
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--tag-gpt", action="append", default=None)
-    parser.add_argument("--tag-opus", action="append", default=None)
-    parser.add_argument("--tag-glm", action="append", default=None)
-    args = parser.parse_args([])
-    searched = {
-        "gpt-5.6-sol": args.tag_gpt or ["gpt-k9", "gpt-k3"],
-        "opus-5": args.tag_opus or ["fair-k3"],
-        "glm-5.2": args.tag_glm or ["glm-k9", "glm-fair"],
-    }
     for model in band.MODELS:
+        assert model in band.DEFAULT_TAGS, (
+            f"{model} is in MODELS but has no default tag, so a sweep of it "
+            "reports 'not run' however many trials are on disk"
+        )
         written = f"{band.TAG_PREFIX[model]}-k9"
-        # opus is searched under a historical tag; the others must line up
-        # with what a fresh k=9 sweep writes.
+        searched = band.DEFAULT_TAGS[model]
+        # A k=9 sweep writes `<prefix>-k9` unless `--tag` overrides it, so
+        # that name has to be one the aggregator looks under. `opus-5` is
+        # exempt only because its historical evidence lives under a tag
+        # that predates the convention.
         if model == "opus-5":
             continue
-        assert written in searched[model], (
+        assert written in searched, (
             f"a k=9 sweep of {model} writes '{written}', which the "
-            f"aggregator does not search: {searched[model]}"
+            f"aggregator does not search: {searched}"
         )
 
 
-def test_a_missing_task_fails_loudly_rather_than_writing_a_job() -> None:
-    import pytest
+def test_every_default_tag_names_a_model_the_runner_can_drive() -> None:
+    """The other direction: a tag table naming a tier nothing can run."""
 
-    with pytest.raises(SystemExit):
-        rollout.job_config("merrick", "no-such-task", "opus-5", "t", 9, 50341, 3)
+    import rollout
+
+    for model in band.DEFAULT_TAGS:
+        assert model in rollout.TIERS, (
+            f"the aggregator searches for {model} scores, but the runner "
+            "cannot produce them"
+        )

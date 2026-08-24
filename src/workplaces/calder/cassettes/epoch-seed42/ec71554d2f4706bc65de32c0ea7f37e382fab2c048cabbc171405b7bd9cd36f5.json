@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Dana Whitfield, Controller at Kestrel Manufacturing. Precise and numbers-fluent; expects the same back. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Dana Whitfield\nTo: Gabriel Fontes, Victor Alade\nSubject: Question on the monthly close package – line item\n\nGabriel, Victor,\n\nI was reviewing the monthly close package and one line item caught my attention. I’d like a quick clarification before we sign off.\n\nCould you let me know what drove the movement in the [specific line item – insert name/reference if known, otherwise leave as placeholder]? I want to make sure we’re reflecting the right picture, and if there’s a supporting document, please send it over.\n\nJust a one-line explanation will do for now – happy to loop in a call if that’s easier.\n\nThanks,\nDana\n\n---\n\nFrom: Gabriel Fontes\nTo: Dana Whitfield\nSubject: Re: Question on the monthly close package – line item\n\nHi Dana,\n\nHappy to clarify. The movement in that line item is tied to the Kestrel June close — a late vendor rebate credit of about eighteen thousand landed after statements cut, so we rebooked it into June per the accrual policy. It’s fully documented in the close folder; I can send the supporting note over if you’d like.\n\nAlso confirming you’re all set for Thursday’s board discussion on the Q3 margin drivers — the three-driver breakdown stands as-is, no further adjustments have surfaced. If you’d like a live walk-through before then, just say the word.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Victor Alade\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 11750566133927957297,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"subject\": \"Re: Question on the monthly close package – line item\",\n  \"body\": \"Gabriel,\\n\\nThanks for the quick note. That clears it up — the late vendor rebate credit makes sense, and yes, please send the supporting note over so I can file it with the close package.\\n\\nOn Thursday, I'm good with the three-driver breakdown as-is. If anything changes before then, I'll flag it.\\n\\nBest,\\nDana\",\n  \"to\": [\"Gabriel Fontes\"],\n  \"cc\": [\"Victor Alade\"],\n  \"summary\": \"Acknowledges the vendor rebate credit explanation, requests the supporting note, and confirms the Q3 margin driver breakdown is set for Thursday.\",\n  \"attachment_refs\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 875,
+      "completion_tokens": 175
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

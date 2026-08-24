@@ -1794,3 +1794,133 @@ def test_cli_marks_a_defaulted_jobs_dir_as_derived() -> None:
         ]
     )
     assert explicit.jobs_dir_is_derived is False
+
+
+# --- hermes: the gateway must be in config.yaml, not only in the env -----
+#
+# `hermes_agent` imports harbor, which is installed in the rollout runner's
+# environment and not in this one. The three names it needs are stubbed
+# rather than skipped: what is under test is the *shape of the YAML*, and a
+# skipped test here is what let a whole tier score 0.000 three times.
+
+
+def _hermes_class(monkeypatch: pytest.MonkeyPatch):
+    """Import `HartwellHermes` against a stub harbor, and hand it back."""
+
+    import sys
+    import types
+
+    import yaml
+
+    for name in ("harbor", "harbor.agents", "harbor.agents.installed"):
+        module = types.ModuleType(name)
+        module.__path__ = []  # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, name, module)
+
+    base = types.ModuleType("harbor.agents.installed.base")
+    base.BaseEnvironment = object  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "harbor.agents.installed.base", base)
+
+    class _Hermes:
+        """Harbor's own builder: a flat model id and no endpoint at all."""
+
+        @staticmethod
+        def _build_config_yaml(model: str) -> str:
+            return yaml.dump(
+                {
+                    "model": model,
+                    "provider": "auto",
+                    "agent": {"max_turns": 90},
+                    "delegation": {"max_iterations": 50},
+                }
+            )
+
+    hermes_module = types.ModuleType("harbor.agents.installed.hermes")
+    hermes_module.Hermes = _Hermes  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "harbor.agents.installed.hermes", hermes_module)
+    monkeypatch.delitem(
+        sys.modules, "adapters.harbor_matrix.hermes_agent", raising=False
+    )
+
+    from adapters.harbor_matrix.hermes_agent import HartwellHermes
+
+    class _Fake(HartwellHermes):  # type: ignore[misc]
+        def __init__(self, env: dict[str, str]) -> None:
+            self._env = env
+
+        def _get_env(self, key: str) -> str | None:
+            return self._env.get(key)
+
+    return _Fake
+
+
+HERMES_GATEWAY_URL = "http://host.docker.internal:51234/v1"
+
+
+def test_hermes_config_carries_the_gateway_endpoint_and_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The sub-agents read this file and nothing else.
+
+    A trial's log showed the main agent planning correctly and every one of
+    its eight sub-agents dying in under three seconds against
+    `https://openrouter.ai/api/v1` with `Missing Authentication header` --
+    no endpoint, no token, because `config.yaml` named neither. Both belong
+    here, and only `provider: custom` makes hermes read either: the key is
+    sourced from `model.api_key` under that provider alone, and a
+    non-loopback `base_url` is rejected under any other.
+    """
+
+    import yaml
+
+    hermes = _hermes_class(monkeypatch)
+    written = yaml.safe_load(
+        hermes(
+            {
+                "OPENAI_BASE_URL": HERMES_GATEWAY_URL,
+                "HARTWELL_GATEWAY_TOKEN": "ephemeral-container-secret",
+            }
+        )._build_config_yaml("openai/gpt-5.6-sol")
+    )
+
+    assert written["model"] == {
+        "provider": "custom",
+        "default": "openai/gpt-5.6-sol",
+        "base_url": HERMES_GATEWAY_URL,
+        "api_key": "ephemeral-container-secret",
+        # Pinned, not inferred: the gateway serves chat completions and
+        # responses and nothing else.
+        "api_mode": "chat_completions",
+    }
+    assert written["provider"] == "custom"
+    # Harbor's own settings survive; this rewrites the model, not the file.
+    assert written["agent"]["max_turns"] == 90
+    assert written["delegation"]["max_iterations"] == 50
+
+
+@pytest.mark.parametrize(
+    "env",
+    [
+        pytest.param({}, id="neither"),
+        pytest.param({"OPENAI_BASE_URL": HERMES_GATEWAY_URL}, id="endpoint-only"),
+        pytest.param({"HARTWELL_GATEWAY_TOKEN": "secret"}, id="token-only"),
+    ],
+)
+def test_hermes_config_declines_a_half_configured_custom_provider(
+    monkeypatch: pytest.MonkeyPatch, env: dict[str, str]
+) -> None:
+    """Without both halves, leave harbor's shape alone.
+
+    A credential and its endpoint are one setting. Writing `provider:
+    custom` with only one of them produces a config that fails later and
+    less legibly than the one it replaced -- so the branch that declines to
+    fire is tested here alongside the one that does.
+    """
+
+    import yaml
+
+    hermes = _hermes_class(monkeypatch)
+    written = yaml.safe_load(hermes(env)._build_config_yaml("openai/gpt-5.6-sol"))
+
+    assert written["provider"] == "openrouter"
+    assert written["model"] == "openai/gpt-5.6-sol"

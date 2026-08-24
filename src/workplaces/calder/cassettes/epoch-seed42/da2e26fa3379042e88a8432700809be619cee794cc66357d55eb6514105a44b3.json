@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Marco Petrosyan, Owner at Blue Fir Restaurant Group. Warm, hurried, writes like he talks. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Marco Petrosyan\nTo: Gabriel Fontes, Sylvia Nakamura\nSubject: Quarterly tip reporting—looks off\n\nHey Gabriel, Sylvia,\n\nQuick one—I’m looking at the tip numbers for this quarter and something feels off. The totals don’t line up with what I’m seeing from the floor, and I want to make sure we’re not running into an issue before we file.\n\nCan you two pull the per-location breakdown and compare it to the sales reports we’ve got? I need to know if it’s a data entry thing or if we’ve got a real discrepancy. Let’s get this squared away by end of week if we can.\n\nAppreciate you both jumping on this.\n\nMarco\n\n---\n\nFrom: Gabriel Fontes\nTo: Marco Petrosyan, Sylvia Nakamura\nSubject: Re: Quarterly tip reporting—looks off\n\nHi Marco,\n\nThanks for flagging this—Sylvia and I are on it. I'll pull the per-location tip breakdown and line it up against the sales reports we have on file. If there's a mismatch, I'll trace whether it's a data entry issue or something that needs a deeper look before we file.\n\nPlan: I'll have the comparison ready by Thursday, and if anything looks like a real discrepancy rather than a coding issue, I'll flag it to you right away with the numbers so we can decide next steps. If it's clean, I'll send you a quick confirmation so you have it in writing.\n\nHappy to jump on a call Thursday or Friday if you want to walk through it together.\n\nBest,\nGabriel Fontes\n\n[[ ## contacts ## ]]\nGabriel Fontes, Sylvia Nakamura\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 15149930506909735539,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"subject\": \"Re: Quarterly tip reporting—looks off\",\n  \"body\": \"Gabriel, Sylvia—\\n\\nThanks for jumping on this so fast. That plan sounds good. Thursday works—just shoot me the numbers when you have them, and if there's anything that looks like a real problem, don't wait for a call. Flag it right away.\\n\\nAppreciate you both.\\n\\nMarco\",\n  \"summary\": \"Acknowledges the plan, confirms Thursday deadline, and asks for immediate flagging of any real discrepancies.\",\n  \"to\": [\"Gabriel Fontes\"],\n  \"cc\": [\"Sylvia Nakamura\"],\n  \"attachment_refs\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 905,
+      "completion_tokens": 158
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

@@ -40,61 +40,54 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 STATE = Path(os.environ.get("WORKBENCH_STATE", "out/merrick/bundle/state"))
 
-# The same two constants the solver uses, restated rather than imported:
-# this screen is meant to be runnable against a task that has not been
-# written yet, and importing the solver would make it refuse until the
-# window it is being run to choose has already been filled in.
-OWNER = re.compile(r"\bI'll\b|\bI will\b", re.IGNORECASE)
-STANDING_MINIMUM = 3
+# The rule comes from the SOLVER, imported rather than restated.
+#
+# It used to be restated here, with a comment explaining that a screen must
+# be runnable against a task not yet written. The cost of that arrived
+# twice. This file's own docstring records the first: it disagreed with
+# what it screens for until 2026-08-23, when it was brought up to the
+# sentence rule. The rule then gained four more conditions -- clause, not
+# sentence; the day after the promise; the day attached; nobody else's
+# clause between -- and this file stayed on the sentence rule and reported
+# 25 rows for a window the solver reads as 19.
+#
+# A screen that measures a different rule than the grader chooses the
+# window on numbers nobody will be scored against. Importing costs the
+# ability to run this before `solve.py` exists, which has never once been
+# needed; drifting costs the window.
+#
+# The window itself is NOT imported: `solve.py` names it inside a function
+# so it stays importable unfilled, and this screen supplies its own from
+# argv, which is the whole point of running it.
+# `solve.py` reads `WORKBENCH_STATE` at import, so the default this file
+# already computes is put in the environment first. Without it, importing
+# this module raises `KeyError` before any test can set the variable --
+# which is what happened, and what a collection error looks like when the
+# import is the thing under test.
+os.environ.setdefault("WORKBENCH_STATE", str(STATE))
+sys.path.insert(
+    0,
+    str(
+        Path(__file__).resolve().parent
+        / "tasks"
+        / "live-commitment-register"
+        / "solution"
+    ),
+)
+import solve as _solve  # noqa: E402
+
+OWNER = _solve._OWNER
+STANDING_MINIMUM = _solve.STANDING_SERIES_MINIMUM
 WORD_CEILING = 60_000
 ROW_FLOOR = 12
 SUPERSESSION_FLOOR = 0.15
+_WEEKDAYS = _solve.WEEKDAYS
 
-_GAP = r"[\s\-‐-―]+"
-FORMS: tuple[tuple[str, str], ...] = (
-    (rf"\b(?:EOD|COB|end{_GAP}of{_GAP}(?:the{_GAP})?day){_GAP}tomorrow\b", "tomorrow"),
-    (
-        rf"\b(?:EOD|COB|close{_GAP}of{_GAP}business|"
-        rf"end{_GAP}of{_GAP}(?:the{_GAP})?day)\b",
-        "eod",
-    ),
-    (rf"\b(?:EOW|end{_GAP}of{_GAP}(?:the{_GAP})?week)\b", "end of week"),
-    (r"\btomorrow\b", "tomorrow"),
-    *(
-        (rf"\b{d}\b", d)
-        for d in ("monday", "tuesday", "wednesday", "thursday", "friday")
-    ),
-)
-_COMPILED = tuple((re.compile(p, re.IGNORECASE), t) for p, t in FORMS)
-_WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
+_commitment_in = _solve.commitment_in
 
 
 def _token(text: str) -> str | None:
-    for pattern, token in _COMPILED:
-        if pattern.search(text or ""):
-            return token
-    return None
-
-
-# Sentences, as the brief defines them: semicolons separate sentences here
-# as full stops do.
-_SENTENCE = re.compile(r"(?<=[.?!;])\s+")
-
-
-def _commitment_in(text: str) -> str | None:
-    """The deadline this turn's speaker committed to, or None.
-
-    Both halves in one sentence. The solver reaches the same rule by its
-    own route; this is the screen agreeing with what it screens for,
-    which it did not until 2026-08-23.
-    """
-
-    for sentence in _SENTENCE.split(text or ""):
-        if OWNER.search(sentence):
-            token = _token(sentence)
-            if token is not None:
-                return token
-    return None
+    return _solve.deadline_token(text)
 
 
 def _due(said_on: dt.date, token: str) -> dt.date:
@@ -202,11 +195,24 @@ def main(argv: list[str] | None = None) -> int:
     print("  (a count of the answer's own composition reads as a specification;")
     print("   raw counts over overlapping patterns are not a partition)")
     commitment = [t for t in turns if OWNER.search(t[3] or "")]
+    # Named, not indexed. These used to be `_COMPILED[1]`, `_COMPILED[3]`
+    # and so on into a table this file owned; the table now lives in the
+    # solver, where the compounds come first and the ordinals mean
+    # something else entirely. A positional index into somebody else's
+    # table is a silent mislabel waiting for that table to grow.
     for name, pattern in (
-        ("end of day", _COMPILED[1][0]),
-        ("tomorrow", _COMPILED[3][0]),
-        ("end of week", _COMPILED[2][0]),
-        ("compound EOD-tomorrow", _COMPILED[0][0]),
+        ("end of day", re.compile(_solve._EOD, re.IGNORECASE)),
+        ("tomorrow", re.compile(r"\btomorrow\b", re.IGNORECASE)),
+        (
+            "end of week",
+            re.compile(
+                r"\b(?:EOW|end[\s\-]+of[\s\-]+(?:the[\s\-]+)?week)\b", re.IGNORECASE
+            ),
+        ),
+        (
+            "compound EOD-tomorrow",
+            re.compile(_solve._EOD + r"[\s\-]+tomorrow\b", re.IGNORECASE),
+        ),
         ("a named weekday", re.compile("|".join(_WEEKDAYS), re.IGNORECASE)),
     ):
         n = sum(1 for t in commitment if pattern.search(t[3] or ""))

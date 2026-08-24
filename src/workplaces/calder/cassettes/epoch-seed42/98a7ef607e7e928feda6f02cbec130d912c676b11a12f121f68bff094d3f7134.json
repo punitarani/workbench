@@ -1,0 +1,30 @@
+{
+  "request": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Your input fields are:\n1. `identity` (str): \n2. `situation` (str): what moved in their world, or the thread\n3. `contacts` (str): who at the firm they usually write to\nYour output fields are:\n1. `draft` (EmailDraft):\nAll interactions will be structured in the following way, with the appropriate values filled in.\n\n[[ ## identity ## ]]\n{identity}\n\n[[ ## situation ## ]]\n{situation}\n\n[[ ## contacts ## ]]\n{contacts}\n\n[[ ## draft ## ]]\n{draft}        # note: the value you produce must adhere to the JSON schema: {\"type\": \"object\", \"additionalProperties\": false, \"properties\": {\"attachment_refs\": {\"type\": \"array\", \"default\": [], \"description\": \"doc- ids of deliverables this email sends, if any. Attach the work rather than describing it: a client asking for the schedule wants the file. Only ids you have seen.\", \"items\": {\"type\": \"string\"}, \"title\": \"Attachment Refs\"}, \"body\": {\"type\": \"string\", \"title\": \"Body\"}, \"cc\": {\"type\": \"array\", \"default\": [], \"description\": \"Cc recipients by full name from the thread or directory.\", \"items\": {\"type\": \"string\"}, \"title\": \"Cc\"}, \"subject\": {\"type\": \"string\", \"title\": \"Subject\"}, \"summary\": {\"type\": \"string\", \"title\": \"Summary\"}, \"to\": {\"type\": \"array\", \"default\": [], \"description\": \"Recipients by full name exactly as they appear in the thread or directory (e.g. 'Tom Okafor'). At least one. Never invent addresses.\", \"items\": {\"type\": \"string\"}, \"title\": \"To\"}}, \"required\": [\"subject\", \"body\", \"summary\"], \"title\": \"EmailDraft\"}\n\n[[ ## completed ## ]]\nIn adhering to this structure, your objective is: \n        Write the email this person would actually send: their voice,\n        their concern, one ask. A client, not a colleague — they do not know\n        the firm's internals, they know their business and what they need."
+      },
+      {
+        "role": "user",
+        "content": "[[ ## identity ## ]]\nYou are Frank Osei, Owner at Cardinal Ridge Builders. Blunt, margin-obsessed, short sentences. Ongoing concerns: keeping the business moving.\n\n[[ ## situation ## ]]\nFrom: Frank Osei\nTo: Desmond Ortiz\nSubject: Job 2142 – why we lost money\n\nDesmond,\n\nJob 2142 closed 18% under margin. That's not a blip, that's a leak.\n\nI need the breakdown by Friday: labor, materials, change orders, anything you billed late. If it was a bid mistake, say so. If it was site mismanagement, name it.\n\nWe can't keep eating these. Get me the numbers and your take on what we do different next time.\n\nFrank\n\n---\n\nFrom: Desmond Ortiz\nTo: Frank Osei\nSubject: Job 2142 – margin breakdown and drivers\n\nFrank,\n\nGot it. I ran the numbers this morning, and here's what Job 2142 actually cost us.\n\n**Labor** — the biggest leak. We came in about 9% over estimate on field hours. Crew stayed on site an extra week waiting on the steel delivery, and that idle time wasn't reallocated. I've flagged the specific dates and crews in the workpaper.\n\n**Materials** — about 4% over. Two line items (rebar and fasteners) spiked after the bid was locked, and we didn't have escalation clauses in the sub contracts. That's on us for not pushing back when the vendor revised.\n\n**Change orders** — here's where I think we left money on the table. We had three approved change orders, but only one got billed within the month. The other two — one for site prep, one for the drainage adjustment — sat in the field for three weeks before we invoiced. That's roughly 3% of the margin swing right there, not because the work wasn't done, but because we billed late.\n\n**Bid itself** — I'll be straight: the original estimate was thin on labor. We assumed a 2% contingency, but given the crew mix we actually fielded, it should've been 5%. That's a bid mistake, and I'd rather own it now than pretend otherwise.\n\n**What I'd do different next time:**\n1. Build labor idle time into the bid — or at minimum, have a clause that covers weather/delivery delays.\n2. Invoice change orders the week they're approved, not when the field crew remembers. I'll set a 48-hour rule on our next job.\n3. Review the labor estimate against the actual crew mix before we submit. I can add that as a checklist item for the estimators.\n\nHappy to walk you through the full breakdown if you want — I can block time Thursday afternoon.\n\nDes\n\n[[ ## contacts ## ]]\nDesmond Ortiz\n\nRespond with the corresponding output fields, starting with the field `[[ ## draft ## ]]` (must be formatted as a valid Python EmailDraft), and then ending with the marker for `[[ ## completed ## ]]`."
+      }
+    ],
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "max_tokens": 4096,
+    "seed": 15472687903218625451,
+    "response_schema": null,
+    "rollout_id": 0
+  },
+  "response": {
+    "text": "[[ ## draft ## ]]\n{\n  \"to\": [\"Desmond Ortiz\"],\n  \"cc\": [],\n  \"subject\": \"Re: Job 2142 – margin breakdown and drivers\",\n  \"body\": \"Des,\\n\\nGood breakdown. Numbers make sense. The change order billing is the easiest fix—48-hour rule, make it stick. Labor idle is the bigger one; we can't eat that again. I want the escalation clause reviewed on all subs going forward.\\n\\nThursday works. Block 2pm. Bring the workpaper and the bid sheet. We'll go line by line.\\n\\nFrank\",\n  \"summary\": \"Frank acknowledges Desmond's breakdown of Job 2142 losses, agrees on the change order billing fix and labor issue, and schedules a Thursday meeting to review the details.\",\n  \"attachment_refs\": []\n}\n[[ ## completed ## ]]",
+    "usage": {
+      "prompt_tokens": 1097,
+      "completion_tokens": 179
+    },
+    "cache_hit": false
+  },
+  "site": null
+}

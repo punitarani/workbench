@@ -25,6 +25,7 @@ question nobody asks.
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -32,6 +33,27 @@ from dataset_modules import dataset_module
 
 B = dataset_module("merrick", "baselines")
 REPO = Path(__file__).resolve().parents[2]
+
+
+# Reward Kit is a `uv tool`, not a project dependency, so it is absent
+# wherever the repo is only `uv sync`'d -- CI included. Every check below
+# that *scores an answer* needs it, and without it `_score` returns None,
+# the floor never lands in the dict, and the failure surfaces as a KeyError
+# on the floor's name rather than as "the scorer is not installed".
+#
+# Skipped rather than silently passed, and skipped on the tool rather than
+# on the symptom: a floor that is absent because nothing measured it is the
+# exact failure this module exists to refuse, so it may not be confused
+# with a floor that is absent because the task states no candidate count.
+# The build enforces these same thresholds where Reward Kit does exist.
+NEEDS_SCORER = pytest.mark.skipif(
+    shutil.which("rewardkit") is None,
+    reason=(
+        "rewardkit is not installed (it is a `uv tool`, not a project "
+        "dependency); floors that require scoring an answer cannot be "
+        "measured here. The build gate enforces them where it is present."
+    ),
+)
 
 
 def _floors(**kwargs: float) -> dict[str, float]:
@@ -119,6 +141,7 @@ def test_the_thresholds_are_ordered() -> None:
         if (p / "tests" / "oracle.json").is_file()
     ),
 )
+@NEEDS_SCORER
 def test_this_dataset_s_own_tasks_pass_it(
     task: str, capsys: pytest.CaptureFixture
 ) -> None:
