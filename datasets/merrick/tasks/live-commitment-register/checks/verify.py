@@ -89,7 +89,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 PINNED: dict[str, str] = {
     "## What counts as a commitment": "427c94a252d6af9b",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
-    "## Which one is live": "bda9fa6cdb25b25d",
+    "## Which one is live": "e4db45ed798de980",
 }
 
 # The firm's own zone, read from the served meta table rather than named
@@ -102,7 +102,7 @@ PINNED: dict[str, str] = {
 # derivations disagree near midnight and THAT DISAGREEMENT IS THE FINDING,
 # not a bug in this file.»
 WINDOW_FIRST_DATE = "2026-01-06"
-WINDOW_LAST_DATE = "2026-02-09"
+WINDOW_LAST_DATE = "2026-02-16"
 
 # «MEASURE: the admitted deadline forms and their normalised tokens, read
 # out of the brief's own table rather than restated here once the table

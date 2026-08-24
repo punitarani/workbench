@@ -31,8 +31,8 @@ meeting is what counts and the mail changes nothing.
 
 Read the meetings held from
 ****Tuesday 6 January 2026**** through
-****Monday 9 February 2026****, inclusive — ****25****
-working days and ****100****
+****Monday 16 February 2026****, inclusive — ****30****
+working days and ****120****
 meetings.
 
 A meeting is in the window when it **started** inside it; one that runs past
@@ -162,7 +162,7 @@ sits in a transcript. Two meetings on the same day are ordered by their
 start times; a person who commits twice inside one meeting is making one
 commitment, and the later turn is the one that counts.
 
-On this window, 65% of the rows carry a due date that differs between the
+On this window, 64% of the rows carry a due date that differs between the
 person's first statement and their last.
 
 A commitment made once and never repeated is live. It does not need

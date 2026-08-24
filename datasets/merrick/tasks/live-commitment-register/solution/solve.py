@@ -188,7 +188,7 @@ def _window() -> tuple[int, int]:
     # module -- the date arithmetic, the form tables -- stays importable
     # before the corpus exists.
     WINDOW_FIRST_DAY = 1
-    WINDOW_LAST_DAY = 35
+    WINDOW_LAST_DAY = 42
     return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
 
 
