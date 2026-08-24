@@ -38,34 +38,10 @@ A version makes a row when its **comment** carries one of exactly these
 phrases:
 
     no substantive edits, no substantive changes,
-    no substantive revisions, no changes made,
-    no changes were made, no edits made
+    no changes made, no changes were made,
+    no edits made
 
 Case does not matter. Nothing else admits a row.
-
-«MEASURE: **counted on the 67-day record, before this table is fixed.**
-1,034 versions, 42 carrying an admitted phrase:
-
-    no changes made            27        no changes were made      2
-    no substantive changes     11        no edits made             1
-    no substantive edits        1        no substantive revisions  0
-
-`no substantive revisions` fires on nothing. Keep it only if the finished
-record writes it; a row that grades zero instances is a column of nothing
-dressed as a form.
-
-**And the decoys this brief names do not exist here.** `only formatting`,
-`typo fix`, `minor cleanup`, `nothing material` and `cosmetic only` appear
-**zero times each** in 1,034 version comments. The paragraph below excluding
-them is excluding nothing, and the difficulty it claims is not on this
-world. What *does* occur is the singular `no substantive edit` — twice —
-which the asymmetry rule correctly shuts out, and that is the only real
-near-miss the corpus offers. Re-count on the finished record and name the
-decoys it actually writes.
-
-**The window follows from the same count:** 2 rows in a fortnight, 14 in
-four weeks, 20 over days 14-41. Four weeks is the minimum that clears the
-twelve-row floor.»
 
 **The list is exact, and it is deliberately not symmetric.** `no changes
 were made` admits a row; `no edits were made` does not, and neither does any
@@ -89,9 +65,13 @@ not evidence of anything.
 carries an admitted phrase is a row. You are recording the phrase, not
 adjudicating the contradiction.
 
-And the reverse: a comment saying *"only formatting"*, *"typo fix"*,
-*"minor cleanup"*, *"nothing material"* or *"cosmetic only"* is **not** a
-row. Those plainly describe a trivial revision. They are not on the list.
+**The near-misses are singulars, and there are more of them than there are
+rows.** This firm writes *"no substantive change"*, *"no edit made"*, *"no
+substantive edit"*, *"no change made"* and *"no edits were made"* — every
+one of them a plain declaration that nothing was altered, and **not one of
+them is on the list**. They make no rows. A reader who repairs the
+asymmetry, or who matches on the sense of the comment rather than on its
+exact words, will return them and be wrong about each one.
 
 A document's **first version is its creation, not a revision**, and never
 makes a row.

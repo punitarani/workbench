@@ -1,0 +1,150 @@
+{
+ "window_end": "2026-02-19",
+ "versions_read": 280,
+ "no_op_revisions": [
+  {
+   "document_ref": "LEGAL!1.7",
+   "author": "Adaora Nwosu",
+   "revised_date": "2026-02-16",
+   "document_name": "Standard rate card, effective January 2026"
+  },
+  {
+   "document_ref": "LEGAL!1.8",
+   "author": "Adaora Nwosu",
+   "revised_date": "2026-02-18",
+   "document_name": "Standard rate card, effective January 2026"
+  },
+  {
+   "document_ref": "LEGAL!7.3",
+   "author": "Ulrich Bergmann",
+   "revised_date": "2026-01-07",
+   "document_name": "Coastal Meridian Resources, Inc. \u2014 Credit Agreement Covenant Compliance Review Memorandum"
+  },
+  {
+   "document_ref": "LEGAL!8.3",
+   "author": "Thandiwe Mokoena",
+   "revised_date": "2026-01-06",
+   "document_name": "Pellumbra / Ravenna Collaboration Agreement \u2014 IP Provisions Markup Memo"
+  },
+  {
+   "document_ref": "LEGAL!8.4",
+   "author": "Elena Vasquez-Reyes",
+   "revised_date": "2026-01-13",
+   "document_name": "Pellumbra / Ravenna Collaboration Agreement \u2014 IP Provisions Markup Memo"
+  },
+  {
+   "document_ref": "LEGAL!9.5",
+   "author": "Mira Chandrasekhar",
+   "revised_date": "2026-01-16",
+   "document_name": "Northmoor / Sandhurst Add-On Diligence Tracker"
+  },
+  {
+   "document_ref": "LEGAL!9.6",
+   "author": "Mira Chandrasekhar",
+   "revised_date": "2026-01-28",
+   "document_name": "Northmoor / Sandhurst Add-On Diligence Tracker"
+  },
+  {
+   "document_ref": "LEGAL!9.7",
+   "author": "Mira Chandrasekhar",
+   "revised_date": "2026-02-18",
+   "document_name": "Northmoor / Sandhurst Add-On Diligence Tracker"
+  },
+  {
+   "document_ref": "LEGAL!10.2",
+   "author": "Klara Bendtsen",
+   "revised_date": "2026-01-06",
+   "document_name": "Schedule 2 \u2014 Licensed IP; Linden Robotics / Fairmont OEM Licence Agreement"
+  },
+  {
+   "document_ref": "LEGAL!14.2",
+   "author": "Jamal Okonkwo",
+   "revised_date": "2026-01-14",
+   "document_name": "Sandhurst Platform Acquisition - Deal Staffing Plan"
+  },
+  {
+   "document_ref": "LEGAL!26.3",
+   "author": "Klara Bendtsen",
+   "revised_date": "2026-01-21",
+   "document_name": "Linden Robotics / Fairmont OEM Licence \u2014 Matter Status Update"
+  },
+  {
+   "document_ref": "LEGAL!28.4",
+   "author": "Samir Bhatt",
+   "revised_date": "2026-01-21",
+   "document_name": "Sable Ridge Transportation \u2013 Driver Meal-Break Collective Action: Document Review & Deposition Prep Tracker"
+  },
+  {
+   "document_ref": "LEGAL!35.3",
+   "author": "Petra Kovacs",
+   "revised_date": "2026-01-13",
+   "document_name": "Brightwell Academy \u2014 Initial File Memorandum and Next Steps"
+  },
+  {
+   "document_ref": "LEGAL!59.8",
+   "author": "Quentin Sarr",
+   "revised_date": "2026-02-12",
+   "document_name": "Cotswold Mutual Claims Committee \u2014 Partner Matter Review Summary"
+  },
+  {
+   "document_ref": "LEGAL!68.2",
+   "author": "Mira Chandrasekhar",
+   "revised_date": "2026-01-15",
+   "document_name": "Northmoor / Sandhurst Platform Acquisition \u2014 Purchase Agreement (Draft) \u2014 Sections 7 and 8"
+  },
+  {
+   "document_ref": "LEGAL!68.3",
+   "author": "Mira Chandrasekhar",
+   "revised_date": "2026-01-23",
+   "document_name": "Northmoor / Sandhurst Platform Acquisition \u2014 Purchase Agreement (Draft) \u2014 Sections 7 and 8"
+  },
+  {
+   "document_ref": "LEGAL!68.4",
+   "author": "Mira Chandrasekhar",
+   "revised_date": "2026-01-27",
+   "document_name": "Northmoor / Sandhurst Platform Acquisition \u2014 Purchase Agreement (Draft) \u2014 Sections 7 and 8"
+  },
+  {
+   "document_ref": "LEGAL!69.5",
+   "author": "Mira Chandrasekhar",
+   "revised_date": "2026-02-09",
+   "document_name": "Northmoor / Sandhurst Platform Acquisition \u2014 Purchase Agreement (Draft) \u2014 Sections 9 and 10"
+  },
+  {
+   "document_ref": "LEGAL!81.2",
+   "author": "Klara Bendtsen",
+   "revised_date": "2026-01-19",
+   "document_name": "Atwater Foods v. Third-Party Marks \u2014 Trademark Opposition Status Memo"
+  },
+  {
+   "document_ref": "LEGAL!84.4",
+   "author": "Rosalie Duchamp",
+   "revised_date": "2026-02-02",
+   "document_name": "Written Plan \u2014 Second Regulatory Request Response"
+  },
+  {
+   "document_ref": "LEGAL!114.2",
+   "author": "Ingrid Solheim",
+   "revised_date": "2026-02-02",
+   "document_name": "Draft Indemnity Provision \u2014 Ardmore Elevator Air Permit Gap"
+  },
+  {
+   "document_ref": "LEGAL!123.4",
+   "author": "Bennett Ashworth",
+   "revised_date": "2026-02-12",
+   "document_name": "Reserve Impact \u2014 Recent Case Developments"
+  },
+  {
+   "document_ref": "LEGAL!136.5",
+   "author": "Petra Kovacs",
+   "revised_date": "2026-02-13",
+   "document_name": "Handbook and Policy Compliance Review \u2014 Second-Pass Findings: Complaint-Reporting and Progressive-Discipline Provisions"
+  },
+  {
+   "document_ref": "LEGAL!177.2",
+   "author": "Noor Haddad",
+   "revised_date": "2026-02-11",
+   "document_name": "Docket Deadline Tracker \u2013 Recurring Ownership/Cadence: Resolution Memo"
+  }
+ ]
+}

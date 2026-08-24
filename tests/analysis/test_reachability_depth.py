@@ -249,3 +249,186 @@ def test_the_walk_does_not_re_ask_what_it_already_asked(monkeypatch) -> None:
     server = _Chain()
     asyncio.run(_walk(server, {"workspace"}))
     assert len(server.asked) == len(set(server.asked)), server.asked
+
+
+# One container holding more than a page. iManage serves a hundred children
+# a page and names the next one in `next_page`; it sends no `hasMore`, which
+# is the field the crawl's page branch looked for. Absent, it read as "no
+# more pages" and every container stopped at its first hundred.
+#
+# Measured on the six-month Merrick record: 221 of 658 documents opened, and
+# the version ids of the other 437 reported as values no tool ever serves --
+# which blocked a task whose key was correct. One page is not a surface.
+PAGED_DOCUMENTS = 150
+PAGED_PROBE = 140
+
+
+def _paged_events() -> list[Event]:
+    payloads = [
+        SimRunStartedPayload(
+            kind="sim.run.started",
+            run_id="run-test-2",
+            seed_root=42,
+            workplace_id="test",
+            config_hash="0" * 64,
+            schema_version=1,
+            epoch="2026-01-05T00:00:00+00:00",
+            timezone="UTC",
+        ),
+        PersonRecordPayload(
+            kind="person.record",
+            person_id="per-ana",
+            name="Ana Reyes",
+            email_address="ana@example.test",
+            title="Associate",
+            department="Litigation",
+            manager=None,
+            affiliation="internal",
+            timezone="UTC",
+        ),
+    ]
+    for number in range(1, PAGED_DOCUMENTS + 1):
+        payloads.append(
+            DocumentCreatedPayload(
+                kind="document.created",
+                document_id=f"doc-{number:06d}",
+                author="per-ana",
+                title=f"Deposition Summary {number}",
+                path=f"engagements/hollstead/summary-{number}.docx",
+                location="repository",
+                content_format="formatted",
+                content="{}",
+            )
+        )
+    # Revised, so its version list carries an id the head profile never
+    # names -- the probe has to be a value only the deep call returns.
+    payloads.append(
+        DocumentRevisedPayload(
+            kind="document.revised",
+            document_id=f"doc-{PAGED_PROBE:06d}",
+            author="per-ana",
+            revision=2,
+            content="{}",
+            change_summary="second pass",
+        )
+    )
+    return [
+        Event(
+            seq=index,
+            event_id=f"evt-{index:06d}",
+            time=index * 3600,
+            tag=payload.kind,
+            source="gm",
+            payload=payload,
+        )
+        for index, payload in enumerate(payloads, start=1)
+    ]
+
+
+@pytest.fixture
+def paged_state(tmp_path):
+    from tools.framework import project_system
+    from tools.imanage import SYSTEM
+
+    state_dir = tmp_path / "paged"
+    project_system(SYSTEM, _paged_events(), state_dir / "imanage.db")
+    return state_dir
+
+
+def test_a_container_is_paged_to_its_end(paged_state) -> None:
+    """A document on the second page of its workspace is still reachable.
+
+    `PAGED_PROBE` is past the first hundred deliberately: a probe inside
+    page one passes whether or not the crawl pages at all, which is how
+    this went unnoticed. Its *second version* is the assertion, because the
+    head turns up in the recents feed on its own.
+    """
+
+    from analysis.reachability import _served
+
+    reached = asyncio.run(_served(paged_state))
+    assert f"LEGAL!{PAGED_PROBE}.1" in reached, (
+        "the document itself is past page one of its container; a crawl "
+        "that stops at the first page never opens it"
+    )
+    assert f"LEGAL!{PAGED_PROBE}.2" in reached, (
+        "and its version list is what names this one"
+    )
+
+
+# --- the page branch itself, with no world behind it -------------------
+#
+# The fixture above cannot isolate this: a 150-document world is small
+# enough that the recents feed names every document on its own, so the
+# probe stays reachable with pagination broken. The defect only bites once
+# the OTHER routes cap out -- iManage stops a search at 500 results -- and
+# building a 600-document fixture to prove one branch is the wrong trade.
+# So the branch is exercised directly, against a server that paginates the
+# way iManage does and says nothing about `hasMore`.
+
+
+class _PagingChunk:
+    def __init__(self, text: str) -> None:
+        self.text = text
+
+
+class _PagingResult:
+    def __init__(self, text: str) -> None:
+        self.is_error = False
+        self.content = [_PagingChunk(text)]
+
+
+class _PagingTool:
+    name = "get_container_children"
+    input_schema = {"properties": {"container_id": {}, "page": {}}}
+
+
+class _PagingServer:
+    """Three pages, `next_page`, and no `hasMore` -- iManage's shape."""
+
+    PAGES = 3
+    PER_PAGE = 2
+
+    def __init__(self) -> None:
+        self.pages_served: list[int] = []
+
+    async def list_tools(self):
+        return [_PagingTool()]
+
+    async def call_tool(self, name, arguments):
+        import json as _json
+
+        page = arguments.get("page") or 1
+        self.pages_served.append(page)
+        start = (page - 1) * self.PER_PAGE
+        data = [
+            {"id": f"LEGAL!{start + offset + 1}.1"} for offset in range(self.PER_PAGE)
+        ]
+        payload = {"data": data, "next_page": page + 1 if page < self.PAGES else None}
+        return _PagingResult(_json.dumps(payload))
+
+
+def test_a_next_page_token_is_followed_without_a_hasmore_flag() -> None:
+    """`next_page` names the next page; nothing else has to agree.
+
+    The page branch used to require `hasMore`, and returned as soon as it
+    was absent -- so a surface that paginates by naming its successor was
+    read as a single page. Every id past the first hundred children of a
+    container went unseen, and the gate reported correct oracle values as
+    unservable.
+    """
+
+    from analysis.reachability import _collect
+
+    server = _PagingServer()
+    found: set[str] = set()
+    asyncio.run(
+        _collect(server, "get_container_children", {"container_id": "W1"}, found)
+    )
+
+    assert server.pages_served == [1, 2, 3], (
+        f"every page has to be asked for, got {server.pages_served}"
+    )
+    assert "LEGAL!5.1" in found and "LEGAL!6.1" in found, (
+        "the last page's ids are as reachable as the first page's"
+    )

@@ -32,6 +32,18 @@ from tools.registry import REGISTRY
 # Discovery tools take no required argument: they are how an agent with no
 # prior knowledge finds anything at all. If a value cannot be reached from
 # them (directly or through the ids they hand out), it is not discoverable.
+# Sized to the world, not to a round number. A six-month Merrick record
+# serves 658 documents, and a non-head version id appears only in the
+# result of `get_document_versions(<that document>)` -- so a cap below the
+# document count silently decides that some documents' versions are
+# unreachable, and the gate then blocks a task whose key is correct. At
+# 400 the crawl opened 221 of 658 and reported eight true version ids as
+# unservable.
+#
+# This is a performance bound and never a semantic one. Whenever it binds,
+# the honest reading is "the crawl ran out of budget", not "no agent could
+# reach this" -- so it is set above the largest surface the datasets carry
+# rather than tuned down to what is fast.
 _MAX_FOLLOW = 400
 
 # How many times the crawl opens what the previous round named. Two was
@@ -130,19 +142,30 @@ async def _collect(server, name: str, arguments: dict, into: set[str]) -> None:
         # unservable rather than as its own blind spot.
         nested = payload.get("response_metadata")
         places = (payload, nested if isinstance(nested, dict) else {})
+        # `next_page` is iManage's: `get_container_children` returns it and
+        # no `hasMore`, so the `page` branch below saw an absent `hasMore`,
+        # concluded there was nothing more, and stopped every container at
+        # its first hundred children. On a 658-document world that left 437
+        # documents unopened and their version ids reported unservable --
+        # the gate blaming a task for its own blind spot, again.
         token = next(
             (
                 where[key]
                 for where in places
-                for key in ("nextPageToken", "nextCursor", "next_cursor")
+                for key in ("nextPageToken", "nextCursor", "next_cursor", "next_page")
                 if where.get(key)
             ),
             None,
         )
         if token_arg == "page":
-            token = (arguments.get("page") or 1) + 1
-            if not payload.get("hasMore") and not payload.get("has_more"):
-                return
+            # Only invent the next page number when the payload said
+            # nothing about one. A surface that names its own next page --
+            # iManage returns `next_page` and no `hasMore` -- is believed,
+            # and a surface that says `hasMore: false` is finished.
+            if token is None:
+                if not payload.get("hasMore") and not payload.get("has_more"):
+                    return
+                token = (arguments.get("page") or 1) + 1
         if not token:
             return
         arguments[token_arg] = token
@@ -239,8 +262,63 @@ async def _served(state_dir: Path) -> set[str]:
                 await _collect(server, tool.name, {"query": ""}, discovered)
         reachable |= discovered
 
-        reachable |= await _follow(server, tools, discovered)
+        followed = await _follow(server, tools, discovered)
+        reachable |= followed
+        reachable |= await _enumerate(server, tools, discovered | followed)
     return reachable
+
+
+# Tools that list the contents of one thing, rather than answering a
+# question about it. Their results are an enumeration: an agent that holds
+# the container holds every child, in one call, with no searching.
+_ENUMERATORS = ("get_container_children", "get_document_versions")
+
+
+async def _enumerate(server, tools, known: set[str]) -> set[str]:
+    """Exhaust the enumerating tools over everything already discovered.
+
+    `_follow` samples. It sorts the frontier, takes the first
+    `_MAX_FOLLOW`, and calls every single-argument tool on each -- which is
+    quadratic, costs eight and a half minutes at four hundred, and on a
+    658-document world opened 221 of them. The 437 it did not open had
+    every one of their version ids reported unservable, and the gate then
+    blocked a task whose answer key was correct and whose rows an agent
+    could have obtained in one call each.
+
+    Sampling is the wrong shape for an enumeration. `get_container_children`
+    on nine workspaces names every document in the library, and
+    `get_document_versions` on a document names every version of it: there
+    is nothing to prioritise, because the answer is the whole list. So
+    these two run over everything the crawl has seen, and they run to
+    completion.
+
+    Linear, and cheap for it: nine containers and six hundred documents is
+    two calls per document, against the twenty-odd tools `_follow` would
+    have tried on each. Two rounds, because the documents that make a
+    version list are named by the container listing.
+    """
+
+    enumerators = [tool for tool in tools if tool.name in _ENUMERATORS]
+    if not enumerators:
+        return set()
+    reached: set[str] = set()
+    frontier = known
+    for _ in range(2):
+        found: set[str] = set()
+        for tool in enumerators:
+            required = (tool.input_schema or {}).get("required") or []
+            if len(required) != 1:
+                continue
+            for value in frontier:
+                if not value or " " in value or len(value) >= 64:
+                    continue
+                await _collect(server, tool.name, {required[0]: value}, found)
+        new_values = found - reached - known
+        reached |= found
+        if not new_values:
+            break
+        frontier = new_values
+    return reached
 
 
 def served_vocabulary(state_dir: Path) -> set[str]:

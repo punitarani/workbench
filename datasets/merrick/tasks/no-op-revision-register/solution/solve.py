@@ -41,28 +41,32 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 STATE = Path(os.environ["WORKBENCH_STATE"])
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("no_op_revisions.json")
 
-# «MEASURE: **calendar** days in the window, not working days -- the
-# cutoff below is `WINDOW_DAYS * 86_400` and counts every day. The
-# brief quotes a working-day figure because that is what a reader
-# thinks in, and the two differ by every weekend inside the window;
-# `measure_windows.py` prints both on one line so they are taken as a
-# matched pair. Filling this from the working-day figure shortens the
-# corpus silently, and the verifier takes the same integer so the
-# cross-check cannot see it.
+# Calendar days, not working days: the cutoff is `WINDOW_DAYS * 86_400`
+# and counts every day, while the brief quotes the working-day figure
+# because that is what a reader thinks in. The two differ by every weekend
+# inside the window, and the verifier takes this same integer, so filling
+# it from the working-day figure would shorten the corpus silently and the
+# cross-check could not see it.
 #
-# Sizing: At the recorded rate -- ~7.4
-# revisions per working day, about one in five a no-op -- four weeks puts
-# ~150 comments in front of the reader for ~28 rows. Re-measure on the
-# finished record.»
-WINDOW_DAYS: int | None = None
+# 46 calendar days = 34 working days, ending Thursday 19 February 2026,
+# which is the boundary the brief states. Measured on the shipped record by
+# `measure_windows.py`, which drives this solver rather than a copy of it:
+# ~235 version comments in front of the reader for 20 rows. The floor is
+# twelve rows; a fortnight gives seven and does not clear it.
+WINDOW_DAYS: int = 46
 
-# The admitted phrases, closed. `only formatting`, `typo fix`, `minor
-# cleanup`, `nothing material` and `cosmetic only` are deliberately absent:
-# they describe a trivial revision rather than declaring none, and admitting
-# them would make the rule a judgement about triviality instead of a reading
-# of the comment.
+# The admitted phrases, closed, and PLURAL. The singulars this firm also
+# writes -- `no substantive change` 13 times, `no edit made` 6, `no
+# substantive edit` 4, `no change made` 2, `no edits were made` 1 -- are
+# deliberately absent. That asymmetry is the rule and it is where the
+# task's difficulty lives: 26 near-misses against 20 rows, every one of
+# them a plain declaration that nothing changed.
+#
+# `no substantive revisions` was on this list and fired on nothing: 0 of
+# 1,118 version comments. A form that grades no instances is a column of
+# nothing dressed as a rule, so it is gone from here and from the brief.
 NO_OP = re.compile(
-    r"\bno substantive (?:edits|changes|revisions)\b"
+    r"\bno substantive (?:edits|changes)\b"
     r"|\bno changes (?:were )?made\b"
     r"|\bno edits made\b",
     re.IGNORECASE,
@@ -70,12 +74,6 @@ NO_OP = re.compile(
 
 
 def main() -> None:
-    if WINDOW_DAYS is None:
-        raise SystemExit(
-            "no-op-revision-register: WINDOW_DAYS is still a placeholder. "
-            "Measure the finished record before building this task."
-        )
-
     imanage = sqlite3.connect(f"file:{STATE / 'imanage.db'}?mode=ro", uri=True)
 
     # Seconds from the world's epoch, not a date string. Comparing a served

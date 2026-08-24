@@ -72,7 +72,7 @@ def _admitted_phrases() -> list[str]:
 
 PHRASES = _admitted_phrases()
 
-insists(len(PHRASES) == 6, f"six admitted phrases (found {len(PHRASES)})")
+insists(len(PHRASES) == 5, f"five admitted phrases (found {len(PHRASES)})")
 insists(
     "first version is its creation" in BRIEF,
     "a document's first version is a creation and never makes a row",
@@ -106,15 +106,31 @@ insists(
     "of the brief gave 133 where the oracle gives 86, and BOTH derivations "
     "silently shared the exclusion -- so the cross-check could never see it",
 )
+# The near-misses the corpus actually writes. This block used to pin five
+# wordings -- `only formatting`, `typo fix`, `minor cleanup`, `nothing
+# material`, `cosmetic only` -- that occur ZERO times each in 1,118 version
+# comments. The brief excluded a category the world never fills, and a
+# check that the brief still excludes it cannot fail for any reason worth
+# knowing.
+#
+# These five do occur, 26 times between them, and every one is shut out by
+# the asymmetry rule rather than by a judgement about triviality.
 insists(
-    "cosmetic only" in BRIEF and "typo fix" in BRIEF,
-    "the trivial-revision wordings are named as NOT admitting a row",
+    "no substantive change" in BRIEF and "no edits were made" in BRIEF,
+    "the singular near-misses are named as NOT admitting a row",
 )
-# The brief names these as excluded. If one ever appears among the admitted
-# phrases the rule has collapsed, and both files would collapse together.
-for trap in ("only formatting", "typo fix", "minor cleanup", "cosmetic only"):
+# If a singular ever reaches the admitted list the asymmetry has collapsed,
+# and both derivations would collapse together -- the solver reads its own
+# pattern and this reads the brief, but a brief that gained the singular
+# would feed both.
+for trap in (
+    "no substantive change",
+    "no edit made",
+    "no change made",
+    "no edits were made",
+):
     insists(
-        not any(trap in phrase.lower() for phrase in PHRASES),
+        not any(trap == phrase.lower().strip() for phrase in PHRASES),
         f"{trap!r} stays out of the admitted list",
     )
 
@@ -129,7 +145,7 @@ for trap in ("only formatting", "typo fix", "minor cleanup", "cosmetic only"):
 # including a pure addition. When it fires, re-read the section against
 # the code below and confirm the second derivation still implements it
 # before re-pinning -- do not paste the new value in to make it pass.
-unchanged(BRIEF, "## What makes a row", "aa60c143b1eb57a1")
+unchanged(BRIEF, "## What makes a row", "0a9d6cc51759c9ce")
 
 
 def admits(comment: str) -> bool:
