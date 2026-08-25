@@ -96,6 +96,45 @@ Corollaries worth stating, because each one cost a sweep:
 - **Porting a rule to a new surface does not port its difficulty.** Screen
   the port; do not assume it inherits the band.
 
+## Derivability and gradability pull against each other
+
+The law above says a key component the agent must COMPUTE is what makes a
+task hard. The obvious next move is to derive more of the key, and it has a
+limit worth knowing before you spend a day on it.
+
+A register was designed to derive BOTH halves: not "what did the speaker
+promise" but "what does the room say each PERSON owes", so the owner comes
+out of the text instead of off a column. The survey numbers were the best
+of any candidate -- rows per owner 2.45 against the working task's 1.17,
+repeat rate 71%.
+
+It does not survive contact with the prose. The dominant shapes are all
+cases where the named person is not the owner:
+
+    "...have a date to Thandiwe by tomorrow"     Thandiwe is the RECIPIENT
+    "Dov, do you want that before Friday?"       a question, and Friday
+                                                 belongs to a closing
+    "I'll chase Ulrich again ... by end of day"  Ulrich is the OBJECT
+
+255 of 302 candidates were one of these. Restricting to an unambiguous
+anchor -- a named person as the subject of a future verb, the third-person
+mirror of `I'll` -- leaves **one** instance in the whole corpus. People
+speak in the first person about their own work.
+
+**The commitment rule works because `I'll` is an unambiguous anchor for
+ownership.** Take the anchor away and the rule does not become harder, it
+becomes ungradable: a key component the model cannot reliably derive is one
+the ORACLE cannot reliably derive either, and the oracle has to be right.
+
+So the test for a derived key component is not "is it hard to compute". It
+is **"is there an anchor that makes the right answer decidable"**. A
+derivation with an anchor is difficulty. A derivation without one is a coin
+flip you will spend three sweeps mistaking for difficulty.
+
+Cost of learning this the cheap way: twenty minutes of measurement against
+the corpus. Cost of learning it the expensive way, on the register before
+it: a build, a screen, and a day of adjudication.
+
 ## Check the rule against the corpus before shipping it
 
 Count how the world actually writes the thing before fixing the rule's
