@@ -198,6 +198,10 @@ fields:
 - `distinct_owners` — how many different people hold a live commitment.
 - `superseded_count` — how many commitments you found that a later one
   replaced. These make **no row**; this is the count of what you discarded.
+  **The unit is one commitment per meeting.** A person who committed twice
+  inside a single meeting made one commitment, as above, so it can be
+  discarded once and not twice — count the meetings in which they
+  committed, not the turns, and subtract the one that is still live.
 - `live` — **one entry per live commitment**, sorted by `meeting` then
   `owner`, each with:
   - `owner` — the person's full name
@@ -206,8 +210,8 @@ fields:
   - `meeting_id` — the meeting in which they last committed
   - `said_at` — the ISO-8601 start of that meeting
 
-Two entries by the same person in the same standing meeting is always
-wrong: the later one replaced the earlier.
+Two entries in `live` for the same person and the same standing meeting is
+always wrong: only their latest commitment in that series is live.
 
 ## A warning about completeness
 

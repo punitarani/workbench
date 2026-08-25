@@ -90,6 +90,11 @@ PINNED: dict[str, str] = {
     "## What counts as a commitment": "d54f8c426cfa7b8e",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
     "## Which one is live": "e4db45ed798de980",
+    # The criteria themselves. `superseded_count` is DEFINED here and
+    # graded, and this section was not pinned: its unit could be reworded
+    # without tripping anything. Three readers of the old wording split
+    # 2-1 on it while all three called it unambiguous.
+    "## What to produce": "ae23c1dd4077f269",
 }
 
 # The firm's own zone, read from the served meta table rather than named

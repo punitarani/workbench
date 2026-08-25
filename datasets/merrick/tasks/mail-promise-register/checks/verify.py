@@ -42,6 +42,11 @@ PINNED: dict[str, str] = {
     "## What counts as a promise": "560426f68a02e08e",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
     "## Which promise is the live one": "bdd62ac3bcd3ed3d",
+    # The criteria themselves. `superseded_count` is DEFINED here and
+    # graded, and this section was not pinned: its unit could be reworded
+    # without tripping anything. Three readers of the old wording split
+    # 2-1 on it while all three called it unambiguous.
+    "## What to produce": "fc2153778d5fd642",
 }
 
 # The window, as dates. Restated rather than derived from the solver's
