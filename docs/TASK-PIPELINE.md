@@ -84,10 +84,56 @@ how many of those carry any deadline form:
 Under the real rule hartwell and calder yield **zero** items. That is not a
 rule gap to patch; those firms' people do not write dates.
 
-This is steerable, and the chain is traceable end to end. A persona
-carries `personality`, `role_description` and `channel_style` (email
-register, chat register, quirks) as free text into its prompt. Counting
-date-ish words in those specs against what the recording contains:
+**This is steerable, and it has now been tested rather than inferred.**
+The claim that a world can be *specified* to carry a task family was the
+one arrow in this pipeline with no experiment behind it. Everything
+downstream of a recording had been measured; the arrow into it had only
+correlation across worlds built months apart by different hands.
+
+`datasets/merrick/probe_delegation.py` is the experiment. Merrick's own
+cast, own matters, own seed, and **one sentence added to each persona's
+email register** — say by name what other people owe and when — then ten
+days recorded and counted. The form under test is third-person assignment
+with a date attached, which four recorded worlds had between them almost
+never produced (1, 8, 14 and 0 instances), and whose absence is what
+blocks a second task family.
+
+    corpus                        items   anchored   per 100
+    merrick meetings, all           2872          6      0.21
+    merrick meetings, days 1-10      178          0      0.00   <- control
+    PROBE meetings, days 1-10        191          4      2.09
+    merrick mail, all               1399          1      0.07
+    merrick mail, days 1-10           83          0      0.00   <- control
+    PROBE mail, days 1-10            116          2      1.72
+
+Ten times the baseline rate in meetings (p = 0.0008) and twenty-four times
+in mail (p = 0.003), against the full-corpus rate; the matched ten-day
+control produced **none at all**, on comparable volume. And the sentences
+are the shape the register needs, not near-misses:
+
+    "Adaora owes Dov a name and one-line scope on the biz dev ticket
+     by tomorrow morning"
+    "Oskar has the data-processing markup to me by end of day tomorrow"
+    "Quentin will have a name and one-line scope to circulate by
+     tomorrow AM"
+
+So a world spec is a lever on what tasks are possible, and the honest
+order of work is to change the spec and record before designing a family
+around a form the corpus does not contain. The negative that motivated
+this — no anchored assignment anywhere — was solid across four worlds and
+was a fact about those worlds' personas, not about English.
+
+One measurement error nearly buried it. The first pass scanned
+`sim.meeting.turn` events, which carry a speaker and no text: the scan
+returned zero for the probe's meetings and the reading was "mail moved,
+meetings did not". The turns live on `meeting.transcript`. A scan over
+empty strings cannot fail to find nothing, which is why the mean length
+of what was scanned is now printed beside every count.
+
+The chain from spec to prose is traceable end to end. A persona carries
+`personality`, `role_description` and `channel_style` (email register,
+chat register, quirks) as free text into its prompt. Counting date-ish
+words in those specs against what the recording contains:
 
     merrick   21 personas, 8 mentions ("by when", "deadline", "Friday")
               -> 537 dated owner-mails, 175 admitted promises
