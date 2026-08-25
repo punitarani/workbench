@@ -40,6 +40,62 @@ phrase* still counts (`within a day` inside "within a day or two").
 Saying "textual, not editorial" does not settle that one. Say it
 separately.
 
+## What actually decides whether a frontier model sits at ceiling
+
+Five register tasks over one corpus, all built the same way, all with
+correct answer keys. Four scored **1.000** for the strongest tier. One
+scored 0.766. The difference is not the rule, and finding that out cost
+four sweeps.
+
+**It is not corpus size.** The ceiling tasks read 195, 280, 530 and 623
+items. The one that measures reads 623.
+
+**It is not arithmetic.** One ceiling task resolves three-working-day
+deadlines with weekend skipping. Another resolves seven relative date forms.
+
+**It is not rule subtlety on its own.** A register whose rule is five
+semantic conditions on where a date sits relative to a promise scored
+1.000 on mail and 0.766 on meeting transcripts. Same rule, same
+implementation, same corpus, different surface.
+
+**What separates them is whether the GROUPING KEY is a field or a
+derivation.**
+
+    mail      owner   <- a column on the message
+              due     <- computed from the text
+              => group by a column, take the max. One row per person.
+
+    meetings  owner   <- a column on the utterance
+              meeting <- DERIVED: of 52 distinct titles across 567
+                         meetings, a title is a "standing series" only if it
+                         appears on three or more days in the window. 44 of
+                         the 52 are one-offs and make no rows at all.
+              due     <- computed from the text
+              => derive the series first, discard the one-offs, group into
+                 eight, and only then supersede within each group.
+
+The mail task collapses because the agent can group by a field. It pulled
+530 messages in twelve `search_threads` calls and did the rest in 118 shell
+commands. The meetings task cannot be grouped without first computing which
+titles are series, and an error there does not produce a wrong value -- it
+silently merges two groups or drops one, which changes the row SET.
+
+**So the design lever is: make a key component something the corpus does
+not state.** A key the agent must compute has an error rate; a key it can
+read does not. And errors in a derived key cost rows rather than fields,
+which is what row-F1 is sensitive to.
+
+Corollaries worth stating, because each one cost a sweep:
+
+- **A key with one row per person is nearly free.** Enumerate the people,
+  and the row set is done; only the value is at stake. Check
+  rows-per-owner before building: 1.00 is a warning, 1.17 was enough.
+- **A bulk-readable surface defeats incremental reading.** If one tool call
+  returns a hundred bodies, the agent will pull the corpus and script it.
+  A surface that serves one item per call keeps the work in the loop.
+- **Porting a rule to a new surface does not port its difficulty.** Screen
+  the port; do not assume it inherits the band.
+
 ## Check the rule against the corpus before shipping it
 
 Count how the world actually writes the thing before fixing the rule's
