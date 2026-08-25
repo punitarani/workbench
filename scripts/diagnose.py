@@ -45,10 +45,21 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 
 
-def _trials(job: Path) -> list[Path]:
+def _trials(job: Path, task: str | None = None) -> list[Path]:
+    """Trials in a job, optionally only one task's.
+
+    A screen job holds several tasks at once and names each trial
+    `<task>__<suffix>`. Reading them all would compare one task's
+    submissions against another's key -- which produces a page of confident
+    nonsense rather than an error.
+    """
+
     if not job.is_dir():
         return []
-    return sorted(p for p in job.iterdir() if (p / "verifier").is_dir())
+    found = sorted(p for p in job.iterdir() if (p / "verifier").is_dir())
+    if task is None:
+        return found
+    return [p for p in found if p.name.rsplit("__", 1)[0] == task]
 
 
 def _submitted(trial: Path, deliverable: str) -> dict | None:
@@ -88,14 +99,14 @@ def _literal(criteria: Path, name: str):
     return None
 
 
-def criteria_table(jobs: list[Path]) -> None:
+def criteria_table(jobs: list[Path], task: str) -> None:
     """Per-criterion values, every trial, so the loss is attributable."""
 
     print("── where the score went ──\n")
     rows: list[tuple[str, str, dict]] = []
     names: list[str] = []
     for job in jobs:
-        for trial in _trials(job):
+        for trial in _trials(job, task):
             details = trial / "verifier" / "reward-details.json"
             if not details.is_file():
                 continue
@@ -130,7 +141,7 @@ def criteria_table(jobs: list[Path]) -> None:
     print()
 
 
-def row_verdicts(task_dir: Path, jobs: list[Path]) -> list[tuple]:
+def row_verdicts(task_dir: Path, jobs: list[Path], task: str) -> list[tuple]:
     """Rows every trial declined, and rows no key row matches."""
 
     criteria = task_dir / "tests" / "criteria.py"
@@ -142,7 +153,7 @@ def row_verdicts(task_dir: Path, jobs: list[Path]) -> list[tuple]:
 
     submissions: dict[str, set] = {}
     for job in jobs:
-        for trial in _trials(job):
+        for trial in _trials(job, task):
             answer = _submitted(trial, deliverable)
             if answer is None:
                 continue
@@ -228,23 +239,34 @@ def main(argv: list[str] | None = None) -> int:
         "--tag",
         action="append",
         default=[],
-        required=True,
         help="one per sweep; pass every tier's, so a row declined by all of "
         "them is visible as such",
     )
+    parser.add_argument(
+        "--job",
+        action="append",
+        default=[],
+        help="a job directory by name, for jobs a tag cannot address -- "
+        "`screen.py` runs many tasks under one job, so its name carries no "
+        "task and `--tag` cannot reach it",
+    )
     args = parser.parse_args(argv)
+
+    if not (args.tag or args.job):
+        parser.error("pass at least one --tag or --job")
 
     task_dir = REPO / "datasets" / args.dataset / "tasks" / args.task
     if not (task_dir / "tests" / "oracle.json").is_file():
         raise SystemExit(f"{args.task}: not built — no tests/oracle.json")
     jobs = [REPO / "jobs" / f"{args.dataset}-{args.task}-{tag}" for tag in args.tag]
+    jobs += [REPO / "jobs" / name for name in args.job]
     absent = [job.name for job in jobs if not job.is_dir()]
     if absent:
         raise SystemExit(f"no such job(s): {absent}")
 
     print(f"\n=== {args.task} — {len(jobs)} sweep(s) ===\n")
-    criteria_table(jobs)
-    disputed = row_verdicts(task_dir, jobs)
+    criteria_table(jobs, args.task)
+    disputed = row_verdicts(task_dir, jobs, args.task)
     evidence(task_dir, disputed)
     if disputed:
         print(
