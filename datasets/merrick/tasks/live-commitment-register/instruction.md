@@ -68,7 +68,7 @@ open Wednesday EOD, flag me directly and I'll make the call"*, which names a
 date as a *condition*. A promise whose timing depends on an external event —
 *"the second I get a response, I'll log it"* — names no day at all.
 
-Three further things have to be true of the date, and each of them is a way
+Five further things have to be true of the date, and each of them is a way
 the same sentence can hold a promise and a day that have nothing to do with
 each other:
 
@@ -77,9 +77,12 @@ each other:
   watch it. **No row** — the deadline is Dov's.
 - **The day is attached to the promise**: either a preposition introduces it
   — `by`, `before`, `until`, `due`, `on` — or it ends the clause, as in
-  *"I'll have the scope and timeline doc to Clement Thursday"*. A bare day
-  sitting mid-clause is naming a thing, not a date: *"I'll defer the EOD
-  escalation ownership to you"* hands over a task called the EOD escalation,
+  *"I'll have the scope and timeline doc to Clement Thursday"*. **A time of
+  day may trail it and the day still ends the clause**: *"I'll check with
+  Noor first thing tomorrow morning"* is due tomorrow, and *"I'll push again
+  tomorrow AM"* is too. A bare day sitting mid-clause is naming a thing, not
+  a date: *"I'll defer the EOD escalation ownership to you"* hands over a
+  task called the EOD escalation,
   and *"someone needs to own the EOD escalation call"* asks for a volunteer.
   **Neither makes a row.**
 - **Nobody else's clause stands between the promise and the day.** *"I'll
@@ -96,6 +99,11 @@ each other:
   day of its own. **A comma ends a negation's reach**, so *"I'll have a real
   number, not a guess, by end of day"* is a commitment for end of day: the
   `not` belongs to the guess, not to the day.
+- **The day is one the speaker actually picked.** Two days offered as a
+  choice settle nothing: *"I'll get them to you today or tomorrow"* and
+  *"I'll get the joint call with Harriet locked for Wednesday or Thursday
+  afternoon"* each leave the date open, and the speaker has named no
+  deadline. **No row — not for either day, and not for the first of them.**
 
 **A day named only to rule it out is not a deadline.** *"I'll get an answer
 today, not tomorrow"* commits to today, and `today` is not one of the days

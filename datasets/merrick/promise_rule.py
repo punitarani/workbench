@@ -218,6 +218,27 @@ def _negated(span: str) -> bool:
 _ATTACHES = re.compile(r"\b(?:by|before|until|due|on|come|for|end)\W*$", re.IGNORECASE)
 _CLAUSE_FINAL = re.compile(r"^[\s.,;:!?)\"\']*$")
 
+# A day still ends its clause when only a time of day trails it. "I'll check
+# with Noor first thing tomorrow morning" carries its deadline exactly as
+# "by tomorrow" does: `morning` belongs to the date phrase, and reading it
+# as proof the day sits mid-clause is what the bare clause-final test did.
+# The cost was measurable rather than theoretical -- six of nine trials
+# across three model families reported the commitment this dropped, and
+# seven of nine put `superseded_count` above where the key had it.
+_TIME_OF_DAY = re.compile(
+    r"\s*(?:morning|afternoon|evening|night|a\.?m\.?|p\.?m\.?)(?!\w)",
+    re.IGNORECASE,
+)
+
+# Two days offered as alternatives name no single date. "I'll get the joint
+# call with Harriet locked for Wednesday or Thursday afternoon" chooses a
+# slot; the speaker has not picked a day and neither can a register. Taking
+# the first of the two was a row, and it is the kind of row that cannot be
+# graded at all: whichever date the key holds, the other reading is as good.
+_ALTERNATIVE_DAY = "(?:tomorrow|today|saturday|sunday|" + "|".join(WEEKDAYS) + ")"
+_ALTERNATIVE_BEFORE = re.compile(rf"\b{_ALTERNATIVE_DAY}\s+or\s*$", re.IGNORECASE)
+_ALTERNATIVE_AFTER = re.compile(rf"^\s*or\s+{_ALTERNATIVE_DAY}\b", re.IGNORECASE)
+
 
 def commitment_in(text: str) -> str | None:
     """The deadline this turn's speaker committed to, or None.
@@ -280,9 +301,16 @@ def commitment_in(text: str) -> str | None:
                         continue
                     if _negated(clause[owner.end() : start]):
                         continue
+                    tail = clause[end:]
+                    if _ALTERNATIVE_BEFORE.search(
+                        clause[max(0, start - 20) : start]
+                    ) or _ALTERNATIVE_AFTER.match(tail):
+                        continue
+                    trailing = _TIME_OF_DAY.match(tail)
                     if not (
                         _ATTACHES.search(clause[max(0, start - 14) : start])
-                        or _CLAUSE_FINAL.match(clause[end:])
+                        or _CLAUSE_FINAL.match(tail)
+                        or (trailing and _CLAUSE_FINAL.match(tail[trailing.end() :]))
                     ):
                         continue
                     if _ELSEWHERE.search(clause[owner.end() : start]):

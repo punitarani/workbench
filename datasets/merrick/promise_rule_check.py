@@ -151,6 +151,42 @@ def _deadline(tokens: list[str]) -> str | None:
 # "the EOD escalation call" is a meeting, not a Tuesday.
 _INTRODUCES = ("by", "before", "until", "due", "on", "come", "for")
 
+# The nouns that may trail a day and leave it still ending its clause.
+# Counted to the end of the clause rather than matched: "first thing
+# tomorrow morning" is one word short of ending, and a rule that demands
+# the day be the last word drops it. The solver steps a pattern over the
+# same noun; both had to change, because between them they were losing two
+# commitments and inventing none.
+_TIMES_OF_DAY = ("morning", "afternoon", "evening", "night", "am", "pm")
+
+# A day standing beside `or` is one of two offers. "today or tomorrow" and
+# "Wednesday or Thursday afternoon" each leave the speaker's own date
+# unpicked, and a derivation that picks for them is asserting a deadline
+# nobody stated.
+_DAY_WORDS = (
+    "tomorrow",
+    "today",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+)
+
+
+def _offered_as_a_choice(tokens: list[str], start: int, end: int) -> bool:
+    """Whether the form at `start`..`end` is one of two days joined by `or`."""
+
+    before = (
+        start >= 2 and tokens[start - 1] == "or" and tokens[start - 2] in _DAY_WORDS
+    )
+    after = (
+        end + 1 < len(tokens) and tokens[end] == "or" and tokens[end + 1] in _DAY_WORDS
+    )
+    return before or after
+
 
 def _deadline_after(
     tokens: list[str], after: int
@@ -174,8 +210,12 @@ def _deadline_after(
             if _ruled_out(tokens, start):
                 continue
             end = start + len(wanted)
+            if _offered_as_a_choice(tokens, start, end):
+                continue
             introduced = start > 0 and tokens[start - 1] in _INTRODUCES
-            if not (introduced or end == len(tokens)):
+            trails = end < len(tokens) and tokens[end] in _TIMES_OF_DAY
+            ends_clause = end == len(tokens) or (trails and end + 1 == len(tokens))
+            if not (introduced or ends_clause):
                 continue
             return token, wanted, start, end
     return None
