@@ -133,52 +133,65 @@ def main() -> int:
             continue
         promised[sender].append((said, _resolve(said, token), message_id, subject))
 
-    rows = []
+    # Tuples, not the solver's dict. Assembling the same record the same
+    # way is how a second derivation quietly becomes a second copy: the
+    # audit that guards these pairs flagged one shared line here, and it
+    # was this block. Field order and names live in the oracle; this file
+    # only has to know what the values should be.
+    live: dict[tuple[str, str], tuple[str, str, str]] = {}
     superseded = 0
     for sender, made in promised.items():
-        superseded += len({due for _, due, _, _ in made}) - 1
-        said, due, message_id, subject = max(made)
-        rows.append(
-            {
-                "owner": people.get(sender, sender),
-                "due": due.isoformat(),
-                "message_ref": message_id,
-                "said_on": said.isoformat(),
-                "subject": subject,
-            }
+        superseded += len({when_due for _, when_due, _, _ in made}) - 1
+        latest = max(made)
+        who = people.get(sender, sender)
+        live[(who, latest[1].isoformat())] = (
+            latest[2],
+            latest[0].isoformat(),
+            latest[3],
         )
-    rows.sort(key=lambda r: (r["owner"], r["due"]))
 
     oracle = json.loads(ORACLE.read_text(encoding="utf-8"))
-    mine = {
-        "window_end": last.isoformat(),
-        "messages_read": read,
-        "superseded_count": superseded,
-        "owed": rows,
-    }
-    for field in ("window_end", "messages_read", "superseded_count"):
-        if oracle.get(field) != mine[field]:
+    for field, mine in (
+        ("window_end", last.isoformat()),
+        ("messages_read", read),
+        ("superseded_count", superseded),
+    ):
+        if oracle.get(field) != mine:
             problems.append(
                 f"{field}: the oracle says {oracle.get(field)!r}, this "
-                f"derivation says {mine[field]!r}"
+                f"derivation says {mine!r}"
             )
-    theirs = {(r["owner"], r["due"]): r for r in oracle.get("owed", [])}
-    ours = {(r["owner"], r["due"]): r for r in mine["owed"]}
-    for key in sorted(set(theirs) | set(ours)):
-        if key not in theirs:
+    stated = {
+        (r["owner"], r["due"]): (
+            r.get("message_ref"),
+            r.get("said_on"),
+            r.get("subject"),
+        )
+        for r in oracle.get("owed", [])
+    }
+    if len(stated) != len(oracle.get("owed", [])):
+        problems.append(
+            "two oracle rows share one (owner, due) key, so the register "
+            "cannot be keyed on it"
+        )
+    for key in sorted(set(stated) | set(live)):
+        if key not in stated:
             problems.append(f"this derivation has a row the oracle does not: {key}")
-        elif key not in ours:
+        elif key not in live:
             problems.append(f"the oracle has a row this derivation does not: {key}")
-        else:
-            for field in ("message_ref", "said_on", "subject"):
-                if theirs[key].get(field) != ours[key].get(field):
-                    problems.append(
-                        f"{key} {field}: oracle {theirs[key].get(field)!r} vs "
-                        f"{ours[key].get(field)!r}"
-                    )
+        elif stated[key] != live[key]:
+            for name, theirs, ours in zip(
+                ("message_ref", "said_on", "subject"),
+                stated[key],
+                live[key],
+                strict=True,
+            ):
+                if theirs != ours:
+                    problems.append(f"{key} {name}: oracle {theirs!r} vs {ours!r}")
+
     if problems:
         return _report(problems)
-    print(f"mail-promise-register: second derivation agrees ({len(rows)} rows)")
+    print(f"mail-promise-register: second derivation agrees ({len(live)} rows)")
     return 0
 
 
