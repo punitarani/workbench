@@ -87,7 +87,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # the share is what tells a reader the rule is worth applying, and splitting
 # it out would leave the rule's own justification unpinned.
 PINNED: dict[str, str] = {
-    "## What counts as a commitment": "d817d32e55a9aa25",
+    "## What counts as a commitment": "d54f8c426cfa7b8e",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
     "## Which one is live": "e4db45ed798de980",
 }
@@ -721,9 +721,17 @@ def _governed_negation(clause: str, owner_form: list[str], day_form: list[str]) 
         return False
     between = marked[head + len(owner_form) : day]
     for index, word in enumerate(between):
-        pair = (word, between[index + 1]) if index + 1 < len(between) else None
-        if word in _RULES_OUT or pair in _RULES_OUT_PHRASES:
-            if "," not in between[index + 1 :]:
+        following = between[index + 1] if index + 1 < len(between) else None
+        pair = (word, following) if following is not None else None
+        contracted = following == "t" and word.endswith("n")
+        if word in _RULES_OUT or pair in _RULES_OUT_PHRASES or contracted:
+            # A contracted negation occupies two tokens here, because the
+            # apostrophe is a split point: "doesn't" arrives as `doesn`,
+            # `t`. Its reach therefore starts after the `t`, and reading
+            # from the wrong token would let the negation's own second half
+            # stand in for the comma that ends it.
+            reach = between[index + 2 :] if contracted else between[index + 1 :]
+            if "," not in reach:
                 return True
     return False
 

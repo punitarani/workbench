@@ -158,7 +158,24 @@ _CLAUSE = re.compile(r"(?<=[.?!;:])\s+|\s*[\u2014\u2013]\s*|\s+-\s+")
 # `not` belongs to the guess and the comma after it ends its reach. That
 # sentence is a commitment for end of day, and a test already said so --
 # which is how this bound was found rather than shipped.
-_NEG = re.compile(r"\b(?:not|never|n't|rather than|instead of)\b", re.IGNORECASE)
+# `n't` is here WITHOUT a leading `\b`, and that is the whole of a defect
+# this table carried from the day it was written. In "doesn't" there is no
+# word boundary between `s` and `n`, so `\bn't\b` matched no contraction
+# anybody has ever typed -- a condition the brief promises and the rule
+# could never apply. It cost four false rows, every one of them a date
+# belonging to something the speaker was ruling OUT:
+#
+#   "I'll make sure Clement doesn't see it ... on Thursday"
+#   "...if Reinhardt doesn't commit by end of day, it goes to Thandiwe"
+#   "I'll chase Roland again if I haven't heard by Friday"
+#   "...but 10.3 shouldn't be holding up Wednesday"
+#
+# Both derivations missed it and agreed with each other on all 4,271 items,
+# which is what independence at the level of code rather than assumptions
+# buys. An outside reader found it.
+_NEG = re.compile(
+    r"(?:\bnot\b|\bnever\b|n't\b|\brather than\b|\binstead of\b)", re.IGNORECASE
+)
 
 
 # Somebody else's clause, standing between the promise and the day.

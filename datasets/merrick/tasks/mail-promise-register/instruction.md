@@ -91,7 +91,11 @@ each other:
   refused**, and none for the promise either, since it carries no admitted
   day of its own. **A comma ends a negation's reach**, so *"I'll have a real
   number, not a guess, by end of day"* is a commitment for end of day: the
-  `not` belongs to the guess, not to the day.
+  `not` belongs to the guess, not to the day. **A negation written as a
+  contraction counts the same**: *"I'll make sure Clement doesn't see it or
+  hear its substance on Thursday"* refuses Thursday, and *"I'll chase Roland
+  again if I haven't heard by Friday"* names Friday inside the condition
+  rather than as the day the chase is due. **No row for either.**
 - **The day is one the speaker actually picked.** A day offered as one of
   two **times** settles nothing: *"I'll get them to you today or tomorrow"*,
   *"I'll get the joint call with Harriet locked for Wednesday or Thursday
