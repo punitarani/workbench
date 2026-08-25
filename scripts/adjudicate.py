@@ -76,6 +76,50 @@ Answer with a single JSON object and nothing else:
 """
 
 
+def pinned_sections(task_dir: Path) -> list[str]:
+    """Every brief section the task's own verifier pins as a rule.
+
+    Derived, never hand-kept. The first version of this file took ONE
+    section name as a default, and the cost arrived immediately: asked to
+    judge a row whose value depends on `## Turning what was said into a
+    date`, the judges never saw that section, resolved `tomorrow` to the
+    calendar day rather than the next working day, and reported a correct
+    key row as a wrong value. A judge deciding a value needs every section
+    the value rests on, and the verifier's own `PINNED` table is the list
+    of what the task treats as a rule.
+    """
+
+    verifier = task_dir / "checks" / "verify.py"
+    if not verifier.is_file():
+        return []
+    import ast
+
+    for node in ast.walk(ast.parse(verifier.read_text())):
+        if not isinstance(node, ast.AnnAssign | ast.Assign):
+            continue
+        targets = (
+            [node.target] if isinstance(node, ast.AnnAssign) else list(node.targets)
+        )
+        for target in targets:
+            if isinstance(target, ast.Name) and target.id == "PINNED":
+                try:
+                    return list(ast.literal_eval(node.value))
+                except ValueError:
+                    return []
+    return []
+
+
+def section(brief: str, heading: str) -> str:
+    if heading not in brief:
+        raise SystemExit(
+            f"the brief has no section {heading!r}. The judge must be given the "
+            "rule the agent is given, not a paraphrase."
+        )
+    start = brief.index(heading)
+    end = brief.find("\n## ", start + 1)
+    return brief[start : end if end > 0 else len(brief)]
+
+
 def judge(rule: str, passage: str, row: str, model: str) -> dict | None:
     """One judgement, from a fresh reader with no state."""
 
@@ -134,21 +178,27 @@ def main(argv: list[str] | None = None) -> int:
         help='JSON list of {"row": <label>, "passage": <raw source>}',
     )
     parser.add_argument("--out", type=Path, default=None)
-    parser.add_argument("--rule-section", default="## What counts as a commitment")
+    parser.add_argument(
+        "--rule-section",
+        action="append",
+        default=[],
+        help="override the sections; by default every section the task's own "
+        "verifier pins as a rule is used",
+    )
     parser.add_argument("--model", default="sonnet")
     parser.add_argument("--judges", type=int, default=JUDGES)
     args = parser.parse_args(argv)
 
     task_dir = REPO / "datasets" / args.dataset / "tasks" / args.task
     brief = (task_dir / "instruction.md").read_text(encoding="utf-8")
-    if args.rule_section not in brief:
+    sections = args.rule_section or pinned_sections(task_dir)
+    if not sections:
         raise SystemExit(
-            f"{args.task}: the brief has no section {args.rule_section!r}. The "
-            "judge must be given the rule the agent is given, not a paraphrase."
+            f"{args.task}: no rule sections found. The judge decides a value, "
+            "so it needs every section the value depends on."
         )
-    start = brief.index(args.rule_section)
-    end = brief.find("\n## ", start + 1)
-    rule = brief[start : end if end > 0 else len(brief)]
+    rule = "\n\n".join(section(brief, heading) for heading in sections)
+    print(f"  rule sections given to the judges: {sections}")
 
     items = json.loads(args.rows.read_text())
     print(f"  adjudicating {len(items)} row(s), {args.judges} judges each\n")

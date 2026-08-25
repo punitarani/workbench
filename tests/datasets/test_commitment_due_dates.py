@@ -394,3 +394,58 @@ def test_a_negation_reaches_across_its_connective() -> None:
 
     assert solve.commitment_in("I'll have it done, not by Friday.") is None
     assert solve.commitment_in("I'll start it, rather than Monday.") is None
+
+
+def test_somebody_elses_clause_between_the_promise_and_the_day() -> None:
+    """A new subject breaks the link; a conjunction on its own does not.
+
+    Dropping this condition entirely left all 33 tests in this file green,
+    so it was doing its work unwatched. The rows it removes are the ones
+    where a date belongs to a second actor's action -- which is the single
+    commonest way this register has been wrong.
+    """
+
+    # `so you can finalize ... before tomorrow` dates Mira's work.
+    assert (
+        solve.commitment_in(
+            "I'll ping the moment I have it, Mira, so you can finalize the "
+            "Officer's Certificate before tomorrow."
+        )
+        is None
+    )
+    # Same shape, subject `everyone`, and the verb CONTRACTED onto it. The
+    # tokeniser splits `everyone's` into `everyone` and `s`, so a rule that
+    # looks only for whole finite verbs cannot see this one -- and did not:
+    # three model families declined this row nine times out of nine while
+    # the register carried it.
+    assert (
+        solve.commitment_in(
+            "I'll update the checklist entry and recirculate the final version "
+            "to Mira and Quentin so everyone's working off the same document "
+            "before it goes out tomorrow."
+        )
+        is None
+    )
+    # A conjunction with no new subject is still the speaker's own promise.
+    assert (
+        solve.commitment_in("I'll have it edited and released by Wednesday.")
+        == "wednesday"
+    )
+    # ...and one where the second clause's subject IS the speaker.
+    assert (
+        solve.commitment_in(
+            "I'll call Okafor myself today, not have an associate chase it, "
+            "and I'll have a firm date before Friday."
+        )
+        == "friday"
+    )
+    # A possessive is not a contracted verb: `Thandiwe's sign-off` names a
+    # thing, and reading its `s` as a finite verb put the two derivations
+    # four turns apart.
+    assert (
+        solve.commitment_in(
+            "I'll add a caveat to the Atwater slide flagging that the Section "
+            "III timeline assumes Thandiwe's sign-off by Wednesday."
+        )
+        == "wednesday"
+    )

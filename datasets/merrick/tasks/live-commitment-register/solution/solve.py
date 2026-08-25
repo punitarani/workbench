@@ -293,9 +293,20 @@ _FINITE = (
     r"(?:can|could|will|would|shall|should|may|might|must|is|are|was|were"
     r"|has|have|had|do|does|did|lands?|happens?|holds?|comes?|goes)"
 )
+# The verb may be contracted onto its own subject -- `everyone's working`,
+# `Clement doesn't see`, `the reporter's confirmed`. Without the first
+# branch below the finite verb is invisible: a tokeniser splitting on
+# non-word characters turns `everyone's` into `everyone` and `s`, and
+# neither is in the table. That cost a row. Three model families declined
+# `I'll update the checklist ... so everyone's working off the same
+# document before it goes out tomorrow` nine times out of nine -- the
+# `tomorrow` dates the document going out, not the promise -- and the
+# register carried it anyway.
 _ELSEWHERE = re.compile(
     r"\b(?:so|that|whether|which|because|if|once|when|while|unless|and|but)\s+"
-    r"(?!i\b|i'|we\b|we')(?:[\w'-]+[\s,]+){1,6}?" + _FINITE + r"\b",
+    r"(?!i\b|i'|we\b|we')"
+    r"(?:[\w-]+(?:'s|'re|'ll|'ve|n't)\b"
+    r"|(?:[\w'-]+[\s,]+){1,6}?" + _FINITE + r"\b)",
     re.IGNORECASE,
 )
 

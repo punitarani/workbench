@@ -589,6 +589,15 @@ _FINITE = frozenset(
         "goes",
     )
 )
+# What a contraction leaves behind once the tokeniser has split on the
+# apostrophe: `everyone's` -> `everyone`, `s`; `doesn't` -> `doesn`, `t`.
+# These are finite verbs ONLY when attached to the subject that opens the
+# clause. Put in the general table instead, they fire on any possessive in
+# reach -- `that the Section III timeline assumes Thandiwe's sign-off by
+# Wednesday` became somebody else's clause, and the two derivations
+# disagreed on four turns.
+_CONTRACTED = frozenset(("s", "re", "ll", "ve", "t", "m"))
+
 # Words a subject may span before its verb. Measured at four through ten
 # on the sixteen rows: three defective rows go at every width and none of
 # the thirteen sound ones do. Six is the middle of that plateau.
@@ -604,7 +613,10 @@ def _elsewhere(between: list[str]) -> bool:
         rest = between[index + 1 :]
         if not rest or rest[0] in _SPEAKER:
             continue
-        # At least one word of subject, then a finite verb within reach.
+        # One: the verb is contracted onto the subject opening the clause.
+        if len(rest) > 1 and rest[1] in _CONTRACTED:
+            return True
+        # Two: at least one word of subject, then a finite verb in reach.
         for step in range(1, min(_SUBJECT_WIDTH, len(rest) - 1) + 1):
             if rest[step] in _FINITE:
                 return True
