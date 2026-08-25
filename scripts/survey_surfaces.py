@@ -36,6 +36,30 @@ that decide whether a task built on it can land in band:
 A surface that scores well on all four is worth building on. One that does
 not is worth knowing about before a sweep, not after four.
 
+**These four numbers are necessary and not sufficient, and the gap has a
+name: they say nothing about whether the KEY CAN BE DERIVED.**
+
+Measured on merrick, a register keyed by (person, matter) surveys better
+than the task that works -- 29 groups, 16 owners, rows per owner 1.81
+against 1.17, repeat 34%. Every number says build it. It is ungradable,
+because the matter a promise concerns cannot be recovered:
+
+* People name matters the way people do -- "Sable Ridge", "Kestrel",
+  "Oseman" -- and those strings do not appear in the firm's own matter
+  list, which calls them by client and description.
+* A turn covers several matters. One turn discussing Sable Ridge keyed to
+  a matter called "Sandhurst 9:15 Status Call Recap" because the only word
+  the matter list recognised anywhere in it was `Status`.
+* Only 1 admitted commitment in 35 names a matter in the same CLAUSE as
+  the promise. Loosen it to the same turn and the key stops being about
+  the promise at all.
+
+This is the anchor limit in a second family: a key component the model
+cannot reliably derive is one the ORACLE cannot reliably derive either.
+The survey will not tell you that. Before building on a derived grouping,
+print the derivation's output beside the source for twenty rows and read
+them -- the wrong ones are obvious in seconds and invisible in aggregate.
+
 **Run it with the rule the task will grade, not a proxy for it.** `--rule`
 takes a module exposing `commitment_in`, and it matters more than it looks:
 under the loose default pattern this reported gmail-by-subject at 39%

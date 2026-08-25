@@ -181,6 +181,21 @@ Read the numbers this way: rows per owner at 1.00 means the row set is
 near 0 means a register keyed there has nothing to supersede — and every
 row will still look right.
 
+**And then do not trust them on their own.** A register keyed by (person,
+matter) surveys better than the task that works — rows per owner 1.81
+against 1.17, repeat 34%, 29 groups — and is ungradable. People name
+matters "Sable Ridge" and "Kestrel"; the firm's matter list names them by
+client and description; one turn about Sable Ridge keyed to a matter
+called "Sandhurst 9:15 Status Call Recap" because `Status` was the only
+word the list recognised. Just 1 commitment in 35 names a matter in the
+same clause as the promise.
+
+That is the anchor limit in a second family, and the survey cannot see it:
+its four numbers describe the SHAPE of a row set, not whether the key can
+be recovered. Print the derivation beside the source for twenty rows and
+read them. The wrong ones are obvious in seconds and invisible in
+aggregate.
+
 ### BUILD — `datasets/<world>/build_tasks.py`
 
 Derives the oracle with the reference solver, re-derives it with an
