@@ -84,11 +84,37 @@ how many of those carry any deadline form:
 Under the real rule hartwell and calder yield **zero** items. That is not a
 rule gap to patch; those firms' people do not write dates.
 
-This is steerable. A persona carries `personality`, `role_description` and
-`channel_style` (email register, chat register, quirks) as free text into
-its prompt, so "people here delegate explicitly, naming who owes what by
-when" is a thing a world can be *specified* to produce. The survey below is
-how you find out whether it did.
+This is steerable, and the chain is traceable end to end. A persona
+carries `personality`, `role_description` and `channel_style` (email
+register, chat register, quirks) as free text into its prompt. Counting
+date-ish words in those specs against what the recording contains:
+
+    merrick   21 personas, 8 mentions ("by when", "deadline", "Friday")
+              -> 537 dated owner-mails, 175 admitted promises
+    calder    17 personas, 0 mentions
+              -> 82 owner-mails, ZERO carrying any deadline form
+
+And the individual specs are visible in the prose they produced:
+
+    Dov Reinhardt   email_register: "Bulleted, deadline-first, asks for a
+                    number not a narrative."
+    Rosalie Duchamp email_register: "...tells you what she needs and by when."
+    Thandiwe Mokoena role: "Owns the firm's docket: every court deadline,
+                    every response date, every statutory clock."
+
+The sharpest instance is a warning as much as a demonstration. Ingrid
+Solheim's spec carries the quirk **"Says 'that is not a real deadline' when
+it is not."** — and the sentence that broke this dataset's oracle, costing a
+day of adjudication, is hers: *"closing tomorrow on an unconfirmed Closing
+Date is not a real deadline"*. The rule matched `tomorrow` inside its own
+denial.
+
+So a world spec decides both what tasks are POSSIBLE and which defects the
+extractor will meet. A persona written to say a thing is not a deadline
+guarantees the negation cases exist; whether the rule survives them is a
+separate question, and the one the rest of this pipeline answers. The
+survey below is how you find out whether the property you asked for
+arrived.
 
 ### SURVEY — `scripts/survey_surfaces.py`
 
