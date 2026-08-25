@@ -198,6 +198,49 @@ def row_verdicts(task_dir: Path, jobs: list[Path], task: str) -> list[tuple]:
                 note = f"   (the key holds this pair at {held[0]!r})"
             print(f"  invented {count}/{total}  {' | '.join(row)}{note}")
         print()
+
+    # A row every trial declined AND answered at a different value is not a
+    # row they missed. It is a row they disagreed with, and the distinction
+    # decides how it has to be adjudicated.
+    #
+    # This exists because the obvious adjudication is unsound and looked
+    # sound. Asked whether the passage the key cites carries the commitment
+    # the key holds, three judges said yes, unanimously, quoting the words
+    # -- and they were right. The row was still wrong: a LATER turn by the
+    # same person superseded it, and the rule had not admitted that turn.
+    # Nothing about the cited passage could have revealed that, because
+    # what made the row wrong was a sentence the judges were never shown.
+    #
+    # So the evidence set has to cover what decides the row, not what
+    # produced it. When the trials name a different value, their value is
+    # the other half of the evidence.
+    if len(key) > 1:
+        contested = []
+        for row, count in missed.items():
+            if count != total:
+                continue
+            rival = [
+                (other, n)
+                for other, n in invented.items()
+                if other[:-1] == row[:-1] and other[-1] != row[-1]
+            ]
+            if rival:
+                contested.append((row, sorted(rival, key=lambda kv: -kv[1])))
+        if contested:
+            print("── rows the trials ANSWERED DIFFERENTLY, not rows they missed ──\n")
+            for row, rival in contested:
+                print(f"  {' | '.join(row[:-1])}")
+                print(f"      key     {row[-1]!r}  declined by {total} of {total}")
+                for other, n in rival:
+                    print(f"      trials  {other[-1]!r}  produced by {n} of {total}")
+                print("  <== CONTESTED. Adjudicate the key's passage AND the passage")
+                print("      behind the trials' value TOGETHER. A judge shown only the")
+                print(
+                    "      key's own evidence can confirm that passage and still leave"
+                )
+                print(
+                    "      the row wrong, because what makes it wrong is elsewhere.\n"
+                )
     return disputed
 
 

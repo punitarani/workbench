@@ -201,8 +201,20 @@ def check_no_unanimous_refusals(
         for line in done.stdout.splitlines()
         if "<== EVERY trial" in line
     ]
+    contested = _contested(done.stdout)
     unwaived = [row for row in declined if row not in waived]
     for row in unwaived:
+        rival = contested.get(row)
+        if rival:
+            problems.append(
+                f"every trial declined {row!r}, and {rival[1]} of them answered "
+                f"{rival[0]!r} for the same key. That is a disagreement about "
+                "the VALUE, not a row they missed. Adjudicate the key's passage "
+                "TOGETHER with the passage behind their value: a judge shown "
+                "only the key's own evidence can confirm that passage and leave "
+                "the row wrong anyway, because what makes it wrong is elsewhere"
+            )
+            continue
         problems.append(
             f"every trial declined {row!r}. Adjudicate it against the source "
             "with scripts/adjudicate.py; if a reader admits it, waive it here "
@@ -210,6 +222,33 @@ def check_no_unanimous_refusals(
         )
     if declined and not unwaived:
         print(f"  {len(declined)} row(s) declined by every trial, all waived")
+
+
+def _contested(report: str) -> dict[str, tuple[str, int]]:
+    """Declined rows the trials answered at a DIFFERENT value, from diagnose.
+
+    Read off the report rather than recomputed here. A second implementation
+    of "which rows are contested" is a second thing to drift, and this one
+    only has to name the rows the report already named.
+    """
+
+    found: dict[str, tuple[str, int]] = {}
+    group = held = None
+    for line in report.splitlines():
+        stripped = line.strip()
+        if " | " in stripped and not stripped.startswith(("declined", "invented")):
+            group, held = stripped, None
+        elif stripped.startswith("key ") and "declined by" in stripped:
+            held = stripped.split("'")[1] if "'" in stripped else None
+        elif stripped.startswith("trials ") and "produced by" in stripped and group:
+            if held is None:
+                continue
+            value = stripped.split("'")[1]
+            count = int(stripped.split("produced by ")[1].split(" ")[0])
+            row = f"{group} | {held}"
+            if row not in found or count > found[row][1]:
+                found[row] = (value, count)
+    return found
 
 
 def main(argv: list[str] | None = None) -> int:

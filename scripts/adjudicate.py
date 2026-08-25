@@ -22,6 +22,23 @@ applied, and nothing else. It answers: does this passage admit a row, and
 what is the value. Several judges run per row and the verdict is the
 majority; a row they split on is not a row anybody should be graded on.
 
+**The evidence has to cover what decides the row, not what produced it.**
+A judge shown the passage the key cites can only confirm or deny THAT
+passage, and a row can be wrong for a reason no part of it contains. This
+was not hypothetical: a row of `live-commitment-register` was adjudicated
+here 3-0 ADMIT, the judges quoted the words that carried the commitment,
+and they were right about every one of them. The row was wrong anyway --
+the same person committed again eleven days later, the rule had failed to
+admit that turn, and supersession made the cited passage stale. Nothing
+inside it could have said so.
+
+So when the trials answer a key at a DIFFERENT value, that value is the
+other half of the evidence, and an item may carry an `alternate` -- the
+competing value and the raw passage behind it. The judges then see both
+and decide which one the rule leaves standing. `diagnose.py` names these
+rows as CONTESTED and `certify.py` refuses to let one be waived on a
+verdict that never saw the rival.
+
 **What to do with the verdicts is a build decision, not a grading one.**
 A row the judges refuse comes out of the key. A row they split on comes out
 too -- an item whose own readers disagree cannot tell a good answer from a
@@ -59,10 +76,10 @@ part of it carries a commitment.
 {passage}
 ---
 
-THE ROW the answer key holds:
+{also}THE ROW the answer key holds:
 {row}
 
-Decide, from the passage and the rule alone:
+Decide, from the passage{passages} and the rule alone:
 
 1. Does the passage admit a row at all under that rule?
 2. If it does, is the value the key holds the right one?
@@ -73,6 +90,21 @@ try to guess it. Read the passage.
 Answer with a single JSON object and nothing else:
 {{"admits": true|false, "value_correct": true|false|null, \
 "reason": "<one sentence, quoting the words that decide it>"}}
+"""
+
+# Shown only when the trials answered this key at a different value. The
+# judge is told what that value is and given its source, because the rule
+# that decides between two commitments cannot be applied to one of them.
+ALTERNATE = """\
+A SECOND PASSAGE, on the same key. Trials of this task answered {value} \
+here instead of what the key holds. This is the raw source behind that \
+answer, from the same person and the same series:
+---
+{passage}
+---
+Read both. If each carries a commitment, the rule's own section on which \
+one is live decides which value belongs in the key.
+
 """
 
 
@@ -120,10 +152,23 @@ def section(brief: str, heading: str) -> str:
     return brief[start : end if end > 0 else len(brief)]
 
 
-def judge(rule: str, passage: str, row: str, model: str) -> dict | None:
+def judge(
+    rule: str, passage: str, row: str, model: str, alternate: dict | None = None
+) -> dict | None:
     """One judgement, from a fresh reader with no state."""
 
-    prompt = PROMPT.format(rule=rule.strip(), passage=passage.strip(), row=row)
+    also = (
+        ALTERNATE.format(value=alternate["value"], passage=alternate["passage"].strip())
+        if alternate
+        else ""
+    )
+    prompt = PROMPT.format(
+        rule=rule.strip(),
+        passage=passage.strip(),
+        row=row,
+        also=also,
+        passages=", the second passage" if alternate else "",
+    )
     try:
         done = subprocess.run(
             ["claude", "-p", prompt, "--model", model],
@@ -205,7 +250,13 @@ def main(argv: list[str] | None = None) -> int:
     results = []
     for item in items:
         votes = [
-            judge(rule, item["passage"], item["row"], args.model)
+            judge(
+                rule,
+                item["passage"],
+                item["row"],
+                args.model,
+                item.get("alternate"),
+            )
             for _ in range(args.judges)
         ]
         outcome = verdict(votes)
