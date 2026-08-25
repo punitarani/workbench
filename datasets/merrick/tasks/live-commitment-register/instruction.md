@@ -99,11 +99,18 @@ each other:
   day of its own. **A comma ends a negation's reach**, so *"I'll have a real
   number, not a guess, by end of day"* is a commitment for end of day: the
   `not` belongs to the guess, not to the day.
-- **The day is one the speaker actually picked.** Two days offered as a
-  choice settle nothing: *"I'll get them to you today or tomorrow"* and
+- **The day is one the speaker actually picked.** A day offered as one of
+  two **times** settles nothing: *"I'll get them to you today or tomorrow"*,
   *"I'll get the joint call with Harriet locked for Wednesday or Thursday
-  afternoon"* each leave the date open, and the speaker has named no
-  deadline. **No row — not for either day, and not for the first of them.**
+  afternoon"* and *"I'll hold the tracker update until then or first thing
+  tomorrow"* each leave the date open. **No row — not for either time, and
+  not for the first of them.** What decides this is whether the alternative
+  next to the `or` is another *time*. An `or` joining two things to be
+  **delivered** leaves the deadline alone: *"I'll have my sign-off or a
+  specific open item by Thursday"* is due Thursday, and so is *"I'll review
+  the linkage log tomorrow morning and sign off or tell you precisely what
+  is missing by Thursday"* — the `or` there offers two ways to answer, not
+  two days to answer on.
 
 **A day named only to rule it out is not a deadline.** *"I'll get an answer
 today, not tomorrow"* commits to today, and `today` is not one of the days

@@ -39,7 +39,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # addition. When it fires, re-read the section against the code here and
 # confirm the derivation still implements it before re-pinning.
 PINNED: dict[str, str] = {
-    "## What counts as a promise": "124ad20fb5bafe8d",
+    "## What counts as a promise": "4cedd75ef4d3e3a7",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
     "## Which promise is the live one": "bdd62ac3bcd3ed3d",
 }

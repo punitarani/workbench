@@ -336,14 +336,29 @@ _TIME_OF_DAY = re.compile(
     re.IGNORECASE,
 )
 
-# Two days offered as alternatives name no single date. "I'll get the joint
-# call with Harriet locked for Wednesday or Thursday afternoon" chooses a
-# slot; the speaker has not picked a day and neither can a register. Taking
-# the first of the two was a row, and it is the kind of row that cannot be
-# graded at all: whichever date the key holds, the other reading is as good.
-_ALTERNATIVE_DAY = "(?:tomorrow|today|saturday|sunday|" + "|".join(WEEKDAYS) + ")"
-_ALTERNATIVE_BEFORE = re.compile(rf"\b{_ALTERNATIVE_DAY}\s+or\s*$", re.IGNORECASE)
-_ALTERNATIVE_AFTER = re.compile(rf"^\s*or\s+{_ALTERNATIVE_DAY}\b", re.IGNORECASE)
+# A day offered as one of two TIMES is a day nobody picked. "locked for
+# Wednesday or Thursday afternoon" chooses a slot and "hold the tracker
+# update until then or first thing tomorrow" offers two moments; in neither
+# has the speaker named a deadline, and taking the first of the two was a
+# row that cannot be graded at all -- whichever date the key holds, the
+# other reading is as good.
+#
+# The alternative has to be another TIME, and it has to sit next to the
+# `or`. An `or` joining two things to be DELIVERED leaves the deadline
+# alone: "I'll have my sign-off or a specific open item by Thursday" is due
+# Thursday, and so is "I'll sign off or tell you what is missing by
+# Thursday" -- which a looser test, asking only whether any time word stood
+# somewhere before the `or`, took away on the strength of an unrelated
+# `tomorrow` earlier in the same clause.
+_ALTERNATIVE_TIME = (
+    "(?:then|now|today|tonight|later|tomorrow|saturday|sunday|"
+    + "|".join(WEEKDAYS)
+    + ")"
+)
+_ALTERNATIVE_BEFORE = re.compile(
+    rf"\b{_ALTERNATIVE_TIME}\s+or\b[^.;:!?]{{0,24}}$", re.IGNORECASE
+)
+_ALTERNATIVE_AFTER = re.compile(rf"^\s*or\s+{_ALTERNATIVE_TIME}\b", re.IGNORECASE)
 
 
 def commitment_in(text: str) -> str | None:
@@ -409,7 +424,7 @@ def commitment_in(text: str) -> str | None:
                         continue
                     tail = clause[end:]
                     if _ALTERNATIVE_BEFORE.search(
-                        clause[max(0, start - 20) : start]
+                        clause[owner.end() : start]
                     ) or _ALTERNATIVE_AFTER.match(tail):
                         continue
                     trailing = _TIME_OF_DAY.match(tail)

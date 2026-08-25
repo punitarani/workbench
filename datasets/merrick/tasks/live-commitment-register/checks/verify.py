@@ -87,7 +87,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # the share is what tells a reader the rule is worth applying, and splitting
 # it out would leave the rule's own justification unpinned.
 PINNED: dict[str, str] = {
-    "## What counts as a commitment": "2296b415936d5ce0",
+    "## What counts as a commitment": "d817d32e55a9aa25",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
     "## Which one is live": "e4db45ed798de980",
 }
@@ -401,13 +401,20 @@ _INTRODUCES = ("by", "before", "until", "due", "on", "come", "for")
 # commitments and inventing none.
 _TIMES_OF_DAY = ("morning", "afternoon", "evening", "night", "am", "pm")
 
-# A day standing beside `or` is one of two offers. "today or tomorrow" and
-# "Wednesday or Thursday afternoon" each leave the speaker's own date
-# unpicked, and a derivation that picks for them is asserting a deadline
-# nobody stated.
-_DAY_WORDS = (
-    "tomorrow",
+# A time standing beside `or` makes the day next to it one of two offers.
+# "today or tomorrow", "Wednesday or Thursday afternoon" and "until then or
+# first thing tomorrow" each leave the speaker's own date unpicked, and a
+# derivation that picks for them asserts a deadline nobody stated.
+#
+# `then` and `now` earn their place here: without them the third example
+# reads as a plain commitment, and it is the one whose readers split.
+_TIME_WORDS = (
+    "then",
+    "now",
     "today",
+    "tonight",
+    "later",
+    "tomorrow",
     "monday",
     "tuesday",
     "wednesday",
@@ -417,17 +424,28 @@ _DAY_WORDS = (
     "sunday",
 )
 
+# How far the `or` may sit from the day it disqualifies. "until then or
+# first thing tomorrow" puts two words between them; "sign off or tell you
+# precisely what is missing by Thursday" puts seven, and there the `or`
+# joins two deliverables rather than two times. The solver caps the same
+# gap in characters.
+_CHOICE_REACH = 4
+
 
 def _offered_as_a_choice(tokens: list[str], start: int, end: int) -> bool:
-    """Whether the form at `start`..`end` is one of two days joined by `or`."""
+    """Whether the form at `start`..`end` is one of two times joined by `or`."""
 
-    before = (
-        start >= 2 and tokens[start - 1] == "or" and tokens[start - 2] in _DAY_WORDS
+    for step in range(1, _CHOICE_REACH + 2):
+        at = start - step
+        if at < 1:
+            break
+        if tokens[at] == "or":
+            if tokens[at - 1] in _TIME_WORDS:
+                return True
+            break
+    return (
+        end + 1 < len(tokens) and tokens[end] == "or" and tokens[end + 1] in _TIME_WORDS
     )
-    after = (
-        end + 1 < len(tokens) and tokens[end] == "or" and tokens[end + 1] in _DAY_WORDS
-    )
-    return before or after
 
 
 def _deadline_after(
