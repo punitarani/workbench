@@ -262,6 +262,51 @@ earned against a different answer key. Only a timestamp catches it.
 
 ---
 
+## Correcting an oracle can move a task to ceiling
+
+The most uncomfortable measurement here, and the one most worth keeping.
+
+`live-commitment-register` measured **0.766 ×3** for the strongest tier.
+Four defects were then found and fixed, each confirmed by readers who
+never saw the implementation:
+
+| defect | what it did |
+|---|---|
+| a day had to be the clause's last word | dropped `first thing tomorrow morning` |
+| `or` between two times took the first | invented a date nobody picked |
+| `\bn't\b` matched no contraction | kept four days being ruled OUT |
+| a row cited a superseded turn | the wrong date for one owner |
+
+On the corrected key the same tier measures **0.909**, and the shape of
+that number matters more than the number: `live.f1` **1.000**,
+`row_facts` **1.000**, fourteen rows of fourteen in every trial. The
+residual is one integer, off by one — the count of what was discarded,
+which never appears in the register itself.
+
+**Every one of the four corrections moved the key toward what the model
+had already produced.** That is the tell. The 0.766 was not measuring how
+hard the reading is; a third of it was measuring how wrong the answer key
+was, and reporting it as a property of the tier.
+
+There is a mechanism behind this and it is not bad luck. **Each correction
+is a sentence added to the brief, and each sentence removes a judgement
+call.** The brief now states that a time of day may trail a day, that two
+times joined by `or` settle nothing, that a contracted negation counts.
+Every one of those is necessary — the alternative is an ungradable rule —
+and together they turn a semantic task into a specification a model can
+implement. That is the ceiling law arriving through the front door, driven
+by the correctness loop itself.
+
+Two things follow, and both are now enforced rather than remembered:
+
+* `certify.py` checks the **heaviest criterion**, not the mean. A headline
+  inside the band can be made entirely of bookkeeping: 45% of this task's
+  weight is `live.f1`, and a tier scoring 1.000 on it is not being
+  measured whatever the aggregate says.
+* A task whose score *rises* with every oracle correction was reporting
+  the author's errors. Keep the scores from every key version; the
+  sequence 0.766 → 0.909 is the finding.
+
 ## What the loop costs, and what it saves
 
 The register at the centre of this moved 0.508 → 0.789 → 0.838 → 0.766

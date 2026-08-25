@@ -224,6 +224,64 @@ def check_no_unanimous_refusals(
         print(f"  {len(declined)} row(s) declined by every trial, all waived")
 
 
+# At or above this, a criterion is solved rather than measured.
+SOLVED = 0.99
+
+
+def check_heaviest_criterion(
+    dataset: str, task: str, tags: list[str], problems: list[str]
+) -> None:
+    """Refuse a task whose SUBSTANTIVE criterion is at ceiling for some tier.
+
+    A headline score inside the band can be made entirely of bookkeeping.
+    `live-commitment-register` measured 0.909 for the strongest tier with
+    every one of its fourteen rows correct in every trial: `live.f1` 1.000,
+    `row_facts` 1.000, and one integer -- the count of what was discarded --
+    wrong by one. Eight of the eleven weight was solved. Read as a band,
+    0.909 says "hard"; read per criterion it says the extraction is over
+    and what remains is arithmetic on the part nobody can see in the
+    deliverable.
+
+    So the check is on the heaviest criterion rather than the mean. A task
+    can only claim to measure what its weight is actually spent on.
+    """
+
+    for tag in tags:
+        job = REPO / "jobs" / f"{dataset}-{task}-{tag}"
+        if not job.is_dir():
+            continue
+        totals: dict[str, list[float]] = {}
+        weights: dict[str, float] = {}
+        for trial in sorted(job.iterdir()):
+            details = trial / "verifier" / "reward-details.json"
+            if not details.is_file():
+                continue
+            try:
+                criteria = json.loads(details.read_text())["answer"]["criteria"]
+            except ValueError, KeyError, TypeError:
+                continue
+            for item in criteria:
+                totals.setdefault(item["name"], []).append(float(item["value"]))
+                weights[item["name"]] = float(item.get("weight", 1.0))
+        if not totals:
+            continue
+        heaviest = max(weights, key=lambda name: weights[name])
+        scores = totals[heaviest]
+        mean = sum(scores) / len(scores)
+        share = weights[heaviest] / sum(weights.values())
+        print(
+            f"  {tag:16s} heaviest criterion {heaviest!r} "
+            f"({share:.0%} of the weight) mean {mean:.3f}"
+        )
+        if mean >= SOLVED:
+            problems.append(
+                f"{tag}: {heaviest!r} carries {share:.0%} of the weight and "
+                f"scores {mean:.3f}. The headline band is made of the "
+                "remaining criteria, so this tier is not being measured on "
+                "what the task is about"
+            )
+
+
 def _contested(report: str) -> dict[str, tuple[str, int]]:
     """Declined rows the trials answered at a DIFFERENT value, from diagnose.
 
@@ -274,6 +332,7 @@ def main(argv: list[str] | None = None) -> int:
     check_sweeps_are_current(args.dataset, args.task, task_dir, args.tag, problems)
     check_floors(args.dataset, task_dir, problems)
     check_band(args.dataset, args.task, args.tag, problems)
+    check_heaviest_criterion(args.dataset, args.task, args.tag, problems)
     check_no_unanimous_refusals(
         args.dataset, args.task, args.tag, set(args.waive), problems
     )
