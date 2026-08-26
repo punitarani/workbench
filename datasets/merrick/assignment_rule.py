@@ -32,6 +32,7 @@ removing only what it was aimed at:
     - a recipient is not an owner  28    2 removed, 0 collateral
     - a later named subject severs 26    2 removed, 0 collateral
     - a first-person clause severs 24    2 removed, 0 collateral
+    - a relative clause is not an owner 22  2 removed, 0 collateral
 
 **Status: a dev artifact, not a shipped rule.** It is developed against
 `out/delegation-epoch` (45 days) and has no second derivation, no oracle
@@ -127,6 +128,50 @@ def _new_subject(roster_pattern: str) -> re.Pattern:
     return re.compile(rf",\s+(?:{roster_pattern})\b(?:'s)?\s+\w", re.IGNORECASE)
 
 
+# Words that can open a clause. A colleague named right after any OTHER
+# lowercase word is inside a relative clause modifying that word rather
+# than being assigned anything: "the general IP schedule item Mira is
+# tracking for Wednesday EOD" gives Mira a Wednesday that belongs to the
+# item. Two rows in 44.
+_CLAUSE_OPENERS = frozenset(
+    (
+        "and",
+        "or",
+        "but",
+        "so",
+        "then",
+        "that",
+        "which",
+        "because",
+        "if",
+        "once",
+        "when",
+        "while",
+        "unless",
+        "with",
+        "separately",
+        "also",
+        "plus",
+    )
+)
+
+
+def _inside_a_relative_clause(clause: str, at: int) -> bool:
+    """Whether the colleague at `at` is modifying a noun rather than owning."""
+
+    before = clause[:at].rstrip()
+    if not before:
+        return False
+    if before[-1] in ",;:\u2014\u2013-":
+        return False
+    words = re.findall(r"[\w'-]+", before)
+    return (
+        bool(words)
+        and words[-1].lower() not in _CLAUSE_OPENERS
+        and (words[-1][:1].islower())
+    )
+
+
 def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
     """The colleague and the deadline token this turn assigns, or None."""
 
@@ -149,6 +194,8 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             if mine and mine.start() < owner.start():
                 continue
             if _RECIPIENT.search(clause[max(0, owner.start() - 6) : owner.start()]):
+                continue
+            if _inside_a_relative_clause(clause, owner.start()):
                 continue
             for pattern, token in rule._DEADLINE:
                 for found in pattern.finditer(clause):
