@@ -261,7 +261,18 @@ def _negated(span: str) -> bool:
 # day this way and it was that one -- three readers refused it unanimously,
 # citing the brief's own carve-out for a promise whose timing depends on an
 # external event. Removing the word deletes a rule rather than adding one.
-_ATTACHES = re.compile(r"\b(?:by|before|due|on|come|for|end)\W*$", re.IGNORECASE)
+# Exactly the words the brief names, and nothing else. `for` and `end` were
+# here and were never in the brief, so an agent following the brief to the
+# letter disagreed with the key by construction -- readers refused a row
+# 3-0 quoting the brief's own list back ("not one of the listed
+# prepositions ... not `for`"). Measured by mutation rather than by
+# matching: `for` decided 2 verdicts, both bad; `end` and `due` decide
+# none; `come` decides 2 sound ones and is now named in the brief too.
+#
+# "for tomorrow morning" schedules the thing rather than dating the
+# promise -- "I'll send the checkpoint reminder for tomorrow morning now"
+# is due now -- which is why the word costs rows rather than earning them.
+_ATTACHES = re.compile(r"\b(?:by|before|due|on|come)\W*$", re.IGNORECASE)
 _CLAUSE_FINAL = re.compile(r"^[\s.,;:!?)\"\']*$")
 
 # A day still ends its clause when only a time of day trails it. "I'll check

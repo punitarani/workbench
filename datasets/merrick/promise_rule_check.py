@@ -152,7 +152,8 @@ def _deadline(tokens: list[str]) -> str | None:
 # No `until`: it ends a wait rather than dating a delivery. See the note
 # beside the solver's `_ATTACHES`; both derivations drop it, each having
 # been checked against the corpus separately.
-_INTRODUCES = ("by", "before", "due", "on", "come", "for")
+# No `for`: it schedules rather than dates. See the solver's `_ATTACHES`.
+_INTRODUCES = ("by", "before", "due", "on", "come")
 
 # The nouns that may trail a day and leave it still ending its clause.
 # Counted to the end of the clause rather than matched: "first thing

@@ -69,7 +69,7 @@ each other:
   it closed by then"* recites a date somebody else owns and then promises to
   watch it. **No row** — the deadline is Dov's.
 - **The day is attached to the promise**: either a preposition introduces it
-  — `by`, `before`, `due`, `on` — or it ends the clause, as in
+  — `by`, `before`, `due`, `on`, `come` — or it ends the clause, as in
   *"I'll have the scope and timeline doc to Clement Thursday"*. **A time of
   day may trail it and the day still ends the clause**: *"I'll check with
   Noor first thing tomorrow morning"* is due tomorrow, and *"I'll push again

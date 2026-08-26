@@ -87,7 +87,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # the share is what tells a reader the rule is worth applying, and splitting
 # it out would leave the rule's own justification unpinned.
 PINNED: dict[str, str] = {
-    "## What counts as a commitment": "3790ac4c3508ecef",
+    "## What counts as a commitment": "e5fed66a40529a68",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
     "## Which one is live": "42225d116aea964f",
     # The criteria themselves. `superseded_count` is DEFINED here and
@@ -399,7 +399,8 @@ def _deadline(tokens: list[str]) -> str | None:
 # No `until`: it ends a wait rather than dating a delivery. See the note
 # beside the solver's `_ATTACHES`; both derivations drop it, each having
 # been checked against the corpus separately.
-_INTRODUCES = ("by", "before", "due", "on", "come", "for")
+# No `for`: it schedules rather than dates. See the solver's `_ATTACHES`.
+_INTRODUCES = ("by", "before", "due", "on", "come")
 
 # The nouns that may trail a day and leave it still ending its clause.
 # Counted to the end of the clause rather than matched: "first thing
