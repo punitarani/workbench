@@ -135,6 +135,39 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  the rule admits {base_count} commitments across that prose\n")
 
     dead: list[str] = []
+
+    # A WHOLE condition can be inert, not just one of its alternatives, and
+    # the alternative-level report hides it: every alternative of a shadowed
+    # condition comes back dead, which reads as "these words are unused"
+    # rather than "this rule changes no answer". `_RULED_OUT` sat here for
+    # months as a second, weaker implementation of the negation rule --
+    # `_negated` reaches the same sentences and also knows a comma ends a
+    # negation's reach -- and nothing anywhere said so.
+    #
+    # Two implementations of one sentence of the brief is a drift hazard
+    # with no test that can fail: break the inert one and nothing moves.
+    print("  whole conditions:")
+    never = re.compile(r"(?!x)x")
+    for name in constants(path):
+        pattern = getattr(module, name, None)
+        if not isinstance(pattern, re.Pattern):
+            continue
+        setattr(module, name, never)
+        try:
+            _count, without = verdict()
+        finally:
+            setattr(module, name, pattern)
+        moved = sum(1 for a, b in zip(base_found, without, strict=True) if a != b)
+        if moved:
+            print(f"    {name:22s} decides {moved} verdict(s)")
+        else:
+            dead.append(f"{name}: the whole condition")
+            print(
+                f"    {name:22s} SHADOWED — removing it entirely changes "
+                "no answer anywhere"
+            )
+    print()
+
     for name in constants(path):
         pattern = getattr(module, name, None)
         if not isinstance(pattern, re.Pattern):

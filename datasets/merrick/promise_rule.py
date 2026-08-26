@@ -104,6 +104,21 @@ _DEADLINE = tuple(
 # `not` belongs to the guess, and in "by Wednesday so it's not in Friday's
 # crunch" the negation lands on a *later* form that first-match-wins never
 # reaches. The negation has to sit immediately against the form.
+# `_RULED_OUT` is SHADOWED inside `commitment_in`: remove it there and no
+# verdict moves anywhere in 4,271 items, because `_negated` reaches every
+# sentence it reaches and also knows that a comma ends a negation's reach.
+# It is kept, and the distinction is worth stating. Shadowing comes in two
+# kinds, and only one is dead weight:
+#
+#   logically shadowed   the wider test subsumes the narrower for ALL
+#                        inputs. Delete it.
+#   empirically shadowed this corpus never separates them. Keep it.
+#
+# This is the second. "I'll do X, not by Friday, but Monday" would fire
+# `_RULED_OUT` and not `_negated` -- the comma ends the negation's reach
+# for one and not the other -- and this firm simply never writes it. The
+# check also has a second caller in `deadline_token`, which the shadowing
+# test does not exercise at all.
 _RULED_OUT = re.compile(
     r"\b(?:not|never|rather than|instead of)\s+"
     r"(?:by\s+|until\s+|waiting\s+for\s+)?$",
@@ -128,12 +143,6 @@ def deadline_token(text: str) -> str | None:
                 continue
             return token
     return None
-
-
-# A sentence, for the purpose of pairing a promise with a date. Split on
-# terminal punctuation *and the semicolon*, because this firm writes long
-# turns that hang several independent statements off one another.
-_SENTENCE = re.compile(r"(?<=[.?!;])\s+")
 
 
 # A *clause*, for the purpose of pairing a promise with a date. Hard
