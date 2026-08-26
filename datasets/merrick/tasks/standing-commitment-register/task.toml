@@ -1,0 +1,258 @@
+schema_version = "1.3"
+
+# Merrick Stanton LLP: the litigation-and-transactions firm, recorded over six
+# months and materialized into six tool surfaces. The agent reads the firm's
+# record and delivers one JSON report; grading is outcome-based against an
+# oracle computed from the same world state.
+#
+# THIS TASK READS THE MEETING TRANSCRIPTS, AND IT IS THE FIRST ONE THAT CAN.
+# `meeting.transcript` was a validated world event from the first commit and
+# no projection, table, file or tool ever served one -- roughly 30% of
+# everything anyone at this firm said, reachable by nobody. The `meetings`
+# system now serves them.
+#
+# WHY THAT MATTERS FOR DIFFICULTY, and it is the whole reason this task
+# exists. Every other surface in this world can be flattened by a script.
+# `list_activities` returns all 21,597 time entries in about seventy seconds
+# at zero context cost, and the arithmetic over them is three lines; the MCP
+# binaries are mode 755 and a frontier model has been recorded driving them
+# from bash unprompted. Three difficulty levers have been measured dead on
+# this world as a direct result:
+#
+#   rule difficulty       Opus 5 scored 1.000 and 0.976 on two tasks built
+#                         to punish an editorial reader
+#   coverage difficulty   bimodal, luck rather than skill, gone once the
+#                         corpus is bounded to a readable size
+#   procedure difficulty  scriptable, and the row set survives the wrong
+#                         procedure -- fifteen measured wrong-branch payoffs
+#                         across five designs had a median of 0.90
+#
+# A transcript has no id to group by and no column to sum. A commitment made
+# out loud is not a field. That is the only property in this world a shell
+# cannot defeat.
+#
+# THE DESIGN WAS REBUILT ONCE, AND THE REASON IS THE MOST TRANSFERABLE THING
+# IN THIS FILE. The first version keyed the register on the matter a promise
+# was about, and it is not gradeable. Measured on 56 recorded days: of 178
+# turns carrying a first-person commitment and a deadline, only 63 name a
+# matter -- so the rule discarded 65% of the firm's real promises for a
+# reason unrelated to whether a promise was made, and the discarded ones are
+# the clearest in the record. Of the 63 it kept, the matter name sat a median
+# 96 characters from the commitment and in a third of them more than 120: a
+# different sentence of a 71-word turn. One qualifying turn attached a
+# promise to a matter in the clause where the speaker said she had nothing on
+# it.
+#
+# The brief said "a commitment about a matter"; a solver can only implement
+# "a turn containing a commitment token, a date token and a matter token".
+# Over long turns those are different rules, and an agent reading correctly
+# would have been graded wrong -- an oracle artefact reported as model
+# failure. **A conjunctive rule is safe only when its conjuncts share a
+# unit.** Who is speaking and what day they named are properties of a turn;
+# which piece of work a promise is about is a property of a clause. The
+# register is keyed on turn-scoped facts and on nothing else.
+#
+# THE MECHANISM, measured before this file was rewritten. Supersession does
+# NOT happen inside a meeting -- a meeting here is a five-turn one-pass
+# status round -- and a screen for revision *cues* fired on a third of
+# meetings and was almost entirely false positives. It happens ACROSS the
+# recurring series: a commitment set in one docket call and moved in a later
+# one. So a reader who finds the first mention and stops is wrong, and
+# cannot know it without crossing meetings.
+#
+# WHAT IS GRADED IS THE DATE, NOT THE WORD, and this is what took the task
+# from marginal to hard. A deadline said out loud is relative: `EOD`,
+# `tomorrow`, `Thursday`. Grading the token hands away the column -- `eod`
+# is 47-69% of live answers depending on the window, so a reader who never
+# opens a transcript scores most of it, and worse, *beats* a careful reader
+# who takes each person's first statement. Grading the resolved calendar
+# date inverts that. Measured across five windows on the partial bundle:
+#
+#     window      rows   token: guess/wrong    date: guess/wrong
+#     days  0-29    24        54%  /  54%          17%  /  67%
+#     days 20-49    26        69%  /  35%          23%  /  69%
+#     days 20-64    32        47%  /  44%          16%  /  72%
+#
+# The reason the error rate roughly doubles is the useful part: **a person
+# who says `EOD` in two different meetings has changed their deadline
+# without changing their words.** Token grading cannot see that; date
+# grading makes it the common case. It also makes `meeting_id` load-bearing
+# rather than decorative, because the date is computable only from the
+# meeting the last statement was made in.
+#
+# THE ARITHMETIC, measured through `criteria_base`'s own comparisons on the
+# 45-day window, against a register built by a reader who takes each
+# person's first statement and stops:
+#
+#   keyed (owner, meeting), date a field   row_f1 1.000   -- finds every row
+#   keyed (owner, meeting, due)            row_f1 0.179   -- 5 of 28
+#
+# The due date is wrong on 82% of rows and `superseded_count` comes back 0
+# against a true 62. `row_facts` collapses rather than degrading because a
+# wrong key means the row is not matched at all: every field on it misses
+# AND the invented row draws the extra-row penalty. For comparison, the five
+# designs an adversarial panel killed had fifteen measured wrong-branch
+# payoffs with a MEDIAN OF 0.90, and the matter-keyed version of this task
+# scored its wrong branch at 0.687.
+#
+# ONLY THE STANDING MEETINGS COUNT, and the threshold is measured rather
+# than picked. A one-off working session is a key with one meeting in it:
+# nothing can supersede, and the key is a free-text title the agent must
+# reproduce exactly -- this world writes `Ardmore Chain-of-Access Routing
+# Decision` and `Ardmore Chain-of-Access: Routing Decision`, one meeting to
+# a reader and two rows to a grader. Standing series occur 4 to 32 times per
+# window and one-offs 1 or 2, so any cut in 3..4 separates them; three is
+# chosen because a 30-day window puts the weekly series at 4 and a cut of 5
+# would silently drop five of the eight.
+#
+# The calendar cannot answer this, though it looks as though it should:
+# `event_recurrence` is a real table the projection never writes, so every
+# event in the recorded world is served `recurrence: []` even though the
+# workplace spec declares these eight meetings daily or weekly.
+#
+# BE HONEST ABOUT WHAT IS UNPROVEN. The brief has to state its conventions,
+# and stating them tells the reader the method. This project has a measured
+# law that any key component strong enough to collapse row_f1 is also an
+# instruction for the right method, and it applies here in full. The bet is
+# that knowing the rule and executing it are different: the rule is a
+# paragraph, and obeying it means resolving a relative deadline against the
+# right meeting for every person in every standing series across
+# «MEASURE: meetings in the window» meetings of prose no script can
+# aggregate, and noticing the later mention that silently moved a date
+# without changing a word. Whether that survives a frontier model is a
+# question for a probe at k>=5, not for more reasoning -- several of this
+# design's own hypotheses were wrong and measurement settled each one,
+# including two in the pass that produced this file.
+
+[task]
+name = "workbench/merrick-standing-commitment-register"
+description = """Read the transcripts of the firm's standing meetings for \
+a billing period and report the commitments that are still live: who owes \
+something, in which meeting they said so, and the calendar date it is due \
+— counting only the most recent thing each person said in each meeting."""
+authors = [{ name = "Workbench" }]
+keywords = [
+    "legal",
+    "agentic",
+    "transcripts",
+    "prose-extraction",
+    "supersession",
+    "outcome-graded",
+    "mcp",
+]
+
+[metadata]
+dataset = "merrick"
+difficulty = "hard"
+skills = [
+    "prose-comprehension",
+    "cross-document-tracking",
+    "supersession",
+    "relative-date-resolution",
+    "completeness",
+]
+agent_data_scope = "Intentionally seatless firm-wide Clio, Gmail, Slack, Calendar, iManage and meeting-transcript records from the LLM-generated epoch."
+
+[metadata.evidence]
+primary_field = "live_commitments.json"
+source_surfaces = ["meetings"]
+
+[environment]
+docker_image = "workbench:dev"
+os = "linux"
+workdir = "/home/agent/workspace"
+memory_mb = 4096
+network_mode = "allowlist"
+allowed_hosts = [
+    "openrouter.ai",
+    "raw.githubusercontent.com",
+    "objects.githubusercontent.com",
+    "nodejs.org",
+    "registry.npmjs.org",
+    "*.ubuntu.com",
+    # Setup hosts only -- they gate how the agent is installed, never what
+    # it can read, so no task's data or difficulty moves.
+    "astral.sh",
+    "*.astral.sh",
+    "github.com",
+    "codeload.github.com",
+    "*.githubusercontent.com",
+    "pypi.org",
+    "*.pypi.org",
+    "files.pythonhosted.org",
+    "*.nousresearch.com",
+]
+
+[environment.healthcheck]
+command = "sh /home/agent/workspace/.workbench/install.sh"
+timeout_sec = 600.0
+interval_sec = 2.0
+retries = 2
+
+# One argument-free executable per server, never command-plus-args: Harbor's
+# Codex adapter joins them into a single program name and the agent silently
+# comes up with no tools at all.
+[[environment.mcp_servers]]
+name = "clio"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-clio"
+
+[[environment.mcp_servers]]
+name = "gmail"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-gmail"
+
+[[environment.mcp_servers]]
+name = "slack"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-slack"
+
+[[environment.mcp_servers]]
+name = "imanage"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-imanage"
+
+[[environment.mcp_servers]]
+name = "calendar"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-calendar"
+
+[[environment.mcp_servers]]
+name = "meetings"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-meetings"
+
+[agent]
+user = "agent"
+# Measured, not assumed, and 1800 was wrong. A probe of Opus 5 at k=3 on a
+# 47-day window -- 140 standing meetings, 706 turns, 51,672 words -- hit the
+# 1800-second wall on all three trials with no deliverable written, and the
+# harness retried all three into the same wall. The agent was not stuck: it
+# had dumped the transcripts and was paging candidate turns twenty at a time,
+# which is the reading this task exists to require.
+#
+# Raised again to 5400 after a second probe, and the reason is worth
+# keeping. All three trials reached the 3600 wall *mid-calibration*: the
+# agent had dumped the window, built four competing readings of the rule
+# and printed them side by side --
+#
+#     after_first_self   cands= 73 live=26 sup=47 owners=16
+#     anywhere_first     cands=110 live=33 sup=76 owners=18
+#     window60           cands= 47 live=18 sup=29 owners=14
+#
+# -- with `anywhere_first` reproducing the oracle's 33 rows and 18 owners
+# almost exactly. It had found the answer and had no time left to write it
+# down. That is the most expensive way to score zero, and none of it is a
+# fact about comprehension.
+#
+# A timeout that cuts off honest work does not measure difficulty, it
+# measures the clock, and it is indistinguishable downstream from a model
+# that cannot do the task. Re-time this whenever the window changes.
+timeout_sec = 5400.0
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
+
+[verifier]
+user = "verifier"
+timeout_sec = 900.0
+network_mode = "no-network"
