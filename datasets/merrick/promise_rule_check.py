@@ -27,28 +27,44 @@ from __future__ import annotations
 import datetime
 import re
 
+
+# The brief names `end of the day` alongside `end of day`, and the solver
+# accepts the optional `the`. This list did not, so every "before the end
+# of the day" was invisible here -- four hartwell mails, found only by
+# running the pair over a corpus neither had seen. Enumerated rather than
+# patterned, because this route enumerates on purpose.
+def _with_the(form: str) -> tuple[str, ...]:
+    """`end of day` and `end of the day`, wherever the first appears."""
+
+    return (form, form.replace("end of day", "end of the day"))
+
+
 ADMITTED: tuple[tuple[str, str], ...] = (
     ("EOD tomorrow", "tomorrow"),
     ("COB tomorrow", "tomorrow"),
     ("close of business tomorrow", "tomorrow"),
     ("end of day tomorrow", "tomorrow"),
+    ("end of the day tomorrow", "tomorrow"),
     ("tomorrow EOD", "tomorrow"),
     ("tomorrow COB", "tomorrow"),
     ("tomorrow close of business", "tomorrow"),
     ("tomorrow end of day", "tomorrow"),
+    ("tomorrow end of the day", "tomorrow"),
     *(
         (f"{day.title()} {form}", day)
         for day in ("monday", "tuesday", "wednesday", "thursday", "friday")
-        for form in ("EOD", "COB", "close of business", "end of day")
+        for form in ("EOD", "COB", "close of business", "end of day", "end of the day")
     ),
     *(
         (f"{form} {day.title()}", day)
-        for form in ("EOD", "COB", "close of business", "end of day")
+        for form in ("EOD", "COB", "close of business", "end of day", "end of the day")
         for day in ("monday", "tuesday", "wednesday", "thursday", "friday")
     ),
+    ("end of the week", "end of week"),
     ("end of week", "end of week"),
     ("EOW", "end of week"),
     ("close of business", "eod"),
+    ("end of the day", "eod"),
     ("end of day", "eod"),
     ("EOD", "eod"),
     ("COB", "eod"),
@@ -223,7 +239,10 @@ def _introduced(tokens: list[str], start: int) -> bool:
     """Whether an attaching preposition stands before the form."""
 
     at = start
-    for _ in range(3):
+    # Four steps, not three. `by 5:00 PM Friday` tokenises to `by`, `5`,
+    # `00`, `pm`, `friday` -- three hops land on `5` and stop before ever
+    # reaching the preposition, so the day looked unattached.
+    for _ in range(4):
         if at > 0 and tokens[at - 1] in _INTRODUCES:
             return True
         if at > 0 and (
