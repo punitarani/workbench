@@ -220,3 +220,99 @@ def test_a_binding_fallback_outranks_the_rules_it_has_to_outrank() -> None:
         )
         is None
     )
+
+
+# ---------------------------------------------------------------------------
+# Claims the rule argues from.
+#
+# Three audits in a row found defects in the RECORD rather than the code:
+# a constant whose recorded plateau was wrong in the direction that invites
+# widening it, three attaching words the brief never named, and a magnitude
+# stated at nearly three times its measured size. The code was right each
+# time and the reasoning beside it had drifted.
+#
+# A claim that can be measured should not be prose. These re-measure the
+# load-bearing ones, so the next edit that invalidates one fails here
+# instead of quietly authorising a change.
+
+
+def _corpus() -> list[str]:
+    import sqlite3
+
+    texts: list[str] = []
+    for task, database, query in (
+        ("standing-commitment-register", "meetings.db", "SELECT text FROM utterances"),
+        ("mail-promise-register", "gmail.db", "SELECT body FROM messages"),
+    ):
+        state = (
+            REPO
+            / "datasets"
+            / "merrick"
+            / "tasks"
+            / task
+            / "environment"
+            / ".workbench"
+            / "state"
+            / database
+        )
+        if not state.is_file():
+            pytest.skip(f"{task} is not staged")
+        connection = sqlite3.connect(f"file:{state}?mode=ro", uri=True)
+        texts += [row[0] or "" for row in connection.execute(query)]
+    return texts
+
+
+def test_the_subject_reach_plateau_is_where_the_comment_says() -> None:
+    """Widths 3-6 agree; 7 and above lose a sound row.
+
+    The note beside `_SUBJECT_WIDTH` once claimed the plateau ran to ten,
+    which is the range a reader would feel safe widening inside. It does
+    not, and this fails if either edge moves.
+    """
+
+    import re
+
+    module = _rule()
+    texts = _corpus()
+    shipped = [module.commitment_in(text) for text in texts]
+    original = module._ELSEWHERE
+
+    def verdicts(width: int) -> list[str | None]:
+        module._ELSEWHERE = re.compile(
+            original.pattern.replace("{1,6}", f"{{1,{width}}}"), re.IGNORECASE
+        )
+        try:
+            return [module.commitment_in(text) for text in texts]
+        finally:
+            module._ELSEWHERE = original
+
+    for width in (3, 4, 5):
+        assert verdicts(width) == shipped, (
+            f"width {width} now differs from the shipped 6, so the plateau's "
+            "lower edge has moved and the comment is stale"
+        )
+    assert verdicts(7) != shipped, (
+        "width 7 no longer differs from 6, so either the rule changed or the "
+        "sentence that made 6 the top of the plateau has left the corpus — "
+        "re-measure before trusting the note"
+    )
+
+
+def test_more_than_a_third_of_admitted_turns_name_two_deadline_forms() -> None:
+    """The claim that makes the table's ordering worth caring about."""
+
+    module = _rule()
+    admitted = [text for text in _corpus() if module.commitment_in(text)]
+    assert admitted, "nothing admitted — the check would pass vacuously"
+    two = sum(
+        1
+        for text in admitted
+        if len({token for pattern, token in module._DEADLINE if pattern.search(text)})
+        > 1
+    )
+    share = two / len(admitted)
+    assert 0.30 <= share <= 0.55, (
+        f"{share:.0%} of admitted turns name more than one deadline form. The "
+        "rule's ordering argument is stated for a corpus where this is around "
+        "40%; outside 30-55% the argument needs re-making, not re-asserting"
+    )
