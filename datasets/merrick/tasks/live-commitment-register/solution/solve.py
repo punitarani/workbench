@@ -398,6 +398,18 @@ _ALTERNATIVE_BEFORE = re.compile(
 _ALTERNATIVE_AFTER = re.compile(rf"^\s*or\s+{_ALTERNATIVE_TIME}\b", re.IGNORECASE)
 
 
+# A day inside a CONDITION is not a deadline. The brief has said this from
+# the beginning -- "if it's still open Wednesday EOD, flag me directly and
+# I'll make the call ... names a date as a condition" -- and the rule only
+# caught the cases where the condition also introduced a new subject.
+#
+# It does not, often. "only name it as a blocker if we're still waiting
+# come tomorrow morning" has `we`, which `_ELSEWHERE` deliberately treats
+# as the speaker; the day still belongs to the condition. Four rows rested
+# on that, one of them declined by every trial of every tier.
+_CONDITION = re.compile(r"\b(?:if|unless|whenever|in case)\b", re.IGNORECASE)
+
+
 def commitment_in(text: str) -> str | None:
     """The deadline this turn's speaker committed to, or None.
 
@@ -456,6 +468,8 @@ def commitment_in(text: str) -> str | None:
                     if _RULED_OUT.search(clause[max(0, start - 24) : start]):
                         continue
                     if start < owner.end():
+                        continue
+                    if _CONDITION.search(clause[owner.end() : start]):
                         continue
                     if _negated(clause[owner.end() : start]):
                         continue

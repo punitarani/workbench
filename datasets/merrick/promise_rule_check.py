@@ -430,6 +430,24 @@ _SUBJECT_WIDTH = 6
 _COORDINATORS = frozenset(("and", "or", "then"))
 
 
+# Words that open a condition. A day standing inside one is a day the
+# promise is CONTINGENT on, not a day anything is due, and the brief says
+# so with its own example. Kept separate from `_elsewhere`, which asks a
+# different question -- whose clause is this -- and answers "the speaker's"
+# for "if we're still waiting", where the day is still conditional.
+_CONDITIONALS = frozenset(("if", "unless", "whenever"))
+_CONDITIONAL_PHRASES = (("in", "case"),)
+
+
+def _conditional(between: list[str]) -> bool:
+    """Whether a condition opens between the promise and the day."""
+
+    if any(word in _CONDITIONALS for word in between):
+        return True
+    pairs = zip(between, between[1:], strict=False)
+    return any(pair in _CONDITIONAL_PHRASES for pair in pairs)
+
+
 def _elsewhere(between: list[str]) -> bool:
     """Whether somebody else's clause stands in `between`."""
 
@@ -536,6 +554,8 @@ def _committed_in(text: str) -> str | None:
                 if found is None:
                     continue
                 token, form, _at, _ = found
+                if _conditional(tokens[start + len(wanted) : _at]):
+                    continue
                 if _governed_negation(clause, wanted, form):
                     continue
                 if _elsewhere(tokens[start + len(wanted) : _at]):

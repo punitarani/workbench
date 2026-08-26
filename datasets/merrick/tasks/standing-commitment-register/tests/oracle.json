@@ -2,7 +2,7 @@
  "meetings_read": 512,
  "turns_read": 2641,
  "distinct_owners": 17,
- "superseded_count": 138,
+ "superseded_count": 136,
  "live": [
   {
    "owner": "Adaora Nwosu",
@@ -150,13 +150,6 @@
    "due": "2026-06-30",
    "meeting_id": "mtg-000387",
    "said_at": "2026-06-30T09:30:00-04:00"
-  },
-  {
-   "owner": "Gideon Park",
-   "meeting": "IP and technology group",
-   "due": "2026-03-03",
-   "meeting_id": "mtg-000503",
-   "said_at": "2026-03-02T10:00:00-05:00"
   },
   {
    "owner": "Klara Bendtsen",
