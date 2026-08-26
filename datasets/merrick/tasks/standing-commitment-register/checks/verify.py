@@ -708,7 +708,15 @@ _COORDINATORS = frozenset(("and", "or", "then"))
 # different question -- whose clause is this -- and answers "the speaker's"
 # for "if we're still waiting", where the day is still conditional.
 _CONDITIONALS = frozenset(("if", "unless", "whenever"))
-_CONDITIONAL_PHRASES = (("in", "case"),)
+# An event trigger is a condition in other words: "the moment it's
+# initialed tomorrow" dates the initialling. `the second` stays out --
+# "the second request" is an ordinal, not a trigger.
+_CONDITIONAL_PHRASES = (
+    ("in", "case"),
+    ("the", "moment"),
+    ("the", "minute"),
+    ("as", "soon"),
+)
 
 
 def _conditional(between: list[str]) -> bool:
@@ -825,8 +833,13 @@ def _committed_in(text: str) -> str | None:
                 found = _deadline_after(tokens, start + len(wanted))
                 if found is None:
                     continue
-                token, form, _at, _ = found
-                if _conditional(tokens[start + len(wanted) : _at]):
+                token, form, _at, _ends = found
+                # A binding fallback outranks a condition, the same way it
+                # outranks a disjunction: "or by end of week at the latest"
+                # is the deadline whatever triggered the promise.
+                if not _binding(tokens, _ends) and _conditional(
+                    tokens[start + len(wanted) : _at]
+                ):
                     continue
                 if _governed_negation(clause, wanted, form):
                     continue

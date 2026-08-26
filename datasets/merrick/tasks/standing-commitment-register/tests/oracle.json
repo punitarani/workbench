@@ -2,7 +2,7 @@
  "meetings_read": 512,
  "turns_read": 2641,
  "distinct_owners": 17,
- "superseded_count": 134,
+ "superseded_count": 133,
  "live": [
   {
    "owner": "Adaora Nwosu",
@@ -84,9 +84,9 @@
   {
    "owner": "Samir Bhatt",
    "meeting": "Corporate deal status",
-   "due": "2026-06-25",
-   "meeting_id": "mtg-000253",
-   "said_at": "2026-06-24T09:15:00-04:00"
+   "due": "2026-05-13",
+   "meeting_id": "mtg-000220",
+   "said_at": "2026-05-08T09:15:00-04:00"
   },
   {
    "owner": "Bennett Ashworth",

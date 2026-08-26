@@ -333,7 +333,19 @@ _BINDING = re.compile(
 # come tomorrow morning" has `we`, which `_ELSEWHERE` deliberately treats
 # as the speaker; the day still belongs to the condition. Four rows rested
 # on that, one of them declined by every trial of every tier.
-_CONDITION = re.compile(r"\b(?:if|unless|whenever|in case)\b", re.IGNORECASE)
+# ...and an event TRIGGER is the same thing wearing different words. "I'll
+# fold Elena's indemnity language into the checklist the moment it's
+# initialed tomorrow" dates the initialling, not the folding, and the brief
+# has always said a promise whose timing depends on an external event names
+# no day at all. Two of three readers refused that row; every trial of the
+# 182-day sweep declined it.
+#
+# `the second` is deliberately absent. This firm writes "the full text of
+# the second request", and an ordinal is not a trigger.
+_CONDITION = re.compile(
+    r"\b(?:if|unless|whenever|in case|the moment|as soon as|the minute)\b",
+    re.IGNORECASE,
+)
 
 
 def commitment_in(text: str) -> str | None:
@@ -395,7 +407,9 @@ def commitment_in(text: str) -> str | None:
                         continue
                     if start < owner.end():
                         continue
-                    if _CONDITION.search(clause[owner.end() : start]):
+                    if _BINDING.match(clause[end:]) is None and _CONDITION.search(
+                        clause[owner.end() : start]
+                    ):
                         continue
                     if _negated(clause[owner.end() : start]):
                         continue
