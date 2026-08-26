@@ -49,6 +49,26 @@ not: "Dov needs it locked before Friday" makes Dov the party who WANTS it,
 not the one who owes it, where "needs to" keeps the obligation with the
 subject. One row, and only reading it separates the two senses.
 
+**A third recall gap is measured and deliberately left open.** 204
+assignment-shaped clauses are still outside the rule, and the largest
+single form in them is a POSSESSIVE subject:
+
+    "Hyun-woo's draft is due to me by midday tomorrow"
+    "Bennett's portion ... remains the only outstanding dependency,
+     due Friday as he's confirmed"
+
+Admitting it adds 13 rows at roughly 54% precision, because the day so
+often belongs to something else named later -- "Cecile's III.B is gated on
+Jamal's Tuesday discovery responses" gives Cecile a Tuesday that is
+Jamal's. Two guards (no questions, no gating words) take it to 7 additions
+at roughly 71%, which is still below the ratio the rule already has, so
+adding it would make the register worse per row rather than better.
+
+It is left out, with the numbers, because the alternative is to ship a
+form that degrades precision on the strength of the row count -- the exact
+trade this file has refused five times. The form is real and worth having;
+it needs conditions of its own, not two guards borrowed from elsewhere.
+
 **Status: a dev artifact, not a shipped rule.** It is developed against
 `out/delegation-epoch` (45 days) and has no second derivation, no oracle
 and no task. `promise_rule` reached its present precision over fourteen
