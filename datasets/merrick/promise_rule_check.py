@@ -210,6 +210,32 @@ def _offered_as_a_choice(tokens: list[str], start: int, end: int) -> bool:
     )
 
 
+# Words a clock time occupies between the introducer and the day. The
+# tokeniser splits `mid-morning` into `mid` and `morning`, so this is a
+# short walk rather than a lookup. "by mid-morning tomorrow" is due
+# tomorrow, and the solver widens its character window for the same reason.
+_CLOCK = frozenset(
+    ("mid", "morning", "midday", "noon", "day", "am", "pm", "first", "thing")
+)
+
+
+def _introduced(tokens: list[str], start: int) -> bool:
+    """Whether an attaching preposition stands before the form."""
+
+    at = start
+    for _ in range(3):
+        if at > 0 and tokens[at - 1] in _INTRODUCES:
+            return True
+        if at > 0 and (
+            tokens[at - 1] in _CLOCK
+            or re.fullmatch(r"\d{1,2}(?:am|pm)?", tokens[at - 1] or "")
+        ):
+            at -= 1
+            continue
+        break
+    return False
+
+
 def _binding(tokens: list[str], end: int) -> bool:
     """Whether `at the latest` follows the form, making a fallback firm.
 
@@ -251,7 +277,7 @@ def _deadline_after(
             binding = _binding(tokens, end)
             if not binding and _offered_as_a_choice(tokens, start, end):
                 continue
-            introduced = start > 0 and tokens[start - 1] in _INTRODUCES
+            introduced = _introduced(tokens, start)
             trails = end < len(tokens) and tokens[end] in _TIMES_OF_DAY
             ends_clause = end == len(tokens) or (trails and end + 1 == len(tokens))
             if not (binding or introduced or ends_clause):

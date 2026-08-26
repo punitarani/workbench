@@ -80,7 +80,9 @@ each other:
   *"I'll have the scope and timeline doc to Clement Thursday"*. **A time of
   day may trail it and the day still ends the clause**: *"I'll check with
   Noor first thing tomorrow morning"* is due tomorrow, and *"I'll push again
-  tomorrow AM"* is too. A bare day sitting mid-clause is naming a thing, not
+  tomorrow AM"* is too. **A time of day may also stand between the
+  preposition and the day**: *"by mid-morning tomorrow"* and *"by 4pm
+  Monday"* are attached exactly as *"by tomorrow"* is. A bare day sitting mid-clause is naming a thing, not
   a date: *"I'll defer the EOD escalation ownership to you"* hands over a
   task called the EOD escalation,
   and *"someone needs to own the EOD escalation call"* asks for a volunteer.

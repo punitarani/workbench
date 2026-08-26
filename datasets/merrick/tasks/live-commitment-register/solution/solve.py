@@ -396,7 +396,25 @@ def _negated(span: str) -> bool:
 # "for tomorrow morning" schedules the thing rather than dating the
 # promise -- "I'll send the checkpoint reminder for tomorrow morning now"
 # is due now -- which is why the word costs rows rather than earning them.
-_ATTACHES = re.compile(r"\b(?:by|before|due|on|come)\W*$", re.IGNORECASE)
+# A clock time may stand between the preposition and the day. "I'll get
+# Rosalie the privilege-flag owner's name by mid-morning tomorrow" is due
+# tomorrow, and the adjacency test could not see past `mid-morning`. The
+# window widens with it: "by mid-morning " is fifteen characters and the
+# old fourteen-character slice could not have held the preposition even if
+# the pattern had allowed it.
+#
+# Found from the OTHER corpus. The delegation recording says "Rosalie owes
+# me the draft by midday tomorrow", which resolved to the wrong day
+# entirely -- the rule fell through `tomorrow` and matched a `Friday`
+# later in the sentence. The same gap was sitting in merrick unexercised
+# except once.
+_ATTACHES_REACH = 26
+_ATTACHES = re.compile(
+    r"\b(?:by|before|due|on|come)"
+    r"(?:\s+(?:mid-?morning|mid-?day|midday|noon|first thing"
+    r"|\d{1,2}(?::\d{2})?\s*(?:am|pm)))?\W*$",
+    re.IGNORECASE,
+)
 _CLAUSE_FINAL = re.compile(r"^[\s.,;:!?)\"\']*$")
 
 # A day still ends its clause when only a time of day trails it. "I'll check
@@ -556,7 +574,9 @@ def commitment_in(text: str) -> str | None:
                     trailing = _TIME_OF_DAY.match(tail)
                     if not (
                         binding
-                        or _ATTACHES.search(clause[max(0, start - 14) : start])
+                        or _ATTACHES.search(
+                            clause[max(0, start - _ATTACHES_REACH) : start]
+                        )
                         or _CLAUSE_FINAL.match(tail)
                         or (trailing and _CLAUSE_FINAL.match(tail[trailing.end() :]))
                     ):
