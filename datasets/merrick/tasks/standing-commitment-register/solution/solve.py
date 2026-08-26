@@ -484,8 +484,15 @@ _BINDING = re.compile(
 #
 # `the second` is deliberately absent. This firm writes "the full text of
 # the second request", and an ordinal is not a trigger.
+# `once` belongs with `the moment` and `as soon as`, and was missing.
+# "I'll report back once I have the signed doc in hand, hopefully before
+# EOD" makes the report contingent on the counterparty signing; three
+# readers refused it 3-0, quoting the brief's own carve-out for a promise
+# whose timing depends on an external event. Exactly one verdict in 4,271
+# items, found by applying the ASSIGNMENT rule's gate check to this rule's
+# output -- a cross-check neither rule was designed for.
 _CONDITION = re.compile(
-    r"\b(?:if|unless|whenever|in case|the moment|as soon as|the minute)\b",
+    r"\b(?:if|unless|whenever|in case|once|the moment|as soon as|the minute)\b",
     re.IGNORECASE,
 )
 

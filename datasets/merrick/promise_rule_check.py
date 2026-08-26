@@ -511,7 +511,8 @@ _COORDINATORS = frozenset(("and", "or", "then"))
 # so with its own example. Kept separate from `_elsewhere`, which asks a
 # different question -- whose clause is this -- and answers "the speaker's"
 # for "if we're still waiting", where the day is still conditional.
-_CONDITIONALS = frozenset(("if", "unless", "whenever"))
+# `once` sits with the trigger phrases below; see the solver's `_CONDITION`.
+_CONDITIONALS = frozenset(("if", "unless", "whenever", "once"))
 # An event trigger is a condition in other words: "the moment it's
 # initialed tomorrow" dates the initialling. `the second` stays out --
 # "the second request" is an ordinal, not a trigger.
