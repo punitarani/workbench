@@ -149,6 +149,21 @@ def _is_speaker(words: list[str], at: int) -> bool:
     return word in _SPEAKER
 
 
+# The two forms the obligation-verb path cannot see, mirrored from the
+# regex route. Their guards are theirs alone: applying the gate check to
+# the obligation path costs a sound row there, which is measured.
+_POSSESSIVE_LINK = re.compile(
+    r"\b(?:is due|are due|due|is|goes|lands|comes)\b", re.IGNORECASE
+)
+_GATE = re.compile(
+    r"\b(?:once|gated on|depends on|waiting on|pending|blocker)\b", re.IGNORECASE
+)
+_DAY_IS_SUBJECT = re.compile(
+    r"^\s*(?:morning|afternoon|evening|EOD)?\s*(?:is|was|are)\b", re.IGNORECASE
+)
+_PRESENT_TENSE = frozenset(("circulates",))
+
+
 def _tail_after(clause: str, words: list[str], at: int) -> str | None:
     """The clause text following the token at index `at`.
 
@@ -204,25 +219,32 @@ def _day_token(promise, text: str) -> str | None:
     return None
 
 
-def _day_at(promise, text: str) -> int:
-    """Character offset of the first admitted deadline form, or the end."""
+def _day_span(promise, text: str) -> tuple[int, int]:
+    """Start and END of the first admitted deadline form, or (len, len)."""
 
     best = None
     for pattern, _token in promise._DEADLINE:
         found = pattern.search(text or "")
-        if found and (best is None or found.start() < best):
-            best = found.start()
-    return best if best is not None else len(text or "")
+        if found and (best is None or found.start() < best[0]):
+            best = (found.start(), found.end())
+    return best if best is not None else (len(text or ""), len(text or ""))
+
+
+def _day_at(promise, text: str) -> int:
+    """Character offset of the first admitted deadline form, or the end."""
+
+    return _day_span(promise, text)[0]
 
 
 def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
     """The colleague and deadline token this turn assigns, or None.
 
-    Deliberately narrower than the regex route: it implements the
-    obligation-verb path only, because that is where fifteen of the
-    sixteen corrections landed. A disagreement on the other two paths is
-    reported by the comparison as "the word route abstains", which is
-    information rather than a contradiction.
+    Covers all three of the regex route's paths: an obligation verb, a
+    possessive subject, and a present-tense delivery verb. It covered only
+    the first at first, and the comparison duly reported seven rows as
+    "regex-only" -- true, and indistinguishable at a glance from seven
+    rows where the two disagree. Abstention has to be finished, not
+    annotated.
     """
 
     promise, _assignment = _rules()
@@ -294,6 +316,87 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                 and step + 1 < len(before_day)
                 and before_day[step + 1].removesuffix("'s") in first
                 for step in range(len(before_day))
+            ):
+                continue
+            return first[word], token
+
+    # The possessive: "<Name>'s <deliverable> ... due <day>", under the
+    # three conditions the regex route gives it.
+    for clause in promise._CLAUSE.split(text or ""):
+        if "?" in clause:
+            continue
+        words = _words(clause)
+        for index, word in enumerate(words):
+            stem = word.removesuffix("'s")
+            if stem == word or stem not in first:
+                continue
+            if index > 0 and words[index - 1] in _RECEIVING:
+                continue
+            if any(_is_speaker(words[:index], s) for s in range(index)):
+                continue
+            after = _tail_after(clause, words, index)
+            if after is None:
+                continue
+            token = _day_token(promise, after)
+            if not token:
+                continue
+            at, ends = _day_span(promise, after)
+            # The linking verb has to stand BEFORE the day, not anywhere in
+            # the tail. Searching the whole tail let "Mira's holding Wed EOD
+            # firm on the IP schedule escalation" qualify on an `is` that
+            # appears later in the sentence, and admitted seven rows the
+            # other route refuses.
+            if not _POSSESSIVE_LINK.search(after[:at]):
+                continue
+            if _GATE.search(clause[: len(clause) - len(after) + at]):
+                continue
+            # Read from the END of the day form: "Thursday morning IS our
+            # call" identifies a day rather than assigning one, and reading
+            # from the start answers a different question.
+            if _DAY_IS_SUBJECT.match(after[ends:]):
+                continue
+            before = _words(after[:at])
+            # A first-person clause between the colleague and the day takes
+            # the day: "Fionnuala's manager script is right and I'LL want it
+            # nailed down Thursday" is the speaker's Thursday.
+            if any(_is_speaker(before, step) for step in range(len(before))):
+                continue
+            if any(
+                before[step] == ","
+                and step + 1 < len(before)
+                and before[step + 1].removesuffix("'s") in first
+                for step in range(len(before))
+            ):
+                continue
+            return first[stem], token
+
+    # The present-tense delivery verb, under the same guards.
+    for clause in promise._CLAUSE.split(text or ""):
+        if "?" in clause:
+            continue
+        words = _words(clause)
+        for index, word in enumerate(words):
+            if word not in first:
+                continue
+            at = index + 1
+            if at < len(words) and words[at] in _ADVERBS:
+                at += 1
+            if at >= len(words) or words[at] not in _PRESENT_TENSE:
+                continue
+            if index > 0 and (
+                words[index - 1] in _RECEIVING or words[index - 1] not in _OPENERS
+            ):
+                continue
+            if any(_is_speaker(words[:index], s) for s in range(index)):
+                continue
+            after = _tail_after(clause, words, at)
+            if after is None:
+                continue
+            token = _day_token(promise, after)
+            if not token:
+                continue
+            if _GATE.search(
+                clause[: len(clause) - len(after) + _day_at(promise, after)]
             ):
                 continue
             return first[word], token
