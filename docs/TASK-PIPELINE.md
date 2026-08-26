@@ -82,15 +82,27 @@ Measured across four recorded worlds, mails carrying `I'll`/`I will`, and
 how many of those carry any deadline form:
 
     world     mails   `I'll`   +a deadline form   the rule admits
-    hartwell   1220      135                  5                 0
+    hartwell   1220      326                 12                 5
     ashgrove    354      150                100                24
     merrick    1399      537                272                58
-    calder     3048    1 479              1 158               386
+    calder     3048    1 901              1 477               537
 
-The last column moves with the rule -- it was 392 before `once` was added
-to the trigger set -- and `tests/docs/test_pipeline_doc_numbers.py` fails
-when this table stops matching, which is how that update was prompted
-rather than remembered.
+The last column moves with the rule, and `tests/docs/test_pipeline_doc_numbers.py`
+fails when this table stops matching -- which is how both of the updates
+below were prompted rather than remembered.
+
+**Every figure in the middle two columns was depressed by a regex bug, and
+the table's whole argument rested on them.** `\bI'll\b` cannot match
+`I\u2019ll`, the typographic apostrophe. merrick and ashgrove use the
+straight one exclusively; calder writes 429 mails with the curly one and
+hartwell writes many more. Fixing it moved hartwell 135 -> 326 owner-mails
+and 0 -> 5 admitted, and calder 1,479 -> 1,901 and 386 -> 537.
+
+So **hartwell is not a zero world either**, and the last of this section's
+original claims about which firms "do not write dates" is gone. What
+remains true, and is now the whole of the claim: the four worlds differ by
+more than an order of magnitude in how many commitments they carry, and
+nothing about their persona specs predicts the ranking.
 
 **This table was wrong about calder for weeks, and the error ran the
 argument backwards.** It recorded "82 owner-mails, zero carrying any

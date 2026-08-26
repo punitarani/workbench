@@ -83,7 +83,14 @@ WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 # ("Reinhardt, $61,047.00 out by Thursday") is not a commitment by anyone in
 # the room: the person who owes it never said it, and the person who said it
 # does not owe it.
-OWNER_FORMS: tuple[str, ...] = (r"\bI'll\b", r"\bI will\b")
+# `['\u2019]` everywhere an apostrophe appears, and it is not decoration.
+# `\bI'll\b` cannot match `I\u2019ll`, and calder writes 429 mails that way --
+# every one of them invisible to this rule while the word-walking checker,
+# which tokenises on non-word characters, read them fine. merrick uses the
+# straight apostrophe exclusively, which is why two derivations agreeing on
+# merrick could never surface this.
+_APOS = "['\u2019]"
+OWNER_FORMS: tuple[str, ...] = (rf"\bI{_APOS}ll\b", r"\bI will\b")
 
 # The deadline forms this firm writes, and the token each normalises to.
 # First match wins, so **order is the rule** and the compound comes first.
@@ -299,7 +306,8 @@ _CLAUSE = re.compile(r"(?<=[.?!;:])\s+|\s*[\u2014\u2013]\s*|\s+-\s+")
 # which is what independence at the level of code rather than assumptions
 # buys. An outside reader found it.
 _NEG = re.compile(
-    r"(?:\bnot\b|\bnever\b|n't\b|\brather than\b|\binstead of\b)", re.IGNORECASE
+    rf"(?:\bnot\b|\bnever\b|n{_APOS}t\b|\brather than\b|\binstead of\b)",
+    re.IGNORECASE,
 )
 
 
@@ -349,7 +357,7 @@ _ELSEWHERE = re.compile(
     # different pronoun. Four rows rested on the exclusion; readers refused
     # one of them 3-0 and the other three are the brief's own example.
     r"(?!i\b|i')"
-    r"(?:[\w-]+(?:'s|'re|'ll|'ve|n't)\b"
+    rf"(?:[\w-]+(?:{_APOS}s|{_APOS}re|{_APOS}ll|{_APOS}ve|n{_APOS}t)\b"
     # A finite verb sitting immediately after `and`, `or` or `then` is
     # COORDINATED onto the speaker's own verb, not the verb of a new
     # clause. The brief has always said so -- "a conjunction alone does not
