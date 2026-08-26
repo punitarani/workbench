@@ -114,3 +114,109 @@ def test_the_negation_condition_decides_something() -> None:
         "dropping the contracted negation changes no verdict anywhere in the "
         "corpus, so the condition the brief states is deciding nothing"
     )
+
+
+# ---------------------------------------------------------------------------
+# Order.
+#
+# Twelve conditions now stand between a turn and a row, and it is worth being
+# precise about which of them care about order, because the intuition is
+# wrong in both directions.
+#
+# The REJECTIONS do not. Every one is a `continue` in the same loop, so
+# `if A: continue; if B: continue` is `if B: continue; if A: continue` for
+# every input there is. Reordering them cannot change an answer.
+#
+# The DEADLINE TABLE does, and heavily: first match wins, so a table that
+# tries bare `EOD` before `EOD tomorrow` reads the compound as the day it
+# was said. Measured on the corpus, moving the bare form to the front moves
+# 20 verdicts. Nothing guarded that until these tests.
+
+
+def test_no_bare_deadline_form_precedes_a_compound_built_on_it() -> None:
+    """First match wins, so every compound has to be tried first.
+
+    Written twice. The first version contained `assert at > bare_eod or
+    True`, which cannot fail -- the exact species of check this file exists
+    to catch, written while writing this file. The invariant is stated
+    directly now: find the compounds by what their patterns contain, find
+    the bare forms the same way, and assert every compound comes first.
+    """
+
+    table = _rule()._DEADLINE
+    days = ("tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday")
+
+    compounds, bare = [], []
+    for index, (pattern, _token) in enumerate(table):
+        source = pattern.pattern.casefold()
+        has_eod = "eod" in source
+        has_day = any(day in source for day in days)
+        if has_eod and has_day:
+            compounds.append((index, pattern.pattern))
+        elif has_eod or has_day:
+            bare.append((index, pattern.pattern))
+
+    assert compounds, "no compound forms found — the check would pass vacuously"
+    assert bare, "no bare forms found — the check would pass vacuously"
+
+    latest_compound = max(index for index, _ in compounds)
+    earliest_bare = min(index for index, _ in bare)
+    assert latest_compound < earliest_bare, (
+        f"a bare deadline form at index {earliest_bare} is tried before a "
+        f"compound at index {latest_compound}. First match wins, so the "
+        "compound can never match and every turn naming one resolves to the "
+        "wrong day"
+    )
+
+
+def test_the_deadline_table_order_is_load_bearing() -> None:
+    """If reordering changed nothing, the comment would be decoration.
+
+    This asserts the hazard is real, so that a later reader tidying the
+    table alphabetically finds out here rather than in a sweep.
+    """
+
+    module = _rule()
+    said = "I'll confirm the filing position by EOD tomorrow."
+    assert module.commitment_in(said) == "tomorrow"
+
+    original = list(module._DEADLINE)
+    bare = next(i for i, (_p, tok) in enumerate(original) if tok == "eod")
+    module._DEADLINE = [original[bare]] + [
+        row for i, row in enumerate(original) if i != bare
+    ]
+    try:
+        assert module.commitment_in(said) == "eod", (
+            "putting the bare end-of-day form first no longer changes this "
+            "turn's answer, so either the table stopped mattering or this "
+            "example stopped exercising it"
+        )
+    finally:
+        module._DEADLINE = original
+
+
+def test_a_binding_fallback_outranks_the_rules_it_has_to_outrank() -> None:
+    """`at the latest` beats both the disjunction rule and the trigger rule.
+
+    These three sentences each need two conditions to interact correctly,
+    and each broke once while the other was being fixed.
+    """
+
+    rule = _rule()
+    assert rule.commitment_in(
+        "I'll send it to you today or tomorrow at the latest"
+    ) == ("tomorrow")
+    assert (
+        rule.commitment_in(
+            "I'll flag the room the moment I hear back or by end of week at the latest"
+        )
+        == "end of week"
+    )
+    # ...and without the binding phrase, both rules still bite.
+    assert rule.commitment_in("I'll send it to you today or tomorrow") is None
+    assert (
+        rule.commitment_in(
+            "I'll fold it into the checklist the moment it's initialed tomorrow"
+        )
+        is None
+    )
