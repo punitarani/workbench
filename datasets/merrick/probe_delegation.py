@@ -34,6 +34,34 @@ a task is designed around it.
 Ten days, not a hundred and thirty: the question is whether the *form*
 appears at all, and its rate per day is measurable from a short run. This
 never writes to `out/merrick`, and nothing it records is shipped.
+
+**Result: the lever works.** Against merrick's own matched first ten days,
+which hold ZERO anchored assignments in 178 meeting turns and 83 mails,
+this recording holds 4 in 191 turns and 2 in 116 mails -- ten times the
+full-corpus baseline rate in meetings (p = 0.0008) and twenty-four times
+in mail (p = 0.003). One sentence per persona, same cast, same seed.
+
+**And the rule it enables is not free.** The recording is a dev set for
+the family, and reading it says what the family will cost. Fifteen clauses
+carry a named colleague, a verb, and a deadline:
+
+    has    8    "Ingrid has lender consent due Wednesday close of business"
+    is     4    "Adaora is still on for Thursday"
+    will   2    "Quentin will have a name to circulate by tomorrow AM"
+    owes   1    "Adaora owes Dov a name and one-line scope by tomorrow morning"
+
+The unambiguous form -- a name, a future auxiliary, an attached date -- is
+`will`, and at 2 in ten days it is too rare to key a register on. The
+volume is `has`, and `has` is two different sentences:
+
+    "Ingrid has lender consent due Wednesday"      an obligation
+    "I'll update that line once Mira has a name"   the SPEAKER's promise
+
+So the family is buildable and it inherits the long tail that took the
+first-person rule five versions and four defects. What it does not have to
+re-derive is the machinery: clause split, attachment, negation,
+alternatives and the deadline table are all about English rather than
+about who is speaking, and only the subject changes.
 """
 
 from __future__ import annotations
