@@ -62,6 +62,34 @@ first-person rule five versions and four defects. What it does not have to
 re-derive is the machinery: clause split, attachment, negation,
 alternatives and the deadline table are all about English rather than
 about who is speaking, and only the subject changes.
+
+**The 45-day recording, and what it costs.** 19,340 steps, 1,318 turns and
+mails. Applying the graded machinery with the subject swapped:
+
+    a colleague + an obligation verb + a day in ONE clause    43 turns
+    ...that the graded machinery admits                       15 turns  (35%)
+
+Fifteen in forty-five days, and reading them is the point. Some are exactly
+the form the family needs -- "Rosalie owes me the draft by midday
+tomorrow", "Samir has Sub-Fund I cert by EOD Thursday". At least two are
+plainly wrong: "so Fionnuala has them ahead of 9:30 tomorrow" is the
+SPEAKER's promise with a colleague in a purpose clause, and "you cannot
+represent a date to Frost tomorrow" assigns nothing to Ulrich. Several more
+are reports of what somebody is doing rather than obligations they owe.
+
+**This refines the probe's own result rather than contradicting it.** The
+spec change reliably creates the FORM -- ten and twenty-four times the
+baseline rate, p = 0.0008 and 0.003, against a matched control of zero. It
+does not, on its own, create enough of the GRADABLE subset to key a
+register on: a register wants fourteen-plus rows with supersession, and
+this yields fifteen raw candidates of which maybe two-thirds survive
+reading.
+
+Creating a form and creating a gradable form are different requirements,
+and the probe measured the first. The cost of the second is now known
+rather than guessed: roughly three times this recording -- 130-odd days,
+about twenty hours -- plus a rule-correction cycle of the size the
+first-person rule took, which was fourteen defects found over one day.
 """
 
 from __future__ import annotations
