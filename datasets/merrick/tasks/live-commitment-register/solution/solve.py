@@ -330,7 +330,15 @@ _FINITE = (
 # register carried it anyway.
 _ELSEWHERE = re.compile(
     r"\b(?:so|that|whether|which|because|if|once|when|while|unless|and|but|with)\s+"
-    r"(?!i\b|i'|we\b|we')"
+    # `we` is NOT excluded, and it was, deliberately, for months. The
+    # reasoning was that `we` includes the speaker so it cannot be somebody
+    # else's clause. The brief says "a new SUBJECT does" mark it, and `we`
+    # is a different subject from `I` -- which is why "so you can finalize
+    # the Officer's Certificate before tomorrow" makes no row and "so we
+    # can talk it through before Wednesday" is the same sentence wearing a
+    # different pronoun. Four rows rested on the exclusion; readers refused
+    # one of them 3-0 and the other three are the brief's own example.
+    r"(?!i\b|i')"
     r"(?:[\w-]+(?:'s|'re|'ll|'ve|n't)\b"
     # A finite verb sitting immediately after `and`, `or` or `then` is
     # COORDINATED onto the speaker's own verb, not the verb of a new
@@ -454,6 +462,15 @@ _CONDITION = re.compile(
 )
 
 
+# A pronoun subject standing after a connective is a new subject even when
+# no FINITE verb follows it. "and we each report back to Dov by end of day"
+# has `report`, which is not on the finite list and never will be -- the
+# list cannot enumerate English. The pronoun is the evidence.
+_PRONOUN_SUBJECT = re.compile(
+    r"\b(?:and|so|but|then)\s+(?:we|they|you|he|she)\s+(?!')[a-z]", re.IGNORECASE
+)
+
+
 def commitment_in(text: str) -> str | None:
     """The deadline this turn's speaker committed to, or None.
 
@@ -534,7 +551,9 @@ def commitment_in(text: str) -> str | None:
                         or (trailing and _CLAUSE_FINAL.match(tail[trailing.end() :]))
                     ):
                         continue
-                    if _ELSEWHERE.search(clause[owner.end() : start]):
+                    if _ELSEWHERE.search(
+                        clause[owner.end() : start]
+                    ) or _PRONOUN_SUBJECT.search(clause[owner.end() : start]):
                         continue
                     return token
     return None

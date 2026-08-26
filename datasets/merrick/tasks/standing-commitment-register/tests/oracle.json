@@ -2,7 +2,7 @@
  "meetings_read": 512,
  "turns_read": 2641,
  "distinct_owners": 17,
- "superseded_count": 133,
+ "superseded_count": 132,
  "live": [
   {
    "owner": "Adaora Nwosu",
@@ -157,13 +157,6 @@
    "due": "2026-05-26",
    "meeting_id": "mtg-000515",
    "said_at": "2026-05-25T10:00:00-04:00"
-  },
-  {
-   "owner": "Adaora Nwosu",
-   "meeting": "Partner matter review",
-   "due": "2026-03-02",
-   "meeting_id": "mtg-000399",
-   "said_at": "2026-03-02T16:00:00-05:00"
   },
   {
    "owner": "Bennett Ashworth",

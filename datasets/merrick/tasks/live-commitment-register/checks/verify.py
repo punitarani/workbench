@@ -647,7 +647,18 @@ _CONNECTIVES = frozenset(
         "but",
     )
 )
-_SPEAKER = frozenset(("i", "we"))
+# Only `i`. `we` was here and the brief never put it there: "a new SUBJECT"
+# marks somebody else's clause, and `we` is a different subject from `I`.
+_SPEAKER = frozenset(("i",))
+
+# A pronoun after a connective is a subject whatever verb follows, which
+# the finite-verb list cannot cover: "and we each report back" has `report`.
+_PRONOUN_SUBJECTS = frozenset(("we", "they", "you", "he", "she"))
+
+# Only these introduce a pronoun that is acting as a SUBJECT. The full
+# connective set includes prepositions like `with`, after which a pronoun
+# is an object.
+_COORDINATING = frozenset(("and", "so", "but", "then"))
 _FINITE = frozenset(
     (
         "can",
@@ -737,6 +748,14 @@ def _elsewhere(between: list[str]) -> bool:
         rest = between[index + 1 :]
         if not rest or rest[0] in _SPEAKER:
             continue
+        # A pronoun subject settles it without consulting the verb list --
+        # but only after a COORDINATOR. `with you` is a prepositional
+        # object, not a subject, and "I'll plan to check in with you by end
+        # of week" is a commitment; the wider connective set turned it into
+        # somebody else's clause, and the solver's narrower one did not.
+        # The two derivations disagreed on exactly that turn.
+        if word in _COORDINATING and rest[0] in _PRONOUN_SUBJECTS and len(rest) > 1:
+            return True
         # One: the verb is contracted onto the subject opening the clause.
         if len(rest) > 1 and rest[1] in _CONTRACTED:
             return True
