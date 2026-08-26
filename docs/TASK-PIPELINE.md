@@ -76,13 +76,31 @@ A family cannot be ported into a world that was not generated to carry it.
 Measured across four recorded worlds, mails carrying `I'll`/`I will`, and
 how many of those carry any deadline form:
 
-    merrick   537 owner-mails   179 weekday, 115 this week, 87 tomorrow
-    ashgrove  150 owner-mails    85 weekday,  34 EOD
-    hartwell  135 owner-mails     3 tomorrow, 2 EOD     <- promises, no dates
-    calder     82 owner-mails     0                     <- none at all
+    world     mails   `I'll`   +a deadline form   the rule admits
+    hartwell   1220      135                  5                 0
+    ashgrove    354      150                100                24
+    merrick    1399      537                272                58
+    calder     3048    1 479              1 158               392
 
-Under the real rule hartwell and calder yield **zero** items. That is not a
-rule gap to patch; those firms' people do not write dates.
+**This table was wrong about calder for weeks, and the error ran the
+argument backwards.** It recorded "82 owner-mails, zero carrying any
+deadline form ... none at all", and calder is in fact the densest world of
+the four: 1,479 mails carry a first-person promise and the rule admits 392
+of them. Textbook ones -- *"I'll have the full workpaper breakdown with
+line-item detail on your desk by Friday morning"*. Only hartwell yields
+zero, and hartwell's figures were right all along.
+
+What that costs is the cross-world correlation this section used to lean
+on. calder's personas mention deadlines **zero** times and its corpus
+carries 392 commitments; merrick's mention them eight times and it carries
+58. The persona-mention count does not predict corpus density, and any
+argument built on ranking four worlds by it is worth nothing.
+
+What survives is the part that was always better evidence: the controlled
+experiment below. One world, one sentence changed per persona, same seed,
+measured before and after. A correlation across four worlds built months
+apart by different hands could never have carried this claim, and it turns
+out it could not even carry itself.
 
 **This is steerable, and it has now been tested rather than inferred.**
 The claim that a world can be *specified* to carry a task family was the
@@ -138,7 +156,9 @@ words in those specs against what the recording contains:
     merrick   21 personas, 8 mentions ("by when", "deadline", "Friday")
               -> 537 dated owner-mails, 175 admitted promises
     calder    17 personas, 0 mentions
-              -> 82 owner-mails, ZERO carrying any deadline form
+              -> 1,479 owner-mails, 392 admitted commitments
+                 (the spec asks for no dates and the firm writes them
+                  anyway, which is why this pairing proves nothing)
 
 And the individual specs are visible in the prose they produced:
 
