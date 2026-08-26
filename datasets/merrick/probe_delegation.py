@@ -108,9 +108,25 @@ reading.
 
 Creating a form and creating a gradable form are different requirements,
 and the probe measured the first. The cost of the second is now known
-rather than guessed: roughly three times this recording -- 130-odd days,
-about twenty hours -- plus a rule-correction cycle of the size the
-first-person rule took, which was fourteen defects found over one day.
+rather than guessed -- and that costing was on the WRONG AXIS. It read a
+low yield as a shortage of data and priced more recording. Measured
+instead by removing the attachment test and re-counting the same 45 days:
+
+    strict attachment (the first-person rule)   15 of 44 clauses
+    no attachment test at all                   33 of 44
+
+Recall more than doubles without one extra day of recording, which puts
+the constraint in the rule rather than in the corpus. Of the 18 that
+lifting it adds, roughly 11 are real assignments and 7 are not -- "so
+Ingrid has a clean version before the 2pm Thursday staffing meeting" is
+the speaker's own promise again, and "Dov's IP schedule to Ingrid is Wed
+EOD" makes Ingrid the recipient rather than the owner.
+
+So the honest cost is a correction cycle over 33 candidates at about 70%
+precision -- which is where the first-person rule started, at 9 sound rows
+of 20 -- and not another twenty hours of recording. The longer run is
+still going, for row count and supersession depth, but it is off the
+critical path.
 """
 
 from __future__ import annotations
