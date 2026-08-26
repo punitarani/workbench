@@ -89,6 +89,38 @@ nine: every one is a genuine future commitment where `filed`, `closed` or
 have it filed by Friday", "I'll have the review closed out before end of
 day". The scan finds the word and not the tense.
 
+**Run outside its own corpus, the two routes stop agreeing, and that
+number is the honest measure of how much the dev set flatters them.**
+
+    delegation epoch (45d)   1 318 items   41 assignments   0 disagreements
+    merrick meetings         2 872 items   15              1
+    merrick mail             1 399 items    2              0
+    calder mail              3 048 items   15              0
+    ashgrove mail              354 items   20              4
+
+All five disagreements localise to ONE question -- whether a first-person
+clause standing BEFORE the colleague severs the assignment -- and the two
+routes are each right about half of it:
+
+    "I note that Sylvia has ringfenced the Wednesday GL sync"
+        the word route refuses. Correct: a named sync, not a deadline.
+    "I have received confirmation that Imogen will provide the specific
+     engagement list by end of day today"
+        the word route refuses. Wrong: that is exactly an assignment,
+        reported rather than made.
+
+The regex route asks whether an `I'll`/`I will` PROMISE precedes, which is
+too narrow; the word route asks whether any first-person verb precedes,
+which is too broad. What separates the cases is a reporting FRAME -- "I
+have received confirmation that", "I note that" -- from the speaker taking
+the work themselves, and neither route models it. That is the next
+correction, and it is stated here rather than guessed at.
+
+Worth recording separately: **ashgrove carries 20 assignments in 354
+mails**, the densest of any corpus measured, against 41 in 1,318 for the
+world built specifically to produce them. A world spec was not the only
+way to get this family after all.
+
 **Status: a dev artifact, not a shipped rule.** It is developed against
 `out/delegation-epoch` (45 days) and has no second derivation, no oracle
 and no task. `promise_rule` reached its present precision over fourteen
