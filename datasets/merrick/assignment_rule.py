@@ -34,6 +34,14 @@ removing only what it was aimed at:
     - a first-person clause severs 24    2 removed, 0 collateral
     - a relative clause is not an owner 22  2 removed, 0 collateral
 
+Then RECALL, which the five corrections above say nothing about. 421
+clauses name a colleague and a day without matching `<Name> <obligation
+verb>`, and reading them found the verb this firm delegates with:
+
+    + `owns`                       31    9 added, all of them clean
+
+`owned` and `takes` were measured beside it and add nothing at all.
+
 **Status: a dev artifact, not a shipped rule.** It is developed against
 `out/delegation-epoch` (45 days) and has no second derivation, no oracle
 and no task. `promise_rule` reached its present precision over fourteen
@@ -88,7 +96,16 @@ def roster(state: Path) -> dict[str, str]:
 # trouble -- "Ingrid has lender consent due Wednesday" is an obligation and
 # "once Mira has a name" is not, which is what the conditions below are
 # for.
-OBLIGATION = r"owes|will|'ll|has|is|needs to"
+# `owns` is the word this firm actually delegates with -- "Hyun-woo owns
+# it, due Friday", "Dov owns it, Wed EOD", "Rosalie owns the linkage fix by
+# EOD tomorrow". It was missing because the verb list came from the 10-day
+# probe, where it never appeared; adding it lifts 22 assignments to 31 and
+# every one of the nine is clean.
+#
+# `owned` and `takes` were tried alongside it and add NOTHING -- 31 either
+# way -- so they are not here. A verb that decides no verdict is a
+# condition the brief would have to state and the corpus never exercises.
+OBLIGATION = r"owes|owns|will|'ll|has|is|needs to"
 
 # A colleague named just after one of these is receiving the work, not
 # owing it: "Hyun-woo's draft to Bennett", "Mira owes Elena and Ingrid
