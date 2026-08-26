@@ -209,6 +209,22 @@ def _offered_as_a_choice(tokens: list[str], start: int, end: int) -> bool:
     )
 
 
+def _binding(tokens: list[str], end: int) -> bool:
+    """Whether `at the latest` follows the form, making a fallback firm.
+
+    Counted forward through an optional time of day rather than matched,
+    which is this derivation's way of reaching the same place the solver
+    reaches with a pattern. Without it "today or tomorrow at the latest"
+    reads as two days offered and neither chosen; with it the second is
+    the deadline, which is what the phrase is for.
+    """
+
+    at = end
+    if at < len(tokens) and tokens[at] in _TIMES_OF_DAY:
+        at += 1
+    return tokens[at : at + 3] == ["at", "the", "latest"]
+
+
 def _deadline_after(
     tokens: list[str], after: int
 ) -> tuple[str, list[str], int, int] | None:
@@ -231,12 +247,13 @@ def _deadline_after(
             if _ruled_out(tokens, start):
                 continue
             end = start + len(wanted)
-            if _offered_as_a_choice(tokens, start, end):
+            binding = _binding(tokens, end)
+            if not binding and _offered_as_a_choice(tokens, start, end):
                 continue
             introduced = start > 0 and tokens[start - 1] in _INTRODUCES
             trails = end < len(tokens) and tokens[end] in _TIMES_OF_DAY
             ends_clause = end == len(tokens) or (trails and end + 1 == len(tokens))
-            if not (introduced or ends_clause):
+            if not (binding or introduced or ends_clause):
                 continue
             return token, wanted, start, end
     return None
@@ -359,8 +376,15 @@ def _clauses(text: str) -> list[str]:
 # shape of somebody else's clause. The solver expresses this as one regex
 # over characters; this walks words, so the two reach the same boundary by
 # different routes and a turn they disagree about is a finding.
+# `with` earns its place here on one row. "I'll update the Sandhurst
+# checklist ... with Quentin's residual comments due tomorrow" dates
+# QUENTIN's comments, and the register held it as Samir owing something.
+# Three readers refused it unanimously. The brief already said a new
+# subject marks somebody else's clause; `with` is simply another word that
+# can introduce one, and it costs exactly this row across 4,271 items.
 _CONNECTIVES = frozenset(
     (
+        "with",
         "so",
         "that",
         "whether",

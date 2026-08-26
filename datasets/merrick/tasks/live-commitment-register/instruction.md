@@ -114,7 +114,11 @@ each other:
   specific open item by Thursday"* is due Thursday, and so is *"I'll review
   the linkage log tomorrow morning and sign off or tell you precisely what
   is missing by Thursday"* — the `or` there offers two ways to answer, not
-  two days to answer on.
+  two days to answer on. **A fallback marked `at the latest` is a deadline,
+  not an alternative** — it is what settles the choice rather than being
+  part of it, so *"sent over to you today or tomorrow at the latest"* is
+  due tomorrow and *"I'll flag the room the moment I hear back or by end of
+  week at the latest"* is due end of week.
 
 **A day named only to rule it out is not a deadline.** *"I'll get an answer
 today, not tomorrow"* commits to today, and `today` is not one of the days

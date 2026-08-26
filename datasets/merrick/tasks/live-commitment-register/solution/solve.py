@@ -320,7 +320,7 @@ _FINITE = (
 # `tomorrow` dates the document going out, not the promise -- and the
 # register carried it anyway.
 _ELSEWHERE = re.compile(
-    r"\b(?:so|that|whether|which|because|if|once|when|while|unless|and|but)\s+"
+    r"\b(?:so|that|whether|which|because|if|once|when|while|unless|and|but|with)\s+"
     r"(?!i\b|i'|we\b|we')"
     r"(?:[\w-]+(?:'s|'re|'ll|'ve|n't)\b"
     # A finite verb sitting immediately after `and`, `or` or `then` is
@@ -396,6 +396,18 @@ _ALTERNATIVE_BEFORE = re.compile(
     rf"\b{_ALTERNATIVE_TIME}\s+or\b[^.;:!?]{{0,24}}$", re.IGNORECASE
 )
 _ALTERNATIVE_AFTER = re.compile(rf"^\s*or\s+{_ALTERNATIVE_TIME}\b", re.IGNORECASE)
+
+# `at the latest` is what English uses to make a fallback binding, and this
+# firm writes it ten times. It settles the alternatives rather than being
+# one of them: "sent over to you today or tomorrow at the latest" is due
+# tomorrow, and "I'll flag the room the moment I hear back or by end of
+# week at the latest" is due end of week. Readers given the second WITHOUT
+# this rule split 2-1, one applying the disjunction rule and the others
+# reading the fallback as the deadline -- a row nobody could be graded on.
+_BINDING = re.compile(
+    r"\s*(?:morning|afternoon|evening|night|a\.?m\.?|p\.?m\.?)?\s*at the latest\b",
+    re.IGNORECASE,
+)
 
 
 # A day inside a CONDITION is not a deadline. The brief has said this from
@@ -474,13 +486,16 @@ def commitment_in(text: str) -> str | None:
                     if _negated(clause[owner.end() : start]):
                         continue
                     tail = clause[end:]
-                    if _ALTERNATIVE_BEFORE.search(
-                        clause[owner.end() : start]
-                    ) or _ALTERNATIVE_AFTER.match(tail):
+                    binding = _BINDING.match(tail) is not None
+                    if not binding and (
+                        _ALTERNATIVE_BEFORE.search(clause[owner.end() : start])
+                        or _ALTERNATIVE_AFTER.match(tail)
+                    ):
                         continue
                     trailing = _TIME_OF_DAY.match(tail)
                     if not (
-                        _ATTACHES.search(clause[max(0, start - 14) : start])
+                        binding
+                        or _ATTACHES.search(clause[max(0, start - 14) : start])
                         or _CLAUSE_FINAL.match(tail)
                         or (trailing and _CLAUSE_FINAL.match(tail[trailing.end() :]))
                     ):
