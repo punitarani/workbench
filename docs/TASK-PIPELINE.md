@@ -32,9 +32,14 @@ The same five-condition attachment rule scores **1.000 on mail** and
 
     mail      owner   <- `sender`, a column. Group, take the max, done.
     meetings  owner   <- a column
-              meeting <- DERIVED: a title appearing on 3+ days is a
-                         standing series. 8 of 52 titles; 44 one-offs make
-                         no rows at all.
+              meeting <- DERIVED: a title appearing on 3+ days INSIDE
+                         THE WINDOW is a standing series. 8 of the 17
+                         titles the window contains; the other 9 make no
+                         rows at all. (Across the whole corpus it is 8 of
+                         52 — the figure this line used to give while
+                         saying "inside the window", which is two scopes
+                         in one sentence and reads as an error until you
+                         measure both.)
 
 Row-F1 is sensitive to the row SET. An error in a derived key merges or
 drops a *group*, which costs rows. An error in a value costs a field.
@@ -192,7 +197,9 @@ rate supersession needs.
 **Run it with `--rule`, never the regex default.** The proxy reported
 merrick's mail-by-subject at 39% repeat, a surface worth building on; under
 the real attachment rule the same grouping is 0%. 537 messages carry an
-`I'll` somewhere and 61 carry a promise the rule admits. A proxy flatters
+`I'll` somewhere and 58 carry a promise the rule admits — the count was 61
+before fourteen corrections to the rule, and it is quoted here as a ratio
+rather than a constant for that reason. A proxy flatters
 every surface where the graded rule is stricter than it, which is all of
 them.
 
