@@ -49,25 +49,25 @@ not: "Dov needs it locked before Friday" makes Dov the party who WANTS it,
 not the one who owes it, where "needs to" keeps the obligation with the
 subject. One row, and only reading it separates the two senses.
 
-**A third recall gap is measured and deliberately left open.** 204
-assignment-shaped clauses are still outside the rule, and the largest
-single form in them is a POSSESSIVE subject:
+    + the possessive form          39    5 added, 4 of them clean
 
-    "Hyun-woo's draft is due to me by midday tomorrow"
-    "Bennett's portion ... remains the only outstanding dependency,
-     due Friday as he's confirmed"
+The possessive was the one recall gap that behaved like a PRECISION
+problem, and getting it in took three attempts:
 
-Admitting it adds 13 rows at roughly 54% precision, because the day so
-often belongs to something else named later -- "Cecile's III.B is gated on
-Jamal's Tuesday discovery responses" gives Cecile a Tuesday that is
-Jamal's. Two guards (no questions, no gating words) take it to 7 additions
-at roughly 71%, which is still below the ratio the rule already has, so
-adding it would make the register worse per row rather than better.
+    raw                                13 additions, ~54%
+    + no questions, no gating words     7 additions, ~71%
+    + the day is not the subject        5 additions, 4 of 5
 
-It is left out, with the numbers, because the alternative is to ship a
-form that degrades precision on the strength of the row count -- the exact
-trade this file has refused five times. The form is real and worth having;
-it needs conditions of its own, not two guards borrowed from elsewhere.
+71% was better than 54% and still below the ratio the rule already had,
+which is the distinction that mattered: an improvement can be real and
+insufficient at the same time. The third condition -- "Thursday morning is
+our call" identifies a day rather than assigning one -- is what made the
+form worth admitting.
+
+The one row of five that is arguably wrong is "Jamal's discovery response
+... is logged closed, due 1/24 Tuesday", an item already finished. A
+fourth guard for `closed`/`done` would take it, and one row is not enough
+to justify a condition, so it stays.
 
 **Status: a dev artifact, not a shipped rule.** It is developed against
 `out/delegation-epoch` (45 days) and has no second derivation, no oracle
@@ -216,6 +216,64 @@ def _inside_a_relative_clause(clause: str, at: int) -> bool:
     )
 
 
+# The possessive form: "Hyun-woo's draft is due to me by midday tomorrow".
+# Real, common, and the one recall gap that behaves like a precision
+# problem -- raw it adds 13 rows at about 54%, because the day so often
+# belongs to something named later. Three conditions of its own bring it
+# to five rows at four-of-five, which is where the rest of the rule sits:
+#
+#   a question is not an assignment    "is Wed EOD still holding?"
+#   a gate anywhere before the day     "once Elena's answer lands EOD"
+#   the day is not the SUBJECT         "Thursday morning is our call"
+#
+# Two guards borrowed from elsewhere got it to 71% and that was NOT enough
+# -- better than before and still below the rule's own ratio, which are
+# different things. The third condition is what made it worth adding.
+_POSSESSIVE_LINK = re.compile(
+    r"\b(?:is due|are due|due|is|goes|lands|comes)\b", re.IGNORECASE
+)
+_GATE = re.compile(
+    r"\b(?:once|gated on|depends on|waiting on|pending|blocker)\b", re.IGNORECASE
+)
+_DAY_IS_SUBJECT = re.compile(
+    r"^\s*(?:morning|afternoon|evening|EOD)?\s*(?:is|was|are)\b", re.IGNORECASE
+)
+
+
+def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
+    """ "<Name>'s <deliverable> ... due <day>", with its own three conditions."""
+
+    if "?" in clause:
+        return None
+    for owner in re.finditer(rf"\b({who})'s\b", clause):
+        mine = rule._OWNER.search(clause)
+        if mine and mine.start() < owner.start():
+            continue
+        if _RECIPIENT.search(clause[max(0, owner.start() - 6) : owner.start()]):
+            continue
+        for pattern, token in rule._DEADLINE:
+            for found in pattern.finditer(clause):
+                start, end = found.start(), found.end()
+                tail = clause[end:]
+                if start < owner.end():
+                    continue
+                span = clause[owner.end() : start]
+                if not _POSSESSIVE_LINK.search(span):
+                    continue
+                if _GATE.search(clause[:start]) or _DAY_IS_SUBJECT.match(tail):
+                    continue
+                if _new_subject(who).search(span) or _FIRST_PERSON.search(span):
+                    continue
+                if not rule._BINDING.match(tail) and rule._CONDITION.search(span):
+                    continue
+                if rule._negated(span):
+                    continue
+                if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
+                    continue
+                return names.get(owner.group(1), owner.group(1)), token
+    return None
+
+
 def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
     """The colleague and the deadline token this turn assigns, or None."""
 
@@ -273,4 +331,10 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                     ):
                         continue
                     return names.get(owner.group(1), owner.group(1)), token
+
+    # ...and the possessive form, which the verb pattern cannot see.
+    for clause in rule._CLAUSE.split(text or ""):
+        found = _possessive_assignment(clause, who, names, rule)
+        if found:
+            return found
     return None
