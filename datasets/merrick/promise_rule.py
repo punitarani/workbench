@@ -245,7 +245,14 @@ def _negated(span: str) -> bool:
 # ends the clause. A bare form mid-clause is a label, not a deadline: "the
 # EOD escalation call" and "I'll defer the EOD escalation ownership to you"
 # both name a task, and both were rows.
-_ATTACHES = re.compile(r"\b(?:by|before|until|due|on|come|for|end)\W*$", re.IGNORECASE)
+# `until` is deliberately absent. It marks the END of a waiting period, not
+# a delivery deadline: "I'll hold off engaging outside counsel until
+# Wednesday's call confirms the picture" promises INACTION, and the day
+# belongs to the call. Exactly one commitment in 4,271 items attached its
+# day this way and it was that one -- three readers refused it unanimously,
+# citing the brief's own carve-out for a promise whose timing depends on an
+# external event. Removing the word deletes a rule rather than adding one.
+_ATTACHES = re.compile(r"\b(?:by|before|due|on|come|for|end)\W*$", re.IGNORECASE)
 _CLAUSE_FINAL = re.compile(r"^[\s.,;:!?)\"\']*$")
 
 # A day still ends its clause when only a time of day trails it. "I'll check

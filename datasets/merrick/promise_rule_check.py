@@ -149,7 +149,10 @@ def _deadline(tokens: list[str]) -> str | None:
 # The words that may introduce a deadline. A form they do not introduce has
 # to end its clause instead, or it is naming a thing rather than a date --
 # "the EOD escalation call" is a meeting, not a Tuesday.
-_INTRODUCES = ("by", "before", "until", "due", "on", "come", "for")
+# No `until`: it ends a wait rather than dating a delivery. See the note
+# beside the solver's `_ATTACHES`; both derivations drop it, each having
+# been checked against the corpus separately.
+_INTRODUCES = ("by", "before", "due", "on", "come", "for")
 
 # The nouns that may trail a day and leave it still ending its clause.
 # Counted to the end of the clause rather than matched: "first thing
