@@ -700,9 +700,23 @@ _FINITE = frozenset(
 # disagreed on four turns.
 _CONTRACTED = frozenset(("s", "re", "ll", "ve", "t", "m"))
 
-# Words a subject may span before its verb. Measured at four through ten
-# on the sixteen rows: three defective rows go at every width and none of
-# the thirteen sound ones do. Six is the middle of that plateau.
+# Words a subject may span before its verb.
+#
+# The reason recorded here was stale and would have led the next reader to
+# widen it. It said four through ten were all equivalent -- "three
+# defective rows go at every width and none of the thirteen sound ones do"
+# -- which was true of an older rule over an older corpus. Re-measured
+# against the whole 4,271 items as the rule stands now:
+#
+#     width 3, 4, 5   identical to 6
+#     width 6         shipped
+#     width 7, 8, 10  one SOUND row lost
+#
+# The plateau is 3-6, not 4-10, and 6 is its top rather than its middle.
+# The row that goes at 7 is "I will review the linkage log myself tomorrow
+# morning and sign off or tell you precisely what is missing by Thursday",
+# where a wider window reaches `is` inside "what is missing" -- a relative
+# clause, not a new subject.
 _SUBJECT_WIDTH = 6
 
 
