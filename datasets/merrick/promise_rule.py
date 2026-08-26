@@ -42,11 +42,21 @@ OWNER_FORMS: tuple[str, ...] = (r"\bI'll\b", r"\bI will\b")
 # The deadline forms this firm writes, and the token each normalises to.
 # First match wins, so **order is the rule** and the compound comes first.
 #
-# `EOD tomorrow` is one deadline meaning end of day tomorrow, and it is the
-# single commonest two-form phrase in the corpus: 47 of 178 commitment turns.
-# A table that tries `EOD` before it resolves a quarter of everything graded
-# to the wrong day. 40% of commitment turns name two forms at all, so this
-# is not an edge case dressed up as one.
+# `EOD tomorrow` is one deadline meaning end of day tomorrow, and a table
+# that tries the bare `EOD` first reads it as the day it was said.
+#
+# The magnitude here was restated once and re-measured since, because the
+# old figure -- "a quarter of everything graded" -- was taken on a smaller
+# corpus and would not survive being checked. Measured now by mutation
+# against all 4,271 items: moving the bare end-of-day form to the front of
+# this table moves **20 of 222 verdicts**, and reversing the table moves
+# 13. Nine per cent, not twenty-five, and still the largest single effect
+# any ordering decision in this rule has.
+#
+# 43% of admitted turns name more than one form at all (the note used to
+# say 40%, and that one held), so this is not an edge case dressed up as
+# one. `tests/datasets/test_merrick_promise_rule_conditions.py` enforces
+# the ordering; this comment only explains it.
 # A gap between the words of a form is any run of space or punctuation, not
 # a space. The firm writes `EOD-tomorrow` and `end-of-week` as readily as it
 # writes them out, and a pattern anchored on `\s+` reads the hyphenated
