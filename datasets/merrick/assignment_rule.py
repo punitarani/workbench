@@ -50,6 +50,7 @@ not the one who owes it, where "needs to" keeps the obligation with the
 subject. One row, and only reading it separates the two senses.
 
     + the possessive form          39    5 added, 4 of them clean
+    + `circulates`, guarded        41    2 added, both clean
 
 The possessive was the one recall gap that behaved like a PRECISION
 problem, and getting it in took three attempts:
@@ -274,6 +275,58 @@ def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
     return None
 
 
+# A bare present-tense delivery verb -- "Gideon circulates finalized
+# language tomorrow morning" -- states an assignment without any of the
+# obligation words. It needs the possessive path's guards, because most
+# occurrences are gated ("once Gideon circulates tomorrow, ...") or are
+# questions, and it CANNOT share them with the obligation path: applying
+# the gate check there costs a sound row, "pending the release redlines,
+# which Cecile has to Roland by end of day", where `pending` describes the
+# footnote and not Cecile's deadline.
+#
+# `sends` and `delivers` were measured beside `circulates` and add nothing
+# once the guards are on. `gets` was measured and REJECTED -- "Imelda gets
+# the updated fee estimate by EOD tomorrow" makes Imelda the recipient,
+# the same inversion as bare `needs`.
+_PRESENT_TENSE = r"circulates"
+
+
+def _present_tense_assignment(clause: str, who: str, names: dict[str, str], rule):
+    """A present-tense delivery verb, under the guards it needs."""
+
+    if "?" in clause:
+        return None
+    owner_form = re.compile(
+        rf"\b({who})\b(?:\s+(?:still|already|now|then|also|[a-z]+ly))?"
+        rf"\s+(?:{_PRESENT_TENSE})\b"
+    )
+    for owner in owner_form.finditer(clause):
+        mine = rule._OWNER.search(clause)
+        if mine and mine.start() < owner.start():
+            continue
+        if _RECIPIENT.search(clause[max(0, owner.start() - 6) : owner.start()]):
+            continue
+        if _inside_a_relative_clause(clause, owner.start()):
+            continue
+        for pattern, token in rule._DEADLINE:
+            for found in pattern.finditer(clause):
+                start, end = found.start(), found.end()
+                tail = clause[end:]
+                if _GATE.search(clause[:start]) or start < owner.end():
+                    continue
+                span = clause[owner.end() : start]
+                if _new_subject(who).search(span) or _FIRST_PERSON.search(span):
+                    continue
+                if not rule._BINDING.match(tail) and rule._CONDITION.search(span):
+                    continue
+                if rule._negated(span):
+                    continue
+                if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
+                    continue
+                return names.get(owner.group(1), owner.group(1)), token
+    return None
+
+
 def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
     """The colleague and the deadline token this turn assigns, or None."""
 
@@ -332,9 +385,15 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                         continue
                     return names.get(owner.group(1), owner.group(1)), token
 
-    # ...and the possessive form, which the verb pattern cannot see.
+    # ...then the two forms the verb pattern cannot see, each under its own
+    # guards. Order does not matter here: they are disjoint by construction,
+    # one keying on `<Name>'s` and the other on a present-tense verb.
     for clause in rule._CLAUSE.split(text or ""):
         found = _possessive_assignment(clause, who, names, rule)
+        if found:
+            return found
+    for clause in rule._CLAUSE.split(text or ""):
+        found = _present_tense_assignment(clause, who, names, rule)
         if found:
             return found
     return None
