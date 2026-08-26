@@ -111,10 +111,34 @@ routes are each right about half of it:
 
 The regex route asks whether an `I'll`/`I will` PROMISE precedes, which is
 too narrow; the word route asks whether any first-person verb precedes,
-which is too broad. What separates the cases is a reporting FRAME -- "I
-have received confirmation that", "I note that" -- from the speaker taking
-the work themselves, and neither route models it. That is the next
-correction, and it is stated here rather than guessed at.
+which is too broad. What separates the cases looks like a reporting FRAME
+-- "I have received confirmation that", "I note that" -- from the speaker
+taking the work themselves.
+
+**That hypothesis was tested against 104 cases and it fails.** Gathering
+every clause across four corpora where a first-person verb stands before a
+colleague and a day:
+
+    104 occurrences, 40 distinct first-person verbs
+     73  no `that` at all
+     22  the colleague appears possessively
+      9  a `that` intervenes -- and it is mostly the DEMONSTRATIVE:
+         "I can turn THAT comparison around by tomorrow once Klara's
+         timeline is in"
+
+So the complementiser test does not separate them, and neither does the
+verb: `can`, `have`, `need`, `want` and `should` account for half the
+occurrences and appear on both sides. The distinction is semantic and this
+corpus does not mark it lexically.
+
+**The resolution is therefore a bright line, not a better pattern.** The
+first-person rule faced the same wall on attachment and answered it by
+stating a narrow, checkable rule in the brief and accepting the semantic
+misses: a day is attached by these prepositions or it ends the clause,
+full stop. This family needs the equivalent -- a stated rule about what a
+first-person clause before a colleague does -- chosen for gradability
+rather than for being right about all 104. Which line to draw is a
+measurement to run when the task is built, not a guess to make now.
 
 Worth recording separately: **ashgrove carries 20 assignments in 354
 mails**, the densest of any corpus measured, against 41 in 1,318 for the
