@@ -181,6 +181,15 @@ def _promise_rule():
     return module
 
 
+def _named(names: dict[str, str], captured: str) -> str:
+    """Full name for a captured first name, whatever its case."""
+
+    if captured in names:
+        return names[captured]
+    lowered = {short.casefold(): full for short, full in names.items()}
+    return lowered.get(captured.casefold(), captured)
+
+
 def roster(state: Path) -> dict[str, str]:
     """First name -> full name, from the world's own people table."""
 
@@ -321,7 +330,7 @@ def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
 
     if "?" in clause:
         return None
-    for owner in re.finditer(rf"\b({who})'s\b", clause):
+    for owner in re.finditer(rf"\b({who})'s\b", clause, re.IGNORECASE):
         mine = rule._OWNER.search(clause)
         if mine and mine.start() < owner.start():
             continue
@@ -359,7 +368,7 @@ def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
                     continue
                 if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
                     continue
-                return names.get(owner.group(1), owner.group(1)), token
+                return _named(names, owner.group(1)), token
     return None
 
 
@@ -386,7 +395,8 @@ def _present_tense_assignment(clause: str, who: str, names: dict[str, str], rule
         return None
     owner_form = re.compile(
         rf"\b({who})\b(?:\s+(?:still|already|now|then|also|[a-z]+ly))?"
-        rf"\s+(?:{_PRESENT_TENSE})\b"
+        rf"\s+(?:{_PRESENT_TENSE})\b",
+        re.IGNORECASE,
     )
     for owner in owner_form.finditer(clause):
         mine = rule._OWNER.search(clause)
@@ -420,7 +430,7 @@ def _present_tense_assignment(clause: str, who: str, names: dict[str, str], rule
                     continue
                 if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
                     continue
-                return names.get(owner.group(1), owner.group(1)), token
+                return _named(names, owner.group(1)), token
     return None
 
 
@@ -436,9 +446,16 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
     # An adverb may stand between the colleague and the verb: "Jamal STILL
     # owes confirmation ... due next Tuesday", "Dov STILL owes Elena's side
     # the actual IP schedule, targeted for Wed EOD". Two rows, both clean.
+    # IGNORECASE, because this firm writes lowercase messages and a name is
+    # a name in either. The promise rule's owner form has always been
+    # case-insensitive; this one was not, and 91 turns carry a roster name
+    # only in lower case -- "mira - circulate now, don't wait". The two
+    # derivations disagreed on exactly one of them, which is how it
+    # surfaced.
     owner_form = re.compile(
         rf"\b({who})\b(?:\s+(?:still|already|now|then|also|[a-z]+ly))?"
-        rf"\s+(?:{OBLIGATION})\b"
+        rf"\s+(?:{OBLIGATION})\b",
+        re.IGNORECASE,
     )
     new_subject = _new_subject(who)
 
@@ -480,7 +497,7 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                         span
                     ):
                         continue
-                    return names.get(owner.group(1), owner.group(1)), token
+                    return _named(names, owner.group(1)), token
 
     # ...then the two forms the verb pattern cannot see, each under its own
     # guards. Order does not matter here: they are disjoint by construction,

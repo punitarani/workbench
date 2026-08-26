@@ -104,6 +104,21 @@ _OPENERS = frozenset(
 )
 
 
+# The promise rule's own owner forms, as this route's tokeniser sees them.
+#
+# `_words` KEEPS apostrophes -- changed hours ago so `Hyun-woo` survives --
+# so `I'll` arrives as the single token `i'll`, not the pair (i, ll). The
+# first version of this constant was written from a comment that was true
+# before that change, matched nothing, and let six rows through. A stale
+# note about my own tokeniser, in a file whose subject is stale notes.
+# Both spellings AND both tokenisations. `_words` keeps the straight
+# apostrophe and splits on the curly one, so `I'll` is one token and
+# `I\u2019ll` is two -- which the tokeniser check printed plainly the moment
+# it was asked, and which neither the code nor its comment had noticed.
+_PROMISE_SINGLE = frozenset(("i'll",))
+_PROMISE_PAIR = (("i", "will"), ("i", "ll"))
+
+
 def _words(text: str) -> list[str]:
     """Tokens, keeping commas AND hyphens.
 
@@ -269,8 +284,28 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             # ...or modifying the noun before them rather than owning
             if index > 0 and words[index - 1] not in _OPENERS:
                 continue
-            # the speaker's own promise, earlier in the clause, governs it
-            if any(w in _SPEAKER for w in words[:index]):
+            # The speaker's own PROMISE, earlier in the clause, governs it.
+            #
+            # A promise -- `I'll` / `I will` -- and not any first-person
+            # verb. This route asked the broader question and the two
+            # disagreed five times across two corpora, in both directions:
+            #
+            #   "I have received confirmation that Imogen will provide the
+            #    specific engagement list by end of day today"
+            #       the broad test refuses. Wrong: that IS an assignment,
+            #       reported rather than made.
+            #   "the clarity Sylvia has provided on the investigation path"
+            #       the broad test refuses. Right.
+            #
+            # There is no brief for this family yet, so nothing decides it
+            # from outside -- unlike the promise rule, where consulting the
+            # brief settled the equivalent question in a minute. This is a
+            # design choice, made narrow for consistency with the promise
+            # rule's own owner form, and recorded as a choice.
+            if any(
+                words[s] in _PROMISE_SINGLE or tuple(words[s : s + 2]) in _PROMISE_PAIR
+                for s in range(index)
+            ):
                 continue
             # The day, found in the ORIGINAL text rather than in rejoined
             # tokens. Rejoining drops the punctuation the clause rule
@@ -332,7 +367,10 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                 continue
             if index > 0 and words[index - 1] in _RECEIVING:
                 continue
-            if any(_is_speaker(words[:index], s) for s in range(index)):
+            if any(
+                words[s] in _PROMISE_SINGLE or tuple(words[s : s + 2]) in _PROMISE_PAIR
+                for s in range(index)
+            ):
                 continue
             after = _tail_after(clause, words, index)
             if after is None:
@@ -387,7 +425,10 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                 words[index - 1] in _RECEIVING or words[index - 1] not in _OPENERS
             ):
                 continue
-            if any(_is_speaker(words[:index], s) for s in range(index)):
+            if any(
+                words[s] in _PROMISE_SINGLE or tuple(words[s : s + 2]) in _PROMISE_PAIR
+                for s in range(index)
+            ):
                 continue
             after = _tail_after(clause, words, at)
             if after is None:
