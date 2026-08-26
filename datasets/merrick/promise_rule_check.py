@@ -271,7 +271,24 @@ def _binding(tokens: list[str], end: int) -> bool:
     return tokens[at : at + 3] == ["at", "the", "latest"]
 
 
-def _deadline_after(
+def _deadlines_after(tokens: list[str], after: int):
+    """EVERY admitted form at or past `after`, in table order.
+
+    A generator, not a single answer, and that matters. Returning only the
+    first form committed this route to it: "I'll have the fee modeling to
+    you by end of day Thursday so you can turn it around to Idris by
+    Friday EOD" finds `Friday EOD` first, refuses it -- correctly, it is
+    `you`'s deadline -- and then gave up, where the solver falls through
+    to the Thursday that is actually the speaker's. Five disagreements
+    across two corpora, and it read like a difference of interpretation
+    until the brief was consulted: the brief decides it, and the solver
+    was right.
+    """
+
+    yield from _admitted_forms(tokens, after)
+
+
+def _admitted_forms(
     tokens: list[str], after: int
 ) -> tuple[str, list[str], int, int] | None:
     """The first admitted form that starts at or past `after` and *attaches*.
@@ -301,8 +318,7 @@ def _deadline_after(
             ends_clause = end == len(tokens) or (trails and end + 1 == len(tokens))
             if not (binding or introduced or ends_clause):
                 continue
-            return token, wanted, start, end
-    return None
+            yield token, wanted, start, end
 
 
 ONE_DAY = datetime.timedelta(days=1)
@@ -662,20 +678,19 @@ def _committed_in(text: str) -> str | None:
             for start in range(len(tokens) - len(wanted) + 1):
                 if tokens[start : start + len(wanted)] != wanted:
                     continue
-                found = _deadline_after(tokens, start + len(wanted))
-                if found is None:
-                    continue
-                token, form, _at, _ends = found
-                # A binding fallback outranks a condition, the same way it
-                # outranks a disjunction: "or by end of week at the latest"
-                # is the deadline whatever triggered the promise.
-                if not _binding(tokens, _ends) and _conditional(
-                    tokens[start + len(wanted) : _at]
+                for token, form, _at, _ends in _deadlines_after(
+                    tokens, start + len(wanted)
                 ):
-                    continue
-                if _governed_negation(clause, wanted, form):
-                    continue
-                if _elsewhere(tokens[start + len(wanted) : _at]):
-                    continue
-                return token
+                    # A binding fallback outranks a condition, the same way
+                    # it outranks a disjunction: "or by end of week at the
+                    # latest" is the deadline whatever triggered the promise.
+                    if not _binding(tokens, _ends) and _conditional(
+                        tokens[start + len(wanted) : _at]
+                    ):
+                        continue
+                    if _governed_negation(clause, wanted, form):
+                        continue
+                    if _elsewhere(tokens[start + len(wanted) : _at]):
+                        continue
+                    return token
     return None
