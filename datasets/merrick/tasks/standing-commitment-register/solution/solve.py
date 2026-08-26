@@ -323,7 +323,20 @@ _ELSEWHERE = re.compile(
     r"\b(?:so|that|whether|which|because|if|once|when|while|unless|and|but)\s+"
     r"(?!i\b|i'|we\b|we')"
     r"(?:[\w-]+(?:'s|'re|'ll|'ve|n't)\b"
-    r"|(?:[\w'-]+[\s,]+){1,6}?" + _FINITE + r"\b)",
+    # A finite verb sitting immediately after `and`, `or` or `then` is
+    # COORDINATED onto the speaker's own verb, not the verb of a new
+    # clause. The brief has always said so -- "a conjunction alone does not
+    # mark this... a new SUBJECT does" -- and without these lookbehinds the
+    # rule contradicted it: "I'll pull the selection criteria out of that
+    # into a standalone comparison and have it to you by Thursday" was
+    # refused, because `that` was read as a connective and `have` as
+    # somebody else's verb. Three model families disagreed and a panel of
+    # readers sided with them.
+    #
+    # Only the verb-adjacent case. Blocking the coordinator anywhere in the
+    # subject's reach also swallowed "so Mira and I can close this out by
+    # tomorrow", where the `and` joins two SUBJECTS.
+    r"|(?:[\w'-]+[\s,]+){1,6}?(?<!\band )(?<!\bor )(?<!\bthen )" + _FINITE + r"\b)",
     re.IGNORECASE,
 )
 

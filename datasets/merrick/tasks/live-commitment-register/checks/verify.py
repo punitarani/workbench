@@ -667,6 +667,13 @@ _CONTRACTED = frozenset(("s", "re", "ll", "ve", "t", "m"))
 _SUBJECT_WIDTH = 6
 
 
+# Words that join a second verb to the subject already standing. Checked
+# only immediately before the verb: further back an `and` is as likely to
+# be joining two subjects ("so Mira and I can close this out by tomorrow"),
+# and blocking on that swallowed a real commitment.
+_COORDINATORS = frozenset(("and", "or", "then"))
+
+
 def _elsewhere(between: list[str]) -> bool:
     """Whether somebody else's clause stands in `between`."""
 
@@ -679,9 +686,16 @@ def _elsewhere(between: list[str]) -> bool:
         # One: the verb is contracted onto the subject opening the clause.
         if len(rest) > 1 and rest[1] in _CONTRACTED:
             return True
-        # Two: at least one word of subject, then a finite verb in reach.
+        # Two: at least one word of subject, then a finite verb in reach --
+        # unless that verb is coordinated onto the speaker's own. A finite
+        # verb whose immediately preceding word is `and`, `or` or `then` is
+        # a second thing the SAME subject does, which the brief has always
+        # said is not somebody else's clause. "I'll pull the criteria out
+        # of that into a standalone comparison and have it to you by
+        # Thursday" was refused for want of this, and the register carried
+        # a superseded date for that person all epoch.
         for step in range(1, min(_SUBJECT_WIDTH, len(rest) - 1) + 1):
-            if rest[step] in _FINITE:
+            if rest[step] in _FINITE and rest[step - 1] not in _COORDINATORS:
                 return True
     return False
 

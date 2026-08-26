@@ -43,6 +43,29 @@ def _rule(dataset: str):
     return module
 
 
+def _tokens_in(rule, text: str) -> list[str]:
+    """Every deadline form the text names, admitted or not."""
+
+    found = []
+    for pattern, token in rule._DEADLINE:
+        if pattern.search(text or ""):
+            found.append(token)
+    return found
+
+
+def _every_turn(connection, who: str, group: str, epoch, zone):
+    """Each turn by `who` in series `group`, in the order they were said."""
+
+    for row in connection.execute(
+        "SELECT u.text, m.started FROM utterances u "
+        "JOIN meetings m ON m.meeting_id = u.meeting_id "
+        "WHERE u.speaker = ? AND m.title = ? ORDER BY m.started, u.position",
+        (who, group),
+    ):
+        said = (epoch + dt.timedelta(seconds=row["started"])).astimezone(zone)
+        yield said, None, row["text"]
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", required=True)
@@ -127,14 +150,40 @@ def main(argv: list[str] | None = None) -> int:
     }
     if args.rival:
         matching = [a for a in admitted if a[3] == args.rival]
+        rejected = False
+        if not matching:
+            # The rival usually comes from a turn the rule REFUSES -- that
+            # is what a disagreement about a value normally is. Searching
+            # only admitted turns made this the common case the tool could
+            # not serve, and it refused with a message that read like a
+            # finding: "the value did not come from this series' text". It
+            # had, from a turn this rule declines to admit, and the judges
+            # need to see exactly that turn to say who is right.
+            matching = [
+                (said, meeting, text, args.rival)
+                for said, meeting, text in _every_turn(
+                    connection, who, group, epoch, zone
+                )
+                if any(
+                    rule.due_date(said.date(), token).isoformat() == args.rival
+                    for token in _tokens_in(rule, text)
+                )
+            ]
+            rejected = True
         if not matching:
             raise SystemExit(
-                f"no turn in {group!r} by {owner} resolves to {args.rival}, so "
-                "the trials' value did not come from this series' text"
+                f"no turn in {group!r} by {owner} names a day resolving to "
+                f"{args.rival}, admitted or not. The trials' value came from "
+                "somewhere else entirely, and that is the finding"
             )
         rival_said, _m, rival_text, _d = matching[-1]
         item["alternate"] = {
             "value": args.rival,
+            "note": (
+                "the rule behind the key does NOT admit this turn"
+                if rejected
+                else "the rule admits this turn too"
+            ),
             "passage": (
                 f"Spoken on {rival_said:%A} {rival_said.date()} at "
                 f"{rival_said:%H:%M} {zone}, in the same {group!r} series:"
