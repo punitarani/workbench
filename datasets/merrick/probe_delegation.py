@@ -58,10 +58,31 @@ volume is `has`, and `has` is two different sentences:
     "I'll update that line once Mira has a name"   the SPEAKER's promise
 
 So the family is buildable and it inherits the long tail that took the
-first-person rule five versions and four defects. What it does not have to
-re-derive is the machinery: clause split, attachment, negation,
-alternatives and the deadline table are all about English rather than
-about who is speaking, and only the subject changes.
+first-person rule five versions and four defects.
+
+**It does NOT inherit the attachment rule, and the claim that it did was
+wrong.** This file said "only the subject changes" -- clause split,
+attachment, negation and the deadline table being about English rather
+than about who is speaking. Reading all 44 candidate clauses in the 45-day
+recording says otherwise. The assignment idiom attaches its day by bare
+APPOSITION far more often than the first-person idiom does:
+
+    "Samir has cap table recon to Elena EOD tomorrow"
+    "Adaora owes clean MIP mechanics Thursday COB"
+    "Saoirse has the covenant/exceptions analysis to Dov today"
+    "Rosalie has confirmed ownership ... with an EOD-tomorrow delivery"
+
+None of those carries a preposition and none ends its clause, so the
+first-person attachment test refuses all four -- and every one is a real
+assignment. Roughly fourteen of the forty-four are missed this way, which
+is where the yield actually goes: not to a shortage of the form, but to an
+attachment rule tuned on a different idiom.
+
+That makes the family's rule a sibling rather than a subject-swap, and it
+has to be developed with the same discipline: admitting bare trailing days
+is exactly what the first-person rule spent four of its corrections
+learning NOT to do, so the licence has to be earned on this corpus rather
+than assumed from that one.
 
 **The 45-day recording, and what it costs.** 19,340 steps, 1,318 turns and
 mails. Applying the graded machinery with the subject swapped:
