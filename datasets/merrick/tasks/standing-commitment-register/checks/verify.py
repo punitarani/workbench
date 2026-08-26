@@ -89,7 +89,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 PINNED: dict[str, str] = {
     "## What counts as a commitment": "fe604b3371a04fb1",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
-    "## Which one is live": "42225d116aea964f",
+    "## Which one is live": "ed7436921b90e3c5",
     # The criteria themselves. `superseded_count` is DEFINED here and
     # graded, and this section was not pinned: its unit could be reworded
     # without tripping anything. Three readers of the old wording split

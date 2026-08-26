@@ -187,7 +187,7 @@ sits in a transcript. Two meetings on the same day are ordered by their
 start times; a person who commits twice inside one meeting is making one
 commitment, and the later turn is the one that counts.
 
-On this window, 79% of the rows carry a due date that differs between the
+On this window, 81% of the rows carry a due date that differs between the
 person's first statement and their last, and the register discards more
 than four commitments for every one it keeps.
 
