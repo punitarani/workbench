@@ -70,6 +70,25 @@ The one row of five that is arguably wrong is "Jamal's discovery response
 fourth guard for `closed`/`done` would take it, and one row is not enough
 to justify a condition, so it stays.
 
+**Two measured negatives, kept because they cost nothing to record and
+would otherwise be re-derived.**
+
+The VOCATIVE form -- "Hyun-woo, opposition brief is due Friday" -- is
+real and not admitted. Raw it adds 75 rows, nearly all of them address
+plus a meeting slot ("Dov, Thursday, 2:00pm, 20 minutes"). Requiring an
+explicit `due` leaves exactly 2, and one of those is "Hyun-woo, The
+opposition brief WAS due Friday" -- a report of a missed deadline, which
+the brief already excludes. One clean row on 45 days does not justify a
+fourth path.
+
+PAST TENSE is not a defect in either rule. The brief excludes "a turn
+reporting that something was done on a day", and a keyword scan flags 8 of
+the first-person rule's 165 merrick rows and 1 of these 41. Reading all
+nine: every one is a genuine future commitment where `filed`, `closed` or
+`circulated` is a participle describing the DELIVERABLE's state -- "I'll
+have it filed by Friday", "I'll have the review closed out before end of
+day". The scan finds the word and not the tense.
+
 **Status: a dev artifact, not a shipped rule.** It is developed against
 `out/delegation-epoch` (45 days) and has no second derivation, no oracle
 and no task. `promise_rule` reached its present precision over fourteen
