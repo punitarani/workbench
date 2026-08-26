@@ -85,7 +85,12 @@ how many of those carry any deadline form:
     hartwell   1220      135                  5                 0
     ashgrove    354      150                100                24
     merrick    1399      537                272                58
-    calder     3048    1 479              1 158               392
+    calder     3048    1 479              1 158               386
+
+The last column moves with the rule -- it was 392 before `once` was added
+to the trigger set -- and `tests/docs/test_pipeline_doc_numbers.py` fails
+when this table stops matching, which is how that update was prompted
+rather than remembered.
 
 **This table was wrong about calder for weeks, and the error ran the
 argument backwards.** It recorded "82 owner-mails, zero carrying any
