@@ -27,10 +27,11 @@ So the licence to read a bare day is granted here and paid for with three
 conditions of this rule's own, each measured on the recording and each
 removing only what it was aimed at:
 
-    no attachment test          33 of 44
-    - the speaker outranks      30      3 removed, 0 collateral
-    - a recipient is not an owner 28    2 removed, 0 collateral
-    - a later named subject severs 26   2 removed, 0 collateral
+    no attachment test             33 of 44
+    - the speaker outranks         30    3 removed, 0 collateral
+    - a recipient is not an owner  28    2 removed, 0 collateral
+    - a later named subject severs 26    2 removed, 0 collateral
+    - a first-person clause severs 24    2 removed, 0 collateral
 
 **Status: a dev artifact, not a shipped rule.** It is developed against
 `out/delegation-epoch` (45 days) and has no second derivation, no oracle
@@ -94,6 +95,26 @@ OBLIGATION = r"owes|will|'ll|has|is|needs to"
 _RECIPIENT = re.compile(r"\b(?:to|for|with|and)\s+$", re.IGNORECASE)
 
 
+# A first-person clause standing between the assignee and the day takes
+# the day with it: "Cecile has confirmed the invoice ... and I'm personally
+# holding the team to end of day today" is the SPEAKER's end of day.
+#
+# Written as verb forms rather than as a bare `I`, and the difference cost
+# a row before it was caught. `\bI\b` matches the `I` in "Samir has
+# Sub-Fund I cert by EOD Thursday" -- a designation, not a pronoun -- and
+# silently dropped a sound assignment. The removals have to be read, not
+# counted: the count went 26 -> 23 and looked like a better correction than
+# the one that goes 26 -> 24.
+_FIRST_PERSON = re.compile(
+    r"\bI'(?:m|ve|ll|d)\b"
+    r"|\bI\s+(?:am|will|have|want|need|can|could|would|should|do|did|expect"
+    r"|think|hold|prefer)\b"
+    r"|\bwe'(?:re|ve|ll)\b"
+    r"|\bwe\s+(?:are|will|have|can|should|need)\b",
+    re.IGNORECASE,
+)
+
+
 def _new_subject(roster_pattern: str) -> re.Pattern:
     """A different colleague, after a comma, taking the day with them.
 
@@ -139,7 +160,7 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                     if start < owner.end():
                         continue
                     span = clause[owner.end() : start]
-                    if new_subject.search(span):
+                    if new_subject.search(span) or _FIRST_PERSON.search(span):
                         continue
                     if not binding and rule._CONDITION.search(span):
                         continue
