@@ -39,8 +39,15 @@ clauses name a colleague and a day without matching `<Name> <obligation
 verb>`, and reading them found the verb this firm delegates with:
 
     + `owns`                       31    9 added, all of them clean
+    + an adverb may follow the name 33    2 added, both clean
+    + `committed`                  35    1 added, clean
 
-`owned` and `takes` were measured beside it and add nothing at all.
+`owned` and `takes` were measured beside them and add nothing at all.
+
+Bare `needs` was measured and REJECTED. It looks like the others and is
+not: "Dov needs it locked before Friday" makes Dov the party who WANTS it,
+not the one who owes it, where "needs to" keeps the obligation with the
+subject. One row, and only reading it separates the two senses.
 
 **Status: a dev artifact, not a shipped rule.** It is developed against
 `out/delegation-epoch` (45 days) and has no second derivation, no oracle
@@ -105,7 +112,7 @@ def roster(state: Path) -> dict[str, str]:
 # `owned` and `takes` were tried alongside it and add NOTHING -- 31 either
 # way -- so they are not here. A verb that decides no verdict is a
 # condition the brief would have to state and the corpus never exercises.
-OBLIGATION = r"owes|owns|will|'ll|has|is|needs to"
+OBLIGATION = r"owes|owns|will|'ll|has|is|needs to|committed"
 
 # A colleague named just after one of these is receiving the work, not
 # owing it: "Hyun-woo's draft to Bennett", "Mira owes Elena and Ingrid
@@ -198,7 +205,13 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
         + "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True))
         + ")"
     )
-    owner_form = re.compile(rf"\b({who})\b\s+(?:{OBLIGATION})\b")
+    # An adverb may stand between the colleague and the verb: "Jamal STILL
+    # owes confirmation ... due next Tuesday", "Dov STILL owes Elena's side
+    # the actual IP schedule, targeted for Wed EOD". Two rows, both clean.
+    owner_form = re.compile(
+        rf"\b({who})\b(?:\s+(?:still|already|now|then|also|[a-z]+ly))?"
+        rf"\s+(?:{OBLIGATION})\b"
+    )
     new_subject = _new_subject(who)
 
     for clause in rule._CLAUSE.split(text or ""):
