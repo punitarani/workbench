@@ -271,11 +271,24 @@ def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
             continue
         if _RECIPIENT.search(clause[max(0, owner.start() - 6) : owner.start()]):
             continue
+        # NOT `_inside_a_relative_clause`, and that is deliberate. It reads a
+        # lowercase word before the name as evidence of modification, which
+        # is right for the bare-name form ("the item Mira is tracking") and
+        # wrong for a possessive: "That timeline ASSUMES Cecile's III.B
+        # lands by early Friday" has a verb before the name introducing a
+        # clause subject, and the check costs that row.
         for pattern, token in rule._DEADLINE:
             for found in pattern.finditer(clause):
                 start, end = found.start(), found.end()
                 tail = clause[end:]
                 if start < owner.end():
+                    continue
+                if rule._RULED_OUT.search(clause[max(0, start - 24) : start]):
+                    continue
+                if not rule._BINDING.match(tail) and (
+                    rule._ALTERNATIVE_BEFORE.search(clause[owner.end() : start])
+                    or rule._ALTERNATIVE_AFTER.match(tail)
+                ):
                     continue
                 span = clause[owner.end() : start]
                 if not _POSSESSIVE_LINK.search(span):
@@ -332,6 +345,15 @@ def _present_tense_assignment(clause: str, who: str, names: dict[str, str], rule
                 start, end = found.start(), found.end()
                 tail = clause[end:]
                 if _GATE.search(clause[:start]) or start < owner.end():
+                    continue
+                if _DAY_IS_SUBJECT.match(tail):
+                    continue
+                if rule._RULED_OUT.search(clause[max(0, start - 24) : start]):
+                    continue
+                if not rule._BINDING.match(tail) and (
+                    rule._ALTERNATIVE_BEFORE.search(clause[owner.end() : start])
+                    or rule._ALTERNATIVE_AFTER.match(tail)
+                ):
                     continue
                 span = clause[owner.end() : start]
                 if _new_subject(who).search(span) or _FIRST_PERSON.search(span):
