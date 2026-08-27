@@ -37,6 +37,8 @@ opinion, and opinions had certified a register with eleven bad rows.
 """
 
 import argparse
+import functools
+import importlib.util
 import json
 import subprocess
 import sys
@@ -53,12 +55,59 @@ MIN_TRIALS = 3
 DUMP_CEILING = 0.8
 
 
-def _rewards(job: Path, task: str) -> list[float]:
+@functools.cache
+def _band():
+    """The module that already knows why a zero is not a score."""
+
+    spec = importlib.util.spec_from_file_location(
+        "_band_for_certify", Path(__file__).resolve().parent / "band.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _rewards(job: Path, task: str, tasks_dir: Path | None = None) -> list[float]:
+    """Every trial that produced an answer, and nothing else.
+
+    This read `reward.json` for every trial, DNFs included, while the
+    docstring at the top of this file promised the opposite -- "a DNF is
+    excluded rather than averaged as a zero ... folding one into the other
+    puts any task in any band you like." It did that in the file that is
+    the final gate, so the promise was load-bearing and absent.
+
+    It was not hypothetical. `standing-commitment-register` certified with
+    kimi reading [0.0, 0.346, 0.383] for a mean of 0.243; the 0.0 was a
+    trial that wrote no deliverable at all, and the honest mean is 0.365.
+    Both are inside the band, so the verdict happened to stand -- but the
+    error runs the dangerous way. A DNF averaged as zero drags an
+    ABOVE-band task down into range, which is a false certification, and
+    the more DNFs a tier has the more certifiable it looks.
+
+    `band` already owns this logic, including the reasons a zero is not a
+    score: no deliverable, a timeout with nothing written, a provider that
+    served gibberish. Importing it is the point -- a second copy here is
+    how the two would drift.
+    """
+
     if not job.is_dir():
         return []
+    wanted = fields = parameters = None
+    if tasks_dir is not None:
+        try:
+            wanted = _band()._deliverable(tasks_dir, task)
+            fields = _band()._graded_fields(tasks_dir, task)
+            parameters = _band()._brief_parameters(tasks_dir, task)
+        except SystemExit:
+            wanted = None
     found = []
     for trial in sorted(job.iterdir()):
         if trial.name.rsplit("__", 1)[0] != task and (trial / "verifier").is_dir():
+            continue
+        if wanted is not None:
+            value, _why = _band()._outcome(trial, wanted, fields, parameters)
+            if value is not None:
+                found.append(value)
             continue
         reward = trial / "verifier" / "reward.json"
         if not reward.is_file():
@@ -150,12 +199,16 @@ def check_floors(dataset: str, task_dir: Path, problems: list[str]) -> None:
 
 
 def check_band(
-    dataset: str, task: str, tags: list[str], problems: list[str]
+    dataset: str,
+    task: str,
+    tags: list[str],
+    problems: list[str],
+    tasks_dir: Path | None = None,
 ) -> dict[str, float]:
     means: dict[str, float] = {}
     for tag in tags:
         job = REPO / "jobs" / f"{dataset}-{task}-{tag}"
-        rewards = _rewards(job, task)
+        rewards = _rewards(job, task, tasks_dir)
         if len(rewards) < MIN_TRIALS:
             problems.append(
                 f"{tag}: {len(rewards)} graded trial(s), fewer than {MIN_TRIALS}. "
@@ -331,7 +384,7 @@ def main(argv: list[str] | None = None) -> int:
         return _verdict(args.task, problems)
     check_sweeps_are_current(args.dataset, args.task, task_dir, args.tag, problems)
     check_floors(args.dataset, task_dir, problems)
-    check_band(args.dataset, args.task, args.tag, problems)
+    check_band(args.dataset, args.task, args.tag, problems, task_dir.parent)
     check_heaviest_criterion(args.dataset, args.task, args.tag, problems)
     check_no_unanimous_refusals(
         args.dataset, args.task, args.tag, set(args.waive), problems

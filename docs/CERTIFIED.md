@@ -13,6 +13,18 @@ Reproduce any row with:
     uv run python scripts/certify.py --dataset merrick --task <task> \
         --tag <opus-tag> --tag <glm-tag> --tag <kimi-tag>
 
+A certification recorded here can be withdrawn. One was, within the hour:
+`standing-commitment-register` was certified on 2026-08-27 and the verdict
+was wrong -- a kimi trial that wrote no deliverable was averaged in as a
+zero, which left three "graded" trials where there were two. The gate
+promised in its own docstring to exclude DNFs and did not. Fixed, the task
+reads NOT CERTIFIED pending a third answered kimi trial.
+
+The error ran in the dangerous direction, which is why it is written down
+rather than quietly corrected: a DNF averaged as zero drags an ABOVE-band
+task down into range, so the more often a tier fails to answer, the more
+certifiable a task looks.
+
 ## merrick
 
 ### commitment-revision-register — CERTIFIED 2026-08-27
