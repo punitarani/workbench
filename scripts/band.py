@@ -403,6 +403,17 @@ def main(argv: list[str] | None = None) -> int:
             f"--tag-{TAG_PREFIX[_model]}", action="append", default=None
         )
     parser.add_argument(
+        "--tiers",
+        type=int,
+        default=3,
+        help=(
+            "how many tiers must be measured before a verdict is given "
+            "(default 3, matching certify.py). A tier with no sweep is "
+            "reported but does not block, so a fourth model nobody has run "
+            "yet cannot hold every task at INCOMPLETE"
+        ),
+    )
+    parser.add_argument(
         "--any-tag",
         action="store_true",
         help=(
@@ -499,8 +510,23 @@ def main(argv: list[str] | None = None) -> int:
             note = "  (" + "; ".join(rates) + ")"
         else:
             note = ""
-        if blocked:
-            verdict = "INCOMPLETE — " + "; ".join(blocked)
+        # A tier that was never swept is missing evidence, not evidence of
+        # a problem, and it must not hold a measured task at INCOMPLETE --
+        # which is what "any blocked model blocks" did once a fourth model
+        # joined MODELS and was run on nothing. certify.py has always asked
+        # for three tiers; this now asks the same question.
+        unmeasured = [why for why in blocked if why.endswith(": not run")]
+        broken = [why for why in blocked if not why.endswith(": not run")]
+        if unmeasured and not broken and len(means) >= args.tiers:
+            note = (note + "  " if note else "  ") + "(" + "; ".join(unmeasured) + ")"
+            blocked = []
+        if blocked or len(means) < args.tiers:
+            short = (
+                []
+                if len(means) >= args.tiers
+                else [f"only {len(means)} tier(s) measured, fewer than {args.tiers}"]
+            )
+            verdict = "INCOMPLETE — " + "; ".join(blocked + short)
             mean_text = "     --"
         else:
             mean = statistics.fmean(means)
@@ -520,7 +546,7 @@ def main(argv: list[str] | None = None) -> int:
         row = "".join(f"{cell:>{_COLUMN}s}" for cell in cells)
         print(f"{task:32s}{row} {mean_text}  {verdict}{note}")
 
-    print(f"\n{len(in_band)} task(s) in 0.2-0.8 on the three-model mean")
+    print(f"\n{len(in_band)} task(s) in 0.2-0.8 on the mean of {args.tiers}+ tiers")
     for task, mean in sorted(in_band, key=lambda kv: kv[1]):
         print(f"    {mean:.3f}  {task}")
     return 0

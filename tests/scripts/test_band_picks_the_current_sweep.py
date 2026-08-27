@@ -129,3 +129,27 @@ def test_recency_breaks_a_tie_between_equally_sampled_jobs(tmp_path):
     os.utime(older / "t" / "verifier" / "reward.json", (past, past))
     os.utime(older, (past, past))
     assert band._mtime(newer) > band._mtime(older)
+
+
+def test_a_tier_nobody_ran_does_not_block_a_measured_task(tmp_path, capsys, monkeypatch):
+    """Missing evidence is not evidence of a problem.
+
+    MODELS grew to four while only three are routinely swept, and "any
+    blocked model blocks the verdict" then held every measured task at
+    INCOMPLETE -- including one that certify.py had already certified on
+    three tiers. The two tools have to ask the same question.
+
+    A tier that FAILED still blocks: "glm timed out" and "glm was never
+    run" call for opposite responses, which is the distinction the reason
+    strings carry.
+    """
+
+    band = _load("band")
+    blocked = ["gpt-5.6-sol: not run"]
+    unmeasured = [w for w in blocked if w.endswith(": not run")]
+    broken = [w for w in blocked if not w.endswith(": not run")]
+    assert unmeasured and not broken
+
+    blocked = ["glm-5.2: timeout, nothing written"]
+    broken = [w for w in blocked if not w.endswith(": not run")]
+    assert broken, "a failed tier must still block"
