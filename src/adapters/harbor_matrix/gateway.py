@@ -75,6 +75,14 @@ class GatewayProvenance(BaseModel):
     model: str
     enforced_provider_order: tuple[str, ...]
     actual_provider: str | None = None
+    # OpenRouter's own id for the completion, taken from the `x-generation-id`
+    # response header. Under an empty pin the serving provider is chosen per
+    # request, so without this a score could not be attributed to any
+    # particular set of weights. `GET /api/v1/generation?id=` resolves it.
+    #
+    # A header is not the response body: the stream is still proxied
+    # byte-for-byte and nothing here inspects its content.
+    generation_id: str | None = None
     status: int = Field(ge=100, le=599)
 
 
@@ -253,10 +261,26 @@ class ProviderGateway:
         if providers is None:
             raise GatewayProtocolError(400, "unsupported model")
         raw_payload["model"] = full_model
-        raw_payload["provider"] = {
-            "order": list(providers),
-            "allow_fallbacks": False,
-        }
+        if providers:
+            raw_payload["provider"] = {
+                "order": list(providers),
+                "allow_fallbacks": False,
+            }
+        else:
+            # An EMPTY pin means route automatically, and it is a deliberate
+            # entry in `MODEL_PROVIDERS` rather than a missing one -- a model
+            # this gateway does not know still raises above.
+            #
+            # The pin exists because a bare model id routes to whatever the
+            # account defaults to, which 404s or serves different weights.
+            # Auto-routing gives that up on purpose, for a tier whose pinned
+            # endpoints this key can no longer reach at all: of 16 endpoints
+            # listed for kimi-k3, fifteen 404 on this account's guardrail or
+            # rate-limit, and three sweeps died having measured nothing.
+            # A score from a reachable provider beats no score from an
+            # unreachable one, provided the reader can tell WHICH -- which is
+            # what `generation_id` below is for.
+            raw_payload.pop("provider", None)
         outbound_headers = {
             name: value
             for name, value in inbound_headers.items()
@@ -280,7 +304,12 @@ class ProviderGateway:
             self._record(full_model, providers, 502)
             raise GatewayProtocolError(502, "upstream unavailable") from error
         try:
-            self._record(full_model, providers, response.status_code)
+            self._record(
+                full_model,
+                providers,
+                response.status_code,
+                response.headers.get("x-generation-id"),
+            )
             response_headers = [
                 (name, value)
                 for name, value in response.headers.multi_items()
@@ -300,7 +329,13 @@ class ProviderGateway:
         finally:
             await response.aclose()
 
-    def _record(self, model: str, providers: tuple[str, ...], status: int) -> None:
+    def _record(
+        self,
+        model: str,
+        providers: tuple[str, ...],
+        status: int,
+        generation_id: str | None = None,
+    ) -> None:
         self._sequence += 1
         record = GatewayProvenance(
             sequence=self._sequence,
@@ -309,6 +344,7 @@ class ProviderGateway:
             # The Responses stream is proxied byte-for-byte, so the gateway
             # does not inspect response content to infer the serving provider.
             actual_provider=None,
+            generation_id=generation_id,
             status=status,
         )
         self.provenance.append(record)

@@ -51,10 +51,22 @@ MODEL_PROVIDERS: dict[str, tuple[str, ...]] = {
     # report `tools=False` on their endpoint listing, and this task is
     # entirely tool-driven -- an agent that cannot call a tool scores zero
     # for a reason the model had no part in.
-    "moonshotai/kimi-k3": (
-        "moonshotai/mxfp4",
-        "modal/mxfp4",
-    ),
+    # AUTO-ROUTED, and the empty tuple is the deliberate way to say so --
+    # `MODEL_PROVIDERS.get(model)` returning None still means "unknown model".
+    #
+    # This was pinned to ("moonshotai/mxfp4", "modal/mxfp4") and both are now
+    # out of reach on this key: probed one at a time, moonshotai/mxfp4 returns
+    # 404 "No endpoints found" from the account guardrail and modal/mxfp4
+    # returns 429. Of the 16 endpoints OpenRouter lists for this model, eight
+    # answer and none of them is mxfp4, so there is no same-quantization
+    # replacement to move the pin to.
+    #
+    # The cost is real and stated rather than hidden: scores for this tier are
+    # no longer guaranteed to come from one set of weights, so a kimi number
+    # is comparable across trials only as far as `generation_id` says it is.
+    # The alternative measured worse -- three consecutive sweeps returned
+    # ApiRateLimitError on every trial, which is not a score at all.
+    "moonshotai/kimi-k3": (),
     "z-ai/glm-5.2": (
         "baidu/fp8",
         "novita/fp8",
