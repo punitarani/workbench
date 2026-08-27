@@ -190,6 +190,94 @@ def _deliverable(tasks_dir: Path, task: str) -> str:
     )
 
 
+def _mtime(job: Path) -> float:
+    """When this job last produced anything, for breaking ties by recency."""
+
+    if not job.is_dir():
+        return 0.0
+    stamps = [job.stat().st_mtime]
+    stamps.extend(p.stat().st_mtime for p in job.glob("*/verifier/reward.json"))
+    return max(stamps)
+
+
+def _graded_fields(tasks_dir: Path, task: str) -> tuple[str, ...]:
+    """Every field this task's key and per-row checks are scored on."""
+
+    criteria = tasks_dir / task / "tests" / "criteria.py"
+    if not criteria.is_file():
+        return ()
+    found: dict[str, object] = {}
+    for node in ast.parse(criteria.read_text(encoding="utf-8")).body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id in ("KEY", "FIELDS"):
+                try:
+                    found[target.id] = ast.literal_eval(node.value)
+                except ValueError:
+                    pass
+    return tuple(found.get("KEY", ())) + tuple(found.get("FIELDS", ()))
+
+
+def _brief_parameters(tasks_dir: Path, task: str) -> tuple[str, ...]:
+    """The bolded literals the brief states as its own parameters.
+
+    This dataset writes a window's boundaries and sizes in quadruple
+    asterisks -- `****Monday 1 June 2026****`, `****105****`, `****420****`
+    -- because they are generated into the prose rather than typed. That
+    makes them exactly the strings that change when a window moves, and a
+    window can move without any FIELD changing, which is the hole the field
+    check alone leaves: a 42-day sweep and a 147-day sweep of the same task
+    ask for the same columns and are not the same measurement.
+    """
+
+    brief = tasks_dir / task / "instruction.md"
+    if not brief.is_file():
+        return ()
+    return tuple(
+        dict.fromkeys(re.findall(r"\*{4}([^*]+)\*{4}", brief.read_text()))
+    )
+
+
+def _answered_an_older_brief(trial: Path, fields: tuple[str, ...], anchor: str) -> bool:
+    """Whether this trial was given a brief that predates the current key.
+
+    A stale sweep is worse than a missing one: it is a real number, from a
+    real run, against a question nobody is asking any more. This table read
+    `commitment-revision-register` at opus 0.704 from a sweep that predated
+    `first_due` while the current sweep sat beside it at 0.706 -- and
+    picked the stale one because "best evidence" meant "most gradeable
+    trials".
+
+    The witness has to be testifying first: trajectories are compacted and
+    sometimes never record the prompt, so the deliverable's own name must
+    appear before any field's absence is read as evidence. Without that
+    guard the same check refused six real measurements elsewhere, including
+    a trial reported as never having been asked for `owner` whose every row
+    was keyed on owner.
+    """
+
+    trajectory = trial / "agent" / "trajectory.json"
+    if not fields or not trajectory.is_file():
+        return False
+    seen = trajectory.read_text(encoding="utf-8", errors="replace")
+    if anchor not in seen:
+        return False
+    return any(f'"{field}"' not in seen and field not in seen for field in fields)
+
+
+def _read_a_different_window(trial: Path, parameters: tuple[str, ...], anchor: str) -> bool:
+    """Whether the brief this trial was given stated different parameters."""
+
+    trajectory = trial / "agent" / "trajectory.json"
+    if not parameters or not trajectory.is_file():
+        return False
+    seen = trajectory.read_text(encoding="utf-8", errors="replace")
+    if anchor not in seen:
+        return False
+    return any(value not in seen for value in parameters)
+
+
 def _served_garbage(trial: Path) -> bool:
     """Whether the provider returned text that is not language.
 
@@ -231,9 +319,18 @@ def _served_garbage(trial: Path) -> bool:
     return False
 
 
-def _outcome(trial: Path, wanted: str) -> tuple[float | None, str]:
+def _outcome(
+    trial: Path,
+    wanted: str,
+    fields: tuple[str, ...] = (),
+    parameters: tuple[str, ...] = (),
+) -> tuple[float | None, str]:
     """The trial's score, or None with the reason it is not one."""
 
+    if _answered_an_older_brief(trial, fields, wanted):
+        return None, "answered an older brief"
+    if _read_a_different_window(trial, parameters, wanted):
+        return None, "read a different window"
     verifier = trial / "verifier"
     # A timeout is only a DNF when nothing was written. If the deliverable
     # is there and the grader scored it, the trial answered -- and the
@@ -272,9 +369,11 @@ def _outcome(trial: Path, wanted: str) -> tuple[float | None, str]:
 def measure(tasks_dir: Path, task: str, job: Path) -> dict:
     trials = _trials(job)
     wanted = _deliverable(tasks_dir, task)
+    fields = _graded_fields(tasks_dir, task)
+    parameters = _brief_parameters(tasks_dir, task)
     scores, reasons = [], []
     for trial in trials:
-        value, why = _outcome(trial, wanted)
+        value, why = _outcome(trial, wanted, fields, parameters)
         (scores if value is not None else reasons).append(
             value if value is not None else why
         )
@@ -303,6 +402,15 @@ def main(argv: list[str] | None = None) -> int:
         parser.add_argument(
             f"--tag-{TAG_PREFIX[_model]}", action="append", default=None
         )
+    parser.add_argument(
+        "--any-tag",
+        action="store_true",
+        help=(
+            "find each model's job by scanning jobs/ instead of naming its "
+            "tag. Prints the tag it chose for every cell, because a table "
+            "that does not say which sweep it read cannot be checked"
+        ),
+    )
     args = parser.parse_args(argv)
     tasks_dir = DATASETS / args.dataset / "tasks"
     if not tasks_dir.is_dir():
@@ -325,18 +433,48 @@ def main(argv: list[str] | None = None) -> int:
             continue
         if _retired(tasks_dir / task):
             continue
-        cells, means, blocked, rates = [], [], [], []
+        cells, means, blocked, rates, picked = [], [], [], [], []
         for model in MODELS:
             # Best evidence wins: the job with the most gradeable trials,
             # and the larger sample breaks a tie.
+            wanted_tags = tags[model]
+            if args.any_tag:
+                # Every job for this task whose tag opens with this model's
+                # prefix. Named tags are a maintenance burden that silently
+                # reports a measured task as "not run" the moment a sweep
+                # lands under a tag nobody added to the list -- which is
+                # exactly what this table did for four tasks that had three
+                # graded tiers sitting on disk.
+                prefix = f"{args.dataset}-{task}-{TAG_PREFIX[model]}"
+                wanted_tags = sorted(
+                    job.name.split(f"{args.dataset}-{task}-", 1)[1]
+                    for job in JOBS.glob(f"{prefix}*")
+                    if job.is_dir()
+                )
             candidates = [
-                measure(tasks_dir, task, JOBS / f"{args.dataset}-{task}-{tag}")
-                for tag in tags[model]
+                (
+                    tag,
+                    measure(tasks_dir, task, JOBS / f"{args.dataset}-{task}-{tag}"),
+                    _mtime(JOBS / f"{args.dataset}-{task}-{tag}"),
+                )
+                for tag in wanted_tags
             ]
-            found = max(
+            # Best evidence wins, and RECENCY breaks the tie. It used to be
+            # broken by tag name, which is alphabetical and therefore
+            # arbitrary: `glm-rev-k3` sorts before `glm-rev2-k3`, so a table
+            # comparing two equally-sampled sweeps reported the older one.
+            #
+            # That matters most where the brief check cannot help. Some
+            # harnesses never record the prompt in the trajectory -- every
+            # glm trial in this tree is like that -- so a stale sweep of
+            # theirs is indistinguishable from a current one by content
+            # alone, and only its date separates them.
+            chosen, found, _when = max(
                 candidates,
-                key=lambda c: (c["scored"], c["trials"]),
-            )
+                key=lambda c: (c[1]["scored"], c[1]["trials"], c[2]),
+            ) if candidates else ("none", measure(tasks_dir, task, JOBS / "missing"), 0.0)
+            if args.any_tag and found["mean"] is not None:
+                picked.append(f"{TAG_PREFIX[model]}={chosen}")
             if found["mean"] is None:
                 cells.append("  --")
                 why = found["excluded"][0] if found["excluded"] else "not run"
@@ -355,6 +493,8 @@ def main(argv: list[str] | None = None) -> int:
                     rates.append(
                         f"{model} answered {found['scored']}/{found['trials']}"
                     )
+        if args.any_tag and picked:
+            rates.append(" ".join(picked))
         if rates and not blocked:
             note = "  (" + "; ".join(rates) + ")"
         else:
