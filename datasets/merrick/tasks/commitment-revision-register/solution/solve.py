@@ -60,6 +60,7 @@ from __future__ import annotations
 
 import collections
 import datetime as dt
+import functools
 import json
 import os
 import re
@@ -347,7 +348,16 @@ _FINITE = (
 # `tomorrow` dates the document going out, not the promise -- and the
 # register carried it anyway.
 _ELSEWHERE = re.compile(
-    r"\b(?:so|that|whether|which|because|if|once|when|while|unless|and|but|with)\s+"
+    # `until` earns its place here and is deliberately ABSENT from the
+    # preposition table above: the two lists answer different questions.
+    # `until X` cannot DATE a delivery -- it marks the end of a wait -- but
+    # it certainly opens a clause with a new subject, and the brief's test
+    # is "a new subject does". Without it, "I'll hold the elevator item on
+    # the tracker until Ingrid or Quentin has something concrete, no changes
+    # needed from me before EOD" was a row: the EOD belongs to "no changes
+    # needed", and every trial of two tiers refused it.
+    r"\b(?:so|that|whether|which|because|if|once|when|while|unless|until"
+    r"|and|but|with)\s+"
     # `we` is NOT excluded, and it was, deliberately, for months. The
     # reasoning was that `we` includes the speaker so it cannot be somebody
     # else's clause. The brief says "a new SUBJECT does" mark it, and `we`
@@ -513,6 +523,59 @@ _PRONOUN_SUBJECT = re.compile(
     r"\b(?:and|so|but|then)\s+(?:we|they|you|he|she)\s+(?!')[a-z]", re.IGNORECASE
 )
 
+# A new subject with no finite verb to find: an indefinite person handed an
+# infinitive. The brief settles this outright -- "someone needs to own the
+# EOD escalation call" *asks for a volunteer* and makes no row -- but
+# `_ELSEWHERE` looks for a subject plus a FINITE verb and an infinitive has
+# none, so "I'll need someone to confirm that's the only certificate
+# needing a follow-up revision before Wednesday's close" was a row. The
+# confirming is the volunteer's, and so is the Wednesday.
+_VOLUNTEER = re.compile(
+    r"\b(?:someone|somebody|anyone|anybody|everyone)\s+(?:else\s+)?to\s+[a-z]+",
+    re.IGNORECASE,
+)
+
+
+@functools.cache
+def _roster() -> re.Pattern:
+    """A day whose owner is named right in front of it as a possessive.
+
+    The brief's rule is "nobody else's clause stands between the promise and
+    the day", and `_ELSEWHERE` implements it by looking for a new subject
+    with a finite VERB. A possessive needs no verb and owns the day just as
+    plainly: "I'll add a caveat to the slide flagging that the Section III
+    timeline assumes Thandiwe's sign-off by Wednesday" promises a caveat,
+    and Wednesday is when THANDIWE signs.
+
+    Anchored at the end of the span on purpose, so it asks who owns the day
+    rather than whether a possessive occurs anywhere. Unanchored it also
+    refused "And Bennett's right on Renwick: ... I'll have a firm date by
+    end of day tomorrow", where the possessive is in a different clause and
+    the promise is the speaker's own.
+
+    Restricted to the firm's own roster rather than any capitalised word:
+    this world writes "Friday's packet" and "Sandhurst's closing", where the
+    possessive is a label rather than an owner.
+
+    Built on first use, not at import. `build_tasks` imports this module to
+    read its window before the corpus exists, and touching clio at import
+    time would make that fail.
+    """
+
+    names = sqlite3.connect(f"file:{STATE / 'clio.db'}?mode=ro", uri=True).execute(
+        "SELECT name FROM people"
+    )
+    parts = sorted(
+        {piece for (full,) in names for piece in full.split() if len(piece) > 2},
+        key=len,
+        reverse=True,
+    )
+    return re.compile(
+        rf"\b(?:{'|'.join(re.escape(part) for part in parts)}){_APOS}s\s+"
+        r"[\w-]+(?:\s+[\w-]+)?\s+(?:by|before|due|on|come)\s*$",
+        re.IGNORECASE,
+    )
+
 
 def commitment_in(text: str) -> str | None:
     """The deadline this turn's speaker committed to, or None.
@@ -557,6 +620,23 @@ def commitment_in(text: str) -> str | None:
     EOD", where the `rather than` hanging off the first promise has nothing
     to do with the deadline hanging off the second.
 
+    A clause that ENDS in a question mark asks rather than promises. The
+    brief says so outright -- "Nothing else is a commitment. In particular,
+    a question is not one" -- and `checks/verify.py` has pinned that
+    sentence from the beginning, so the phrase was being ASSERTED and never
+    enforced. Measured on this window: exactly one admitted commitment
+    lived in such a clause, "Mira, want me to send you the elevator status
+    language once building management gets back to me, or are you fine
+    drafting a placeholder now and I'll update it tomorrow?" -- an offer of
+    two ways to proceed, and two tiers refused it.
+
+    The narrower test would be an inverted auxiliary opening the clause.
+    This uses the question mark because the brief's test is the question,
+    not its grammar, and because `_CLAUSE` already splits on `?`: a clause
+    ending in one is interrogative content. The cost is that "I'll have it
+    to you by Friday, ok?" would be refused; no such turn occurs here, and
+    that is a measurement rather than an assumption.
+
     What this does NOT do is judge whether the speaker's verb is a delivery.
     "I owe Imelda a firm closing date by tomorrow morning and I'll beat
     that" is a real commitment that makes no row, because the brief admits
@@ -565,6 +645,8 @@ def commitment_in(text: str) -> str | None:
     """
 
     for clause in _CLAUSE.split(text or ""):
+        if clause.rstrip().endswith("?"):
+            continue
         for owner in _OWNER.finditer(clause):
             for pattern, token in _DEADLINE:
                 for found in pattern.finditer(clause):
@@ -596,9 +678,10 @@ def commitment_in(text: str) -> str | None:
                         or (trailing and _CLAUSE_FINAL.match(tail[trailing.end() :]))
                     ):
                         continue
-                    if _ELSEWHERE.search(
-                        clause[owner.end() : start]
-                    ) or _PRONOUN_SUBJECT.search(clause[owner.end() : start]):
+                    between = clause[owner.end() : start]
+                    if _ELSEWHERE.search(between) or _PRONOUN_SUBJECT.search(between):
+                        continue
+                    if _roster().search(between) or _VOLUNTEER.search(between):
                         continue
                     return token
     return None

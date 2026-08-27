@@ -685,6 +685,14 @@ _CONNECTIVES = frozenset(
         "when",
         "while",
         "unless",
+        # `until` opens a clause with a new subject, which is the brief's
+        # own test. It is deliberately NOT one of the prepositions that can
+        # DATE a delivery -- "until Wednesday" ends a wait -- and the two
+        # lists answer different questions. Without it here, "I'll hold the
+        # elevator item on the tracker until Ingrid or Quentin has something
+        # concrete, no changes needed from me before EOD" was a row, and the
+        # EOD belongs to "no changes needed".
+        "until",
         "and",
         "but",
     )
@@ -796,6 +804,92 @@ def _conditional(between: list[str]) -> bool:
     return any(pair in _CONDITIONAL_PHRASES for pair in pairs)
 
 
+# The prepositions that can introduce a day, repeated here because this
+# check asks a different question of them: not "is the day attached" but
+# "attached to WHOSE noun".
+_OWNING = frozenset(("by", "before", "due", "on", "come"))
+# How far an owner's name may sit from the preposition it owns through.
+# "Thandiwe's sign off by" is four tokens; two nouns is the most this firm
+# writes before the preposition.
+_OWNER_REACH = 5
+
+
+def _roster() -> frozenset:
+    """Every name part the firm's own people file carries.
+
+    Read from clio, not from the meetings surface the solver reads, and
+    loaded on demand rather than at import -- this module is imported to
+    check the brief's pins before any corpus has to exist.
+    """
+
+    global _ROSTER
+    if _ROSTER is None:
+        rows = sqlite3.connect(f"file:{STATE / 'clio.db'}?mode=ro", uri=True).execute(
+            "SELECT name FROM people"
+        )
+        _ROSTER = frozenset(
+            part.casefold()
+            for (full,) in rows
+            for part in full.split()
+            if len(part) > 2
+        )
+    return _ROSTER
+
+
+_ROSTER: frozenset | None = None
+
+
+def _owned_elsewhere(between: list[str]) -> bool:
+    """Whether the day's own noun belongs to somebody named.
+
+    `_elsewhere` finds a new subject by its VERB. A possessive has no verb
+    and owns the day just as plainly: "I'll add a caveat to the slide
+    flagging that the Section III timeline assumes Thandiwe's sign-off by
+    Wednesday" promises a caveat, and Wednesday is when Thandiwe signs.
+
+    Asked of the END of the span only, so the question is who owns THIS
+    day. Asked of the whole span it also refuses "And Bennett's right on
+    Renwick: ... I'll have a firm date by end of day tomorrow", where the
+    possessive sits in a different clause from the promise.
+
+    `_tokens` splits on non-word characters, so a possessive arrives as the
+    name followed by a bare `s` -- which is also how a contracted `is`
+    arrives, and why this looks for a name rather than for any word.
+    """
+
+    if not between or between[-1] not in _OWNING:
+        return False
+    tail = between[-_OWNER_REACH - 1 : -1]
+    roster = _roster()
+    return any(
+        word in roster and tail[index + 1] == "s"
+        for index, word in enumerate(tail[:-1])
+    )
+
+
+# An indefinite person handed an infinitive is a new subject with no finite
+# verb for `_elsewhere` to find. The brief settles it outright: "someone
+# needs to own the EOD escalation call" *asks for a volunteer* and makes no
+# row. Without this, "I'll need someone to confirm that's the only
+# certificate needing a follow-up revision before Wednesday's close" was a
+# row -- the confirming is the volunteer's, and so is the Wednesday.
+_INDEFINITE = frozenset(("someone", "somebody", "anyone", "anybody", "everyone"))
+
+
+def _volunteer(between: list[str]) -> bool:
+    """Whether the span hands the act to an unnamed person."""
+
+    for index, word in enumerate(between):
+        if word not in _INDEFINITE:
+            continue
+        rest = between[index + 1 :]
+        if rest and rest[0] == "else":
+            rest = rest[1:]
+        if len(rest) > 1 and rest[0] == "to":
+            return True
+    return False
+
+
 def _elsewhere(between: list[str]) -> bool:
     """Whether somebody else's clause stands in `between`."""
 
@@ -898,6 +992,13 @@ def _committed_in(text: str) -> str | None:
     """
 
     for clause in _clauses(text):
+        # A question asks; it does not promise. The brief says so in as many
+        # words and this file has pinned the sentence since it was written,
+        # which made the omission invisible: the phrase was asserted to be
+        # in the brief and never acted on. One admitted commitment on this
+        # window sat in such a clause and two tiers refused it.
+        if clause.rstrip().endswith("?"):
+            continue
         tokens = _tokens(clause)
         for owner in OWNER_FORMS:
             wanted = _tokens(owner)
@@ -919,7 +1020,10 @@ def _committed_in(text: str) -> str | None:
                     continue
                 if _governed_negation(clause, wanted, form):
                     continue
-                if _elsewhere(tokens[start + len(wanted) : _at]):
+                between = tokens[start + len(wanted) : _at]
+                if _elsewhere(between):
+                    continue
+                if _owned_elsewhere(between) or _volunteer(between):
                     continue
                 return token
     return None
