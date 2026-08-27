@@ -31,8 +31,8 @@ meeting is what counts and the mail changes nothing.
 
 Read the meetings held from
 ****Tuesday 6 January 2026**** through
-****Monday 16 February 2026****, inclusive — ****30****
-working days and ****120****
+****Monday 1 June 2026****, inclusive — ****105****
+working days and ****420****
 meetings.
 
 A meeting is in the window when it **started** inside it; one that runs past

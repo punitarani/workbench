@@ -107,7 +107,7 @@ PINNED: dict[str, str] = {
 # derivations disagree near midnight and THAT DISAGREEMENT IS THE FINDING,
 # not a bug in this file.»
 WINDOW_FIRST_DATE = "2026-01-06"
-WINDOW_LAST_DATE = "2026-02-16"
+WINDOW_LAST_DATE = "2026-06-01"
 
 # «MEASURE: the admitted deadline forms and their normalised tokens, read
 # out of the brief's own table rather than restated here once the table
