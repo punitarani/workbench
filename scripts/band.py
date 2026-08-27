@@ -32,6 +32,7 @@ loudly as incomplete -- with the reason, because "glm timed out" and
 import argparse
 import ast
 import json
+import re
 import statistics
 from pathlib import Path
 
@@ -189,6 +190,47 @@ def _deliverable(tasks_dir: Path, task: str) -> str:
     )
 
 
+def _served_garbage(trial: Path) -> bool:
+    """Whether the provider returned text that is not language.
+
+    A sixth cause of 0.000, and it is not a fact about the model. A glm
+    trial ended after five steps having emitted
+
+        .I meetings. . -  |. meeting  .  |   -6.. Meeting  0:Let  It If
+
+    -- a decoding fault on a quantized endpoint, scored as though the model
+    could not read a transcript. Averaged in as a zero it would have
+    dragged the tier below band on a task it answers at 0.5.
+
+    Measured over every glm trial in this tree before shipping: 1 of 30 is
+    degenerate by this test, and it is the one that produced the text
+    above. A test that flagged more would be catching terse answers, not
+    broken ones.
+
+    The threshold looks at the agent's OWN turns only. Tool output is full
+    of tables and punctuation and would trip any such rule.
+    """
+
+    trajectory = trial / "agent" / "trajectory.json"
+    if not trajectory.is_file():
+        return False
+    try:
+        recorded = json.loads(trajectory.read_text(encoding="utf-8", errors="replace"))
+    except ValueError:
+        return False
+    steps = recorded.get("steps", []) if isinstance(recorded, dict) else []
+    for step in steps:
+        if step.get("source") != "agent":
+            continue
+        said = str(step.get("message", ""))
+        if len(said) < 40:
+            continue
+        words = re.findall(r"[A-Za-z]{2,}", said)
+        if len(" ".join(words)) < 0.35 * len(said):
+            return True
+    return False
+
+
 def _outcome(trial: Path, wanted: str) -> tuple[float | None, str]:
     """The trial's score, or None with the reason it is not one."""
 
@@ -206,6 +248,12 @@ def _outcome(trial: Path, wanted: str) -> tuple[float | None, str]:
     # from 0.802 to 0.795 and across the band boundary, which is a good
     # reason to get the rule right rather than to keep the one that
     # flattered the result.
+    # Asked before the deliverable, because a provider that served
+    # gibberish explains the missing file rather than being explained by
+    # it -- and because a garbage run that DID write something would
+    # otherwise be averaged in as a real answer.
+    if _served_garbage(trial):
+        return None, "provider served garbage"
     if not (verifier / f"submitted-{wanted}").is_file():
         # Working files may be present; the answer is not.
         exception = trial / "exception.txt"
