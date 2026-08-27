@@ -12,10 +12,22 @@ correction moved the score or the dice did.
 
 **When this is valid, and when it is not.** Valid when only the KEY
 changed: a rule implementation corrected, an oracle refreshed, a criterion
-reweighted. Not valid when `instruction.md` changed, because then the
-agent was answering a different question and its old deliverable is an
-answer to that other question. This refuses on exactly that, by comparing
-the instruction's digest against the one recorded beside the trial.
+reweighted. Not valid when the BRIEF changed, because then the agent was
+answering a different question and its old deliverable is an answer to
+that one.
+
+Checked rather than assumed, and the check is narrow on purpose. Trials do
+not keep a copy of `instruction.md`, but the brief is embedded in the
+agent's own trajectory, so this asks the only question that matters here:
+does every field the current key GRADES appear in the brief that trial was
+actually given? A trial never asked for `first_due` cannot be scored on
+it. Hashing the instruction would be stricter and useless -- the brief is
+reformatted into a larger prompt, so a digest would refuse every trial
+ever run.
+
+This paragraph originally described a comparison this file did not
+perform: it printed a digest and compared nothing. A documented check that
+does not exist is worse than no check, because the reader stops looking.
 
 The score is recomputed from the task's own `criteria.py` and
 `criteria_base`, never from a copy of the weights kept here -- a
@@ -24,7 +36,6 @@ grader it is imitating.
 """
 
 import argparse
-import hashlib
 import importlib.util
 import json
 import shutil
@@ -42,6 +53,20 @@ def _load(path: Path, name: str):
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def _answered_this_brief(trial: Path, graded: set[str]) -> set[str]:
+    """Fields the current key grades that the trial's own brief never named.
+
+    Empty means the trial answered today's question and its saved
+    deliverable can be re-scored. Anything else means it did not.
+    """
+
+    trajectory = trial / "agent" / "trajectory.json"
+    if not trajectory.is_file():
+        return set()
+    seen = trajectory.read_text(encoding="utf-8", errors="replace")
+    return {field for field in graded if f'"{field}"' not in seen and field not in seen}
 
 
 def _score(task_dir: Path, workspace: Path) -> dict[str, float] | None:
@@ -109,11 +134,14 @@ def main() -> int:
     args = parser.parse_args()
 
     task_dir = REPO / "datasets" / args.dataset / "tasks" / args.task
-    brief = hashlib.sha256(
-        (task_dir / "instruction.md").read_bytes()
-    ).hexdigest()[:12]
+    sys.path.insert(0, str(task_dir / "tests"))
+    if "rewardkit" not in sys.modules:
+        stub = _load(REPO / "tests" / "rewardkit_stub.py", "rewardkit_stub")
+        sys.modules["rewardkit"] = stub.calling()
+    criteria = _load(task_dir / "tests" / "criteria.py", "criteria")
+    graded = tuple(criteria.KEY) + tuple(criteria.FIELDS)
     print(f"=== regrading {args.task} against the current key ===")
-    print(f"  instruction {brief}\n")
+    print(f"  graded fields: {', '.join(graded)}\n")
 
     for tag in args.tag:
         job = REPO / "jobs" / f"{args.dataset}-{args.task}-{tag}"
@@ -123,6 +151,14 @@ def main() -> int:
         scores, was = [], []
         for trial in sorted(p for p in job.iterdir() if p.is_dir()):
             verifier = trial / "verifier"
+            missing = _answered_this_brief(trial, set(graded))
+            if missing:
+                print(
+                    f"  {tag} {trial.name[-8:]}: answered a different brief — it was "
+                    f"never asked for {', '.join(sorted(missing))}. Not comparable; "
+                    "re-run it."
+                )
+                continue
             got = _score(task_dir, verifier)
             old = verifier / "reward.json"
             if old.is_file():
