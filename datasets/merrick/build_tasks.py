@@ -1321,6 +1321,49 @@ def _ship_grading_base(task: Path, name: str) -> None:
     print(f"{name}: grading module ships and imports standalone")
 
 
+def _refuse_while_a_sweep_is_reading(tasks: list[str]) -> None:
+    """Refuse to rebuild a task some rollout is measuring right now.
+
+    Harbor grades a trial when the trial finishes, against whatever
+    `tests/oracle.json` says at that moment -- not against the key that was
+    there when the agent started. Rebuilding mid-sweep therefore grades an
+    answer to the OLD brief with the NEW key, and nothing anywhere reports
+    it as anything but a low score.
+
+    It cost a real measurement. A kimi trial on
+    `commitment-revision-register` returned 26 rows and a superseded count
+    of 127 against a true 128 -- a good answer by any reading -- and scored
+    0.200, the empty-register floor, because `first_due` had been added to
+    the key while it was still running. Its own instruction never mentioned
+    the field.
+
+    This is the same rule the rollout skill states from the other side:
+    measure one version of the task. The reader cannot check it after the
+    fact, because a contaminated trial is indistinguishable from a bad one.
+    """
+
+    try:
+        running = subprocess.run(
+            ["ps", "-eo", "command"], capture_output=True, text=True, check=True
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        return
+    busy = [
+        task
+        for task in tasks or []
+        for line in running.splitlines()
+        if "rollout.py" in line and f"--task {task}" in line
+    ]
+    if busy:
+        raise SystemExit(
+            "refusing to rebuild while a sweep is reading: "
+            + ", ".join(sorted(set(busy)))
+            + "\nHarbor grades each trial against the oracle as it stands when "
+            "that trial\nfinishes, so rebuilding now grades answers to the old "
+            "brief with the new key.\nStop the sweep, or wait for it, then build."
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--log", type=Path, default=DEFAULT_LOG)
@@ -1336,6 +1379,7 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     args = parser.parse_args(argv)
+    _refuse_while_a_sweep_is_reading(args.task)
     return build(args.log, args.task, args.refresh_truth, args.allow_band_absence)
 
 
