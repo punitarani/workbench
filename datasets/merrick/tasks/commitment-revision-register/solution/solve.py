@@ -562,9 +562,23 @@ def _roster() -> re.Pattern:
     time would make that fail.
     """
 
-    names = sqlite3.connect(f"file:{STATE / 'clio.db'}?mode=ro", uri=True).execute(
-        "SELECT name FROM people"
-    )
+    try:
+        names = list(
+            sqlite3.connect(f"file:{STATE / 'clio.db'}?mode=ro", uri=True).execute(
+                "SELECT name FROM people"
+            )
+        )
+    except sqlite3.Error:
+        # No people file within reach, so no names are known and this test
+        # does nothing rather than guessing -- a capitalised word before a
+        # preposition is as often "Friday's packet" as it is a person.
+        #
+        # Degrading here keeps `commitment_in` callable on a bare string,
+        # which is how its rules are unit-tested and how they were tested
+        # long before this check existed. Degrading SILENTLY would be a
+        # correctness hole, so `main` refuses to build an oracle with the
+        # roster empty: the default is for readers, never for the answer key.
+        return re.compile(r"(?!x)x")
     parts = sorted(
         {piece for (full,) in names for piece in full.split() if len(piece) > 2},
         key=len,
@@ -744,6 +758,11 @@ def main() -> int:
             "SELECT person_id, name FROM people"
         )
     )
+    # The possessive test degrades to a no-op when clio is out of reach, so
+    # that `commitment_in` stays callable on a bare string. An oracle built
+    # that way would silently be missing a rule, so refuse it here.
+    if _roster().pattern == r"(?!x)x":
+        raise SystemExit("clio holds no people: the possessive rule cannot run")
 
     window = {
         meeting_id: (started, title)

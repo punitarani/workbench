@@ -60,6 +60,7 @@ from __future__ import annotations
 
 import collections
 import datetime as dt
+import functools
 import json
 import os
 import re
@@ -347,7 +348,12 @@ _FINITE = (
 # `tomorrow` dates the document going out, not the promise -- and the
 # register carried it anyway.
 _ELSEWHERE = re.compile(
-    r"\b(?:so|that|whether|which|because|if|once|when|while|unless|and|but|with)\s+"
+    # `until` opens a clause with a new subject. It is deliberately ABSENT
+    # from the preposition table -- "until Wednesday" ends a wait, it does
+    # not date a delivery -- and that carve-out was silently doing double
+    # duty for both questions. See commitment-revision-register.
+    r"\b(?:so|that|whether|which|because|if|once|when|while|unless|until"
+    r"|and|but|with)\s+"
     # `we` is NOT excluded, and it was, deliberately, for months. The
     # reasoning was that `we` includes the speaker so it cannot be somebody
     # else's clause. The brief says "a new SUBJECT does" mark it, and `we`
@@ -514,6 +520,75 @@ _PRONOUN_SUBJECT = re.compile(
 )
 
 
+@functools.cache
+def _roster() -> re.Pattern:
+    """A day whose owner is named right in front of it as a possessive.
+
+    The brief's rule is "nobody else's clause stands between the promise and
+    the day", and `_ELSEWHERE` implements it by looking for a new subject
+    with a finite VERB. A possessive needs no verb and owns the day just as
+    plainly: "I'll add a caveat to the slide flagging that the Section III
+    timeline assumes Thandiwe's sign-off by Wednesday" promises a caveat,
+    and Wednesday is when THANDIWE signs.
+
+    Anchored at the end of the span on purpose, so it asks who owns the day
+    rather than whether a possessive occurs anywhere. Unanchored it also
+    refused "And Bennett's right on Renwick: ... I'll have a firm date by
+    end of day tomorrow", where the possessive is in a different clause and
+    the promise is the speaker's own.
+
+    Restricted to the firm's own roster rather than any capitalised word:
+    this world writes "Friday's packet" and "Sandhurst's closing", where the
+    possessive is a label rather than an owner.
+
+    Built on first use, not at import. `build_tasks` imports this module to
+    read its window before the corpus exists, and touching clio at import
+    time would make that fail.
+    """
+
+    try:
+        names = list(
+            sqlite3.connect(f"file:{STATE / 'clio.db'}?mode=ro", uri=True).execute(
+                "SELECT name FROM people"
+            )
+        )
+    except sqlite3.Error:
+        # No people file within reach, so no names are known and this test
+        # does nothing rather than guessing -- a capitalised word before a
+        # preposition is as often "Friday's packet" as it is a person.
+        #
+        # Degrading here keeps `commitment_in` callable on a bare string,
+        # which is how its rules are unit-tested. Degrading SILENTLY would
+        # be a correctness hole, so `main` refuses to build an oracle with
+        # the roster empty: the default is for readers, never for the key.
+        return re.compile(r"(?!x)x")
+    parts = sorted(
+        {piece for (full,) in names for piece in full.split() if len(piece) > 2},
+        key=len,
+        reverse=True,
+    )
+    return re.compile(
+        rf"\b(?:{'|'.join(re.escape(part) for part in parts)}){_APOS}s\s+"
+        r"[\w-]+(?:\s+[\w-]+)?\s+(?:by|before|due|on|come)\s*$",
+        re.IGNORECASE,
+    )
+
+
+# A new subject with no finite verb to find: an indefinite person handed an
+# infinitive. The brief settles this outright -- "someone needs to own the
+# EOD escalation call" *asks for a volunteer* and makes no row -- but
+# `_ELSEWHERE` looks for a subject plus a FINITE verb and an infinitive has
+# none, so "I'll need someone to confirm that's the only certificate
+# needing a follow-up revision before Wednesday's close" was a row. The
+# confirming is the volunteer's, and so is the Wednesday.
+_VOLUNTEER = re.compile(
+    r"\b(?:someone|somebody|anyone|anybody|everyone)\s+(?:else\s+)?to\s+[a-z]+",
+    re.IGNORECASE,
+)
+
+
+
+
 def commitment_in(text: str) -> str | None:
     """The deadline this turn's speaker committed to, or None.
 
@@ -565,6 +640,10 @@ def commitment_in(text: str) -> str | None:
     """
 
     for clause in _CLAUSE.split(text or ""):
+        # A question asks; it does not promise. The brief says so outright
+        # and the pinned phrase was asserted without ever being enforced.
+        if clause.rstrip().endswith("?"):
+            continue
         for owner in _OWNER.finditer(clause):
             for pattern, token in _DEADLINE:
                 for found in pattern.finditer(clause):
@@ -596,9 +675,10 @@ def commitment_in(text: str) -> str | None:
                         or (trailing and _CLAUSE_FINAL.match(tail[trailing.end() :]))
                     ):
                         continue
-                    if _ELSEWHERE.search(
-                        clause[owner.end() : start]
-                    ) or _PRONOUN_SUBJECT.search(clause[owner.end() : start]):
+                    between = clause[owner.end() : start]
+                    if _ELSEWHERE.search(between) or _PRONOUN_SUBJECT.search(between):
+                        continue
+                    if _roster().search(between) or _VOLUNTEER.search(between):
                         continue
                     return token
     return None
@@ -661,6 +741,11 @@ def main() -> int:
             "SELECT person_id, name FROM people"
         )
     )
+    # The possessive test degrades to a no-op when clio is out of reach so
+    # that `commitment_in` stays callable on a bare string. An oracle built
+    # that way would silently be missing a rule, so refuse it here.
+    if _roster().pattern == r"(?!x)x":
+        raise SystemExit("clio holds no people: the possessive rule cannot run")
 
     window = {
         meeting_id: (started, title)

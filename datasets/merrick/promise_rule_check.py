@@ -457,6 +457,10 @@ _CONNECTIVES = frozenset(
         "when",
         "while",
         "unless",
+        # `until` opens a clause with a new subject. Deliberately NOT one of
+        # the prepositions that can DATE a delivery: two lists, two
+        # questions. See commitment-revision-register.
+        "until",
         "and",
         "but",
     )
@@ -568,6 +572,88 @@ def _conditional(between: list[str]) -> bool:
     return any(pair in _CONDITIONAL_PHRASES for pair in pairs)
 
 
+# The prepositions that can introduce a day, repeated here because this
+# check asks a different question of them: not "is the day attached" but
+# "attached to WHOSE noun".
+_OWNING = frozenset(("by", "before", "due", "on", "come"))
+# How far an owner's name may sit from the preposition it owns through.
+# "Thandiwe's sign off by" is four tokens; two nouns is the most this firm
+# writes before the preposition.
+_OWNER_REACH = 5
+
+
+ROSTER: frozenset[str] = frozenset()
+
+
+def use_roster(names) -> None:
+    """Name the people whose possessives own a day, before scanning.
+
+    Set by the caller because this module is shared by every corpus in the
+    tree and each has its own people. Empty removes the test rather than
+    guessing from capitalisation.
+    """
+
+    global ROSTER
+    ROSTER = frozenset(
+        part.casefold() for full in names for part in full.split() if len(part) > 2
+    )
+
+
+def _roster() -> frozenset:
+    return ROSTER
+
+
+def _owned_elsewhere(between: list[str]) -> bool:
+    """Whether the day's own noun belongs to somebody named.
+
+    `_elsewhere` finds a new subject by its VERB. A possessive has no verb
+    and owns the day just as plainly: "I'll add a caveat to the slide
+    flagging that the Section III timeline assumes Thandiwe's sign-off by
+    Wednesday" promises a caveat, and Wednesday is when Thandiwe signs.
+
+    Asked of the END of the span only, so the question is who owns THIS
+    day. Asked of the whole span it also refuses "And Bennett's right on
+    Renwick: ... I'll have a firm date by end of day tomorrow", where the
+    possessive sits in a different clause from the promise.
+
+    `_tokens` splits on non-word characters, so a possessive arrives as the
+    name followed by a bare `s` -- which is also how a contracted `is`
+    arrives, and why this looks for a name rather than for any word.
+    """
+
+    if not between or between[-1] not in _OWNING:
+        return False
+    tail = between[-_OWNER_REACH - 1 : -1]
+    roster = _roster()
+    return any(
+        word in roster and tail[index + 1] == "s"
+        for index, word in enumerate(tail[:-1])
+    )
+
+
+# An indefinite person handed an infinitive is a new subject with no finite
+# verb for `_elsewhere` to find. The brief settles it outright: "someone
+# needs to own the EOD escalation call" *asks for a volunteer* and makes no
+# row. Without this, "I'll need someone to confirm that's the only
+# certificate needing a follow-up revision before Wednesday's close" was a
+# row -- the confirming is the volunteer's, and so is the Wednesday.
+_INDEFINITE = frozenset(("someone", "somebody", "anyone", "anybody", "everyone"))
+
+
+def _volunteer(between: list[str]) -> bool:
+    """Whether the span hands the act to an unnamed person."""
+
+    for index, word in enumerate(between):
+        if word not in _INDEFINITE:
+            continue
+        rest = between[index + 1 :]
+        if rest and rest[0] == "else":
+            rest = rest[1:]
+        if len(rest) > 1 and rest[0] == "to":
+            return True
+    return False
+
+
 def _elsewhere(between: list[str]) -> bool:
     """Whether somebody else's clause stands in `between`."""
 
@@ -670,6 +756,10 @@ def _committed_in(text: str) -> str | None:
     """
 
     for clause in _clauses(text):
+        # A question asks; it does not promise. The brief says so and this
+        # file pinned the sentence without ever enforcing it.
+        if clause.rstrip().endswith("?"):
+            continue
         tokens = _tokens(clause)
         for owner in OWNER_FORMS:
             wanted = _tokens(owner)
@@ -690,7 +780,10 @@ def _committed_in(text: str) -> str | None:
                         continue
                     if _governed_negation(clause, wanted, form):
                         continue
-                    if _elsewhere(tokens[start + len(wanted) : _at]):
+                    between = tokens[start + len(wanted) : _at]
+                    if _elsewhere(between):
+                        continue
+                    if _owned_elsewhere(between) or _volunteer(between):
                         continue
                     return token
     return None

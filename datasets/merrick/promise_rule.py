@@ -24,6 +24,7 @@ belong to the task.
 from __future__ import annotations
 
 import datetime as dt
+import functools
 import re
 import sqlite3
 from zoneinfo import ZoneInfo
@@ -241,7 +242,12 @@ _FINITE = (
 # `tomorrow` dates the document going out, not the promise -- and the
 # register carried it anyway.
 _ELSEWHERE = re.compile(
-    r"\b(?:so|that|whether|which|because|if|once|when|while|unless|and|but|with)\s+"
+    # `until` opens a clause with a new subject. It is deliberately ABSENT
+    # from the preposition table -- "until Wednesday" ends a wait, it does
+    # not date a delivery -- and that carve-out was silently doing double
+    # duty for both questions. See commitment-revision-register.
+    r"\b(?:so|that|whether|which|because|if|once|when|while|unless|until"
+    r"|and|but|with)\s+"
     # `we` is NOT excluded, and it was, deliberately, for months. The
     # reasoning was that `we` includes the speaker so it cannot be somebody
     # else's clause. The brief says "a new SUBJECT does" mark it, and `we`
@@ -408,6 +414,65 @@ _PRONOUN_SUBJECT = re.compile(
 )
 
 
+# The firm's own people, set by the caller. This module is shared by every
+# corpus in the tree -- merrick, calder, ashgrove, hartwell, delegation --
+# and each has a different roster, so there is no single database to read.
+# Empty means "no names known", and the possessive test below then does
+# nothing rather than guessing: a capitalised word before a preposition is
+# as often "Friday's packet" or "Sandhurst's closing" as it is a person.
+ROSTER: frozenset[str] = frozenset()
+
+
+def use_roster(names) -> None:
+    """Name the people whose possessives own a day, before scanning."""
+
+    global ROSTER
+    ROSTER = frozenset(
+        part.casefold() for full in names for part in full.split() if len(part) > 2
+    )
+    _roster.cache_clear()
+
+
+@functools.cache
+def _roster() -> re.Pattern:
+    """A day whose owner is named right in front of it as a possessive.
+
+    `_ELSEWHERE` finds a new subject by its finite VERB. A possessive has
+    no verb and owns the day just as plainly: "I'll add a caveat flagging
+    that the Section III timeline assumes Thandiwe's sign-off by Wednesday"
+    promises a caveat, and Wednesday is when Thandiwe signs.
+
+    Anchored at the end of the span, so it asks who owns THIS day rather
+    than whether a possessive occurs anywhere in the clause.
+
+    With no roster set this compiles a pattern that cannot match, which is
+    the right default for a corpus whose people are unknown -- it removes
+    the check rather than replacing it with a guess.
+    """
+
+    if not ROSTER:
+        return re.compile(r"(?!x)x")
+    parts = sorted(ROSTER, key=len, reverse=True)
+    return re.compile(
+        rf"\b(?:{'|'.join(re.escape(part) for part in parts)}){_APOS}s\s+"
+        r"[\w-]+(?:\s+[\w-]+)?\s+(?:by|before|due|on|come)\s*$",
+        re.IGNORECASE,
+    )
+
+
+# A new subject with no finite verb to find: an indefinite person handed an
+# infinitive. The brief settles this outright -- "someone needs to own the
+# EOD escalation call" *asks for a volunteer* and makes no row -- but
+# `_ELSEWHERE` looks for a subject plus a FINITE verb and an infinitive has
+# none, so "I'll need someone to confirm that's the only certificate
+# needing a follow-up revision before Wednesday's close" was a row. The
+# confirming is the volunteer's, and so is the Wednesday.
+_VOLUNTEER = re.compile(
+    r"\b(?:someone|somebody|anyone|anybody|everyone)\s+(?:else\s+)?to\s+[a-z]+",
+    re.IGNORECASE,
+)
+
+
 def commitment_in(text: str) -> str | None:
     """The deadline this turn's speaker committed to, or None.
 
@@ -459,6 +524,10 @@ def commitment_in(text: str) -> str | None:
     """
 
     for clause in _CLAUSE.split(text or ""):
+        # A question asks; it does not promise. The brief says so outright
+        # and the pinned phrase was asserted without ever being enforced.
+        if clause.rstrip().endswith("?"):
+            continue
         for owner in _OWNER.finditer(clause):
             for pattern, token in _DEADLINE:
                 for found in pattern.finditer(clause):
@@ -490,9 +559,10 @@ def commitment_in(text: str) -> str | None:
                         or (trailing and _CLAUSE_FINAL.match(tail[trailing.end() :]))
                     ):
                         continue
-                    if _ELSEWHERE.search(
-                        clause[owner.end() : start]
-                    ) or _PRONOUN_SUBJECT.search(clause[owner.end() : start]):
+                    between = clause[owner.end() : start]
+                    if _ELSEWHERE.search(between) or _PRONOUN_SUBJECT.search(between):
+                        continue
+                    if _roster().search(between) or _VOLUNTEER.search(between):
                         continue
                     return token
     return None
