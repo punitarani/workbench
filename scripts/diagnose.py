@@ -99,7 +99,7 @@ def _literal(criteria: Path, name: str):
     return None
 
 
-def criteria_table(jobs: list[Path], task: str) -> None:
+def criteria_table(task_dir: Path, jobs: list[Path], task: str) -> None:
     """Per-criterion values, every trial, so the loss is attributable."""
 
     print("── where the score went ──\n")
@@ -130,13 +130,48 @@ def criteria_table(jobs: list[Path], task: str) -> None:
         cells = "".join(f"{values.get(name, float('nan')):13.3f}" for name in names)
         print(f"  {tag:10s} {trial:9s}{cells}")
     print()
+    oracle = json.loads((task_dir / "tests" / "oracle.json").read_text())
+    deliverable = _deliverable_of(task_dir / "tests" / "criteria.py")
     for name in names:
         seen = [v.get(name) for _, _, v in rows if name in v]
-        if seen and all(value == 0.0 for value in seen):
+        if not seen or not all(value == 0.0 for value in seen):
+            continue
+        # Nobody earned it. That is two different findings, and reporting
+        # them as one nearly deleted a criterion that was doing the whole
+        # job of discriminating between tiers.
+        #
+        # If the answers STRADDLE the key, the key is right and the readers
+        # are imprecise: a hard criterion, graded exact-match, on a quantity
+        # too large to hit. If they all sit on ONE side, the readers agree
+        # with each other and disagree with the key, which is the signature
+        # of a convention mismatch and a claim about the key.
+        truth = oracle.get(name)
+        answers = []
+        if deliverable is not None and isinstance(truth, (int, float)):
+            for job in jobs:
+                for trial in _trials(job, task):
+                    got = _submitted(trial, deliverable)
+                    if isinstance(got, dict) and isinstance(
+                        got.get(name), (int, float)
+                    ):
+                        answers.append(got[name])
+        if len(answers) >= 3 and any(a < truth for a in answers) and any(
+            a > truth for a in answers
+        ):
+            spread = f"{min(answers)}..{max(answers)}"
             print(
-                f"  !! `{name}` is 0.000 in all {len(seen)} trials. A criterion no "
-                "trial of any\n     tier ever earns is a claim about the key, not "
-                "about the tier."
+                f"  ?? `{name}` is 0.000 in all {len(seen)} trials, but the answers "
+                f"STRADDLE\n     the key ({spread} against {truth}). The key is "
+                "right and the readers are\n     imprecise -- a hard criterion "
+                "graded exact-match, not a defect. Consider\n     whether an "
+                "exact grade on a quantity this size can express a near miss."
+            )
+        else:
+            near = f" (answers {min(answers)}..{max(answers)} vs {truth})" if answers else ""
+            print(
+                f"  !! `{name}` is 0.000 in all {len(seen)} trials{near}. A criterion "
+                "no trial of any\n     tier ever earns, with no answer on the other "
+                "side of the key, is a claim\n     about the key, not about the tier."
             )
     print()
 
@@ -308,7 +343,7 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"no such job(s): {absent}")
 
     print(f"\n=== {args.task} — {len(jobs)} sweep(s) ===\n")
-    criteria_table(jobs, args.task)
+    criteria_table(task_dir, jobs, args.task)
     disputed = row_verdicts(task_dir, jobs, args.task)
     evidence(task_dir, disputed)
     if disputed:
