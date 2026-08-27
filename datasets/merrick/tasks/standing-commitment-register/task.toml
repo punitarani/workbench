@@ -125,11 +125,12 @@ schema_version = "1.3"
 # including two in the pass that produced this file.
 
 [task]
-name = "workbench/merrick-standing-commitment-register"
-description = """Read the transcripts of the firm's standing meetings for \
-a billing period and report the commitments that are still live: who owes \
-something, in which meeting they said so, and the calendar date it is due \
-— counting only the most recent thing each person said in each meeting."""
+name = "workbench/merrick-slippage-register"
+description = """Read the transcripts of the firm's standing meetings \
+over six months and report, for every live commitment, who owes it, in \
+which meeting they said so, the calendar date it is due, and how many \
+times that person moved their own date later — which needs every date \
+they named, each resolved against the meeting it was said in."""
 authors = [{ name = "Workbench" }]
 keywords = [
     "legal",
@@ -137,6 +138,7 @@ keywords = [
     "transcripts",
     "prose-extraction",
     "supersession",
+    "chain-reconstruction",
     "outcome-graded",
     "mcp",
 ]
@@ -154,7 +156,7 @@ skills = [
 agent_data_scope = "Intentionally seatless firm-wide Clio, Gmail, Slack, Calendar, iManage and meeting-transcript records from the LLM-generated epoch."
 
 [metadata.evidence]
-primary_field = "live_commitments.json"
+primary_field = "slippage_register.json"
 source_surfaces = ["meetings"]
 
 [environment]
