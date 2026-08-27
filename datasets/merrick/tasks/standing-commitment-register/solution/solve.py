@@ -73,7 +73,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("live_commitments.json")
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("slippage_register.json")
 
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 
@@ -788,12 +788,27 @@ def main() -> int:
         occasions.sort()
         superseded += len({row[2] for row in occasions}) - 1
         started, _position, meeting_id, token = occasions[-1]
+        # Every link, not just the ends. `occasions` is sorted, so the last
+        # entry for a meeting_id wins -- a person who commits twice in one
+        # room has committed once, and it is the later turn that counts.
+        # Each date is resolved against ITS OWN meeting, because the same
+        # word in January and in June names two different days, which is
+        # the whole reason this figure cannot be read off the tokens.
+        per_meeting: dict[str, tuple[int, str]] = {}
+        for when, _pos, room, said_token in occasions:
+            per_meeting[room] = (when, said_token)
+        chain = [
+            due_date((epoch + dt.timedelta(seconds=when)).date(), said_token)
+            for when, said_token in sorted(per_meeting.values())
+        ]
+        slips = sum(1 for a, b in zip(chain, chain[1:]) if b > a)
         moment = epoch + dt.timedelta(seconds=started)
         live.append(
             {
                 "owner": people.get(speaker, speaker),
                 "meeting": title,
                 "due": due_date(moment.date(), token).isoformat(),
+                "slips": slips,
                 "meeting_id": meeting_id,
                 "said_at": moment.isoformat(),
             }

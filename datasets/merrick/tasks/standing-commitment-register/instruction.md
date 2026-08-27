@@ -1,4 +1,4 @@
-# The live commitment register
+# The slippage register
 
 You are the practice administrator at **Merrick Stanton LLP**, a
 litigation-and-transactions firm. The firm's standing meetings are where
@@ -8,9 +8,18 @@ statement is written down anywhere except in the transcript of the room it
 was said in.
 
 Before the partner meeting you produce the register of **what is still
-owed**: who owes something, in which standing meeting they said so, and the
+owed**: who owes something, in which standing meeting they said so, the
 date it is due — counting only the most recent thing each person said in
-each meeting.
+each meeting — and **how many times that person moved their own date
+later**.
+
+That last figure is the one the partners are actually asking about, and it
+is the only one here that cannot be read off the ends of the story. The
+date owed is the last thing somebody said. How often they slipped is a
+comparison of *every* date they named, in order, each one worked out
+against the meeting it was said in — because "EOD" in January and "EOD" in
+June are five months apart, and a person who says the same word twice may
+have slipped, held, or pulled the date in without changing a syllable.
 
 The firm's systems are available through tools: **meetings** (transcripts of
 what was said), **clio** (matters, users and time entries), **gmail**,
@@ -196,8 +205,8 @@ restating to count.
 
 ## What to produce
 
-One file in your workspace: **`live_commitments.json`**, with exactly these
-fields:
+One file in your workspace: **`slippage_register.json`**, with exactly
+these fields:
 
 - `meetings_read` — how many standing meetings you opened: every one inside
   the window, whatever was said in it.
@@ -214,6 +223,16 @@ fields:
   - `owner` — the person's full name
   - `meeting` — the standing meeting's title, exactly as the record gives it
   - `due` — the date it is due, as `YYYY-MM-DD`
+  - `slips` — how many times this person moved this commitment **later**.
+    Take every meeting of this series in which they committed, in order of
+    when the meeting started; resolve each statement to a calendar date
+    **against the meeting it was said in**; then count the steps where the
+    date is **later than** the one before it. A date pulled **earlier** is
+    not a slip and is not counted. A date restated unchanged is not a slip.
+    Somebody who committed only once has `0`.
+    **The unit is one commitment per meeting**: a person who committed
+    twice inside a single meeting made one commitment, and it is the later
+    turn in that room that counts.
   - `meeting_id` — the meeting in which they last committed
   - `said_at` — the ISO-8601 start of that meeting
 

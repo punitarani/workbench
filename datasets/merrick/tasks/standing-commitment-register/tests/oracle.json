@@ -8,6 +8,7 @@
    "owner": "Adaora Nwosu",
    "meeting": "Billing and WIP review",
    "due": "2026-04-06",
+   "slips": 0,
    "meeting_id": "mtg-000430",
    "said_at": "2026-04-06T11:00:00-04:00"
   },
@@ -15,6 +16,7 @@
    "owner": "Bennett Ashworth",
    "meeting": "Billing and WIP review",
    "due": "2026-05-25",
+   "slips": 3,
    "meeting_id": "mtg-000437",
    "said_at": "2026-05-25T11:00:00-04:00"
   },
@@ -22,6 +24,7 @@
    "owner": "Dov Reinhardt",
    "meeting": "Billing and WIP review",
    "due": "2026-05-25",
+   "slips": 5,
    "meeting_id": "mtg-000437",
    "said_at": "2026-05-25T11:00:00-04:00"
   },
@@ -29,6 +32,7 @@
    "owner": "Fionnuala Doherty",
    "meeting": "Billing and WIP review",
    "due": "2026-06-02",
+   "slips": 0,
    "meeting_id": "mtg-000438",
    "said_at": "2026-06-01T11:00:00-04:00"
   },
@@ -36,6 +40,7 @@
    "owner": "Bennett Ashworth",
    "meeting": "Client board and committee updates",
    "due": "2026-05-11",
+   "slips": 3,
    "meeting_id": "mtg-000487",
    "said_at": "2026-05-11T15:15:00-04:00"
   },
@@ -43,6 +48,7 @@
    "owner": "Dov Reinhardt",
    "meeting": "Client board and committee updates",
    "due": "2026-03-02",
+   "slips": 0,
    "meeting_id": "mtg-000477",
    "said_at": "2026-03-02T15:15:00-05:00"
   },
@@ -50,6 +56,7 @@
    "owner": "Fionnuala Doherty",
    "meeting": "Client board and committee updates",
    "due": "2026-04-22",
+   "slips": 0,
    "meeting_id": "mtg-000484",
    "said_at": "2026-04-20T15:15:00-04:00"
   },
@@ -57,6 +64,7 @@
    "owner": "Elena Vasquez-Reyes",
    "meeting": "Corporate deal status",
    "due": "2026-05-05",
+   "slips": 5,
    "meeting_id": "mtg-000217",
    "said_at": "2026-05-05T09:15:00-04:00"
   },
@@ -64,6 +72,7 @@
    "owner": "Ingrid Solheim",
    "meeting": "Corporate deal status",
    "due": "2026-07-02",
+   "slips": 11,
    "meeting_id": "mtg-000259",
    "said_at": "2026-07-02T09:15:00-04:00"
   },
@@ -71,6 +80,7 @@
    "owner": "Mira Chandrasekhar",
    "meeting": "Corporate deal status",
    "due": "2026-07-03",
+   "slips": 3,
    "meeting_id": "mtg-000260",
    "said_at": "2026-07-03T09:15:00-04:00"
   },
@@ -78,6 +88,7 @@
    "owner": "Quentin Sarr",
    "meeting": "Corporate deal status",
    "due": "2026-06-23",
+   "slips": 7,
    "meeting_id": "mtg-000252",
    "said_at": "2026-06-23T09:15:00-04:00"
   },
@@ -85,6 +96,7 @@
    "owner": "Samir Bhatt",
    "meeting": "Corporate deal status",
    "due": "2026-05-13",
+   "slips": 2,
    "meeting_id": "mtg-000220",
    "said_at": "2026-05-08T09:15:00-04:00"
   },
@@ -92,6 +104,7 @@
    "owner": "Bennett Ashworth",
    "meeting": "Cotswold Mutual claims committee",
    "due": "2026-05-05",
+   "slips": 0,
    "meeting_id": "mtg-000460",
    "said_at": "2026-05-04T14:00:00-04:00"
   },
@@ -99,6 +112,7 @@
    "owner": "Bennett Ashworth",
    "meeting": "Docket call",
    "due": "2026-06-18",
+   "slips": 20,
    "meeting_id": "mtg-000119",
    "said_at": "2026-06-18T08:45:00-04:00"
   },
@@ -106,6 +120,7 @@
    "owner": "Cecile Marchand",
    "meeting": "Docket call",
    "due": "2026-07-09",
+   "slips": 12,
    "meeting_id": "mtg-000130",
    "said_at": "2026-07-03T08:45:00-04:00"
   },
@@ -113,6 +128,7 @@
    "owner": "Hyun-woo Bae",
    "meeting": "Docket call",
    "due": "2026-06-29",
+   "slips": 12,
    "meeting_id": "mtg-000126",
    "said_at": "2026-06-29T08:45:00-04:00"
   },
@@ -120,6 +136,7 @@
    "owner": "Lucien Abara",
    "meeting": "Docket call",
    "due": "2026-06-23",
+   "slips": 7,
    "meeting_id": "mtg-000122",
    "said_at": "2026-06-23T08:45:00-04:00"
   },
@@ -127,6 +144,7 @@
    "owner": "Thandiwe Mokoena",
    "meeting": "Docket call",
    "due": "2026-06-25",
+   "slips": 1,
    "meeting_id": "mtg-000123",
    "said_at": "2026-06-24T08:45:00-04:00"
   },
@@ -134,6 +152,7 @@
    "owner": "Fionnuala Doherty",
    "meeting": "Employment practice huddle",
    "due": "2026-05-28",
+   "slips": 4,
    "meeting_id": "mtg-000359",
    "said_at": "2026-05-21T09:30:00-04:00"
   },
@@ -141,6 +160,7 @@
    "owner": "Jamal Okonkwo",
    "meeting": "Employment practice huddle",
    "due": "2026-05-28",
+   "slips": 9,
    "meeting_id": "mtg-000363",
    "said_at": "2026-05-27T09:30:00-04:00"
   },
@@ -148,6 +168,7 @@
    "owner": "Petra Kovacs",
    "meeting": "Employment practice huddle",
    "due": "2026-06-30",
+   "slips": 7,
    "meeting_id": "mtg-000387",
    "said_at": "2026-06-30T09:30:00-04:00"
   },
@@ -155,6 +176,7 @@
    "owner": "Klara Bendtsen",
    "meeting": "IP and technology group",
    "due": "2026-05-26",
+   "slips": 2,
    "meeting_id": "mtg-000515",
    "said_at": "2026-05-25T10:00:00-04:00"
   },
@@ -162,6 +184,7 @@
    "owner": "Bennett Ashworth",
    "meeting": "Partner matter review",
    "due": "2026-06-15",
+   "slips": 4,
    "meeting_id": "mtg-000414",
    "said_at": "2026-06-15T16:00:00-04:00"
   },
@@ -169,6 +192,7 @@
    "owner": "Cecile Marchand",
    "meeting": "Partner matter review",
    "due": "2026-06-15",
+   "slips": 0,
    "meeting_id": "mtg-000414",
    "said_at": "2026-06-15T16:00:00-04:00"
   },
@@ -176,6 +200,7 @@
    "owner": "Dov Reinhardt",
    "meeting": "Partner matter review",
    "due": "2026-05-19",
+   "slips": 1,
    "meeting_id": "mtg-000410",
    "said_at": "2026-05-18T16:00:00-04:00"
   },
@@ -183,6 +208,7 @@
    "owner": "Gideon Park",
    "meeting": "Partner matter review",
    "due": "2026-03-31",
+   "slips": 1,
    "meeting_id": "mtg-000403",
    "said_at": "2026-03-30T16:00:00-04:00"
   }

@@ -47,13 +47,23 @@ from criteria_base import *  # noqa: F401,F403
 # The file the agent writes. Named here because the grading invocation
 # reads it from this module -- it is the one thing about a task's grading
 # that its criteria cannot derive from the oracle.
-DELIVERABLE = "live_commitments.json"
+DELIVERABLE = "slippage_register.json"
 
 # The list in the deliverable that carries one entry per live commitment.
 ROWS = "live"
 
 # Who owes it, in which standing meeting, and by when.
-KEY = ("owner", "meeting", "due")
+# Who owes it, in which standing meeting, by when, and how many times
+# they moved that date LATER.
+#
+# `slips` is what separates this register from its two siblings. Both of
+# those need the chain's ENDS -- the last statement for `due`, the first
+# for `first_due`, the count of rooms for `superseded`. None of them needs
+# the dates in between. This one does: a slip is a comparison of two
+# consecutive resolved dates, so every link has to be read AND resolved
+# against its own meeting. A reader who finds the endpoints and stops has
+# nothing here.
+KEY = ("owner", "meeting", "due", "slips")
 
 # What is left once the key has taken three of the five fields. Both are
 # strings the record states outright -- a meeting id and its start -- so

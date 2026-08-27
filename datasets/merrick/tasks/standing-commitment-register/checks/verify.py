@@ -94,7 +94,7 @@ PINNED: dict[str, str] = {
     # graded, and this section was not pinned: its unit could be reworded
     # without tripping anything. Three readers of the old wording split
     # 2-1 on it while all three called it unambiguous.
-    "## What to produce": "ae23c1dd4077f269",
+    "## What to produce": "070e1cabd236c935",
 }
 
 # The firm's own zone, read from the served meta table rather than named
@@ -184,7 +184,7 @@ ROW_FLOOR = 12
 # The deliverable's row shape, as the brief lists it. Declared once so this
 # file builds a row by position against a named order rather than repeating
 # the solver's dict literal.
-_ROW_FIELDS = ("owner", "meeting", "due", "meeting_id", "said_at")
+_ROW_FIELDS = ("owner", "meeting", "due", "slips", "meeting_id", "said_at")
 
 # The tokens whose resolution is not simply "the weekday of this name".
 # Read off the brief's own table rather than spelled into `_resolve`, so a
@@ -214,6 +214,17 @@ SUPERSESSION_FLOOR = 0.15
 # Sunday and both files would have computed the Friday, agreed, and reported
 # an independent reading. **20 of 27 brief mutations went unnoticed.**
 _STATED: dict[str, tuple[str, ...]] = {
+    "## What to produce": (
+        # the slip count, and the four decisions it turns on: order by
+        # meeting start, resolve against the meeting it was said in, count
+        # only strictly-later steps, one commitment per room
+        "how many times this person moved this commitment **later**",
+        "in order of when the meeting started",
+        "against the meeting it was said in",
+        "later than** the one before it",
+        "pulled **earlier** is not a slip",
+        "restated unchanged is not a slip",
+    ),
     "## What counts as a commitment": (
         # both conjuncts; the owner forms as a CLOSED set rather than an
         # example, which is the asymmetry a probe caught -- the brief named
@@ -1072,6 +1083,20 @@ def main() -> int:
     for (speaker, title), made in statements.items():
         superseded += len({statement[2] for statement in made}) - 1
         started, _position, meeting_id, deadline = max(made, key=lambda s: (s[0], s[1]))
+        # One statement per room, selected by position rather than by
+        # sorting the list; then the resolved dates in room order. The
+        # solver builds the same sequence from a sorted list, so an
+        # ordering bug there has to surface as a disagreement here.
+        rooms: dict[str, tuple[int, int, list]] = {}
+        for when, place, room, spoken in made:
+            if room not in rooms or (when, place) > rooms[room][:2]:
+                rooms[room] = (when, place, spoken)
+        ordered = sorted(rooms.values())
+        chain = [
+            _resolve((epoch + datetime.timedelta(seconds=when)).date(), spoken)
+            for when, _place, spoken in ordered
+        ]
+        slipped = sum(1 for a, b in zip(chain, chain[1:]) if b > a)
         # Built field by field from a declared order rather than as a dict
         # literal. The solver writes the same five keys inline; sharing that
         # expression is sharing a decision about what a row *is*, and the
@@ -1088,6 +1113,7 @@ def main() -> int:
                         named,
                         title,
                         _resolve(moment.date(), deadline).isoformat(),
+                        slipped,
                         meeting_id,
                         moment.isoformat(),
                     ),
