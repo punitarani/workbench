@@ -48,19 +48,20 @@ def _trial(tmp_path: Path, brief: str) -> Path:
 
 
 GRADED = {"owner", "due", "first_due", "superseded"}
+ANCHOR = "answer.json"
 
-NEW_BRIEF = "report owner, due, first_due and superseded for each person"
-OLD_BRIEF = "report owner, due and superseded for each person"
+NEW_BRIEF = "write answer.json with owner, due, first_due and superseded per person"
+OLD_BRIEF = "write answer.json with owner, due and superseded per person"
 
 
 def test_a_trial_given_the_current_brief_is_comparable(tmp_path):
     regrade = _load("regrade")
-    assert regrade._answered_this_brief(_trial(tmp_path, NEW_BRIEF), GRADED) == set()
+    assert regrade._answered_this_brief(_trial(tmp_path, NEW_BRIEF), GRADED, ANCHOR) == set()
 
 
 def test_a_trial_given_an_older_brief_is_refused(tmp_path):
     regrade = _load("regrade")
-    missing = regrade._answered_this_brief(_trial(tmp_path, OLD_BRIEF), GRADED)
+    missing = regrade._answered_this_brief(_trial(tmp_path, OLD_BRIEF), GRADED, ANCHOR)
     assert missing == {"first_due"}, missing
 
 
@@ -72,4 +73,18 @@ def test_a_trial_with_no_trajectory_is_not_refused_on_that_alone(tmp_path):
     regrade = _load("regrade")
     bare = tmp_path / "thetask__t2"
     bare.mkdir()
-    assert regrade._answered_this_brief(bare, GRADED) == set()
+    assert regrade._answered_this_brief(bare, GRADED, ANCHOR) == set()
+
+
+def test_a_trajectory_that_never_recorded_the_brief_is_not_evidence(tmp_path):
+    """The failure this check had on its first run, pinned.
+
+    Trajectories are compacted and truncated. A field missing from one is
+    not evidence the brief lacked it -- and reported as though it were, it
+    refused six real measurements, including a trial that had "never been
+    asked for owner" whose every row was keyed on owner.
+    """
+
+    regrade = _load("regrade")
+    silent = _trial(tmp_path, "tool call output with no brief in it at all")
+    assert regrade._answered_this_brief(silent, GRADED, ANCHOR) == set()

@@ -55,17 +55,32 @@ def _load(path: Path, name: str):
     return module
 
 
-def _answered_this_brief(trial: Path, graded: set[str]) -> set[str]:
+def _answered_this_brief(trial: Path, graded: set[str], anchor: str) -> set[str]:
     """Fields the current key grades that the trial's own brief never named.
 
     Empty means the trial answered today's question and its saved
     deliverable can be re-scored. Anything else means it did not.
+
+    **A witness has to be testifying before its silence means anything.**
+    Trajectories are compacted, truncated, and sometimes never record the
+    prompt at all, so a field missing from one is not evidence the brief
+    lacked it. The first version of this check ignored that and reported
+    that a trial had "never been asked for owner" -- a trial whose every
+    row was keyed on owner. It refused six real measurements that way, in
+    the direction that looks like diligence.
+
+    So `anchor` -- the name of the file the brief tells the agent to write
+    -- has to appear first. Absent, this trajectory says nothing about any
+    brief and the trial is treated as comparable. Present, a missing graded
+    field is real evidence the brief was an older one.
     """
 
     trajectory = trial / "agent" / "trajectory.json"
     if not trajectory.is_file():
         return set()
     seen = trajectory.read_text(encoding="utf-8", errors="replace")
+    if anchor not in seen:
+        return set()
     return {field for field in graded if f'"{field}"' not in seen and field not in seen}
 
 
@@ -151,7 +166,7 @@ def main() -> int:
         scores, was = [], []
         for trial in sorted(p for p in job.iterdir() if p.is_dir()):
             verifier = trial / "verifier"
-            missing = _answered_this_brief(trial, set(graded))
+            missing = _answered_this_brief(trial, set(graded), criteria.DELIVERABLE)
             if missing:
                 print(
                     f"  {tag} {trial.name[-8:]}: answered a different brief — it was "
