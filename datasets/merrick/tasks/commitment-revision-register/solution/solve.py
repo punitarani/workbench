@@ -809,12 +809,19 @@ def main() -> int:
         replaced = len({row[2] for row in occasions}) - 1
         superseded += replaced
         started, _position, meeting_id, token = occasions[-1]
+        # The other end of the chain. `occasions` is sorted, so this is the
+        # earliest qualifying statement -- resolved against ITS OWN meeting,
+        # which is the whole point: the same word said in January and in
+        # June is two different dates.
+        first_started, _fp, _fm, first_token = occasions[0]
+        first_moment = epoch + dt.timedelta(seconds=first_started)
         moment = epoch + dt.timedelta(seconds=started)
         live.append(
             {
                 "owner": people.get(speaker, speaker),
                 "meeting": title,
                 "due": due_date(moment.date(), token).isoformat(),
+                "first_due": due_date(first_moment.date(), first_token).isoformat(),
                 "superseded": replaced,
                 "meeting_id": meeting_id,
                 "said_at": moment.isoformat(),

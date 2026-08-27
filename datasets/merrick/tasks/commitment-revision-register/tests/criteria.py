@@ -72,9 +72,16 @@ DELIVERABLE = "commitment_revisions.json"
 # The list in the deliverable that carries one entry per live commitment.
 ROWS = "live"
 
-# Who owes it, in which standing meeting, by when, and over how many
-# earlier statements.
-KEY = ("owner", "meeting", "due", "superseded")
+# Who owes it, in which standing meeting, by when, from what date it
+# started, and over how many earlier statements.
+#
+# Both ends of the chain and its length. A reader who finds the last
+# statement and stops has the `due` and nothing else; one who finds the
+# first and stops has `first_due` and nothing else. Only a reader who built
+# the whole chain has all three, which is the joint dependency this task
+# exists to measure -- at a per-statement accuracy of `a`, a row needing
+# `k` statements is right with probability `a**k`.
+KEY = ("owner", "meeting", "due", "first_due", "superseded")
 
 # What is left once the key has taken four of the six fields. Both are
 # strings the record states outright -- a meeting id and its start -- so

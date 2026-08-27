@@ -12,10 +12,17 @@ owed**: who owes something, in which standing meeting they said so, the
 date it is due — counting only the most recent thing each person said in
 each meeting — and **how many earlier statements that one replaced**.
 
-That last figure is what the partners actually argue about. A date that has
-moved eleven times and a date set once and kept are the same row until
-somebody says how often it moved, and nothing in the firm's systems counts
-it: it is the length of a chain that exists only across transcripts.
+Those last figures are what the partners actually argue about. A date that
+has moved eleven times and a date set once and kept are the same row until
+somebody says how far it moved and how often, and nothing in the firm's
+systems records either: it is the shape of a chain that exists only across
+transcripts.
+
+Note what that asks of you. The **last** statement gives the date owed. The
+**first** gives the date originally promised. The **count** gives the
+length. A reader who finds one end of a chain and stops has one of the
+three and cannot get the other two — they are not derivable from each
+other, and none of them is derivable from any system here.
 
 The firm's systems are available through tools: **meetings** (transcripts of
 what was said), **clio** (matters, users and time entries), **gmail**,
@@ -226,6 +233,12 @@ these fields:
   - `owner` — the person's full name
   - `meeting` — the standing meeting's title, exactly as the record gives it
   - `due` — the date it is due, as `YYYY-MM-DD`
+  - `first_due` — the date this person **first** committed to in this
+    standing meeting, as `YYYY-MM-DD`: the date their earliest qualifying
+    statement in the series resolved to, **against the meeting it was said
+    in**. Somebody who said "EOD" in January and "EOD" in June named two
+    different dates, and this is the January one. Where they committed only
+    once, it is the same date as `due`.
   - `superseded` — how many **earlier** commitments this person made in
     this standing meeting that this one replaced. A commitment made once
     and never revised is `0`.

@@ -94,7 +94,7 @@ PINNED: dict[str, str] = {
     # graded, and this section was not pinned: its unit could be reworded
     # without tripping anything. Three readers of the old wording split
     # 2-1 on it while all three called it unambiguous.
-    "## What to produce": "139084a0f8fd820c",
+    "## What to produce": "47926cd8e444f75c",
 }
 
 # The firm's own zone, read from the served meta table rather than named
@@ -184,7 +184,15 @@ ROW_FLOOR = 12
 # The deliverable's row shape, as the brief lists it. Declared once so this
 # file builds a row by position against a named order rather than repeating
 # the solver's dict literal.
-_ROW_FIELDS = ("owner", "meeting", "due", "superseded", "meeting_id", "said_at")
+_ROW_FIELDS = (
+    "owner",
+    "meeting",
+    "due",
+    "first_due",
+    "superseded",
+    "meeting_id",
+    "said_at",
+)
 
 # The tokens whose resolution is not simply "the weekday of this name".
 # Read off the brief's own table rather than spelled into `_resolve`, so a
@@ -280,6 +288,11 @@ _STATED: dict[str, tuple[str, ...]] = {
         # the per-row revision count, its unit, and that the scalar is now
         # exactly the sum of the rows -- the invariant asserted in `main`
         "how many **earlier** commitments this person made in",
+        # the first end of the chain, and that it resolves against the
+        # meeting it was SAID in rather than against the last one -- the
+        # difference between two `EOD`s five months apart
+        "the date this person **first** committed to in this",
+        "against the meeting it was said in",
         "never revised is `0`",
         "count the meetings of this series in",
         "the sum of the `superseded` figures below",
@@ -1106,6 +1119,10 @@ def main() -> int:
         replaced = len(occasions[(speaker, title)]) - 1
         superseded += replaced
         started, _position, meeting_id, deadline = max(made, key=lambda s: (s[0], s[1]))
+        # Selected by MINIMUM, as the last statement is selected by maximum
+        # -- neither by sorting the list, so an ordering bug in the solver
+        # shows up as a disagreement rather than being reproduced.
+        first_started, _fp, _fm, first_deadline = min(made, key=lambda s: (s[0], s[1]))
         # Built field by field from a declared order rather than as a dict
         # literal. The solver writes the same five keys inline; sharing that
         # expression is sharing a decision about what a row *is*, and the
@@ -1122,6 +1139,10 @@ def main() -> int:
                         named,
                         title,
                         _resolve(moment.date(), deadline).isoformat(),
+                        _resolve(
+                            (epoch + datetime.timedelta(seconds=first_started)).date(),
+                            first_deadline,
+                        ).isoformat(),
                         replaced,
                         meeting_id,
                         moment.isoformat(),
