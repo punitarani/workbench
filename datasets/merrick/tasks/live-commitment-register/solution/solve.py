@@ -786,14 +786,26 @@ def main() -> int:
     live, superseded = [], 0
     for (speaker, title), occasions in said.items():
         occasions.sort()
-        superseded += len({row[2] for row in occasions}) - 1
+        # The unit is the meeting, not the turn: a person who commits twice
+        # inside one meeting has committed once, so the same meeting cannot
+        # be discarded twice.
+        replaced = len({row[2] for row in occasions}) - 1
+        superseded += replaced
         started, _position, meeting_id, token = occasions[-1]
+        # The other end of the chain. `occasions` is sorted, so this is the
+        # earliest qualifying statement -- resolved against ITS OWN meeting,
+        # which is the whole point: the same word said in one week and the
+        # next is two different dates.
+        first_started, _fp, _fm, first_token = occasions[0]
+        first_moment = epoch + dt.timedelta(seconds=first_started)
         moment = epoch + dt.timedelta(seconds=started)
         live.append(
             {
                 "owner": people.get(speaker, speaker),
                 "meeting": title,
                 "due": due_date(moment.date(), token).isoformat(),
+                "first_due": due_date(first_moment.date(), first_token).isoformat(),
+                "superseded": replaced,
                 "meeting_id": meeting_id,
                 "said_at": moment.isoformat(),
             }

@@ -53,7 +53,11 @@ DELIVERABLE = "live_commitments.json"
 ROWS = "live"
 
 # Who owes it, in which standing meeting, and by when.
-KEY = ("owner", "meeting", "due")
+# Both ends of the chain and its length. A reader who finds the last
+# statement and stops has `due` and neither of the others; one who finds
+# the first has `first_due` and neither of the others. None is derivable
+# from the other two and no system in this world records any of them.
+KEY = ("owner", "meeting", "due", "first_due", "superseded")
 
 # What is left once the key has taken three of the five fields. Both are
 # strings the record states outright -- a meeting id and its start -- so
@@ -72,7 +76,13 @@ FIELDS: dict[str, float] = {"meeting_id": 0.0, "said_at": 0.0}
 # still tally its own wrong rows correctly. It moves to the process
 # dimension, where a reader who cannot add up their own register is still
 # visible.
-DERIVED_FROM_ROWS = ("distinct_owners",)
+# `superseded_count` joins `distinct_owners` here because it is now
+# exactly the sum of the rows' `superseded`: grading it in the reward
+# would pay twice for one piece of work. In the diagnostic dimension a
+# reader who cannot add up their own register is still visible, which is
+# all that figure was ever worth -- and graded exact-match on a
+# three-digit total it could only ever return zero.
+DERIVED_FROM_ROWS = ("distinct_owners", "superseded_count")
 
 # Nothing here is restated by the brief. The window's dates are prose, but
 # the report does not ask for them back -- an earlier task in this dataset

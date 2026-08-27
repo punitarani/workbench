@@ -94,7 +94,7 @@ PINNED: dict[str, str] = {
     # graded, and this section was not pinned: its unit could be reworded
     # without tripping anything. Three readers of the old wording split
     # 2-1 on it while all three called it unambiguous.
-    "## What to produce": "ae23c1dd4077f269",
+    "## What to produce": "0702d80b1db38a46",
 }
 
 # The firm's own zone, read from the served meta table rather than named
@@ -184,7 +184,15 @@ ROW_FLOOR = 12
 # The deliverable's row shape, as the brief lists it. Declared once so this
 # file builds a row by position against a named order rather than repeating
 # the solver's dict literal.
-_ROW_FIELDS = ("owner", "meeting", "due", "meeting_id", "said_at")
+_ROW_FIELDS = (
+    "owner",
+    "meeting",
+    "due",
+    "first_due",
+    "superseded",
+    "meeting_id",
+    "said_at",
+)
 
 # The tokens whose resolution is not simply "the weekday of this name".
 # Read off the brief's own table rather than spelled into `_resolve`, so a
@@ -214,6 +222,14 @@ SUPERSESSION_FLOOR = 0.15
 # Sunday and both files would have computed the Friday, agreed, and reported
 # an independent reading. **20 of 27 brief mutations went unnoticed.**
 _STATED: dict[str, tuple[str, ...]] = {
+    "## What to produce": (
+        # both ends of the chain and its length, and that the first end
+        # resolves against the meeting it was SAID in rather than the last
+        "the date this person **first** committed to in this",
+        "against the meeting it was said in",
+        "how many **earlier** commitments this person made in",
+        "count the meetings of this series in",
+    ),
     "## What counts as a commitment": (
         # both conjuncts; the owner forms as a CLOSED set rather than an
         # example, which is the asymmetry a probe caught -- the brief named
@@ -1070,8 +1086,13 @@ def main() -> int:
     rows = []
     superseded = 0
     for (speaker, title), made in statements.items():
-        superseded += len({statement[2] for statement in made}) - 1
+        replaced = len({statement[2] for statement in made}) - 1
+        superseded += replaced
         started, _position, meeting_id, deadline = max(made, key=lambda s: (s[0], s[1]))
+        # By MINIMUM, as the last is taken by maximum and neither by
+        # sorting: an ordering bug in the solver has to surface as a
+        # disagreement rather than be reproduced here.
+        first_started, _fp, _fm, first_deadline = min(made, key=lambda s: (s[0], s[1]))
         # Built field by field from a declared order rather than as a dict
         # literal. The solver writes the same five keys inline; sharing that
         # expression is sharing a decision about what a row *is*, and the
@@ -1088,6 +1109,11 @@ def main() -> int:
                         named,
                         title,
                         _resolve(moment.date(), deadline).isoformat(),
+                        _resolve(
+                            (epoch + datetime.timedelta(seconds=first_started)).date(),
+                            first_deadline,
+                        ).isoformat(),
+                        replaced,
                         meeting_id,
                         moment.isoformat(),
                     ),

@@ -213,6 +213,20 @@ fields:
   - `owner` — the person's full name
   - `meeting` — the standing meeting's title, exactly as the record gives it
   - `due` — the date it is due, as `YYYY-MM-DD`
+  - `first_due` — the date this person **first** committed to in this
+    standing meeting, as `YYYY-MM-DD`: the date their earliest qualifying
+    statement in the series resolved to, **against the meeting it was said
+    in**. Somebody who said "EOD" one week and "EOD" the next named two
+    different dates, and this is the earlier one. Where they committed only
+    once, it is the same date as `due`.
+  - `superseded` — how many **earlier** commitments this person made in
+    this standing meeting that this one replaced. A commitment made once
+    and never revised is `0`.
+    **The unit is one commitment per meeting.** A person who committed
+    twice inside a single meeting made one commitment, so it can be
+    discarded once and not twice — count the meetings of this series in
+    which they committed, not the turns, and subtract the one that is still
+    live.
   - `meeting_id` — the meeting in which they last committed
   - `said_at` — the ISO-8601 start of that meeting
 
