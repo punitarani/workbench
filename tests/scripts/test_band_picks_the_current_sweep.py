@@ -153,3 +153,64 @@ def test_a_tier_nobody_ran_does_not_block_a_measured_task(tmp_path, capsys, monk
     blocked = ["glm-5.2: timeout, nothing written"]
     broken = [w for w in blocked if not w.endswith(": not run")]
     assert broken, "a failed tier must still block"
+
+
+def test_a_reward_computed_before_the_oracle_moved_is_not_current(tmp_path):
+    """The check that needs nothing from the trajectory.
+
+    The content checks above only work when the brief is in the trajectory.
+    Some harnesses never put it there -- every glm trial in this tree is
+    one -- and for those a stale sweep is invisible: `glm-v10-k3` answered
+    the 42-day task, scored 3 of 3, and was preferred over the current
+    147-day sweep because it had one more gradeable trial.
+
+    Harbor writes reward.json when a trial finishes, against whatever
+    oracle.json says then. If the oracle has been rewritten since, that
+    number came from a key that no longer exists -- regardless of what the
+    agent was asked, and regardless of whether the trajectory recorded it.
+    """
+
+    band = _load("band")
+    oracle = tmp_path / "oracle.json"
+    stale = tmp_path / "stale" / "verifier"
+    fresh = tmp_path / "fresh" / "verifier"
+    for d in (stale, fresh):
+        d.mkdir(parents=True)
+        (d / "reward.json").write_text('{"reward": 0.5}')
+
+    import os
+    import time
+
+    # The oracle sits between the two: the stale reward predates it, the
+    # fresh one follows it. Written in that order because doing it any
+    # other way makes BOTH rewards older than the oracle, which is how the
+    # first version of this test failed -- it asserted a real property
+    # against a fixture that could not exhibit it.
+    past = time.time() - 10_000
+    os.utime(stale / "reward.json", (past, past))
+    oracle.write_text("{}")
+    later = time.time() + 10
+    os.utime(fresh / "reward.json", (later, later))
+
+    assert band._graded_before_the_key(stale.parent, oracle) is True
+    assert band._graded_before_the_key(fresh.parent, oracle) is False
+
+
+def test_a_stale_tier_does_not_block_but_a_failed_one_does():
+    """"Never measured on this version" and "measured and it broke" are
+    different facts, and only the second is a fact about the task."""
+
+    band = _load("band")
+    for quiet in (
+        "gpt-5.6-sol: not run",
+        "gpt-5.6-sol: graded against a superseded key",
+        "kimi-k3: answered an older brief",
+        "opus-5: read a different window",
+    ):
+        assert band._NO_CURRENT_RUN.search(quiet), quiet
+    for loud in (
+        "glm-5.2: timeout, nothing written",
+        "glm-5.2: no deliverable",
+        "glm-5.2: provider served garbage",
+    ):
+        assert not band._NO_CURRENT_RUN.search(loud), loud
