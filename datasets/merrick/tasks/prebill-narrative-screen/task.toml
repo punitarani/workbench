@@ -20,6 +20,24 @@ schema_version = "1.3"
 # What it does buy is that the rounding trap has teeth, because `total` is the
 # obvious field to sum and it is already cut to two decimals.
 
+# RETIRED 2026-08-29, unbuilt, on measurement.
+#
+# It screens time-entry narratives and prices what it catches. The surface
+# is 21,590 rows with 92% distinct narratives, served whole by one tool
+# call in about seventy seconds at zero context cost. A screen over a flat
+# file is a grep and the pricing is arithmetic over a column -- which is
+# this tree's oldest measured law: the surface a shell can flatten is not
+# the one worth grading, and three tasks built on such surfaces all score
+# 1.000 for the strongest tier.
+#
+# The billing surface has a second problem measured later: a Gini of 0.059
+# across people, every one logging between 573 and 933 hours. Nothing keyed
+# on who carries the work can be built on it.
+#
+# Its brief was never finished -- it still carries «MEASURE:» placeholders
+# -- so nothing is lost but the placeholder.
+retired = true
+
 [task]
 name = "workbench/merrick-prebill-narrative-screen"
 description = """Screen a billing period's time-entry narratives for \
