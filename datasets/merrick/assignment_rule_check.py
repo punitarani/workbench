@@ -92,6 +92,13 @@ _CLAUSE_VERBS = frozenset(
 _DENIALS = frozenset(("not", "never", "no", "passed", "unanswered", "overdue"))
 # A gate: nothing is owed until the condition clears.
 _GATES = frozenset(("once", "pending", "gated", "blocker"))
+# A condition anywhere before the assignee, not merely between them and
+# the day: "IF Teodor is expecting movement before Thursday".
+_CONDITIONALS = frozenset(("if", "unless", "whenever", "should", "were"))
+# A pronoun subject arriving AFTER the day, which fronts a clause of its
+# own: "and THURSDAY 2PM WE FINALIZE the recommendation".
+_CLOCK = re.compile(r"\d{1,2}(?::\d{2})?(?:am|pm)?", re.IGNORECASE)
+_SUBJECT_PRONOUNS = frozenset(("we", "they", "you", "i", "he", "she"))
 # A possessive naming a scheduled event: "MARGUERITE'S CALL IS Friday".
 _EVENT_NOUNS = frozenset(
     # `deadline` is NOT here. "ULRICH'S DEADLINE IS end of day tomorrow"
@@ -383,6 +390,16 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                 words[at] not in _OBLIGATION and tuple(words[at : at + 2]) != _NEEDS_TO
             ):
                 continue
+            # A condition standing before the NAME in this clause: "so I'd
+            # flag that IF Teodor is expecting movement before Thursday, we
+            # may need to escalate". Nothing is owed.
+            #
+            # This guard was written once and landed only in the possessive
+            # path, where it looked present and was absent from the path
+            # that actually admits these rows -- the third time today a
+            # guard has been added to one of three paths.
+            if any(w in _CONDITIONALS for w in words[:index]):
+                continue
             # a colleague introduced by one of these is receiving, not owing
             if index > 0 and words[index - 1] in _RECEIVING:
                 continue
@@ -574,6 +591,26 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             # Monday" is history.
             # The same two, on the possessive path.
             if "until" in before and any(w in _STATIVE for w in before):
+                continue
+            # A condition standing before the NAME, in this clause. Scoped
+            # to the name rather than to the verb, and to one clause rather
+            # than the turn: written wider it refused "Ulrich's deadline is
+            # end of day tomorrow, AND IF THAT SLIPS it comes to Adaora",
+            # where the `if` governs what happens after the deadline, not
+            # whether there is one.
+            if any(w in _CONDITIONALS for w in words[:index]):
+                continue
+            # A pronoun subject IMMEDIATELY after the day, fronting its own
+            # clause: "and THURSDAY 2PM WE FINALIZE". One token of slack for
+            # a bare clock time, and no more -- two was enough to refuse
+            # three sound rows.
+            after_day = _words(after[ends:])
+            # One bare clock token may stand between the day and its
+            # subject -- "Thursday 2PM we finalize" -- which is exactly the
+            # shape this guard exists for, and skipping it is what the
+            # regex route does with an optional group.
+            head = after_day[1:] if after_day and _CLOCK.fullmatch(after_day[0]) else after_day
+            if len(head) > 1 and head[0] in _SUBJECT_PRONOUNS:
                 continue
             if any(w in _GATES for w in words[:at]):
                 continue

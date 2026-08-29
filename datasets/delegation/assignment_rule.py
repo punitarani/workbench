@@ -327,6 +327,21 @@ _A_SCHEDULED_EVENT = re.compile(
 )
 
 
+# A day standing at the head of its OWN clause, with that clause's subject
+# arriving after it: "she's giving them a content-free update today AND
+# THURSDAY 2PM WE FINALIZE the investigator recommendation". The Thursday
+# is the room's, not the person named earlier.
+#
+# Every other new-subject test here looks for the subject BEFORE the day,
+# because that is where English usually puts it. Fronting the time inverts
+# that, and nothing was watching the other side.
+_DAY_FRONTS_A_CLAUSE = re.compile(
+    r"^\s*(?:\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s+)?"
+    r"(?:we|they|you|i|he|she)\s+[a-z]+",
+    re.IGNORECASE,
+)
+
+
 # A DIFFERENT colleague standing immediately before the day takes it.
 #
 # "Teodor is still silent on the residency carve-out, so that escalates TO
@@ -519,6 +534,13 @@ def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
                 between_them = clause[owner.end() : start]
                 if _UNTIL_A_DAY.search(clause[owner.start() : start]):
                     continue
+                if _DAY_FRONTS_A_CLAUSE.match(clause[end:]):
+                    continue
+                # A condition anywhere before the assignee, not merely
+                # between them and the day: "IF Teodor is expecting
+                # movement before Thursday, we may need to escalate".
+                if rule._CONDITION.search(clause[: owner.start()]):
+                    continue
                 if _A_SCHEDULED_EVENT.search(clause[:start]):
                     continue
                 if _GATE.search(clause[:start]):
@@ -603,6 +625,13 @@ def _present_tense_assignment(clause: str, who: str, names: dict[str, str], rule
                     continue
                 between_them = clause[owner.end() : start]
                 if _UNTIL_A_DAY.search(clause[owner.start() : start]):
+                    continue
+                if _DAY_FRONTS_A_CLAUSE.match(clause[end:]):
+                    continue
+                # A condition anywhere before the assignee, not merely
+                # between them and the day: "IF Teodor is expecting
+                # movement before Thursday, we may need to escalate".
+                if rule._CONDITION.search(clause[: owner.start()]):
                     continue
                 if _A_SCHEDULED_EVENT.search(clause[:start]):
                     continue
@@ -693,6 +722,13 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                         continue
                     between_them = clause[owner.end() : start]
                     if _UNTIL_A_DAY.search(clause[owner.start() : start]):
+                        continue
+                    if _DAY_FRONTS_A_CLAUSE.match(clause[end:]):
+                        continue
+                    # A condition anywhere before the assignee, not merely
+                    # between them and the day: "IF Teodor is expecting
+                    # movement before Thursday, we may need to escalate".
+                    if rule._CONDITION.search(clause[: owner.start()]):
                         continue
                     if _A_SCHEDULED_EVENT.search(clause[:start]):
                         continue

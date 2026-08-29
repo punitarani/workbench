@@ -2,7 +2,7 @@
  "meetings_read": 391,
  "turns_read": 2037,
  "distinct_owners": 24,
- "superseded_count": 60,
+ "superseded_count": 58,
  "assignments": [
   {
    "owner": "Adaora Nwosu",
@@ -97,11 +97,11 @@
   {
    "owner": "Samir Bhatt",
    "meeting": "Corporate deal status",
-   "due": "2026-05-19",
+   "due": "2026-05-07",
    "first_due": "2026-01-07",
-   "superseded": 10,
-   "meeting_id": "mtg-000193",
-   "said_at": "2026-05-18T09:15:00-05:00"
+   "superseded": 9,
+   "meeting_id": "mtg-000185",
+   "said_at": "2026-05-06T09:15:00-05:00"
   },
   {
    "owner": "Ulrich Bergmann",
@@ -198,7 +198,7 @@
    "meeting": "Employment practice huddle",
    "due": "2026-05-07",
    "first_due": "2026-05-07",
-   "superseded": 1,
+   "superseded": 0,
    "meeting_id": "mtg-000280",
    "said_at": "2026-05-04T09:30:00-05:00"
   },
@@ -246,15 +246,6 @@
    "superseded": 0,
    "meeting_id": "mtg-000226",
    "said_at": "2026-02-17T09:30:00-05:00"
-  },
-  {
-   "owner": "Teodor Vasiliev",
-   "meeting": "Employment practice huddle",
-   "due": "2026-05-14",
-   "first_due": "2026-05-14",
-   "superseded": 0,
-   "meeting_id": "mtg-000283",
-   "said_at": "2026-05-07T09:30:00-05:00"
   },
   {
    "owner": "Teodor Vasiliev",
