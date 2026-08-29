@@ -102,7 +102,23 @@ FIELDS: dict[str, float] = {"meeting_id": 0.0, "said_at": 0.0}
 # grading it in the reward would pay twice for one piece of work. In the
 # diagnostic dimension a reader who cannot add up their own register is
 # still visible, which is all that figure was ever worth.
-DERIVED_FROM_ROWS = ("distinct_owners", "superseded_count")
+# The census counts move here and stop paying.
+#
+# Two reasons that arrive at the same place. A practitioner reviewing this
+# family called them audit fields no partner wants, in a deliverable that
+# should read as a table -- correct. And measured, every tier of every
+# model got them identically WRONG on this world: 391 meetings and 2,037
+# turns against a true 383 and 1,989, because the brief defines a standing
+# series by the DAYS its title appears on and all three counted meetings.
+#
+# A criterion every tier fails in the same way discriminates nothing. It
+# subtracted a flat two points of ten from every score, compressing the
+# band without measuring anything -- the mirror of one every tier passes.
+#
+# They are not deleted, because they remain the only signal separating a
+# reader who opened the window from one who sampled it. Reported, not
+# scored.
+DERIVED_FROM_ROWS = ("distinct_owners", "meetings_read", "turns_read")
 
 # Nothing here is restated by the brief. The window's dates are prose, but
 # the report does not ask for them back -- an earlier task in this dataset

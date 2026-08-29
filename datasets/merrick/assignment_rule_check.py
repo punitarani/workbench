@@ -65,6 +65,14 @@ def _rules():
 _OBLIGATION = frozenset(("owes", "owns", "will", "ll", "has", "is", "committed"))
 _NEEDS_TO = ("needs", "to")
 _ADVERBS = frozenset(("still", "already", "now", "then", "also"))
+# Verbs that hand an obligation to somebody else. A bare preposition is
+# not enough: "recon TO Elena EOD tomorrow" moves the deliverable, not the
+# deadline.
+_TRANSFERS = frozenset(
+    ("escalate", "escalates", "goes", "going", "passes", "moves", "falls",
+     "transfers", "shifts", "reverts")
+)
+
 _RECEIVING = frozenset(("to", "for", "with", "and"))
 # The contracted forms are here because keeping apostrophes in the
 # tokeniser -- needed so `Hyun-woo` survives -- turned `I'll` into `i'll`,
@@ -382,6 +390,25 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             # fell into this morning with `\bI\b`. Two derivations, the
             # same mistake, hours apart: the ambiguity is in the corpus,
             # not in either implementation.
+            # A TRANSFER VERB handing the obligation to somebody else,
+            # immediately before the day: "so that ESCALATES TO BENNETT
+            # tomorrow morning" is Bennett's deadline and a status report
+            # about the person named earlier.
+            #
+            # The verb is what distinguishes it. "Samir has cap table recon
+            # TO ELENA EOD tomorrow" hands over the DELIVERABLE and keeps
+            # the deadline, and a guard written on the bare preposition
+            # refuses that -- measured, on the row the rule's own docstring
+            # requires it to admit.
+            if any(
+                before_day[i] in _TRANSFERS
+                and i + 2 < len(before_day)
+                and before_day[i + 1] in ("to", "onto")
+                and before_day[i + 2] in first
+                and first[before_day[i + 2]] != first.get(word, word)
+                for i in range(len(before_day) - 2)
+            ):
+                continue
             if any(_is_speaker(before_day, step) for step in range(len(before_day))):
                 continue
             # `mira's` is Mira. Without stripping the possessive the sever

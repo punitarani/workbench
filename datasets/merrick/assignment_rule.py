@@ -225,6 +225,38 @@ OBLIGATION = r"owes|owns|will|'ll|has|is|needs to|committed"
 _RECIPIENT = re.compile(r"\b(?:to|for|with|and)\s+$", re.IGNORECASE)
 
 
+# A DIFFERENT colleague standing immediately before the day takes it.
+#
+# "Teodor is still silent on the residency carve-out, so that escalates TO
+# BENNETT TOMORROW morning" is a status report about Teodor and a deadline
+# belonging to Bennett. `_RECIPIENT` catches a second name adjacent to the
+# assignee; this catches one adjacent to the DAY, at the far end of the
+# span, which is where an escalation or a hand-off puts it.
+#
+# `_new_subject` cannot: it wants a finite verb from a closed table and
+# `escalates` is not in it -- the same closed-list gap that has now cost
+# three rows across two rules.
+_DAY_IS_THEIRS = re.compile(
+    # A TRANSFER VERB, not a bare preposition. "escalates to Bennett
+    # tomorrow" hands the obligation over; "cap table recon TO ELENA EOD
+    # tomorrow" hands over the deliverable while Samir keeps the deadline,
+    # and that second form is one the rule's own docstring requires it to
+    # admit. Written as `to|for` alone, this guard refused it.
+    r"\b(?:escalates?|goes|going|passes|moves|falls|transfers|shifts|reverts)"
+    r"\s+(?:to|onto)\s+({who})\b(?:\s+[\w-]+){0,2}\s*$",
+    re.IGNORECASE,
+)
+
+
+def _day_belongs_to_another(span: str, who: str, owner_name: str, names) -> bool:
+    """Whether a different colleague is named right in front of the day."""
+
+    found = re.search(_DAY_IS_THEIRS.pattern.replace("{who}", who), span, re.IGNORECASE)
+    if found is None:
+        return False
+    return _named(names, found.group(1)).casefold() != owner_name.casefold()
+
+
 # A first-person clause standing between the assignee and the day takes
 # the day with it: "Cecile has confirmed the invoice ... and I'm personally
 # holding the team to end of day today" is the SPEAKER's end of day.
@@ -382,6 +414,11 @@ def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
                     continue
                 if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
                     continue
+                if _day_belongs_to_another(
+                    clause[owner.end() : start], who,
+                    _named(names, owner.group(1)), names,
+                ):
+                    continue
                 return _named(names, owner.group(1)), token
     return None
 
@@ -443,6 +480,11 @@ def _present_tense_assignment(clause: str, who: str, names: dict[str, str], rule
                 if rule._negated(span):
                     continue
                 if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
+                    continue
+                if _day_belongs_to_another(
+                    clause[owner.end() : start], who,
+                    _named(names, owner.group(1)), names,
+                ):
                     continue
                 return _named(names, owner.group(1)), token
     return None
@@ -509,6 +551,11 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                         continue
                     if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(
                         span
+                    ):
+                        continue
+                    if _day_belongs_to_another(
+                        clause[owner.end() : start], who,
+                        _named(names, owner.group(1)), names,
                     ):
                         continue
                     return _named(names, owner.group(1)), token
