@@ -1,0 +1,162 @@
+schema_version = "1.3"
+
+# The delegation world: the same firm and cast as merrick, recorded again
+# with one change to the workplace spec -- partners hand work to named
+# colleagues out loud instead of taking it on themselves. Measured before
+# the recording was commissioned: the change produced assignments at 10-24x
+# the baseline rate in a 10-day probe, and the finished 135-day world
+# carries 122 of them against merrick's 16.
+#
+# THAT RATIO IS THE POINT. The assignment rule is not new -- it and its
+# independent checker have agreed across every corpus in this tree for
+# weeks. What was missing was a world with enough of the thing in it to
+# build a task on. A task family needs a world built for it, and this is
+# the first time that was done deliberately rather than discovered after
+# the fact.
+#
+# WHY THE OWNER IS NOT THE SPEAKER. Every other register here keys on the
+# person who said the words, so a reader can find the turn and key it
+# without understanding it. Here the row belongs to the person being
+# talked about, and the same turn may name three colleagues of whom one is
+# an assignee, one a recipient, and one a purpose clause. Five conditions
+# separate them and every one was paid for by a measured wrong row.
+
+[task]
+name = "workbench/delegation-assignment-slippage-register"
+description = """Read the transcripts of a law firm's standing \
+meetings over four and a half months and report, for every live \
+assignment, who was told to do it, in which meeting, the date it is \
+due, and how many times that person's date was pushed later — which \
+needs every date they were given, each resolved against the meeting it \
+was said in."""
+authors = [{ name = "Workbench" }]
+keywords = [
+    "legal",
+    "agentic",
+    "transcripts",
+    "prose-extraction",
+    "supersession",
+    "third-person-attribution",
+    "chain-reconstruction",
+    "chain-reconstruction",
+    "outcome-graded",
+    "mcp",
+]
+
+[metadata]
+dataset = "delegation"
+difficulty = "hard"
+skills = [
+    "prose-comprehension",
+    "cross-document-tracking",
+    "supersession",
+    "third-person-attribution",
+    "chain-reconstruction",
+    "relative-date-resolution",
+    "completeness",
+]
+agent_data_scope = "Intentionally seatless firm-wide Clio, Gmail, Slack, Calendar, iManage and meeting-transcript records from the LLM-generated epoch."
+
+[metadata.evidence]
+primary_field = "assignment_slippage.json"
+source_surfaces = ["meetings"]
+
+[environment]
+docker_image = "workbench:dev"
+os = "linux"
+workdir = "/home/agent/workspace"
+memory_mb = 4096
+network_mode = "allowlist"
+allowed_hosts = [
+    "openrouter.ai",
+    "raw.githubusercontent.com",
+    "objects.githubusercontent.com",
+    "nodejs.org",
+    "registry.npmjs.org",
+    "*.ubuntu.com",
+    # Setup hosts only -- they gate how the agent is installed, never what
+    # it can read, so no task's data or difficulty moves.
+    "astral.sh",
+    "*.astral.sh",
+    "github.com",
+    "codeload.github.com",
+    "*.githubusercontent.com",
+    "pypi.org",
+    "*.pypi.org",
+    "files.pythonhosted.org",
+    "*.nousresearch.com",
+]
+
+[environment.healthcheck]
+command = "sh /home/agent/workspace/.workbench/install.sh"
+timeout_sec = 600.0
+interval_sec = 2.0
+retries = 2
+
+# One argument-free executable per server, never command-plus-args: Harbor's
+# Codex adapter joins them into a single program name and the agent silently
+# comes up with no tools at all.
+[[environment.mcp_servers]]
+name = "clio"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-clio"
+
+[[environment.mcp_servers]]
+name = "gmail"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-gmail"
+
+[[environment.mcp_servers]]
+name = "slack"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-slack"
+
+[[environment.mcp_servers]]
+name = "imanage"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-imanage"
+
+[[environment.mcp_servers]]
+name = "calendar"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-calendar"
+
+[[environment.mcp_servers]]
+name = "meetings"
+transport = "stdio"
+command = "/usr/local/bin/workbench-mcp-meetings"
+
+[agent]
+user = "agent"
+# Measured, not assumed, and 1800 was wrong. A probe of Opus 5 at k=3 on a
+# 47-day window -- 140 standing meetings, 706 turns, 51,672 words -- hit the
+# 1800-second wall on all three trials with no deliverable written, and the
+# harness retried all three into the same wall. The agent was not stuck: it
+# had dumped the transcripts and was paging candidate turns twenty at a time,
+# which is the reading this task exists to require.
+#
+# Raised again to 5400 after a second probe, and the reason is worth
+# keeping. All three trials reached the 3600 wall *mid-calibration*: the
+# agent had dumped the window, built four competing readings of the rule
+# and printed them side by side --
+#
+#     after_first_self   cands= 73 live=26 sup=47 owners=16
+#     anywhere_first     cands=110 live=33 sup=76 owners=18
+#     window60           cands= 47 live=18 sup=29 owners=14
+#
+# -- with `anywhere_first` reproducing the oracle's 33 rows and 18 owners
+# almost exactly. It had found the answer and had no time left to write it
+# down. That is the most expensive way to score zero, and none of it is a
+# fact about comprehension.
+#
+# A timeout that cuts off honest work does not measure difficulty, it
+# measures the clock, and it is indistinguishable downstream from a model
+# that cannot do the task. Re-time this whenever the window changes.
+timeout_sec = 5400.0
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
+
+[verifier]
+user = "verifier"
+timeout_sec = 900.0
+network_mode = "no-network"

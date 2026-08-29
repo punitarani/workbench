@@ -1,0 +1,8 @@
+# Derived data, rebuilt from the world log by datasets/delegation/build_tasks.py.
+#
+# `tests/oracle.json` is deliberately NOT here: the answer key ships, and
+# `tests/oracle.world` ships beside it so the next build can tell a solver
+# regression from a later recording.
+bundle/
+environment/
+__pycache__/
