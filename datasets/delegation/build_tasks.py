@@ -888,7 +888,34 @@ def _commit_oracle(
     stamp_path = _world_stamp_path(oracle_path)
     existing = oracle_path.read_text() if oracle_path.exists() else None
     existing_stamp = stamp_path.read_text() if stamp_path.exists() else None
-    oracle_path.write_text(json.dumps(answer, indent=1) + "\n")
+    written = json.dumps(answer, indent=1) + "\n"
+    # An UNCHANGED key is not rewritten, and the reason is about
+    # measurements rather than about disk.
+    #
+    # Every sweep on this tree is dated against the oracle it was graded on:
+    # a reward file older than the key it was scored by came from a key that
+    # no longer exists, which is the only staleness check that works when a
+    # harness never records the prompt. Rewriting a byte-identical file
+    # moves its mtime and retroactively invalidates every measurement ever
+    # taken against it.
+    #
+    # It happened. A correction to the standing-series rule was propagated
+    # to seven solvers and left three oracles byte-for-byte identical -- the
+    # hashes were compared before and after and matched -- and the rebuild
+    # still marked two CERTIFIED tasks as "graded against a superseded key",
+    # discarding nine graded trials that were perfectly valid.
+    if existing == written:
+        try:
+            _run_second_derivation(task, name, oracle_path)
+            _ship_grading_base(task, name)
+        except BaseException:
+            raise
+        print(f"{name}: oracle unchanged (mtime preserved)")
+        floors = baselines.measure(task, answer)
+        print("  " + baselines.render(name, floors))
+        baselines.refuse_a_task_a_dump_can_pass(name, floors)
+        return
+    oracle_path.write_text(written)
     stamp_path.write_text(json.dumps(_world_identity(), indent=1) + "\n")
     try:
         _run_second_derivation(task, name, oracle_path)
