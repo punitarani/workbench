@@ -376,6 +376,53 @@ The tooling is still worth keeping (`scripts/window_variant.py`), because
 the next world may be longer — and because cutting a window by hand is how
 a brief comes to state one window while its solver reads another.
 
+### L40. The phenomenon's density sets a floor under the window, and realism cannot go below it
+
+A practitioner will tell you the real work uses recent cycles, not six
+months. Measure before agreeing.
+
+**Measured:** blockers occur in 58 turns of 2,872. At the last 8
+occurrences of each standing series the register has **2 rows**; at the last
+12, four. A register that thin cannot score partially — every rollout comes
+back 0 or 1.
+
+**Therefore:** when a reviewer says the window is unrealistically wide, the
+answer is a row count, not an argument. If the realistic slice is
+ungradeable, say so plainly: the task measures a capability nobody would be
+asked to exercise at that scale. That is true of most agent benchmarks and
+is better said than dressed up.
+
+### L41. The more faithful row definition is often the less measurable one
+
+**Measured, on the same corpus.** A reviewer correctly observed that a
+blocker register keyed on person × series conflates distinct waits. The
+faithful fix — split a chain wherever it goes quiet for 60 days — gives 28
+rows where 18 are a single raise, and hands the task to a strategy with no
+chain reconstruction in it at all:
+
+    every-complaint-is-its-own-episode, against the split register   f1 0.434
+    the same strategy against the unsplit register                   f1 0.000
+
+Forty-three per cent of the row set for never grouping anything.
+
+**Therefore:** test a proposed row definition against the laziest strategy
+that satisfies it before adopting it. A definition that reads more like the
+real artifact can measure strictly less, and the tell is a floor rather than
+an argument.
+
+### L42. Do not tell the agent which surface holds the answer
+
+A brief that lists six systems and then says "the answer is in the
+transcripts, and only there" removes the tool-selection problem the six
+surfaces exist to pose. No real brief does this.
+
+**Measured side effect of the related fix:** the coverage counts that a
+brief asks for back — how many meetings and turns were read — are audit
+fields no reader wants, and they were paying two of ten points that every
+tier earns. Moving them to the diagnostic dimension dropped the
+empty-answer floor from **0.200 to 0.000**. The bottom of the target band
+was arriving before the task began.
+
 ---
 
 ## Part IV — What makes a world usable
