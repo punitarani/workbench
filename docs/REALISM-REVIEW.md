@@ -135,19 +135,41 @@ measurement one.
 
 ---
 
-## What the review produced
+## What the review produced, and what it did not
 
-A second task rather than an edit. Splitting a person's chain wherever it
-goes quiet for more than sixty days is the gradeable half of criticism 1: a
-wait that stops for two months and comes back is a different wait, and the
-gap is derivable from the meeting dates alone with no matter needed.
+The first draft of this file proposed a second task: split a person's chain
+wherever it goes quiet for more than sixty days, on the grounds that a wait
+which stops for two months and comes back is a different wait, and the gap
+needs no matter to derive. It called that "the gradeable half of criticism
+1" and said it would ship beside the original.
 
-| split | rows | median length | multi-raise chains |
+**Measured, it is a worse task, and the claim above was wrong.**
+
+| split | rows | median length | single-raise rows |
 |---|---|---|---|
-| none (person × series) | 20 | 2.0 | 11 |
-| 60-day gap | 28 | 1.0 | 10 |
-| 21-day gap | 40 | 1.0 | 9 |
+| none (person × series) | 20 | 2.0 | 9 of 20 |
+| 60-day gap | 28 | 1.0 | **18 of 28** |
+| 21-day gap | 40 | 1.0 | — |
 
-It buys faithfulness and costs signal — more rows, shorter chains — so it
-ships beside the original rather than replacing it, and the two measure
-different things.
+Splitting turns a chain into episodes, and on this corpus most episodes are
+one raise long. That hands the task to a strategy with no chain
+reconstruction in it at all — report every complaint as its own episode,
+`first == last`, `count == 1`:
+
+    every-complaint-is-an-episode      f1 = 0.434
+    (the same strategy against the unsplit register)   f1 = 0.000
+
+Forty-three per cent of the row set, for never grouping anything. The
+unsplit register gives that strategy nothing, because every one of its rows
+spans meetings that have to be found and ordered first.
+
+**So the faithful row definition is the less measurable one here**, and the
+reason is the same rarity that forced the wide window: blockers are sparse
+enough that episodes are mostly singletons. The task keeps person × series
+and the report says plainly that a person's chain may conflate distinct
+waits.
+
+That is the honest resolution of criticism 1. Not "the reviewer was wrong"
+— they were right about the artifact — but the fix they imply is not
+available on a corpus this sparse, and the version that looks more like an
+operations report measures less.
