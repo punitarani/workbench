@@ -1400,6 +1400,12 @@ def _refuse_while_a_sweep_is_reading(tasks: list[str]) -> None:
             continue
         if "rollout.py" not in line:
             continue
+        # The DATASET as well as the task. Two datasets here carry a task
+        # of the same name -- `blocker-register` exists on both worlds --
+        # and matching the task alone refused a build on one world because
+        # a sweep was reading the other.
+        if f"--dataset {DATASET}" not in line:
+            continue
         busy.extend(task for task in tasks or [] if f"--task {task}" in line)
     if busy:
         raise SystemExit(

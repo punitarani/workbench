@@ -17,11 +17,11 @@ what was said), **clio** (matters, users and time entries), **gmail**,
 
 ## Where the answers are
 
-**In the transcripts, and only there.** Nothing here is a field in any
-system. Clio has statuses; it does not have "Petra said she is still
-waiting on Jamal".
+Find them. The firm keeps statuses, tickets, mail and chat, and none of
+them was built to answer this question; work out for yourself which surface
+carries it and satisfy yourself the others do not.
 
-**And this register has no dates in its sentences.** A commitment says "by
+**This register has no dates in its sentences.** A commitment says "by
 Thursday" and hands you its own date. A complaint says only that somebody
 is stuck. Every date in this report comes from the MEETING it was said in,
 which means a reader who finds one complaint cannot tell whether it is the
@@ -81,6 +81,10 @@ fields:
   the window, whatever was said in it.
 - `turns_read` — how many turns those meetings contained.
 - `distinct_owners` — how many different people hold a blocker.
+
+  These three are audit fields. No partner wants them; they are here so a
+  reader who sampled the window can be told apart from one who read it, and
+  they are reported rather than scored.
 - `blockers` — **one entry per person per standing meeting**, sorted by
   `meeting` then `owner`, each with:
   - `owner` — the person's full name

@@ -62,7 +62,10 @@ CRITERIA_BASE = Path(__file__).resolve().parent / "criteria_base.py"
 # Reward Kit has a reward to compute. Without these three files a task
 # discovers **zero** rewards and every trial returns no score at all.
 GRADING = Path(__file__).resolve().parent / "grading"
-SHARED_BUNDLE = REPO / "out" / "merrick" / "bundle"
+# Derived from this dataset's own directory name, so a guard that has to
+# distinguish two datasets carrying the same task name has one to read.
+DATASET = Path(__file__).resolve().parent.name
+SHARED_BUNDLE = REPO / "out" / DATASET / "bundle"
 _SOURCE = SHARED_BUNDLE / "SOURCE"
 # The world the current bundle was built from, as the last build recorded
 # it. A fixed default here meant `--refresh-truth` re-derived every oracle
@@ -1393,6 +1396,12 @@ def _refuse_while_a_sweep_is_reading(tasks: list[str]) -> None:
         if not any("python" in part for part in head):
             continue
         if "rollout.py" not in line:
+            continue
+        # The DATASET as well as the task. Two datasets here carry a task
+        # of the same name -- `blocker-register` exists on both worlds --
+        # and matching the task alone refused a build on one world because
+        # a sweep was reading the other.
+        if f"--dataset {DATASET}" not in line:
             continue
         busy.extend(task for task in tasks or [] if f"--task {task}" in line)
     if busy:
