@@ -81,7 +81,26 @@ ROWS = "live"
 # the whole chain has all three, which is the joint dependency this task
 # exists to measure -- at a per-statement accuracy of `a`, a row needing
 # `k` statements is right with probability `a**k`.
-KEY = ("owner", "meeting", "due", "first_due", "superseded")
+# Who owes it, in which standing meeting, by when, and from what date.
+#
+# `superseded` moves to a field. Chosen by re-scoring the same saved
+# deliverables under every candidate -- no sweep re-run:
+#
+#     (owner, meeting)                        0.977 / 0.977 / 0.894
+#     (owner, meeting, due)                   0.921 / 0.886 / 0.650
+#     (owner, meeting, due, first_due)        0.704 / 0.671 / 0.370
+#     (owner, meeting, due, superseded)       0.568 / 0.500 / 0.271
+#     (owner, meeting, due, first_due, sup)   0.511 / 0.466 / 0.261
+#
+# At five components the weakest tier sat at 0.261 and its headline fell
+# below the band once the census counts stopped paying for reading the
+# window. Four keeps both ends of the chain in the key -- which is what
+# this register is for -- while leaving the tier something to score.
+#
+# This world is denser than its sibling: 200 commitments in 383 meetings
+# against 154 in 512, so the same key is harder here and the two datasets
+# do not have to agree on one.
+KEY = ("owner", "meeting", "due", "first_due")
 
 # What is left once the key has taken four of the six fields. Both are
 # strings the record states outright -- a meeting id and its start -- so
@@ -90,7 +109,11 @@ KEY = ("owner", "meeting", "due", "first_due", "superseded")
 # They are graded rather than dropped because they are the *evidence*: a
 # register that names the right date and cannot say which room it was said
 # in has not been read, it has been reconstructed.
-FIELDS: dict[str, float] = {"meeting_id": 0.0, "said_at": 0.0}
+FIELDS: dict[str, float] = {
+    "superseded": 0.0,
+    "meeting_id": 0.0,
+    "said_at": 0.0,
+}
 
 # Tallies of the rows this grading already checks. Paying for them again
 # does not add signal, it multiplies the signal already there -- and it
