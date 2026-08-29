@@ -90,6 +90,17 @@ _CLAUSE_VERBS = frozenset(
 )
 # A negation between the assignee and the day: nothing happened.
 _DENIALS = frozenset(("not", "never", "no", "passed", "unanswered", "overdue"))
+# A gate: nothing is owed until the condition clears.
+_GATES = frozenset(("once", "pending", "gated", "blocker"))
+# A possessive naming a scheduled event: "MARGUERITE'S CALL IS Friday".
+_EVENT_NOUNS = frozenset(
+    # `deadline` is NOT here. "ULRICH'S DEADLINE IS end of day tomorrow"
+    # is an assignment stated in the plainest possible way, and listing it
+    # beside `call` and `board` refused it. An event happens; a deadline is
+    # owed.
+    ("call", "meeting", "committee", "review", "session", "hearing",
+     "board", "slot", "prep")
+)
 _STATIVE = frozenset(
     ("is", "are", "was", "were", "stays", "stay", "remains", "remain",
      "sits", "sit", "contained", "hold")
@@ -456,6 +467,19 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             # ...with a VERB after it. Without that this refuses "ingrid
             # owns sizing ... AND AN EOD-TOMORROW NUMBER", where the
             # conjunction introduces a second deliverable.
+            if any(w in _GATES for w in words[:at]):
+                continue
+            # The possessive IS the assignee here, so what follows it is
+            # the whole span: "MARGUERITE'S board is Thursday" leaves
+            # [board, is]. Looking for the possessive inside the span finds
+            # nothing, which is how this guard passed its own probe and
+            # failed on the corpus.
+            if (
+                len(before_day) == 2
+                and before_day[0] in _EVENT_NOUNS
+                and before_day[1] in ("is", "was", "are")
+            ):
+                continue
             if any(w in _DENIALS for w in before_day):
                 continue
             if _new_clause(before_day):
@@ -550,6 +574,16 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             # Monday" is history.
             # The same two, on the possessive path.
             if "until" in before and any(w in _STATIVE for w in before):
+                continue
+            if any(w in _GATES for w in words[:at]):
+                continue
+            # A possessive naming a scheduled event: "MARGUERITE'S board is
+            # Thursday" leaves [board, is] between the name and the day.
+            if (
+                len(before) == 2
+                and before[0] in _EVENT_NOUNS
+                and before[1] in ("is", "was", "are")
+            ):
                 continue
             if any(w in _DENIALS for w in before):
                 continue

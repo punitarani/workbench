@@ -315,6 +315,18 @@ _NOT_DONE = re.compile(
 )
 
 
+# A possessive naming a SCHEDULED EVENT with a day. "Bennett, MARGUERITE'S
+# CALL IS FRIDAY, not today" states when a meeting sits on the calendar; it
+# hands nobody anything. The negation that follows is the tell a reader has
+# and a pattern does not, so the shape is matched instead: a person's noun,
+# a copula, and a day.
+_A_SCHEDULED_EVENT = re.compile(
+    r"[\w-]+['\u2019]s\s+(?:call|meeting|committee|review|session|hearing|"
+    r"board|slot|prep)\s+(?:is|was|are)\s*$",
+    re.IGNORECASE,
+)
+
+
 # A DIFFERENT colleague standing immediately before the day takes it.
 #
 # "Teodor is still silent on the residency carve-out, so that escalates TO
@@ -507,6 +519,10 @@ def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
                 between_them = clause[owner.end() : start]
                 if _UNTIL_A_DAY.search(clause[owner.start() : start]):
                     continue
+                if _A_SCHEDULED_EVENT.search(clause[:start]):
+                    continue
+                if _GATE.search(clause[:start]):
+                    continue
                 if _LOOKS_BACK.search(clause[max(0, start - 10) : start]):
                     continue
                 if _NOT_DONE.search(between_them):
@@ -587,6 +603,10 @@ def _present_tense_assignment(clause: str, who: str, names: dict[str, str], rule
                     continue
                 between_them = clause[owner.end() : start]
                 if _UNTIL_A_DAY.search(clause[owner.start() : start]):
+                    continue
+                if _A_SCHEDULED_EVENT.search(clause[:start]):
+                    continue
+                if _GATE.search(clause[:start]):
                     continue
                 if _LOOKS_BACK.search(clause[max(0, start - 10) : start]):
                     continue
@@ -673,6 +693,10 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                         continue
                     between_them = clause[owner.end() : start]
                     if _UNTIL_A_DAY.search(clause[owner.start() : start]):
+                        continue
+                    if _A_SCHEDULED_EVENT.search(clause[:start]):
+                        continue
+                    if _GATE.search(clause[:start]):
                         continue
                     if _LOOKS_BACK.search(clause[max(0, start - 10) : start]):
                         continue

@@ -1,8 +1,8 @@
 {
  "meetings_read": 391,
  "turns_read": 2037,
- "distinct_owners": 25,
- "superseded_count": 63,
+ "distinct_owners": 24,
+ "superseded_count": 60,
  "assignments": [
   {
    "owner": "Adaora Nwosu",
@@ -41,15 +41,6 @@
    "said_at": "2026-04-20T15:15:00-05:00"
   },
   {
-   "owner": "Marguerite Oyelaran",
-   "meeting": "Client board and committee updates",
-   "due": "2026-04-17",
-   "first_due": "2026-04-17",
-   "slips": 0,
-   "meeting_id": "mtg-000366",
-   "said_at": "2026-04-13T15:15:00-05:00"
-  },
-  {
    "owner": "Adaora Nwosu",
    "meeting": "Corporate deal status",
    "due": "2026-04-24",
@@ -86,15 +77,6 @@
    "said_at": "2026-04-15T09:15:00-05:00"
   },
   {
-   "owner": "Imelda Frost",
-   "meeting": "Corporate deal status",
-   "due": "2026-03-09",
-   "first_due": "2026-03-09",
-   "slips": 0,
-   "meeting_id": "mtg-000142",
-   "said_at": "2026-03-06T09:15:00-05:00"
-  },
-  {
    "owner": "Ingrid Solheim",
    "meeting": "Corporate deal status",
    "due": "2026-04-15",
@@ -117,7 +99,7 @@
    "meeting": "Corporate deal status",
    "due": "2026-05-19",
    "first_due": "2026-01-07",
-   "slips": 12,
+   "slips": 10,
    "meeting_id": "mtg-000193",
    "said_at": "2026-05-18T09:15:00-05:00"
   },
@@ -171,7 +153,7 @@
    "meeting": "Docket call",
    "due": "2026-04-07",
    "first_due": "2026-01-15",
-   "slips": 2,
+   "slips": 1,
    "meeting_id": "mtg-000067",
    "said_at": "2026-04-07T08:45:00-05:00"
   },
