@@ -1348,12 +1348,26 @@ def _refuse_while_a_sweep_is_reading(tasks: list[str]) -> None:
         ).stdout
     except (OSError, subprocess.SubprocessError):
         return
-    busy = [
-        task
-        for task in tasks or []
-        for line in running.splitlines()
-        if "rollout.py" in line and f"--task {task}" in line
-    ]
+    # Only an actual rollout process, never a shell that happens to mention
+    # one. This matched its own invocation: a single compound command that
+    # ran `pkill -f scripts/rollout.py` and then the build appears in `ps`
+    # as ONE line carrying both "rollout.py" and "--task <name>", so the
+    # guard refused every build issued that way and reported four sweeps
+    # that were not running.
+    #
+    # A shell wrapper is `/bin/zsh -c ...`; a rollout is a python process
+    # whose script argument is the rollout itself. Requiring the two tokens
+    # to sit next to each other -- `rollout.py` ... `--task <name>` with no
+    # intervening `-c` -- is not enough, because a shell line contains them
+    # in that order too. The interpreter is what separates them.
+    busy = []
+    for line in running.splitlines():
+        head = line.split()[:2]
+        if not any("python" in part for part in head):
+            continue
+        if "rollout.py" not in line:
+            continue
+        busy.extend(task for task in tasks or [] if f"--task {task}" in line)
     if busy:
         raise SystemExit(
             "refusing to rebuild while a sweep is reading: "

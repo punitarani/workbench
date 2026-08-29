@@ -754,12 +754,27 @@ def main() -> int:
         )
         if low <= started <= high
     }
+    # DAYS, not meetings. The brief says a standing meeting is one whose
+    # title "appears on three or more days", and counting meetings is a
+    # different question whenever a room is used twice in one day.
+    #
+    # It made no difference on merrick -- 8 series either way -- and that is
+    # exactly why it survived: a condition correct by luck on the corpus it
+    # was written against. On the delegation world "Reyes and Kapoor Prebill
+    # Review" is 4 meetings on 2 days, a working session held twice, and
+    # counting meetings promoted it to a standing series worth two rows.
+    #
+    # Found by the second derivation, which reads the brief's own words and
+    # counted days from the start.
+    days: dict[str, set] = {}
+    for started, title in window.values():
+        days.setdefault(title, set()).add(
+            (epoch + dt.timedelta(seconds=started)).date()
+        )
     standing = {
         title
-        for title, count in collections.Counter(
-            title for _started, title in window.values()
-        ).items()
-        if count >= STANDING_SERIES_MINIMUM
+        for title, seen in days.items()
+        if len(seen) >= STANDING_SERIES_MINIMUM
     }
     window = {
         meeting_id: row for meeting_id, row in window.items() if row[1] in standing

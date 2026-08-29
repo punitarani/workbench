@@ -95,10 +95,20 @@ def main() -> int:
     rooms = list(meetings.execute("SELECT meeting_id, started, title FROM meetings"))
     # Counted by accumulation rather than by Counter, so an off-by-one is
     # not shared with the solver.
-    seen: dict[str, int] = {}
-    for _mid, _started, title in rooms:
-        seen[title] = seen.get(title, 0) + 1
-    standing = {title for title, count in seen.items() if count >= _SERIES_MINIMUM}
+    # DAYS, because the brief says "appears on three or more days". Counting
+    # MEETINGS is a different question the moment a room is used twice in a
+    # day, and both derivations of this task counted meetings until the
+    # commitment registers on the same world disagreed about it: "Reyes and
+    # Kapoor Prebill Review" is 4 meetings on 2 days.
+    #
+    # Accumulated into sets rather than by Counter, so an off-by-one is not
+    # shared with the solver.
+    seen: dict[str, set] = {}
+    for _mid, started, title in rooms:
+        seen.setdefault(title, set()).add(
+            (epoch + datetime.timedelta(seconds=started)).date()
+        )
+    standing = {title for title, days in seen.items() if len(days) >= _SERIES_MINIMUM}
     room = {
         mid: (started, title) for mid, started, title in rooms if title in standing
     }

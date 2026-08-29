@@ -73,7 +73,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("live_commitments.json")
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("commitment_revisions.json")
 
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 
@@ -206,7 +206,7 @@ def _window() -> tuple[int, int]:
     # module -- the date arithmetic, the form tables -- stays importable
     # before the corpus exists.
     WINDOW_FIRST_DAY = 1
-    WINDOW_LAST_DAY = 147
+    WINDOW_LAST_DAY = 134
     return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
 
 
@@ -348,10 +348,14 @@ _FINITE = (
 # `tomorrow` dates the document going out, not the promise -- and the
 # register carried it anyway.
 _ELSEWHERE = re.compile(
-    # `until` opens a clause with a new subject. It is deliberately ABSENT
-    # from the preposition table -- "until Wednesday" ends a wait, it does
-    # not date a delivery -- and that carve-out was silently doing double
-    # duty for both questions. See commitment-revision-register.
+    # `until` earns its place here and is deliberately ABSENT from the
+    # preposition table above: the two lists answer different questions.
+    # `until X` cannot DATE a delivery -- it marks the end of a wait -- but
+    # it certainly opens a clause with a new subject, and the brief's test
+    # is "a new subject does". Without it, "I'll hold the elevator item on
+    # the tracker until Ingrid or Quentin has something concrete, no changes
+    # needed from me before EOD" was a row: the EOD belongs to "no changes
+    # needed", and every trial of two tiers refused it.
     r"\b(?:so|that|whether|which|because|if|once|when|while|unless|until"
     r"|and|but|with)\s+"
     # `we` is NOT excluded, and it was, deliberately, for months. The
@@ -519,6 +523,18 @@ _PRONOUN_SUBJECT = re.compile(
     r"\b(?:and|so|but|then)\s+(?:we|they|you|he|she)\s+(?!')[a-z]", re.IGNORECASE
 )
 
+# A new subject with no finite verb to find: an indefinite person handed an
+# infinitive. The brief settles this outright -- "someone needs to own the
+# EOD escalation call" *asks for a volunteer* and makes no row -- but
+# `_ELSEWHERE` looks for a subject plus a FINITE verb and an infinitive has
+# none, so "I'll need someone to confirm that's the only certificate
+# needing a follow-up revision before Wednesday's close" was a row. The
+# confirming is the volunteer's, and so is the Wednesday.
+_VOLUNTEER = re.compile(
+    r"\b(?:someone|somebody|anyone|anybody|everyone)\s+(?:else\s+)?to\s+[a-z]+",
+    re.IGNORECASE,
+)
+
 
 @functools.cache
 def _roster() -> re.Pattern:
@@ -558,9 +574,10 @@ def _roster() -> re.Pattern:
         # preposition is as often "Friday's packet" as it is a person.
         #
         # Degrading here keeps `commitment_in` callable on a bare string,
-        # which is how its rules are unit-tested. Degrading SILENTLY would
-        # be a correctness hole, so `main` refuses to build an oracle with
-        # the roster empty: the default is for readers, never for the key.
+        # which is how its rules are unit-tested and how they were tested
+        # long before this check existed. Degrading SILENTLY would be a
+        # correctness hole, so `main` refuses to build an oracle with the
+        # roster empty: the default is for readers, never for the answer key.
         return re.compile(r"(?!x)x")
     parts = sorted(
         {piece for (full,) in names for piece in full.split() if len(piece) > 2},
@@ -572,21 +589,6 @@ def _roster() -> re.Pattern:
         r"[\w-]+(?:\s+[\w-]+)?\s+(?:by|before|due|on|come)\s*$",
         re.IGNORECASE,
     )
-
-
-# A new subject with no finite verb to find: an indefinite person handed an
-# infinitive. The brief settles this outright -- "someone needs to own the
-# EOD escalation call" *asks for a volunteer* and makes no row -- but
-# `_ELSEWHERE` looks for a subject plus a FINITE verb and an infinitive has
-# none, so "I'll need someone to confirm that's the only certificate
-# needing a follow-up revision before Wednesday's close" was a row. The
-# confirming is the volunteer's, and so is the Wednesday.
-_VOLUNTEER = re.compile(
-    r"\b(?:someone|somebody|anyone|anybody|everyone)\s+(?:else\s+)?to\s+[a-z]+",
-    re.IGNORECASE,
-)
-
-
 
 
 def commitment_in(text: str) -> str | None:
@@ -632,6 +634,23 @@ def commitment_in(text: str) -> str | None:
     EOD", where the `rather than` hanging off the first promise has nothing
     to do with the deadline hanging off the second.
 
+    A clause that ENDS in a question mark asks rather than promises. The
+    brief says so outright -- "Nothing else is a commitment. In particular,
+    a question is not one" -- and `checks/verify.py` has pinned that
+    sentence from the beginning, so the phrase was being ASSERTED and never
+    enforced. Measured on this window: exactly one admitted commitment
+    lived in such a clause, "Mira, want me to send you the elevator status
+    language once building management gets back to me, or are you fine
+    drafting a placeholder now and I'll update it tomorrow?" -- an offer of
+    two ways to proceed, and two tiers refused it.
+
+    The narrower test would be an inverted auxiliary opening the clause.
+    This uses the question mark because the brief's test is the question,
+    not its grammar, and because `_CLAUSE` already splits on `?`: a clause
+    ending in one is interrogative content. The cost is that "I'll have it
+    to you by Friday, ok?" would be refused; no such turn occurs here, and
+    that is a measurement rather than an assumption.
+
     What this does NOT do is judge whether the speaker's verb is a delivery.
     "I owe Imelda a firm closing date by tomorrow morning and I'll beat
     that" is a real commitment that makes no row, because the brief admits
@@ -640,8 +659,6 @@ def commitment_in(text: str) -> str | None:
     """
 
     for clause in _CLAUSE.split(text or ""):
-        # A question asks; it does not promise. The brief says so outright
-        # and the pinned phrase was asserted without ever being enforced.
         if clause.rstrip().endswith("?"):
             continue
         for owner in _OWNER.finditer(clause):
@@ -741,7 +758,7 @@ def main() -> int:
             "SELECT person_id, name FROM people"
         )
     )
-    # The possessive test degrades to a no-op when clio is out of reach so
+    # The possessive test degrades to a no-op when clio is out of reach, so
     # that `commitment_in` stays callable on a bare string. An oracle built
     # that way would silently be missing a rule, so refuse it here.
     if _roster().pattern == r"(?!x)x":
@@ -809,8 +826,8 @@ def main() -> int:
         started, _position, meeting_id, token = occasions[-1]
         # The other end of the chain. `occasions` is sorted, so this is the
         # earliest qualifying statement -- resolved against ITS OWN meeting,
-        # which is the whole point: the same word said in one week and the
-        # next is two different dates.
+        # which is the whole point: the same word said in January and in
+        # June is two different dates.
         first_started, _fp, _fm, first_token = occasions[0]
         first_moment = epoch + dt.timedelta(seconds=first_started)
         moment = epoch + dt.timedelta(seconds=started)

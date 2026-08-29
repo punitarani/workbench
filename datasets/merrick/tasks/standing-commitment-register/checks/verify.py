@@ -800,9 +800,19 @@ def _conditional(between: list[str]) -> bool:
 # "attached to WHOSE noun".
 _OWNING = frozenset(("by", "before", "due", "on", "come"))
 # How far an owner's name may sit from the preposition it owns through.
-# "Thandiwe's sign off by" is four tokens; two nouns is the most this firm
-# writes before the preposition.
-_OWNER_REACH = 5
+#
+# FOUR, not five, and the difference is a measured row. At five, "I'll get
+# KLARA'S DATE pinned down by end of day" reads as Klara owning the EOD --
+# but the promise is the speaker's and Klara's date is its object. At four,
+# "assumes THANDIWE'S SIGN-OFF by Wednesday" still matches, because a
+# hyphenated deliverable is one word to the regex route and two to this
+# one, and four tokens is exactly `name` + `s` + those two.
+#
+# The rule of thumb underneath: at most TWO words may stand between the
+# possessive and the preposition. Three means a verb phrase has intervened
+# -- "date PINNED DOWN by" -- and the day belongs to the verb, which is the
+# speaker's, not to the possessive.
+_OWNER_REACH = 4
 
 
 def _roster() -> frozenset:

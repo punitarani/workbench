@@ -73,7 +73,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 
 STATE = Path(os.environ["WORKBENCH_STATE"])
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("live_commitments.json")
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("slippage_register.json")
 
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 
@@ -206,7 +206,7 @@ def _window() -> tuple[int, int]:
     # module -- the date arithmetic, the form tables -- stays importable
     # before the corpus exists.
     WINDOW_FIRST_DAY = 1
-    WINDOW_LAST_DAY = 147
+    WINDOW_LAST_DAY = 134
     return WINDOW_FIRST_DAY * 86_400, (WINDOW_LAST_DAY + 1) * 86_400 - 1
 
 
@@ -801,26 +801,31 @@ def main() -> int:
     live, superseded = [], 0
     for (speaker, title), occasions in said.items():
         occasions.sort()
-        # The unit is the meeting, not the turn: a person who commits twice
-        # inside one meeting has committed once, so the same meeting cannot
-        # be discarded twice.
-        replaced = len({row[2] for row in occasions}) - 1
-        superseded += replaced
+        superseded += len({row[2] for row in occasions}) - 1
         started, _position, meeting_id, token = occasions[-1]
-        # The other end of the chain. `occasions` is sorted, so this is the
-        # earliest qualifying statement -- resolved against ITS OWN meeting,
-        # which is the whole point: the same word said in one week and the
-        # next is two different dates.
-        first_started, _fp, _fm, first_token = occasions[0]
-        first_moment = epoch + dt.timedelta(seconds=first_started)
+        # Every link, not just the ends. `occasions` is sorted, so the last
+        # entry for a meeting_id wins -- a person who commits twice in one
+        # room has committed once, and it is the later turn that counts.
+        # Each date is resolved against ITS OWN meeting, because the same
+        # word in January and in June names two different days, which is
+        # the whole reason this figure cannot be read off the tokens.
+        per_meeting: dict[str, tuple[int, str]] = {}
+        for when, _pos, room, said_token in occasions:
+            per_meeting[room] = (when, said_token)
+        chain = [
+            due_date((epoch + dt.timedelta(seconds=when)).date(), said_token)
+            for when, said_token in sorted(per_meeting.values())
+        ]
+        slips = sum(1 for a, b in zip(chain, chain[1:]) if b > a)
+        first_due = chain[0]
         moment = epoch + dt.timedelta(seconds=started)
         live.append(
             {
                 "owner": people.get(speaker, speaker),
                 "meeting": title,
                 "due": due_date(moment.date(), token).isoformat(),
-                "first_due": due_date(first_moment.date(), first_token).isoformat(),
-                "superseded": replaced,
+                "first_due": first_due.isoformat(),
+                "slips": slips,
                 "meeting_id": meeting_id,
                 "said_at": moment.isoformat(),
             }

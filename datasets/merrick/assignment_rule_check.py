@@ -168,7 +168,14 @@ def _is_speaker(words: list[str], at: int) -> bool:
 # regex route. Their guards are theirs alone: applying the gate check to
 # the obligation path costs a sound row there, which is measured.
 _POSSESSIVE_LINK = re.compile(
-    r"\b(?:is due|are due|due|is|goes|lands|comes)\b", re.IGNORECASE
+    # The infinitive form the brief names: "the covenant-trigger analysis is
+    # Adaora's TO FINALIZE by Wednesday EOD". A closed verb list rather than
+    # `to \w+`, because this is IGNORECASE and `to \w+` also matches
+    # "Mira's note TO ROLAND by Friday", where `to` introduces a recipient.
+    r"\b(?:is due|are due|due|is|goes|lands|comes"
+    r"|to\s+(?:finalize|finalise|circulate|deliver|send|produce|complete"
+    r"|confirm|draft|prepare|update|file|return|provide|review|close))\b",
+    re.IGNORECASE,
 )
 _GATE = re.compile(
     r"\b(?:once|gated on|depends on|waiting on|pending|blocker)\b", re.IGNORECASE
@@ -201,6 +208,37 @@ def _tail_after(clause: str, words: list[str], at: int) -> str | None:
     return rest
 
 
+# A day whose own noun belongs to somebody named, immediately in front of
+# it. The promise rule carries the same law -- a possessive owns a day
+# without needing any verb -- and this route needed it for the same reason:
+# "Lucien owes me the summaries by Wednesday so I can finish the outline
+# before ALDRETE'S HEARING next Monday" handed Lucien a judge's court date.
+#
+# The regex route refuses that on attachment (nothing introduces `Monday`
+# but `next`). This route drops the attachment test on purpose, because the
+# assignment idiom attaches by bare apposition -- "Samir has cap table
+# recon to Elena EOD tomorrow" -- so it needs the possessive stated
+# directly.
+#
+# Anchored at the END of the span, so it asks who owns THIS day rather than
+# whether a possessive occurs anywhere earlier in the clause. Unanchored it
+# would also refuse "Mira's reconciliation is due Thursday", where the
+# possessive IS the assignee.
+# `<possessive> <noun>` immediately before the day, with at most `next` or
+# `this` between -- the shape of a calendar event somebody else keeps:
+# "ALDRETE'S HEARING next Monday", "pending DOV'S ESCALATION tomorrow AM".
+#
+# Nothing else may intervene, and that is the whole precision of it.
+# Allowing `by`/`before`/`on` too, or a second noun, also refuses "Elena
+# has ADAORA'S CARVE-OUT reconciled BY Friday" and "checklist's updated to
+# reflect ADAORA'S CARVE-OUT due FRIDAY" -- where the possessive is the
+# DELIVERABLE and the day is the assignee's. Three measured rows sit on
+# each side of that line, which is why it is drawn at the connector.
+_OWNED_BY_A_POSSESSIVE = re.compile(
+    r"\b\w+'s\s+[\w-]+\s+(?:next|this\s)?\s*$", re.IGNORECASE
+)
+
+
 def _day_token(promise, text: str) -> str | None:
     """The deadline the tail names, under every condition BUT attachment.
 
@@ -229,6 +267,8 @@ def _day_token(promise, text: str) -> str | None:
             ):
                 continue
             if promise._ELSEWHERE.search(span) or promise._PRONOUN_SUBJECT.search(span):
+                continue
+            if _OWNED_BY_A_POSSESSIVE.search(span):
                 continue
             return token
     return None

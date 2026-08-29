@@ -89,12 +89,12 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 PINNED: dict[str, str] = {
     "## What counts as a commitment": "fe604b3371a04fb1",
     "## Turning what was said into a date": "c8f8a8253e49bbef",
-    "## Which one is live": "4b9331ac1a59df0b",
+    "## Which one is live": "ed7436921b90e3c5",
     # The criteria themselves. `superseded_count` is DEFINED here and
     # graded, and this section was not pinned: its unit could be reworded
     # without tripping anything. Three readers of the old wording split
     # 2-1 on it while all three called it unambiguous.
-    "## What to produce": "47926cd8e444f75c",
+    "## What to produce": "c2509bc927ebcc0d",
 }
 
 # The firm's own zone, read from the served meta table rather than named
@@ -189,7 +189,7 @@ _ROW_FIELDS = (
     "meeting",
     "due",
     "first_due",
-    "superseded",
+    "slips",
     "meeting_id",
     "said_at",
 )
@@ -222,6 +222,20 @@ SUPERSESSION_FLOOR = 0.15
 # Sunday and both files would have computed the Friday, agreed, and reported
 # an independent reading. **20 of 27 brief mutations went unnoticed.**
 _STATED: dict[str, tuple[str, ...]] = {
+    "## What to produce": (
+        # the slip count, and the four decisions it turns on: order by
+        # meeting start, resolve against the meeting it was said in, count
+        # only strictly-later steps, one commitment per room
+        "how many times this person moved this commitment **later**",
+        # the other end of the chain, and that it resolves against the
+        # meeting it was SAID in rather than against the last one
+        "the date this person **first** committed to in this",
+        "in order of when the meeting started",
+        "against the meeting it was said in",
+        "later than** the one before it",
+        "pulled **earlier** is not a slip",
+        "restated unchanged is not a slip",
+    ),
     "## What counts as a commitment": (
         # both conjuncts; the owner forms as a CLOSED set rather than an
         # example, which is the asymmetry a probe caught -- the brief named
@@ -275,27 +289,6 @@ _STATED: dict[str, tuple[str, ...]] = {
         "even when they say the same words",
         "later means later by",
         "when the meeting started",
-        # And that a statement making no row supersedes nothing. This is a
-        # clarification, not a change: `_committed_in` has always returned
-        # None for an undated or conditional turn, so such a turn never
-        # entered `statements` and never displaced anything. It is pinned
-        # because four of six trials of two tiers read it the other way,
-        # and the brief did not settle it.
-        "none of them supersedes anything",
-        "counts toward `superseded`",
-    ),
-    "## What to produce": (
-        # the per-row revision count, its unit, and that the scalar is now
-        # exactly the sum of the rows -- the invariant asserted in `main`
-        "how many **earlier** commitments this person made in",
-        # the first end of the chain, and that it resolves against the
-        # meeting it was SAID in rather than against the last one -- the
-        # difference between two `EOD`s five months apart
-        "the date this person **first** committed to in this",
-        "against the meeting it was said in",
-        "never revised is `0`",
-        "count the meetings of this series in",
-        "the sum of the `superseded` figures below",
     ),
     "## The window and the meetings": (
         # the boundary this file re-derives as a calendar date, and the
@@ -698,13 +691,9 @@ _CONNECTIVES = frozenset(
         "when",
         "while",
         "unless",
-        # `until` opens a clause with a new subject, which is the brief's
-        # own test. It is deliberately NOT one of the prepositions that can
-        # DATE a delivery -- "until Wednesday" ends a wait -- and the two
-        # lists answer different questions. Without it here, "I'll hold the
-        # elevator item on the tracker until Ingrid or Quentin has something
-        # concrete, no changes needed from me before EOD" was a row, and the
-        # EOD belongs to "no changes needed".
+        # `until` opens a clause with a new subject. Deliberately NOT one of
+        # the prepositions that can DATE a delivery: two lists, two
+        # questions. See commitment-revision-register.
         "until",
         "and",
         "but",
@@ -1015,11 +1004,8 @@ def _committed_in(text: str) -> str | None:
     """
 
     for clause in _clauses(text):
-        # A question asks; it does not promise. The brief says so in as many
-        # words and this file has pinned the sentence since it was written,
-        # which made the omission invisible: the phrase was asserted to be
-        # in the brief and never acted on. One admitted commitment on this
-        # window sat in such a clause and two tiers refused it.
+        # A question asks; it does not promise. The brief says so and this
+        # file pinned the sentence without ever enforcing it.
         if clause.rstrip().endswith("?"):
             continue
         tokens = _tokens(clause)
@@ -1098,11 +1084,6 @@ def main() -> int:
     }
 
     statements: dict[tuple[str, str], list] = defaultdict(list)
-    # The occasions, accumulated as a set while the scan runs. The solver
-    # derives the same set from its statement list after the fact; counting
-    # here instead means a turn admitted by one route and not the other
-    # shows up as a different revision count rather than cancelling out.
-    occasions: dict[tuple[str, str], set] = defaultdict(set)
     turns_read = 0
     for meeting_id, position, speaker, text in meetings.execute(
         "SELECT meeting_id, position, speaker, text FROM utterances"
@@ -1113,26 +1094,31 @@ def main() -> int:
         deadline = _committed_in(text)
         if deadline is None:
             continue
-        pair = (speaker, inside[meeting_id][1])
-        statements[pair].append(
+        statements[(speaker, inside[meeting_id][1])].append(
             (in_window[meeting_id], position, meeting_id, deadline)
         )
-        occasions[pair].add(meeting_id)
 
     # Resolved by maximum, not by sorting and taking the last.
     rows = []
     superseded = 0
     for (speaker, title), made in statements.items():
-        # One commitment per MEETING, not per turn: a person who speaks
-        # twice in one room has committed once, so that room can be
-        # discarded once.
-        replaced = len(occasions[(speaker, title)]) - 1
-        superseded += replaced
+        superseded += len({statement[2] for statement in made}) - 1
         started, _position, meeting_id, deadline = max(made, key=lambda s: (s[0], s[1]))
-        # Selected by MINIMUM, as the last statement is selected by maximum
-        # -- neither by sorting the list, so an ordering bug in the solver
-        # shows up as a disagreement rather than being reproduced.
-        first_started, _fp, _fm, first_deadline = min(made, key=lambda s: (s[0], s[1]))
+        # One statement per room, selected by position rather than by
+        # sorting the list; then the resolved dates in room order. The
+        # solver builds the same sequence from a sorted list, so an
+        # ordering bug there has to surface as a disagreement here.
+        rooms: dict[str, tuple[int, int, list]] = {}
+        for when, place, room, spoken in made:
+            if room not in rooms or (when, place) > rooms[room][:2]:
+                rooms[room] = (when, place, spoken)
+        ordered = sorted(rooms.values())
+        chain = [
+            _resolve((epoch + datetime.timedelta(seconds=when)).date(), spoken)
+            for when, _place, spoken in ordered
+        ]
+        slipped = sum(1 for a, b in zip(chain, chain[1:]) if b > a)
+        began = chain[0]
         # Built field by field from a declared order rather than as a dict
         # literal. The solver writes the same five keys inline; sharing that
         # expression is sharing a decision about what a row *is*, and the
@@ -1149,11 +1135,8 @@ def main() -> int:
                         named,
                         title,
                         _resolve(moment.date(), deadline).isoformat(),
-                        _resolve(
-                            (epoch + datetime.timedelta(seconds=first_started)).date(),
-                            first_deadline,
-                        ).isoformat(),
-                        replaced,
+                        began.isoformat(),
+                        slipped,
                         meeting_id,
                         moment.isoformat(),
                     ),
@@ -1170,17 +1153,6 @@ def main() -> int:
             problems.append(
                 fail(f"{field}: oracle {truth.get(field)!r} != derived {mine!r}")
             )
-
-    # The brief now states that the scalar is exactly the sum of the rows.
-    # A claim the prose makes is a claim this file checks: if the two ever
-    # part company the report is internally inconsistent, and no per-row
-    # criterion would see it -- `superseded_count` is graded in the
-    # diagnostic dimension precisely because it is a tally.
-    tallied = sum(row["superseded"] for row in rows)
-    if tallied != superseded:
-        problems.append(
-            fail(f"superseded: rows sum to {tallied}, accumulator says {superseded}")
-        )
 
     check("meetings_read", len(in_window))
     check("turns_read", turns_read)

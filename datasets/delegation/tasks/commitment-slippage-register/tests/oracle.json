@@ -1,0 +1,269 @@
+{
+ "meetings_read": 383,
+ "turns_read": 1989,
+ "distinct_owners": 18,
+ "superseded_count": 171,
+ "live": [
+  {
+   "owner": "Bennett Ashworth",
+   "meeting": "Billing and WIP review",
+   "due": "2026-03-17",
+   "first_due": "2026-02-16",
+   "slips": 2,
+   "meeting_id": "mtg-000322",
+   "said_at": "2026-03-16T11:00:00-04:00"
+  },
+  {
+   "owner": "Dov Reinhardt",
+   "meeting": "Billing and WIP review",
+   "due": "2026-05-18",
+   "first_due": "2026-01-20",
+   "slips": 1,
+   "meeting_id": "mtg-000331",
+   "said_at": "2026-05-18T11:00:00-04:00"
+  },
+  {
+   "owner": "Fionnuala Doherty",
+   "meeting": "Billing and WIP review",
+   "due": "2026-05-06",
+   "first_due": "2026-03-11",
+   "slips": 2,
+   "meeting_id": "mtg-000329",
+   "said_at": "2026-05-04T11:00:00-04:00"
+  },
+  {
+   "owner": "Gideon Park",
+   "meeting": "Billing and WIP review",
+   "due": "2026-03-17",
+   "first_due": "2026-03-10",
+   "slips": 1,
+   "meeting_id": "mtg-000322",
+   "said_at": "2026-03-16T11:00:00-04:00"
+  },
+  {
+   "owner": "Ulrich Bergmann",
+   "meeting": "Billing and WIP review",
+   "due": "2026-05-18",
+   "first_due": "2026-05-18",
+   "slips": 0,
+   "meeting_id": "mtg-000331",
+   "said_at": "2026-05-18T11:00:00-04:00"
+  },
+  {
+   "owner": "Adaora Nwosu",
+   "meeting": "Client board and committee updates",
+   "due": "2026-02-10",
+   "first_due": "2026-02-10",
+   "slips": 0,
+   "meeting_id": "mtg-000357",
+   "said_at": "2026-02-09T15:15:00-05:00"
+  },
+  {
+   "owner": "Dov Reinhardt",
+   "meeting": "Client board and committee updates",
+   "due": "2026-03-10",
+   "first_due": "2026-02-10",
+   "slips": 1,
+   "meeting_id": "mtg-000361",
+   "said_at": "2026-03-09T15:15:00-04:00"
+  },
+  {
+   "owner": "Fionnuala Doherty",
+   "meeting": "Client board and committee updates",
+   "due": "2026-03-24",
+   "first_due": "2026-02-23",
+   "slips": 1,
+   "meeting_id": "mtg-000363",
+   "said_at": "2026-03-23T15:15:00-04:00"
+  },
+  {
+   "owner": "Dov Reinhardt",
+   "meeting": "Corporate deal status",
+   "due": "2026-04-23",
+   "first_due": "2026-03-17",
+   "slips": 1,
+   "meeting_id": "mtg-000175",
+   "said_at": "2026-04-22T09:15:00-04:00"
+  },
+  {
+   "owner": "Elena Vasquez-Reyes",
+   "meeting": "Corporate deal status",
+   "due": "2026-05-20",
+   "first_due": "2026-01-30",
+   "slips": 5,
+   "meeting_id": "mtg-000194",
+   "said_at": "2026-05-19T09:15:00-04:00"
+  },
+  {
+   "owner": "Ingrid Solheim",
+   "meeting": "Corporate deal status",
+   "due": "2026-04-21",
+   "first_due": "2026-01-08",
+   "slips": 8,
+   "meeting_id": "mtg-000173",
+   "said_at": "2026-04-20T09:15:00-04:00"
+  },
+  {
+   "owner": "Mira Chandrasekhar",
+   "meeting": "Corporate deal status",
+   "due": "2026-05-08",
+   "first_due": "2026-02-20",
+   "slips": 5,
+   "meeting_id": "mtg-000186",
+   "said_at": "2026-05-07T09:15:00-04:00"
+  },
+  {
+   "owner": "Quentin Sarr",
+   "meeting": "Corporate deal status",
+   "due": "2026-05-08",
+   "first_due": "2026-01-16",
+   "slips": 12,
+   "meeting_id": "mtg-000186",
+   "said_at": "2026-05-07T09:15:00-04:00"
+  },
+  {
+   "owner": "Samir Bhatt",
+   "meeting": "Corporate deal status",
+   "due": "2026-05-14",
+   "first_due": "2026-01-07",
+   "slips": 13,
+   "meeting_id": "mtg-000190",
+   "said_at": "2026-05-13T09:15:00-04:00"
+  },
+  {
+   "owner": "Bennett Ashworth",
+   "meeting": "Cotswold Mutual claims committee",
+   "due": "2026-03-17",
+   "first_due": "2026-03-17",
+   "slips": 0,
+   "meeting_id": "mtg-000342",
+   "said_at": "2026-03-16T14:00:00-04:00"
+  },
+  {
+   "owner": "Cecile Marchand",
+   "meeting": "Cotswold Mutual claims committee",
+   "due": "2026-01-29",
+   "first_due": "2026-01-29",
+   "slips": 0,
+   "meeting_id": "mtg-000335",
+   "said_at": "2026-01-26T14:00:00-05:00"
+  },
+  {
+   "owner": "Bennett Ashworth",
+   "meeting": "Docket call",
+   "due": "2026-05-22",
+   "first_due": "2026-01-06",
+   "slips": 18,
+   "meeting_id": "mtg-000097",
+   "said_at": "2026-05-19T08:45:00-04:00"
+  },
+  {
+   "owner": "Cecile Marchand",
+   "meeting": "Docket call",
+   "due": "2026-04-30",
+   "first_due": "2026-01-22",
+   "slips": 7,
+   "meeting_id": "mtg-000080",
+   "said_at": "2026-04-24T08:45:00-04:00"
+  },
+  {
+   "owner": "Hyun-woo Bae",
+   "meeting": "Docket call",
+   "due": "2026-04-14",
+   "first_due": "2026-01-14",
+   "slips": 19,
+   "meeting_id": "mtg-000071",
+   "said_at": "2026-04-13T08:45:00-04:00"
+  },
+  {
+   "owner": "Lucien Abara",
+   "meeting": "Docket call",
+   "due": "2026-05-08",
+   "first_due": "2026-01-07",
+   "slips": 17,
+   "meeting_id": "mtg-000089",
+   "said_at": "2026-05-07T08:45:00-04:00"
+  },
+  {
+   "owner": "Fionnuala Doherty",
+   "meeting": "Employment practice huddle",
+   "due": "2026-03-27",
+   "first_due": "2026-01-27",
+   "slips": 7,
+   "meeting_id": "mtg-000250",
+   "said_at": "2026-03-23T09:30:00-04:00"
+  },
+  {
+   "owner": "Jamal Okonkwo",
+   "meeting": "Employment practice huddle",
+   "due": "2026-05-08",
+   "first_due": "2026-01-07",
+   "slips": 18,
+   "meeting_id": "mtg-000283",
+   "said_at": "2026-05-07T09:30:00-04:00"
+  },
+  {
+   "owner": "Petra Kovacs",
+   "meeting": "Employment practice huddle",
+   "due": "2026-05-06",
+   "first_due": "2026-01-14",
+   "slips": 8,
+   "meeting_id": "mtg-000282",
+   "said_at": "2026-05-06T09:30:00-04:00"
+  },
+  {
+   "owner": "Gideon Park",
+   "meeting": "IP and technology group",
+   "due": "2026-05-11",
+   "first_due": "2026-05-04",
+   "slips": 1,
+   "meeting_id": "mtg-000390",
+   "said_at": "2026-05-11T10:00:00-04:00"
+  },
+  {
+   "owner": "Klara Bendtsen",
+   "meeting": "IP and technology group",
+   "due": "2026-05-11",
+   "first_due": "2026-01-27",
+   "slips": 3,
+   "meeting_id": "mtg-000389",
+   "said_at": "2026-05-04T10:00:00-04:00"
+  },
+  {
+   "owner": "Oskar Ravndal",
+   "meeting": "IP and technology group",
+   "due": "2026-03-18",
+   "first_due": "2026-03-18",
+   "slips": 0,
+   "meeting_id": "mtg-000382",
+   "said_at": "2026-03-16T10:00:00-04:00"
+  },
+  {
+   "owner": "Cecile Marchand",
+   "meeting": "Partner matter review",
+   "due": "2026-04-27",
+   "first_due": "2026-04-27",
+   "slips": 0,
+   "meeting_id": "mtg-000308",
+   "said_at": "2026-04-27T16:00:00-04:00"
+  },
+  {
+   "owner": "Fionnuala Doherty",
+   "meeting": "Partner matter review",
+   "due": "2026-02-17",
+   "first_due": "2026-02-11",
+   "slips": 1,
+   "meeting_id": "mtg-000298",
+   "said_at": "2026-02-16T16:00:00-05:00"
+  },
+  {
+   "owner": "Gideon Park",
+   "meeting": "Partner matter review",
+   "due": "2026-05-19",
+   "first_due": "2026-01-19",
+   "slips": 7,
+   "meeting_id": "mtg-000311",
+   "said_at": "2026-05-18T16:00:00-04:00"
+  }
+ ]
+}

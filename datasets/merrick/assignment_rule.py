@@ -315,7 +315,21 @@ def _inside_a_relative_clause(clause: str, at: int) -> bool:
 # -- better than before and still below the rule's own ratio, which are
 # different things. The third condition is what made it worth adding.
 _POSSESSIVE_LINK = re.compile(
-    r"\b(?:is due|are due|due|is|goes|lands|comes)\b", re.IGNORECASE
+    # ...or an infinitive of delivery: "the covenant-trigger analysis is
+    # Adaora's TO FINALIZE by Wednesday EOD". Without this the Wednesday is
+    # skipped for want of a link, and the scan walks on to the next day in
+    # the clause -- "with the outside counsel spend breakdown due separately
+    # FRIDAY" -- where a `due` belonging to a DIFFERENT item supplies one.
+    # The row came out with the right owner and somebody else's date, which
+    # is the failure mode this whole family is built to punish.
+    #
+    # A closed list of verbs rather than `to \w+`, because the pattern is
+    # IGNORECASE and `to \w+` also matches "Mira's note TO ROLAND by
+    # Friday", where `to` introduces a recipient and not a task.
+    r"\b(?:is due|are due|due|is|goes|lands|comes"
+    r"|to\s+(?:finalize|finalise|circulate|deliver|send|produce|complete"
+    r"|confirm|draft|prepare|update|file|return|provide|review|close))\b",
+    re.IGNORECASE,
 )
 _GATE = re.compile(
     r"\b(?:once|gated on|depends on|waiting on|pending|blocker)\b", re.IGNORECASE
