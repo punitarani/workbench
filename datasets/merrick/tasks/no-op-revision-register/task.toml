@@ -5,6 +5,18 @@ schema_version = "1.3"
 # through five tool surfaces and delivers one JSON register; grading is
 # outcome-based against an oracle computed from the same world state.
 
+# RETIRED 2026-08-29. Keyed on `document_ref` alone -- a column, read
+# rather than derived -- and the strongest tier scores 1.000 on three
+# trials of three with grading sound.
+#
+# The same defect as `unanswered-question-register` and the same cause: the
+# document surface records a revision as a row with everything about it
+# already in the row. There is nothing to reconstruct across documents the
+# way a commitment is reconstructed across meetings.
+#
+# Kept as evidence.
+retired = true
+
 [task]
 name = "workbench/merrick-no-op-revision-register"
 description = """Find the document revisions that changed nothing, from \

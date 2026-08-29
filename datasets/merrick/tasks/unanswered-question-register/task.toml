@@ -5,6 +5,34 @@ schema_version = "1.3"
 # through five tool surfaces and delivers one JSON register; grading is
 # outcome-based against an oracle computed from the same world state.
 
+# RETIRED 2026-08-29, on measurement rather than on taste.
+#
+# Every field in a row is READ off the message that carries it -- the id,
+# the thread, the asker, the date, the subject, the addressees -- so the
+# key is a column and the task is "find the questions and list them". The
+# strongest tier scores 1.000, three trials of three, with the grading
+# fully sound.
+#
+# Two derived facts were measured as candidates for the key and both are
+# degenerate on this corpus:
+#
+#     chases  (times the asker asked again)   87% zero
+#     answered late (at all, after the due)   88% never
+#
+# Guessing the modal value gets nine rows in ten, so neither can carry a
+# key. Widening the window from 19 days to 190 takes the register from 29
+# rows to 430 and moves neither share.
+#
+# The cause is the surface. This world's mail has a median thread length of
+# ONE, so there is no chain to reconstruct: the commitment registers work
+# because a promise is restated across a series of meetings and the mail
+# here is not a series. A task family needs a world built for it, and the
+# question family would need one where questions are chased.
+#
+# Kept in the tree as evidence rather than deleted: it is the clearest
+# instance of a key that is a column, which is the law it paid for.
+retired = true
+
 [task]
 name = "workbench/merrick-unanswered-question-register"
 description = """Find the questions nobody answered in time: walk every \

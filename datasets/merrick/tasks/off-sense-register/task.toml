@@ -13,6 +13,16 @@ schema_version = "1.3"
 # reads well on paper has twice now had its second spelling in one message out
 # of 1,585, or in none at all.
 
+# RETIRED 2026-08-29. Keyed on `ref` alone, 1.000 for the strongest tier.
+#
+# It was built to punish an editorial reader -- a word used in a sense the
+# firm does not mean -- and the measurement said what the other two say: a
+# rule a model can turn into a program scores 1.000 whatever the corpus
+# size, and this rule is a lookup over a word list.
+#
+# Kept as evidence for that law.
+retired = true
+
 [task]
 name = "workbench/merrick-off-sense-register"
 description = """Report every message a two-spelling search term hits, \
