@@ -140,3 +140,32 @@ sentence behind each. Ten others in the same set were oracle defects and
 were fixed rather than waived.
 
 Tags: `opus-a1-k3`, `glm-a1-k3`, `kimi-a1-k3`.
+
+
+### delegation/commitment-revision-register — CERTIFIED 2026-08-29
+
+The promise rule on the second world. Same family as merrick's, and harder
+because the world is denser: **200 commitments in 383 meetings** against
+154 in 512, so the same key costs more here.
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.483, 0.551, 0.618 | **0.551** | live.f1 0.704 |
+| glm-5.2 | 0.269, 0.369, 0.467 | **0.368** | live.f1 0.518 |
+| kimi-k3 | 0.185, 0.200, 0.408 | **0.265** | live.f1 0.370 |
+
+Keyed on `(owner, meeting, due, first_due)` — four components, chosen by
+re-scoring the same saved deliverables under every candidate rather than by
+argument. At five the weakest tier's criterion read 0.261 and its headline
+fell below the band; at three the key stops asking for the chain at all.
+
+Five rows are waived as model failures, adjudicated in
+`docs/adjudications/delegation-commitment-first-due.md`. All five are one
+error with several faces: three claim a `first_due` **no commitment in that
+series resolves to** — a meeting date, or the window's first day — and one
+reports the chain's last element as its first. Nine of nine trials agreed
+on one of them, which is the strongest unanimity signal here and still not
+a defect: a shared misreading of a SCOPE produces the same wrong answer
+every time and looks exactly like a key defect.
+
+Tags: `opus-c1-k3`, `glm-c2-k3`, `kimi-c1-k3`.

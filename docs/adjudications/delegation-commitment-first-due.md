@@ -56,3 +56,36 @@ several standing meetings; attributing each chain to the right series is
 the work, and collapsing them is the interesting way to fail.
 
 **Model failure. Waived.**
+
+
+---
+
+## The other four, all the same shape
+
+Certification flagged five rows and all five are the same error read four
+more ways. Each claims a `first_due` the chain cannot produce:
+
+| row | key holds | trials answered | what that date is |
+|---|---|---|---|
+| Fionnuala Doherty \| Billing and WIP review | 2026-03-11 | 2026-01-07 (9 of 9) | before the series' first meeting (2026-01-12) |
+| Ingrid Solheim \| Corporate deal status | 2026-01-08 | 2026-01-05 (6 of 9) | the epoch's first day; the series opens 2026-01-06 |
+| Petra Kovacs \| Employment practice huddle | 2026-01-14 | 2026-01-06 (8 of 9) | her series' first MEETING date, not a resolved deadline |
+| Dov Reinhardt \| Client board and committee updates | 2026-02-10 | 2026-03-10 (6 of 9) | the chain's LAST element reported as its first |
+| Dov Reinhardt \| Billing and WIP review | 2026-01-20 | 2026-01-06 (1 of 9) | a meeting date again |
+
+Three of the five are dates **no commitment in that series resolves to** —
+they are meeting dates, or the window's first day. The fourth is the chain
+run backwards.
+
+That is one failure with several faces: the register asks for a date the
+speaker NAMED, resolved against the meeting they named it in, and scoped
+to one series. Reporting when the meeting happened, or when the window
+opened, or which end of the chain, are all ways of answering a nearby
+question instead.
+
+Which is the capability. `first_due` exists in the key because a reader who
+finds the last statement has it for free and the first only after ordering
+the whole series; a reader who substitutes the room's own date has not
+ordered anything.
+
+**All five waived as model failures.**
