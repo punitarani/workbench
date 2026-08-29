@@ -45,6 +45,19 @@ KEY = ("owner", "meeting", "first_raised", "last_raised", "raised_count")
 # already in the key the two would otherwise be indistinguishable.
 FIELDS: dict[str, float] = {"first_meeting_id": 0.0, "last_meeting_id": 0.0}
 
-DERIVED_FROM_ROWS = ("distinct_owners",)
+# The census fields move here, and stop paying.
+#
+# A reviewer with legal-ops knowledge called them what they are: audit
+# fields no partner wants, in a deliverable that should read as a table.
+# They cannot simply be deleted -- they are the one signal separating a
+# reader who opened the whole window from one who sampled it -- so they
+# inform without moving the number, which is what this dimension is for.
+#
+# It also removes two of ten points that every tier earns for free. An
+# answer that reads the window and extracts nothing scored 0.200 on those
+# alone, which is the bottom of the target band arriving before the task
+# starts.
+DERIVED_FROM_ROWS = ("distinct_owners", "meetings_read", "turns_read")
+
 
 RESTATED_FROM_BRIEF: tuple[str, ...] = ()
