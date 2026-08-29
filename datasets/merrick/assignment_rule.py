@@ -337,6 +337,9 @@ _A_SCHEDULED_EVENT = re.compile(
 # that, and nothing was watching the other side.
 _DAY_FRONTS_A_CLAUSE = re.compile(
     r"^\s*(?:\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s+)?"
+    # "Thursday 2pm IS WHEN we finalize" is the same fronted clause with a
+    # copula in front of the subject, and this firm writes both forms.
+    r"(?:is\s+(?:when|where)\s+)?"
     r"(?:we|they|you|i|he|she)\s+[a-z]+",
     re.IGNORECASE,
 )

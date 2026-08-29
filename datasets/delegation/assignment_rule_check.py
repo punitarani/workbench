@@ -610,6 +610,10 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             # shape this guard exists for, and skipping it is what the
             # regex route does with an optional group.
             head = after_day[1:] if after_day and _CLOCK.fullmatch(after_day[0]) else after_day
+            # "Thursday 2pm IS WHEN we finalize" -- the same fronted clause
+            # with a copula before the subject.
+            if len(head) > 2 and head[0] == "is" and head[1] in ("when", "where"):
+                head = head[2:]
             if len(head) > 1 and head[0] in _SUBJECT_PRONOUNS:
                 continue
             if any(w in _GATES for w in words[:at]):

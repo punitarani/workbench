@@ -117,4 +117,26 @@ being untouched. That is the difficulty law run BACKWARDS: a hard fact in
 the key collapses row F1 and in a field only degrades it, which is normally
 used to make a task harder and here was needed the other way.
 
+**Re-certified 2026-08-29 after the first certification was withdrawn.**
+The original rested on two of ten points that every tier earns for reading
+the window — census counts a practitioner review correctly called audit
+fields nobody wants. With those moved to the diagnostic dimension the same
+task read 0.259 / 0.102 / 0.098, two tiers below band, and the propping-up
+became visible.
+
+The key was then rebuilt around ATTRIBUTION, which is what the family is
+about, and the rule was corrected on ten defects found by adjudicating rows
+every trial declined. Final:
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.469, 0.474, 0.489 | **0.477** | assignments.f1 0.759 |
+| glm-5.2 | 0.375, 0.386, 0.434 | **0.398** | assignments.f1 0.663 |
+| kimi-k3 | 0.372, 0.394, 0.398 | **0.388** | assignments.f1 0.658 |
+
+Five rows are waived as model failures, adjudicated one by one in
+`docs/adjudications/delegation-assignment-flagged-rows.md` with the
+sentence behind each. Ten others in the same set were oracle defects and
+were fixed rather than waived.
+
 Tags: `opus-a1-k3`, `glm-a1-k3`, `kimi-a1-k3`.

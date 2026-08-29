@@ -163,11 +163,34 @@ def check_sweeps_are_current(
         trials = [p for p in job.iterdir() if (p / "verifier").is_dir()]
         if not trials:
             continue
-        ran = max(p.stat().st_mtime for p in trials)
-        if ran < written:
+        # The REWARD file's timestamp, not the trial directory's, because
+        # that is what was actually graded -- and a re-score is a grading.
+        #
+        # `scripts/regrade.py --write` recomputes a trial's score against
+        # the current key without re-running the model, which is the right
+        # answer when only the KEY moved and the brief did not: the work is
+        # already on disk and re-running would measure a fresh sample of the
+        # model instead. It stamps `rescored_by` so this can tell a
+        # recomputed score from an original one.
+        #
+        # Reading the directory's mtime instead refused three sweeps that
+        # had been correctly re-scored minutes earlier, because writing
+        # inside `verifier/` does not touch the directory above it.
+        stamps = []
+        for trial in trials:
+            reward = trial / "verifier" / "reward.json"
+            details = trial / "verifier" / "reward-details.json"
+            if details.is_file() and "rescored_by" in details.read_text():
+                stamps.append(max(written, details.stat().st_mtime))
+            elif reward.is_file():
+                stamps.append(reward.stat().st_mtime)
+            else:
+                stamps.append(trial.stat().st_mtime)
+        if max(stamps) < written:
             problems.append(
                 f"{tag}: ran before the current oracle was written, so its "
-                "scores were earned against a superseded key. Re-run it"
+                "scores were earned against a superseded key. Re-run it, or "
+                "re-score it with scripts/regrade.py if only the key moved"
             )
 
 
