@@ -29,7 +29,24 @@ DELIVERABLE = "blocker_register.json"
 
 ROWS = "blockers"
 
-KEY = ("owner", "meeting", "first_raised", "last_raised", "raised_count")
+# Who is stuck, in which standing meeting, and the two ends of the chain.
+#
+# `raised_count` moves to a field. Chosen by re-scoring the same saved
+# deliverables under every candidate -- no sweep re-run:
+#
+#     (owner, meeting)                              0.953 / 0.932
+#     (owner, meeting, first_raised)                0.785 / 0.604
+#     (owner, meeting, first_raised, last_raised)   0.729 / 0.356   <- chosen
+#     (owner, meeting, raised_count)                0.561 / 0.137
+#     (owner, meeting, first, last, raised_count)   0.561 / 0.137
+#
+# `raised_count` is what collapses the weakest tier: adding it takes 0.729
+# to 0.561 for the strongest and 0.356 to 0.137 for the weakest, which puts
+# the criterion below the level at which a tier is being measured at all.
+# It is the hardest of the three because it needs every meeting in between,
+# where the two ends need only the outermost -- so it grades as a field,
+# where getting it wrong costs part of a row rather than the whole row.
+KEY = ("owner", "meeting", "first_raised", "last_raised")
 
 # The rooms the chain begins and ends in.
 #
@@ -43,7 +60,11 @@ KEY = ("owner", "meeting", "first_raised", "last_raised", "raised_count")
 # register that names the right dates and cannot say which rooms they were
 # said in has been reconstructed rather than read, and with both dates
 # already in the key the two would otherwise be indistinguishable.
-FIELDS: dict[str, float] = {"first_meeting_id": 0.0, "last_meeting_id": 0.0}
+FIELDS: dict[str, float] = {
+    "raised_count": 0.0,
+    "first_meeting_id": 0.0,
+    "last_meeting_id": 0.0,
+}
 
 # The census fields move here, and stop paying.
 #
