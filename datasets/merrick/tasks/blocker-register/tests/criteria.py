@@ -46,7 +46,29 @@ ROWS = "blockers"
 # It is the hardest of the three because it needs every meeting in between,
 # where the two ends need only the outermost -- so it grades as a field,
 # where getting it wrong costs part of a row rather than the whole row.
-KEY = ("owner", "meeting", "first_raised", "last_raised")
+# Who is stuck, in which standing meeting, both ends of the chain, and how
+# many meetings it was raised in.
+#
+# FIVE here and FOUR on the sibling world, and the difference is the
+# corpora rather than an inconsistency. Measured, on the same rule and the
+# same brief:
+#
+#                                              merrick        delegation
+#     (owner, meeting)                          1.000            0.953
+#     (owner, meeting, first_raised)            0.900            0.785
+#     (owner, meeting, first, last)             0.900            0.729
+#     (owner, meeting, first, last, count)      0.700            0.561
+#
+# This world's blockers are shallower: 9 of 20 rows have first == last, so
+# the two ends cost almost nothing and the strongest tier reads 0.900 --
+# 0.838 as a headline, above the band. The count is the only component that
+# separates anyone here.
+#
+# On the denser world the same component collapsed the weakest tier to
+# 0.137 and put it below the band, so it grades as a field there. A key is
+# chosen against a corpus, and two worlds carrying one family do not have
+# to agree on one.
+KEY = ("owner", "meeting", "first_raised", "last_raised", "raised_count")
 
 # The rooms the chain begins and ends in.
 #
@@ -61,7 +83,6 @@ KEY = ("owner", "meeting", "first_raised", "last_raised")
 # said in has been reconstructed rather than read, and with both dates
 # already in the key the two would otherwise be indistinguishable.
 FIELDS: dict[str, float] = {
-    "raised_count": 0.0,
     "first_meeting_id": 0.0,
     "last_meeting_id": 0.0,
 }
