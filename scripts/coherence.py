@@ -7,11 +7,20 @@ work bills the most hours, sends the most mail, talks the most in meetings
 and touches the most documents. The volumes differ; the ORDERING does not.
 
 When the ordering disagrees, the surfaces were generated independently and
-the world is a set of unrelated logs wearing one name. Nothing else in this
-tree catches that. Every existing gate asks whether a surface is realistic
-ON ITS OWN -- mail lengths lognormal, reply latencies plausible, Slack
-threading present -- and a world can pass all of them surface by surface
-while describing four different firms.
+the world is a set of unrelated logs wearing one name.
+
+**One existing band already asks this**, and an earlier version of this
+docstring claimed nothing did. `cross.person_volume_spearman` has a floor
+of 0.45 and reads -0.30 on the delegation world; it has been failing, in a
+report that fails 39 of 91 bands and prints them all. That is the more
+useful finding: the check existed and was drowned.
+
+So what this adds is not the question but an answer a reader can act on.
+The band gives one number over one aggregate. This names WHICH PAIR
+disagrees -- documents~slack at +0.747 while mail~slack sits at -0.647
+locates the defect in mail and nowhere else -- and, more importantly,
+refuses to correlate against a surface that has no ordering at all, which
+is what produced five confident inversions against a Gini of 0.059.
 
 **What it cost to not have this.** merrick shipped with billing hours and
 mail volume per person at Spearman -0.526: the people who bill the most
