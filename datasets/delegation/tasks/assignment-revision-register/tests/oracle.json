@@ -1,8 +1,8 @@
 {
  "meetings_read": 391,
  "turns_read": 2037,
- "distinct_owners": 26,
- "superseded_count": 69,
+ "distinct_owners": 25,
+ "superseded_count": 68,
  "assignments": [
   {
    "owner": "Adaora Nwosu",
@@ -206,8 +206,8 @@
    "owner": "Clement Abioye",
    "meeting": "Employment practice huddle",
    "due": "2026-03-17",
-   "first_due": "2026-01-29",
-   "superseded": 2,
+   "first_due": "2026-03-19",
+   "superseded": 1,
    "meeting_id": "mtg-000244",
    "said_at": "2026-03-13T09:30:00-05:00"
   },
@@ -315,15 +315,6 @@
    "meeting": "Partner matter review",
    "due": "2026-03-27",
    "first_due": "2026-03-27",
-   "superseded": 0,
-   "meeting_id": "mtg-000303",
-   "said_at": "2026-03-23T16:00:00-05:00"
-  },
-  {
-   "owner": "Oskar Ravndal",
-   "meeting": "Partner matter review",
-   "due": "2026-03-30",
-   "first_due": "2026-03-30",
    "superseded": 0,
    "meeting_id": "mtg-000303",
    "said_at": "2026-03-23T16:00:00-05:00"

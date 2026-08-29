@@ -68,6 +68,14 @@ _ADVERBS = frozenset(("still", "already", "now", "then", "also"))
 # Verbs that hand an obligation to somebody else. A bare preposition is
 # not enough: "recon TO Elena EOD tomorrow" moves the deliverable, not the
 # deadline.
+# A day reached through a PAST verb reports when something happened. The
+# brief says a turn reporting that something WAS done on a day is a report,
+# not an obligation.
+_ALREADY = frozenset(
+    ("signed", "sent", "filed", "circulated", "delivered", "closed",
+     "completed", "finished", "landed", "confirmed")
+)
+
 _TRANSFERS = frozenset(
     ("escalate", "escalates", "goes", "going", "passes", "moves", "falls",
      "transfers", "shifts", "reverts")
@@ -379,6 +387,17 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             # Thursday, Elena files blue sky Friday" has Elena after the
             # day, and scanning the whole tail rejected Samir's own row.
             before_day = _words(after[: _day_at(promise, after)])
+            # A day carrying its own possessive names an EVENT: "owed by
+            # THURSDAY'S 2pm call" points at a meeting, not a deadline.
+            first_span, last_span = _day_span(promise, after)
+            if after[last_span : last_span + 2] in ("'s", "\u2019s"):
+                continue
+            # ...and a past verb immediately before it makes the day
+            # history: "Oskar's side is done, he SIGNED OFF Monday".
+            if before_day and before_day[-1] in _ALREADY:
+                continue
+            if len(before_day) > 1 and before_day[-2] in _ALREADY:
+                continue
             # A first-person clause standing between the colleague and the
             # day takes the day with it: "Hyun-woo has the pen, but I'M
             # supervising and I WANT his draft on my desk by Wednesday".
@@ -472,6 +491,16 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                 and before[step + 1].removesuffix("'s") in first
                 for step in range(len(before))
             ):
+                continue
+            # The same two guards the obligation path carries, because this
+            # path finds its own day and both defects arrived through it:
+            # "Clement's referral name is still owed by THURSDAY'S 2pm call"
+            # names a meeting, and "Oskar's side is done, he SIGNED OFF
+            # Monday" is history.
+            _s, _e = _day_span(promise, after)
+            if after[_e : _e + 2] in ("'s", "\u2019s"):
+                continue
+            if any(w in _ALREADY for w in before[-2:]):
                 continue
             return first[stem], token
 

@@ -225,6 +225,24 @@ OBLIGATION = r"owes|owns|will|'ll|has|is|needs to|committed"
 _RECIPIENT = re.compile(r"\b(?:to|for|with|and)\s+$", re.IGNORECASE)
 
 
+# A day carrying its own possessive is naming an EVENT, not a deadline.
+# "Clement's referral name is still owed by THURSDAY'S 2PM CALL" points at
+# a meeting; the brief's own rule is that a bare day mid-clause names a
+# thing rather than a date. The speaker then says "I'll have it by then",
+# which is the giveaway a reader has and the pattern does not.
+_DAY_NAMES_AN_EVENT = re.compile(r"^['\u2019]s\s+[\w\d:]+", re.IGNORECASE)
+
+# A day reached through a PAST verb is a report of when something happened.
+# "Oskar's side is done, he signed off MONDAY" is history, and the brief
+# says so: a turn reporting that something WAS done on a day is a report,
+# not an obligation.
+_ALREADY_HAPPENED = re.compile(
+    r"\b(?:signed off|sent|filed|circulated|delivered|closed|completed|"
+    r"finished|went out|came in|landed|confirmed)\s+(?:it\s+|that\s+)?$",
+    re.IGNORECASE,
+)
+
+
 # A DIFFERENT colleague standing immediately before the day takes it.
 #
 # "Teodor is still silent on the residency carve-out, so that escalates TO
@@ -414,6 +432,11 @@ def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
                     continue
                 if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
                     continue
+                tail_after_day = clause[end:]
+                if _DAY_NAMES_AN_EVENT.match(tail_after_day):
+                    continue
+                if _ALREADY_HAPPENED.search(clause[max(0, start - 30) : start]):
+                    continue
                 if _day_belongs_to_another(
                     clause[owner.end() : start], who,
                     _named(names, owner.group(1)), names,
@@ -480,6 +503,11 @@ def _present_tense_assignment(clause: str, who: str, names: dict[str, str], rule
                 if rule._negated(span):
                     continue
                 if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
+                    continue
+                tail_after_day = clause[end:]
+                if _DAY_NAMES_AN_EVENT.match(tail_after_day):
+                    continue
+                if _ALREADY_HAPPENED.search(clause[max(0, start - 30) : start]):
                     continue
                 if _day_belongs_to_another(
                     clause[owner.end() : start], who,
@@ -552,6 +580,11 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                     if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(
                         span
                     ):
+                        continue
+                    tail_after_day = clause[end:]
+                    if _DAY_NAMES_AN_EVENT.match(tail_after_day):
+                        continue
+                    if _ALREADY_HAPPENED.search(clause[max(0, start - 30) : start]):
                         continue
                     if _day_belongs_to_another(
                         clause[owner.end() : start], who,
