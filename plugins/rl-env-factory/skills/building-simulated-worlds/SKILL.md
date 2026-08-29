@@ -217,9 +217,9 @@ A firm's busiest person bills the most, sends the most mail, talks the most
 and touches the most documents. The volumes differ by orders of magnitude;
 the ORDERING does not. Check it with rank correlation over every pair.
 
-**Measured on a shipped world:** documents~slack **+0.747**, and the same
-world's mail~slack **−0.647** and mail~documents **−0.603**. Mail had been
-written without reference to who was actually busy. Six months of
+**Measured on a shipped world:** two surfaces agreed at **+0.747**, while a
+third sat at **−0.647** and **−0.603** against both of them. That third
+surface had been written without reference to who was actually busy. Six months of
 recording, five surfaces, found by hand while answering a question about
 whether the environment was saleable.
 

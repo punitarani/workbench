@@ -256,8 +256,8 @@ any more, and nothing about it looks wrong.
 
 **Measured:** a summary table reported the strongest tier at 1.000 on a
 task from a 42-day sweep after the window had moved to 147 days, and
-another tier at 0.631 from a superseded key while its current sweep said
-0.545 — hiding a third in-band task from the count entirely.
+another tier at 0.631 from a superseded key while that tier's current sweep
+said 0.545 — hiding a third in-band task from the count entirely.
 
 Three ways to go stale, and they need three checks:
 
@@ -275,5 +275,6 @@ Three ways to go stale, and they need three checks:
 name to appear before reading a field's absence as evidence; without that,
 the same logic refuses every trial whose harness kept no prompt.
 
-**Break ties by recency, never by tag name.** Alphabetical ordering put
-`glm-rev-k3` ahead of `glm-rev2-k3` and reported the older sweep.
+**Break ties by recency, never by tag name.** Alphabetical ordering puts
+`<tier>-rev-k3` ahead of `<tier>-rev2-k3`, so two equally-sampled sweeps
+resolved to the older one.
