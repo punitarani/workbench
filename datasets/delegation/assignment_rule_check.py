@@ -76,6 +76,25 @@ _ALREADY = frozenset(
      "completed", "finished", "landed", "confirmed")
 )
 
+# `until <day>` ends a state rather than dating a delivery, and an article
+# after a conjunction marks a fresh noun phrase taking the sentence over --
+# "and THE WRITTEN DIRECTION ... goes out by end of week". Both are things
+# the shared finite-verb table cannot see: `goes` sits seven words past the
+# connective, beyond its reach.
+_ARTICLES = frozenset(("the", "a", "an", "this", "that", "those", "these"))
+_CONJOINS = frozenset(("and", "but", "so", "then", "while"))
+_CLAUSE_VERBS = frozenset(
+    ("is", "are", "was", "were", "goes", "go", "comes", "come", "lands",
+     "land", "holds", "hold", "has", "have", "opens", "open", "closes",
+     "close", "starts", "start", "runs", "run", "sits", "sit")
+)
+# A negation between the assignee and the day: nothing happened.
+_DENIALS = frozenset(("not", "never", "no", "passed", "unanswered", "overdue"))
+_STATIVE = frozenset(
+    ("is", "are", "was", "were", "stays", "stay", "remains", "remain",
+     "sits", "sit", "contained", "hold")
+)
+
 _TRANSFERS = frozenset(
     ("escalate", "escalates", "goes", "going", "passes", "moves", "falls",
      "transfers", "shifts", "reverts")
@@ -307,6 +326,25 @@ def _day_at(promise, text: str) -> int:
     return _day_span(promise, text)[0]
 
 
+
+def _new_clause(words: list[str]) -> bool:
+    """A conjunction, an article, a noun phrase, and then a VERB.
+
+    Ten words of reach, where the shared `_ELSEWHERE` allows six -- which is
+    the whole point: "and the written direction opening the Lindqvist
+    investigation GOES OUT by end of week" puts seven between the article
+    and the verb, so the shared test cannot see it.
+    """
+
+    for i in range(len(words) - 2):
+        if words[i] not in _CONJOINS or words[i + 1] not in _ARTICLES:
+            continue
+        for j in range(i + 2, min(i + 13, len(words))):
+            if words[j] in _CLAUSE_VERBS:
+                return True
+    return False
+
+
 def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
     """The colleague and deadline token this turn assigns, or None.
 
@@ -409,6 +447,19 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             # fell into this morning with `\bI\b`. Two derivations, the
             # same mistake, hours apart: the ambiguity is in the corpus,
             # not in either implementation.
+            # `until <day>` ends a STATE; after `has` it dates a delivery.
+            # "Ulrich HAS UNTIL end of day tomorrow" is a real deadline and
+            # the commonest way this firm states one.
+            if "until" in before_day and any(w in _STATIVE for w in before_day):
+                continue
+            # A fresh noun phrase taking over: conjunction + article.
+            # ...with a VERB after it. Without that this refuses "ingrid
+            # owns sizing ... AND AN EOD-TOMORROW NUMBER", where the
+            # conjunction introduces a second deliverable.
+            if any(w in _DENIALS for w in before_day):
+                continue
+            if _new_clause(before_day):
+                continue
             # A TRANSFER VERB handing the obligation to somebody else,
             # immediately before the day: "so that ESCALATES TO BENNETT
             # tomorrow morning" is Bennett's deadline and a status report
@@ -497,6 +548,13 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
             # "Clement's referral name is still owed by THURSDAY'S 2pm call"
             # names a meeting, and "Oskar's side is done, he SIGNED OFF
             # Monday" is history.
+            # The same two, on the possessive path.
+            if "until" in before and any(w in _STATIVE for w in before):
+                continue
+            if any(w in _DENIALS for w in before):
+                continue
+            if _new_clause(before):
+                continue
             _s, _e = _day_span(promise, after)
             if after[_e : _e + 2] in ("'s", "\u2019s"):
                 continue

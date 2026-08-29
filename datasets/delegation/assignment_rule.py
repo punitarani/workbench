@@ -243,6 +243,78 @@ _ALREADY_HAPPENED = re.compile(
 )
 
 
+# `until <day>` ends a state; it does not date a delivery. "Clement's
+# driver-wage matter is contained UNTIL THURSDAY 2pm -- he's fully
+# recused" says how long a containment lasts, not when Clement owes
+# anything.
+#
+# The promise rule reached the same conclusion months ago and expressed it
+# by leaving `until` out of the preposition table. This rule never had a
+# preposition table -- the assignment idiom attaches by bare apposition --
+# so it needs the exclusion stated directly.
+# ...but only after a STATE verb. "Ulrich HAS UNTIL end of day tomorrow
+# for Fionnuala's written confirmation" is a real deadline and the
+# commonest way this firm states one; "Clement's matter IS CONTAINED until
+# Thursday 2pm" is a state ending. Written without the distinction, this
+# guard refused the first -- measured, on a row the other derivation kept.
+_UNTIL_A_DAY = re.compile(
+    r"\b(?:is|are|was|were|stays?|remains?|sits?|contained|on hold)\b[^.?!;:]{0,40}?"
+    r"\buntil\b[^.?!;:]{0,20}?$",
+    re.IGNORECASE,
+)
+
+# A new subject with a verb the closed FINITE table does not carry, beyond
+# the six words `_ELSEWHERE` looks through. "Harriet's board update is on
+# hold until Wednesday, AND THE WRITTEN DIRECTION opening the Lindqvist
+# investigation GOES OUT by end of week" puts seven words between the
+# connective and the verb, so the shared test cannot see it.
+#
+# Anchored on the connective plus an article, which is what marks a fresh
+# noun phrase taking over: `and the`, `but a`, `so this`. A bare
+# conjunction does not, and the brief has always said so.
+# ...and it must have a VERB. Written without one, this also refuses
+# "ingrid owns sizing with materials from me today AND AN EOD-TOMORROW
+# NUMBER", where the conjunction introduces a second DELIVERABLE rather
+# than a new subject. A noun phrase with nothing to do is an object.
+#
+# The reach is ten words rather than the six the shared `_ELSEWHERE` uses,
+# which is the whole reason this pattern exists: "and the written direction
+# opening the Lindqvist investigation GOES OUT" puts seven words between
+# the article and the verb.
+_A_NEW_NOUN_SUBJECT = re.compile(
+    r"\b(?:and|but|so|then|while)\s+(?:the|a|an|this|that|those|these)\s+"
+    r"(?:[\w-]+\s+){1,10}?"
+    r"(?:is|are|was|were|goes|go|comes|come|lands|land|holds|hold|has|have"
+    r"|opens|open|closes|close|starts|start|runs|run|sits|sit)\b",
+    re.IGNORECASE,
+)
+
+
+# A negation between the assignee and the day. "Fionnuala HAS NOT given
+# written confirmation despite two direct chases, and the EOD-Saturday
+# deadline HAS NOW PASSED unanswered" is a complaint that nothing happened,
+# not an assignment -- and both derivations admitted it, which is what a
+# shared assumption looks like from the outside.
+#
+# The promise rule carries `_negated` for exactly this and it was never
+# wired into this one, because the assignment idiom was assumed to state
+# obligations positively. It does not: this firm reports non-delivery in
+# the same breath as it assigns.
+# `since <day>` points BACKWARDS. "Samir owns that, no update SINCE
+# TUESDAY" reports how long nothing has happened; it is not a deadline.
+#
+# The promise rule never needed this because it requires a preposition from
+# a closed table and `since` is not in it. This rule drops the attachment
+# test on purpose -- the assignment idiom attaches by bare apposition -- so
+# every backwards-pointing preposition has to be excluded by name.
+_LOOKS_BACK = re.compile(r"\bsince\s*$", re.IGNORECASE)
+
+_NOT_DONE = re.compile(
+    r"\b(?:not|never|n['\u2019]t|no longer|has passed|have passed|had passed)\b",
+    re.IGNORECASE,
+)
+
+
 # A DIFFERENT colleague standing immediately before the day takes it.
 #
 # "Teodor is still silent on the residency carve-out, so that escalates TO
@@ -432,6 +504,15 @@ def _possessive_assignment(clause: str, who: str, names: dict[str, str], rule):
                     continue
                 if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
                     continue
+                between_them = clause[owner.end() : start]
+                if _UNTIL_A_DAY.search(clause[owner.start() : start]):
+                    continue
+                if _LOOKS_BACK.search(clause[max(0, start - 10) : start]):
+                    continue
+                if _NOT_DONE.search(between_them):
+                    continue
+                if _A_NEW_NOUN_SUBJECT.search(between_them):
+                    continue
                 tail_after_day = clause[end:]
                 if _DAY_NAMES_AN_EVENT.match(tail_after_day):
                     continue
@@ -503,6 +584,15 @@ def _present_tense_assignment(clause: str, who: str, names: dict[str, str], rule
                 if rule._negated(span):
                     continue
                 if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(span):
+                    continue
+                between_them = clause[owner.end() : start]
+                if _UNTIL_A_DAY.search(clause[owner.start() : start]):
+                    continue
+                if _LOOKS_BACK.search(clause[max(0, start - 10) : start]):
+                    continue
+                if _NOT_DONE.search(between_them):
+                    continue
+                if _A_NEW_NOUN_SUBJECT.search(between_them):
                     continue
                 tail_after_day = clause[end:]
                 if _DAY_NAMES_AN_EVENT.match(tail_after_day):
@@ -580,6 +670,15 @@ def assignment_in(text: str, names: dict[str, str]) -> tuple[str, str] | None:
                     if rule._ELSEWHERE.search(span) or rule._PRONOUN_SUBJECT.search(
                         span
                     ):
+                        continue
+                    between_them = clause[owner.end() : start]
+                    if _UNTIL_A_DAY.search(clause[owner.start() : start]):
+                        continue
+                    if _LOOKS_BACK.search(clause[max(0, start - 10) : start]):
+                        continue
+                    if _NOT_DONE.search(between_them):
+                        continue
+                    if _A_NEW_NOUN_SUBJECT.search(between_them):
                         continue
                     tail_after_day = clause[end:]
                     if _DAY_NAMES_AN_EVENT.match(tail_after_day):
