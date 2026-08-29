@@ -1,0 +1,153 @@
+# A practitioner's review of the blocker register, answered with measurements
+
+A reviewer with legal-ops knowledge read `blocker-register` and judged it
+**partly realistic**: the work product is a real artifact — a pre-partner
+"what is stuck" list — but the assignment as written is not something a
+lawyer or paralegal would be given, or would execute this way.
+
+Every criticism was correct as stated. Three of them turn out to be
+ungradeable when measured, one is a genuine defect with a cheap fix, and
+one produced a new task. This file records which is which, with the
+numbers, so the same argument does not have to be had again from scratch.
+
+---
+
+## 1. "Rows should be ISSUES, not person × series" — correct, and not gradeable here
+
+> *A real register tracks issues (matter + bottleneck). This tracks person ×
+> meeting series: Elena's nine raises from January to May can be nine
+> different waits. A useful chain puzzle; a bad operations report.*
+
+Right on both counts. It was measured rather than argued.
+
+To key a row on the matter, the oracle has to derive the matter from the
+same clause that carries the complaint. On this corpus:
+
+| | |
+|---|---|
+| blocked turns | 58 |
+| naming a matter anywhere in the turn | 29 (50%) |
+| naming a matter **in the complaint clause** | 6 (**10%**) |
+| spoken labels that resolve to more than one matter | 21 of 22 |
+
+Ten per cent, and the labels are ambiguous besides — "Coastal Meridian"
+names two matters and "Halden Orthopedics" three.
+
+This is L7: **a key component the model cannot derive is one the ORACLE
+cannot derive either**, with its corollary that a conjunctive rule is safe
+only when its conjuncts share a unit. *Who is stuck* is a property of the
+clause; *which matter* is a property of the turn or of a different clause
+entirely. Keying on both grades a reader wrong for reading correctly.
+
+The same measurement killed matter-keying for the commitment registers a
+month earlier — 63 of 178 turns named a matter, at a median 96 characters
+from the commitment. Two independent attempts, same wall.
+
+**Answer: the criticism is right and the fix is not available on this
+corpus.** A world would have to be recorded where people say what they are
+blocked on in the clause where they say they are blocked. That is a world
+change, not a task change, and it is the honest way to fix it.
+
+## 2. "Shrink the window to recent cycles" — correct, and it empties the register
+
+> *A human would use last week's notes or the last few instances of each
+> series. They would not re-read every standing meeting with no index.*
+
+Also right about how the work is really done. Measured, on the last N
+occurrences of each standing series:
+
+| window | meetings | rows | median raises |
+|---|---|---|---|
+| last 4 | 32 | **1** | 1.0 |
+| last 8 | 64 | **2** | 1.0 |
+| last 12 | 96 | **4** | 1.0 |
+| whole window | 520 | 20 | 2.0 |
+
+At the realistic slice there are two rows. Blockers are rare — 58 turns in
+2,872 — so the phenomenon's density sets a floor under the window, and
+realism cannot go below it.
+
+**Answer: the wide window is not convenience, it is arithmetic.** A task
+whose register has two rows cannot score partially; every rollout comes
+back 0 or 1. The honest statement is that this measures a capability a
+human would not be asked to exercise at this scale, which is true of most
+agent benchmarks and worth saying out loud rather than dressing up.
+
+## 3. "The closed phrase grammar is not how lawyers read" — correct, and deliberate
+
+> *The inclusion rule is a closed collocation list plus clause tests.
+> Lawyers use judgment. Those rules exist so an oracle and a solver can
+> agree.*
+
+Exactly so, and the brief states the list rather than hiding it — which
+makes this a **specification-following** task, not a judgement task. That
+is a smaller claim than "reads like a lawyer" and it should be made
+plainly. A judgement-graded version would need an LLM judge, and this tree
+has a measured law about what that costs: a check that cannot disagree with
+the thing it checks is not a check.
+
+**Answer: reclassified rather than fixed.** The skill being measured is
+exhaustive application of a stated rule across a corpus no script can
+flatten — not legal judgement.
+
+## 4. "Six systems listed, then told the answer is only in transcripts" — a real defect
+
+> *You would not list six systems and then say the answer is only in
+> transcripts. The extra tools are distractors.*
+
+This one is straightforwardly wrong in the brief and cheap to fix. Telling
+the agent where to look removes the tool-selection problem that the six
+surfaces exist to pose, and no real brief would do it.
+
+**Answer: fixed.** The hint comes out. A competent reader should have to
+discover that Clio's statuses do not carry this and the transcripts do.
+
+## 5. "The deliverable is a transcript census, not a memo" — half fixed
+
+> *Partners want a table or a short memo. `meetings_read`, `turns_read` and
+> meeting IDs are audit fields.*
+
+Right that no partner wants them. They are graded because they are the one
+signal that separates a reader who opened the whole window from one who
+sampled, and because a register with no evidence fields has a per-row
+criterion that cannot fail — measured: with an empty field set, an empty
+answer scored 0.500.
+
+**Answer: partly.** The counts move to the diagnostic dimension, where they
+inform without paying; the meeting IDs stay, because they are what makes a
+chain checkable.
+
+## 6. "A standing meeting is a title on three or more days" — a dataset filter
+
+> *That is not how firms define recurrences. Those already sit on the
+> calendar as series.*
+
+Correct, and the cause is an engine defect rather than a task decision:
+`event_recurrence` is a real table with **0 rows**, the workplace spec
+declares these meetings `daily` and `weekly`, and the projection never
+writes it. The world log carries no recurrence either, so serving it
+properly needs a re-recording.
+
+**Answer: acknowledged, not fixed.** Recorded as an engine defect. Note
+that `meetings_read` scores 1.000 for every tier, so deriving the standing
+set is not where difficulty lives — this is a realism cost, not a
+measurement one.
+
+---
+
+## What the review produced
+
+A second task rather than an edit. Splitting a person's chain wherever it
+goes quiet for more than sixty days is the gradeable half of criticism 1: a
+wait that stops for two months and comes back is a different wait, and the
+gap is derivable from the meeting dates alone with no matter needed.
+
+| split | rows | median length | multi-raise chains |
+|---|---|---|---|
+| none (person × series) | 20 | 2.0 | 11 |
+| 60-day gap | 28 | 1.0 | 10 |
+| 21-day gap | 40 | 1.0 | 9 |
+
+It buys faithfulness and costs signal — more rows, shorter chains — so it
+ships beside the original rather than replacing it, and the two measure
+different things.
