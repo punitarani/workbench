@@ -132,7 +132,7 @@ def main() -> int:
         if when > entry["last"]:
             entry["last"], entry["at_last"] = when, mid
 
-    register = [
+    stuck = [
         {
             "owner": owner,
             "meeting": title,
@@ -144,15 +144,15 @@ def main() -> int:
         }
         for (owner, title), entry in seen.items()
     ]
-    register.sort(key=lambda row: (row["meeting"], row["owner"]))
+    stuck.sort(key=lambda entry: (entry["meeting"], entry["owner"]))
 
     print(
         json.dumps(
             {
                 "meetings_read": len(room),
                 "turns_read": len(turns),
-                "distinct_owners": len({row["owner"] for row in register}),
-                "blockers": register,
+                "distinct_owners": len({entry["owner"] for entry in stuck}),
+                "blockers": stuck,
             },
             indent=2,
         )
