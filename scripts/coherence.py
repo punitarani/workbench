@@ -41,16 +41,23 @@ import statistics
 import sys
 from pathlib import Path
 
-# Where each surface records "this person did a unit of work". A surface
-# with no such column cannot take part, and says so rather than being
-# silently dropped -- a pair that never runs looks identical to a pair that
-# passed.
-PER_PERSON: dict[str, tuple[str, str, str]] = {
-    "billing": ("clio.db", "activities", "person"),
-    "mail": ("gmail.db", "messages", "sender"),
-    "slack": ("slack.db", "messages", "sender"),
-    "meetings": ("meetings.db", "utterances", "speaker"),
-    "documents": ("imanage.db", "versions", "author"),
+# Where each surface records "this person did a unit of work", and what
+# ONE UNIT IS. A surface with no such column cannot take part, and says so
+# rather than being silently dropped -- a pair that never runs looks
+# identical to a pair that passed.
+#
+# The fourth element weights each row. It matters: counting timesheet ROWS
+# on merrick gives a Gini of 0.011 and counting the SECONDS in them gives
+# 0.059, because everybody files a similar number of entries and the
+# entries differ in length. Rows measure filing habits; seconds measure
+# work. The first version of this script counted rows and called billing
+# five times flatter than it is.
+PER_PERSON: dict[str, tuple[str, str, str, str | None]] = {
+    "billing": ("clio.db", "activities", "person", "quantity_seconds"),
+    "mail": ("gmail.db", "messages", "sender", None),
+    "slack": ("slack.db", "messages", "sender", None),
+    "meetings": ("meetings.db", "utterances", "speaker", None),
+    "documents": ("imanage.db", "versions", "author", None),
 }
 
 # Below this a pair is reported as weak. Not a hard floor: two surfaces can
@@ -76,7 +83,9 @@ WEAK = 0.35
 UNIFORM = 0.10
 
 
-def _counts(state: Path, db: str, table: str, column: str) -> dict[str, int] | None:
+def _counts(
+    state: Path, db: str, table: str, column: str, weight: str | None = None
+) -> dict[str, float] | None:
     path = state / db
     if not path.is_file():
         return None
@@ -85,10 +94,17 @@ def _counts(state: Path, db: str, table: str, column: str) -> dict[str, int] | N
         columns = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
         if column not in columns:
             return None
+        # A weight column that the schema does not have is a silent
+        # downgrade to row counting, which is the measure this exists to
+        # avoid. Refuse instead: a surface that cannot be measured the way
+        # it was declared should say so.
+        if weight is not None and weight not in columns:
+            return None
+        measure = f"SUM({weight})" if weight else "COUNT(*)"
         return {
-            key: count
-            for key, count in connection.execute(
-                f"SELECT {column}, COUNT(*) FROM {table} "  # noqa: S608
+            key: float(total or 0)
+            for key, total in connection.execute(
+                f"SELECT {column}, {measure} FROM {table} "  # noqa: S608
                 f"WHERE {column} IS NOT NULL GROUP BY {column}"
             )
         }
@@ -98,7 +114,7 @@ def _counts(state: Path, db: str, table: str, column: str) -> dict[str, int] | N
         connection.close()
 
 
-def gini(counts: dict[str, int]) -> float:
+def gini(counts: dict[str, float]) -> float:
     """How unequally the work is spread across this surface's actors.
 
     Zero means everybody did the same amount, which makes the ranking
@@ -113,7 +129,7 @@ def gini(counts: dict[str, int]) -> float:
     return (2 * weighted) / (len(values) * total) - (len(values) + 1) / len(values)
 
 
-def spearman(left: dict[str, int], right: dict[str, int]) -> tuple[float, int]:
+def spearman(left: dict[str, float], right: dict[str, float]) -> tuple[float, int]:
     """Rank correlation over the union of both surfaces' actors.
 
     The UNION, not the intersection. A person who bills heavily and sends
@@ -160,10 +176,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", type=Path)
     args = parser.parse_args(argv)
 
-    surfaces: dict[str, dict[str, int]] = {}
+    surfaces: dict[str, dict[str, float]] = {}
     absent: list[str] = []
-    for name, (db, table, column) in PER_PERSON.items():
-        counts = _counts(args.state, db, table, column)
+    for name, (db, table, column, weight) in PER_PERSON.items():
+        counts = _counts(args.state, db, table, column, weight)
         if counts:
             surfaces[name] = counts
         else:
