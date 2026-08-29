@@ -320,6 +320,42 @@ named `room`, and `len()` of a meeting id is 10.
 **Therefore:** the dangerous bug is the one whose output looks like a
 measurement. Assert magnitudes, not just types.
 
+### L37. An oracle's mtime is part of the measurement record
+
+A sweep is dated against the key that graded it — a reward file older than
+its oracle came from a key that no longer exists. That is the only
+staleness check that works when a harness never records the prompt, and one
+whole tier in this tree is like that.
+
+Which means rewriting a byte-identical oracle destroys measurements.
+
+**Measured:** a rule correction propagated to seven solvers left three
+oracles byte-for-byte identical — hashes compared before and after, which
+is why it was believed safe. The rebuild moved their mtimes anyway, and the
+band table went from **3 tasks in band to 0**, reporting two CERTIFIED
+tasks as "graded against a superseded key" and discarding nine valid
+graded trials.
+
+**Therefore:** a build that produces the same bytes must not touch the
+file. And more generally — a gate reading the filesystem's own bookkeeping
+inherits every side effect of every tool that touches it. *"The contents
+did not change"* is not the same as *"nothing changed"*.
+
+### L38. A criterion with nothing to check returns 1.000
+
+**Measured:** a register whose key held all five graded facts shipped with
+an empty `FIELDS` mapping, so the per-row check had nothing to disagree
+with. An empty answer scored **0.500** and an answer containing no work at
+all scored **0.300** — three of ten points for a check whose outcome was
+fixed by construction.
+
+**The floors caught it, and only the floors could have.** No test fails, no
+gate complains, and the score looks like a score.
+
+**Therefore:** when a key absorbs every graded fact, the per-row dimension
+must either be dropped or given genuine evidence to check — not padding,
+but the fields that show the work was actually read.
+
 ---
 
 ## Part IV — What makes a world usable
