@@ -256,6 +256,70 @@ them apart nearly deleted the one criterion doing the discriminating.
 **Better than either:** turn the scalar into rows. Partial credit becomes
 possible and the reader can see *which* items were wrong.
 
+### L32. A condition can be correct by luck on the corpus it was written against
+
+Every solver here decided a standing series by counting MEETINGS while the
+brief said a title must "appear on three or more days". On the world they
+were written against those never diverged -- 8 series either way -- so
+nothing could reveal it.
+
+**Measured:** on a second world, one title is 4 meetings on 2 days: a
+working session held twice, which the brief excludes, promoted to a
+standing series worth two rows.
+
+**Therefore:** a condition validated on one corpus is untested, not
+correct. Run every rule against a second world before believing it, and
+prefer the brief's own words over the convenient column.
+
+### L33. A gate that can refuse its own invocation will
+
+**Measured:** the guard against rebuilding under a running sweep scans
+`ps` for `rollout.py` and `--task <name>`. One compound shell command that
+stopped a sweep and then rebuilt appears as a SINGLE ps line carrying both,
+so the guard reported four sweeps that were not running and refused every
+build issued that way.
+
+**Therefore:** a check that reads the machine's own state must exclude the
+process asking. Match the interpreter, not the mention.
+
+### L34. A key component chosen by watching a floor beats one chosen by argument
+
+**Measured twice in one day.** A slippage register keyed on
+`(owner, meeting, due, slips)` paid a no-comprehension dump **0.426** --
+inside the band, with half the target range above a strategy that never
+read a transcript, because `slips` is 0 for half the rows and guessing zero
+is worth half the column. Adding `first_due` took the floor to **0.000**: a
+dump can see the statements in front of it, but it cannot know where a
+chain STARTED.
+
+**Therefore:** measure `reported_every_candidate` before believing a key,
+and treat a floor inside the band as a design defect rather than a note.
+
+### L35. Two derivations can share a bug by sharing a bound
+
+`_OWNER_REACH = 5` let the token route read "I'll get KLARA'S DATE pinned
+down by end of day" as Klara owning the deadline; the regex route allowed
+at most two words and read it correctly.
+
+**Measured:** four tokens is the line. "assumes THANDIWE'S SIGN-OFF by
+Wednesday" still matches at four, because a hyphenated deliverable is ONE
+word to a regex and TWO to a tokeniser -- so the same bound means different
+things to the two routes, and the number has to be set per route rather
+than copied across.
+
+**The rule underneath:** three words between a possessive and its
+preposition means a verb phrase has intervened, and the day belongs to the
+verb.
+
+### L36. A shadowed name produces a plausible number, not an error
+
+**Measured:** a verifier reported `meetings_read: 10` against a true 395,
+because a loop variable named `room` shadowed the dict of meetings also
+named `room`, and `len()` of a meeting id is 10.
+
+**Therefore:** the dangerous bug is the one whose output looks like a
+measurement. Assert magnitudes, not just types.
+
 ---
 
 ## Part IV — What makes a world usable
