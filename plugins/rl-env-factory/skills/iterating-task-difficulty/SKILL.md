@@ -170,6 +170,67 @@ Two consequences worth internalising before a build:
   flip, and the honest response to landing at 0.81 is to report it rather
   than to lever it.
 
+## Joint dependency is the lever; row count is not
+
+At a per-extraction accuracy `a`, a row that turns on ONE extraction is
+right with probability `a`, and F1 over such rows is `a` whether there are
+26 of them or 117. Adding rows adds work, not difficulty.
+
+A row that needs `k` facts is right with `a**k`. That is the whole lever,
+and it is the only one measured on this tree to move a frontier model off
+ceiling.
+
+**Measured.** A month-end snapshot design was costed at 117 rows against
+26, with 67% of the added rows new-or-changed, and estimated to move the
+score by nothing — each snapshot row still hinged on a single statement.
+Discarded before it was built. What did move it: adding the chain's other
+END to a key already holding its last statement and its length (0.817 →
+0.706), and adding a figure that needs EVERY link rather than the ends
+(0.852 → 0.755).
+
+**Pick facts that fail independently.** Both ends of a chain and its length
+are three different reads of the same chain: a reader who finds one end has
+none of the other two, and none is derivable from the others. Three facts
+that all fall out of one lookup give you `a`, not `a**3`.
+
+## Put the hard fact in the KEY, not in a field
+
+Same fact, same task, same window:
+
+    keyed (owner, meeting), date a field    row_f1 1.000
+    keyed (owner, meeting, due)             row_f1 0.179
+
+A wrong key means the row is not matched at all — every field on it misses
+AND the invented row draws the extra-row penalty. In a field it degrades
+the score by one part in N. Key placement is the strongest dial available
+and it costs nothing.
+
+## Choose the key by watching the dump floor, not by arguing
+
+Before believing a key, measure what a reader who reports every candidate
+without comprehending anything scores.
+
+**Measured twice in one day.** A slippage register keyed on
+`(owner, meeting, due, slips)` paid a dump **0.426** — inside the band,
+with half the target range sitting above a strategy that never read a
+transcript, because `slips` is 0 for half the rows and guessing zero is
+worth half the column. Adding `first_due` took it to **0.000**: a dump can
+see the statements in front of it, but it cannot know where a chain
+STARTED.
+
+A floor inside the band is a design defect, not a note.
+
+## A short window has no chain to reconstruct
+
+Before concluding a supersession task is at ceiling, measure how often the
+thing being superseded actually moves.
+
+**Measured:** at 42 days the median person revises **once** and the
+strongest tier scores 1.000; at 147 days the median is 3.5. Same task, same
+rule, same grader. A task was nearly redesigned when the window was the
+whole problem — and lengthening it also dropped the dump floor from 0.372
+to 0.000.
+
 ## Legitimate levers
 
 - how much of the record a task covers

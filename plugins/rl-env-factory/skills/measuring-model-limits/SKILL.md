@@ -75,6 +75,19 @@ suspect yourself first.
    something you have stopped needing.
 9. **Write down what generalizes** — as guidance, not as a run record.
 
+## The laws are written down; read them before designing
+
+A repository practising this method should carry a `docs/LAWS.md`: one
+numbered entry per measured law, each with the number behind it and the
+decision it would have changed. A candidate becomes a law when it has both;
+without them it is a note and belongs in a skill.
+
+Read it before designing a task, changing a grader, or believing a score.
+Add to it whenever something is paid for. When a law is DISPROVED, strike
+it and record what replaced it rather than deleting it — the reasoning that
+made it plausible will recur, and a struck law is the cheapest way to stop
+it recurring twice.
+
 ## Where findings go
 
 A finding that generalizes is not a run record. If a measurement changes

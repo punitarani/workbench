@@ -207,6 +207,33 @@ A one-day world costs a few minutes and exercises every stage. Order the
 work so the expensive irreversible step is the *last* thing you start,
 not the first.
 
+## Surfaces must agree about who is busy
+
+Every per-surface gate asks whether a surface looks right ON ITS OWN. A
+generator that writes each surface independently passes all of them while
+describing four different firms.
+
+A firm's busiest person bills the most, sends the most mail, talks the most
+and touches the most documents. The volumes differ by orders of magnitude;
+the ORDERING does not. Check it with rank correlation over every pair.
+
+**Measured on a shipped world:** documents~slack **+0.747**, and the same
+world's mail~slack **−0.647** and mail~documents **−0.603**. Mail had been
+written without reference to who was actually busy. Six months of
+recording, five surfaces, found by hand while answering a question about
+whether the environment was saleable.
+
+**Check dispersion BEFORE correlating.** A surface where everybody did the
+same amount of work has no ordering, and correlating against it reads a
+coin flip as a finding. The first version of that check reported nine
+inverted pairs, five of them against a surface with a Gini of 0.059 — every
+person billing between 976 and 1083 entries. A flat surface is the worse
+defect of the two: no task keyed on who carries the work can be built on it
+at all.
+
+**Weight by work, not by rows.** Counting timesheet ROWS gave a Gini of
+0.011; summing the SECONDS in them gave 0.059. Rows measure filing habits.
+
 ## Fidelity is measured, not asserted
 
 Commit distribution bands derived from published benchmarks for the

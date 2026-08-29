@@ -245,3 +245,35 @@ careful enough to read semantically meets the same corpus.
 
 **A score that jumps to ceiling when an instruction is clarified was
 never measuring the model.** Audit the class, not just the outliers.
+
+
+---
+
+# A stale sweep is worse than a missing one
+
+It is a real number, from a real run, against a question nobody is asking
+any more, and nothing about it looks wrong.
+
+**Measured:** a summary table reported the strongest tier at 1.000 on a
+task from a 42-day sweep after the window had moved to 147 days, and
+another tier at 0.631 from a superseded key while its current sweep said
+0.545 — hiding a third in-band task from the count entirely.
+
+Three ways to go stale, and they need three checks:
+
+- **A changed KEY.** Look for each graded field in the brief that trial was
+  given. A trial never asked for a field cannot be scored on it.
+- **A changed WINDOW.** This changes no field at all, so the field check is
+  blind. Compare the brief's own generated literals — the dates and counts
+  written into the prose rather than typed.
+- **A changed ORACLE.** Compare the reward file's timestamp against the
+  oracle's. This needs nothing from the trajectory, which matters because
+  some harnesses never record the prompt at all — and for those, no content
+  check can work.
+
+**Guard the content checks with an anchor.** Require the deliverable's own
+name to appear before reading a field's absence as evidence; without that,
+the same logic refuses every trial whose harness kept no prompt.
+
+**Break ties by recency, never by tag name.** Alphabetical ordering put
+`glm-rev-k3` ahead of `glm-rev2-k3` and reported the older sweep.

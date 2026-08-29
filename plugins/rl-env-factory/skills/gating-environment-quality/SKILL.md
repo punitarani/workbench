@@ -11,6 +11,69 @@ Every gate below exists because its absence cost a wrong verdict.
 confirm the gate fails. A gate that has never failed is a gate you are
 guessing about.
 
+## A gate that documents a check it does not perform is worse than no gate
+
+The prose is load-bearing: it is what stops anybody looking again.
+
+**Three instances in one day.** A certification script opened with "a DNF
+is excluded rather than averaged as a zero" and its `_rewards` read every
+reward file including DNFs — and had already reversed a verdict with it. A
+verifier pinned the brief's phrase *"a question is not one"* and never
+tested for it. A set of realism bands was computed correctly and run by no
+build.
+
+**Therefore:** when a docstring states a rule, a test must assert the code
+obeys it. Prose is a claim, not an implementation. The tell is a check
+whose absence nobody would notice, described in a sentence nobody rereads.
+
+## A gate that fails everything is a gate nobody reads
+
+**Measured:** 39 realism bands, **zero** passing, and the build printed the
+failures and proceeded. Most had been written for a different institution
+type. At least one computed a number it could not compute — splitting on
+`@` in a schema that stores `per-firstname-lastname` and never an address.
+
+Buried in that report was a real finding the report itself was hiding: a
+cross-surface correlation band with a floor of 0.45 reading −0.30, failing
+quietly among 38 others.
+
+**Therefore:** a gate must be able to pass. Calibrate it for the world it
+guards, delete the bands measuring fields the schema lacks, and make the
+survivors block rather than print.
+
+## A gate that can refuse its own invocation will
+
+**Measured:** a guard against rebuilding under a running sweep scans `ps`
+for `rollout.py` and `--task <name>`. A single compound shell command that
+stopped a sweep and then rebuilt appears as ONE ps line carrying both, so
+the guard reported four sweeps that were not running and refused every
+build issued that way.
+
+**Therefore:** a check reading the machine's own state must exclude the
+process asking. Match the interpreter, not the mention.
+
+## A condition can be correct by luck on the corpus it was written against
+
+**Measured:** every solver decided a "standing series" by counting
+MEETINGS while the brief said a title must "appear on three or more days".
+On the world they were written against those never diverged — 8 series
+either way. On a second world one title was 4 meetings on 2 days: a working
+session held twice, which the brief excludes, promoted to a standing series
+worth two rows.
+
+**Therefore:** a condition validated on one corpus is untested, not
+correct. Differential-test every rule against a second world, and prefer
+the brief's own words over the convenient column.
+
+## A shadowed name produces a plausible number, not an error
+
+**Measured:** a verifier reported `meetings_read: 10` against a true 395,
+because a loop variable named `room` shadowed the dict of meetings also
+named `room` — and `len()` of a meeting id is 10.
+
+The dangerous bug is the one whose output looks like a measurement. Assert
+magnitudes, not just types.
+
 ## The gates
 
 | gate | catches |
