@@ -34,7 +34,29 @@ DELIVERABLE = "assignment_register.json"
 
 ROWS = "assignments"
 
-KEY = ("owner", "meeting", "due", "first_due", "superseded")
+# Who was told, in which standing meeting, and by when.
+#
+# `first_due` and `superseded` were IN the key and are now fields, which is
+# the difficulty law run backwards. A hard fact in the key collapses row F1;
+# in a field it degrades the score by one part in N. That is normally used
+# to make a task harder -- it took one register from 1.000 to 0.179 -- and
+# here it was needed the other way.
+#
+# Measured on the same saved deliverables, re-scored under each candidate
+# key rather than by re-running anything:
+#
+#     (owner, meeting)                       0.695 / 0.614 / 0.608
+#     (owner, meeting, due)                  0.338 / 0.159 / 0.154
+#     (owner, meeting, due, superseded)      0.207 / 0.067 / 0.039
+#     (owner, meeting, due, first_due, sup)  0.178 / 0.052 / 0.032
+#
+# At five components every tier sat inside the band on its headline while
+# extracting almost nothing -- 32 of 39 rows declined by every trial of
+# every tier -- which is the ceiling defect from the other end. The
+# assignment rule is simply harder than the promise rule: the owner of a row
+# is never the speaker, so the whole chain has to be attributed before any
+# of it can be dated.
+KEY = ("owner", "meeting", "due")
 
 # What is left once the key has taken five of the seven fields. Both are
 # strings the record states outright -- a meeting id and its start -- so
@@ -43,7 +65,14 @@ KEY = ("owner", "meeting", "due", "first_due", "superseded")
 # They are graded rather than dropped because they are the *evidence*: a
 # register that names the right dates and cannot say which room they were
 # said in has been reconstructed rather than read.
-FIELDS: dict[str, float] = {"meeting_id": 0.0, "said_at": 0.0}
+# The chain facts, still graded, but no longer able to void a row that
+# named the right person, room and date.
+FIELDS: dict[str, float] = {
+    "first_due": 0.0,
+    "superseded": 0.0,
+    "meeting_id": 0.0,
+    "said_at": 0.0,
+}
 
 # Tallies of the rows this grading already checks. Paying for them again
 # multiplies the signal already there and raises the floor, because an

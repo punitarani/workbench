@@ -75,3 +75,46 @@ two answered trials wearing the shape of three. The tags above are a fresh
 kimi sweep in which all three trials answered.
 
 Tags: `opus-slip-k3`, `glm-slip-k3`, `kimi-slip2-k3`.
+
+
+## delegation
+
+A second world, recorded with one change to the workplace spec so that
+partners hand work to named colleagues out loud instead of taking it on
+themselves. 135 days, 411 meetings, 166,888 words. It yields 122
+assignments against the first world's 16 — the first time a world here was
+commissioned FOR a family rather than a family found in a world.
+
+### assignment-revision-register — CERTIFIED 2026-08-29
+
+For every live assignment: who was told to do it, in which standing
+meeting, and the date it is due, with the chain's other end and its length
+graded as fields. **The owner of a row is never the person who said the
+words**, which is the whole task: a reader who finds every turn and keys it
+on the speaker gets every row wrong.
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.384, 0.402, 0.414 | **0.400** | assignments.f1 0.338 |
+| glm-5.2 | 0.243, 0.291, 0.341 | **0.292** | assignments.f1 0.159 |
+| kimi-k3 | 0.277, 0.286, 0.300 | **0.288** | assignments.f1 0.154 |
+
+Floors: an empty register scores 0.200, a dump 0.369.
+
+**The key was chosen by measurement, not by argument.** It shipped keyed on
+five facts and every tier sat inside the band while extracting almost
+nothing — `assignments.f1` at 0.178 / 0.052 / 0.032, with 32 of 39 rows
+declined by every trial of every tier. Re-scoring the same saved
+deliverables under each candidate key gave:
+
+    (owner, meeting)                          0.695 / 0.614 / 0.608
+    (owner, meeting, due)                     0.338 / 0.159 / 0.154
+    (owner, meeting, due, superseded)         0.207 / 0.067 / 0.039
+    (owner, meeting, due, first_due, sup)     0.178 / 0.052 / 0.032
+
+Three components is the point where the criterion is demanding without
+being untouched. That is the difficulty law run BACKWARDS: a hard fact in
+the key collapses row F1 and in a field only degrades it, which is normally
+used to make a task harder and here was needed the other way.
+
+Tags: `opus-a1-k3`, `glm-a1-k3`, `kimi-a1-k3`.

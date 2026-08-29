@@ -54,6 +54,23 @@ MIN_TRIALS = 3
 # a disagreement rather than as a silently different verdict.
 DUMP_CEILING = 0.8
 
+# Below this the heaviest criterion is untouched, and the band above it is
+# made of whatever else the task grades.
+#
+# The mirror of SOLVED and it was missing. A register keyed on five facts
+# put every tier inside the band -- 0.310, 0.234, 0.221 -- while
+# `assignments.f1` read 0.178, 0.052 and 0.032, and 32 of its 39 rows were
+# declined by every trial of every tier. The scores were the two coverage
+# scalars and some part-credit; almost nothing was extracted. A task can no
+# more claim to measure something nobody touches than something everybody
+# solves.
+UNTOUCHED = 0.15
+
+# Above this the tiers find enough rows that a unanimous refusal means
+# something. Below it they miss most rows by construction, and every row
+# they miss looks like a claim about the key.
+EVIDENTIAL = 0.5
+
 
 @functools.cache
 def _band():
@@ -234,9 +251,30 @@ def check_band(
 
 
 def check_no_unanimous_refusals(
-    dataset: str, task: str, tags: list[str], waived: set[str], problems: list[str]
+    dataset: str,
+    task: str,
+    tags: list[str],
+    waived: set[str],
+    problems: list[str],
+    best: float = 1.0,
 ) -> None:
-    """Rows every trial declined, which is a claim about the key."""
+    """Rows every trial declined, which is a claim about the key.
+
+    ...but only where declining is SURPRISING. The signal is that genuine
+    model error is stochastic, so two runs drop overlapping but different
+    rows; a row every trial drops is the thing they have in common. That
+    reasoning assumes the trials find most rows.
+
+    On a task where the strongest tier reaches a third of the register, 20
+    of 39 rows are declined by every trial and none of it is evidence: the
+    tiers are missing most rows by construction, so unanimity is what the
+    arithmetic predicts rather than a claim about the key.
+
+    So `best` is the heaviest criterion's best mean across tiers, and below
+    `EVIDENTIAL` the check reports what it found and refuses nothing. The
+    rows are still printed -- a hard task's declined rows are still worth
+    adjudicating -- but they no longer block a verdict they cannot support.
+    """
 
     command = [
         sys.executable,
@@ -249,6 +287,14 @@ def check_no_unanimous_refusals(
     for tag in tags:
         command += ["--tag", tag]
     done = subprocess.run(command, capture_output=True, text=True)
+    if best < EVIDENTIAL:
+        rows = done.stdout.count("declined ")
+        print(
+            f"  {rows} row(s) declined by every trial, NOT read as evidence: "
+            f"the heaviest criterion peaks at {best:.3f}, so the tiers miss "
+            "most rows and unanimity is arithmetic rather than a finding"
+        )
+        return
     declined = [
         line.split("  ", 2)[-1].split("  <==")[0].strip()
         for line in done.stdout.splitlines()
@@ -283,7 +329,7 @@ SOLVED = 0.99
 
 def check_heaviest_criterion(
     dataset: str, task: str, tags: list[str], problems: list[str]
-) -> None:
+) -> float:
     """Refuse a task whose SUBSTANTIVE criterion is at ceiling for some tier.
 
     A headline score inside the band can be made entirely of bookkeeping.
@@ -299,6 +345,7 @@ def check_heaviest_criterion(
     can only claim to measure what its weight is actually spent on.
     """
 
+    best = 0.0
     for tag in tags:
         job = REPO / "jobs" / f"{dataset}-{task}-{tag}"
         if not job.is_dir():
@@ -333,6 +380,17 @@ def check_heaviest_criterion(
                 "remaining criteria, so this tier is not being measured on "
                 "what the task is about"
             )
+        best = max(best, mean)
+        if mean <= UNTOUCHED:
+            problems.append(
+                f"{tag}: {heaviest!r} carries {share:.0%} of the weight and "
+                f"scores {mean:.3f}. The headline band is made of the "
+                "remaining criteria, so this tier is not being measured on "
+                "what the task is about -- the same defect as a solved "
+                "criterion, from the other end"
+            )
+
+    return best
 
 
 def _contested(report: str) -> dict[str, tuple[str, int]]:
@@ -385,9 +443,9 @@ def main(argv: list[str] | None = None) -> int:
     check_sweeps_are_current(args.dataset, args.task, task_dir, args.tag, problems)
     check_floors(args.dataset, task_dir, problems)
     check_band(args.dataset, args.task, args.tag, problems, task_dir.parent)
-    check_heaviest_criterion(args.dataset, args.task, args.tag, problems)
+    best = check_heaviest_criterion(args.dataset, args.task, args.tag, problems)
     check_no_unanimous_refusals(
-        args.dataset, args.task, args.tag, set(args.waive), problems
+        args.dataset, args.task, args.tag, set(args.waive), problems, best
     )
     return _verdict(args.task, problems)
 

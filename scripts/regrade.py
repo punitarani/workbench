@@ -138,6 +138,15 @@ def _score(task_dir: Path, workspace: Path) -> dict[str, float] | None:
     total = sum(weight for _, _, weight in parts)
     scored = {name: value for name, value, _ in parts}
     scored["__score__"] = sum(value * weight for _, value, weight in parts) / total
+    # The per-criterion breakdown too, in the shape the verifier writes it.
+    # `certify`'s heaviest-criterion check reads `reward-details.json`, so
+    # rewriting only `reward.json` moves the band and leaves that check
+    # judging the criteria of a key that no longer exists -- the exact
+    # split-brain this tool exists to prevent.
+    scored["__criteria__"] = [
+        {"name": name, "value": round(value, 4), "weight": weight}
+        for name, value, weight in parts
+    ]
     return scored
 
 
@@ -146,6 +155,16 @@ def main() -> int:
     parser.add_argument("--dataset", required=True)
     parser.add_argument("--task", required=True)
     parser.add_argument("--tag", action="append", required=True)
+    parser.add_argument(
+        "--write",
+        action="store_true",
+        help=(
+            "record the recomputed score in the trial's reward.json, so "
+            "certify and band read it. The original is kept beside it as "
+            "reward-before-rekey.json and never overwritten twice, so the "
+            "first number a trial was ever given stays recoverable"
+        ),
+    )
     args = parser.parse_args()
 
     task_dir = REPO / "datasets" / args.dataset / "tasks" / args.task
@@ -182,10 +201,39 @@ def main() -> int:
                 print(f"  {tag} {trial.name[-8:]}: no deliverable — not a score")
                 continue
             scores.append(got["__score__"])
+            if args.write:
+                # The first score a trial was ever given is kept, and kept
+                # ONCE: re-scoring twice must not overwrite the archive with
+                # the intermediate value, or the original is lost silently.
+                archive = verifier / "reward-before-rekey.json"
+                current = verifier / "reward.json"
+                if current.is_file() and not archive.is_file():
+                    archive.write_text(current.read_text())
+                current.write_text(
+                    json.dumps({"reward": round(got["__score__"], 4)}) + "\n"
+                )
+                details = verifier / "reward-details.json"
+                kept = verifier / "reward-details-before-rekey.json"
+                if details.is_file() and not kept.is_file():
+                    kept.write_text(details.read_text())
+                details.write_text(
+                    json.dumps(
+                        {
+                            "answer": {
+                                "score": round(got["__score__"], 4),
+                                "criteria": got["__criteria__"],
+                                "kind": "programmatic",
+                                "rescored_by": "scripts/regrade.py",
+                            }
+                        },
+                        indent=1,
+                    )
+                    + "\n"
+                )
             print(
                 f"  {tag} {trial.name[-8:]}  {got['__score__']:.3f}   "
                 + "  ".join(
-                    f"{k}={v:.3f}" for k, v in got.items() if k != "__score__"
+                    f"{k}={v:.3f}" for k, v in got.items() if not k.startswith("__")
                 )
             )
         if scores:
