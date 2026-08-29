@@ -190,6 +190,13 @@ def _deliverable(tasks_dir: Path, task: str) -> str:
     )
 
 
+# Reasons a cell is empty that mean "nothing was measured here on this
+# version", as opposed to "this tier was measured and it went wrong".
+_NO_CURRENT_RUN = re.compile(
+    r": not run$|superseded key|older brief|different window"
+)
+
+
 def _mtime(job: Path) -> float:
     """When this job last produced anything, for breaking ties by recency."""
 
@@ -278,6 +285,37 @@ def _read_a_different_window(trial: Path, parameters: tuple[str, ...], anchor: s
     return any(value not in seen for value in parameters)
 
 
+def _graded_before_the_key(trial: Path, oracle: Path) -> bool:
+    """Whether this trial was scored against an oracle that has since moved.
+
+    The content checks above need the brief to be in the trajectory. Some
+    harnesses never put it there -- every glm trial in this tree is one --
+    and for those, a stale sweep is invisible: `glm-v10-k3` answered the
+    42-day task, scored 3 of 3, and was preferred over the current 147-day
+    sweep because it had one more gradeable trial.
+
+    This needs nothing from the trial. Harbor writes `reward.json` when the
+    trial finishes, using whatever `tests/oracle.json` says at that moment.
+    If the oracle has been rewritten since, that number was computed
+    against a key that no longer exists, whatever the agent was asked. It
+    is not a current measurement.
+
+    The saved deliverable is still good -- `scripts/regrade.py` re-scores
+    it against the current key, which is the right tool when only the key
+    moved. This one is about which sweep a BAND verdict may rest on, and
+    the answer is never a reward computed from a superseded oracle.
+
+    Mtimes are a working-tree fact: a fresh clone rewrites them all and
+    this check goes quiet. It is a guard for the machine doing the work,
+    which is where stale sweeps accumulate.
+    """
+
+    reward = trial / "verifier" / "reward.json"
+    if not reward.is_file() or not oracle.is_file():
+        return False
+    return reward.stat().st_mtime < oracle.stat().st_mtime
+
+
 def _served_garbage(trial: Path) -> bool:
     """Whether the provider returned text that is not language.
 
@@ -324,9 +362,12 @@ def _outcome(
     wanted: str,
     fields: tuple[str, ...] = (),
     parameters: tuple[str, ...] = (),
+    oracle: Path | None = None,
 ) -> tuple[float | None, str]:
     """The trial's score, or None with the reason it is not one."""
 
+    if oracle is not None and _graded_before_the_key(trial, oracle):
+        return None, "graded against a superseded key"
     if _answered_an_older_brief(trial, fields, wanted):
         return None, "answered an older brief"
     if _read_a_different_window(trial, parameters, wanted):
@@ -371,9 +412,10 @@ def measure(tasks_dir: Path, task: str, job: Path) -> dict:
     wanted = _deliverable(tasks_dir, task)
     fields = _graded_fields(tasks_dir, task)
     parameters = _brief_parameters(tasks_dir, task)
+    oracle = tasks_dir / task / "tests" / "oracle.json"
     scores, reasons = [], []
     for trial in trials:
-        value, why = _outcome(trial, wanted, fields, parameters)
+        value, why = _outcome(trial, wanted, fields, parameters, oracle)
         (scores if value is not None else reasons).append(
             value if value is not None else why
         )
@@ -515,8 +557,18 @@ def main(argv: list[str] | None = None) -> int:
         # which is what "any blocked model blocks" did once a fourth model
         # joined MODELS and was run on nothing. certify.py has always asked
         # for three tiers; this now asks the same question.
-        unmeasured = [why for why in blocked if why.endswith(": not run")]
-        broken = [why for why in blocked if not why.endswith(": not run")]
+        # Two kinds of "no number here", and they are not the same fact.
+        #
+        # NO CURRENT MEASUREMENT: never swept, or swept against a brief or a
+        # key that has since moved. Nothing is known about this tier on this
+        # version of the task, and a task the other tiers measure cleanly
+        # should not be held hostage to it.
+        #
+        # A FAILURE: the tier was swept on this version and something went
+        # wrong -- a timeout, no deliverable, a provider serving gibberish.
+        # That is a fact about this task as it stands, and it blocks.
+        unmeasured = [why for why in blocked if _NO_CURRENT_RUN.search(why)]
+        broken = [why for why in blocked if not _NO_CURRENT_RUN.search(why)]
         if unmeasured and not broken and len(means) >= args.tiers:
             note = (note + "  " if note else "  ") + "(" + "; ".join(unmeasured) + ")"
             blocked = []
