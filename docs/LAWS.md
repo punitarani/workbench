@@ -356,6 +356,26 @@ gate complains, and the score looks like a score.
 must either be dropped or given genuine evidence to check — not padding,
 but the fields that show the work was actually read.
 
+### L39. Window variants cannot add tasks to a world already using its whole window
+
+A shorter window is a real difficulty dial — but it only points one way,
+and every register here already reads its world end to end. So a variant
+can only be EASIER than a task that is already the easy end of the family.
+
+**Measured:** a 90-day cut of a 182-day register gave 18 rows with a median
+of **one** superseded commitment per row — most chains being two statements
+long — and a dump floor of **0.364**. That is the same shape that scored
+1.000 for the strongest tier at 42 days.
+
+**Therefore:** to add tasks, add rules or worlds, not windows. A window
+variant earns its place only where the parent does NOT already use the full
+recording, or where the world is long enough that the shorter cut still has
+chains in it.
+
+The tooling is still worth keeping (`scripts/window_variant.py`), because
+the next world may be longer — and because cutting a window by hand is how
+a brief comes to state one window while its solver reads another.
+
 ---
 
 ## Part IV — What makes a world usable
