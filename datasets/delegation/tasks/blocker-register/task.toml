@@ -19,7 +19,7 @@ schema_version = "1.3"
 
 [task]
 name = "workbench/delegation-blocker-register"
-description = """Read six months of a law firm's standing meeting \
+description = """Read four and a half months of a law firm's standing meeting \
 transcripts and report what is stuck: who said they were blocked, in \
 which meeting, when they first said it, when they last said it, and how \
 many meetings of that series they said it in. None of those dates is in \
