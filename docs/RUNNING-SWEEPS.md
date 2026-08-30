@@ -75,6 +75,29 @@ answered 3 of 3, which looks like the task defeating the model that thinks
 hardest about it. Both of its failures were dropped streams. Completion
 there is a fact about the provider that day.
 
+**Measured across every opus sweep in the tree, the router 400 lands on
+the MAIL surface:**
+
+| opus on | answered | dropped streams |
+|---|---|---|
+| `merrick/mail-promise-register` | 2/11 (18%) | 6 |
+| `delegation/mail-promise-register` | 2/5 (40%) | 3 |
+| `merrick/live-commitment-register` | 31/37 (84%) | 6 |
+| `merrick/standing-commitment-register` | 22/27 (81%) | 5 |
+| every transcript task on `delegation` | 3/3 (100%) | 0 |
+
+Two mail registers at 18% and 40%; every transcript register at 81% or
+better, most at 100%. The mail tasks are not the hardest in the pack --
+`live-commitment` spends four times the tokens -- so difficulty is not what
+separates them. What separates them is the surface being read, and glm and
+kimi answer both mail registers 3 of 3, so it is not the surface alone
+either. It is opus reading mail, and the failure is always the same 400
+immediately after a shell heredoc.
+
+**Plan sweeps on the mail registers for opus at k=9.** Three graded trials
+at 18% completion is not something a k=3 delivers, and a tier reading
+0-of-3 there is reporting the router.
+
 **It clusters by MODEL and TASK, and the shape is legible.** On one mail
 register opus has answered 2 of 9 while glm and kimi answer 3 of 3 on the
 same task. Six of opus's seven failures are the same 400, and every one
