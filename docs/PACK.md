@@ -189,6 +189,13 @@ adjudicated it in `docs/adjudications/`.
 Scores live in `jobs/`, which is not distributed: it holds provider keys in
 logs. A clone reproduces the tasks and the oracles, not the measurements.
 
+`jobs/`, `out/` and `.env` are gitignored and none of them has a tracked
+file. Verified 2026-08-29 across all 872 commits: **no commit in this
+repository's history has ever added an `sk-or-v1-` or `sk-ant-` literal,
+or a private key block.** The only matches for a credential pattern
+anywhere in the tree are the variable NAME in usage examples --
+`OPENROUTER_API_KEY=... uv run ...` -- in six files.
+
 ## Reading order
 
 - `docs/TASKS.md` — every task, generated, with the legacy worlds separated
