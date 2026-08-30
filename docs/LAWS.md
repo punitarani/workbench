@@ -675,6 +675,40 @@ value no reader could produce, is a defect. **The test is whether anybody
 has ever scored it**, and the answers are already on disk.
 
 
+### L49. Reading the evidence yourself is not adjudication
+
+L28 says print the evidence and never let the rule judge itself. That is
+necessary and it is not sufficient, because the person who wrote the rule
+reads the evidence through it.
+
+**Measured, and the cost was nearly a wrong waiver.** A gate refused a task
+over one row every trial declined, where five of them answered an earlier
+date for the same key. The evidence was printed. It was read carefully. The
+verdict was *the key is right and the models missed a late turn*, and a
+waiver was one command away.
+
+The judge panel -- shown the brief and the raw passage, never the code --
+returned the opposite:
+
+    "the ... characterization question is partially narrowed but not
+     closed - still waiting on written confirmation from Ulrich-Bergmann's
+     side"
+
+The clause splitter had severed "still waiting" from its subject, and the
+rule handed it to the speaker. The question was waiting. Five trials of
+three tiers had been right, and the author of the rule had not been.
+
+The tell was there and was explained away: **five independent trials
+agreeing on a different value is not five models making the same mistake**.
+That is the same signal as identical failures across independent trials,
+and it points at the key.
+
+**Therefore:** run the panel on every disputed row, including -- especially
+-- the ones where the answer seems obvious. It costs three prompts. The
+alternative is that a rule's author certifies their own rule, which is the
+failure L28 describes wearing a different hat.
+
+
 ## Part VI — Process
 
 ### L28. Print the evidence, then adjudicate; never let the rule judge itself
