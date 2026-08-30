@@ -28,9 +28,19 @@ family rather than a family found in a world.
 
 They share all 31 people, every meeting title and both rule modules, so a
 family that works on one is a task on the other for the cost of
-recomputing the four dates its brief states. **Thirteen live tasks**, six
-on `merrick` and seven on `delegation`; eight more were retired on
+recomputing the four dates its brief states. **Twelve live tasks**, five
+on `merrick` and seven on `delegation`; nine more were retired on
 measurement and each manifest carries the number that retired it.
+
+`docs/TASKS.md` lists every one, generated from the tasks themselves. It
+also lists **27 legacy tasks on three earlier worlds** that are NOT part of
+this pack and are not counted anywhere in it. They predate the current
+grading architecture — their criteria name no deliverable, so the scorer
+refuses them, because without one a trial that wrote nothing is
+indistinguishable from one that answered badly. `ashgrove` is among them,
+and it is the world whose tasks measured at **~1.000 for a frontier model**
+however the difficulty was turned up. That measurement is why `merrick` was
+recorded.
 
 Six tool surfaces are served over MCP: `clio` (matters, people, time),
 `gmail`, `slack`, `imanage`, `calendar`, and `meetings` (transcripts).
@@ -146,6 +156,7 @@ logs. A clone reproduces the tasks and the oracles, not the measurements.
 
 ## Reading order
 
+- `docs/TASKS.md` — every task, generated, with the legacy worlds separated
 - `docs/CERTIFIED.md` — what is certified, with every trial score
 - `docs/LAWS.md` — 49 measured laws, each with its number and its cost
 - `docs/REALISM-REVIEW.md` — a practitioner's critique, answered with data
