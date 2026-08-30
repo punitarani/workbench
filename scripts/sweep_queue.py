@@ -102,6 +102,16 @@ def main(argv: list[str] | None = None) -> int:
         # for one; two starting together have raced here before.
         time.sleep(30)
 
+    # Waiting for the sweeps to FINISH, not merely to start, so a caller
+    # knows when the scores exist.
+    #
+    # Do not chain two of these by waiting for the first runner's process
+    # to exit. It sits here, holding no slots and doing nothing, until its
+    # last trial lands -- and a long task's last trial can take four hours.
+    # Chaining that way left two of four slots idle for an hour with nine
+    # sweeps queued behind them. Start the next queue when SLOTS are free;
+    # both runners count the same global rollouts and neither will exceed
+    # the ceiling.
     while _running():
         time.sleep(args.poll)
     print(f"  all {len(started)} sweep(s) finished")
