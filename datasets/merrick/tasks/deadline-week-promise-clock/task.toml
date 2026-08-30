@@ -11,6 +11,43 @@ schema_version = "1.3"
 # 130-workday record is a corpus no tier finishes, and a task nobody finishes
 # measures nothing.
 
+# RETIRED 2026-08-29, unfinished, on a floor it cannot get under.
+#
+# This never became a task. Ten «MEASURE» notes remain in the brief and a
+# dozen more in the solver -- which week, which number words this corpus
+# writes after `within`, how it spells three of the seven date forms,
+# whether the chosen week is disjoint from another task's. The build
+# refuses it by name, correctly: a staged task produces an oracle from a
+# solver that cannot run.
+#
+# It is retired rather than finished because its own measurement, in
+# CANDIDATE-RATIO.md beside this file, already says where it lands. The
+# honest candidate pool is the messages carrying a relative date, not
+# every message in the firm:
+#
+#     declared pool                          rows   ratio   dumped F1
+#     every mail message               707    158   0.223     0.365
+#     messages carrying a date         332    158   0.476     0.645
+#
+# 158 rows out of 332 dated messages. A dump baseline is built from the
+# truth rows plus noise, so its F1 is decided by that ratio alone and by
+# nothing the task can change -- not a harder key, not a shorter window,
+# because a shorter window cuts rows and candidates together. 0.645 sits
+# inside the 0.2-0.8 band, which means a reader who filters to dated mail
+# and submits it lands where a real reader would.
+#
+# That is a property of the phenomenon: promises are DENSE in this firm's
+# mail in a way blockers are not in its meetings. The registers that work
+# here are the ones where the rule admits a small fraction of what it
+# opens, and this one admits half.
+#
+# Kept, with its measurement, as the boundary of where the mail surface
+# supports a register at all. `mail-promise-register` reads the same
+# surface over 61 days and admits 14 rows from 530 messages -- ratio
+# 0.026, dump floor 0.306 -- which is the same family on the right side of
+# that line.
+retired = true
+
 [task]
 name = "workbench/merrick-deadline-week-promise-clock"
 description = """Resolve seven relative-date forms to calendar dates across \

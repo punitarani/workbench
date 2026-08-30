@@ -293,6 +293,36 @@ def build(
             raise SystemExit(
                 f"no such task(s): {unknown}. Available: {available or '(none)'}"
             )
+    # A retired task is kept for the measurement that retired it, and it
+    # is not built. Several are unfinished scaffolds -- «MEASURE» notes
+    # where a rule belongs -- so the staged-task gate below refused them
+    # by name and the whole build died. `retired = true` had never been
+    # READ anywhere: the word appeared once in this file, inside a
+    # docstring. A flag with no reader.
+    #
+    # The effect was that `build_tasks.py` with no arguments could not
+    # complete at all, and only `--task <name>` worked. Building everything
+    # is what proves the tasks still agree with the world after a rule
+    # changes, so the entry point that does it had quietly stopped
+    # existing.
+    #
+    # Named explicitly, a retired task still builds: asking for one by
+    # name is a deliberate act, and refusing it would make the measurement
+    # that retired it unreproducible.
+    retired = []
+    if not names:
+        for name in list(available):
+            manifest = TASKS / name / "task.toml"
+            if manifest.is_file() and re.search(
+                r"^retired\s*=\s*true", manifest.read_text(), re.M
+            ):
+                available.remove(name)
+                retired.append(name)
+        if retired:
+            # Printed, never silent. A task vanishing from a build without
+            # a word is how a live task gets retired by a stray edit.
+            print(f"skipping {len(retired)} retired task(s): {', '.join(retired)}")
+
     selected = names or available
     if not selected:
         # An audit that iterates an empty set passes vacuously, and this
