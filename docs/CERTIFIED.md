@@ -29,6 +29,13 @@ certifiable a task looks.
 
 ### commitment-revision-register — CERTIFIED 2026-08-27, re-certified 2026-08-29
 
+Reproduce:
+
+    uv run python scripts/certify.py --dataset merrick \
+        --task commitment-revision-register \
+        --tag opus-rev2-k3 --tag glm-rev2-k3 --tag kimi-rev2-k3
+
+
 Six months of a law firm's standing meetings. For every live commitment:
 who owes it, in which meeting, the date it is due, the date they *first*
 committed to, and how many earlier commitments it replaced.
@@ -71,6 +78,13 @@ criterion every model happens to ace — one every model can copy.
 | kimi-k3 | 0.365, 0.408, 0.534 | **0.436** | live.f1 0.450 |
 
 ### standing-commitment-register — CERTIFIED 2026-08-27, re-certified 2026-08-29
+
+Reproduce:
+
+    uv run python scripts/certify.py --dataset merrick \
+        --task standing-commitment-register \
+        --tag opus-slip-k3 --tag glm-slip-k3 --tag kimi-slip2-k3
+
 
 The same six months, asking the one thing the register above does not: how
 many times each person moved their own date **later**. Both other
@@ -121,6 +135,18 @@ supersessions earns nothing. Hard, not unmeasurable, and the test for
 which is whether anybody has ever scored it.
 
 ### assignment-revision-register — CERTIFIED 2026-08-29
+
+Reproduce (re-verified 2026-08-29, still certifies):
+
+    uv run python scripts/certify.py --dataset delegation \
+        --task assignment-revision-register \
+        --tag opus-a1-k3 --tag glm-a1-k3 --tag kimi-a1-k3 \
+        --waive 'Teodor Vasiliev | IP and technology group' \
+        --waive 'Roland Pesch | Employment practice huddle' \
+        --waive 'Saoirse Mulvaney | Partner matter review' \
+        --waive 'Clement Abioye | Employment practice huddle' \
+        --waive 'Marguerite Oyelaran | Partner matter review'
+
 
 For every live assignment: who was told to do it, in which standing
 meeting, and the date it is due, with the chain's other end and its length
@@ -178,6 +204,18 @@ Tags: `opus-a1-k3`, `glm-a1-k3`, `kimi-a1-k3`.
 
 
 ### delegation/commitment-revision-register — CERTIFIED 2026-08-29
+
+Reproduce (re-verified 2026-08-29, still certifies):
+
+    uv run python scripts/certify.py --dataset delegation \
+        --task commitment-revision-register \
+        --tag opus-c1-k3 --tag glm-c2-k3 --tag kimi-c1-k3 \
+        --waive 'Fionnuala Doherty | Billing and WIP review | 2026-05-06 | 2026-03-11' \
+        --waive 'Ingrid Solheim | Corporate deal status | 2026-04-21 | 2026-01-08' \
+        --waive 'Petra Kovacs | Employment practice huddle | 2026-05-06 | 2026-01-14' \
+        --waive 'Dov Reinhardt | Client board and committee updates | 2026-03-10 | 2026-02-10' \
+        --waive 'Dov Reinhardt | Billing and WIP review | 2026-05-18 | 2026-01-20'
+
 
 The promise rule on the second world. Same family as merrick's, and harder
 because the world is denser: **200 commitments in 383 meetings** against
