@@ -358,3 +358,30 @@ chains run to 23 supersessions where the source world's run to 8.
 Both waived rows are recorded in `delegation-commitment-first-due.md`,
 adjudicated for this world's sibling register: same rule, same corpus, the
 same readers reporting a meeting date where a resolved deadline belongs.
+
+### merrick/blocker-register — CERTIFIED 2026-08-30
+
+Read 182 days of standing-meeting transcripts and report one row per person
+per meeting series who says they are stuck, with both ends of the chain.
+
+    uv run python scripts/certify.py --dataset merrick \
+        --task blocker-register \
+        --tag opus-blk4-k3 --tag glm-blk7-k3 --tag kimi-blk6-k3
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.499, 0.536, 0.664 | **0.566** | blockers.f1 0.688 |
+| glm-5.2 | 0.495, 0.547, 0.557 | **0.533** | blockers.f1 0.656 |
+| kimi-k3 | 0.391, 0.403, 0.491 | **0.428** | blockers.f1 0.534 |
+
+Floors: every one 0.000 — this task pays for nothing but the rows.
+
+No waivers: every unanimously-declined row it ever raised was an oracle
+defect, and all seven are fixed and recorded in
+`docs/adjudications/blocker-the-dropped-subject.md`.
+
+Keyed on four components. `raised_count` grades as a field here, and the
+manifest carries the measurement that moved it: at five, this world's
+strongest tier read 0.480 against the sibling's 0.654, because merrick's
+chains are shallower — the count separates readers there and excludes them
+here.
