@@ -710,6 +710,48 @@ alternative is that a rule's author certifies their own rule, which is the
 failure L28 describes wearing a different hat.
 
 
+### L50. Count the implementations before fixing the rule
+
+A rule with a shared module is not a rule in one place. Ask how many
+copies exist, and check the answer, before believing an edit reached the
+oracle.
+
+**Measured:** the promise rule in this tree exists in **sixteen**
+implementations — `promise_rule.py` and `promise_rule_check.py` on each of
+two worlds, plus a full private copy inside each of seven solvers and
+seven verifiers. Four tasks import the shared modules. The seven
+commitment registers do not: each solver defines its own `commitment_in`,
+and that copy is what computes the oracle.
+
+So the first fix, applied carefully to both shared modules and verified
+against the corpus, **moved zero rows**. It ran, it passed its own
+differential check, and the answer key did not change, because nothing
+that builds an answer key imports the thing that was fixed.
+
+The tell was cheap and was not looked for:
+
+    grep -l "^def commitment_in" datasets/*/tasks/*/solution/solve.py
+
+**What made it survivable** is that the sixteen were byte-identical in
+behaviour — 0 disagreements across both corpora before the change. The
+copies had never drifted. The danger is not that copies are wrong; it is
+that a copy is right until the day somebody fixes the original.
+
+**Therefore:**
+
+- before editing a rule, enumerate every implementation of it and fix all
+  of them in one change;
+- afterwards, compare each copy against the shared module over the whole
+  corpus, and require 0;
+- the two-derivation gate will catch a partial fix — solver against
+  verifier — but only for the tasks whose two copies disagree, and it
+  reports the disagreement as a task defect rather than as what it is.
+
+L47 says two derivations can be stale in the same direction. This is the
+same failure at the level of the tree: sixteen derivations, all agreeing,
+none of them the file that was edited.
+
+
 ## Part VI — Process
 
 ### L28. Print the evidence, then adjudicate; never let the rule judge itself

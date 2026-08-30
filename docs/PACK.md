@@ -193,7 +193,7 @@ logs. A clone reproduces the tasks and the oracles, not the measurements.
 
 - `docs/TASKS.md` — every task, generated, with the legacy worlds separated
 - `docs/CERTIFIED.md` — what is certified, with every trial score
-- `docs/LAWS.md` — 49 measured laws, each with its number and its cost
+- `docs/LAWS.md` — 50 measured laws, each with its number and its cost
 - `docs/REALISM-REVIEW.md` — a practitioner's critique, answered with data
 - `docs/adjudications/` — every disputed row, with the passage behind it
 - `docs/RUNNING-SWEEPS.md` — the concurrency limit and how it lies to you
