@@ -52,7 +52,7 @@ rows against 26, and discarded for exactly that reason.
 
 Tags: `opus-rev2-k3`, `glm-rev2-k3`, `kimi-rev2-k3`.
 
-### standing-commitment-register — CERTIFIED 2026-08-27 (second attempt)
+### standing-commitment-register — CERTIFIED 2026-08-27, re-certified 2026-08-29
 
 The same six months, asking the one thing the register above does not: how
 many times each person moved their own date **later**. Both other
@@ -84,6 +84,23 @@ partners hand work to named colleagues out loud instead of taking it on
 themselves. 135 days, 411 meetings, 166,888 words. It yields 122
 assignments against the first world's 16 — the first time a world here was
 commissioned FOR a family rather than a family found in a world.
+
+**Re-certified 2026-08-29** after `meetings_read` left the reward. It read
+1.00 for all three tiers -- at ceiling, so measuring none of them -- and
+counting the meetings in a stated window is a date-filtered query.
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.689, 0.731, 0.773 | **0.731** | live.f1 0.846 |
+| glm-5.2 | 0.279, 0.304, 0.358 | **0.314** | live.f1 0.434 |
+| kimi-k3 | 0.235, 0.470, 0.545 | **0.417** | live.f1 0.436 |
+
+`superseded_count` stays, and it reads 0.00 for nearly every tier of every
+tag. That looks like a criterion nobody can score and is not one: the
+oracle holds 128, the trials report 121 to 129, and three of them reported
+exactly 128. It is scored exact, so counting almost all of the
+supersessions earns nothing. Hard, not unmeasurable, and the test for
+which is whether anybody has ever scored it.
 
 ### assignment-revision-register — CERTIFIED 2026-08-29
 

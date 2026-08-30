@@ -1,0 +1,14 @@
+# Derived data, rebuilt from the world log by datasets/merrick/build_tasks.py.
+#
+# Both shipped datasets ignore these two directories per task; merrick had
+# no such file, and 451 files of a *partial* materialization were committed
+# by accident -- inside the very commit that was undoing an earlier
+# accidental commit of probe values. They read as this task's workspace and
+# were 29% of a corpus that no longer exists.
+#
+# `tests/oracle.json` is deliberately NOT here: the answer key ships, and
+# `tests/oracle.world` ships beside it so the next build can tell a solver
+# regression from a later recording.
+bundle/
+environment/
+__pycache__/

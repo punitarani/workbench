@@ -157,6 +157,53 @@ def main(argv: list[str] | None = None) -> int:
     last = _last_day(state)
     solver = target / "solution" / "solve.py"
     text = solver.read_text()
+
+    # A third window form, and it ports differently from the other two.
+    #
+    # Most tasks here name a LAST DAY, which is a property of how long the
+    # world was recorded and has to move. `mail-promise-register` names a
+    # DURATION -- `WINDOW_DAYS = 61` from the epoch -- which is a property
+    # of the task and does not. Nothing in the solver, the verifier or the
+    # brief changes, and rewriting any of them would move a window the
+    # task never asked to move.
+    #
+    # That is only true while the two worlds share an epoch, which they do
+    # -- both open 2026-01-05T00:00:00-05:00 -- and which is checked here
+    # rather than assumed. If they ever diverge, a duration window lands on
+    # different calendar dates in each world and the brief's stated dates
+    # become wrong silently, in a task whose whole content is dates.
+    if re.search(r"^\s*WINDOW_DAYS\s*[:=]", text, re.M) and not re.search(
+        r"^\s*WINDOW_LAST_DAY\s*=", text, re.M
+    ):
+        epochs = {}
+        for world in (args.source, args.target):
+            connection = sqlite3.connect(
+                f"file:{_world(world) / 'meetings.db'}?mode=ro", uri=True
+            )
+            epochs[world] = dict(
+                connection.execute("SELECT key, value FROM meta")
+            )["epoch"]
+            connection.close()
+        if epochs[args.source] != epochs[args.target]:
+            raise SystemExit(
+                f"this task states its window as a DURATION, and the two "
+                f"worlds open on different days ({epochs[args.source]} vs "
+                f"{epochs[args.target]}). The same 61 days would be different "
+                "calendar dates in each; port it by hand"
+            )
+        manifest = target / "task.toml"
+        manifest.write_text(
+            manifest.read_text().replace(
+                f"workbench/{args.source}-{args.task}",
+                f"workbench/{args.target}-{args.task}",
+            )
+        )
+        print(f"  {target.relative_to(REPO)}")
+        print(f"    window: a duration ({epochs[args.target][:10]} + N days),")
+        print("    identical in both worlds; nothing rewritten but the task id")
+        print("    now build it, read the floors, and re-measure the key")
+        return 0
+
     opens = re.search(r"^\s*WINDOW_FIRST_DAY\s*=\s*(\d+)", text, re.M)
     facts = _facts(state, int(opens.group(1)) if opens else 0, last)
     text, moved = re.subn(
