@@ -37,6 +37,35 @@ DELIVERABLE = "owed.json"
 # The list carrying one entry per live promise.
 ROWS = "owed"
 
+# **It now does read above the band, and the window lever is blocked.**
+# Measured 2026-08-30 with three answered opus trials -- 0.889, 0.714 and
+# 1.000, a mean of 0.868, with `owed.f1` at 0.952.
+#
+# Widening is what would fix the score, and it costs completion this task
+# cannot pay:
+#
+#     window   words   promises/person
+#        61d  95,915              1.7   <- shipped; opus 0.868
+#        90d 136,107              2.1
+#       120d 167,392              2.3
+#   delegation
+#        61d 118,888              3.0   <- opus 0.456, glm 0.19, kimi 0.14
+#
+# The interpolation says 90 to 120 days would put every tier in band. The
+# completion measurement says it cannot be run: opus already answers this
+# register 2 times in 11 at 95,915 words, and delegation's at 118,888
+# words is where glm abandons outright. A 90-day window here is MORE text
+# than the register two tiers already fail to finish.
+#
+# So the difficulty lever and the completion lever pull opposite ways on
+# the mail surface, and the key offers nothing between them -- adding
+# `message_ref`, `said_on` or `subject` moves the strongest tier
+# 0.929 -> 0.929, because the evidence fields are right whenever the row
+# is.
+#
+# Held pending opus at k=9. Three answered trials spanning 0.714 to 1.000
+# is a wide spread, and 0.868 on n=3 is not a verdict.
+
 # **If this task ever reads above the band, the lever is the WINDOW, not
 # the key.** Measured 2026-08-30, before it was needed:
 #
