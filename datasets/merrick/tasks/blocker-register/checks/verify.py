@@ -39,6 +39,7 @@ _STATED: dict[str, tuple[str, ...]] = {
         "A wait pointed AT the speaker is not one",
         "A wait already over is not one",
         "**The speaker may also be left out.**",
+        "A dropped subject also carries **across a comma**",
     ),
     "## What to produce": (
         "the date they **first** said it in this standing meeting",

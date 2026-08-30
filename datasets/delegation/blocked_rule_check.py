@@ -50,7 +50,13 @@ _JOINERS = frozenset(("and", "so", "but", "then", "while"))
 _OVER = frozenset(("was", "were"))
 _ADVERBS = frozenset(("still", "just"))
 # Openers a clause may carry before an elided-subject complaint.
-_LEADERS = frozenset(("still", "just", "also"))
+_LEADERS = frozenset(
+    ("still", "just", "also", "separately", "meanwhile", "otherwise", "and",
+     "so", "then")
+)
+# No comma is listed because this route never sees one: `_WORD` matches
+# letters, so "Separately, still waiting" tokenises with the comma gone.
+# The other route has to spell the comma out. Same claim, two roads.
 # A gerund adjunct, as a pair of adjacent tokens: the mark and a word
 # ending in -ing. The other route matches this as one regex over the
 # characters; walking tokens is the same claim by a different road.
@@ -97,6 +103,23 @@ _GAP = 12
 
 _ENDS = re.compile(r"(?<=[.?!;:])\s+|\s*[—–]\s*|\s+-\s+")
 
+# Verbs a coordinated predicate may head with. The other route asks this
+# of the characters with a regex; here the segment is split off FIRST and
+# then tokenised, because `_WORD` drops the comma this depends on -- so
+# the two routes cannot share a boundary even by accident.
+_PREDICATE_HEADS = frozenset(
+    ("sent", "got", "have", "had", "need", "put", "left", "gave", "made",
+     "took", "ran", "set", "told", "asked", "added", "owe")
+)
+_HOLDS_THE_FLOOR = frozenset(("we", "they", "you", "he", "she"))
+
+
+def _heads_a_predicate(segment: str) -> bool:
+    words = _words(segment)
+    if len(words) < 2:
+        return False
+    return words[0].endswith(("ed", "'d")) or words[0] in _PREDICATE_HEADS
+
 
 def _words(text: str) -> list[str]:
     return [w.casefold().replace("’", "'") for w in _WORD.findall(text or "")]
@@ -126,6 +149,35 @@ def blocked_in(text: str, names=()) -> bool:
     for clause in _ENDS.split(text or ""):
         if clause.rstrip().endswith("?"):
             continue
+        # A dropped subject carried across a comma. Split the clause on
+        # commas and ask each segment whether it opens with the complaint
+        # while the one before it is a predicate.
+        segments = clause.split(",")
+        for index in range(1, len(segments)):
+            tokens = _words(segments[index])
+            start = 0
+            while start < len(tokens) and tokens[start] in _LEADERS:
+                start += 1
+            here = _stuck_at(tokens, start)
+            if here is None or here[0] != start:
+                continue
+            earlier = _words(",".join(segments[:index]))
+            if any(w in _HOLDS_THE_FLOOR for w in earlier):
+                break
+            # A name that ENDS the run is an object, not a new subject:
+            # "cc'd her and adaora, waiting on her numbers" is still the
+            # speaker waiting. A name that owns the wait has something
+            # after it -- a verb, or a possessive. The other route reaches
+            # the same place by requiring whitespace after the name, which
+            # is the same claim about position by a different means.
+            if any(
+                w.rstrip("'s") in others or w in others for w in earlier[:-1]
+            ):
+                break
+            if _heads_a_predicate(segments[index - 1]):
+                return True
+            break
+
         words = _words(clause)
         # The subject left out: the clause opens with the complaint, past
         # any number of leading adverbs.

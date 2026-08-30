@@ -133,11 +133,27 @@ def pinned_sections(task_dir: Path) -> list[str]:
             [node.target] if isinstance(node, ast.AnnAssign) else list(node.targets)
         )
         for target in targets:
-            if isinstance(target, ast.Name) and target.id == "PINNED":
+            # `PINNED` maps a heading to a digest; `_STATED` maps a heading
+            # to the phrases the verifier insists on. Both are a task saying
+            # "these sections are the rule", and reading only the first name
+            # meant a whole family could not be adjudicated: the blocker
+            # verifiers pin with `_STATED`, so this returned nothing and the
+            # judges refused to run. That is the same defect as the sibling
+            # evidence builder failing on a four-part key -- a documented
+            # path no task in the family could call, silent until tried.
+            if isinstance(target, ast.Name) and target.id in ("PINNED", "_STATED"):
                 try:
-                    return list(ast.literal_eval(node.value))
+                    pinned = ast.literal_eval(node.value)
                 except ValueError:
                     return []
+                # Headings only, whichever shape the task used to name them.
+                found = [
+                    key
+                    for key in (pinned if isinstance(pinned, dict) else pinned)
+                    if isinstance(key, str) and key.startswith("## ")
+                ]
+                if found:
+                    return found
     return []
 
 

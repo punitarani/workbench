@@ -62,6 +62,13 @@ sentence's **subject** rather than its report -- *"waiting on Bennett before
 flagging Rosalie just compounds the delay"* argues about a wait nobody is
 having, and is not a row.
 
+A dropped subject also carries **across a comma**, through a run of things
+the speaker did: *"sent within her 2-day deadline, cc'd her and Adaora,
+waiting on her specific line/share-count numbers"* is the speaker waiting.
+It carries only where the run is what the speaker **did**: *"the Sable Ridge
+deposition summary, unscheduled, blocked on the Martinez transcript"* is the
+summary that is blocked, not the speaker, and is **not** a row.
+
 Three things have to be true:
 
 - **No negation stands between the speaker and the complaint.** *"I'll push

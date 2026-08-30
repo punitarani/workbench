@@ -153,7 +153,16 @@ _ALREADY_OVER = re.compile(
 # leaves the row SET unchanged -- 20 -> 22 on one world, 16 -> 17 on the
 # other -- and corrects the ends and the counts of rows that already
 # existed. That is the whole of the difference.
-_ELIDED = re.compile(rf"^(?:still\s+|just\s+|also\s+)*{_STUCK}\b", re.IGNORECASE)
+# The leading adverbs a dropped subject may hide behind. `separately`
+# earns its place by measurement: "Separately, still waiting on a name
+# from Elena ... otherwise I'm stuck" is one person's first raise, and
+# the key started their chain six days later than five of six trials
+# did because of the one word in front.
+#
+# The comma matters. Without it the set only reaches "still waiting",
+# and this firm writes "Separately, still waiting".
+_LEADING = r"(?:separately|meanwhile|otherwise|also|still|just|and|so|then)"
+_ELIDED = re.compile(rf"^(?:{_LEADING}[,\s]+)*{_STUCK}\b", re.IGNORECASE)
 
 # ...except when the elided phrase is the SUBJECT of the sentence rather
 # than a report: "waiting on Bennett before flagging Rosalie JUST
@@ -172,6 +181,56 @@ _GERUND_SUBJECT = re.compile(
 _ANYONE_FIRST_PERSON = re.compile(
     rf"(?:\bI\b|\bI{_APOS}(?:m|ll|ve|d)\b|\bmy\b|\bmine\b|\bme\b)", re.IGNORECASE
 )
+
+# A dropped subject carried across a comma, in a list of predicates that
+# all belong to the speaker: "sent within her 2-day deadline, cc'd her and
+# adaora, WAITING ON her specific line/share-count numbers". Dov sent it,
+# Dov cc'd them, Dov is waiting.
+#
+# This admits exactly ONE turn in 4,998, and that is stated rather than
+# hidden. It was written anyway because two independent readings found it
+# without each other: three trials of two tiers reported that person's
+# chain starting on the day of this turn, and a judge panel shown only the
+# brief and the raw passage -- never this code -- returned WRONG-VALUE on
+# the key's row and quoted this sentence. The alternative was to drop the
+# row and mark every correct reader wrong for reporting it.
+#
+# The preceding segment must be a PREDICATE, not a bare participle. That
+# distinction is the whole guard and it is worth its length: "the Sable
+# Ridge deposition summary, UNSCHEDULED, blocked on the Martinez
+# transcript" is the summary that is blocked, not the speaker, and
+# `unscheduled` is an adjective sitting against a noun. Requiring the
+# segment to head with a verb AND carry complements separates the two --
+# 7 turns admitted on the verb test alone, 6 of them the deposition
+# summary; 1 with complements required, and it is the right one.
+_COORDINATED = re.compile(
+    rf",\s*(?:{_LEADING}[,\s]+)*{_STUCK}\b", re.IGNORECASE
+)
+_A_PREDICATE = re.compile(
+    r"^(?:\w+(?:ed|'d|’d)|sent|got|have|had|need|put|left|gave|made|took"
+    r"|ran|set|told|asked|added|owe)\b",
+    re.IGNORECASE,
+)
+# Somebody else already holding the floor in this clause. The gap guards
+# cannot be reused here: they test what stands between a subject and a
+# complaint, and this path has no subject to stand after.
+_SOMEBODY_ELSE_LEADS = re.compile(
+    rf"\b(?:we|they|you|he|she)\b|\b[\w-]+{_APOS}s\s+\w", re.IGNORECASE
+)
+
+
+def _carried_across_a_comma(clause: str, names) -> bool:
+    """Whether a comma-segment complaint belongs to the speaker."""
+
+    found = _COORDINATED.search(clause)
+    if found is None:
+        return False
+    before = clause[: found.start()]
+    if _SOMEBODY_ELSE_LEADS.search(before) or _somebody_else(before, names):
+        return False
+    previous = before.rsplit(",", 1)[-1].strip()
+    return bool(_A_PREDICATE.match(previous)) and len(previous.split()) >= 2
+
 
 _NEGATED = re.compile(
     rf"(?:\bno\b|\bnot\b|\bnever\b|n{_APOS}t\b|\brather than\b|\binstead of\b"
@@ -216,6 +275,8 @@ def blocked_in(text: str, names=()) -> bool:
                 and not _ANYONE_FIRST_PERSON.search(clause)
             ):
                 return True
+        if _carried_across_a_comma(clause, names):
+            return True
         # EVERY first-person start in the clause, not the first that
         # matches. This firm writes "I haven't gotten written confirmation,
         # so I can't sign off on that schedule yet": the first `I` carries a
