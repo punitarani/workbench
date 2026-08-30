@@ -116,8 +116,8 @@ schema_version = "1.3"
 # instruction for the right method, and it applies here in full. The bet is
 # that knowing the rule and executing it are different: the rule is a
 # paragraph, and obeying it means resolving a relative deadline against the
-# right meeting for every person in every standing series across
-# «MEASURE: meetings in the window» meetings of prose no script can
+# right person for every promise across
+# 636 messages of prose no script can
 # aggregate, and noticing the later mention that silently moved a date
 # without changing a word. Whether that survives a frontier model is a
 # question for a probe at k>=5, not for more reasoning -- several of this
