@@ -30,6 +30,16 @@ lost its third trial the same way. Neither is a fact about a model.
 
   That is 256 networks instead of three.
 
+  **Check before applying it: OrbStack may already have done the job.**
+  On this machine `~/.orbstack/config/docker.json` is `{}` and
+  `docker info --format '{{.DefaultAddressPools}}'` reports **30 pools of
+  /24**, so the ceiling was never three here. Four concurrent sweeps use
+  about 10 networks and five use about 13, which is why five runs
+  comfortably and the measured limit of four was conservative rather than
+  physical. Ask the daemon what it has before editing a config, and never
+  restart it to apply one while sweeps are in flight -- that kills every
+  container and every trial with them.
+
 ## Three false DNFs that are not the address pool, and not the model
 
 A trial with no `verifier/reward.json` looks identical whatever killed it.
