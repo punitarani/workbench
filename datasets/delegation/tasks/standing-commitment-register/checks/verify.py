@@ -88,7 +88,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # it out would leave the rule's own justification unpinned.
 PINNED: dict[str, str] = {
     "## What counts as a commitment": "fe604b3371a04fb1",
-    "## Turning what was said into a date": "c8f8a8253e49bbef",
+    "## Turning what was said into a date": "6009449b22639548",
     "## Which one is live": "ed7436921b90e3c5",
     # The criteria themselves. `superseded_count` is DEFINED here and
     # graded, and this section was not pinned: its unit could be reworded
@@ -390,6 +390,34 @@ def _ruled_out(tokens: list[str], start: int) -> bool:
     return index > 1 and (tokens[index - 2], tokens[index - 1]) in _RULES_OUT_PHRASES
 
 
+# An ordinal calendar date sitting right after a bare end-of-day form.
+# "by end of day the 15th" names the 15th, and the ADMITTED table holds no
+# day-of-month form, so the bare `eod` matched and dated the commitment to
+# the day it was SAID. The brief's list of day-forms is closed; a turn
+# pairing them names no admitted day and is not a row.
+#
+# The solver forbids it with a lookahead on the CHARACTERS after `EOD`.
+# This walks the TOKENS that follow the matched form -- `the`, then digits
+# with an ordinal suffix -- which is the same claim by a different road.
+_ORDINALS = ("st", "nd", "rd", "th")
+
+
+def _names_a_day_of_the_month(tokens: list[str], after: int) -> bool:
+    rest = tokens[after : after + 3]
+    if rest and rest[0] == "on":
+        rest = rest[1:]
+    if len(rest) >= 2 and rest[0] == "the":
+        word = rest[1]
+        return word.endswith(_ORDINALS) and word[:-2].isdigit()
+    # A slash date -- "by end of day 4/14" -- reaches here as two bare
+    # number tokens, because the tokeniser splits on the slash. Two plain
+    # numbers in a row after an end-of-day form is not a phrase this firm
+    # writes any other way, and the other route sees the slash itself.
+    if len(rest) >= 2 and all(w.isdigit() for w in rest[:2]):
+        return True
+    return False
+
+
 def _deadline(tokens: list[str]) -> str | None:
     for form, token in ADMITTED:
         wanted = _tokens(form)
@@ -399,6 +427,10 @@ def _deadline(tokens: list[str]) -> str | None:
             if tokens[start : start + len(wanted)] != wanted:
                 continue
             if _ruled_out(tokens, start):
+                continue
+            if token == "eod" and _names_a_day_of_the_month(
+                tokens, start + len(wanted)
+            ):
                 continue
             return token
     return None
@@ -532,6 +564,12 @@ def _deadline_after(
             if _ruled_out(tokens, start):
                 continue
             end = start + len(wanted)
+            # The same guard the solver applies, and it must sit on EVERY
+            # path that reaches a token: this file finds deadlines through
+            # more than one of them, and a guard on one reads as present
+            # while being absent.
+            if token == "eod" and _names_a_day_of_the_month(tokens, end):
+                continue
             binding = _binding(tokens, end)
             if not binding and _offered_as_a_choice(tokens, start, end):
                 continue

@@ -57,7 +57,35 @@ ROWS = "live"
 # statement and stops has `due` and neither of the others; one who finds
 # the first has `first_due` and neither of the others. None is derivable
 # from the other two and no system in this world records any of them.
-KEY = ("owner", "meeting", "due", "first_due", "superseded")
+# Who owes it, in which standing meeting, by when, and from what date.
+#
+# FOUR here and FIVE on the world this task was ported from, and the
+# divergence is measured rather than inherited. `superseded` moved to a
+# field on 2026-08-29, re-scored on saved deliverables with no sweep
+# re-run:
+#
+#                                       opus     glm    kimi
+#     (owner, meeting, due)             0.956   0.431   0.599
+#     + first_due                       0.799   0.224   0.353
+#     + superseded                      0.590   0.207   0.228
+#     + first_due, superseded           0.590   0.190   0.217
+#
+# Three components leaves the strongest tier at 0.956, which is not a
+# measurement of it. Five leaves the weakest at 0.190, which is barely
+# above the level at which a criterion counts as touched at all.
+#
+# The count also produced three of this task's six unanimously-declined
+# rows, every one of them a near miss -- 8 against 9, 10 against 9, 13
+# against 12. A component readers get within one of, on rows they
+# otherwise reconstruct correctly, collapses the row and reads to the gate
+# as a defect. As a FIELD it degrades that row by 1/N and the work of
+# counting is still measured.
+#
+# This world is denser than the one this came from: chains here run to 23
+# supersessions where the sibling's run to 8. Its own
+# `commitment-revision-register` reached the same conclusion independently,
+# which is the check on this one.
+KEY = ("owner", "meeting", "due", "first_due")
 
 # What is left once the key has taken three of the five fields. Both are
 # strings the record states outright -- a meeting id and its start -- so
@@ -68,7 +96,14 @@ KEY = ("owner", "meeting", "due", "first_due", "superseded")
 # register that names the right date and cannot say which room it was said
 # in has not been read, it has been reconstructed, and with the date
 # already in the key the two would otherwise be indistinguishable.
-FIELDS: dict[str, float] = {"meeting_id": 0.0, "said_at": 0.0}
+FIELDS: dict[str, float] = {
+    "meeting_id": 0.0,
+    "said_at": 0.0,
+    # Out of the key on 2026-08-29; see the note above KEY. Here it
+    # degrades a row by 1/N instead of collapsing it, so the work of
+    # counting supersessions is still measured.
+    "superseded": 0.0,
+}
 
 # A count that is a tally of the rows this grading already checks. Paying
 # for it again does not add signal, it multiplies the signal already there

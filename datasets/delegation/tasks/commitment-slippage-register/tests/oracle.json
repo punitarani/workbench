@@ -2,7 +2,7 @@
  "meetings_read": 383,
  "turns_read": 1989,
  "distinct_owners": 18,
- "superseded_count": 171,
+ "superseded_count": 169,
  "live": [
   {
    "owner": "Bennett Ashworth",
@@ -152,8 +152,8 @@
    "owner": "Bennett Ashworth",
    "meeting": "Docket call",
    "due": "2026-05-22",
-   "first_due": "2026-01-06",
-   "slips": 18,
+   "first_due": "2026-01-13",
+   "slips": 16,
    "meeting_id": "mtg-000097",
    "said_at": "2026-05-19T08:45:00-04:00"
   },

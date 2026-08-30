@@ -148,6 +148,34 @@ def _ruled_out(tokens: list[str], start: int) -> bool:
     return index > 1 and (tokens[index - 2], tokens[index - 1]) in _RULES_OUT_PHRASES
 
 
+# An ordinal calendar date sitting right after a bare end-of-day form.
+# "by end of day the 15th" names the 15th, and this file's ADMITTED table
+# holds no day-of-month form -- so the bare `eod` matched and dated the
+# commitment to the day it was SAID.
+#
+# The other derivation forbids this with a lookahead on the characters
+# after `EOD`. This walks the TOKENS that follow the matched form, which is
+# the same claim by a different road: `the` and then a word that is digits
+# with an ordinal suffix.
+_ORDINALS = ("st", "nd", "rd", "th")
+
+
+def _names_a_day_of_the_month(tokens: list[str], after: int) -> bool:
+    rest = tokens[after : after + 3]
+    if rest and rest[0] == "on":
+        rest = rest[1:]
+    if len(rest) >= 2 and rest[0] == "the":
+        word = rest[1]
+        return word.endswith(_ORDINALS) and word[:-2].isdigit()
+    # A slash date -- "by end of day 4/14" -- arrives as two bare number
+    # tokens, because the tokeniser splits on the slash. The other route
+    # sees the slash itself, so the two reach the same sentence by
+    # different evidence.
+    if len(rest) >= 2 and all(w.isdigit() for w in rest[:2]):
+        return True
+    return False
+
+
 def _deadline(tokens: list[str]) -> str | None:
     for form, token in ADMITTED:
         wanted = _tokens(form)
@@ -157,6 +185,12 @@ def _deadline(tokens: list[str]) -> str | None:
             if tokens[start : start + len(wanted)] != wanted:
                 continue
             if _ruled_out(tokens, start):
+                continue
+            # Only the BARE end-of-day form is at risk: a compound already
+            # names its day, so "EOD tomorrow the 15th" is tomorrow.
+            if token == "eod" and _names_a_day_of_the_month(
+                tokens, start + len(wanted)
+            ):
                 continue
             return token
     return None
@@ -310,6 +344,14 @@ def _admitted_forms(
             if _ruled_out(tokens, start):
                 continue
             end = start + len(wanted)
+            # The same guard `_deadline` applies, and it has to be here too.
+            # `_committed_in` reaches a deadline through THIS generator, not
+            # through `_deadline`, so putting it in one of them left the two
+            # derivations disagreeing on exactly the turn it was written for
+            # -- a guard that reads as present and is absent, which this
+            # tree has now paid for four times.
+            if token == "eod" and _names_a_day_of_the_month(tokens, end):
+                continue
             binding = _binding(tokens, end)
             if not binding and _offered_as_a_choice(tokens, start, end):
                 continue

@@ -85,7 +85,7 @@ how many of those carry any deadline form:
     hartwell   1220      326                 12                 5
     ashgrove    354      150                100                24
     merrick    1399      537                272                58
-    calder     3048    1 901              1 477               537
+    calder     3048    1 901              1 477               536
 
 The last column moves with the rule, and `tests/docs/test_pipeline_doc_numbers.py`
 fails when this table stops matching -- which is how both of the updates
@@ -103,6 +103,11 @@ original claims about which firms "do not write dates" is gone. What
 remains true, and is now the whole of the claim: the four worlds differ by
 more than an order of magnitude in how many commitments they carry, and
 nothing about their persona specs predicts the ranking.
+
+*(admitted re-measured 2026-08-29: 537 -> 536. The promise rule stopped
+reading "by end of day the 15th" as end-of-day-today, and calder carries
+one such mail. The 537 below is the figure as it stood when the
+apostrophe defect was found, and is left as history.)*
 
 **This table was wrong about calder for weeks, and the error ran the
 argument backwards.** It recorded "82 owner-mails, zero carrying any

@@ -169,6 +169,10 @@ day the meeting was held**:
 - **a named weekday** is its next occurrence, always *after* the day it was
   said. Said in a Thursday meeting, "Thursday" is next Thursday.
 - **a compound** such as "EOD tomorrow" is one deadline, not two.
+- **this list is closed.** A day named any other way is not a deadline
+  this register carries: *"I'll have my markup back to her by end of day
+  **the 15th**"* pairs `end of day` with a calendar date, which is not one
+  of the forms above, so it names no day here and makes no row.
 
 ## Which one is live
 

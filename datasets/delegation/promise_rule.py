@@ -119,7 +119,27 @@ DEADLINE_FORMS: tuple[tuple[str, str], ...] = (
     (rf"\btomorrow{_GAP}{_EOD}\b", "tomorrow"),
     *((rf"\b{day}{_GAP}{_EOD}\b", day) for day in WEEKDAYS),
     *((rf"\b{_EOD}{_GAP}{day}\b", day) for day in WEEKDAYS),
-    (rf"\b{_EOD}\b", "eod"),
+    # The bare end-of-day form, and it must NOT be followed by an ordinal
+    # calendar date. "I'll have my markup back to her by end of day the
+    # 15th" names the 15th, and this table has no day-of-month form -- so
+    # the bare `eod` matched and resolved the deadline to the day it was
+    # SAID, nine days early.
+    #
+    # The brief's list of day-forms is closed: end of day, tomorrow, end of
+    # week, a named weekday, and compounds of those. An ordinal date is
+    # none of them, so a turn pairing them names no admitted day and is not
+    # a row. Four of nine trials read it exactly that way and dropped the
+    # turn; a judge panel shown the brief and both passages returned SPLIT,
+    # which is a row no answer can be scored against.
+    #
+    # One occurrence in 493 admitted commitments across both worlds. It is
+    # here rather than left because a row its own readers cannot agree on
+    # is worse than a row that is merely hard.
+    (
+        rf"\b{_EOD}\b(?!{_GAP}(?:on{_GAP})?"
+        rf"(?:the{_GAP}\d{{1,2}}(?:st|nd|rd|th)|\d{{1,2}}/\d{{1,2}}(?:/\d{{2,4}})?)\b)",
+        "eod",
+    ),
     (rf"\b(?:EOW|end{_GAP}of{_GAP}(?:the{_GAP})?week)\b", "end of week"),
     (r"\btomorrow\b", "tomorrow"),
     *((rf"\b{day}\b", day) for day in WEEKDAYS),
