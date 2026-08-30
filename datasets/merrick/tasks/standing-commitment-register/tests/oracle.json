@@ -2,7 +2,7 @@
  "meetings_read": 512,
  "turns_read": 2641,
  "distinct_owners": 17,
- "superseded_count": 128,
+ "superseded_count": 127,
  "live": [
   {
    "owner": "Adaora Nwosu",
@@ -136,7 +136,7 @@
    "owner": "Lucien Abara",
    "meeting": "Docket call",
    "due": "2026-06-23",
-   "slips": 7,
+   "slips": 6,
    "meeting_id": "mtg-000122",
    "said_at": "2026-06-23T08:45:00-04:00"
   },

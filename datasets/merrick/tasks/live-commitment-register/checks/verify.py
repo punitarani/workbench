@@ -87,7 +87,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # the share is what tells a reader the rule is worth applying, and splitting
 # it out would leave the rule's own justification unpinned.
 PINNED: dict[str, str] = {
-    "## What counts as a commitment": "fe604b3371a04fb1",
+    "## What counts as a commitment": "309f9059b00228d8",
     "## Turning what was said into a date": "6009449b22639548",
     "## Which one is live": "e4db45ed798de980",
     # The criteria themselves. `superseded_count` is DEFINED here and
@@ -1023,6 +1023,28 @@ def _governed_negation(clause: str, owner_form: list[str], day_form: list[str]) 
     return False
 
 
+def _followed_by_need(tokens: list[str], owner: str) -> bool:
+    """Whether every occurrence of `owner` is followed by the word `need`.
+
+    "I'll need your environmental figure by tomorrow" is the speaker asking
+    for something, and this register reports what the speaker OWES. Four
+    admitted turns across both worlds were requests read as promises.
+    """
+
+    want = _tokens(owner)
+    if not want:
+        return False
+    seen = False
+    for start in range(len(tokens) - len(want) + 1):
+        if tokens[start : start + len(want)] != want:
+            continue
+        seen = True
+        after = tokens[start + len(want) : start + len(want) + 1]
+        if after != ["need"]:
+            return False
+    return seen
+
+
 def _committed_in(text: str) -> str | None:
     """The deadline the speaker committed to *in one sentence*, or None.
 
@@ -1042,6 +1064,12 @@ def _committed_in(text: str) -> str | None:
             continue
         tokens = _tokens(clause)
         for owner in OWNER_FORMS:
+            # A demand, not a promise: "I'll need your figure by tomorrow"
+            # asks somebody else to deliver. The other route forbids it
+            # with a lookahead on the characters; this asks whether the
+            # token after the owner form is `need`.
+            if _followed_by_need(tokens, owner):
+                continue
             wanted = _tokens(owner)
             if not wanted:
                 continue

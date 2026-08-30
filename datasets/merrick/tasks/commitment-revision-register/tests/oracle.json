@@ -2,7 +2,7 @@
  "meetings_read": 512,
  "turns_read": 2641,
  "distinct_owners": 17,
- "superseded_count": 128,
+ "superseded_count": 127,
  "live": [
   {
    "owner": "Adaora Nwosu",
@@ -153,7 +153,7 @@
    "meeting": "Docket call",
    "due": "2026-06-23",
    "first_due": "2026-01-08",
-   "superseded": 9,
+   "superseded": 8,
    "meeting_id": "mtg-000122",
    "said_at": "2026-06-23T08:45:00-04:00"
   },

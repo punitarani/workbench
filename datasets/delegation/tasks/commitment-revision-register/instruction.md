@@ -99,6 +99,10 @@ each other:
   task called the EOD escalation,
   and *"someone needs to own the EOD escalation call"* asks for a volunteer.
   **Neither makes a row.**
+- **`I'll need` is a request, not a promise.** *"Adaora, I'll need your
+  environmental figure by tomorrow"* dates something the speaker is asking
+  somebody else to deliver, and this register reports what the speaker
+  **owes**. **It makes no row**, however plainly it names a day.
 - **Nobody else's clause stands between the promise and the day.** *"I'll
   ping the moment I have it, Mira, so you can finalize the Officer's
   Certificate before tomorrow"* dates Mira's work: the promise is to ping,

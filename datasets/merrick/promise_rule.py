@@ -45,7 +45,22 @@ WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 # straight apostrophe exclusively, which is why two derivations agreeing on
 # merrick could never surface this.
 _APOS = "['\u2019]"
-OWNER_FORMS: tuple[str, ...] = (rf"\bI{_APOS}ll\b", r"\bI will\b")
+# `(?!\s+need\b)` on both forms, and it is the difference between a
+# promise and a demand. "Adaora, I'll need your environmental figure by
+# tomorrow" matches `I'll` and a deadline and is the speaker asking
+# somebody ELSE to deliver -- the register asks what the speaker OWES.
+#
+# Four admitted turns across both worlds, every one a request: "I'll need
+# those before I can put them on the exception list for Thursday", "I'll
+# need a revised drop-dead", "once Cecile's assessment lands I'll need it
+# fast". None is a commitment by the person speaking.
+#
+# Found because 7 of 8 trials put a chain's slip count at 0 where the key
+# said 1: the extra link was a demand, and the readers were right.
+OWNER_FORMS: tuple[str, ...] = (
+    rf"\bI{_APOS}ll\b(?!\s+need\b)",
+    r"\bI will\b(?!\s+need\b)",
+)
 
 # Two forms, and the narrowness was re-measured after the blocker rule
 # turned out to be missing a whole class of dropped subjects.

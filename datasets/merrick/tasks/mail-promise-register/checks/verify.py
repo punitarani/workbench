@@ -54,7 +54,7 @@ ORACLE = Path(__file__).resolve().parents[1] / "tests" / "oracle.json"
 # addition. When it fires, re-read the section against the code here and
 # confirm the derivation still implements it before re-pinning.
 PINNED: dict[str, str] = {
-    "## What counts as a promise": "0be3106912d4eb76",
+    "## What counts as a promise": "f02faf2ecc123303",
     "## Turning what was said into a date": "6009449b22639548",
     "## Which promise is the live one": "bdd62ac3bcd3ed3d",
     # The criteria themselves. `superseded_count` is DEFINED here and

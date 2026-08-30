@@ -85,7 +85,7 @@ how many of those carry any deadline form:
     hartwell   1220      326                 12                 5
     ashgrove    354      150                100                24
     merrick    1399      537                272                58
-    calder     3048    1 901              1 477               536
+    calder     3048    1 885              1 477               536
 
 The last column moves with the rule, and `tests/docs/test_pipeline_doc_numbers.py`
 fails when this table stops matching -- which is how both of the updates

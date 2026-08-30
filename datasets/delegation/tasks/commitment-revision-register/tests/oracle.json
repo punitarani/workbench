@@ -2,7 +2,7 @@
  "meetings_read": 383,
  "turns_read": 1989,
  "distinct_owners": 18,
- "superseded_count": 169,
+ "superseded_count": 167,
  "live": [
   {
    "owner": "Bennett Ashworth",
@@ -62,8 +62,8 @@
    "owner": "Dov Reinhardt",
    "meeting": "Client board and committee updates",
    "due": "2026-03-10",
-   "first_due": "2026-02-10",
-   "superseded": 1,
+   "first_due": "2026-03-10",
+   "superseded": 0,
    "meeting_id": "mtg-000361",
    "said_at": "2026-03-09T15:15:00-04:00"
   },
@@ -189,7 +189,7 @@
    "meeting": "Employment practice huddle",
    "due": "2026-03-27",
    "first_due": "2026-01-27",
-   "superseded": 9,
+   "superseded": 8,
    "meeting_id": "mtg-000250",
    "said_at": "2026-03-23T09:30:00-04:00"
   },
