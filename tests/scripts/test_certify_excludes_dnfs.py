@@ -37,14 +37,27 @@ def _load(name: str):
     return module
 
 
-def _job(tmp_path: Path, rewards: list[float], *, wrote: list[bool]) -> Path:
+def _job(
+    tmp_path: Path,
+    rewards: list[float],
+    *,
+    wrote: list[bool],
+    finished: list[bool] | None = None,
+) -> Path:
     job = tmp_path / "jobs" / "ds-thetask-tag"
-    for index, (value, made_file) in enumerate(zip(rewards, wrote)):
+    ran = finished if finished is not None else [True] * len(rewards)
+    for index, (value, made_file, completed) in enumerate(zip(rewards, wrote, ran)):
         trial = job / f"thetask__t{index}"
         (trial / "verifier").mkdir(parents=True)
         (trial / "verifier" / "reward.json").write_text(json.dumps({"reward": value}))
         if made_file:
             (trial / "verifier" / "submitted-answer.json").write_text("{}")
+        # The harness writes `result.json` when a trial runs to completion,
+        # and both gates require it. A fixture without one models a trial
+        # that cannot happen, and left this suite passing while certify and
+        # band disagreed about whether a tier existed.
+        if completed:
+            (trial / "result.json").write_text(json.dumps({"trial": f"t{index}"}))
     return job
 
 
@@ -79,3 +92,29 @@ def test_without_a_tasks_dir_it_falls_back_rather_than_crashing(tmp_path):
     certify = _load("certify")
     job = _job(tmp_path, [0.0, 0.5], wrote=[False, True])
     assert certify._rewards(job, "thetask") == [0.0, 0.5]
+
+
+def test_a_trial_the_harness_never_finished_is_not_counted(tmp_path: Path) -> None:
+    """No `result.json` means the harness has no record the trial ran.
+
+    `band.py` has always required it. `certify.py` did not, so the two
+    could disagree about whether a tier existed -- and did, on a task that
+    certified while band reported "glm-5.2: not run" from the same jobs.
+
+    The publication gate must be at least as strict as the tool reporting
+    the band, or "certified" and "in band" stop describing the same
+    evidence.
+    """
+
+    certify = _load("certify")
+    job = _job(
+        tmp_path,
+        [0.4, 0.5, 0.6],
+        wrote=[True, True, True],
+        finished=[True, True, False],
+    )
+    kept = certify._rewards(job, "thetask", _tasks_dir(tmp_path))
+    assert kept == [0.4, 0.5], (
+        "a trial with no result.json was counted; band would refuse it and "
+        f"the two gates would disagree. Got {kept}"
+    )
