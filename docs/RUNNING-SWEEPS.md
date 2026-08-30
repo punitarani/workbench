@@ -68,6 +68,17 @@ answered 3 of 3, which looks like the task defeating the model that thinks
 hardest about it. Both of its failures were dropped streams. Completion
 there is a fact about the provider that day.
 
+**The dropped-stream rate is 6.2%, measured over every finished trial in
+this tree** — 37 of 598, spread across sixteen days, every model tier and a
+dozen tasks. It is background weather, not an incident, so the response is
+more trials rather than waiting for it to pass: a tier needing three graded
+trials should expect to spend closer to four.
+
+It also means a k=3 sweep has roughly a **1 in 6** chance of losing at
+least one trial to something that says nothing about the model. That is
+the arithmetic behind re-running a tier under a fresh tag rather than
+reading 2-of-3 as a completion rate.
+
 **Read `trial.log`'s last line before recording a tier's completion rate.**
 One task read 2-of-3 and then 1-of-3 answered on its weakest-completing
 tier, which reads as a model that cannot finish. Both losses were
