@@ -104,16 +104,28 @@ FIELDS: dict[str, float] = {"meeting_id": 0.0, "said_at": 0.0}
 # still visible, which is all that figure was ever worth.
 DERIVED_FROM_ROWS = ("distinct_owners", "superseded_count")
 
-# Nothing here is restated by the brief. The window's dates are prose, but
-# the report does not ask for them back -- an earlier task in this dataset
-# was handing away 10% of its reward that way.
-RESTATED_FROM_BRIEF: tuple[str, ...] = ()
+# `meetings_read` IS restated by the brief, and this comment used to say
+# nothing was -- while citing the earlier task in this dataset that gave
+# away 10% of its reward exactly this way.
+#
+# The brief's window section ends "****129**** working days and ****512****
+# meetings", and 512 is not the meetings in the window. It is the STANDING
+# meetings in the window -- the window holds 567 -- which is precisely what
+# `meetings_read` asks the reader to report. The number was being paid for
+# twice: once in the brief, once in the reward.
+#
+# That also explains a reading nobody chased: `meetings_read` scores 1.000
+# for every tier on every task of this world whose brief states it. Not a
+# criterion every model happens to ace, a criterion every model can copy.
+#
+# The sibling world states the window TOTAL in the same sentence -- 411
+# where its standing count is 391 -- so the same words meant different
+# things on the two worlds. Both briefs now say which they mean, and this
+# one stops paying for the half it hands over.
+RESTATED_FROM_BRIEF: tuple[str, ...] = ("meetings_read",)
 
 # What survives as an independently graded scalar, and why each earns it:
 #
-#   meetings_read   how much of the window was opened. Nothing else
-#                   captures it, and it is the one number a reader who
-#                   sampled cannot fake from the rows they found.
 #   turns_read      the same, one level down. A reader who opened every
 #                   meeting and skimmed each is visible here and nowhere
 #                   else.

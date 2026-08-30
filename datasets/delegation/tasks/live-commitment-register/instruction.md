@@ -33,7 +33,7 @@ Read the meetings held from
 ****Tuesday 6 January 2026**** through
 ****Tuesday 19 May 2026****, inclusive — ****98****
 working days and ****403****
-meetings.
+meetings, of which the standing ones are yours to identify.
 
 A meeting is in the window when it **started** inside it; one that runs past
 the last day is still that day's meeting.

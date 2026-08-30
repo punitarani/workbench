@@ -27,7 +27,7 @@ certifiable a task looks.
 
 ## merrick
 
-### commitment-revision-register — CERTIFIED 2026-08-27
+### commitment-revision-register — CERTIFIED 2026-08-27, re-certified 2026-08-29
 
 Six months of a law firm's standing meetings. For every live commitment:
 who owes it, in which meeting, the date it is due, the date they *first*
@@ -51,6 +51,24 @@ per-row. A month-end snapshot design was built on paper, measured at 117
 rows against 26, and discarded for exactly that reason.
 
 Tags: `opus-rev2-k3`, `glm-rev2-k3`, `kimi-rev2-k3`.
+
+**Re-certified 2026-08-29** after `meetings_read` stopped being scored. The
+brief's window section ends *"129 working days and 512 standing meetings"*,
+and 512 is exactly what `meetings_read` asks the reader to report — the
+number was paid for twice, once in the brief and once in the reward. The
+manifest's own comment said "nothing here is restated by the brief" while
+citing the earlier task in this dataset that gave away 10% of its reward
+the same way.
+
+It also explains a reading nobody had chased: `meetings_read` scores 1.000
+for every tier on every task of this world whose brief states it. Not a
+criterion every model happens to ace — one every model can copy.
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.604, 0.671, 0.744 | **0.673** | live.f1 0.734 |
+| glm-5.2 | 0.393, 0.444, 0.478 | **0.438** | live.f1 0.455 |
+| kimi-k3 | 0.365, 0.408, 0.534 | **0.436** | live.f1 0.450 |
 
 ### standing-commitment-register — CERTIFIED 2026-08-27, re-certified 2026-08-29
 
