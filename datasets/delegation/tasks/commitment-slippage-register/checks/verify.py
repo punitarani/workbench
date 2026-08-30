@@ -106,8 +106,22 @@ PINNED: dict[str, str] = {
 # company at the transition. If the window reaches past one, the two
 # derivations disagree near midnight and THAT DISAGREEMENT IS THE FINDING,
 # not a bug in this file.»
+# The window, as CALENDAR DATES where the solver states day OFFSETS. The
+# difference is deliberate: a boundary wrong on one side then shows up as
+# a disagreement between the two derivations instead of being shared.
+#
+# This said 2026-07-06 until 2026-08-29, which is day 182 of the SIBLING
+# world's epoch. The task was ported by hand before there was a script for
+# it, the offset form was moved and this one was not, and the verifier
+# spent its life bounding a window seven weeks longer than the solver
+# reads.
+#
+# It agreed anyway, every build, because this world's recording STOPS on
+# 2026-05-19 -- there is nothing in the extra seven weeks to disagree
+# about. A bound with nothing beyond it is a bound that cannot fail, and
+# it would have started lying the moment the world was extended by a day.
 WINDOW_FIRST_DATE = "2026-01-06"
-WINDOW_LAST_DATE = "2026-07-06"
+WINDOW_LAST_DATE = "2026-05-19"
 
 # «MEASURE: the admitted deadline forms and their normalised tokens, read
 # out of the brief's own table rather than restated here once the table
