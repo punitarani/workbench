@@ -383,8 +383,9 @@ months. Measure before agreeing.
 
 **Measured:** blockers occur in 75 turns of 2,872 (58 before the rule was
 corrected on 2026-08-29; the shape of the finding did not move). At the last 8
-occurrences of each standing series the register has **2 rows**; at the last
-12, four. A register that thin cannot score partially — every rollout comes
+occurrences of each standing series the register has **3 rows**; at the last
+12, five. Before the correction those read two and four -- every figure moved
+up by one and the conclusion did not move at all. A register that thin cannot score partially — every rollout comes
 back 0 or 1.
 
 **Therefore:** when a reviewer says the window is unrealistically wide, the
