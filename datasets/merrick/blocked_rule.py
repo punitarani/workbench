@@ -19,6 +19,31 @@ call rather than waiting on email" -- a refusal to wait and an alternative
 chosen INSTEAD of waiting. Both are the promise rule's existing negation
 class (`not`, `never`, `n't`, `rather than`, `instead of`), and importing
 it is the point: a second copy is a second thing to drift.
+
+**How much of this rule the corpora actually exercise, measured
+2026-08-29 with `scripts/dead_conditions.py` against both worlds.**
+
+Sixty-five of its pattern alternatives change no verdict on either
+corpus. Most are grammatical completion -- `stays`, `remains`, `sits`
+beside `is`; `were` beside `was` -- and the brief does not enumerate them,
+so nothing is promised that the corpus cannot test. Two that the brief DOES
+name are unexercised and worth knowing: no turn in either world says
+`can't proceed` or `can't finish`.
+
+The striking part is the other direction. Every guard added on 2026-08-29
+is alive on exactly ONE world:
+
+    _ALREADY_OVER 'was'              only delegation
+    _A_PREDICATE "'d"                only delegation
+    _A_SUBJECT_ALREADY_STATED 'is'   only merrick
+    _GERUND_SUBJECT 'before'         only merrick
+
+Run against a single corpus, each of them reports DEAD -- a guard that
+decides nothing, ready to be deleted as decoration. Each has exactly one
+caller and that caller is a real sentence that was getting a row wrong.
+This is the differential-testing law paying for itself in one measurement,
+and it is the reason the check must be run against both worlds before any
+alternative is believed dead.
 """
 
 from __future__ import annotations

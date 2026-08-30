@@ -25,6 +25,7 @@ cannot be grading, and a reader of the brief cannot tell them apart.
 import argparse
 import ast
 import importlib.util
+import inspect
 import re
 import sqlite3
 from pathlib import Path
@@ -127,12 +128,62 @@ def main(argv: list[str] | None = None) -> int:
     # nothing whatever you delete, and all sixteen of its alternatives
     # reported dead. A test whose result cannot depend on what it is
     # testing returns the same answer for healthy code.
+    # The rule's entry point, found rather than assumed. This called
+    # `commitment_in` by name and so could not analyse the assignment or
+    # blocker rules at all -- the third tool in this chain to serve one
+    # family while reading as though it served the tree. The others were
+    # `disputed.py`, which unpacks a three-part row label, and
+    # `adjudicate.py`, which looks for one shape of brief pin.
+    #
+    # Some of these rules need the roster (a name is what tells "Cecile's
+    # waiting" from the speaker waiting) and some do not, so the signature
+    # decides rather than a flag.
+    entry = next(
+        (
+            getattr(module, name)
+            for name in ("commitment_in", "assignment_in", "blocked_in")
+            if hasattr(module, name)
+        ),
+        None,
+    )
+    if entry is None:
+        raise SystemExit(
+            f"{args.module} exports none of commitment_in, assignment_in, "
+            "blocked_in, so this does not know what to call. Teach it the "
+            "fourth rather than reporting every condition dead"
+        )
+    wants_names = len(inspect.signature(entry).parameters) > 1
+    roster: dict = {}
+    if wants_names:
+        for _label, task, _database, _query in CORPORA:
+            clio = (
+                REPO / "datasets" / args.dataset / "tasks" / task
+                / "environment" / ".workbench" / "state" / "clio.db"
+            )
+            if clio.is_file():
+                connection = sqlite3.connect(f"file:{clio}?mode=ro", uri=True)
+                roster = {
+                    name.split()[0]: name
+                    for _person, name in connection.execute(
+                        "SELECT person_id, name FROM people"
+                    )
+                }
+                connection.close()
+                break
+        if not roster:
+            raise SystemExit(
+                f"{entry.__name__} takes a roster and no world here has one; "
+                "build the tasks first"
+            )
+
     def verdict() -> tuple[int, tuple]:
-        found = tuple(module.commitment_in(text) for text in texts)
+        found = tuple(
+            entry(text, roster) if wants_names else entry(text) for text in texts
+        )
         return sum(1 for token in found if token), found
 
     base_count, base_found = verdict()
-    print(f"  the rule admits {base_count} commitments across that prose\n")
+    print(f"  {entry.__name__} admits {base_count} across that prose\n")
 
     dead: list[str] = []
 
