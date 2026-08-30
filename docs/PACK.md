@@ -22,9 +22,14 @@ Two recorded worlds and the tasks cut from them.
 Both are the same fictional law firm. `delegation` was recorded a second
 time with one change to the workplace spec — partners hand work to named
 colleagues out loud instead of taking it on themselves — because the
-assignment family needed a world with enough assignments in it: **122
-against merrick's 16**. It is the only world here commissioned *for* a
-family rather than a family found in a world.
+assignment family needed a world with enough assignments in it: **105
+turns against merrick's 13**, re-measured 2026-08-29. It is the only world
+here commissioned *for* a family rather than a family found in a world.
+
+That pair used to read 122 against 16, and the drop is the rule being
+tightened rather than the worlds changing: every guard added to it removes
+matches, and the figure had been written down before the guards were. The
+ratio — eight to one — is what the re-recording was for, and it held.
 
 They share all 31 people, every meeting title and both rule modules, so a
 family that works on one is a task on the other for the cost of
