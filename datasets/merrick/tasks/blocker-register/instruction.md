@@ -78,7 +78,7 @@ before **I** can attach a due date"* — it is theirs. Where the words before
 the break are only introducing what follows — *"Status is: still waiting on
 Clement"* — it is theirs too.
 
-Three things have to be true:
+Five things have to be true:
 
 - **No negation stands between the speaker and the complaint.** *"I'll push
   for the date, no waiting for round-up"* refuses to wait, and *"I've
