@@ -77,13 +77,14 @@ ways. Every figure moved up by one or two and the conclusion did not move
 at all: at the realistic slice the register still has two or three rows,
 and a register with three rows cannot score partially.)*
 
-At the realistic slice there are two rows. Blockers are rare — 75 turns in
-2,872 — so the phenomenon's density sets a floor under the window, and
-realism cannot go below it.
+At the realistic slice there are two or three rows. Blockers are rare — 75
+turns in 2,872 — so the phenomenon's density sets a floor under the window,
+and realism cannot go below it.
 
 **Answer: the wide window is not convenience, it is arithmetic.** A task
-whose register has two rows cannot score partially; every rollout comes
-back 0 or 1. The honest statement is that this measures a capability a
+whose register has three rows cannot score partially; a rollout comes back
+0, ⅓, ⅔ or 1, and the difference between a careful reader and a careless
+one is not visible in four values. The honest statement is that this measures a capability a
 human would not be asked to exercise at this scale, which is true of most
 agent benchmarks and worth saying out loud rather than dressing up.
 
