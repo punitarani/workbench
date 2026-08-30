@@ -234,7 +234,7 @@ Not one is a correct answer zeroed by a strict schema check, which is the
 thing to verify rather than assume: a format gate that fails real answers
 would look exactly like a hard task.
 
-**Seven of the twelve are certified as of 2026-08-30**, and the other five
+**Eight of the twelve are certified as of 2026-08-30**, and the other five
 are waiting on trials rather than on open questions: each is either in band
 on the tiers already measured, or not yet measured. `docs/CERTIFIED.md`
 carries every trial score and the exact command that reproduces each
