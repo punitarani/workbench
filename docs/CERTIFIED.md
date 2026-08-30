@@ -295,3 +295,35 @@ Every tier rose when they were fixed -- opus 0.608 to 0.762, glm 0.523 to
 0.689, kimi 0.295 to 0.389 -- because the key now agrees with what the
 models were already reading. The brief states all five rules and the
 verifier insists that it does.
+
+### delegation/commitment-slippage-register — CERTIFIED 2026-08-30
+
+Read 134 days of standing-meeting transcripts and report, for every live
+commitment, both ends of its chain. Keyed on
+`(owner, meeting, due, first_due)`; `slips` grades as a field.
+
+    uv run python scripts/certify.py --dataset delegation \
+        --task commitment-slippage-register \
+        --tag opus-cs3-k3 --tag glm-cs1g-k3 --tag kimi-cs2-k3 \
+        --waive 'Dov Reinhardt | Billing and WIP review | 2026-05-18 | 2026-01-20' \
+        --waive 'Fionnuala Doherty | Billing and WIP review | 2026-05-06 | 2026-03-11' \
+        --waive 'Ingrid Solheim | Corporate deal status | 2026-04-21 | 2026-01-08' \
+        --waive 'Petra Kovacs | Employment practice huddle | 2026-05-06 | 2026-01-14'
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.465, 0.540, 0.560 | **0.522** | live.f1 0.705 |
+| glm-5.2 | 0.340, 0.372, 0.429 | **0.380** | live.f1 0.482 |
+| kimi-k3 | 0.050, 0.273, 0.287 | **0.203** | live.f1 0.290 |
+
+Floors: empty 0.111, no work 0.000, every candidate 0.296.
+
+The weakest tier sits at 0.203, close to the floor of the band, and that is
+stated rather than smoothed. `slips` left the key to get there: at five
+components kimi's row F1 was 0.134, beneath the level at which a criterion
+counts as touched at all, so the tier was not being measured but excluded.
+
+The four waived rows are the same ones adjudicated for this world's
+`commitment-revision-register` in `docs/adjudications/` — same rule, same
+corpus, same readers reporting a meeting date where a resolved deadline
+belongs.
