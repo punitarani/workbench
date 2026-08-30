@@ -171,6 +171,17 @@ pays anyway, because the oracle holds 128, the trials report 121 to 129,
 and three of them reported exactly 128 — hard is not the same as
 unmeasurable, and the test is whether anyone has ever scored it.
 
+**Read `reported_every_candidate` as a ceiling, not a floor.** It is built
+as *every true row, plus noise up to the declared candidate count* — so it
+measures an answer that already contains the truth, which no strategy
+without the answer key can produce. On two tasks here the weakest tier
+scores below it (0.203 and 0.286 against 0.296), and that is not a lazy
+strategy beating a real reader: it is the difference between a bound and an
+achievable score.
+
+The floors that ARE achievable without comprehension are `no_work_at_all`
+and `empty_register`, and those sit at 0.000 to 0.200 across the pack.
+
 **A zero is never averaged in as a score.** Across every saved trial in
 this tree, 89 produced no gradeable deliverable. Separated:
 
