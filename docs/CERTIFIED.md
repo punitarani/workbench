@@ -25,6 +25,13 @@ rather than quietly corrected: a DNF averaged as zero drags an ABOVE-band
 task down into range, so the more often a tier fails to answer, the more
 certifiable a task looks.
 
+**All certificates re-verified 2026-08-30** under the stricter gate, which
+now requires every waived row to be backed by a file in
+`docs/adjudications/` and prints which file admits it. Eight of eight pass,
+including the four that depend on waivers. Each entry below carries the
+exact command that reproduces it, waivers included — reconstructing those
+from `jobs/` by hand is how a "still certified" claim becomes unverifiable.
+
 ## merrick
 
 ### commitment-revision-register — CERTIFIED 2026-08-27, re-certified 2026-08-29
