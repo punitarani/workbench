@@ -14,9 +14,14 @@ measurement that retired it.
 
 Two recorded worlds and the tasks cut from them.
 
+`days` is the span from the first recorded meeting to the last, inclusive.
+It is not the configured window: merrick's window runs to day 182 and its
+last meeting is on day 179, which is where the 182 this table used to
+carry came from.
+
 | world | days | meetings | turns | words | people |
 |---|---|---|---|---|---|
-| `merrick` | 182 | 567 | 2,872 | 216,500 | 31 |
+| `merrick` | 180 | 567 | 2,872 | 216,500 | 31 |
 | `delegation` | 135 | 411 | 2,126 | 166,888 | 31 |
 
 Both are the same fictional law firm. `delegation` was recorded a second
