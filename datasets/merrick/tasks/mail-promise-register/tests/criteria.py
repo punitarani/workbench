@@ -51,7 +51,23 @@ FIELDS: dict[str, float] = {"message_ref": 0.0, "said_on": 0.0, "subject": 0.0}
 # owners WOULD be one, which is why the register does not ask for it: a
 # scalar that restates the row count pays twice for the same work and lifts
 # the floor, because a wrong row set can still be counted correctly.
-DERIVED_FROM_ROWS: tuple[str, ...] = ()
+# The census count moves out of the reward and stops paying, for the same
+# reason it did on the blocker register: `messages_read` is a date-filtered
+# query away, and a reader who opens the window and extracts NOTHING was
+# collecting a tenth of the reward for it.
+#
+# Measured here rather than argued. The no-comprehension floor for dumping
+# every candidate read 0.376 and the row set contributes 0.05 of that -- a
+# dump of 530 messages against 14 true rows is precision 0.026. The rest
+# was the two scalars, and one of them is a census.
+#
+# `superseded_count` STAYS in the reward and the difference is the work.
+# It counts promises that were overtaken by a later one, which requires
+# applying the rule and then ordering what it finds -- and those promises
+# appear in NO row of the register, so it is independent signal rather
+# than the row set tallied a second time. That distinction is the whole
+# test for whether a scalar belongs here.
+DERIVED_FROM_ROWS: tuple[str, ...] = ("messages_read",)
 
 # `window_end` is the boundary the brief states outright. The deliverable
 # carries it because it is a useful self-check for the reader -- an answer
