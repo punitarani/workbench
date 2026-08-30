@@ -121,6 +121,25 @@ def _heads_a_predicate(segment: str) -> bool:
     return words[0].endswith(("ed", "'d")) or words[0] in _PREDICATE_HEADS
 
 
+# Copulas, for deciding whether a subject stated before a break still owns
+# the wait after it. The other route asks this with one regex over the
+# characters; here the segment is TOKENISED and the copula's position among
+# the tokens is what answers it -- if the copula is the last token, its
+# complement is the clause that follows ("Status is: still waiting on
+# Clement", which is the speaker), and if something follows the copula the
+# subject already has its predicate and the wait is a second one on the
+# same subject.
+_COPULAS = frozenset(("is", "are", "was", "were", "stays", "remains", "sits"))
+
+
+def _subject_already_has_its_predicate(before: str) -> bool:
+    words = _words(before)
+    for at, word in enumerate(words):
+        if word in _COPULAS and at + 1 < len(words):
+            return True
+    return False
+
+
 def _words(text: str) -> list[str]:
     return [w.casefold().replace("’", "'") for w in _WORD.findall(text or "")]
 
@@ -146,9 +165,33 @@ def blocked_in(text: str, names=()) -> bool:
 
     others = {n.casefold() for n in names}
 
-    for clause in _ENDS.split(text or ""):
+    # Segments and the breaks between them, from the break POSITIONS rather
+    # than from a capturing split. The other route splits and keeps the
+    # delimiters; walking offsets is the same claim by a different road,
+    # and the two disagreeing here is what a second derivation is for.
+    body = text or ""
+    cuts = [(m.start(), m.end(), m.group()) for m in _ENDS.finditer(body)]
+    spans = []
+    at = 0
+    for start, end, mark in cuts:
+        spans.append((body[at:start], mark))
+        at = end
+    spans.append((body[at:], ""))
+
+    for index, (clause, _mark) in enumerate(spans):
         if clause.rstrip().endswith("?"):
             continue
+        earlier, before_mark = spans[index - 1] if index else ("", "")
+        # A subject stated before the break still owns the wait after it,
+        # unless the break ended the sentence or somebody spoke in the
+        # first person on either side.
+        carried = (
+            index > 0
+            and not earlier.rstrip().endswith((".", "?", "!"))
+            and not any(w in _FIRST_PERSON_TOKENS for w in _words(clause))
+            and not any(w in _FIRST_PERSON_TOKENS for w in _words(earlier))
+            and _subject_already_has_its_predicate(earlier)
+        )
         # A dropped subject carried across a comma. Split the clause on
         # commas and ask each segment whether it opens with the complaint
         # while the one before it is a predicate.
@@ -192,7 +235,7 @@ def blocked_in(text: str, names=()) -> bool:
                 for i in range(len(words) - 1)
             )
             mine = any(w in _FIRST_PERSON_TOKENS for w in words)
-            if after not in (["me"], ["us"]) and not (gerund and not mine):
+            if after not in (["me"], ["us"]) and not (gerund and not mine) and not carried:
                 return True
         for at, word in enumerate(words):
             if word not in _SPEAKER:

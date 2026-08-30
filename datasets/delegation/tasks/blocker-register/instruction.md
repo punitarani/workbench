@@ -69,6 +69,15 @@ It carries only where the run is what the speaker **did**: *"the Sable Ridge
 deposition summary, unscheduled, blocked on the Martinez transcript"* is the
 summary that is blocked, not the speaker, and is **not** a row.
 
+And a subject named **before** a dash or colon still owns the wait after
+it: *"the disclosure schedule characterization question is partially
+narrowed but not closed — still waiting on written confirmation"* is the
+question waiting, not the speaker. Where the speaker names themselves on
+either side of the break — *"still waiting on the Martinez transcript
+before **I** can attach a due date"* — it is theirs. Where the words before
+the break are only introducing what follows — *"Status is: still waiting on
+Clement"* — it is theirs too.
+
 Three things have to be true:
 
 - **No negation stands between the speaker and the complaint.** *"I'll push

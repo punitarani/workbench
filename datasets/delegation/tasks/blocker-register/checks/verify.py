@@ -40,6 +40,7 @@ _STATED: dict[str, tuple[str, ...]] = {
         "A wait already over is not one",
         "**The speaker may also be left out.**",
         "A dropped subject also carries **across a comma**",
+        "a subject named **before** a dash or colon still owns the wait",
     ),
     "## What to produce": (
         "the date they **first** said it in this standing meeting",

@@ -248,6 +248,55 @@ def roster(state: Path) -> dict[str, str]:
     return {name.split()[0]: name for _person, name in rows}
 
 
+# A subject that carried ACROSS the clause boundary, and still owns the
+# wait on the other side of it.
+#
+# "the Series C disclosure schedule characterization question is partially
+# narrowed but not closed - still waiting on written confirmation from
+# Ulrich-Bergmann's side" is the QUESTION waiting. The clause splitter
+# breaks on " - ", severing "still waiting" from its subject, and the
+# elided path then handed it to the speaker.
+#
+# This is the brief's own rule -- "a thing owns a wait as readily as a
+# person does" -- reaching one clause further back than `_POSSESSED` can,
+# because `_POSSESSED` looks inside a gap and here there is no gap.
+#
+# A judge panel found this, against my reading: I had called the row
+# correct and the models wrong, and five trials of three tiers had
+# answered the same earlier date. They were right.
+#
+# Two conditions, and both were measured:
+#
+#   * the break is not a SENTENCE end. Across a full stop the subject does
+#     not carry, and "Waiting on Samir, same as everyone else." opening a
+#     turn is the speaker;
+#   * the copula already HAS its complement. "Status is: still waiting on
+#     Clement" is the speaker's status -- the elided clause IS the
+#     complement -- where "Sandhurst is the one with a live gap: still
+#     waiting on officer names" already said what Sandhurst is, so what
+#     follows is a second predicate on the same subject.
+#
+# Requiring only the first condition drops "Status is:" as well, which is
+# wrong. Requiring both changes 2 rows on this world and 0 on the sibling,
+# and leaves the row SET unchanged on both.
+_A_SUBJECT_ALREADY_STATED = re.compile(
+    r"\b(?:is|are|was|were|stays|remains|sits)\b\s+\S+", re.IGNORECASE
+)
+# Split KEEPING the delimiter: whether the break was a full stop or a dash
+# is the whole question, and a splitter that discards it cannot be asked.
+_CLAUSE_KEEPING_BREAKS = re.compile(r"((?<=[.?!;:])\s+|\s*[—–]\s*|\s+-\s+)")
+
+
+def _owned_across_the_break(before: str, clause: str) -> bool:
+    """Whether a noun subject stated before the break still owns this wait."""
+
+    if not before or re.search(r"[.?!]\s*$", before):
+        return False
+    if _ANYONE_FIRST_PERSON.search(clause) or _ANYONE_FIRST_PERSON.search(before):
+        return False
+    return bool(_A_SUBJECT_ALREADY_STATED.search(before))
+
+
 def blocked_in(text: str, names=()) -> bool:
     """Whether this turn reports the speaker as stuck on something.
 
@@ -258,7 +307,11 @@ def blocked_in(text: str, names=()) -> bool:
     WHERE and WHEN, all of which the record states outright.
     """
 
-    for clause in _CLAUSE.split(text or ""):
+    pieces = _CLAUSE_KEEPING_BREAKS.split(text or "")
+    # pieces alternates segment, delimiter, segment, ...
+    for index in range(0, len(pieces), 2):
+        clause = pieces[index]
+        before = pieces[index - 2] if index >= 2 else ""
         if clause.rstrip().endswith("?"):
             # A question asks whether somebody is stuck; it does not report
             # it. Same carve-out the promise rule makes, for the same
@@ -267,8 +320,10 @@ def blocked_in(text: str, names=()) -> bool:
         # The subject may be left out entirely, in which case there is no
         # gap to guard and the clause itself is the report.
         lead = _ELIDED.match(clause)
-        if lead is not None and not _THE_SPEAKER_IS_THE_HOLDUP.match(
-            clause[lead.end() :]
+        if (
+            lead is not None
+            and not _THE_SPEAKER_IS_THE_HOLDUP.match(clause[lead.end() :])
+            and not _owned_across_the_break(before, clause)
         ):
             if not (
                 _GERUND_SUBJECT.search(clause)
