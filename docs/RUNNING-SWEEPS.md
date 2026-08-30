@@ -30,6 +30,35 @@ lost its third trial the same way. Neither is a fact about a model.
 
   That is 256 networks instead of three.
 
+## Two false DNFs that are not the address pool, and not the model
+
+A trial with no `verifier/reward.json` looks identical whatever killed it.
+Two seen here had the agent finishing the work and losing it afterwards,
+and both are in `trial.log`'s last line rather than anywhere a score
+aggregator looks:
+
+    Trial ... failed: Expected exactly 1 session, found 2
+    Trial ... cancelled
+
+The first is a harness assertion: the agent opened a second Codex session
+and the collector refuses to guess which one to keep. Its transcript ends
+in `turn.completed` with every todo ticked, including *"Compute
+superseded/live commitments and write output"*. The second is a
+cancellation after the agent's last tool call returned. In both the work
+was done and the deliverable never reached the workspace, so nothing can
+be re-scored -- unlike a DNF with a saved answer, these are gone.
+
+**Read `trial.log`'s last line before recording a tier's completion rate.**
+One task read 2-of-3 and then 1-of-3 answered on its weakest-completing
+tier, which reads as a model that cannot finish. Both losses were
+harness-side, on a task whose single trial spends 32 million input tokens
+against a 6.6 MB transcript -- the longest in the pack. Length is what
+these two failures have in common, and length is a property of the task.
+
+**Report the completion rate beside the score, never folded into it.** How
+often a model manages to answer and how well it answers are different
+facts, and only one of them is about the model.
+
 ## The general point
 
 An environment-level failure that produces "no deliverable" is
