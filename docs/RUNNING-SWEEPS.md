@@ -48,8 +48,15 @@ cancellation after the agent's last tool call returned. In both the work
 was done and the deliverable never reached the workspace, so nothing can
 be re-scored -- unlike a DNF with a saved answer, these are gone.
 
-The third is the provider dropping the stream. The transcript's last
-events are:
+The third is the provider dropping the stream, and its payload names the
+cause more precisely than the reconnect line does:
+
+    {"error":{"message":"Server tool request failed","code":400,
+              "metadata":{"provider_name":null, ...}}}
+
+A 400 on a TOOL request, with no provider attributed — a router-level
+rejection, not a timeout and nothing the task controls. The transcript's
+last events are:
 
     "type":"error"
     "message":"Reconnecting... 1/5 (stream disconnected before completion:
@@ -67,6 +74,14 @@ one task the strongest tier answered 2 of 7 while both weaker tiers
 answered 3 of 3, which looks like the task defeating the model that thinks
 hardest about it. Both of its failures were dropped streams. Completion
 there is a fact about the provider that day.
+
+**It clusters, so do not read a run of them as a model result.** One tier
+lost 1 of 3 on its first sweep of a task and 3 of 3 on the next. Three in a
+row at the 6.2% base rate is about one chance in four thousand, so the
+failures are not independent — something about a particular model, task and
+hour draws them. The response is the same either way (re-run under a fresh
+tag), but a tier reading 0-of-3 on a task it answered twice yesterday is
+reporting the router, not the model.
 
 **The dropped-stream rate is 6.2%, measured over every finished trial in
 this tree** — 37 of 598, spread across sixteen days, every model tier and a
