@@ -43,6 +43,21 @@ _OTHERS = frozenset(
      "you’re", "he", "he's", "he’s", "she", "she's", "she’s")
 )
 _JOINERS = frozenset(("and", "so", "but", "then", "while"))
+# A wait already over. Read from the RIGHT of the gap -- the tokens
+# standing immediately against the complaint, skipping an adverb -- where
+# the other route anchors a regex to the gap's end. `have been` is not
+# here on purpose: "I've been waiting since Tuesday" is still waiting.
+_OVER = frozenset(("was", "were"))
+_ADVERBS = frozenset(("still", "just"))
+# Openers a clause may carry before an elided-subject complaint.
+_LEADERS = frozenset(("still", "just", "also"))
+# A gerund adjunct, as a pair of adjacent tokens: the mark and a word
+# ending in -ing. The other route matches this as one regex over the
+# characters; walking tokens is the same claim by a different road.
+_MARKS = frozenset(("before", "after", "without", "of", "than"))
+_FIRST_PERSON_TOKENS = frozenset(
+    ("i", "i'm", "i'll", "i've", "i'd", "my", "mine", "me")
+)
 # Contracted negations spelled out. `isn't`, `don't`, `haven't` are single
 # tokens here -- the tokeniser keeps apostrophes -- so a test for "not"
 # does not see them, and "imelda's runway ISN'T waiting on anything" read
@@ -87,13 +102,19 @@ def _words(text: str) -> list[str]:
     return [w.casefold().replace("’", "'") for w in _WORD.findall(text or "")]
 
 
-def _stuck_at(words: list[str], start: int) -> int | None:
-    """Index where a stuck phrase begins at or after `start`, or None."""
+def _stuck_at(words: list[str], start: int) -> tuple[int, int] | None:
+    """Where a stuck phrase begins and ends at or after `start`, or None.
+
+    The END is returned as well as the start because the word AFTER the
+    phrase decides whether the speaker is stuck or is the thing everyone
+    else is stuck on. The phrases are two and three words long, so a
+    caller cannot compute that boundary from the start alone.
+    """
 
     for index in range(start, len(words)):
         for phrase in _STUCK:
             if tuple(words[index : index + len(phrase)]) == phrase:
-                return index
+                return index, index + len(phrase)
     return None
 
 
@@ -106,13 +127,38 @@ def blocked_in(text: str, names=()) -> bool:
         if clause.rstrip().endswith("?"):
             continue
         words = _words(clause)
+        # The subject left out: the clause opens with the complaint, past
+        # any number of leading adverbs.
+        head = 0
+        while head < len(words) and words[head] in _LEADERS:
+            head += 1
+        opens = _stuck_at(words, head)
+        if opens is not None and opens[0] == head:
+            after = words[opens[1] : opens[1] + 1]
+            gerund = any(
+                words[i] in _MARKS and words[i + 1].endswith("ing")
+                for i in range(len(words) - 1)
+            )
+            mine = any(w in _FIRST_PERSON_TOKENS for w in words)
+            if after not in (["me"], ["us"]) and not (gerund and not mine):
+                return True
         for at, word in enumerate(words):
             if word not in _SPEAKER:
                 continue
             found = _stuck_at(words, at + 1)
-            if found is None or found - at > _GAP:
+            if found is None or found[0] - at > _GAP:
                 continue
-            between = words[at + 1 : found]
+            # Whom the complaint points at. "nothing sits waiting on ME"
+            # is the speaker being waited FOR, which this register is not
+            # about. Read off the token after the phrase; the other route
+            # reads the characters after it, so a boundary wrong on one
+            # side shows up as a disagreement.
+            if words[found[1] : found[1] + 1] in (["me"], ["us"]):
+                continue
+            between = words[at + 1 : found[0]]
+            tail = [w for w in between if w not in _ADVERBS]
+            if tail and tail[-1] in _OVER:
+                continue
             if any(w in _REFUSALS for w in between):
                 continue
             # A different subject after a joiner owns the complaint: "...on

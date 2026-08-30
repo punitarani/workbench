@@ -109,6 +109,70 @@ def _somebody_else(gap: str, names) -> bool:
     who = "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True))
     return re.search(rf"\b(?:{who})\b(?:{_APOS}s)?\s", gap, re.IGNORECASE) is not None
 
+# The speaker as the OBJECT of the wait rather than its subject. "so
+# nothing sits WAITING ON ME" and "the two exceptions are both WAITING ON
+# ME, not on anyone else" are the speaker saying they are the holdup --
+# the exact inverse of what this register reports, and both were admitted
+# because a first-person marker sits a few words upstream doing nothing
+# but anchoring the match.
+#
+# Only the bare pronoun is guarded, and that is a measurement rather than
+# caution: `waiting on my <noun>` and `waiting on my end` occur ZERO times
+# after a stuck phrase in either corpus, so a guard covering them would
+# have no caller. `waiting on my client's approval` is genuinely the
+# speaker waiting, and this must not reach it.
+_THE_SPEAKER_IS_THE_HOLDUP = re.compile(rf"^\s*(?:me|us)\b", re.IGNORECASE)
+
+# A wait that is OVER. The brief says a blocker is a turn where the speaker
+# says they ARE stuck, and "staffing confirmation and the rate-table rows
+# have been sitting because I WAS WAITING ON Klara's insurance coverage
+# comparison" reports a wait that ended -- the same turn goes on to say "I
+# can confirm staffing today". It was the only turn in that person's chain,
+# so the whole row was spurious, and every trial of every tier declined it.
+#
+# Anchored at the END of the gap so it must sit directly against the
+# complaint: `was` anywhere upstream would catch unrelated past tense.
+#
+# `have been` and `has been` are deliberately NOT here. "I've been waiting
+# on the filing since Tuesday" is still waiting, and reads as the strongest
+# blocker statement this firm makes. `had been` is here for the semantics
+# and has zero occurrences in either corpus today; `was`/`were` have one.
+_ALREADY_OVER = re.compile(
+    r"\b(?:was|were|had been)\s+(?:still\s+|just\s+)?$", re.IGNORECASE
+)
+
+# The subject left out. This firm says "Still waiting on Clement." and
+# "Waiting on Samir, same as everyone else." far more often than it says
+# "I am waiting on Samir", and requiring an explicit pronoun refused
+# THIRTY-FOUR turns across the two corpora that every reader takes as the
+# speaker reporting themselves stuck. One of them was the turn seven
+# trials of three tiers cited as a person's last raise while the key
+# stopped their chain ten weeks earlier.
+#
+# Measured at the ROW level, which is what is graded: admitting these
+# leaves the row SET unchanged -- 20 -> 22 on one world, 16 -> 17 on the
+# other -- and corrects the ends and the counts of rows that already
+# existed. That is the whole of the difference.
+_ELIDED = re.compile(rf"^(?:still\s+|just\s+|also\s+)*{_STUCK}\b", re.IGNORECASE)
+
+# ...except when the elided phrase is the SUBJECT of the sentence rather
+# than a report: "waiting on Bennett before flagging Rosalie JUST
+# COMPOUNDS the delay" is advice about what somebody else should do, and
+# the wait is hypothetical.
+#
+# The two conjuncts are both needed and the measurement says so: a gerund
+# adjunct ALONE also catches "still waiting on Harriet to send it over,
+# and once it lands I'll set up that call BEFORE DRAFTING starts", which
+# is a true report. Requiring the clause to name nobody in the first
+# person separates them, and across 4,998 turns this rejects exactly the
+# one sentence it was written for.
+_GERUND_SUBJECT = re.compile(
+    r"\b(?:before|after|instead of|without|rather than)\s+\w+ing\b", re.IGNORECASE
+)
+_ANYONE_FIRST_PERSON = re.compile(
+    rf"(?:\bI\b|\bI{_APOS}(?:m|ll|ve|d)\b|\bmy\b|\bmine\b|\bme\b)", re.IGNORECASE
+)
+
 _NEGATED = re.compile(
     rf"(?:\bno\b|\bnot\b|\bnever\b|n{_APOS}t\b|\brather than\b|\binstead of\b"
     r"|\bwithout\b|\bstopped\b|\bdone\b)",
@@ -141,6 +205,17 @@ def blocked_in(text: str, names=()) -> bool:
             # it. Same carve-out the promise rule makes, for the same
             # reason, and the brief states it.
             continue
+        # The subject may be left out entirely, in which case there is no
+        # gap to guard and the clause itself is the report.
+        lead = _ELIDED.match(clause)
+        if lead is not None and not _THE_SPEAKER_IS_THE_HOLDUP.match(
+            clause[lead.end() :]
+        ):
+            if not (
+                _GERUND_SUBJECT.search(clause)
+                and not _ANYONE_FIRST_PERSON.search(clause)
+            ):
+                return True
         # EVERY first-person start in the clause, not the first that
         # matches. This firm writes "I haven't gotten written confirmation,
         # so I can't sign off on that schedule yet": the first `I` carries a
@@ -162,7 +237,13 @@ def blocked_in(text: str, names=()) -> bool:
             gap = clause[subject.end() : complaint.start()]
             if _NEGATED.search(gap) or _NEW_SUBJECT.search(gap):
                 continue
+            if _ALREADY_OVER.search(gap):
+                continue
             if _somebody_else(gap, names) or _POSSESSED.search(gap):
+                continue
+            # ...and what the complaint points AT, which the gap cannot
+            # carry because it ends where the complaint begins.
+            if _THE_SPEAKER_IS_THE_HOLDUP.match(clause[complaint.end() :]):
                 continue
             return True
     return False

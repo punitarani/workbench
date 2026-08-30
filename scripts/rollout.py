@@ -195,6 +195,25 @@ def main(argv: list[str] | None = None) -> int:
     from band import TAG_PREFIX
 
     tag = args.tag or f"{TAG_PREFIX[args.model]}-k{args.k}"
+    # The reader finds a model's jobs by the tag's PREFIX -- `band.py`
+    # globs `<dataset>-<task>-<prefix>*` -- so a tag that does not open
+    # with it produces a job directory no model claims. The sweep runs,
+    # the trials grade, the scores land, and every table reports the tier
+    # as "not run", which is indistinguishable from never having measured.
+    #
+    # This cost two full sweeps: `--tag blk4-k3` and `--tag cs1g-k3` ran
+    # to completion under names nothing would ever read. Refusing here is
+    # the only place that can tell the difference, because by the time the
+    # reader sees the job it has already been named.
+    prefix = TAG_PREFIX[args.model]
+    if not tag.startswith(f"{prefix}-"):
+        raise SystemExit(
+            f"tag {tag!r} does not open with {prefix!r}, so the job would be "
+            f"written to jobs/{args.dataset}-{args.task}-{tag} where "
+            "nothing reads it. "
+            f"Every reader finds {args.model}'s work by that prefix. "
+            f"Use --tag {prefix}-{tag}"
+        )
     if args.print_config:
         # A placeholder port, because there is no gateway to ask. This
         # path exists to check the task path and the schema, not to be run.

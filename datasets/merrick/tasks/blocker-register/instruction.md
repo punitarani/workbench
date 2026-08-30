@@ -53,6 +53,15 @@ The speaker may be named by a pronoun or by something they own: *"I'm still
 waiting on Ulrich"* and *"the reserve analysis in **my** memorandum is
 waiting on that sign-off"* are both rows.
 
+**The speaker may also be left out.** This firm drops the subject
+constantly, and a clause that simply opens with the complaint is the
+speaker reporting themselves: *"Still waiting on Clement."*, *"Waiting on
+Samir, same as everyone else."* and *"blocked on the Martinez transcript."*
+are each a row. The exception is a clause where the complaint is the
+sentence's **subject** rather than its report -- *"waiting on Bennett before
+flagging Rosalie just compounds the delay"* argues about a wait nobody is
+having, and is not a row.
+
 Three things have to be true:
 
 - **No negation stands between the speaker and the complaint.** *"I'll push
@@ -67,6 +76,15 @@ Three things have to be true:
   readily as a person does.
 - **A question is not one.** *"Is anyone waiting on me for that?"* asks; it
   does not report.
+- **A wait pointed AT the speaker is not one.** *"so nothing sits waiting on
+  me"* and *"the two exceptions are both waiting on me, not on anyone else"*
+  say the speaker is what everybody else is waiting for. **Neither is a
+  row.** *"waiting on my client's approval"* still is: there the speaker
+  waits, and what they wait on merely belongs to them.
+- **A wait already over is not one.** *"I **was** waiting on Klara's
+  comparison before I'd sign off"* reports a wait that has ended, and the
+  brief asks for turns where the speaker says they **are** stuck. *"I've
+  been waiting since Tuesday"* has not ended and **is** a row.
 
 Every first-person subject in a clause is tried, not only the first: *"I
 haven't gotten written confirmation, so I can't sign off on that schedule"*

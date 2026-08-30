@@ -36,6 +36,9 @@ _STATED: dict[str, tuple[str, ...]] = {
         "the speaker says **they** are stuck",
         "No other subject stands between the speaker and the complaint",
         "A question is not one",
+        "A wait pointed AT the speaker is not one",
+        "A wait already over is not one",
+        "**The speaker may also be left out.**",
     ),
     "## What to produce": (
         "the date they **first** said it in this standing meeting",
