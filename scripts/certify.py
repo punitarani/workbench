@@ -324,6 +324,21 @@ def check_no_unanimous_refusals(
         if "<== EVERY trial" in line
     ]
     contested = _contested(done.stdout)
+    # A waiver has to be backed by a written adjudication. Anything else
+    # is an opinion silencing a measurement.
+    unrecorded = [
+        row for row in declined if row in waived and _adjudicated(row) is None
+    ]
+    for row in unrecorded:
+        problems.append(
+            f"waived {row!r} but no file in docs/adjudications/ records that "
+            "row being read. A waiver is the only human judgement this gate "
+            "accepts; write down what the passage says and why the key is "
+            "right, then waive it"
+        )
+    for row in declined:
+        if row in waived and row not in unrecorded:
+            print(f"  waived on {_adjudicated(row)}: {row}")
     unwaived = [row for row in declined if row not in waived]
     for row in unwaived:
         rival = contested.get(row)
@@ -414,6 +429,35 @@ def check_heaviest_criterion(
             )
 
     return best
+
+
+def _adjudicated(row: str) -> str | None:
+    """The adjudication file that records a reader admitting this row.
+
+    A waiver is the ONE place human judgement enters an otherwise
+    mechanical gate, and nothing checked that the judgement was ever
+    written down. `--waive 'anything at all'` silenced the strongest
+    signal this tree has -- a row every trial of every tier declined --
+    on the say-so of whoever typed the command.
+
+    Four of five unanimous disagreements here have turned out to be the
+    KEY, so a waiver asserted without evidence is the most expensive
+    mistake available, and it leaves no trace to audit afterwards.
+
+    Matched on the owner and the group -- the first two fields of the
+    label -- rather than the whole string, because a label carries dates
+    that move when a rule is corrected while the row stays the same row.
+    """
+
+    parts = [part.strip() for part in row.split("|")]
+    if len(parts) < 2:
+        return None
+    owner, group = parts[0], parts[1]
+    for record in sorted((REPO / "docs" / "adjudications").glob("*.md")):
+        text = record.read_text(encoding="utf-8")
+        if owner in text and group in text:
+            return record.name
+    return None
 
 
 def _contested(report: str) -> dict[str, tuple[str, int]]:
