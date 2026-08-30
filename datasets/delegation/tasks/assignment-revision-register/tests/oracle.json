@@ -2,7 +2,7 @@
  "meetings_read": 391,
  "turns_read": 2037,
  "distinct_owners": 23,
- "superseded_count": 58,
+ "superseded_count": 57,
  "assignments": [
   {
    "owner": "Adaora Nwosu",
@@ -179,8 +179,8 @@
    "owner": "Rosalie Duchamp",
    "meeting": "Docket call",
    "due": "2026-05-08",
-   "first_due": "2026-01-19",
-   "superseded": 4,
+   "first_due": "2026-01-26",
+   "superseded": 3,
    "meeting_id": "mtg-000090",
    "said_at": "2026-05-08T08:45:00-05:00"
   },
