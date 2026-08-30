@@ -309,7 +309,32 @@ containers.
 
 ## Worlds
 
-All five worlds serve their history through the same tool surfaces; each
+**The shipping pack is `merrick` and `delegation`, and this section is
+otherwise a record of how it was arrived at.** They are one 31-person law
+firm recorded twice — 180 and 135 days — carrying the twelve live tasks,
+eight of them certified against three model tiers.
+[`PACK.md`](PACK.md) is the document for those; what follows here is the
+engineering history of all seven worlds, including the four the pack does
+not use.
+
+**Merrick Stanton LLP** — a litigation-and-transactions firm over 180
+days: 567 standing meetings, 2,872 turns, 216,500 words, 31 people, six
+tool surfaces. Five live tasks, three certified.
+
+**Delegation** — the same firm recorded again over 135 days with one
+change to the workplace spec: partners hand work to named colleagues out
+loud instead of taking it on themselves. Recorded *for* a family rather
+than a family found in a world — the assignment rule admits 105 turns here
+against merrick's 13. Seven live tasks, five certified, three of them
+ported from merrick by `scripts/port_task.py`.
+
+The five below predate the current grading architecture: their criteria
+name no deliverable, so `band.py` refuses to score them. `ashgrove` is the
+one that matters most as evidence — its tasks measured at ~1.000 for a
+frontier model however the difficulty was turned up, and that measurement
+is why `merrick` was recorded.
+
+All worlds serve their history through the same tool surfaces; each
 is a data package under `src/workplaces/`. Hartwell's history
 is chronicle-built (procedural structure plus cached, LM-authored
 content — a rebuild makes zero new model calls); the other worlds run
