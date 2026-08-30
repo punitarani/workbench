@@ -18,8 +18,8 @@ is right with probability `a**k`.
 | `delegation/commitment-slippage-register` | 29 | 4 — owner, meeting, due, first_due | not yet |
 | `delegation/live-commitment-register` | 29 | 5 — owner, meeting, due, first_due, superseded | not yet |
 | `delegation/mail-promise-register` | 12 | 2 — owner, due | not yet |
-| `delegation/standing-commitment-register` | 29 | 4 — owner, meeting, due, slips | yes |
-| `merrick/blocker-register` | 22 | 4 — owner, meeting, first_raised, last_raised | yes |
+| `delegation/standing-commitment-register` | 29 | 4 — owner, meeting, due, slips | not yet |
+| `merrick/blocker-register` | 22 | 4 — owner, meeting, first_raised, last_raised | not yet |
 | `merrick/commitment-revision-register` | 26 | 5 — owner, meeting, due, first_due, superseded | yes |
 | `merrick/live-commitment-register` | 25 | 5 — owner, meeting, due, first_due, superseded | not yet |
 | `merrick/mail-promise-register` | 14 | 2 — owner, due | not yet |

@@ -22,6 +22,34 @@ DATASETS = REPO / "datasets"
 OUT = REPO / "docs" / "TASKS.md"
 
 
+def _is_certified(record: str, world: str, task: str) -> bool:
+    """Whether the record certifies THIS world's task, not a namesake.
+
+    `CERTIFIED.md` writes some headings world-qualified
+    (`### delegation/blocker-register — CERTIFIED`) and some bare
+    (`### commitment-revision-register — CERTIFIED`) under a `## <world>`
+    section. A substring search for the bare form marked
+    `merrick/blocker-register` certified on the strength of DELEGATION's
+    entry -- the two worlds carry tasks of the same name, which is the same
+    collision that once made a rebuild guard refuse the wrong world.
+
+    So the section is tracked, and a bare heading belongs to the section it
+    sits in.
+    """
+
+    section = None
+    for line in record.splitlines():
+        if line.startswith("## ") and not line.startswith("### "):
+            section = line[3:].strip()
+        elif line.startswith("### ") and "— CERTIFIED" in line:
+            name = line[4:].split("—")[0].strip()
+            if name == f"{world}/{task}":
+                return True
+            if name == task and section == world:
+                return True
+    return False
+
+
 def _toml(text: str, key: str) -> str | None:
     match = re.search(rf'^{key}\s*=\s*"""(.*?)"""', text, re.M | re.S)
     if match:
@@ -90,9 +118,7 @@ def main() -> int:
             rows_name = next((k for k, v in oracle.items() if isinstance(v, list)), None)
             key = re.search(r"^KEY = \(([^)]*)\)", criteria, re.M)
             key_parts = re.findall(r'"([^"]+)"', key.group(1)) if key else []
-            is_certified = f"{task.name} — CERTIFIED" in certified or (
-                f"{world.name}/{task.name} — CERTIFIED" in certified
-            )
+            is_certified = _is_certified(certified, world.name, task.name)
             live.append(
                 f"| `{world.name}/{task.name}` | {len(oracle.get(rows_name, []))} | "
                 f"{len(key_parts)} — {', '.join(key_parts)} | "
