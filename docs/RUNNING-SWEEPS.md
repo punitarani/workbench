@@ -30,7 +30,7 @@ lost its third trial the same way. Neither is a fact about a model.
 
   That is 256 networks instead of three.
 
-## Two false DNFs that are not the address pool, and not the model
+## Three false DNFs that are not the address pool, and not the model
 
 A trial with no `verifier/reward.json` looks identical whatever killed it.
 Two seen here had the agent finishing the work and losing it afterwards,
@@ -47,6 +47,26 @@ superseded/live commitments and write output"*. The second is a
 cancellation after the agent's last tool call returned. In both the work
 was done and the deliverable never reached the workspace, so nothing can
 be re-scored -- unlike a DNF with a saved answer, these are gone.
+
+The third is the provider dropping the stream. The transcript's last
+events are:
+
+    "type":"error"
+    "message":"Reconnecting... 1/5 (stream disconnected before completion:
+               Server tool request failed)"
+    "type":"turn.failed"
+
+and `trial.log` ends normally at "Collecting main service artifacts", so
+nothing upstream looks wrong. These trials are SHORT -- 0.3 to 0.8 MB of
+transcript against 7 to 12 MB for a completed one on the same task -- which
+is the tell: a model that abandons work has read a great deal first, and a
+dropped stream has not.
+
+That distinction matters because the shapes invert the obvious reading. On
+one task the strongest tier answered 2 of 7 while both weaker tiers
+answered 3 of 3, which looks like the task defeating the model that thinks
+hardest about it. Both of its failures were dropped streams. Completion
+there is a fact about the provider that day.
 
 **Read `trial.log`'s last line before recording a tier's completion rate.**
 One task read 2-of-3 and then 1-of-3 answered on its weakest-completing
