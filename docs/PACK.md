@@ -99,6 +99,31 @@ fail independently is right with probability `a**k`. Both ends of a chain
 and its length are three different reads of the same chain, and none is
 derivable from the others.
 
+## How much of the stated rule the corpus actually tests
+
+A brief that names a form the corpus never contains is grading a promise it
+cannot keep, and nothing errors when it happens. Measured with
+`scripts/dead_conditions.py`, which deletes one alternative from a pattern,
+re-runs the rule over every turn and every message, and asks whether the
+verdict moved:
+
+| rule | what the brief enumerates | exercised |
+|---|---|---|
+| the promise rule | 8 deadline forms | **8 of 8**, on both worlds |
+| the blocker rule | 5 stuck phrases + 5 `can't` verbs | 8 of 10 — no turn says `can't proceed` or `can't finish` |
+
+Beyond what the briefs enumerate, the rules carry breadth the corpora do
+not reach: 65 of the blocker rule's pattern alternatives change no verdict
+on either world, and more of the older two. That is mostly grammatical
+completion the brief never promised — `stays` and `remains` beside `is` —
+and it is the safe direction for a rule to be wrong in.
+
+**The check must run against both worlds.** Every guard added to the
+blocker rule on 2026-08-29 is alive on exactly one of them, and against a
+single corpus each reports dead — a condition deciding nothing, ready to be
+deleted as decoration. Each has one caller, and each caller is a sentence
+that was putting a row in the key wrongly that morning.
+
 ## What it does not measure
 
 Stated plainly because a benchmark that oversells itself is worse than a
