@@ -53,7 +53,7 @@
    "meeting": "Corporate deal status",
    "first_raised": "2026-01-22",
    "last_raised": "2026-05-22",
-   "raised_count": 4,
+   "raised_count": 3,
    "first_meeting_id": "mtg-000144",
    "last_meeting_id": "mtg-000230"
   },
@@ -61,10 +61,10 @@
    "owner": "Elena Vasquez-Reyes",
    "meeting": "Corporate deal status",
    "first_raised": "2026-01-09",
-   "last_raised": "2026-05-22",
-   "raised_count": 10,
+   "last_raised": "2026-05-18",
+   "raised_count": 9,
    "first_meeting_id": "mtg-000135",
-   "last_meeting_id": "mtg-000230"
+   "last_meeting_id": "mtg-000226"
   },
   {
    "owner": "Ingrid Solheim",
