@@ -47,6 +47,33 @@ WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday")
 _APOS = "['\u2019]"
 OWNER_FORMS: tuple[str, ...] = (rf"\bI{_APOS}ll\b", r"\bI will\b")
 
+# Two forms, and the narrowness was re-measured after the blocker rule
+# turned out to be missing a whole class of dropped subjects.
+#
+# The same question was asked here: does this firm commit with the subject
+# left out -- "will have that done before end of day" -- and is this rule
+# refusing turns a reader would take? Measured across both corpora, on
+# turns this rule declines whose clause opens with a bare `will`:
+#
+#     merrick     6, every one of them "Will do" and carrying no day
+#     delegation  3, of which ONE names a deadline
+#
+# One turn. Left alone, deliberately, and the reasoning is worth keeping
+# because the blocker rule went the other way on the same question:
+#
+#   * the brief STATES these two forms, so a reader following it uses
+#     them, where the blocker brief said only "the speaker says they are
+#     stuck" and left the code to decide what that meant;
+#   * no gate has produced evidence of disagreement here -- no row of any
+#     commitment register has been declined by every trial of every tier,
+#     which is what surfaced all five blocker defects;
+#   * three certified tasks rest on this rule, and re-cutting their
+#     oracles for one turn would retire nine graded sweeps to change one
+#     row.
+#
+# Re-measure this if a commitment register ever shows a unanimous refusal.
+# Until then the number is one, and it is written down.
+
 # The deadline forms this firm writes, and the token each normalises to.
 # First match wins, so **order is the rule** and the compound comes first.
 #

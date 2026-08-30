@@ -1,7 +1,7 @@
 {
  "meetings_read": 520,
  "turns_read": 2687,
- "distinct_owners": 15,
+ "distinct_owners": 16,
  "blockers": [
   {
    "owner": "Dov Reinhardt",
@@ -51,20 +51,20 @@
   {
    "owner": "Dov Reinhardt",
    "meeting": "Corporate deal status",
-   "first_raised": "2026-01-23",
+   "first_raised": "2026-01-22",
    "last_raised": "2026-05-22",
-   "raised_count": 2,
-   "first_meeting_id": "mtg-000145",
+   "raised_count": 4,
+   "first_meeting_id": "mtg-000144",
    "last_meeting_id": "mtg-000230"
   },
   {
    "owner": "Elena Vasquez-Reyes",
    "meeting": "Corporate deal status",
    "first_raised": "2026-01-09",
-   "last_raised": "2026-05-18",
-   "raised_count": 9,
+   "last_raised": "2026-05-22",
+   "raised_count": 10,
    "first_meeting_id": "mtg-000135",
-   "last_meeting_id": "mtg-000226"
+   "last_meeting_id": "mtg-000230"
   },
   {
    "owner": "Ingrid Solheim",
@@ -105,10 +105,10 @@
   {
    "owner": "Cecile Marchand",
    "meeting": "Docket call",
-   "first_raised": "2026-01-12",
+   "first_raised": "2026-03-27",
    "last_raised": "2026-03-30",
-   "raised_count": 3,
-   "first_meeting_id": "mtg-000006",
+   "raised_count": 2,
+   "first_meeting_id": "mtg-000060",
    "last_meeting_id": "mtg-000061"
   },
   {
@@ -116,7 +116,7 @@
    "meeting": "Docket call",
    "first_raised": "2026-01-19",
    "last_raised": "2026-06-10",
-   "raised_count": 3,
+   "raised_count": 7,
    "first_meeting_id": "mtg-000011",
    "last_meeting_id": "mtg-000113"
   },
@@ -130,6 +130,15 @@
    "last_meeting_id": "mtg-000091"
   },
   {
+   "owner": "Thandiwe Mokoena",
+   "meeting": "Docket call",
+   "first_raised": "2026-01-09",
+   "last_raised": "2026-03-17",
+   "raised_count": 5,
+   "first_meeting_id": "mtg-000005",
+   "last_meeting_id": "mtg-000052"
+  },
+  {
    "owner": "Fionnuala Doherty",
    "meeting": "Employment practice huddle",
    "first_raised": "2026-01-19",
@@ -141,20 +150,29 @@
   {
    "owner": "Jamal Okonkwo",
    "meeting": "Employment practice huddle",
-   "first_raised": "2026-01-15",
-   "last_raised": "2026-03-26",
-   "raised_count": 2,
-   "first_meeting_id": "mtg-000269",
-   "last_meeting_id": "mtg-000319"
+   "first_raised": "2026-01-09",
+   "last_raised": "2026-06-30",
+   "raised_count": 5,
+   "first_meeting_id": "mtg-000265",
+   "last_meeting_id": "mtg-000387"
   },
   {
    "owner": "Petra Kovacs",
    "meeting": "Employment practice huddle",
-   "first_raised": "2026-03-04",
+   "first_raised": "2026-01-26",
    "last_raised": "2026-06-19",
-   "raised_count": 7,
-   "first_meeting_id": "mtg-000303",
+   "raised_count": 11,
+   "first_meeting_id": "mtg-000276",
    "last_meeting_id": "mtg-000380"
+  },
+  {
+   "owner": "Gideon Park",
+   "meeting": "IP and technology group",
+   "first_raised": "2026-02-09",
+   "last_raised": "2026-02-09",
+   "raised_count": 1,
+   "first_meeting_id": "mtg-000500",
+   "last_meeting_id": "mtg-000500"
   },
   {
    "owner": "Klara Bendtsen",

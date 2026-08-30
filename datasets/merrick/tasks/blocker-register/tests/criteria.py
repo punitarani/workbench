@@ -68,7 +68,32 @@ ROWS = "blockers"
 # 0.137 and put it below the band, so it grades as a field there. A key is
 # chosen against a corpus, and two worlds carrying one family do not have
 # to agree on one.
-KEY = ("owner", "meeting", "first_raised", "last_raised", "raised_count")
+# Who is stuck, in which standing meeting, and both ends of the chain.
+#
+# FOUR, and this file said FIVE this morning with a table under it. The
+# table was measured against an oracle that was wrong in three ways -- it
+# read "waiting on me" as the speaker being stuck, kept a wait the speaker
+# said was over, and refused every complaint whose subject was left out,
+# which is how this firm says most of them. On that oracle 9 of 20 chains
+# had first == last, both ends came almost free, and four components left
+# the strongest tier at 0.900. The count was the only thing separating
+# anyone, so the count went into the key.
+#
+# Fixing the rule made the corpus itself harder. Chains now run to 11
+# meetings here and 15 on the sibling world, and four components read:
+#
+#                              merrick        delegation
+#     (owner, meeting)          0.944            --
+#     + first_raised            0.832            --
+#     + last_raised             0.640          0.846 opus / 0.800 glm / 0.490 kimi
+#     + raised_count            0.480          0.654 opus / 0.552 glm / 0.177 kimi
+#
+# So the two worlds now agree, and the divergence they showed this morning
+# was an artefact of the defect rather than a fact about the corpora. The
+# fifth component still collapses the weakest tier -- 0.177 is beneath the
+# threshold at which a criterion is judged to have been touched at all --
+# and it is no longer needed here to keep the strongest one honest.
+KEY = ("owner", "meeting", "first_raised", "last_raised")
 
 # The rooms the chain begins and ends in.
 #
@@ -85,6 +110,10 @@ KEY = ("owner", "meeting", "first_raised", "last_raised", "raised_count")
 FIELDS: dict[str, float] = {
     "first_meeting_id": 0.0,
     "last_meeting_id": 0.0,
+    # Graded as a field, where it degrades a row by 1/N instead of
+    # collapsing it. The work of counting is still measured; it just
+    # no longer decides whether the row exists.
+    "raised_count": 0.0,
 }
 
 # The census fields move here, and stop paying.

@@ -509,13 +509,13 @@ an average of something measured and something that is not.
 
 ---
 
-### L43. A key is chosen against a corpus, not against a family
+### L43. A key is chosen against a corpus, and the corpus may be a bug
 
-Two worlds carrying the SAME rule, the same brief and the same grader do
-not have to agree on how many components the key holds, and forcing them
-to agree puts one task outside the band to keep the other inside it.
+Two worlds carrying the same rule, brief and grader measured DIFFERENT
+right answers for how many components their key should hold. That was
+recorded here as a law about corpora. It was a law about a defect.
 
-**Measured**, on the blocker register, by re-scoring saved deliverables:
+**What was measured**, re-scoring saved deliverables on the blocker rule:
 
 |  key  | merrick | delegation |
 |---|---|---|
@@ -524,21 +524,37 @@ to agree puts one task outside the band to keep the other inside it.
 | + last_raised | 0.900 | 0.729 |
 | + raised_count | **0.700** | 0.561 |
 
-The corpora differ in one property that nothing in the task states: on
-merrick 9 of 20 chains have `first == last`, so both ends of the chain
-cost almost nothing there and four components leave the strongest tier at
-0.900. On the denser world the same fifth component collapsed the WEAKEST
-tier to 0.137 and pushed it below the band.
+merrick looked shallower -- 9 of 20 chains had `first == last`, so both
+ends cost nothing and four components left the strongest tier at 0.900.
+The fifth component went into the key to pull it back into band, and the
+divergence was written up as two corpora honestly disagreeing.
 
-So merrick keys on five and delegation on four, each carrying the table
-that decided it. The instinct to make them match is an aesthetic one, and
-it is measurably wrong.
+**Then the rule was fixed.** It had been reading "waiting on me" as the
+speaker stuck, keeping a wait the speaker said was over, and refusing
+every complaint whose subject was left out -- which is how this firm says
+most of them. Re-measured on the corrected oracle:
 
-**Therefore:** re-score the saved deliverables under every candidate key
-before choosing, per world. It costs no rollouts -- the answers are
-already on disk -- and it is the difference between a key argued for and a
-key measured.
+|  key  | merrick | delegation |
+|---|---|---|
+| (owner, meeting) | 0.944 | -- |
+| + first_raised | 0.832 | -- |
+| + last_raised | **0.640** | **0.846** |
+| + raised_count | 0.480 | 0.654 |
 
+The shallowness was the defect. Chains now run to 11 meetings and 15, four
+components are right on both worlds, and the fifth still collapses the
+weakest tier (0.177 -- beneath the threshold at which a criterion counts
+as touched at all).
+
+**What survives** is the method: re-score the saved deliverables under
+every candidate key, per world, because the answers are already on disk
+and it costs no rollouts.
+
+**What does not** is the conclusion. A key measured against a corpus is
+only as good as the oracle that cut the corpus, and a difficulty that
+appears only in one world is a reason to go looking for a defect before
+writing it down as a property of the world. Two sibling tasks disagreeing
+about their own key is a smell, and it was read here as a finding.
 
 ### L44. The trials' own deliverables localise an oracle defect
 
