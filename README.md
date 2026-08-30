@@ -20,10 +20,23 @@ documents and the product tools are its only windows into the world.
 Tasks are built on those environments in
 [Harbor](https://www.harborframework.com/docs)'s format and graded
 against oracles computed from the same world state, with measured
-frontier baselines recorded per task. Current worlds: a litigation firm
-(Hartwell, frozen), two 17-person CPA firms (Calder & Finch with a full
-six-month epoch; Ashgrove Reid as the assurance-led comparison), and the
-original single-day legal demo.
+frontier baselines recorded per task.
+
+**The shipping pack is `merrick` and `delegation`** — one 31-person law
+firm recorded twice, 180 and 135 days, carrying twelve live tasks of which
+eight are certified against three model tiers. **[`docs/PACK.md`](docs/PACK.md)
+is what to read first**: what the tasks measure, what they do not, and the
+floors and completion rates beside every score.
+[`docs/CERTIFIED.md`](docs/CERTIFIED.md) holds every trial score with the
+command that reproduces it, and [`docs/TASKS.md`](docs/TASKS.md) is a
+generated index of every task.
+
+Four earlier worlds remain in the tree and are **not** part of that pack:
+a litigation firm (Hartwell, frozen), two 17-person CPA firms (Calder &
+Finch, Ashgrove Reid) and the single-day legal demo. Their tasks predate
+the current grading architecture and the scorer refuses them; `ashgrove`
+is the world whose tasks measured at ~1.000 for a frontier model however
+the difficulty was turned up, which is why `merrick` was recorded.
 
 **[`docs/WORKBENCH.md`](docs/WORKBENCH.md) is the single source of
 truth** — mission, as-built architecture, worlds and their measured
@@ -64,10 +77,15 @@ src/  one Python distribution, one import namespace
 tests/          mirrors src/; parity snapshots under tests/parity/
 environment/    container image: Dockerfile, setuid shim
 datasets/       Harbor tasks and their builders, grouped into datasets
-scripts/        show_shape.py       what a db or oracle actually contains
-                mutation_check.py   break code on purpose, confirm tests notice
-                check_gates.sh      every build refusal, broken (a CI step)
-                measure_new_corpus.sh  a finished recording, measured end to end
-                fidelity_report.py, rollout.py, export_world_log.py
+scripts/        certify.py          the publication gate: band, tiers, waivers
+                band.py             the three-tier mean, and whether it is real
+                completion.py       how often a tier produced the deliverable
+                regrade.py          re-score saved answers against a new key
+                coherence.py        do the surfaces agree about who is busy
+                dead_conditions.py  rule conditions that decide nothing
+                adjudicate.py       judge a disputed row against the source
+                port_task.py        cut a task from one world into another
+                task_index.py       regenerate docs/TASKS.md
+                show_shape.py, mutation_check.py, rollout.py, sweep_queue.py
 docs/           WORKBENCH.md plus measurement records
 ```
