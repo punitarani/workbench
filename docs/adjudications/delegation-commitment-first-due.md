@@ -116,3 +116,19 @@ four days -- so `certify.py` now requires every waiver to name the file
 that admits it, and a waiver deserves re-reading whenever the rule beneath
 it moves. Five of six unanimous disagreements in this tree have been the
 key; this file recorded five as model failures and one of them was not.
+
+## Which tasks these rows are waived on
+
+The same rows, from the same rule over the same corpus, are declined by
+every trial of three registers on this world, because all three read the
+commitment rule and key on `first_due`:
+
+- `commitment-revision-register`
+- `commitment-slippage-register`
+- `live-commitment-register`
+
+They are waived on each, and this section is what `certify.py` matches
+against: a waiver must cite an adjudication naming the task it is claimed
+for. Owner and meeting alone are not enough to identify a row — the two
+worlds share every person and every meeting title, and "Samir Bhatt |
+Corporate deal status" names a different row in each of four registers.

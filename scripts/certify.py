@@ -339,7 +339,7 @@ def check_no_unanimous_refusals(
     # A waiver has to be backed by a written adjudication. Anything else
     # is an opinion silencing a measurement.
     unrecorded = [
-        row for row in declined if row in waived and _adjudicated(row) is None
+        row for row in declined if row in waived and _adjudicated(row, task) is None
     ]
     for row in unrecorded:
         problems.append(
@@ -350,7 +350,7 @@ def check_no_unanimous_refusals(
         )
     for row in declined:
         if row in waived and row not in unrecorded:
-            print(f"  waived on {_adjudicated(row)}: {row}")
+            print(f"  waived on {_adjudicated(row, task)}: {row}")
     unwaived = [row for row in declined if row not in waived]
     for row in unwaived:
         rival = contested.get(row)
@@ -443,7 +443,7 @@ def check_heaviest_criterion(
     return best
 
 
-def _adjudicated(row: str) -> str | None:
+def _adjudicated(row: str, task: str) -> str | None:
     """The adjudication file that records a reader admitting this row.
 
     A waiver is the ONE place human judgement enters an otherwise
@@ -467,7 +467,17 @@ def _adjudicated(row: str) -> str | None:
     owner, group = parts[0], parts[1]
     for record in sorted((REPO / "docs" / "adjudications").glob("*.md")):
         text = record.read_text(encoding="utf-8")
-        if owner in text and group in text:
+        # The TASK as well as the owner and the group.
+        #
+        # Matching a person and a meeting alone was not enough, and the
+        # first row it met proved it: `live-commitment-samir-bhatt.md`
+        # adjudicates "Samir Bhatt | Corporate deal status" on MERRICK's
+        # live-commitment register, and DELEGATION's standing-commitment
+        # register declined a row with the same owner and the same meeting
+        # title -- a different world, a different task and a different
+        # count. The two firms share every name, so an owner and a group
+        # identify a row only within one task.
+        if owner in text and group in text and task in text:
             return record.name
     return None
 
