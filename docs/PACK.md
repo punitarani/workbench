@@ -251,12 +251,36 @@ adjudicated it in `docs/adjudications/`.
 
 ## Reproducing
 
+**What a clone contains, and what it does not.** This matters before the
+commands below, because two of the three need something that is not in the
+repository.
+
+Shipped, and enough to audit the pack by reading it: every task's brief,
+its reference solver, its independently written verifier, its criteria, and
+its **answer key** (`tests/oracle.json`) with the stamp of the world that
+cut it (`tests/oracle.world`). The rule modules ship too, so the extraction
+every key rests on can be read and re-implemented.
+
+Not shipped: the recorded worlds. `out/` is gitignored — merrick's epoch
+log alone is 133 MB and its materialised bundle 42 MB, against a 17 MB
+repository — and the staged `environment/` under each task is derived from
+it. `jobs/` is not shipped either: it holds provider keys in its logs.
+
+So a clone can read every task and every answer key, and can check a rule
+against a key by hand. It cannot rebuild a world, re-run a solver, or
+reproduce a score without the bundles, which have to be transferred
+separately.
+
+With the bundles in place under `out/<world>/`:
+
     uv run python datasets/<world>/build_tasks.py --task <task>
     uv run python scripts/band.py --dataset <world> --any-tag
     uv run python scripts/coherence.py --state out/<world>/bundle/state
+    uv run python scripts/completion.py --dataset <world> --task <task>
 
-Scores live in `jobs/`, which is not distributed: it holds provider keys in
-logs. A clone reproduces the tasks and the oracles, not the measurements.
+Without them, the test suite still runs and skips what it cannot see —
+that is deliberate, so a clone is never told its documentation is wrong
+merely because it cannot see a corpus.
 
 `jobs/`, `out/` and `.env` are gitignored and none of them has a tracked
 file. Verified 2026-08-29 across all 872 commits: **no commit in this
