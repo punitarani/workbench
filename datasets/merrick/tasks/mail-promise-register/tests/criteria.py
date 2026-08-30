@@ -37,6 +37,26 @@ DELIVERABLE = "owed.json"
 # The list carrying one entry per live promise.
 ROWS = "owed"
 
+# **If this task ever reads above the band, the lever is the WINDOW, not
+# the key.** Measured 2026-08-30, before it was needed:
+#
+#     window   messages   promises   rows
+#        61d        530         24     14   <- as shipped
+#        90d        762         32     15
+#       120d        953         39     17
+#       182d       1399         57     18
+#
+# Widening barely adds rows -- 14 to 18 across the whole recording -- and
+# nearly doubles the promises PER PERSON, 1.7 to 3.2. That is the thing
+# that makes this hard: the register asks for the live promise, so what
+# costs a reader is how many superseded ones stand in front of it. The
+# sibling register measured the same lever on transcripts and found the
+# strongest tier at 1.000 on a 42-day window and 0.795 on a 147-day one.
+#
+# The key offers nothing. Adding `message_ref`, `said_on` or `subject` to
+# it moves the strongest tier 0.929 -> 0.929: the evidence fields are
+# right whenever the row is.
+
 # Who owes it, and by when.
 KEY = ("owner", "due")
 
