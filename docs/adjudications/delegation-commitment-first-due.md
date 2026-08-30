@@ -70,7 +70,7 @@ more ways. Each claims a `first_due` the chain cannot produce:
 | Fionnuala Doherty \| Billing and WIP review | 2026-03-11 | 2026-01-07 (9 of 9) | before the series' first meeting (2026-01-12) |
 | Ingrid Solheim \| Corporate deal status | 2026-01-08 | 2026-01-05 (6 of 9) | the epoch's first day; the series opens 2026-01-06 |
 | Petra Kovacs \| Employment practice huddle | 2026-01-14 | 2026-01-06 (8 of 9) | her series' first MEETING date, not a resolved deadline |
-| Dov Reinhardt \| Client board and committee updates | 2026-02-10 | 2026-03-10 (6 of 9) | the chain's LAST element reported as its first |
+| ~~Dov Reinhardt \| Client board and committee updates~~ | ~~2026-02-10~~ | 2026-03-10 (6 of 9) | **OVERTURNED 2026-08-30 — the readers were right** |
 | Dov Reinhardt \| Billing and WIP review | 2026-01-20 | 2026-01-06 (1 of 9) | a meeting date again |
 
 Three of the five are dates **no commitment in that series resolves to** —
@@ -89,3 +89,30 @@ the whole series; a reader who substitutes the room's own date has not
 ordered anything.
 
 **All five waived as model failures.**
+
+## One of these five was overturned
+
+**Dov Reinhardt | Client board and committee updates** was waived here as a
+model failure: six of nine readers put his chain's first due date at
+2026-03-10 and the key said 2026-02-10, which this file read as "the
+chain's LAST element reported as its first".
+
+The key was wrong. Its first element came from:
+
+> Adaora, separate from Gideon's IP rate, **I'll need your environmental
+> figure by tomorrow**
+
+That is the speaker asking somebody else to deliver, and the register
+reports what the speaker OWES. The rule admitted it because `I'll` plus a
+deadline matched. With the demand excluded the chain has one element,
+`first_due` becomes 2026-03-10, and the row stops being declined at all --
+it now agrees with the readers who were overruled here.
+
+**What this costs the other four.** Nothing directly: each was re-read
+against the corrected rule on 2026-08-30 and each is still declined by
+every trial, so each is still a waiver. But it is evidence about waivers
+in general. A waiver asserts the key is right, and this one was wrong for
+four days -- so `certify.py` now requires every waiver to name the file
+that admits it, and a waiver deserves re-reading whenever the rule beneath
+it moves. Five of six unanimous disagreements in this tree have been the
+key; this file recorded five as model failures and one of them was not.
