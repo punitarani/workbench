@@ -63,6 +63,27 @@ ROWS = "live"
 # consecutive resolved dates, so every link has to be read AND resolved
 # against its own meeting. A reader who finds the endpoints and stops has
 # nothing here.
+# Who owes it, in which standing meeting, by when, and how many times the
+# date moved.
+#
+# `slips` STAYS in the key here, and both sibling registers on this world
+# moved their count OUT of theirs. That is not an inconsistency, it is the
+# measurement:
+#
+#                                       opus     glm    kimi
+#     (owner, meeting)                  1.000   0.964   0.945
+#     + due                             0.943   0.714   0.800
+#     + slips                           0.713   0.393   0.364
+#
+# Without the count the strongest tier reads 0.943, which is not a
+# measurement of it. With the count every tier is inside the band and the
+# weakest still has 0.364 to work with.
+#
+# The sibling `commitment-slippage-register` reached the opposite verdict
+# on the same world -- its count collapsed the weakest tier to 0.134 --
+# because it also keys on `first_due`, so the count was the FOURTH
+# independently-failing fact rather than the third. What decides this is
+# not the component, it is how many already stand in front of it.
 KEY = ("owner", "meeting", "due", "slips")
 
 # What is left once the key has taken three of the five fields. Both are
