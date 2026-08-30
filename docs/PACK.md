@@ -110,6 +110,12 @@ The reward is row F1 against the truth set plus per-row fields. Floors are
 measured on every build: what an empty answer scores, what dumping every
 candidate scores, what doing nothing scores.
 
+Grading is split in two: a **reward** dimension that is the score, and a
+**diagnostic** dimension that informs and never moves it. That separation
+is checked rather than assumed — across 198 saved trials the recorded
+reward equals the answer dimension's score exactly, 0 exceptions, so no
+presentation or process check has ever moved a number in this pack.
+
 Coverage counts are reported, not scored, and the line between the two is
 drawn by measurement rather than by taste. A criterion at ceiling for every
 tier is not measuring any of them, so `meetings_read` — 1.00 across all
