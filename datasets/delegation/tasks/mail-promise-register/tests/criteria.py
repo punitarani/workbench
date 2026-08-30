@@ -37,6 +37,28 @@ DELIVERABLE = "owed.json"
 # The list carrying one entry per live promise.
 ROWS = "owed"
 
+# **If the tiers cannot finish this, the lever is the WINDOW.** Measured
+# 2026-08-30, when opus answered 2 of 3 and glm 1 of 3 while the same
+# family on the sibling world answers 3 of 3:
+#
+#     window   messages     words   promises   rows
+#        45d        481    92,676         32     12
+#        50d        509    97,236         34     12
+#        55d        571   107,429         35     12
+#        61d        636   118,888         36     12   <- as shipped
+#
+# The sibling's 61-day window holds 530 messages and 95,915 words, and is
+# completed reliably by every tier. This one holds 24% more text for the
+# SAME twelve rows -- the extra reading buys no extra register.
+#
+# So 50 days is the fallback: the same row count at the sibling's word
+# budget. It is not free, and that is why it is a fallback rather than a
+# fix. One row moves -- Yuki Tanabe's live promise is 2026-03-06 over 61
+# days and 2026-02-10 over 50, because the later message that supersedes
+# it falls outside the shorter window. A shorter window is a different
+# measurement, not a cheaper one, so it is taken only if the current task
+# proves unmeasurable rather than merely expensive.
+
 # Who owes it, and by when.
 KEY = ("owner", "due")
 
