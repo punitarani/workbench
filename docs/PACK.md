@@ -136,11 +136,31 @@ small one.
   meeting from last week's notes, not six months of transcripts. The wide
   window is arithmetic: blockers occur in 75 turns of 2,872, and at the
   last eight occurrences of each series the register has **two rows**.
-- **Not a coherent firm across every surface.** Billing has a Gini of
-  0.059 — every person logs 573 to 933 hours — and mail is inverted against
-  the surfaces that agree with each other. The live tasks all read
-  transcripts, which is the coherent surface. Anything spanning billing or
-  mail would measure the generator.
+- **Not a coherent firm across its surfaces, and the gate says so
+  outright.** `scripts/coherence.py` returns **NOT COHERENT for both
+  worlds**. Billing carries no workload signal at all — a Gini of 0.059 and
+  0.060, every person logging much the same hours — and of the six
+  remaining surface pairs, **five are inverted on each world**:
+
+  | pair | merrick | delegation |
+  |---|---|---|
+  | documents ~ slack | **+0.747** | **+0.466** |
+  | documents ~ meetings | −0.239 | −0.407 |
+  | documents ~ mail | −0.603 | −0.679 |
+  | mail ~ meetings | −0.354 | −0.234 |
+  | meetings ~ slack | −0.155 | −0.344 |
+  | mail ~ slack | −0.647 | −0.785 |
+
+  One pair correlates positively. A busy person in these worlds is not
+  busy everywhere, which is not how a firm works.
+
+  **What that does and does not invalidate.** Every live task reads exactly
+  one surface — transcripts, or mail — and is graded on facts stated within
+  it, so no task depends on two surfaces agreeing. A task spanning billing
+  or comparing workload across surfaces would measure the generator instead
+  of the model, and none exists here. An earlier version of this section
+  named mail as the problem and called transcripts "the coherent surface";
+  the matrix above does not support that, and it is stated plainly instead.
 
 `docs/REALISM-REVIEW.md` answers a practitioner's critique point by point,
 including the three criticisms that are correct and ungradeable.
