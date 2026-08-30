@@ -16,7 +16,7 @@ is right with probability `a**k`.
 | `delegation/blocker-register` | 17 | 4 — owner, meeting, first_raised, last_raised | yes |
 | `delegation/commitment-revision-register` | 29 | 4 — owner, meeting, due, first_due | yes |
 | `delegation/commitment-slippage-register` | 29 | 4 — owner, meeting, due, first_due | not yet |
-| `delegation/live-commitment-register` | 29 | 5 — owner, meeting, due, first_due, superseded | not yet |
+| `delegation/live-commitment-register` | 29 | 4 — owner, meeting, due, first_due | not yet |
 | `delegation/mail-promise-register` | 12 | 2 — owner, due | not yet |
 | `delegation/standing-commitment-register` | 29 | 4 — owner, meeting, due, slips | not yet |
 | `merrick/blocker-register` | 22 | 4 — owner, meeting, first_raised, last_raised | not yet |

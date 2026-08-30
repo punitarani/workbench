@@ -203,7 +203,7 @@ were fixed rather than waived.
 Tags: `opus-a1-k3`, `glm-a1-k3`, `kimi-a1-k3`.
 
 
-### delegation/commitment-revision-register — CERTIFIED 2026-08-29
+### delegation/commitment-revision-register — CERTIFIED 2026-08-29, re-certified after the end-of-day fix
 
 Reproduce (re-verified 2026-08-29, still certifies):
 
@@ -242,6 +242,22 @@ a defect: a shared misreading of a SCOPE produces the same wrong answer
 every time and looks exactly like a key defect.
 
 Tags: `opus-c1-k3`, `glm-c2-k3`, `kimi-c1-k3`.
+
+**Re-scored 2026-08-29** after the promise rule stopped reading "by end of
+day **the 15th**" and "by end of day **4/14**" as end-of-day-today. Sixteen
+turns on this world said it that way; the rule resolved them to the day
+they were spoken, once by nine days.
+
+Every tier rose, because the key now agrees with what the models were
+already reading:
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.437, 0.509, 0.610 | **0.519** | live.f1 0.716 |
+| glm-5.2 | 0.291, 0.392, 0.490 | **0.391** | live.f1 0.553 |
+| kimi-k3 | 0.207, 0.221, 0.431 | **0.286** | live.f1 0.403 |
+
+The same five rows are still waived, unchanged.
 
 ### delegation/blocker-register — CERTIFIED 2026-08-29
 
