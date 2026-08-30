@@ -171,6 +171,18 @@ pays anyway, because the oracle holds 128, the trials report 121 to 129,
 and three of them reported exactly 128 — hard is not the same as
 unmeasurable, and the test is whether anyone has ever scored it.
 
+**A zero is never averaged in as a score.** Across every saved trial in
+this tree, 89 produced no gradeable deliverable. Separated:
+
+| | |
+|---|---|
+| wrote nothing at all | 81 — excluded as a DNF, never averaged |
+| wrote a genuinely wrong shape | 8 — a bare map keyed by thread id, a `messages` key where the register belongs, one unparseable file |
+
+Not one is a correct answer zeroed by a strict schema check, which is the
+thing to verify rather than assume: a format gate that fails real answers
+would look exactly like a hard task.
+
 A task is **certified** only when three model tiers each score inside
 0.2–0.8 on at least three trials that produced an answer, against one
 version of the task, with no single criterion at ceiling *or* untouched for
