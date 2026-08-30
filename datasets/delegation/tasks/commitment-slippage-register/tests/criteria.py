@@ -63,7 +63,33 @@ ROWS = "live"
 # consecutive resolved dates, so every link has to be read AND resolved
 # against its own meeting. A reader who finds the endpoints and stops has
 # nothing here.
-KEY = ("owner", "meeting", "due", "first_due", "slips")
+#
+# `slips` came OUT of the key on 2026-08-29 and grades as a field instead.
+# Measured on saved deliverables, no sweep re-run:
+#
+#                                       opus     glm    kimi
+#     (owner, meeting)                  0.974   0.573   0.691
+#     + due                             0.923   0.451   0.369
+#     + first_due                       0.632   0.276   0.226
+#     + due, slips                      0.598   0.242   0.151
+#     + first_due, slips                0.529   0.215   0.134
+#
+# 0.134 is beneath the level at which a criterion counts as having been
+# touched at all, so at five components the weakest tier was not being
+# measured, it was being excluded. Four leaves it 0.226 and something to
+# score.
+#
+# The paragraph above still holds and is the reason `slips` is graded at
+# all rather than dropped: it is the one component that needs every link
+# in the chain rather than its ends. As a FIELD it degrades a row by 1/N
+# instead of deciding whether the row exists, so the work of reading every
+# link is still paid for -- it just no longer costs the whole row.
+#
+# The sibling `assignment-slippage-register` was retired for exactly this
+# shape, at 0.137 for its strongest tier. The difference here is that the
+# commitment rule is easier than the assignment rule, which leaves room
+# for a chain on top of it.
+KEY = ("owner", "meeting", "due", "first_due")
 
 # What is left once the key has taken three of the five fields. Both are
 # strings the record states outright -- a meeting id and its start -- so
@@ -74,7 +100,7 @@ KEY = ("owner", "meeting", "due", "first_due", "slips")
 # register that names the right date and cannot say which room it was said
 # in has not been read, it has been reconstructed, and with the date
 # already in the key the two would otherwise be indistinguishable.
-FIELDS: dict[str, float] = {"meeting_id": 0.0, "said_at": 0.0}
+FIELDS: dict[str, float] = {"meeting_id": 0.0, "said_at": 0.0, "slips": 0.0}
 
 # A count that is a tally of the rows this grading already checks. Paying
 # for it again does not add signal, it multiplies the signal already there
