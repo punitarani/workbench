@@ -50,6 +50,27 @@ _PARTS = (
 )
 
 
+def _install(staged: Path, target: Path) -> None:
+    """Swap the staged port into place, having passed every check.
+
+    Anything the target held that this script does not write -- a built
+    oracle, its `oracle.world` stamp, the generated grading files -- is
+    carried across rather than lost, because a port replaces the task's
+    SOURCES and the build regenerates the rest.
+    """
+
+    if target.exists():
+        for existing in target.rglob("*"):
+            if not existing.is_file():
+                continue
+            relative = existing.relative_to(target)
+            if not (staged / relative).exists():
+                (staged / relative).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(existing, staged / relative)
+        shutil.rmtree(target)
+    staged.rename(target)
+
+
 def _last_day(state: Path) -> int:
     """The last day of the target world's recording, from the world."""
 
@@ -59,7 +80,7 @@ def _last_day(state: Path) -> int:
     return int(latest) // 86_400
 
 
-def main(argv: list[str] | None = None) -> int:
+def _port(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--task", required=True)
     parser.add_argument("--from", dest="source", required=True)
@@ -75,8 +96,24 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"no such task: {source}")
     if target.exists() and not args.force:
         raise SystemExit(f"{target} already exists; pass --force to replace it")
-    if target.exists():
-        shutil.rmtree(target)
+
+    # Built beside the target and moved into place only once every check
+    # has passed, because this script REFUSES in six places and a refusal
+    # used to leave the target half-ported.
+    #
+    # That is not hypothetical and it was not cheap: adding the duration
+    # check below, and testing it by porting a task that would trip it,
+    # deleted a CERTIFIED task's oracle and overwrote its solver, brief,
+    # criteria and grading files with the other world's. `git checkout`
+    # brought it back because it was committed. Nothing in the script would
+    # have.
+    #
+    # A tool whose failure path destroys what it was asked not to touch is
+    # more dangerous than the mistake it exists to catch.
+    finished = target.with_name(target.name + ".porting")
+    if finished.exists():
+        shutil.rmtree(finished)
+    real_target, target = target, finished
 
     for part in _PARTS:
         if (source / part).is_file():
@@ -153,6 +190,41 @@ def main(argv: list[str] | None = None) -> int:
                     f"{args.source!r} at runtime: {named[:70]!r}. Port by hand"
                 )
 
+    # A duration claimed in PROSE. The script recomputes every number it
+    # knows the name of -- window constants, the brief's four literals, the
+    # verifier's dates -- and copies the manifest description verbatim,
+    # because nothing derives a sentence.
+    #
+    # Three manifests reached this world describing "six months" of standing
+    # meetings, which is the SOURCE world's recording. This one holds 135
+    # days. Two were ported by hand before this script existed and one by
+    # this script, and all three had correct constants throughout.
+    #
+    # So the durations are checked against the target world and the port
+    # refuses rather than rewriting: "four and a half months" is a phrasing
+    # decision, and a script that guesses at prose will get it wrong in a
+    # way nobody re-reads.
+    _MONTHS = {
+        "two months": 2, "three months": 3, "four months": 4,
+        "four and a half months": 4.5, "five months": 5, "six months": 6,
+        "half a year": 6, "a year": 12,
+    }
+    target_state = _world(args.target)
+    connection = sqlite3.connect(
+        f"file:{target_state / 'meetings.db'}?mode=ro", uri=True
+    )
+    span = [s for (s,) in connection.execute("SELECT started FROM meetings")]
+    connection.close()
+    months = ((max(span) - min(span)) / 86_400 + 1) / 30.44
+    described = (target / "task.toml").read_text()
+    for phrase, claimed in _MONTHS.items():
+        if phrase in described and abs(claimed - months) > 0.75:
+            raise SystemExit(
+                f"the manifest describes {phrase!r} and {args.target} records "
+                f"{months:.1f} months. The window constants port and the prose "
+                "does not; rewrite the description by hand, then re-run"
+            )
+
     state = _world(args.target)
     last = _last_day(state)
     solver = target / "solution" / "solve.py"
@@ -198,6 +270,8 @@ def main(argv: list[str] | None = None) -> int:
                 f"workbench/{args.target}-{args.task}",
             )
         )
+        _install(target, real_target)
+        target = real_target
         print(f"  {target.relative_to(REPO)}")
         print(f"    window: a duration ({epochs[args.target][:10]} + N days),")
         print("    identical in both worlds; nothing rewritten but the task id")
@@ -253,6 +327,21 @@ def main(argv: list[str] | None = None) -> int:
         ),
     ):
         text = text.replace(f"****{old}****", f"****{new}****", 1)
+
+    # The sentence has to agree with the number this script just wrote.
+    #
+    # `_facts` counts every meeting in the window. The source world's brief
+    # states its STANDING meetings there instead -- 520 where its window
+    # holds 567 -- and its sentence ends "standing meetings" accordingly.
+    # Porting copies the sentence and replaces the number, which produced a
+    # brief reading "403 standing meetings" where 403 is the window total
+    # and the standing count is 383.
+    #
+    # Wrong in the direction that matters, too: the standing count is what
+    # the register asks the reader to report, so a brief stating it hands
+    # over a graded scalar, and one stating the total does not.
+    standing = "meetings, of which the standing ones are yours to identify."
+    text = re.sub(r"\bstanding meetings\.", standing, text, count=1)
     brief.write_text(text)
 
     manifest = target / "task.toml"
@@ -303,11 +392,30 @@ def main(argv: list[str] | None = None) -> int:
         )
     checker.write_text(checker_text)
 
+    _install(target, real_target)
+    target = real_target
     print(f"  {target.relative_to(REPO)}")
     print(f"    window: day 0..{last}  ->  {facts['first']} .. {facts['last']}")
     print(f"    {facts['working_days']} working days, {facts['meetings']} meetings")
     print("    now build it, read the floors, and re-measure the key")
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run the port, and leave no staging directory behind either way.
+
+    `_port` refuses in six places. Each refusal is correct and each one
+    used to leave a `<task>.porting` directory sitting in the tasks folder,
+    where `build_tasks` iterates every directory that does not start with
+    an underscore -- so a refused port became a task the next build tried
+    to build.
+    """
+
+    try:
+        return _port(argv)
+    finally:
+        for staged in (REPO / "datasets").glob("*/tasks/*.porting"):
+            shutil.rmtree(staged, ignore_errors=True)
 
 
 if __name__ == "__main__":
