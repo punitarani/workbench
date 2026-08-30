@@ -186,3 +186,40 @@ a defect: a shared misreading of a SCOPE produces the same wrong answer
 every time and looks exactly like a key defect.
 
 Tags: `opus-c1-k3`, `glm-c2-k3`, `kimi-c1-k3`.
+
+### delegation/blocker-register — CERTIFIED 2026-08-29
+
+Read 134 days of standing-meeting transcripts and report one row per person
+per meeting series who says they are stuck, with both ends of the chain.
+Keyed on `(owner, meeting, first_raised, last_raised)`; `raised_count`
+grades as a field.
+
+    uv run python scripts/certify.py --dataset delegation \
+        --task blocker-register --tag opus-blk2-k3 --tag glm-blk2-k3 \
+        --tag kimi-blk3-k3
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.706, 0.771, 0.809 | **0.762** | blockers.f1 0.846 |
+| glm-5.2 | 0.611, 0.684, 0.771 | **0.689** | blockers.f1 0.800 |
+| kimi-k3 | 0.150, 0.463, 0.554 | **0.389** | blockers.f1 0.485 |
+
+Floors: empty 0.000, no work 0.000, every candidate 0.202.
+
+**This task took five oracle defects to certify, and the gate found all of
+them.** It refused over five rows every trial of every tier had declined.
+Adjudicating each against the source -- not against the rule that produced
+it -- found the models right every time:
+
+| the key held | the passage says |
+|---|---|
+| a row from "nothing sits **waiting on me**" | the speaker is what everyone else waits FOR |
+| a row from "I **was** waiting on Klara's..." | the same turn says "I can confirm staffing today" |
+| no row for "Still waiting on Clement." | the subject is dropped, as this firm usually drops it |
+| a chain starting six days late | "**Separately,** still waiting on a name from Elena" |
+| a chain starting six weeks late | "sent..., cc'd her and adaora, **waiting on** her numbers" |
+
+Every tier rose when they were fixed -- opus 0.608 to 0.762, glm 0.523 to
+0.689, kimi 0.295 to 0.389 -- because the key now agrees with what the
+models were already reading. The brief states all five rules and the
+verifier insists that it does.
