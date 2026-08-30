@@ -26,6 +26,12 @@ assignment family needed a world with enough assignments in it: **122
 against merrick's 16**. It is the only world here commissioned *for* a
 family rather than a family found in a world.
 
+They share all 31 people, every meeting title and both rule modules, so a
+family that works on one is a task on the other for the cost of
+recomputing the four dates its brief states. **Thirteen live tasks**, six
+on `merrick` and seven on `delegation`; eight more were retired on
+measurement and each manifest carries the number that retired it.
+
 Six tool surfaces are served over MCP: `clio` (matters, people, time),
 `gmail`, `slack`, `imanage`, `calendar`, and `meetings` (transcripts).
 
@@ -46,6 +52,14 @@ Three rules generate them:
 Each rule has two independent derivations that must agree before an oracle
 ships: one over character spans and regex, one over word tokens. They
 currently agree on **4,998 turns across both worlds, 0 disagreements**.
+
+That check has a blind spot worth stating, because it was found the hard
+way: it cannot see both derivations being stale in the same direction. One
+task vendored its own copies of the rule and the checker rather than
+importing the world's, both forks drifted, and the gate compared one stale
+module against another and reported agreement. On that task's 1,399 mail
+messages the fork admitted 61 where the world's rule admits 57. Nothing
+vendors now.
 
 ## Why they are hard
 
@@ -92,10 +106,19 @@ Each task ships an `instruction.md`, an `environment/`, a reference
 `solution/`, an independent `checks/verify.py`, and `tests/` carrying the
 oracle and the criteria.
 
-The reward is row F1 against the truth set plus per-row fields. Coverage
-counts are reported, never scored. Floors are measured on every build: what
-an empty answer scores, what dumping every candidate scores, what doing
-nothing scores.
+The reward is row F1 against the truth set plus per-row fields. Floors are
+measured on every build: what an empty answer scores, what dumping every
+candidate scores, what doing nothing scores.
+
+Coverage counts are reported, not scored, and the line between the two is
+drawn by measurement rather than by taste. A criterion at ceiling for every
+tier is not measuring any of them, so `meetings_read` — 1.00 across all
+three tiers, and a date-filtered query away — pays nothing. `turns_read`
+reads 1.00, 0.33, 0.67 and still pays: counting turns means having opened
+the transcripts. `superseded_count` reads 0.00 for nearly every tier and
+pays anyway, because the oracle holds 128, the trials report 121 to 129,
+and three of them reported exactly 128 — hard is not the same as
+unmeasurable, and the test is whether anyone has ever scored it.
 
 A task is **certified** only when three model tiers each score inside
 0.2–0.8 on at least three trials that produced an answer, against one
@@ -118,7 +141,7 @@ logs. A clone reproduces the tasks and the oracles, not the measurements.
 ## Reading order
 
 - `docs/CERTIFIED.md` — what is certified, with every trial score
-- `docs/LAWS.md` — 42 measured laws, each with its number and its cost
+- `docs/LAWS.md` — 46 measured laws, each with its number and its cost
 - `docs/REALISM-REVIEW.md` — a practitioner's critique, answered with data
 - `docs/adjudications/` — every disputed row, with the passage behind it
 - `docs/RUNNING-SWEEPS.md` — the concurrency limit and how it lies to you
