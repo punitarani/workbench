@@ -25,10 +25,19 @@ same clause that carries the complaint. On this corpus:
 
 | | |
 |---|---|
-| blocked turns | 75 |
+| blocked turns | 58 |
 | naming a matter anywhere in the turn | 29 (50%) |
 | naming a matter **in the complaint clause** | 6 (**10%**) |
 | spoken labels that resolve to more than one matter | 21 of 22 |
+
+*(Measured against the blocker rule as it stood before its 2026-08-29
+corrections, which took the blocked-turn count from 58 to 75. The
+denominator has moved and these proportions have not been re-derived: the
+label-matching that produced them is not reproduced here, and putting a
+re-estimate in this table would be worse than saying so. The finding does
+not turn on the exact fraction — it turns on the complaint clause naming a
+matter an order of magnitude less often than the turn does, and on the
+labels being ambiguous when it does.)*
 
 Ten per cent, and the labels are ambiguous besides — "Coastal Meridian"
 names two matters and "Halden Orthopedics" three.
