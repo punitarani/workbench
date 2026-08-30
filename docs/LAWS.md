@@ -509,6 +509,37 @@ an average of something measured and something that is not.
 
 ---
 
+### L43. A key is chosen against a corpus, not against a family
+
+Two worlds carrying the SAME rule, the same brief and the same grader do
+not have to agree on how many components the key holds, and forcing them
+to agree puts one task outside the band to keep the other inside it.
+
+**Measured**, on the blocker register, by re-scoring saved deliverables:
+
+|  key  | merrick | delegation |
+|---|---|---|
+| (owner, meeting) | 1.000 | 0.953 |
+| + first_raised | 0.900 | 0.785 |
+| + last_raised | 0.900 | 0.729 |
+| + raised_count | **0.700** | 0.561 |
+
+The corpora differ in one property that nothing in the task states: on
+merrick 9 of 20 chains have `first == last`, so both ends of the chain
+cost almost nothing there and four components leave the strongest tier at
+0.900. On the denser world the same fifth component collapsed the WEAKEST
+tier to 0.137 and pushed it below the band.
+
+So merrick keys on five and delegation on four, each carrying the table
+that decided it. The instinct to make them match is an aesthetic one, and
+it is measurably wrong.
+
+**Therefore:** re-score the saved deliverables under every candidate key
+before choosing, per world. It costs no rollouts -- the answers are
+already on disk -- and it is the difference between a key argued for and a
+key measured.
+
+
 ## Part VI — Process
 
 ### L28. Print the evidence, then adjudicate; never let the rule judge itself
