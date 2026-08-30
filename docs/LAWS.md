@@ -626,6 +626,55 @@ against the family the gate guards, once, before believing the path
 exists. A capability with no caller looks exactly like a capability.
 
 
+### L47. Two derivations can be stale in the same direction
+
+The strongest check in this tree is two independently written derivations
+of a rule having to agree before an oracle ships. It cannot see them both
+being out of date.
+
+**Measured:** one task alone vendored its own copies of the rule and the
+checker into `solution/` and `checks/` instead of importing the world's
+modules. Both forks drifted. The build compared one stale module against
+the other, found no disagreement, and printed *second derivation agrees*
+on every build for as long as that lasted.
+
+    the world's rule admits      57  of 1,399 mail messages
+    the vendored fork admits     61
+
+Six messages, inside an answer key, behind a gate designed to catch
+exactly this. The agreement was real; both sides were simply old.
+
+**Therefore:** independence is necessary and not sufficient. A derivation
+must also be the CURRENT one, which means importing the shared module
+rather than holding a copy. Where a copy is unavoidable, hash it against
+its source in the build. `md5` over every vendored module in the tree took
+one command and found both of these.
+
+### L48. At ceiling and at floor are not the same finding
+
+A criterion every tier gets right is not measuring them. A criterion every
+tier gets wrong might be measuring them perfectly.
+
+**Measured**, on one register's three certified tiers:
+
+| criterion | opus | glm | kimi | verdict |
+|---|---|---|---|---|
+| `meetings_read` | 1.00 | 1.00 | 1.00 | free — a date-filtered query |
+| `turns_read` | 1.00 | 0.33 | 1.00 | keeps |
+| `superseded_count` | 0.00 | 0.00 | 0.00 | **keeps** |
+
+The third reads like the first: no separation, no signal, take it out. It
+is the opposite. The oracle holds 128, the trials report 121 to 129, and
+three of them reported exactly 128 — it is scored exact, so counting
+almost all of the supersessions earns nothing. That is a hard criterion,
+not an unscoreable one.
+
+**Therefore:** before retiring a criterion nobody scores, look at what
+they answered. Clustering near the truth is difficulty; scattering, or a
+value no reader could produce, is a defect. **The test is whether anybody
+has ever scored it**, and the answers are already on disk.
+
+
 ## Part VI — Process
 
 ### L28. Print the evidence, then adjudicate; never let the rule judge itself
