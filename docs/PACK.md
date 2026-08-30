@@ -182,6 +182,26 @@ achievable score.
 The floors that ARE achievable without comprehension are `no_work_at_all`
 and `empty_register`, and those sit at 0.000 to 0.200 across the pack.
 
+**Completion, reported beside the score and never folded into it.** How
+well a tier answers and how often it manages to answer are different facts,
+and only one is about the model.
+
+Every score in the certification record rests on a tier that answered all
+three attempts — **72 of 72**. That is partly by construction: a tier that
+loses a trial is re-run under a new tag, and the lost trial is excluded
+rather than averaged. So the honest companion figure is completion across
+*every* sweep ever run on the heaviest task in the pack, where a single
+trial spends 29 million input tokens against a 147-day window:
+
+| | opus | glm | kimi |
+|---|---|---|---|
+| answered / attempted | 31/38 (82%) | 24/37 (65%) | 25/27 (93%) |
+
+That pools three different causes — Docker address-pool exhaustion, a
+harness session assertion, and agents running out of budget with the
+deliverable unwritten — and only the last is about the model. The
+transcripts distinguish them; the scores cannot.
+
 **A zero is never averaged in as a score.** Across every saved trial in
 this tree, 89 produced no gradeable deliverable. Separated:
 
