@@ -75,6 +75,21 @@ answered 3 of 3, which looks like the task defeating the model that thinks
 hardest about it. Both of its failures were dropped streams. Completion
 there is a fact about the provider that day.
 
+**It clusters by MODEL and TASK, and the shape is legible.** On one mail
+register opus has answered 2 of 9 while glm and kimi answer 3 of 3 on the
+same task. Six of opus's seven failures are the same 400, and every one
+lands immediately after a shell command carrying a Python heredoc:
+
+    "type":"command_execution"     <- bash -lc "python3 - <<'EOF' ..."
+    "type":"error"                 <- Server tool request failed, 400
+    "type":"turn.failed"
+
+The task is not at fault -- two tiers complete it reliably -- and neither
+is the model in any sense the score would capture. It is a tool-use style
+meeting a router limit. What it costs is real: a tier that needs three
+graded trials and answers 22% of the time needs a k=9, not a k=3, and
+reading its 0-of-3 as difficulty would be wrong twice over.
+
 **It clusters, so do not read a run of them as a model result.** One tier
 lost 1 of 3 on its first sweep of a task and 3 of 3 on the next. Three in a
 row at the 6.2% base rate is about one chance in four thousand, so the
