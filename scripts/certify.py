@@ -121,6 +121,18 @@ def _rewards(job: Path, task: str, tasks_dir: Path | None = None) -> list[float]
     for trial in sorted(job.iterdir()):
         if trial.name.rsplit("__", 1)[0] != task and (trial / "verifier").is_dir():
             continue
+        # `result.json` is the harness's record that the trial RAN to
+        # completion. `band.py` has always required it and this did not,
+        # so the two gates could disagree about whether a tier exists --
+        # and did: one task certified on three tiers while `band` reported
+        # it INCOMPLETE with the same jobs on disk, because three trial
+        # directories had a reward and no result.
+        #
+        # The publication gate must be at least as strict as the tool that
+        # reports the band, or "certified" and "in band" stop meaning the
+        # same thing about the same evidence.
+        if not (trial / "result.json").is_file():
+            continue
         if wanted is not None:
             value, _why = _band()._outcome(trial, wanted, fields, parameters)
             if value is not None:
