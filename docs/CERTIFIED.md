@@ -327,3 +327,34 @@ The four waived rows are the same ones adjudicated for this world's
 `commitment-revision-register` in `docs/adjudications/` — same rule, same
 corpus, same readers reporting a meeting date where a resolved deadline
 belongs.
+
+### delegation/live-commitment-register — CERTIFIED 2026-08-30
+
+**A ported task.** The commitment family was cut on `merrick` and moved to
+this world by `scripts/port_task.py`; the two share every person and both
+rule modules, so the port recomputed four dates and changed nothing else.
+
+    uv run python scripts/certify.py --dataset delegation \
+        --task live-commitment-register \
+        --tag opus-lc1-k3 --tag glm-lc1-k3 --tag kimi-lc1-k3 \
+        --waive 'Dov Reinhardt | Billing and WIP review | 2026-05-18 | 2026-01-20' \
+        --waive 'Dov Reinhardt | Client board and committee updates | 2026-03-10 | 2026-02-10'
+
+| tier | trials | mean | heaviest criterion |
+|---|---|---|---|
+| opus-5 | 0.689, 0.693, 0.854 | **0.746** | live.f1 0.813 |
+| glm-5.2 | 0.398, 0.456, 0.525 | **0.460** | live.f1 0.542 |
+| kimi-k3 | 0.136, 0.324, 0.531 | **0.330** | live.f1 0.364 |
+
+Floors: empty 0.111, no work 0.000, every candidate 0.296 (a ceiling on a
+strategy that already holds the truth, not an achievable floor).
+
+Keyed on four components, not the five its source world uses. `superseded`
+moved to a field after measurement: at five, the weakest tier's row F1 was
+0.190, and the count produced three of this task's six unanimously-declined
+rows as near misses — 8 against 9, 10 against 9, 13 against 12. This world's
+chains run to 23 supersessions where the source world's run to 8.
+
+Both waived rows are recorded in `delegation-commitment-first-due.md`,
+adjudicated for this world's sibling register: same rule, same corpus, the
+same readers reporting a meeting date where a resolved deadline belongs.
