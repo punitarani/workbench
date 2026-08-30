@@ -540,6 +540,76 @@ already on disk -- and it is the difference between a key argued for and a
 key measured.
 
 
+### L44. The trials' own deliverables localise an oracle defect
+
+A unanimous refusal says *something* is wrong with a row. What is wrong is
+usually written in what the trials reported INSTEAD, and reading it is
+free -- the answers are already on disk.
+
+**Measured**, on five rows that blocked one certification:
+
+| the key | what the trials said | what it meant |
+|---|---|---|
+| first 2026-01-22, count 14 | first 2026-01-**16**, count 14 | one turn missing at the START |
+| first 2026-05-18 | 2026-04-**01** .. 05-18, count 2 | one turn missing, chain begins earlier |
+| last 2026-03-05 | last 2026-05-**18** | the chain does not stop where the key stops |
+
+Same count with a different start is not noise. It says the reader found a
+turn the key did not and dropped one the key kept, which points at a
+sentence rather than at a capability. Three of these five located the
+defect to the exact turn before any judge was spent.
+
+**Therefore:** before adjudicating, diff the key's row against the rows the
+trials returned for the same owner. Structure in the disagreement is the
+finding.
+
+### L45. Every conjunct of a guard needs its own measurement
+
+A guard that reads as one idea is usually several, and the ones that were
+never measured are where it is wrong in both directions.
+
+**Measured**, separating a report from an argument about a hypothetical
+wait -- *"waiting on Bennett before flagging Rosalie just compounds the
+delay"*:
+
+| guard | rejects | correct |
+|---|---|---|
+| a gerund adjunct | 2 | 1 |
+| ...and no first person in the clause | 1 | 1 |
+
+The gerund test alone also rejects *"still waiting on Harriet ... before
+drafting starts"*, which is a true report. And admitting a comma-carried
+subject on "the previous segment heads with a verb" admits 7 turns, 6 of
+them *"the deposition summary, **unscheduled**, blocked on the Martinez
+transcript"* -- the summary is blocked, not the speaker. Requiring
+complements as well as a verb admits 1, and it is the right one.
+
+**Therefore:** measure each conjunct alone before shipping the conjunction.
+A guard whose parts were never separated is a guard nobody has read.
+
+### L46. A shared tool can be uncallable for a whole family, silently
+
+Not dead code -- code that runs, is documented, is pointed at from a gate's
+own error message, and cannot be reached by half the tasks in the tree.
+
+**Measured**, in one adjudication, two tools deep:
+
+- `disputed.py` unpacks a row label as `owner | group | value` and this
+  family's key holds four parts. It failed at the assignment.
+- `adjudicate.py` finds the brief's rule sections through a `PINNED` table
+  and the blocker verifiers pin with `_STATED`. It found none and refused
+  to run.
+
+Both had been written, reviewed, documented and cited by `certify.py`'s
+refusal message for weeks. Neither had ever been called by a task in this
+family, and nothing said so until somebody tried at the moment it was
+needed.
+
+**Therefore:** when a gate names a tool in its refusal, run that tool
+against the family the gate guards, once, before believing the path
+exists. A capability with no caller looks exactly like a capability.
+
+
 ## Part VI — Process
 
 ### L28. Print the evidence, then adjudicate; never let the rule judge itself
