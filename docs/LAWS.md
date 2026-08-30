@@ -381,7 +381,8 @@ a brief comes to state one window while its solver reads another.
 A practitioner will tell you the real work uses recent cycles, not six
 months. Measure before agreeing.
 
-**Measured:** blockers occur in 58 turns of 2,872. At the last 8
+**Measured:** blockers occur in 75 turns of 2,872 (58 before the rule was
+corrected on 2026-08-29; the shape of the finding did not move). At the last 8
 occurrences of each standing series the register has **2 rows**; at the last
 12, four. A register that thin cannot score partially — every rollout comes
 back 0 or 1.

@@ -25,7 +25,7 @@ same clause that carries the complaint. On this corpus:
 
 | | |
 |---|---|
-| blocked turns | 58 |
+| blocked turns | 75 |
 | naming a matter anywhere in the turn | 29 (50%) |
 | naming a matter **in the complaint clause** | 6 (**10%**) |
 | spoken labels that resolve to more than one matter | 21 of 22 |
@@ -58,12 +58,17 @@ occurrences of each standing series:
 
 | window | meetings | rows | median raises |
 |---|---|---|---|
-| last 4 | 32 | **1** | 1.0 |
-| last 8 | 64 | **2** | 1.0 |
-| last 12 | 96 | **4** | 1.0 |
-| whole window | 520 | 20 | 2.0 |
+| last 4 | 32 | **2** | 1.0 |
+| last 8 | 64 | **3** | 1.0 |
+| last 12 | 96 | **5** | 1.0 |
+| whole window | 520 | 22 | 2.0 |
 
-At the realistic slice there are two rows. Blockers are rare — 58 turns in
+*(Re-measured 2026-08-29, after the blocker rule was corrected in seven
+ways. Every figure moved up by one or two and the conclusion did not move
+at all: at the realistic slice the register still has two or three rows,
+and a register with three rows cannot score partially.)*
+
+At the realistic slice there are two rows. Blockers are rare — 75 turns in
 2,872 — so the phenomenon's density sets a floor under the window, and
 realism cannot go below it.
 

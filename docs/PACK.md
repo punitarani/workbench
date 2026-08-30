@@ -109,7 +109,7 @@ small one.
   specification across a corpus no script can flatten.
 - **Not a realistic workload.** A practitioner would prepare a partner
   meeting from last week's notes, not six months of transcripts. The wide
-  window is arithmetic: blockers occur in 58 turns of 2,872, and at the
+  window is arithmetic: blockers occur in 75 turns of 2,872, and at the
   last eight occurrences of each series the register has **two rows**.
 - **Not a coherent firm across every surface.** Billing has a Gini of
   0.059 — every person logs 573 to 933 hours — and mail is inverted against
