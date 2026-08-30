@@ -37,6 +37,30 @@ DELIVERABLE = "owed.json"
 # The list carrying one entry per live promise.
 ROWS = "owed"
 
+# **The window lever does not reach this task's difficulty, measured
+# 2026-08-30 once the weakest tier had three graded trials.**
+#
+# kimi reads 0.059, 0.139, 0.224 -- a mean of 0.141, below the band -- and
+# that is now a measurement rather than a small sample. The reason is
+# supersession depth, and shortening the window barely touches it:
+#
+#     window   words   promises  rows  superseded  per person
+#        45d  92,676         32    12          20         2.7
+#        61d 118,888         36    12          24         3.0
+#     merrick  95,915        24    14          10         1.7
+#
+# Cutting to 45 days removes a quarter of the reading and moves
+# promises-per-person from 3.0 to 2.7, where the sibling world sits at 1.7
+# and its kimi scores 0.536. The volume is fixable and the density is not:
+# this world's people re-promise, which is what the register asks a reader
+# to see through.
+#
+# So the window is a completion lever, not a difficulty one, and the two
+# were worth separating before spending a rebuild on it.
+#
+# (Retained below: the volume measurement, which is still the right lever
+# if completion rather than score is the problem.)
+
 # **If the tiers cannot finish this, the lever is the WINDOW.** Measured
 # 2026-08-30, when opus answered 2 of 3 and glm 1 of 3 while the same
 # family on the sibling world answers 3 of 3:
